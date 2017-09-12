@@ -4,7 +4,7 @@
 
 	<groupId>cn.edu.tsinghua</groupId>
 	<artifactId>iotdb-benchmark</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>iotdb-benchmark</name>
@@ -19,23 +19,26 @@
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.12</slf4j.version>
 		<logback.version>1.1.3</logback.version>
-		<joda.version>2.9.9</joda.version>
 		<skip.ut>false</skip.ut>
 		<skip.it>false</skip.it>
 	</properties>
 
 	<dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
+			<groupId>cn.edu.tsinghua</groupId>
+			<artifactId>iotdb-jdbc</artifactId>
+			<version>0.1.2</version>
 		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
-
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -84,6 +87,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
 </project>
