@@ -17,31 +17,32 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 
-public class Config{
+public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
-	private static class ConfigHolder{  
-        public static Config instance = new Config();  
-    }
-	
-	private Config(){
+
+	private static class ConfigHolder {
+		public static Config instance = new Config();
+	}
+
+	private Config() {
 		initInnerFucntion();
 	}
-	
-    public static Config newInstance(){  
-        return ConfigHolder.instance;  
-    }
-	
-    public String host;
-    public String port;
-    
+
+	public static Config newInstance() {
+		return ConfigHolder.instance;
+	}
+
+	public String host;
+	public String port;
+
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 100;
 	/** 每个设备的传感器数量 */
-	public int SENSOR_NUMBER = 500;
+	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
-	public int CACHE_POINT_NUM = 100000;
+	public int CACHE_NUM = 100000;
 	/** 数据采集丢失率 */
 	public double POINT_LOSE_RATIO = 0.01;
 	// ============各函数比例start============//FIXME 传参数时加上这几个参数
@@ -73,7 +74,7 @@ public class Config{
 	/** 设备_传感器 时间偏移量 */
 	public Map<String, Long> SHIFT_TIME_MAP = new HashMap<String, Long>();
 	/** 传感器对应的函数 */
-	public  Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<String, FunctionParam>();
+	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<String, FunctionParam>();
 
 	/** 历史数据开始时间 */
 	public long HISTORY_START_TIME;
@@ -83,7 +84,7 @@ public class Config{
 	// 负载生成器参数 start
 	/** LoadBatchId 批次id */
 	public Long PERFORM_BATCH_ID;
-	
+
 	// 负载测试完是否删除数据
 	public boolean IS_DELETE_DATA = false;
 	public double WRITE_RATIO = 0.2;
@@ -102,11 +103,13 @@ public class Config{
 		MAX_QUERY_RATIO = mqr;
 		SIMPLE_QUERY_RATIO = sqr;
 		UPDATE_RATIO = ur;
-		if (WRITE_RATIO < 0 || RANDOM_INSERT_RATIO < 0 || MAX_QUERY_RATIO < 0 || SIMPLE_QUERY_RATIO < 0 || UPDATE_RATIO < 0) {
+		if (WRITE_RATIO < 0 || RANDOM_INSERT_RATIO < 0 || MAX_QUERY_RATIO < 0 || SIMPLE_QUERY_RATIO < 0
+				|| UPDATE_RATIO < 0) {
 			LOGGER.error("some of load rate cannot less than 0");
 			System.exit(0);
 		}
-		if (WRITE_RATIO == 0 && RANDOM_INSERT_RATIO == 0 && MAX_QUERY_RATIO == 0 && SIMPLE_QUERY_RATIO == 0 && UPDATE_RATIO == 0) {
+		if (WRITE_RATIO == 0 && RANDOM_INSERT_RATIO == 0 && MAX_QUERY_RATIO == 0 && SIMPLE_QUERY_RATIO == 0
+				&& UPDATE_RATIO == 0) {
 			WRITE_RATIO = 0.2;
 			SIMPLE_QUERY_RATIO = 0.2;
 			MAX_QUERY_RATIO = 0.2;
@@ -118,7 +121,7 @@ public class Config{
 			UPDATE_RATIO = 0.2;
 		}
 	}
-	
+
 	private void initInnerFucntion() {
 		FunctionXml xml = null;
 		try {
@@ -148,15 +151,15 @@ public class Config{
 			}
 		}
 	}
-	
+
 	/**
 	 * 初始化传感器函数 Constants.SENSOR_FUNCTION
 	 */
-	private void initSensorFunction() {
+	public void initSensorFunction() {
 		// 根据传进来的各个函数比例进行配置
 		double sumRatio = CONSTANT_RATIO + LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
-		if (sumRatio != 0 && CONSTANT_RATIO >= 0 && LINE_RATIO >= 0 && RANDOM_RATIO >= 0
-				&& SIN_RATIO >= 0 && SQUARE_RATIO >= 0) {
+		if (sumRatio != 0 && CONSTANT_RATIO >= 0 && LINE_RATIO >= 0 && RANDOM_RATIO >= 0 && SIN_RATIO >= 0
+				&& SQUARE_RATIO >= 0) {
 			double constantArea = CONSTANT_RATIO / sumRatio;
 			double lineArea = constantArea + LINE_RATIO / sumRatio;
 			double randomArea = lineArea + RANDOM_RATIO / sumRatio;
@@ -200,6 +203,34 @@ public class Config{
 		}
 	}
 
+	/**
+	 * 根据传感器数，初始化传感器编号
+	 * 
+	 * @param sensorSum
+	 * @return
+	 */
+	public List<String> initSensorCodes() {
+		for (int i = 0; i < SENSOR_NUMBER; i++) {
+			String sensorCode = "s_" + i;
+			SENSOR_CODES.add(sensorCode);
+		}
+		return SENSOR_CODES;
+	}
+
+	/**
+	 * 根据设备数，初始化设备编号
+	 * 
+	 * @param deviceSum
+	 * @return
+	 */
+	public List<String> initDeviceCodes() {
+		for (int i = 0; i < DEVICE_NUMBER; i++) {
+			String deviceCode = "d_" + i;
+			DEVICE_CODES.add(deviceCode);
+		}
+		return DEVICE_CODES;
+	}
+
 	public String getSensorCodeByRandom() {
 		List<String> sensors = SENSOR_CODES;
 		int size = sensors.size();
@@ -212,5 +243,10 @@ public class Config{
 		int size = devices.size();
 		Random r = new Random();
 		return devices.get(r.nextInt(size));
+	}
+
+	public static void main(String[] args) {
+		// Config config = Config.newInstance();
+
 	}
 }

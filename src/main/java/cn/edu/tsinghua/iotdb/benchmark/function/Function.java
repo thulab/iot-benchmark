@@ -112,9 +112,16 @@ public class Function {
 		Random r = new Random();
 		return r.nextDouble() * (max - min) + min;
 	}
+	
+	
 
 	public static void main(String[] args) throws InterruptedException {
 
+	}
+	
+	public static Number getValueByFuntionidAndParam(FunctionParam param, long currentTime) {
+		return getValueByFuntionidAndParam(FunctionType.valueOf(
+				param.getFunctionType().toUpperCase()), param.getMax(), param.getMin(), param.getCycle(), currentTime);
 	}
 
 	public static Number getValueByFuntionidAndParam(FunctionType functionType, double max, double min, long cycle,

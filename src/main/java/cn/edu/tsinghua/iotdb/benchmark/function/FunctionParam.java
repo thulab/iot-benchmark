@@ -86,39 +86,39 @@ public class FunctionParam {
 		return super.equals(obj);
 	}
 	
-	public static FunctionParam getFunctionByFunctionTypeAndId(String functionType, String functionId) {
-		Config config = Config.newInstance();
-		if (functionType.indexOf("_mono_k") != -1) {
-			for (FunctionParam param : config.LINE_LIST) {
-				if (functionId.equals(param.getId())) {
-					return param;
-				}
-			}
-		} else if (functionType.indexOf("_mono") != -1) {
-			for (FunctionParam param : config.CONSTANT_LIST) {
-				if (functionId.equals(param.getId())) {
-					return param;
-				}
-			}
-		} else if (functionType.indexOf("_sin") != -1) {
-			for (FunctionParam param : config.SIN_LIST) {
-				if (functionId.equals(param.getId())) {
-					return param;
-				}
-			}
-		} else if (functionType.indexOf("_square") != -1) {
-			for (FunctionParam param : config.SQUARE_LIST) {
-				if (functionId.equals(param.getId())) {
-					return param;
-				}
-			}
-		} else if (functionType.indexOf("_random") != -1) {
-			for (FunctionParam param : config.RANDOM_LIST) {
-				if (functionId.equals(param.getId())) {
-					return param;
-				}
-			}
-		}
-		return null;
-	}
+//	public static FunctionParam getFunctionByFunctionTypeAndId(String functionType, String functionId) {
+//		Config config = Config.newInstance();
+//		if (functionType.indexOf("_mono_k") != -1) {
+//			for (FunctionParam param : config.LINE_LIST) {
+//				if (functionId.equals(param.getId())) {
+//					return param;
+//				}
+//			}
+//		} else if (functionType.indexOf("_mono") != -1) {
+//			for (FunctionParam param : config.CONSTANT_LIST) {
+//				if (functionId.equals(param.getId())) {
+//					return param;
+//				}
+//			}
+//		} else if (functionType.indexOf("_sin") != -1) {
+//			for (FunctionParam param : config.SIN_LIST) {
+//				if (functionId.equals(param.getId())) {
+//					return param;
+//				}
+//			}
+//		} else if (functionType.indexOf("_square") != -1) {
+//			for (FunctionParam param : config.SQUARE_LIST) {
+//				if (functionId.equals(param.getId())) {
+//					return param;
+//				}
+//			}
+//		} else if (functionType.indexOf("_random") != -1) {
+//			for (FunctionParam param : config.RANDOM_LIST) {
+//				if (functionId.equals(param.getId())) {
+//					return param;
+//				}
+//			}
+//		}
+//		return null;
+//	}
 }

@@ -34,7 +34,7 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
-	public void insert() {
+	public void insertOneBatch(String device, int index) {
 		// TODO Auto-generated method stub
 
 	}
@@ -52,7 +52,7 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
-	public void createConnection() throws SQLException {
+	public void init() throws SQLException {
 		connection = DriverManager.getConnection(String.format(Constants.URL, Config.newInstance().host, Config.newInstance().port), Constants.USER, Constants.PASSWD);
 	}
 
