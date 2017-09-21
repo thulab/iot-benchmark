@@ -2,8 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.function;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-
 /**
  * 函数参数类 主要包含函数类别，函数参数
  * 

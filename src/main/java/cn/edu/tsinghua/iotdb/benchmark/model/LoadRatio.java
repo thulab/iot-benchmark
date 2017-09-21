@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.enums.LoadTypeEnum;
 
 public class LoadRatio {
@@ -36,7 +37,7 @@ public class LoadRatio {
 	}
 
 	public static LoadRatio newInstanceByLoadType(LoadTypeEnum loadType) {
-		Config config = Config.newInstance();
+		Config config = ConfigDescriptor.getInstance().getConfig();
 		switch (loadType) {
 		case WRITE:
 			return new LoadRatio(1, 0, 0, 0, 0);

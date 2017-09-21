@@ -13,5 +13,7 @@ public class Constants {
 	public static final String PASSWD ="root";
 	public static final String ROOT_SERIES_NAME="root.performf";
 	
-	public static final String CONSOLE_PREFIX = "IotDB-benchmark";
+	public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
+	
+	public static final String BENCHMARK_CONF = "benchmark-conf";
 }

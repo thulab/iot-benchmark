@@ -19,17 +19,9 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 
 public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
+	
+	public Config(){
 
-	private static class ConfigHolder {
-		public static Config instance = new Config();
-	}
-
-	private Config() {
-		initInnerFucntion();
-	}
-
-	public static Config newInstance() {
-		return ConfigHolder.instance;
 	}
 
 	public String host;
@@ -43,6 +35,9 @@ public class Config {
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
 	public int CACHE_NUM = 10;
+	
+	public long LOOP = 10000;
+	
 	/** 数据采集丢失率 */
 	public double POINT_LOSE_RATIO = 0.01;
 	// ============各函数比例start============//FIXME 传参数时加上这几个参数
@@ -122,7 +117,7 @@ public class Config {
 		}
 	}
 
-	private void initInnerFucntion() {
+	public void initInnerFucntion() {
 		FunctionXml xml = null;
 		try {
 			InputStream input = Function.class.getResourceAsStream("function.xml");
