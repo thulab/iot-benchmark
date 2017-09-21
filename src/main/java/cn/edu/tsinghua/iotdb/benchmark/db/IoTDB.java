@@ -5,6 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -13,6 +16,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IoTDB implements IDatebase {
+	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 	
 	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
 	private static final String setStorageLevelSQL = "set storage group to %s";
@@ -61,8 +65,7 @@ public class IoTDB implements IDatebase {
 			statement.execute(String.format(createStatementSQL, Constants.ROOT_SERIES_NAME+"."+device+"."+sensor));
 			statement.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.warn(e.getMessage());
 		}
 
 	}
@@ -106,7 +109,6 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
-		
 		return builder.toString();
 	}
 
