@@ -36,13 +36,13 @@ public class Config {
 	public String port;
 
 	/** 设备数量 */
-	public int DEVICE_NUMBER = 100;
+	public int DEVICE_NUMBER = 2;
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
-	public int CACHE_NUM = 100000;
+	public int CACHE_NUM = 10;
 	/** 数据采集丢失率 */
 	public double POINT_LOSE_RATIO = 0.01;
 	// ============各函数比例start============//FIXME 传参数时加上这几个参数

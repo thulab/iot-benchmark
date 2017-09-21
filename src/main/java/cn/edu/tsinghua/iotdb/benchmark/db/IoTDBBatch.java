@@ -14,14 +14,14 @@ import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 import cn.edu.tsinghua.tsfile.common.utils.Pair;
 
 public class IoTDBBatch implements Callable<Pair<Long, Long>>{
-//	private Connection connection;
+	private Connection connection;
 	private Config config;
 	private String device;
 	private int batch;
 	
-	public IoTDBBatch(String device, int batch) {
-//		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
-//		connection = DriverManager.getConnection(String.format(Constants.URL, Config.newInstance().host, Config.newInstance().port), Constants.USER, Constants.PASSWD);
+	public IoTDBBatch(String device, int batch) throws SQLException, ClassNotFoundException {
+		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
+		connection = DriverManager.getConnection(String.format(Constants.URL, Config.newInstance().host, Config.newInstance().port), Constants.USER, Constants.PASSWD);
 		config = Config.newInstance();
 		this.device = device;
 		this.batch = batch;
@@ -29,14 +29,13 @@ public class IoTDBBatch implements Callable<Pair<Long, Long>>{
 		
 	@Override
 	public Pair<Long, Long> call() throws Exception {
-		// TODO Auto-generated method stub
-//		Statement statement = connection.createStatement();
+		Statement statement = connection.createStatement();
 		long startTime = System.currentTimeMillis();
-//		for(int i = 0; i < config.CACHE_NUM;i++){
-//			String sql = createSQLStatment(batch, i);
-//			statement.addBatch(sql);
-//		}
-//		statement.executeBatch();
+		for(int i = 0; i < config.CACHE_NUM;i++){
+			String sql = createSQLStatment(batch, i);
+			statement.addBatch(sql);
+		}
+		statement.executeBatch();
 		long endTime = System.currentTimeMillis();
 		
 		return new Pair<Long, Long>(startTime, endTime);
@@ -67,9 +66,9 @@ public class IoTDBBatch implements Callable<Pair<Long, Long>>{
 		config.initSensorCodes();
 		config.initSensorFunction();
 		
-		IoTDBBatch batch = new IoTDBBatch("1", 1);
-		System.out.println(batch.createSQLStatment(0, 0));
-		System.out.println(batch.createSQLStatment(0, 1));
+//		IoTDBBatch batch = new IoTDBBatch("1", 1);
+//		System.out.println(batch.createSQLStatment(0, 0));
+//		System.out.println(batch.createSQLStatment(0, 1));
 		
 	}
 
