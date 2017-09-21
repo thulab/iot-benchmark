@@ -22,3 +22,5 @@ src/main/resources/*
 *.gz
 *.tar.gz
 *.tar
+
+conf/*
