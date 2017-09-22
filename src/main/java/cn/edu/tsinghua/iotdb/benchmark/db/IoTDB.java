@@ -19,6 +19,7 @@ public class IoTDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 	
 	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
+//	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=RLE";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	private Connection connection;
 	private Config config;
@@ -43,15 +44,22 @@ public class IoTDB implements IDatebase {
 		Statement statement;
 		try {
 			statement = connection.createStatement();
-//			long startTime = System.currentTimeMillis();
 			for(int i = 0; i < config.CACHE_NUM;i++){
 				String sql = createSQLStatment(batchIndex, i, device);
 				statement.addBatch(sql);
 			}
+			long startTime = System.currentTimeMillis();
+
 			statement.executeBatch();
+			statement.clearBatch();
 			statement.close();
-//			long endTime = System.currentTimeMillis();
-//			System.out.println("Insert one batch");
+			long endTime = System.currentTimeMillis();
+			LOGGER.info("{} execute {} batch, it costs {}ms, throughput {} points/ms", 
+					Thread.currentThread().getName(),
+					batchIndex,
+					endTime-startTime,
+					config.CACHE_NUM*config.SENSOR_NUMBER / (double) (endTime-startTime));
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

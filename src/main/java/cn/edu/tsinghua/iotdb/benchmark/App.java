@@ -26,18 +26,6 @@ public class App {
 		for(int i = 0; i < config.DEVICE_NUMBER;i++){
 			executorService.submit(new ClientThread(new IoTDB(), i));
 		}
-//		while(true){
-//			if(executorService.isTerminated()){
-//				executorService.shutdown();
-//				break;
-//			}
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
 		executorService.shutdown();
 	}
 }
