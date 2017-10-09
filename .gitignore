@@ -16,7 +16,7 @@
 
 # intermediately generated locally
 **/logs/
-src/main/resources/*
+
 
 *.jar
 *.gz
