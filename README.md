@@ -9,22 +9,23 @@
 
 ### install tsfile
 
-> git clone https://github.com/thulab/tsfile.git
-
-> cd tsfile/
-
-> mvn clean install -Dmaven.test.skip=true
+```sh
+git clone https://github.com/thulab/tsfile.git
+cd tsfile/
+mvn clean install -Dmaven.test.skip=true
+```
 
 ### install iotdb-jdbc
 
-> git clone https://github.com/thulab/iotdb-jdbc.git
-
-> cd iotdb-jdbc/
-
-> mvn clean install -Dmaven.test.skip=true
+```sh
+git clone https://github.com/thulab/iotdb-jdbc.git
+cd iotdb-jdbc/
+mvn clean install -Dmaven.test.skip=true
+```
 
 ## How to run
 
-> cd iotdb-benchmark
-
-> ./benchmark.sh
+```sh
+cd iotdb-benchmark
+./benchmark.sh
+```
