@@ -4,6 +4,6 @@ git pull
 
 mvn clean package -Dmaven.test.skip=true
 
-cd conf
+cd bin
 
 ./startup.sh -cf ../conf/config.properties
