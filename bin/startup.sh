@@ -26,6 +26,6 @@ else
 fi
 
 
-exec "$JAVA" -cp "$CLASSPATH" "$MAIN_CLASS" "$@" 
+exec "$JAVA" -Dlogback.configurationFile=${BENCHMARK_HOME}/conf/logback.xml  -cp "$CLASSPATH" "$MAIN_CLASS" "$@" 
 
 exit $?
