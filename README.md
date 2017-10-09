@@ -27,8 +27,4 @@
 
 > cd iotdb-benchmark
 
-> mvn clean package -Dmaven.test.skip=true
-
-> cd bin
-
-> ./startup.sh -cf ../conf/config.properties
+> ./benchmark.sh
