@@ -6,4 +6,4 @@ mvn clean package -Dmaven.test.skip=true
 
 cd bin
 
-./startup.sh -cf ../conf/config.properties
+sh startup.sh -cf ../conf/config.properties
