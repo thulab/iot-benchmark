@@ -32,10 +32,10 @@ public class IoTDB implements IDatebase {
 	@Override
 	public void createSchema() throws SQLException {
 		for(String device : config.DEVICE_CODES){
+			setStorgeGroup(device);
 			for(String sensor : config.SENSOR_CODES){
 				createTimeseries(device, sensor);
 			}
-			setStorgeGroup(device);
 		}
 	}
 
