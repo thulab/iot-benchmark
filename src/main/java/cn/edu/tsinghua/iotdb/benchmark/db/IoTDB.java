@@ -40,7 +40,7 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
-	public void insertOneBatch(String device, int batchIndex, long totalTime) {
+	public long insertOneBatch(String device, int batchIndex, long totalTime) {
 		Statement statement;
 		try {
 			statement = connection.createStatement();
@@ -58,7 +58,7 @@ public class IoTDB implements IDatebase {
 					Thread.currentThread().getName(),
 					batchIndex,
 					endTime-startTime,
-					config.CACHE_NUM*config.SENSOR_NUMBER / (double) (endTime-startTime))
+					config.CACHE_NUM*config.SENSOR_NUMBER / (double) (endTime-startTime),
 					totalTime+(endTime-startTime));
 			return totalTime+(endTime-startTime);
 			
