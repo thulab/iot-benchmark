@@ -13,7 +13,7 @@ public class ClientThread implements Runnable{
 	private int index;
 	private Config config;
 	private static final Logger LOOGER = LoggerFactory.getLogger(ClientThread.class);
-	
+	private static long totalTime;
 	public ClientThread(IDatebase datebase, int index) {
 		this.database = datebase;
 		this.index = index;
@@ -32,7 +32,7 @@ public class ClientThread implements Runnable{
 		}
 		while(i < config.LOOP){
 			try {
-				database.insertOneBatch(config.DEVICE_CODES.get(index), i);
+				totalTime = database.insertOneBatch(config.DEVICE_CODES.get(index), i, totalTime);
 			} catch (SQLException e) {
 				LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
 			}
