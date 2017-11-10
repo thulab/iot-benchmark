@@ -35,6 +35,19 @@ public class Config {
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
 	public int CACHE_NUM = 10;
+
+	/**服务器性能监测模式*/
+	public boolean SERVER_MODE = false;
+
+	/** 文件的名字 */
+	public String FILE_PATH ;
+	/** 是否从文件读取数据*/
+	public boolean READ_FROM_FILE = false;
+	/** 一次插入到数据库的条数 */
+	public int BATCH_OP_NUM = 100;
+
+	public boolean TAG_PATH = true;
+	public int STORE_MODE = 1;
 	
 	public long LOOP = 10000;
 	
