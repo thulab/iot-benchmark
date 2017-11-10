@@ -39,6 +39,8 @@ public class Config {
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;
 
+	public int INTERVAL = 1;
+
 	/** 文件的名字 */
 	public String FILE_PATH ;
 	/** 是否从文件读取数据*/
@@ -47,6 +49,7 @@ public class Config {
 	public int BATCH_OP_NUM = 100;
 
 	public boolean TAG_PATH = true;
+
 	public int STORE_MODE = 1;
 	
 	public long LOOP = 10000;

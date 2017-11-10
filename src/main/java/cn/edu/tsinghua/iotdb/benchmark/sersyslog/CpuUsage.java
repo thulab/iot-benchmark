@@ -29,7 +29,7 @@ public class CpuUsage  {
      * @param
      * @return float,CPU使用率,小于1
      */
-
+/*
     public float shortget() {
         //log.info("开始收集cpu使用率");
         float cpuUsage = 0;
@@ -102,42 +102,38 @@ public class CpuUsage  {
         }
         return cpuUsage;
     }
-
+*/
 
     public float get() {
-        float ioUsage = 0.0f;
+        float cpuUsage = 0.0f;
         Process pro = null;
         Runtime r = Runtime.getRuntime();
         try {
             //-n 2 表示刷新2轮后退出top，因为1轮的话cpu利用率不会变，默认刷新间隔1s
-            String command = "top  -n 2 -b";
+            String command = "iostat -c";
             pro = r.exec(command);
             BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
             String line = null;
             int count =  0;
             while((line=in.readLine()) != null) {
                 //log.info(line);
-                String[] memInfo = line.split("\\s+");
-                if (memInfo[0].startsWith("%Cpu")){
-                    ++count;
-                }
-                if (memInfo[0].startsWith("%Cpu")&&count==2) {
-                    ioUsage = Float.parseFloat(memInfo[7]);
+                if(++count >= 4){
                     //log.info(line);
-                    ioUsage = 100 - ioUsage;
-                    if (ioUsage > 0) {
-                        //log.info("磁盘IO使用率,{}%" , ioUsage);
-                        ioUsage /= 100.0;
+                    String[] temp = line.split("\\s+");
+                    if(temp.length > 1){
+                        //avg-cpu
+                        cpuUsage =  Float.parseFloat(temp[temp.length-1]);
                     }
                     break;
                 }
             }
+            cpuUsage = 1 - cpuUsage/100.0f;
             in.close();
             pro.destroy();
         } catch (IOException e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
         }
-        return ioUsage;
+        return cpuUsage;
     }
 }

@@ -44,6 +44,7 @@ public class IoUsage {
                     String[] temp = line.split("\\s+");
                     if(temp.length > 1){
                         float util =  Float.parseFloat(temp[temp.length-1]);
+                        //返回设备中利用率最大的
                         ioUsage = (ioUsage>util)?ioUsage:util;
                     }
                 }

@@ -24,17 +24,19 @@ public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
-		Config config = ConfigDescriptor.getInstance().getConfig();
+
 		CommandCli cli = new CommandCli();
 		if(!cli.init(args)){
 			return;
 		}
+		Config config = ConfigDescriptor.getInstance().getConfig();
 		if(config.SERVER_MODE) {
 			File file = new File("/home/hadoop/liurui/log_stop_flag");
-			int interval = 0;
-			LOGGER.info("----------New Test Begin with interval {} s----------", interval + 1);
+			int interval = config.INTERVAL;
+			//检测所需的时间在目前代码的参数下至少为1秒
+			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 1);
 			while (true) {
-				LOGGER.info("CPU使用率,{}", CpuUsage.getInstance().shortget());
+				LOGGER.info("CPU使用率,{}", CpuUsage.getInstance().get());
 				LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
 				LOGGER.info("磁盘IO使用率,{}", IoUsage.getInstance().get());
 				LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
@@ -44,7 +46,10 @@ public class App {
 					e.printStackTrace();
 				}
 				if (file.exists()) {
-					file.delete();
+					boolean f =file.delete();
+					if(!f){
+						LOGGER.error("log_stop_flag 文件删除失败");
+					}
 					break;
 				}
 			}
