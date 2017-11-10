@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IoTDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-	
+
 	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
 	private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
@@ -32,7 +32,7 @@ public class IoTDB implements IDatebase {
 	private Config config;
 	private List<Point> points;
 	private Map<String, String> mp;
-	
+
 
 	public IoTDB() throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -40,10 +40,9 @@ public class IoTDB implements IDatebase {
 		points = new ArrayList<>();
 		mp=new HashMap<>();
 	}
-	
+
 	@Override
 	public void createSchema() throws SQLException {
-<<<<<<< HEAD
 		if(config.READ_FROM_FILE){
 			initSchema();
 			mp.put("INT32", "PLAIN");
@@ -91,7 +90,7 @@ public class IoTDB implements IDatebase {
 		}
 
 	}
-	
+
 	private void initSchema(){
 		//解析到points
 		BufferedReader reader = null;
@@ -99,42 +98,42 @@ public class IoTDB implements IDatebase {
 			File file = new File(config.FILE_PATH);
 			reader = new BufferedReader(new FileReader(file));
 			String tempString = null;
-	        
-	        // 读到指定的行数或者文件结束
-	        while ((tempString = reader.readLine()) != null) {
-	        	
-	        	Point p = new Point();
-	        	
-	            String[] pointInfo = tempString.split(" ") ;
-	            StringTokenizer st = new StringTokenizer(pointInfo[0], ",=");
-	            
-	            //解析出measurement
-	            if(st.hasMoreElements())
-	            	p.measurement = st.nextToken().replace('.', '_');
-	            
-	            //解析出tag的K-V对
-	            while(st.hasMoreElements()){  
-	                p.tagName.add(st.nextToken().replace('.', '_'));
-	                p.tagValue.add(st.nextToken().replace('.', '_').replace('/', '_'));
-	            }
-	            
-	            //解析出field的K-V对
-	            st = new StringTokenizer(pointInfo[1], ",=");
-	            while(st.hasMoreElements()){  
-	            	p.fieldName.add(st.nextToken());
-	            	p.fieldValue.add(string2num(st.nextToken()));
-	            } 
-	                
-	            p.time = Long.parseLong(pointInfo[2]); 
-	            if(points.size() == 0 || !points.get(0).getPath().equals(p.getPath())){
-	            	points.add(p);
-	            }else{
-	            	break;
-				}
-	         }
 
-	     }
-		 catch (FileNotFoundException e) {
+			// 读到指定的行数或者文件结束
+			while ((tempString = reader.readLine()) != null) {
+
+				Point p = new Point();
+
+				String[] pointInfo = tempString.split(" ") ;
+				StringTokenizer st = new StringTokenizer(pointInfo[0], ",=");
+
+				//解析出measurement
+				if(st.hasMoreElements())
+					p.measurement = st.nextToken().replace('.', '_');
+
+				//解析出tag的K-V对
+				while(st.hasMoreElements()){
+					p.tagName.add(st.nextToken().replace('.', '_'));
+					p.tagValue.add(st.nextToken().replace('.', '_').replace('/', '_'));
+				}
+
+				//解析出field的K-V对
+				st = new StringTokenizer(pointInfo[1], ",=");
+				while(st.hasMoreElements()){
+					p.fieldName.add(st.nextToken());
+					p.fieldValue.add(string2num(st.nextToken()));
+				}
+
+				p.time = Long.parseLong(pointInfo[2]);
+				if(points.size() == 0 || !points.get(0).getPath().equals(p.getPath())){
+					points.add(p);
+				}else{
+					break;
+				}
+			}
+
+		}
+		catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NumberFormatException e) {
@@ -153,30 +152,19 @@ public class IoTDB implements IDatebase {
 			}
 		}
 	}
-	
+
 	private static Number string2num(String str) {
 		// TODO Auto-generated method stub
-		if(str.endsWith("i")){	
+		if(str.endsWith("i")){
 			return Long.parseLong(str.substring(0,str.length()-1));
 		}
 		else{
 			return Double.parseDouble(str);
-=======
-		for(String device : config.DEVICE_CODES){
-			setStorgeGroup(device);
-			for(String sensor : config.SENSOR_CODES){
-				createTimeseries(device, sensor);
-			}
->>>>>>> cd4bf755e8391ee899a9933d23f2fe08456e34f6
 		}
 	}
 
 	@Override
-<<<<<<< HEAD
 	public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime) {
-=======
-	public long insertOneBatch(String device, int batchIndex, long totalTime) {
->>>>>>> cd4bf755e8391ee899a9933d23f2fe08456e34f6
 		Statement statement;
 		try {
 			statement = connection.createStatement();
@@ -189,7 +177,6 @@ public class IoTDB implements IDatebase {
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
-<<<<<<< HEAD
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
 					Thread.currentThread().getName(),
 					batchIndex,
@@ -197,27 +184,16 @@ public class IoTDB implements IDatebase {
 					(totalTime.get()+(endTime-startTime))/1000.0,
 					(config.CACHE_NUM*config.SENSOR_NUMBER / (double) (endTime-startTime))*1000);
 			totalTime.set(totalTime.get()+(endTime-startTime));
-=======
-			LOGGER.info("{} execute {} batch, it costs {}ms, throughput {} points/ms, totaltime {}", 
-					Thread.currentThread().getName(),
-					batchIndex,
-					endTime-startTime,
-					config.CACHE_NUM*config.SENSOR_NUMBER / (double) (endTime-startTime),
-					totalTime+(endTime-startTime));
-			return totalTime+(endTime-startTime);
-			
->>>>>>> cd4bf755e8391ee899a9933d23f2fe08456e34f6
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return totalTime;
 		}
 	}
-	
+
 	@Override
 	public void insertOneBatch(LinkedList<String> cons , int batchIndex,ThreadLocal<Long> totalTime) throws SQLException {
 		// TODO Auto-generated method stub
-		
+
 		Statement statement;
 		try {
 			statement = connection.createStatement();
@@ -241,9 +217,9 @@ public class IoTDB implements IDatebase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
-	
+
 	private void createTimeseries(String path, String sensor){
 		Statement statement;
 		try {
@@ -261,7 +237,7 @@ public class IoTDB implements IDatebase {
 		}
 
 	}
-	
+
 	private void setStorgeGroup(String device) {
 		Statement statement;
 		try {
@@ -290,11 +266,11 @@ public class IoTDB implements IDatebase {
 			connection.close();
 		}
 	}
-	
+
 	private String createSQLStatment(int batch, int index, String device){
 		StringBuilder builder = new StringBuilder();
 		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(device).append("(timestamp");
-		
+
 		for(String sensor: config.SENSOR_CODES){
 			builder.append(",").append(sensor);
 		}
@@ -308,7 +284,7 @@ public class IoTDB implements IDatebase {
 		builder.append(")");
 		return builder.toString();
 	}
-	
+
 	private String getTypeByField(String name){
 		if(name.endsWith("_percent") || name.startsWith("usage_")){
 			return "DOUBLE";
@@ -316,6 +292,6 @@ public class IoTDB implements IDatebase {
 		return "INT64";
 	}
 
-	
+
 
 }

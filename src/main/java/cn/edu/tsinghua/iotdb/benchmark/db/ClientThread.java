@@ -17,7 +17,6 @@ public class ClientThread implements Runnable{
 	private int index;
 	private Config config;
 	private static final Logger LOOGER = LoggerFactory.getLogger(ClientThread.class);
-<<<<<<< HEAD
 	private Storage storage;
 	private static ThreadLocal<Long> totalTime = new ThreadLocal<Long>(){
 		protected Long initialValue(){
@@ -28,15 +27,12 @@ public class ClientThread implements Runnable{
 	private ArrayList<Long> totalTimes;
 
 
-=======
-	private static long totalTime;
->>>>>>> cd4bf755e8391ee899a9933d23f2fe08456e34f6
 	public ClientThread(IDatebase datebase, int index) {
 		this.database = datebase;
 		this.index = index;
 		this.config = ConfigDescriptor.getInstance().getConfig();
 	}
-	
+
 	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch, ArrayList<Long> totalTimes) {
 		this.database = datebase;
 		this.index = index;
@@ -45,8 +41,8 @@ public class ClientThread implements Runnable{
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
 	}
-	
-	
+
+
 	@Override
 	public void run() {
 		int i = 0;
@@ -56,8 +52,7 @@ public class ClientThread implements Runnable{
 			LOOGER.error("{} Fail to init database becasue {}",Thread.currentThread().getName(), e1.getMessage());
 			return;
 		}
-<<<<<<< HEAD
-		
+
 		if(config.READ_FROM_FILE){
 			while(true){
 				try {
@@ -81,17 +76,10 @@ public class ClientThread implements Runnable{
 					LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
 				}
 				i++;
-=======
-		while(i < config.LOOP){
-			try {
-				totalTime = database.insertOneBatch(config.DEVICE_CODES.get(index), i, totalTime);
-			} catch (SQLException e) {
-				LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
->>>>>>> cd4bf755e8391ee899a9933d23f2fe08456e34f6
 			}
 		}
-		
-		
+
+
 		try {
 			database.close();
 		} catch (SQLException e) {
