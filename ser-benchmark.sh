@@ -12,6 +12,10 @@ sed -i 's/SERVER_MODE *= *false/SERVER_MODE=true/g' $BENCHMARK_HOME/conf/config.
 
 cd $BENCHMARK_HOME
 
+FLAGPATH="/home/hadoop/liurui/log_stop_flag"
+if [ -f "$FLAGPATH" ]; then
+    rm $FLAGPATH 
+
 mvn clean package -Dmaven.test.skip=true
 
 echo '------Server Test Begin Time------'
