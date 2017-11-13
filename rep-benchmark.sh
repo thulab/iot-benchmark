@@ -5,4 +5,3 @@ do
   sh cli-benchmark.sh
 done
 
-
