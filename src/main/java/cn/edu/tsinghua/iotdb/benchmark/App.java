@@ -91,12 +91,12 @@ public class App {
 						totalTime = c;
 					}
 				}
-				LOGGER.info("READ_FROM_FILE = {}, TAG_PATH = {}, STORE_MODE = {}, BATCH_OP_NUM = {}",
+				LOGGER.info("READ_FROM_FILE = ,{}, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
 						config.READ_FROM_FILE,
 						config.TAG_PATH,
 						config.STORE_MODE,
 						config.BATCH_OP_NUM);
-				LOGGER.info("loaded {} items in {}s with {} workers (mean rate {} items/s)",
+				LOGGER.info("loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
 						totalItem,
 						totalTime / 1000.0,
 						config.DEVICE_NUMBER,

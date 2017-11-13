@@ -18,6 +18,7 @@ ssh hadoop@192.168.130.16 "sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
 
 echo 'wait 15s for lauching IoTDB...'
 sleep 15
+
 ssh hadoop@192.168.130.16 "sh /home/hadoop/liurui/github/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
 echo '------Client Test Begin Time------'
 date
