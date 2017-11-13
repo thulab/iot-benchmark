@@ -33,12 +33,13 @@ public class App {
 		if(config.SERVER_MODE) {
 			File file = new File("/home/hadoop/liurui/log_stop_flag");
 			int interval = config.INTERVAL;
-			//检测所需的时间在目前代码的参数下至少为1秒
-			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 1);
+			//检测所需的时间在目前代码的参数下至少为2秒
+			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
 			while (true) {
-				LOGGER.info("CPU使用率,{}", CpuUsage.getInstance().get());
+				ArrayList<Float> list = IoUsage.getInstance().get();
+				LOGGER.info("CPU使用率,{}", list.get(0));
 				LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-				LOGGER.info("磁盘IO使用率,{}", IoUsage.getInstance().get());
+				LOGGER.info("磁盘IO使用率,{}", list.get(1));
 				LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
 				try {
 					Thread.sleep(interval * 1000);
@@ -90,7 +91,7 @@ public class App {
 						totalTime = c;
 					}
 				}
-				LOGGER.info("READ_FROM_FILE = {}, TAGPATH = {}, STOREMODE = {}, BATCH_OP_NUM = {}",
+				LOGGER.info("READ_FROM_FILE = {}, TAG_PATH = {}, STORE_MODE = {}, BATCH_OP_NUM = {}",
 						config.READ_FROM_FILE,
 						config.TAG_PATH,
 						config.STORE_MODE,

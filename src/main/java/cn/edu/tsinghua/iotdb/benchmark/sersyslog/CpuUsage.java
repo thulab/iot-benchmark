@@ -29,8 +29,8 @@ public class CpuUsage  {
      * @param
      * @return float,CPU使用率,小于1
      */
-/*
-    public float shortget() {
+
+    public float get() {
         //log.info("开始收集cpu使用率");
         float cpuUsage = 0;
         Process pro1,pro2;
@@ -102,8 +102,7 @@ public class CpuUsage  {
         }
         return cpuUsage;
     }
-*/
-
+/*
     public float get() {
         float cpuUsage = 0.0f;
         Process pro = null;
@@ -119,6 +118,7 @@ public class CpuUsage  {
                 //log.info(line);
                 if(++count >= 4){
                     //log.info(line);
+                    //System.out.println(line);
                     String[] temp = line.split("\\s+");
                     if(temp.length > 1){
                         //avg-cpu
@@ -136,4 +136,5 @@ public class CpuUsage  {
         }
         return cpuUsage;
     }
+    */
 }
