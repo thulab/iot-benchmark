@@ -98,9 +98,9 @@ public class App {
 						config.BATCH_OP_NUM);
 				LOGGER.info("loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
 						totalItem,
-						totalTime / 1000.0,
+						totalTime / 1000.0f,
 						config.DEVICE_NUMBER,
-						1000 * totalItem / (double) totalTime);
+						(1000.0f * totalItem) / ((float) totalTime));
 
 			} else {
 
