@@ -81,11 +81,27 @@ public class IoTDB implements IDatebase {
 				}
 			}
 		} else{
+			int groupSize = config.DEVICE_NUMBER/config.GROUP_NUMBER;
+			ArrayList<String> group = new ArrayList<>();
+			for(int i=0;i<config.GROUP_NUMBER;i++){
+				group.add("group_"+i);
+			}
+			for(String g : group){
+				setStorgeGroup(g);
+			}
+			int count = 0;
+			int groupIndex = 0;
+			String path ;
 			for(String device : config.DEVICE_CODES){
-				setStorgeGroup(device);
-				for(String sensor : config.SENSOR_CODES){
-					createTimeseries(device, sensor);
+				if(count==groupSize){
+					groupIndex++;
+					count=0;
 				}
+				path = group.get(groupIndex)+"."+device;
+				for(String sensor : config.SENSOR_CODES){
+					createTimeseries(path, sensor);
+				}
+				count++;
 			}
 		}
 
@@ -237,7 +253,7 @@ public class IoTDB implements IDatebase {
 		}
 
 	}
-
+	
 	private void setStorgeGroup(String device) {
 		Statement statement;
 		try {

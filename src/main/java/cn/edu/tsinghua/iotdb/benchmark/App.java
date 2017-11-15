@@ -109,6 +109,11 @@ public class App {
 					executorService.submit(new ClientThread(new IoTDB(), i, downLatch, totalTimes));
 				}
 				executorService.shutdown();
+				try {
+					downLatch.await();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				long totalTime = 0;
 				for (long c : totalTimes) {
 					if (c > totalTime) {
@@ -116,10 +121,10 @@ public class App {
 					}
 				}
 				LOGGER.info("loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-						config.SENSOR_NUMBER*config.DEVICE_NUMBER,
+						config.SENSOR_NUMBER*config.DEVICE_NUMBER*config.LOOP*config.CACHE_NUM,
 						totalTime / 1000.0f,
 						config.CLIENT_NUMBER,
-						(1000.0f * config.SENSOR_NUMBER*config.DEVICE_NUMBER) / ((float) totalTime));
+						(1000.0f * config.SENSOR_NUMBER*config.DEVICE_NUMBER*config.LOOP*config.CACHE_NUM) / ((float) totalTime));
 
 			}
 		}

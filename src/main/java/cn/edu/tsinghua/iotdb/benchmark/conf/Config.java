@@ -37,6 +37,8 @@ public class Config {
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
 	public int CACHE_NUM = 10;
+	/** 存储组数量 */
+	public int GROUP_NUMBER = 1;
 
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;

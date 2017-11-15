@@ -74,7 +74,7 @@ public class ClientThread implements Runnable{
 			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
 			while(i < config.LOOP){
 				try {
-					for(int m = 0;m < clientDevicesNum;m++){
+					for(int m = 0;m < clientDevicesNum; m++){
 						database.insertOneBatch(config.DEVICE_CODES.get(index*clientDevicesNum+m), i, totalTime);
 					}
 				} catch (SQLException e) {
