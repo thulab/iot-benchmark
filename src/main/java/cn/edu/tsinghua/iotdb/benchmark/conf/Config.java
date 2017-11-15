@@ -29,6 +29,8 @@ public class Config {
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
+	/** 测试客户端线程数量 */
+	public int CLIENT_NUMBER = 2;
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */

@@ -67,14 +67,13 @@ public class App {
 			}
 
 			if (config.READ_FROM_FILE) {
-
-				CountDownLatch downLatch = new CountDownLatch(config.DEVICE_NUMBER);
-				Storage storage = new Storage();
+				CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 				ArrayList<Long> totalTimes = new ArrayList<>();
+				Storage storage = new Storage();
 
-				ExecutorService executorService = Executors.newFixedThreadPool(config.DEVICE_NUMBER + 1);
+				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER + 1);
 				executorService.submit(new Resolve(config.FILE_PATH, storage));
-				for (int i = 0; i < config.DEVICE_NUMBER; i++) {
+				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
 					executorService.submit(new ClientThread(new IoTDB(), i, storage, downLatch, totalTimes));
 				}
 				executorService.shutdown();
@@ -99,16 +98,29 @@ public class App {
 				LOGGER.info("loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
 						totalItem,
 						totalTime / 1000.0f,
-						config.DEVICE_NUMBER,
+						config.CLIENT_NUMBER,
 						(1000.0f * totalItem) / ((float) totalTime));
 
 			} else {
-
-				ExecutorService executorService = Executors.newFixedThreadPool(config.DEVICE_NUMBER);
-				for (int i = 0; i < config.DEVICE_NUMBER; i++) {
-					executorService.submit(new ClientThread(new IoTDB(), i));
+				CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+				ArrayList<Long> totalTimes = new ArrayList<>();
+				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+					executorService.submit(new ClientThread(new IoTDB(), i, downLatch, totalTimes));
 				}
 				executorService.shutdown();
+				long totalTime = 0;
+				for (long c : totalTimes) {
+					if (c > totalTime) {
+						totalTime = c;
+					}
+				}
+				LOGGER.info("loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+						config.SENSOR_NUMBER*config.DEVICE_NUMBER,
+						totalTime / 1000.0f,
+						config.CLIENT_NUMBER,
+						(1000.0f * config.SENSOR_NUMBER*config.DEVICE_NUMBER) / ((float) totalTime));
+
 			}
 		}
 	}//main
