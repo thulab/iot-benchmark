@@ -53,7 +53,8 @@ public class InfluxDB implements IDatebase {
      *  Create a batch of data specified by "device" and "batchIndex", and send them to InfluxDB's REST API.
      *  E.g. send "cpu,host=server02,region=uswest load=78 1434055562000000000" as post body to
      *   "http://localhost:8086/write?db=mydb".
-     * @param device  meaning the measurement in InfluxDB
+     * @param device   a string like "d_100", which will be used in a tag "device=d_100", and its measurement will be "group_x",
+     *               while x = 100 / groupSize
      * @param batchIndex  a test mission is divided to multiple batches, this indicates which batch is being processed
      * @param totalTime  to record the total time of a test mission
      * @throws SQLException
@@ -138,12 +139,17 @@ public class InfluxDB implements IDatebase {
      * Every sensor will be regarded as a field.
      * @param batchIndex a test mission is divided to multiple batches, this indicates which batch is being processed
      * @param dataIndex the record's position within this batch
-     * @param device meaning the measurement in InfluxDB
+     * @param device a string like "d_100", which will be used in a tag "device=d_100", and its measurement will be "group_x",
+     *               while x = 100 / groupSize
      * @return a structure represents the data record
      */
     private InfluxDataModel createDataModel(int batchIndex, int dataIndex, String device) {
         InfluxDataModel model = new InfluxDataModel();
-        model.measurement = device;
+        int deviceNum = getDeviceNum(device);
+        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+        int groupNum = deviceNum / groupSize;
+        model.measurement = "group_" + groupNum;
+        model.tagSet.put("device", device);
         long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
         model.timestamp = currentTime;
         for(String sensor: config.SENSOR_CODES){
@@ -154,11 +160,21 @@ public class InfluxDB implements IDatebase {
         return  model;
     }
 
+    private int getDeviceNum(String device) {
+        String[] parts = device.split("_");
+        try {
+            return Integer.parseInt(parts[1]);
+        } catch (Exception e) {
+            LOGGER.error("{} {}",device, e.getMessage());
+            throw e;
+        }
+    }
+
     static public void main(String[] args) throws SQLException {
         InfluxDB influxDB = new InfluxDB();
         influxDB.init();
         ThreadLocal<Long> time = new ThreadLocal<>();
         time.set((long) 0);
-        influxDB.insertOneBatch("testDevice", 0, time);
+        influxDB.insertOneBatch("D_0", 0, time);
     }
 }
