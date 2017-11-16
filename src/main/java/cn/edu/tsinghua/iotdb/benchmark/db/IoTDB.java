@@ -321,8 +321,9 @@ public class IoTDB implements IDatebase {
 
 	private String createSQLStatment(int batch, int index, String device) {
 		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
 		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME)
-				.append(".").append(device).append("(timestamp");
+				.append(".").append(path).append("(timestamp");
 
 		for (String sensor : config.SENSOR_CODES) {
 			builder.append(",").append(sensor);
@@ -338,6 +339,14 @@ public class IoTDB implements IDatebase {
 		}
 		builder.append(")");
 		return builder.toString();
+	}
+
+	String getGroupDevicePath(String device){
+		String[] spl = device.split("_");
+		int deviceIndex = Integer.parseInt(spl[1]);
+		int groupSize = config.DEVICE_NUMBER/config.GROUP_NUMBER;
+		int groupIndex = deviceIndex/groupSize;
+		return "group_"+groupIndex+"."+device;
 	}
 
 	private String getTypeByField(String name) {
