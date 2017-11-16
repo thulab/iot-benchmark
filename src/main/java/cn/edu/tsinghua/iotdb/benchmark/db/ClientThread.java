@@ -27,10 +27,12 @@ public class ClientThread implements Runnable{
 	private ArrayList<Long> totalTimes;
 
 
-	public ClientThread(IDatebase datebase, int index) {
+	public ClientThread(IDatebase datebase, int index, CountDownLatch downLatch, ArrayList<Long> totalTimes) {
 		this.database = datebase;
 		this.index = index;
 		this.config = ConfigDescriptor.getInstance().getConfig();
+		this.downLatch = downLatch;
+		this.totalTimes = totalTimes;
 	}
 
 	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch, ArrayList<Long> totalTimes) {
@@ -69,9 +71,12 @@ public class ClientThread implements Runnable{
 			}
 		}
 		else{
+			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
 			while(i < config.LOOP){
 				try {
-					database.insertOneBatch(config.DEVICE_CODES.get(index), i, totalTime);
+					for(int m = 0;m < clientDevicesNum; m++){
+						database.insertOneBatch(config.DEVICE_CODES.get(index*clientDevicesNum+m), i, totalTime);
+					}
 				} catch (SQLException e) {
 					LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
 				}

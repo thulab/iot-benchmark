@@ -30,12 +30,16 @@ public class Config {
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
+	/** 测试客户端线程数量 */
+	public int CLIENT_NUMBER = 2;
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
 	public int CACHE_NUM = 10;
+	/** 存储组数量 */
+	public int GROUP_NUMBER = 1;
 
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;

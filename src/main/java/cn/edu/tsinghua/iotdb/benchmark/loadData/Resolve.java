@@ -87,7 +87,7 @@ public class Resolve implements Runnable{
 		        	
 		        	Point p = new Point();
 		        	
-		            String[] pointInfo = tempString.split(" ") ;
+		            String[] pointInfo = tempString.split(" ");
 		            StringTokenizer st = new StringTokenizer(pointInfo[0], ",=");
 		            
 		            //解析出measurement
