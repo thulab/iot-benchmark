@@ -119,6 +119,9 @@ public class Config {
 	// 使用的数据库名
 	public String INFLUX_DB_NAME = "test";
 
+	// 使用的数据库
+	public String DB_SWITCH = "IoTDB";
+
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;
 		RANDOM_INSERT_RATIO = rir;

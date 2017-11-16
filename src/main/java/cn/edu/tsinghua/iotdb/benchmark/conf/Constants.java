@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
+import cn.edu.tsinghua.iotdb.benchmark.db.IoTDB;
 import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 
 /**
@@ -16,4 +17,7 @@ public class Constants {
 	public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
 	
 	public static final String BENCHMARK_CONF = "benchmark-conf";
+
+	public static final String DB_IOT = "IoTDB";
+	public static final String DB_INFLUX = "InfluxDB";
 }

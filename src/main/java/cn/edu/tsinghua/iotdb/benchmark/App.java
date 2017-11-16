@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.db.*;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 
 import java.io.File;
@@ -15,9 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.db.ClientThread;
-import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
-import cn.edu.tsinghua.iotdb.benchmark.db.IoTDB;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 import sun.misc.Cleaner;
@@ -57,9 +56,20 @@ public class App {
 				}
 			}
 		}else {
+			IDBFactory idbFactory = null;
+			switch (config.DB_SWITCH){
+				case Constants.DB_IOT :
+					idbFactory = new IoTDBFactory();
+					break;
+				case Constants.DB_INFLUX:
+					idbFactory = new InfluxDBFactory();
+					break;
+				default:
+					throw new SQLException("unsupported database " + config.DB_SWITCH);
+			}
 			IDatebase datebase;
 			try {
-				datebase = new IoTDB();
+				datebase = idbFactory.buildDB();
 				datebase.init();
 				Date startTime = new Date();
 				datebase.createSchema();
@@ -80,7 +90,7 @@ public class App {
 				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER + 1);
 				executorService.submit(new Resolve(config.FILE_PATH, storage));
 				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-					executorService.submit(new ClientThread(new IoTDB(), i, storage, downLatch, totalTimes, totalInsertErrorNums));
+					executorService.submit(new ClientThread(idbFactory.buildDB(), i, storage, downLatch, totalTimes, totalInsertErrorNums));
 				}
 				executorService.shutdown();
 				//wait for all threads complete
@@ -112,7 +122,7 @@ public class App {
 				ArrayList<Long> totalTimes = new ArrayList<>();
 				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
 				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-					executorService.submit(new ClientThread(new IoTDB(), i, downLatch, totalTimes, totalInsertErrorNums));
+					executorService.submit(new ClientThread(idbFactory.buildDB(), i, downLatch, totalTimes, totalInsertErrorNums));
 				}
 				executorService.shutdown();
 				try {
