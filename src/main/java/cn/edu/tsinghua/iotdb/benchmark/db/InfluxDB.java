@@ -58,7 +58,7 @@ public class InfluxDB implements IDatebase {
      * @throws SQLException
      */
     @Override
-    public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime) throws SQLException {
+    public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
         long exeTime = 0;
         long startTime, endTime;
         LinkedList<String> dataStrs = new LinkedList<>();
@@ -66,7 +66,7 @@ public class InfluxDB implements IDatebase {
             InfluxDataModel model = createDataModel(batchIndex, i, device);
             dataStrs.add(model.toString());
         }
-        insertOneBatch(dataStrs, batchIndex, totalTime);
+        insertOneBatch(dataStrs, batchIndex, totalTime, errorCount);
     }
 
     /**
@@ -79,7 +79,7 @@ public class InfluxDB implements IDatebase {
      * @throws SQLException
      */
     @Override
-    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime) throws SQLException {
+    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
         StringBuilder body = new StringBuilder();
         for(String dataRecord : cons) {
             body.append(dataRecord).append("\n");
@@ -99,6 +99,10 @@ public class InfluxDB implements IDatebase {
             totalTime.set(totalTime.get()+(endTime-startTime));
             LOGGER.info(response);
         } catch (IOException e) {
+            // TODO : get accurate insert number
+            errorCount.set(errorCount.get() + cons.size());
+            LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
+                    cons.size(), e.getMessage());
            throw  new SQLException(e.getMessage());
         }
     }
@@ -173,6 +177,8 @@ public class InfluxDB implements IDatebase {
         influxDB.init();
         ThreadLocal<Long> time = new ThreadLocal<>();
         time.set((long) 0);
-        influxDB.insertOneBatch("D_0", 0, time);
+        ThreadLocal<Long> errorCount = new ThreadLocal<>();
+        errorCount.set((long) 0);
+        influxDB.insertOneBatch("D_0", 0, time, errorCount);
     }
 }
