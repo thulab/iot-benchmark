@@ -12,11 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by Administrator on 2017/11/16 0016.
@@ -37,8 +35,8 @@ public class InfluxDB implements IDatebase {
     @Override
     public void init() throws SQLException {
         config = ConfigDescriptor.getInstance().getConfig();
-        InfluxURL = config.InfluxURL;
-        InfluxDBName = config.InfluxDBName;
+        InfluxURL = config.INFLUX_URL;
+        InfluxDBName = config.INFLUX_DB_NAME;
         queryURL = InfluxURL + "/query";
         writeURL = InfluxURL + "/write";
         createDatabase(InfluxDBName);

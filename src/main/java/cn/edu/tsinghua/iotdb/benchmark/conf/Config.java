@@ -115,9 +115,9 @@ public class Config {
 
 	// InfluxDB参数
 	// Influx服务器URL
-	public String InfluxURL = "http://localhost:8086";
+	public String INFLUX_URL = "http://localhost:8086";
 	// 使用的数据库名
-	public String InfluxDBName = "test";
+	public String INFLUX_DB_NAME = "test";
 
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;
