@@ -1,9 +1,11 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
+
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,22 +61,26 @@ public class App {
 			try {
 				datebase = new IoTDB();
 				datebase.init();
+				Date startTime = new Date();
 				datebase.createSchema();
+				Date endTime = new Date();
+				LOGGER.info("createSchema()--startTime: {}", startTime);
+				LOGGER.info("createSchema()--endTime: {}", endTime);
 				datebase.close();
 			} catch (SQLException e) {
 				LOGGER.error("Fail to init database becasue {}", e.getMessage());
 				return;
 			}
 
+			ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
 			if (config.READ_FROM_FILE) {
 				CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 				ArrayList<Long> totalTimes = new ArrayList<>();
 				Storage storage = new Storage();
-
 				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER + 1);
 				executorService.submit(new Resolve(config.FILE_PATH, storage));
 				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-					executorService.submit(new ClientThread(new IoTDB(), i, storage, downLatch, totalTimes));
+					executorService.submit(new ClientThread(new IoTDB(), i, storage, downLatch, totalTimes, totalInsertErrorNums));
 				}
 				executorService.shutdown();
 				//wait for all threads complete
@@ -106,7 +112,7 @@ public class App {
 				ArrayList<Long> totalTimes = new ArrayList<>();
 				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
 				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-					executorService.submit(new ClientThread(new IoTDB(), i, downLatch, totalTimes));
+					executorService.submit(new ClientThread(new IoTDB(), i, downLatch, totalTimes, totalInsertErrorNums));
 				}
 				executorService.shutdown();
 				try {
@@ -120,14 +126,26 @@ public class App {
 						totalTime = c;
 					}
 				}
+				
 				LOGGER.info("loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
 						config.SENSOR_NUMBER*config.DEVICE_NUMBER*config.LOOP*config.CACHE_NUM,
 						totalTime / 1000.0f,
 						config.CLIENT_NUMBER,
 						(1000.0f * config.SENSOR_NUMBER*config.DEVICE_NUMBER*config.LOOP*config.CACHE_NUM) / ((float) totalTime));
 
-			}
-		}
+			}//else--
+			long totalErrorPoint = getSumOfList(totalInsertErrorNums);
+			LOGGER.info("Error num is {}", totalErrorPoint);
+		}//else--SERVER_MODE
 	}//main
+	
+	/**计算list中所有元素的和*/
+	private static long getSumOfList(ArrayList<Long> list){
+		long total = 0;
+		for (long c : list) {
+				total += c;
+		}
+		return total;
+	}
 
 }

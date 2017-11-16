@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -33,27 +34,26 @@ public class IoTDB implements IDatebase {
 	private List<Point> points;
 	private Map<String, String> mp;
 
-
 	public IoTDB() throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
 		config = ConfigDescriptor.getInstance().getConfig();
 		points = new ArrayList<>();
-		mp=new HashMap<>();
+		mp = new HashMap<>();
 	}
 
 	@Override
 	public void createSchema() throws SQLException {
-		if(config.READ_FROM_FILE){
+		if (config.READ_FROM_FILE) {
 			initSchema();
 			mp.put("INT32", "PLAIN");
 			mp.put("INT64", "PLAIN");
 			mp.put("DOUBLE", "GORILLA");
-			if(config.TAG_PATH) {
-				if(config.STORE_MODE==1) {
+			if (config.TAG_PATH) {
+				if (config.STORE_MODE == 1) {
 					for (Point p : points) {
 						setStorgeGroup(p.getPath());
 					}
-				}else {
+				} else {
 					Set<String> uniqueMeasurementName = new HashSet<>();
 					for (Point p : points) {
 						uniqueMeasurementName.add(p.measurement);
@@ -63,14 +63,14 @@ public class IoTDB implements IDatebase {
 					}
 				}
 
-				for(Point p:points) {
+				for (Point p : points) {
 					Set<String> uniqueFieldName = new HashSet<>();
 					uniqueFieldName.addAll(p.fieldName);
 					for (String sensor : uniqueFieldName) {
 						createTimeseries(p.getPath(), sensor);
 					}
 				}
-			}else {
+			} else {
 				setStorgeGroup("root.device_0");
 				Set<String> uniqueFieldName = new HashSet<>();
 				for (Point p : points) {
@@ -80,25 +80,25 @@ public class IoTDB implements IDatebase {
 					createTimeseries("root.device_0", sensor);
 				}
 			}
-		} else{
-			int groupSize = config.DEVICE_NUMBER/config.GROUP_NUMBER;
+		} else {
+			int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
 			ArrayList<String> group = new ArrayList<>();
-			for(int i=0;i<config.GROUP_NUMBER;i++){
-				group.add("group_"+i);
+			for (int i = 0; i < config.GROUP_NUMBER; i++) {
+				group.add("group_" + i);
 			}
-			for(String g : group){
+			for (String g : group) {
 				setStorgeGroup(g);
 			}
 			int count = 0;
 			int groupIndex = 0;
-			String path ;
-			for(String device : config.DEVICE_CODES){
-				if(count==groupSize){
+			String path;
+			for (String device : config.DEVICE_CODES) {
+				if (count == groupSize) {
 					groupIndex++;
-					count=0;
+					count = 0;
 				}
-				path = group.get(groupIndex)+"."+device;
-				for(String sensor : config.SENSOR_CODES){
+				path = group.get(groupIndex) + "." + device;
+				for (String sensor : config.SENSOR_CODES) {
 					createTimeseries(path, sensor);
 				}
 				count++;
@@ -107,8 +107,8 @@ public class IoTDB implements IDatebase {
 
 	}
 
-	private void initSchema(){
-		//解析到points
+	private void initSchema() {
+		// 解析到points
 		BufferedReader reader = null;
 		try {
 			File file = new File(config.FILE_PATH);
@@ -120,36 +120,37 @@ public class IoTDB implements IDatebase {
 
 				Point p = new Point();
 
-				String[] pointInfo = tempString.split(" ") ;
+				String[] pointInfo = tempString.split(" ");
 				StringTokenizer st = new StringTokenizer(pointInfo[0], ",=");
 
-				//解析出measurement
-				if(st.hasMoreElements())
+				// 解析出measurement
+				if (st.hasMoreElements())
 					p.measurement = st.nextToken().replace('.', '_');
 
-				//解析出tag的K-V对
-				while(st.hasMoreElements()){
+				// 解析出tag的K-V对
+				while (st.hasMoreElements()) {
 					p.tagName.add(st.nextToken().replace('.', '_'));
-					p.tagValue.add(st.nextToken().replace('.', '_').replace('/', '_'));
+					p.tagValue.add(st.nextToken().replace('.', '_')
+							.replace('/', '_'));
 				}
 
-				//解析出field的K-V对
+				// 解析出field的K-V对
 				st = new StringTokenizer(pointInfo[1], ",=");
-				while(st.hasMoreElements()){
+				while (st.hasMoreElements()) {
 					p.fieldName.add(st.nextToken());
 					p.fieldValue.add(string2num(st.nextToken()));
 				}
 
 				p.time = Long.parseLong(pointInfo[2]);
-				if(points.size() == 0 || !points.get(0).getPath().equals(p.getPath())){
+				if (points.size() == 0
+						|| !points.get(0).getPath().equals(p.getPath())) {
 					points.add(p);
-				}else{
+				} else {
 					break;
 				}
 			}
 
-		}
-		catch (FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NumberFormatException e) {
@@ -158,8 +159,7 @@ public class IoTDB implements IDatebase {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		finally{
+		} finally {
 			if (reader != null) {
 				try {
 					reader.close();
@@ -171,20 +171,20 @@ public class IoTDB implements IDatebase {
 
 	private static Number string2num(String str) {
 		// TODO Auto-generated method stub
-		if(str.endsWith("i")){
-			return Long.parseLong(str.substring(0,str.length()-1));
-		}
-		else{
+		if (str.endsWith("i")) {
+			return Long.parseLong(str.substring(0, str.length() - 1));
+		} else {
 			return Double.parseDouble(str);
 		}
 	}
 
 	@Override
-	public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime) {
+	public void insertOneBatch(String device, int batchIndex,
+			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
 		Statement statement;
 		try {
 			statement = connection.createStatement();
-			for(int i = 0; i < config.CACHE_NUM;i++){
+			for (int i = 0; i < config.CACHE_NUM; i++) {
 				String sql = createSQLStatment(batchIndex, i, device);
 				statement.addBatch(sql);
 			}
@@ -193,59 +193,93 @@ public class IoTDB implements IDatebase {
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
-			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
+			LOGGER.info(
+					"{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
 					Thread.currentThread().getName(),
 					batchIndex,
-					(endTime-startTime)/1000.0,
-					(totalTime.get()+(endTime-startTime))/1000.0,
-					(config.CACHE_NUM*config.SENSOR_NUMBER / (double) (endTime-startTime))*1000);
-			totalTime.set(totalTime.get()+(endTime-startTime));
-		} catch (SQLException e) {
+					(endTime - startTime) / 1000.0,
+					(totalTime.get() + (endTime - startTime)) / 1000.0,
+					(config.CACHE_NUM * config.SENSOR_NUMBER / (double) (endTime - startTime)) * 1000);
+			totalTime.set(totalTime.get() + (endTime - startTime));
+		} catch (BatchUpdateException e) {
 			// TODO Auto-generated catch block
+			int[] ret = e.getUpdateCounts();
+			int diff = config.CACHE_NUM - ret.length;
+			if (diff == 0) {// same--遇到error继续执行；不同则说明只返回了正确的个数；
+				for (int i : ret) {
+					if (i == Statement.EXECUTE_FAILED) {
+						diff++;
+					}
+				}
+			}
+			errorCount.set(errorCount.get() + diff);
+			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
+					diff, e.getMessage());
+			e.printStackTrace();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public void insertOneBatch(LinkedList<String> cons , int batchIndex,ThreadLocal<Long> totalTime) throws SQLException {
+	public void insertOneBatch(LinkedList<String> cons, int batchIndex,
+			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount)
+			throws SQLException {
 		// TODO Auto-generated method stub
 
 		Statement statement;
 		try {
 			statement = connection.createStatement();
-			for(String sql : cons){
+			for (String sql : cons) {
 				statement.addBatch(sql);
 			}
+
 			long startTime = System.currentTimeMillis();
 			statement.executeBatch();
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
 
-			LOGGER.debug("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
-					Thread.currentThread().getName(),
-					batchIndex,
-					(endTime-startTime)/1000.0,
-					((totalTime.get()+(endTime-startTime))/1000.0),
-					(cons.size() / (double) (endTime-startTime))*1000);
-			totalTime.set(totalTime.get()+(endTime-startTime));
-		} catch (SQLException e) {
+			LOGGER.debug(
+					"{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
+					Thread.currentThread().getName(), batchIndex,
+					(endTime - startTime) / 1000.0,
+					((totalTime.get() + (endTime - startTime)) / 1000.0),
+					(cons.size() / (double) (endTime - startTime)) * 1000);
+			totalTime.set(totalTime.get() + (endTime - startTime));
+		} catch (BatchUpdateException e) {
 			// TODO Auto-generated catch block
+			int[] ret = e.getUpdateCounts();
+			int diff = cons.size() - ret.length;
+			if (diff == 0) {// same--遇到error继续执行；不同则说明只返回了正确的个数；
+				for (int i : ret) {
+					if (i == Statement.EXECUTE_FAILED) {
+						diff++;
+					}
+				}
+			}
+			errorCount.set(errorCount.get() + diff);
+			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
+					diff, e.getMessage());
+			e.printStackTrace();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
 	}
 
-	private void createTimeseries(String path, String sensor){
+	private void createTimeseries(String path, String sensor) {
 		Statement statement;
 		try {
 			statement = connection.createStatement();
-			if(config.READ_FROM_FILE){
+			if (config.READ_FROM_FILE) {
 				String type = getTypeByField(sensor);
-				statement.execute(String.format(createStatementFromFileSQL, path+"."+sensor, type, mp.get(type)));
-			}
-			else{
-				statement.execute(String.format(createStatementSQL, Constants.ROOT_SERIES_NAME+"."+path+"."+sensor));
+				statement.execute(String.format(createStatementFromFileSQL,
+						path + "." + sensor, type, mp.get(type)));
+			} else {
+				statement
+						.execute(String.format(createStatementSQL,
+								Constants.ROOT_SERIES_NAME + "." + path + "."
+										+ sensor));
 			}
 			statement.close();
 		} catch (SQLException e) {
@@ -253,16 +287,16 @@ public class IoTDB implements IDatebase {
 		}
 
 	}
-	
+
 	private void setStorgeGroup(String device) {
 		Statement statement;
 		try {
 			statement = connection.createStatement();
-			if(config.READ_FROM_FILE){
+			if (config.READ_FROM_FILE) {
 				statement.execute(String.format(setStorageLevelSQL, device));
-			}
-			else{
-				statement.execute(String.format(setStorageLevelSQL, Constants.ROOT_SERIES_NAME+"."+device));
+			} else {
+				statement.execute(String.format(setStorageLevelSQL,
+						Constants.ROOT_SERIES_NAME + "." + device));
 			}
 			statement.close();
 		} catch (SQLException e) {
@@ -273,41 +307,44 @@ public class IoTDB implements IDatebase {
 
 	@Override
 	public void init() throws SQLException {
-		connection = DriverManager.getConnection(String.format(Constants.URL,config.host, config.port), Constants.USER, Constants.PASSWD);
+		connection = DriverManager.getConnection(
+				String.format(Constants.URL, config.host, config.port),
+				Constants.USER, Constants.PASSWD);
 	}
 
 	@Override
 	public void close() throws SQLException {
-		if(connection != null){
+		if (connection != null) {
 			connection.close();
 		}
 	}
 
-	private String createSQLStatment(int batch, int index, String device){
+	private String createSQLStatment(int batch, int index, String device) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(device).append("(timestamp");
+		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME)
+				.append(".").append(device).append("(timestamp");
 
-		for(String sensor: config.SENSOR_CODES){
+		for (String sensor : config.SENSOR_CODES) {
 			builder.append(",").append(sensor);
 		}
 		builder.append(") values(");
-		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP
+				* (batch * config.CACHE_NUM + index);
 		builder.append(currentTime);
-		for(String sensor: config.SENSOR_CODES){
+		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
+			builder.append(",").append(
+					Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
 		return builder.toString();
 	}
 
-	private String getTypeByField(String name){
-		if(name.endsWith("_percent") || name.startsWith("usage_")){
+	private String getTypeByField(String name) {
+		if (name.endsWith("_percent") || name.startsWith("usage_")) {
 			return "DOUBLE";
 		}
 		return "INT64";
 	}
-
-
 
 }

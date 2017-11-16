@@ -23,25 +23,34 @@ public class ClientThread implements Runnable{
 			return  (long) 0;
 		}
 	};
+	private static ThreadLocal<Long> errorCount = new ThreadLocal<Long>(){
+		protected Long initialValue(){
+			return  (long) 0;
+		}
+	};
 	private CountDownLatch downLatch;
 	private ArrayList<Long> totalTimes;
+	private ArrayList<Long> totalInsertErrorNums;
 
-
-	public ClientThread(IDatebase datebase, int index, CountDownLatch downLatch, ArrayList<Long> totalTimes) {
+	public ClientThread(IDatebase datebase, int index, CountDownLatch downLatch,
+			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums) {
 		this.database = datebase;
 		this.index = index;
 		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
+		this.totalInsertErrorNums = totalInsertErrorNums;
 	}
 
-	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch, ArrayList<Long> totalTimes) {
+	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch,
+			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums) {
 		this.database = datebase;
 		this.index = index;
 		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.storage = storage;
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
+		this.totalInsertErrorNums = totalInsertErrorNums;
 	}
 
 
@@ -63,7 +72,7 @@ public class ClientThread implements Runnable{
 					if(cons.size() == 0) {
 						break;
 					}
-					database.insertOneBatch(cons , i, totalTime);
+					database.insertOneBatch(cons , i, totalTime, errorCount);
 				} catch (SQLException e) {
 					LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
 				}
@@ -75,7 +84,7 @@ public class ClientThread implements Runnable{
 			while(i < config.LOOP){
 				try {
 					for(int m = 0;m < clientDevicesNum; m++){
-						database.insertOneBatch(config.DEVICE_CODES.get(index*clientDevicesNum+m), i, totalTime);
+						database.insertOneBatch(config.DEVICE_CODES.get(index*clientDevicesNum+m), i, totalTime, errorCount);
 					}
 				} catch (SQLException e) {
 					LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
@@ -92,6 +101,7 @@ public class ClientThread implements Runnable{
 			e.printStackTrace();
 		}
 		this.totalTimes.add(totalTime.get());
+		this.totalInsertErrorNums.add(errorCount.get());
 		this.downLatch.countDown();
 	}
 
