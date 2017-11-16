@@ -68,15 +68,17 @@ public class App {
 					throw new SQLException("unsupported database " + config.DB_SWITCH);
 			}
 			IDatebase datebase;
+			long createSchemaStartTime;
+			long createSchemaEndTime;
+			float createSchemaTime;
 			try {
 				datebase = idbFactory.buildDB();
 				datebase.init();
-				Date startTime = new Date();
+				createSchemaStartTime = System.currentTimeMillis();
 				datebase.createSchema();
-				Date endTime = new Date();
-				LOGGER.info("createSchema()--startTime: {}", startTime);
-				LOGGER.info("createSchema()--endTime: {}", endTime);
 				datebase.close();
+				createSchemaEndTime = System.currentTimeMillis();
+				createSchemaTime = (createSchemaEndTime - createSchemaStartTime)/1000.0f;
 			} catch (SQLException e) {
 				LOGGER.error("Fail to init database becasue {}", e.getMessage());
 				return;
@@ -145,7 +147,7 @@ public class App {
 
 			}//else--
 			long totalErrorPoint = getSumOfList(totalInsertErrorNums);
-			LOGGER.info("Error num is {}", totalErrorPoint);
+			LOGGER.info("total error num is ,{}, create schema cost ,{},s", totalErrorPoint,createSchemaTime);
 		}//else--SERVER_MODE
 	}//main
 	
