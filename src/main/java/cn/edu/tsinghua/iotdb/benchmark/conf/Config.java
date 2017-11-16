@@ -19,7 +19,8 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 
 public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
-	
+	private String deviceCode;
+
 	public Config(){
 
 	}
@@ -107,6 +108,12 @@ public class Config {
 	public double SUM_QUERY_RATIO = 0.2;
 	public double RANDOM_INSERT_RATIO = 0.2;
 	public double UPDATE_RATIO = 0.2;
+
+	// InfluxDB参数
+	// Influx服务器URL
+	public String InfluxURL = "http://localhost:8086";
+	// 使用的数据库名
+	public String InfluxDBName = "test";
 
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;
