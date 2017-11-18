@@ -1,8 +1,10 @@
 package cn.edu.tsinghua.iotdb.benchmark.model;
 
 import javafx.util.Pair;
+import org.influxdb.dto.Point;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Administrator on 2017/11/16 0016.
@@ -67,5 +69,16 @@ public class InfluxDataModel {
         builder.append(" ");
         builder.append(timestamp);
         return builder.toString();
+    }
+
+    public Point toInfluxPoint() {
+        HashMap<String, Object> fields = new HashMap<>();
+        fields.putAll(this.fields);
+        Point point = Point.measurement(this.measurement)
+                            .time(this.timestamp, TimeUnit.MILLISECONDS)
+                            .tag(this.tagSet)
+                            .fields(fields)
+                            .build();
+        return  point;
     }
 }
