@@ -194,7 +194,7 @@ public class IoTDB implements IDatebase {
 			statement.close();
 			long endTime = System.currentTimeMillis();
 			LOGGER.info(
-					"{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
+					"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 					Thread.currentThread().getName(),
 					batchIndex,
 					(endTime - startTime) / 1000.0,
@@ -241,7 +241,7 @@ public class IoTDB implements IDatebase {
 			long endTime = System.currentTimeMillis();
 
 			LOGGER.debug(
-					"{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
+					"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
 					Thread.currentThread().getName(), batchIndex,
 					(endTime - startTime) / 1000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000.0),
