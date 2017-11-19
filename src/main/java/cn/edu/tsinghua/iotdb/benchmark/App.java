@@ -32,7 +32,7 @@ public class App {
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
 		if(config.SERVER_MODE) {
-			File file = new File("/home/hadoop/liurui/log_stop_flag");
+			File file = new File(config.LOG_STOP_FLAG_PATH+"/log_stop_flag");
 			int interval = config.INTERVAL;
 			//检测所需的时间在目前代码的参数下至少为2秒
 			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
