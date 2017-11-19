@@ -149,14 +149,10 @@ REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
 LOG_STOP_FLAG_PATH=/home/liurui
 ```
 
-+ IOTDB_HOME
-The bin directory where you installed IoTDB on DB-server.
-+ SERVER_HOST
-The host name of DB-server.
-+ REMOTE_BENCHMARK_HOME
-The directory where you installed IoTDB-benchmark on DB-server
-+ LOG_STOP_FLAG_PATH
-The directory where you set the same as in 'config.properties'. This directory must allow IoTDB-benchmark to touch file. (In later version this parameter may be set automatically.)
++ IOTDB_HOME: The bin directory where you installed IoTDB on DB-server.
++ SERVER_HOST: The host name of DB-server.
++ REMOTE_BENCHMARK_HOME: The directory where you installed IoTDB-benchmark on DB-server
++ LOG_STOP_FLAG_PATH: The directory where you set the same as in 'config.properties'. This directory must allow IoTDB-benchmark to touch file. (In later version this parameter may be set automatically.)
 
 ### Start (With Server System information recording)
 
