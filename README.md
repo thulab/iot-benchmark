@@ -76,7 +76,7 @@ LOOP=1000
 > NOTE:
 Other irrelevant parameters are omitted. You can just set as default. We will cover them later in other cases.
 
-## Start (Without Server System information recording)
+## Start (Without Server System Information Recording)
 
 Running the startup script, currently we only support Unix/OS X system: 
 
@@ -84,7 +84,7 @@ Running the startup script, currently we only support Unix/OS X system:
 > ./benchmark.sh
 ```
 
-## Excuting 
+## Execute 
 
 Now after launching the test, you will see testing information rolling like following: 
 
@@ -119,11 +119,11 @@ These two lines contain overall information of this test case, including:
 
 All these information will be logged in 'iotdb-benchmark/logs' directory on client server.
 
-Till now, we have already complete the writing test case without server information recording.For more advanced usage of IoTDB-benchmark, please follow the 'Other Case' instruction.
+Till now, we have already complete the writing test case without server information recording. For more advanced usage of IoTDB-benchmark, please follow the 'Other Case' instruction.
 
 # Other Cases
 
-## Testing IoTDB With Server System information recording
+## Test IoTDB With Server System Information Recording
 
 ### Configure
 
@@ -154,7 +154,7 @@ LOG_STOP_FLAG_PATH=/home/liurui
 + REMOTE_BENCHMARK_HOME: The directory where you installed IoTDB-benchmark on DB-server
 + LOG_STOP_FLAG_PATH: The directory where you set the same as in 'config.properties'. This directory must allow IoTDB-benchmark to touch file. (In later version this parameter may be set automatically.)
 
-### Start (With Server System information recording)
+### Start (With Server System Information Recording)
 
 After configuring the first-time test environment, you can just launch the test by startup script:
 
@@ -164,7 +164,7 @@ After configuring the first-time test environment, you can just launch the test 
 
 The system information will be logged in 'iotdb-benchmark/logs' on DB-server.
 
-## Testing InfluxDB 
+## Test InfluxDB 
 
 If you followed the cases above, this will be very easy.
 
