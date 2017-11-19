@@ -15,7 +15,7 @@ mvn clean package -Dmaven.test.skip=true
 IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
 SERVER_HOST=liurui@192.168.130.9
 REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
-LOG_STOP_FLAG_PATH=/home
+LOG_STOP_FLAG_PATH=/home/liurui
 
 ssh $SERVER_HOST "rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
 ssh $SERVER_HOST "sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
@@ -30,7 +30,7 @@ date
 cd bin
 sh startup.sh -cf ../conf/config.properties
 wait
-ssh $SERVER_HOST "touch LOG_STOP_FLAG_PATH/log_stop_flag"
+ssh $SERVER_HOST "touch $LOG_STOP_FLAG_PATH/log_stop_flag"
 echo '------Client Test Complete Time------'
 date
 

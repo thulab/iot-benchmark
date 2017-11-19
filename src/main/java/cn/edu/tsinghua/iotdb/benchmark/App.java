@@ -32,28 +32,33 @@ public class App {
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
 		if(config.SERVER_MODE) {
-			File file = new File(config.LOG_STOP_FLAG_PATH+"/log_stop_flag");
-			int interval = config.INTERVAL;
-			//检测所需的时间在目前代码的参数下至少为2秒
-			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
-			while (true) {
-				ArrayList<Float> list = IoUsage.getInstance().get();
-				LOGGER.info("CPU使用率,{}", list.get(0));
-				LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-				LOGGER.info("磁盘IO使用率,{}", list.get(1));
-				LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
-				try {
-					Thread.sleep(interval * 1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				if (file.exists()) {
-					boolean f =file.delete();
-					if(!f){
-						LOGGER.error("log_stop_flag 文件删除失败");
+			File dir = new File(config.LOG_STOP_FLAG_PATH);
+			if(dir.exists()&&dir.isDirectory()) {
+				File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
+				int interval = config.INTERVAL;
+				//检测所需的时间在目前代码的参数下至少为2秒
+				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
+				while (true) {
+					ArrayList<Float> list = IoUsage.getInstance().get();
+					LOGGER.info("CPU使用率,{}", list.get(0));
+					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
+					LOGGER.info("磁盘IO使用率,{}", list.get(1));
+					LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
+					try {
+						Thread.sleep(interval * 1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-					break;
+					if (file.exists()) {
+						boolean f = file.delete();
+						if (!f) {
+							LOGGER.error("log_stop_flag 文件删除失败");
+						}
+						break;
+					}
 				}
+			}else{
+				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 			}
 		}else {
 			IDBFactory idbFactory = null;

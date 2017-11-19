@@ -77,7 +77,7 @@ public class ConfigDescriptor {
 				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
 
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
-				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home");
+				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
