@@ -55,6 +55,8 @@ public class Config {
 
 	public boolean TAG_PATH = true;
 
+	public String LOG_STOP_FLAG_PATH;
+
 	public int STORE_MODE = 1;
 	
 	public long LOOP = 10000;
