@@ -24,140 +24,231 @@ import sun.misc.Cleaner;
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws ClassNotFoundException,
+			SQLException {
 
 		CommandCli cli = new CommandCli();
-		if(!cli.init(args)){
+		if (!cli.init(args)) {
 			return;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
-		if(config.SERVER_MODE) {
+		if (config.SERVER_MODE) {
 			File file = new File("/home/hadoop/liurui/log_stop_flag");
 			int interval = config.INTERVAL;
-			//检测所需的时间在目前代码的参数下至少为2秒
-			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
+			// 检测所需的时间在目前代码的参数下至少为2秒
+			LOGGER.info(
+					"----------New Test Begin with interval about {} s----------",
+					interval + 2);
 			while (true) {
 				ArrayList<Float> list = IoUsage.getInstance().get();
 				LOGGER.info("CPU使用率,{}", list.get(0));
 				LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
 				LOGGER.info("磁盘IO使用率,{}", list.get(1));
-				LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
+				LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance()
+						.get());
 				try {
 					Thread.sleep(interval * 1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 				if (file.exists()) {
-					boolean f =file.delete();
-					if(!f){
+					boolean f = file.delete();
+					if (!f) {
 						LOGGER.error("log_stop_flag 文件删除失败");
 					}
 					break;
 				}
 			}
-		}else {
-			IDBFactory idbFactory = null;
-			switch (config.DB_SWITCH){
-				case Constants.DB_IOT :
-					idbFactory = new IoTDBFactory();
-					break;
-				case Constants.DB_INFLUX:
-					idbFactory = new InfluxDBFactory();
-					break;
-				default:
-					throw new SQLException("unsupported database " + config.DB_SWITCH);
+		} else {
+			if(config.IS_QUERY_TEST){
+				queryTest(config);
 			}
-			IDatebase datebase;
-			long createSchemaStartTime;
-			long createSchemaEndTime;
-			float createSchemaTime;
-			try {
-				datebase = idbFactory.buildDB();
-				datebase.init();
-				createSchemaStartTime = System.currentTimeMillis();
-				datebase.createSchema();
-				datebase.close();
-				createSchemaEndTime = System.currentTimeMillis();
-				createSchemaTime = (createSchemaEndTime - createSchemaStartTime)/1000.0f;
-			} catch (SQLException e) {
-				LOGGER.error("Fail to init database becasue {}", e.getMessage());
-				return;
+			else{
+				insertTest(config);
 			}
+			
+		}// else--SERVER_MODE
+	}// main
 
-			ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
-			if (config.READ_FROM_FILE) {
-				CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
-				ArrayList<Long> totalTimes = new ArrayList<>();
-				Storage storage = new Storage();
-				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER + 1);
-				executorService.submit(new Resolve(config.FILE_PATH, storage));
-				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-					executorService.submit(new ClientThread(idbFactory.buildDB(), i, storage, downLatch, totalTimes, totalInsertErrorNums));
-				}
-				executorService.shutdown();
-				//wait for all threads complete
-				try {
-					downLatch.await();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				int totalItem = storage.getStoragedProductNum();
-				long totalTime = 0;
-				for (long c : totalTimes) {
-					if (c > totalTime) {
-						totalTime = c;
-					}
-				}
-				LOGGER.info("READ_FROM_FILE = ,{}, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
-						config.READ_FROM_FILE,
-						config.TAG_PATH,
-						config.STORE_MODE,
-						config.BATCH_OP_NUM);
-				LOGGER.info("loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
-						totalItem,
-						totalTime / 1000.0f,
-						config.CLIENT_NUMBER,
-						(1000.0f * totalItem) / ((float) totalTime));
-
-			} else {
-				CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
-				ArrayList<Long> totalTimes = new ArrayList<>();
-				ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
-				for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-					executorService.submit(new ClientThread(idbFactory.buildDB(), i, downLatch, totalTimes, totalInsertErrorNums));
-				}
-				executorService.shutdown();
-				try {
-					downLatch.await();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				long totalTime = 0;
-				for (long c : totalTimes) {
-					if (c > totalTime) {
-						totalTime = c;
-					}
-				}
-				
-				LOGGER.info("loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-						config.SENSOR_NUMBER*config.DEVICE_NUMBER*config.LOOP*config.CACHE_NUM,
-						totalTime / 1000.0f,
-						config.CLIENT_NUMBER,
-						(1000.0f * config.SENSOR_NUMBER*config.DEVICE_NUMBER*config.LOOP*config.CACHE_NUM) / ((float) totalTime));
-
-			}//else--
-			long totalErrorPoint = getSumOfList(totalInsertErrorNums);
-			LOGGER.info("total error num is ,{}, create schema cost ,{},s", totalErrorPoint,createSchemaTime);
-		}//else--SERVER_MODE
-	}//main
 	
-	/**计算list中所有元素的和*/
-	private static long getSumOfList(ArrayList<Long> list){
+	/**
+	 * 数据库插入测试
+	 * 
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	private static void insertTest(Config config) throws SQLException,
+			ClassNotFoundException {
+		IDBFactory idbFactory = null;
+		switch (config.DB_SWITCH) {
+		case Constants.DB_IOT:
+			idbFactory = new IoTDBFactory();
+			break;
+		case Constants.DB_INFLUX:
+			idbFactory = new InfluxDBFactory();
+			break;
+		default:
+			throw new SQLException("unsupported database " + config.DB_SWITCH);
+		}
+		IDatebase datebase;
+		long createSchemaStartTime;
+		long createSchemaEndTime;
+		float createSchemaTime;
+		try {
+			datebase = idbFactory.buildDB();
+			datebase.init();
+			createSchemaStartTime = System.currentTimeMillis();
+			datebase.createSchema();
+			datebase.close();
+			createSchemaEndTime = System.currentTimeMillis();
+			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000.0f;
+		} catch (SQLException e) {
+			LOGGER.error("Fail to init database becasue {}", e.getMessage());
+			return;
+		}
+
+		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
+		if (config.READ_FROM_FILE) {
+			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+			ArrayList<Long> totalTimes = new ArrayList<>();
+			Storage storage = new Storage();
+			ExecutorService executorService = Executors
+					.newFixedThreadPool(config.CLIENT_NUMBER + 1);
+			executorService.submit(new Resolve(config.FILE_PATH, storage));
+			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+				executorService
+						.submit(new ClientThread(idbFactory.buildDB(), i,
+								storage, downLatch, totalTimes,
+								totalInsertErrorNums));
+			}
+			executorService.shutdown();
+			// wait for all threads complete
+			try {
+				downLatch.await();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			int totalItem = storage.getStoragedProductNum();
+			long totalTime = 0;
+			for (long c : totalTimes) {
+				if (c > totalTime) {
+					totalTime = c;
+				}
+			}
+			LOGGER.info(
+					"READ_FROM_FILE = ,{}, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
+					config.READ_FROM_FILE, config.TAG_PATH, config.STORE_MODE,
+					config.BATCH_OP_NUM);
+			LOGGER.info(
+					"loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
+					totalItem, totalTime / 1000.0f, config.CLIENT_NUMBER,
+					(1000.0f * totalItem) / ((float) totalTime));
+
+		} else {
+			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+			ArrayList<Long> totalTimes = new ArrayList<>();
+			ExecutorService executorService = Executors
+					.newFixedThreadPool(config.CLIENT_NUMBER);
+			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+				executorService.submit(new ClientThread(idbFactory.buildDB(),
+						i, downLatch, totalTimes, totalInsertErrorNums));
+			}
+			executorService.shutdown();
+			try {
+				downLatch.await();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			long totalTime = 0;
+			for (long c : totalTimes) {
+				if (c > totalTime) {
+					totalTime = c;
+				}
+			}
+
+			LOGGER.info(
+					"loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+					config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP
+							* config.CACHE_NUM, totalTime / 1000.0f,
+					config.CLIENT_NUMBER,
+					(1000.0f * config.SENSOR_NUMBER * config.DEVICE_NUMBER
+							* config.LOOP * config.CACHE_NUM)
+							/ ((float) totalTime));
+
+		}// else--
+		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
+		LOGGER.info("total error num is {}, create schema cost {},s",
+				totalErrorPoint, createSchemaTime);
+
+	}
+
+	/** 数据库查询测试 
+	 * @throws SQLException 
+	 * @throws ClassNotFoundException */
+	private static void queryTest(Config config) throws SQLException, ClassNotFoundException {
+		IDBFactory idbFactory = null;
+		switch (config.DB_SWITCH) {
+		case Constants.DB_IOT:
+			idbFactory = new IoTDBFactory();
+			break;
+		case Constants.DB_INFLUX:
+			idbFactory = new InfluxDBFactory();
+			break;
+		default:
+			throw new SQLException("unsupported database " + config.DB_SWITCH);
+		}
+		IDatebase datebase = null;
+		try{
+			datebase.init();
+		}catch (SQLException e) {
+			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
+			return;
+		}
+		
+		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+		ArrayList<Long> totalTimes = new ArrayList<>();
+		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(config.CLIENT_NUMBER);
+		for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+			executorService.submit(new QueryClientThread(idbFactory.buildDB(),
+					i, downLatch, totalTimes, totalInsertErrorNums));
+		}
+		executorService.shutdown();
+		try {
+			downLatch.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		long totalTime = 0;
+		for (long c : totalTimes) {
+			if (c > totalTime) {
+				totalTime = c;
+			}
+		}
+
+		LOGGER.info(
+				"execute query ,{}, times in ,{},s with ,{}, workers (mean rate ,{}, querys/s)",
+				config.DEVICE_NUMBER * config.LOOP
+				, totalTime / 1000.0f,
+				config.CLIENT_NUMBER,
+				(1000.0f *config.DEVICE_NUMBER* config.LOOP)
+				/ ((float) totalTime));
+		
+		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
+		LOGGER.info("total error num is {}",totalErrorPoint);
+	}
+	
+	/** 计算list中所有元素的和 */
+	private static long getSumOfList(ArrayList<Long> list) {
 		long total = 0;
 		for (long c : list) {
-				total += c;
+			total += c;
 		}
 		return total;
 	}
+	
+	/***/
+	
 
 }

@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
+
 import org.influxdb.dto.BatchPoints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,4 +171,11 @@ public class InfluxDBV2 implements IDatebase {
         errorCount.set((long) 0);
         influxDB.insertOneBatch("D_0", 0, time, errorCount);
     }
+
+	@Override
+	public void executeOneQuery(String device, int batchIndex,
+			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -112,6 +112,13 @@ public class Config {
 	public double SUM_QUERY_RATIO = 0.2;
 	public double RANDOM_INSERT_RATIO = 0.2;
 	public double UPDATE_RATIO = 0.2;
+	
+	//iotDB查询测试相关参数
+	public int QUERY_SENSOR_NUM = 1;
+	public int QUERY_CHOICE = 1;//1--select * from
+	public String QUERY_AGGREGATE_FUN = "max_value";
+	public boolean IS_QUERY_TEST = false;
+	
 
 	// InfluxDB参数
 	// Influx服务器URL

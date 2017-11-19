@@ -77,6 +77,11 @@ public class ConfigDescriptor {
 				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
 
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
+				
+				config.IS_QUERY_TEST = Boolean.parseBoolean(properties.getProperty("IS_QUERY_TEST", config.IS_QUERY_TEST+""));
+				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
+				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
+				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

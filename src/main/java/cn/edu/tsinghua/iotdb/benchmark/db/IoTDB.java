@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
@@ -266,6 +267,48 @@ public class IoTDB implements IDatebase {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void executeOneQuery(String device, int index,
+			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
+		Statement statement;
+		try {
+			statement = connection.createStatement();
+			String sql = "";
+			switch(config.QUERY_CHOICE){
+				case 1:
+					sql = createQuerySQLStatment(device);
+					break;
+				case 2:
+					sql = createQuerySQLStatment(device, config.QUERY_SENSOR_NUM);
+					break;
+				case 3:
+					sql = createQuerySQLStatment(device, config.QUERY_AGGREGATE_FUN);
+					break;
+				case 4:
+					long startTime = Constants.START_TIMESTAMP + config.POINT_STEP
+							* (index * config.CACHE_NUM + index);
+					sql = createQuerySQLStatment(device, startTime, startTime + config.POINT_STEP * config.CACHE_NUM );
+					break;	
+			}
+			long startTime = System.currentTimeMillis();
+			statement.execute(sql);
+	        ResultSet resultSet = statement.getResultSet();
+			statement.close();
+			long endTime = System.currentTimeMillis();
+			LOGGER.info(
+					"{} execute {} loop, it costs {}s, totalTime {}s",
+					Thread.currentThread().getName(),
+					index,
+					(endTime - startTime) / 1000.0,
+					(totalTime.get() + (endTime - startTime)) / 1000.0);
+			totalTime.set(totalTime.get() + (endTime - startTime));
+		} catch (SQLException e) {
+			errorCount.set(errorCount.get() + 1);
+			LOGGER.error("{} execute query failed! Error：{}",Thread.currentThread().getName(),e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
 	private void createTimeseries(String path, String sensor) {
 		Statement statement;
@@ -340,6 +383,61 @@ public class IoTDB implements IDatebase {
 		builder.append(")");
 		return builder.toString();
 	}
+	
+	/**创建查询语句--(查询设备下的所有传感器数值)*/
+	private String createQuerySQLStatment(String device){
+		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
+		
+		builder.append("select * from ").append(Constants.ROOT_SERIES_NAME)
+				.append(".").append(path);
+		return builder.toString();
+	}
+	
+	/**创建查询语句--(查询设备下的num个传感器数值)
+	 * @throws SQLException */
+	private String createQuerySQLStatment(String device, int num) throws SQLException{
+		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
+		builder.append("select ");
+		if(num > config.SENSOR_NUMBER){
+			throw new SQLException("config.SENSOR_NUMBER is " + config.SENSOR_NUMBER + 
+					" shouldn't less than the number of fields in querySql");
+		}
+		List<String> list=new ArrayList<String>();  
+		for (String sensor : config.SENSOR_CODES) {
+			list.add(sensor);
+		}
+		Collections.shuffle(list); 
+		builder.append(list.get(0));
+		for(int i = 1; i < num; i++){
+			builder.append(" , ").append(list.get(i));
+		}
+		builder.append(" from ").append(Constants.ROOT_SERIES_NAME)
+				.append(".").append(path);
+		return builder.toString();
+	}
+	
+	/**创建查询语句--(带有聚合函数的查询)*/
+	private String createQuerySQLStatment(String device, String method){
+		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
+		int sensorIndex =  (int) (System.currentTimeMillis() % config.SENSOR_NUMBER);
+		builder.append("select ").append(method).append("(").append(config.SENSOR_CODES.get(sensorIndex)).append(")");
+		builder.append(" from ").append(Constants.ROOT_SERIES_NAME)
+				.append(".").append(path);
+		return builder.toString();
+	}
+	
+	/**创建查询语句--(带有时间约束条件的查询)
+	 * @throws SQLException */
+	private String createQuerySQLStatment(String device, long startTime, long endTime) throws SQLException{
+		StringBuilder builder = new StringBuilder();
+		builder.append(createQuerySQLStatment(device, 1)).append(" where time > ");
+		builder.append(startTime).append(" AND time < ").append(endTime);
+		return builder.toString();
+	}
+	
 
 	String getGroupDevicePath(String device){
 		String[] spl = device.split("_");
