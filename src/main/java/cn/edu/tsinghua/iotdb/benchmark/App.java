@@ -7,7 +7,6 @@ import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,7 +18,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
-import sun.misc.Cleaner;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
@@ -167,7 +165,10 @@ public class App {
 					totalTime = c;
 				}
 			}
-
+			LOGGER.info(
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}",
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.CACHE_NUM, config.POINT_STEP);
 			LOGGER.info(
 					"loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
 					config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP
