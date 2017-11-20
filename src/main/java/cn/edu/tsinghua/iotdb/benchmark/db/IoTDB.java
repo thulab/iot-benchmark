@@ -92,6 +92,7 @@ public class IoTDB implements IDatebase {
 			}
 			int count = 0;
 			int groupIndex = 0;
+			int timeseriesTotal = config.DEVICE_NUMBER * config.SENSOR_NUMBER;
 			String path;
 			for (String device : config.DEVICE_CODES) {
 				if (count == groupSize) {
@@ -100,7 +101,8 @@ public class IoTDB implements IDatebase {
 				}
 				path = group.get(groupIndex) + "." + device;
 				for (String sensor : config.SENSOR_CODES) {
-					createTimeseries(path, sensor);
+					//createTimeseries(path, sensor);
+					createTimeseriesBatch(path, sensor, count, timeseriesTotal);
 				}
 				count++;
 			}
@@ -329,6 +331,30 @@ public class IoTDB implements IDatebase {
 			LOGGER.warn(e.getMessage());
 		}
 
+	}
+
+	private  void createTimeseriesBatch(String path, String sensor, int count, int timeseriesTotal){
+		Statement statement;
+		try {
+			statement = connection.createStatement();
+			if(count < timeseriesTotal){
+				if(count%1000==0){
+					statement.executeBatch();
+					statement.clearBatch();
+					statement.close();
+				}else{
+					statement.addBatch(String.format(createStatementSQL,
+							Constants.ROOT_SERIES_NAME + "." + path + "."
+									+ sensor));
+
+				}
+			}
+			statement.executeBatch();
+			statement.clearBatch();
+			statement.close();
+		} catch (SQLException e) {
+			LOGGER.warn(e.getMessage());
+		}
 	}
 
 	private void setStorgeGroup(String device) {
