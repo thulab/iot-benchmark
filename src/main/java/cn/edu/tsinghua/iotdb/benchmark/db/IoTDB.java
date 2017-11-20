@@ -348,10 +348,11 @@ public class IoTDB implements IDatebase {
 									+ sensor));
 
 				}
+			}else {
+				statement.executeBatch();
+				statement.clearBatch();
+				statement.close();
 			}
-			statement.executeBatch();
-			statement.clearBatch();
-			statement.close();
 		} catch (SQLException e) {
 			LOGGER.warn(e.getMessage());
 		}
