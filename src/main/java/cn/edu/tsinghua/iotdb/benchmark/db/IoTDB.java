@@ -92,6 +92,7 @@ public class IoTDB implements IDatebase {
 			}
 			int count = 0;
 			int groupIndex = 0;
+			int timeseriesCount = 0;
 			int timeseriesTotal = config.DEVICE_NUMBER * config.SENSOR_NUMBER;
 			String path;
 			for (String device : config.DEVICE_CODES) {
@@ -102,7 +103,8 @@ public class IoTDB implements IDatebase {
 				path = group.get(groupIndex) + "." + device;
 				for (String sensor : config.SENSOR_CODES) {
 					//createTimeseries(path, sensor);
-					createTimeseriesBatch(path, sensor, count, timeseriesTotal);
+					timeseriesCount++;
+					createTimeseriesBatch(path, sensor, timeseriesCount, timeseriesTotal);
 				}
 				count++;
 			}
