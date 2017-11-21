@@ -92,6 +92,9 @@ public class IoTDB implements IDatebase {
 			}
 			int count = 0;
 			int groupIndex = 0;
+			int timeseriesCount = 0;
+			Statement statement = connection.createStatement();
+			int timeseriesTotal = config.DEVICE_NUMBER * config.SENSOR_NUMBER;
 			String path;
 			for (String device : config.DEVICE_CODES) {
 				if (count == groupSize) {
@@ -100,7 +103,9 @@ public class IoTDB implements IDatebase {
 				}
 				path = group.get(groupIndex) + "." + device;
 				for (String sensor : config.SENSOR_CODES) {
-					createTimeseries(path, sensor);
+					//createTimeseries(path, sensor);
+					timeseriesCount++;
+					createTimeseriesBatch(path, sensor, timeseriesCount, timeseriesTotal,statement);
 				}
 				count++;
 			}
@@ -180,43 +185,42 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
-	public void insertOneBatch(String device, int batchIndex,
+	public void insertOneBatch(String device, int loopIndex,
 			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
 		Statement statement;
+		int[] result ;
+		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			for (int i = 0; i < config.CACHE_NUM; i++) {
-				String sql = createSQLStatment(batchIndex, i, device);
+				String sql = createSQLStatment(loopIndex, i, device);
 				statement.addBatch(sql);
 			}
 			long startTime = System.currentTimeMillis();
-			statement.executeBatch();
+			result = statement.executeBatch();
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
-			LOGGER.info(
-					"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-					Thread.currentThread().getName(),
-					batchIndex,
-					(endTime - startTime) / 1000.0,
-					(totalTime.get() + (endTime - startTime)) / 1000.0,
-					(config.CACHE_NUM * config.SENSOR_NUMBER / (double) (endTime - startTime)) * 1000);
-			totalTime.set(totalTime.get() + (endTime - startTime));
-		} catch (BatchUpdateException e) {
-			// TODO Auto-generated catch block
-			int[] ret = e.getUpdateCounts();
-			int diff = config.CACHE_NUM - ret.length;
-			if (diff == 0) {// same--遇到error继续执行；不同则说明只返回了正确的个数；
-				for (int i : ret) {
-					if (i == Statement.EXECUTE_FAILED) {
-						diff++;
-					}
+
+			for(int i=0;i<result.length;i++){
+				if(result[i]==-1){
+					errorNum++;
 				}
 			}
-			errorCount.set(errorCount.get() + diff);
-			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
-					diff, e.getMessage());
-			e.printStackTrace();
+
+			if(errorNum>0) {
+				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+			}else{
+				LOGGER.info(
+						"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+						Thread.currentThread().getName(),
+						loopIndex,
+						(endTime - startTime) / 1000.0,
+						(totalTime.get() + (endTime - startTime)) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) (endTime - startTime)) * 1000);
+				totalTime.set(totalTime.get() + (endTime - startTime));
+				errorCount.set(errorCount.get() + errorNum);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -229,6 +233,8 @@ public class IoTDB implements IDatebase {
 		// TODO Auto-generated method stub
 
 		Statement statement;
+		int[] result ;
+		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			for (String sql : cons) {
@@ -236,33 +242,29 @@ public class IoTDB implements IDatebase {
 			}
 
 			long startTime = System.currentTimeMillis();
-			statement.executeBatch();
+			result = statement.executeBatch();
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
 
-			LOGGER.debug(
-					"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
-					Thread.currentThread().getName(), batchIndex,
-					(endTime - startTime) / 1000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000.0),
-					(cons.size() / (double) (endTime - startTime)) * 1000);
-			totalTime.set(totalTime.get() + (endTime - startTime));
-		} catch (BatchUpdateException e) {
-			// TODO Auto-generated catch block
-			int[] ret = e.getUpdateCounts();
-			int diff = cons.size() - ret.length;
-			if (diff == 0) {// same--遇到error继续执行；不同则说明只返回了正确的个数；
-				for (int i : ret) {
-					if (i == Statement.EXECUTE_FAILED) {
-						diff++;
-					}
+			for(int i=0;i<result.length;i++){
+				if(result[i]==-1){
+					errorNum++;
 				}
 			}
-			errorCount.set(errorCount.get() + diff);
-			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
-					diff, e.getMessage());
-			e.printStackTrace();
+
+			if(errorNum>0) {
+				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+			}else{
+				LOGGER.debug(
+						"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
+						Thread.currentThread().getName(), batchIndex,
+						(endTime - startTime) / 1000.0,
+						((totalTime.get() + (endTime - startTime)) / 1000.0),
+						(cons.size() / (double) (endTime - startTime)) * 1000);
+				totalTime.set(totalTime.get() + (endTime - startTime));
+				errorCount.set(errorCount.get() + errorNum);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -409,6 +411,32 @@ public class IoTDB implements IDatebase {
 			LOGGER.warn(e.getMessage());
 		}
 
+	}
+
+	private  void createTimeseriesBatch(String path, String sensor, int count, int timeseriesTotal, Statement statement){
+		try {
+			statement.addBatch(String.format(createStatementSQL,
+					Constants.ROOT_SERIES_NAME + "." + path + "."
+							+ sensor));
+			if((count%1000)==0){
+				long startTime = System.currentTimeMillis();
+				statement.executeBatch();
+				statement.clearBatch();
+				long endTime = System.currentTimeMillis();
+				LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
+						1000000.0f/(endTime-startTime));
+				if(count>=timeseriesTotal){
+					statement.close();
+				}
+				//statement.close();
+			}else if(count>=timeseriesTotal){
+				statement.executeBatch();
+				statement.clearBatch();
+				statement.close();
+			}
+		} catch (SQLException e) {
+			LOGGER.warn(e.getMessage());
+		}
 	}
 
 	private void setStorgeGroup(String device) {
