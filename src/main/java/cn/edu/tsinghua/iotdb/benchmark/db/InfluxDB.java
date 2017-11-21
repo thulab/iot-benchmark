@@ -184,8 +184,8 @@ public class InfluxDB implements IDatebase {
     }
 
 	@Override
-	public void executeOneQuery(String device, int batchIndex,
-			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
+	public void executeOneQuery(String device, int index,
+			QueryClientThread client, ThreadLocal<Long> errorCount) {
 		// TODO Auto-generated method stub
 		
 	}

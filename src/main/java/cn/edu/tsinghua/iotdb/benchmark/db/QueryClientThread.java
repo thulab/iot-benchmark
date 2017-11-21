@@ -13,17 +13,13 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class QueryClientThread implements Runnable {
+	private int clientDevicesNum;
 	private IDatebase database;
 	private int index;
 	private Config config;
 	private static final Logger LOOGER = LoggerFactory
 			.getLogger(QueryClientThread.class);
-	private Storage storage;
-	private static ThreadLocal<Long> totalTime = new ThreadLocal<Long>() {
-		protected Long initialValue() {
-			return (long) 0;
-		}
-	};
+	
 	private static ThreadLocal<Long> errorCount = new ThreadLocal<Long>() {
 		protected Long initialValue() {
 			return (long) 0;
@@ -31,17 +27,32 @@ public class QueryClientThread implements Runnable {
 	};
 	private CountDownLatch downLatch;
 	private ArrayList<Long> totalTimes;
-	private ArrayList<Long> totalInsertErrorNums;
+	private ArrayList<Long> totalPoints;
+	private ArrayList<Long> totalQueryErrorNums;
+	
+	private Long queryResultPoints[];
+	private Long queryResultTimes[];
 
 	public QueryClientThread(IDatebase datebase, int index,
-			CountDownLatch downLatch, ArrayList<Long> totalTimes,
-			ArrayList<Long> totalInsertErrorNums) {
+			CountDownLatch downLatch, ArrayList<Long> totalTimes, ArrayList<Long> totalPoints,
+			ArrayList<Long> totalQueryErrorNums) {
 		this.database = datebase;
 		this.index = index;
 		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
-		this.totalInsertErrorNums = totalInsertErrorNums;
+		this.totalPoints = totalPoints;
+		this.totalQueryErrorNums = totalQueryErrorNums;
+		
+		clientDevicesNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
+		
+		queryResultPoints = new Long[clientDevicesNum];
+		queryResultTimes = new Long[clientDevicesNum];
+		for(int i = 0; i < clientDevicesNum; i++){
+			queryResultPoints[i] = (long)0;
+			queryResultTimes[i] = (long)0;
+		}
+		
 	}
 
 	@Override
@@ -55,12 +66,11 @@ public class QueryClientThread implements Runnable {
 			return;
 		}
 
-		int clientDevicesNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
 		while (i < config.LOOP) {
 			for (int m = 0; m < clientDevicesNum; m++) {
 				database.executeOneQuery(
 						config.DEVICE_CODES.get(index * clientDevicesNum + m),
-						i, totalTime, errorCount);
+						i, this, errorCount);
 			}
 			i++;
 		}
@@ -71,9 +81,38 @@ public class QueryClientThread implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		this.totalTimes.add(totalTime.get());
-		this.totalInsertErrorNums.add(errorCount.get());
+		this.totalTimes.add(getSumOfArr(queryResultTimes));
+		this.totalPoints.add(getSumOfArr(queryResultPoints));
+		this.totalQueryErrorNums.add(errorCount.get());
+		for(int j = 0; j < clientDevicesNum; j++){
+			LOOGER.info("Thread_{} , device_{} : The result points is {}, the query time is {}s, so rate is {} points/s.", 
+					index, index*clientDevicesNum+j, queryResultPoints[j], queryResultTimes[j]/1000.0f, 1000.0f * queryResultPoints[j]/queryResultTimes[j]);
+			
+		}
 		this.downLatch.countDown();
 	}
 
+	
+	public void addResultPointAndTime(int dev, long pointNum, long time){
+		int index = dev % clientDevicesNum;
+		queryResultPoints[index] += pointNum;
+		queryResultTimes[index] += time;
+	}
+	
+	public long getResultPoint(int dev){
+		return queryResultPoints[dev % clientDevicesNum];
+	}
+	
+	public long getResultTime(int dev){
+		return queryResultTimes[dev % clientDevicesNum];
+	}
+	
+	/** 计算arr中所有元素的和 */
+	private static long getSumOfArr(Long[] arr) {
+		long total = 0;
+		for (long c : arr) {
+			total += c;
+		}
+		return total;
+	}
 }
