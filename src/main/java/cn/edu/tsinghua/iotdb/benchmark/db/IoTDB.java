@@ -93,6 +93,7 @@ public class IoTDB implements IDatebase {
 			int count = 0;
 			int groupIndex = 0;
 			int timeseriesCount = 0;
+			Statement statement = connection.createStatement();
 			int timeseriesTotal = config.DEVICE_NUMBER * config.SENSOR_NUMBER;
 			String path;
 			for (String device : config.DEVICE_CODES) {
@@ -104,7 +105,7 @@ public class IoTDB implements IDatebase {
 				for (String sensor : config.SENSOR_CODES) {
 					//createTimeseries(path, sensor);
 					timeseriesCount++;
-					createTimeseriesBatch(path, sensor, timeseriesCount, timeseriesTotal);
+					createTimeseriesBatch(path, sensor, timeseriesCount, timeseriesTotal,statement);
 				}
 				count++;
 			}
@@ -184,13 +185,13 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
-	public void insertOneBatch(String device, int batchIndex,
+	public void insertOneBatch(String device, int loopIndex,
 			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
 		Statement statement;
 		try {
 			statement = connection.createStatement();
 			for (int i = 0; i < config.CACHE_NUM; i++) {
-				String sql = createSQLStatment(batchIndex, i, device);
+				String sql = createSQLStatment(loopIndex, i, device);
 				statement.addBatch(sql);
 			}
 			long startTime = System.currentTimeMillis();
@@ -201,7 +202,7 @@ public class IoTDB implements IDatebase {
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 					Thread.currentThread().getName(),
-					batchIndex,
+					loopIndex,
 					(endTime - startTime) / 1000.0,
 					(totalTime.get() + (endTime - startTime)) / 1000.0,
 					(config.CACHE_NUM * config.SENSOR_NUMBER / (double) (endTime - startTime)) * 1000);
@@ -335,22 +336,19 @@ public class IoTDB implements IDatebase {
 
 	}
 
-	private  void createTimeseriesBatch(String path, String sensor, int count, int timeseriesTotal){
-		Statement statement;
+	private  void createTimeseriesBatch(String path, String sensor, int count, int timeseriesTotal, Statement statement){
 		try {
-			statement = connection.createStatement();
-			if(count < timeseriesTotal){
-				if(count%1000==0){
-					statement.executeBatch();
-					statement.clearBatch();
+			statement.addBatch(String.format(createStatementSQL,
+					Constants.ROOT_SERIES_NAME + "." + path + "."
+							+ sensor));
+			if((count%1000)==0){
+				statement.executeBatch();
+				statement.clearBatch();
+				if(count>=timeseriesTotal){
 					statement.close();
-				}else{
-					statement.addBatch(String.format(createStatementSQL,
-							Constants.ROOT_SERIES_NAME + "." + path + "."
-									+ sensor));
-
 				}
-			}else {
+				//statement.close();
+			}else if(count>=timeseriesTotal){
 				statement.executeBatch();
 				statement.clearBatch();
 				statement.close();
