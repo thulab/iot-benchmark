@@ -184,7 +184,13 @@ public class InfluxDB implements IDatebase {
     }
 
 	@Override
-	public void executeOneQuery(String device, int index,
+	public long getTotalTimeInterval() throws SQLException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void executeOneQuery(String device, int index, long startTime,
 			QueryClientThread client, ThreadLocal<Long> errorCount) {
 		// TODO Auto-generated method stub
 		

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class QueryClientThread implements Runnable {
@@ -66,11 +67,22 @@ public class QueryClientThread implements Runnable {
 			return;
 		}
 
+		long startTimeInterval = config.CACHE_NUM * config.POINT_STEP;
+		try {
+			startTimeInterval = database.getTotalTimeInterval() / config.LOOP;
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			LOOGER.error("{} Fail to get total time interval becasue {}", Thread
+					.currentThread().getName(), e1.getMessage());
+			e1.printStackTrace();
+			return;
+		}
 		while (i < config.LOOP) {
 			for (int m = 0; m < clientDevicesNum; m++) {
+				
 				database.executeOneQuery(
 						config.DEVICE_CODES.get(index * clientDevicesNum + m),
-						i, this, errorCount);
+						i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount);
 			}
 			i++;
 		}
@@ -115,4 +127,6 @@ public class QueryClientThread implements Runnable {
 		}
 		return total;
 	}
+	
+	
 }
