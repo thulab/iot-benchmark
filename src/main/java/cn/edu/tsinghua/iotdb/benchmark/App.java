@@ -202,6 +202,7 @@ public class App {
 		}
 		IDatebase datebase = null;
 		try{
+			datebase = idbFactory.buildDB();
 			datebase.init();
 		}catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
@@ -210,12 +211,13 @@ public class App {
 		
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 		ArrayList<Long> totalTimes = new ArrayList<>();
-		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
+		ArrayList<Long> totalPoints = new ArrayList<>();
+		ArrayList<Long> totalQueryErrorNums = new ArrayList<>();
 		ExecutorService executorService = Executors
 				.newFixedThreadPool(config.CLIENT_NUMBER);
 		for (int i = 0; i < config.CLIENT_NUMBER; i++) {
 			executorService.submit(new QueryClientThread(idbFactory.buildDB(),
-					i, downLatch, totalTimes, totalInsertErrorNums));
+					i, downLatch, totalTimes, totalPoints, totalQueryErrorNums));
 		}
 		executorService.shutdown();
 		try {
@@ -229,16 +231,18 @@ public class App {
 				totalTime = c;
 			}
 		}
-
+		long totalResultPoint = getSumOfList(totalPoints);
+		
 		LOGGER.info(
-				"execute query ,{}, times in ,{},s with ,{}, workers (mean rate ,{}, querys/s)",
+				"execute query ,{}, times in ,{},s with ,{}, result points by ,{}, workers (mean rate ,{}, points/s)",
 				config.DEVICE_NUMBER * config.LOOP
 				, totalTime / 1000.0f,
+				totalResultPoint,
 				config.CLIENT_NUMBER,
-				(1000.0f *config.DEVICE_NUMBER* config.LOOP)
+				(1000.0f * totalResultPoint)
 				/ ((float) totalTime));
 		
-		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
+		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}",totalErrorPoint);
 	}
 	

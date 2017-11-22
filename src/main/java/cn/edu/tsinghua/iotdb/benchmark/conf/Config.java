@@ -120,7 +120,8 @@ public class Config {
 	public int QUERY_CHOICE = 1;//1--select * from
 	public String QUERY_AGGREGATE_FUN = "max_value";
 	public boolean IS_QUERY_TEST = false;
-	
+	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
+	public double QUERY_LOWER_LIMIT = 0;
 
 	// InfluxDB参数
 	// Influx服务器URL
