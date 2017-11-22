@@ -32,6 +32,9 @@ public class InfluxDBV2 implements IDatebase {
         InfluxURL = config.INFLUX_URL;
         InfluxDBName = config.INFLUX_DB_NAME;
         influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
+        if(influxDB.databaseExists(InfluxDBName)){
+            influxDB.deleteDatabase(InfluxDBName);
+        }
         createDatabase(InfluxDBName);
     }
 
