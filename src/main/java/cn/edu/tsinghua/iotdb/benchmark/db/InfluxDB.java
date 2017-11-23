@@ -16,6 +16,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/11/16 0016.
@@ -190,9 +191,12 @@ public class InfluxDB implements IDatebase {
 	}
 
 	@Override
-	public void executeOneQuery(String device, int index, long startTime,
-			QueryClientThread client, ThreadLocal<Long> errorCount) {
+	public void executeOneQuery(List<Integer> devices, int index,
+			long startTime, QueryClientThread client,
+			ThreadLocal<Long> errorCount) {
 		// TODO Auto-generated method stub
 		
 	}
+
+	
 }
