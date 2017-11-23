@@ -40,7 +40,8 @@ public class Config {
 	public int CACHE_NUM = 10;
 	/** 存储组数量 */
 	public int GROUP_NUMBER = 1;
-
+	/** 数据编码方式 */
+	public String ENCODING = "PLAIN";
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;
 

@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.db.*;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 
-import java.io.File;
+import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -166,18 +166,29 @@ public class App {
 					totalTime = c;
 				}
 			}
+			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
 			LOGGER.info(
 					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP);
 			LOGGER.info(
 					"loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-					config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP
-							* config.CACHE_NUM, totalTime / 1000.0f,
+					totalPoints,
+					totalTime / 1000.0f,
 					config.CLIENT_NUMBER,
 					(1000.0f * config.SENSOR_NUMBER * config.DEVICE_NUMBER
 							* config.LOOP * config.CACHE_NUM)
 							/ ((float) totalTime));
+
+			if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
+				File dir = new File(config.LOG_STOP_FLAG_PATH + "/data");
+				if (dir.exists() && dir.isDirectory()) {
+					float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / totalPoints;
+					LOGGER.info("Average size of each point ,{},Byte", pointByteSize);
+				} else {
+					LOGGER.info("Can not find data file!");
+				}
+			}
 
 		}// else--
 		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
@@ -257,6 +268,36 @@ public class App {
 	}
 	
 	/***/
-	
+	private static long getDirTotalSize(String dir){
+		long totalsize = 0;
+
+		Process pro = null;
+		Runtime r = Runtime.getRuntime();
+		try {
+			//获得文件夹大小，单位 Byte
+			String command = "du "+ dir;
+			pro = r.exec(command);
+			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+			String line = null;
+			String lastLine = null;
+			while(true){
+				lastLine = line;
+				if((line = in.readLine()) == null){
+					System.out.println(lastLine);
+					break;
+				}
+			}
+			String[] temp = lastLine.split("\\s+");
+			totalsize = Long.parseLong(temp[0]);
+
+			in.close();
+			pro.destroy();
+		} catch (IOException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+		}
+
+		return totalsize;
+	}
 
 }
