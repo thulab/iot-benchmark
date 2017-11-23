@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.db.*;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 
-import java.io.File;
+import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -38,11 +38,12 @@ public class App {
 				//检测所需的时间在目前代码的参数下至少为2秒
 				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
 				while (true) {
-					ArrayList<Float> list = IoUsage.getInstance().get();
-					LOGGER.info("CPU使用率,{}", list.get(0));
+					ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+					ArrayList<Float> netUsageList = NetUsage.getInstance().get();
+					LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
 					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-					LOGGER.info("磁盘IO使用率,{}", list.get(1));
-					LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
+					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
+					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
 					try {
 						Thread.sleep(interval * 1000);
 					} catch (InterruptedException e) {
@@ -165,18 +166,30 @@ public class App {
 					totalTime = c;
 				}
 			}
+			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
 			LOGGER.info(
-					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}",
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
-					config.CACHE_NUM, config.POINT_STEP);
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP);
 			LOGGER.info(
-					"loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-					config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP
-							* config.CACHE_NUM, totalTime / 1000.0f,
+					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+					totalPoints,
+					totalTime / 1000.0f,
 					config.CLIENT_NUMBER,
 					(1000.0f * config.SENSOR_NUMBER * config.DEVICE_NUMBER
 							* config.LOOP * config.CACHE_NUM)
 							/ ((float) totalTime));
+
+			if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
+				File dir = new File(config.LOG_STOP_FLAG_PATH + "/data");
+				if (dir.exists() && dir.isDirectory()) {
+					float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / totalPoints;
+					LOGGER.info("Average size of each point ,{},Byte ,ENCODING = ,{}", pointByteSize, config.ENCODING);
+				} else {
+					LOGGER.info("Can not find data file!");
+				}
+			}
 
 		}// else--
 		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
@@ -256,6 +269,36 @@ public class App {
 	}
 	
 	/***/
-	
+	private static long getDirTotalSize(String dir){
+		long totalsize = 0;
+
+		Process pro = null;
+		Runtime r = Runtime.getRuntime();
+		try {
+			//获得文件夹大小，单位 Byte
+			String command = "du "+ dir;
+			pro = r.exec(command);
+			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+			String line = null;
+			String lastLine = null;
+			while(true){
+				lastLine = line;
+				if((line = in.readLine()) == null){
+					System.out.println(lastLine);
+					break;
+				}
+			}
+			String[] temp = lastLine.split("\\s+");
+			totalsize = Long.parseLong(temp[0]);
+
+			in.close();
+			pro.destroy();
+		} catch (IOException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+		}
+
+		return totalsize;
+	}
 
 }

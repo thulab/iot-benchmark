@@ -27,9 +27,9 @@ import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 public class IoTDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 
-	// private static final String createStatementSQL =
-	// "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
-	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=PLAIN";
+	//private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
+	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=%s";
+
 	private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	private Connection connection;
@@ -383,7 +383,7 @@ public class IoTDB implements IDatebase {
 				statement
 						.execute(String.format(createStatementSQL,
 								Constants.ROOT_SERIES_NAME + "." + path + "."
-										+ sensor));
+										+ sensor,"GORILLA"));
 			}
 			statement.close();
 		} catch (SQLException e) {
@@ -395,9 +395,9 @@ public class IoTDB implements IDatebase {
 	private void createTimeseriesBatch(String path, String sensor, int count,
 			int timeseriesTotal, Statement statement) {
 		try {
-			statement.addBatch(String.format(createStatementSQL,
-					Constants.ROOT_SERIES_NAME + "." + path + "." + sensor));
-			if ((count % 1000) == 0) {
+			statement.addBatch(String.format(createStatementSQL,Constants.ROOT_SERIES_NAME + "." + path + "."
+							+ sensor, config.ENCODING));
+			if((count%1000)==0){
 				long startTime = System.currentTimeMillis();
 				statement.executeBatch();
 				statement.clearBatch();
