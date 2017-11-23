@@ -38,11 +38,12 @@ public class App {
 				//检测所需的时间在目前代码的参数下至少为2秒
 				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
 				while (true) {
-					ArrayList<Float> list = IoUsage.getInstance().get();
-					LOGGER.info("CPU使用率,{}", list.get(0));
+					ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+					ArrayList<Float> netUsageList = IoUsage.getInstance().get();
+					LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
 					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-					LOGGER.info("磁盘IO使用率,{}", list.get(1));
-					LOGGER.info("eth0接受和发送总速率,{},KB/s", NetUsage.getInstance().get());
+					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
+					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
 					try {
 						Thread.sleep(interval * 1000);
 					} catch (InterruptedException e) {
