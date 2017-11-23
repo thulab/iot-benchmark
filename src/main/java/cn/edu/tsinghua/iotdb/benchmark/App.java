@@ -168,11 +168,12 @@ public class App {
 			}
 			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
 			LOGGER.info(
-					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}",
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
-					config.CACHE_NUM, config.POINT_STEP);
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP);
 			LOGGER.info(
-					"loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
 					totalPoints,
 					totalTime / 1000.0f,
 					config.CLIENT_NUMBER,
@@ -184,7 +185,7 @@ public class App {
 				File dir = new File(config.LOG_STOP_FLAG_PATH + "/data");
 				if (dir.exists() && dir.isDirectory()) {
 					float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / totalPoints;
-					LOGGER.info("Average size of each point ,{},Byte", pointByteSize);
+					LOGGER.info("Average size of each point ,{},Byte ,ENCODING = ,{}", pointByteSize, config.ENCODING);
 				} else {
 					LOGGER.info("Can not find data file!");
 				}
