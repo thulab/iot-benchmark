@@ -39,7 +39,7 @@ public class App {
 				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
 				while (true) {
 					ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
-					ArrayList<Float> netUsageList = IoUsage.getInstance().get();
+					ArrayList<Float> netUsageList = NetUsage.getInstance().get();
 					LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
 					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
 					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
