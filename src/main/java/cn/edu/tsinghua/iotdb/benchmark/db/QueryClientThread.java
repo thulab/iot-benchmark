@@ -2,7 +2,9 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -77,14 +79,24 @@ public class QueryClientThread implements Runnable {
 			e1.printStackTrace();
 			return;
 		}
+		List<Integer> clientDevicesIndex = new ArrayList<Integer>();
+		List<Integer> queryDevicesIndex = new ArrayList<Integer>();
+		for (int m = 0; m < clientDevicesNum; m++){
+			clientDevicesIndex.add(index + m * config.CLIENT_NUMBER);
+		}
+		
 		while (i < config.LOOP) {
-			for (int m = 0; m < clientDevicesNum; m++) {
-				
-				database.executeOneQuery(
-						config.DEVICE_CODES.get(index * clientDevicesNum + m),
+			Collections.shuffle(clientDevicesIndex);
+			for (int m = 0; m < config.QUERY_DIVICE_NUM; m++){
+				queryDevicesIndex.add(clientDevicesIndex.get(m));
+			}
+			for (int m = 0; m < clientDevicesNum; m++){
+				database.executeOneQuery(queryDevicesIndex,
+						//config.DEVICE_CODES.get(index * clientDevicesNum + m),
 						i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount);
 			}
 			i++;
+			queryDevicesIndex.clear();
 		}
 
 		try {
@@ -98,7 +110,7 @@ public class QueryClientThread implements Runnable {
 		this.totalQueryErrorNums.add(errorCount.get());
 		for(int j = 0; j < clientDevicesNum; j++){
 			LOOGER.info("Thread_{} , device_{} : The result points is {}, the query time is {}s, so rate is {} points/s.", 
-					index, index*clientDevicesNum+j, queryResultPoints[j], queryResultTimes[j]/1000.0f, 1000.0f * queryResultPoints[j]/queryResultTimes[j]);
+					index, index + j * config.CLIENT_NUMBER, queryResultPoints[j], queryResultTimes[j]/1000.0f, 1000.0f * queryResultPoints[j]/queryResultTimes[j]);
 			
 		}
 		this.downLatch.countDown();
@@ -106,17 +118,19 @@ public class QueryClientThread implements Runnable {
 
 	
 	public void addResultPointAndTime(int dev, long pointNum, long time){
-		int index = dev % clientDevicesNum;
+		int index = (dev - this.index) / config.CLIENT_NUMBER;
 		queryResultPoints[index] += pointNum;
 		queryResultTimes[index] += time;
 	}
 	
 	public long getResultPoint(int dev){
-		return queryResultPoints[dev % clientDevicesNum];
+		int index = (dev - this.index) / config.CLIENT_NUMBER;
+		return queryResultPoints[index];
 	}
 	
 	public long getResultTime(int dev){
-		return queryResultTimes[dev % clientDevicesNum];
+		int index = (dev - this.index) / config.CLIENT_NUMBER;
+		return queryResultTimes[index];
 	}
 	
 	/** 计算arr中所有元素的和 */

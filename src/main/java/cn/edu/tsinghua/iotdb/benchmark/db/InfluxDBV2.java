@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This version use influx-java api instead of simple http.
@@ -182,8 +183,9 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	@Override
-	public void executeOneQuery(String device, int index, long startTime,
-			QueryClientThread client, ThreadLocal<Long> errorCount) {
+	public void executeOneQuery(List<Integer> devices, int index,
+			long startTime, QueryClientThread client,
+			ThreadLocal<Long> errorCount) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -192,4 +194,5 @@ public class InfluxDBV2 implements IDatebase {
     public void flush(){
 
     }
+
 }
