@@ -12,5 +12,6 @@ public interface IDatebase {
 	//void executeOneQuery(String device, int batchIndex,ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount);
 	void executeOneQuery(String device, int index, long startTime,
 			QueryClientThread client, ThreadLocal<Long> errorCount);
+	void flush() throws SQLException;;
 	long getTotalTimeInterval() throws SQLException;
 }

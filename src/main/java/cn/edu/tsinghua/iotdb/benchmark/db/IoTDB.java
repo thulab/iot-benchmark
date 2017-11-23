@@ -553,7 +553,7 @@ public class IoTDB implements IDatebase {
 	}
 	
 
-	String getGroupDevicePath(String device){
+	private String getGroupDevicePath(String device){
 		String[] spl = device.split("_");
 		int deviceIndex = Integer.parseInt(spl[1]);
 		int groupSize = config.DEVICE_NUMBER/config.GROUP_NUMBER;
@@ -567,7 +567,19 @@ public class IoTDB implements IDatebase {
 		}
 		return "INT64";
 	}
-	
-	
+
+	/**强制IoTDB数据库将数据写入磁盘
+	 * @throws SQLException */
+	@Override
+	public void flush(){
+		String sql = "flush";
+		try {
+			Statement statement = connection.createStatement();
+			statement.execute(sql);
+			statement.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
 }

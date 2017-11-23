@@ -5,7 +5,10 @@ import cn.edu.tsinghua.iotdb.benchmark.db.*;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -182,10 +185,19 @@ public class App {
 							/ ((float) totalTime));
 
 			if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
+
 				File dir = new File(config.LOG_STOP_FLAG_PATH + "/data");
 				if (dir.exists() && dir.isDirectory()) {
+					long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+					datebase.init();
+					datebase.flush();
+					datebase.close();
+					long walSize2 = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+					System.out.println("walSize2 = "+walSize2+"KB");
 					float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / totalPoints;
-					LOGGER.info("Average size of each point ,{},Byte ,ENCODING = ,{}", pointByteSize, config.ENCODING);
+					LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size ,{},KB", pointByteSize,
+							config.ENCODING,
+							walSize);
 				} else {
 					LOGGER.info("Can not find data file!");
 				}
