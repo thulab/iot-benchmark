@@ -27,7 +27,8 @@ import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 public class IoTDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 
-	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
+	//private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=GORILLA";
+	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=PLAIN";
 	private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	private Connection connection;
