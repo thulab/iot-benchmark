@@ -187,4 +187,9 @@ public class InfluxDBV2 implements IDatebase {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+    public void flush(){
+
+    }
 }
