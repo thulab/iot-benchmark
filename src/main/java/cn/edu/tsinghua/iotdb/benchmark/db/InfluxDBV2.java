@@ -178,7 +178,7 @@ public class InfluxDBV2 implements IDatebase {
 
 	@Override
 	public long getTotalTimeInterval() throws SQLException {
-		// TODO Auto-generated method stub
+
 		return 0;
 	}
 
@@ -186,7 +186,6 @@ public class InfluxDBV2 implements IDatebase {
 	public void executeOneQuery(List<Integer> devices, int index,
 			long startTime, QueryClientThread client,
 			ThreadLocal<Long> errorCount) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -195,4 +194,8 @@ public class InfluxDBV2 implements IDatebase {
 
     }
 
+    @Override
+    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
+
+    }
 }
