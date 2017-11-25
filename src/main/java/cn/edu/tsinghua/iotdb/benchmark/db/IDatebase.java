@@ -19,4 +19,6 @@ public interface IDatebase {
 	long getTotalTimeInterval() throws SQLException;
 	void executeOneQuery(List<Integer> devices, int index, long startTime,
 			QueryClientThread client, ThreadLocal<Long> errorCount);
+	void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
+
 }

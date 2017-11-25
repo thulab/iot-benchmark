@@ -82,12 +82,28 @@ public class ClientThread implements Runnable{
 		else{
 			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
 			while(i < config.LOOP){
-				try {
-					for(int m = 0;m < clientDevicesNum; m++){
-						database.insertOneBatch(config.DEVICE_CODES.get(index*clientDevicesNum+m), i, totalTime, errorCount);
+				if(config.MUL_DEV_BATCH){
+					LinkedList<String> deviceCodes = new LinkedList<>();
+					for (int m = 0; m < clientDevicesNum; m++) {
+						deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
 					}
-				} catch (SQLException e) {
-					LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
+					try {
+						database.insertOneBatchMulDevice(deviceCodes, i, totalTime, errorCount);
+					} catch (SQLException e) {
+						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+					} catch (Exception e){
+						LOOGER.error("{} Fail to insert one batch into database becasue {} , The General Exception.", Thread.currentThread().getName(), e.getMessage());
+					}
+				}else {
+					try {
+						for (int m = 0; m < clientDevicesNum; m++) {
+							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount);
+						}
+					} catch (SQLException e) {
+						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+					} catch (Exception e){
+						LOOGER.error("{} Fail to insert one batch into database becasue {} , The General Exception.", Thread.currentThread().getName(), e.getMessage());
+					}
 				}
 				i++;
 			}

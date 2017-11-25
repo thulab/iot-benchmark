@@ -159,13 +159,10 @@ public class IoTDB implements IDatebase {
 			}
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			if (reader != null) {
@@ -178,7 +175,6 @@ public class IoTDB implements IDatebase {
 	}
 
 	private static Number string2num(String str) {
-		// TODO Auto-generated method stub
 		if (str.endsWith("i")) {
 			return Long.parseLong(str.substring(0, str.length() - 1));
 		} else {
@@ -187,8 +183,55 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
+	public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int loopIndex,
+										ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
+		Statement statement;
+		int[] result;
+		int errorNum = 0;
+		try {
+			statement = connection.createStatement();
+			//注意config.CACHE_NUM*config.CLIENT_NUMBER/config.DEVICE_NUMBER=整数,即批导入大小和客户端数的乘积可以被设备数整除
+			for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
+				for (String device : deviceCodes) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
+			}
+			long startTime = System.currentTimeMillis();
+			result = statement.executeBatch();
+			statement.clearBatch();
+			statement.close();
+			long endTime = System.currentTimeMillis();
+			long costTime = endTime - startTime;
+			for (int i = 0; i < result.length; i++) {
+				if (result[i] == -1) {
+					errorNum++;
+				}
+			}
+
+			if (errorNum > 0) {
+				LOGGER.info("Batch insert failed, the failed number is {}! ",
+						errorNum);
+			} else {
+				LOGGER.info(
+						"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+						Thread.currentThread().getName(),
+						loopIndex,
+						costTime / 1000.0,
+						(totalTime.get() + costTime) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+				totalTime.set(totalTime.get() + costTime);
+				errorCount.set(errorCount.get() + errorNum);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	@Override
 	public void insertOneBatch(String device, int loopIndex,
-			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
+							   ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) {
 		Statement statement;
 		int[] result;
 		int errorNum = 0;
@@ -233,7 +276,6 @@ public class IoTDB implements IDatebase {
 	public void insertOneBatch(LinkedList<String> cons, int batchIndex,
 			ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount)
 			throws SQLException {
-		// TODO Auto-generated method stub
 
 		Statement statement;
 		int[] result;

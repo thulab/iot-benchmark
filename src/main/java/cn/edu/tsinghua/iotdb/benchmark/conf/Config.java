@@ -44,6 +44,8 @@ public class Config {
 	public String ENCODING = "PLAIN";
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;
+	/**多设备批插入模式*/
+	public boolean MUL_DEV_BATCH = false;
 
 	public int INTERVAL = 1;
 

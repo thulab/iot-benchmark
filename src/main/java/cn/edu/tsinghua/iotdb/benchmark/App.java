@@ -60,6 +60,30 @@ public class App {
 						break;
 					}
 				}
+
+				//将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB
+				if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
+					IDBFactory idbFactory = new IoTDBFactory();
+					IDatebase datebase;
+					datebase = idbFactory.buildDB();
+					File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
+					if (dataDir.exists() && dataDir.isDirectory()) {
+						long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+						datebase.init();
+						datebase.flush();
+						datebase.close();
+						long walSize2 = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+						float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM);
+						LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size before and after flush, {},{},KB",
+								pointByteSize,
+								config.ENCODING,
+								walSize,
+								walSize2);
+					} else {
+						LOGGER.info("Can not find data file!");
+					}
+				}
+
 			}else{
 				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 			}
@@ -184,24 +208,7 @@ public class App {
 							* config.LOOP * config.CACHE_NUM)
 							/ ((float) totalTime));
 
-			if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
 
-				File dir = new File(config.LOG_STOP_FLAG_PATH + "/data");
-				if (dir.exists() && dir.isDirectory()) {
-					long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
-					datebase.init();
-					datebase.flush();
-					datebase.close();
-					long walSize2 = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
-					System.out.println("walSize2 = "+walSize2+"KB");
-					float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / totalPoints;
-					LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size ,{},KB", pointByteSize,
-							config.ENCODING,
-							walSize);
-				} else {
-					LOGGER.info("Can not find data file!");
-				}
-			}
 
 		}// else--
 		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
