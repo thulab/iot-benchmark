@@ -206,4 +206,16 @@ public class InfluxDB implements IDatebase {
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
 
     }
+
+	@Override
+	public void initMysql() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void closeMysql() {
+		// TODO Auto-generated method stub
+		
+	}
 }

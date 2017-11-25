@@ -16,7 +16,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class QueryClientThread implements Runnable {
-	private int clientDevicesNum;
 	private IDatebase database;
 	private int index;
 	private Config config;
@@ -33,8 +32,8 @@ public class QueryClientThread implements Runnable {
 	private ArrayList<Long> totalPoints;
 	private ArrayList<Long> totalQueryErrorNums;
 	
-	private Long queryResultPoints[];
-	private Long queryResultTimes[];
+	private Long totalTime;
+	private Long totalPoint;
 
 	public QueryClientThread(IDatebase datebase, int index,
 			CountDownLatch downLatch, ArrayList<Long> totalTimes, ArrayList<Long> totalPoints,
@@ -47,15 +46,9 @@ public class QueryClientThread implements Runnable {
 		this.totalPoints = totalPoints;
 		this.totalQueryErrorNums = totalQueryErrorNums;
 		
-		clientDevicesNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
-		
-		queryResultPoints = new Long[clientDevicesNum];
-		queryResultTimes = new Long[clientDevicesNum];
-		for(int i = 0; i < clientDevicesNum; i++){
-			queryResultPoints[i] = (long)0;
-			queryResultTimes[i] = (long)0;
-		}
-		
+		totalTime = (long)0;
+		totalPoint = (long)0;
+			
 	}
 
 	@Override
@@ -81,20 +74,23 @@ public class QueryClientThread implements Runnable {
 		}
 		List<Integer> clientDevicesIndex = new ArrayList<Integer>();
 		List<Integer> queryDevicesIndex = new ArrayList<Integer>();
-		for (int m = 0; m < clientDevicesNum; m++){
-			clientDevicesIndex.add(index + m * config.CLIENT_NUMBER);
-		}
 		
+		/**每一个设备只查询clientDevicesNum个设备*/
+//		clientDevicesNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;		
+//		for (int m = 0; m < clientDevicesNum; m++){
+//			clientDevicesIndex.add(index + m * config.CLIENT_NUMBER);
+//		}
+		
+		for (int m = 0; m < config.DEVICE_NUMBER; m++){
+			clientDevicesIndex.add( m );
+		}
 		while (i < config.LOOP) {
 			Collections.shuffle(clientDevicesIndex);
 			for (int m = 0; m < config.QUERY_DIVICE_NUM; m++){
 				queryDevicesIndex.add(clientDevicesIndex.get(m));
 			}
-			for (int m = 0; m < clientDevicesNum; m++){
-				database.executeOneQuery(queryDevicesIndex,
-						//config.DEVICE_CODES.get(index * clientDevicesNum + m),
-						i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount);
-			}
+			database.executeOneQuery(queryDevicesIndex,
+					i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount);
 			i++;
 			queryDevicesIndex.clear();
 		}
@@ -105,42 +101,26 @@ public class QueryClientThread implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		this.totalTimes.add(getSumOfArr(queryResultTimes));
-		this.totalPoints.add(getSumOfArr(queryResultPoints));
+		
+		this.totalTimes.add(totalTime);
+		this.totalPoints.add(totalPoint);
 		this.totalQueryErrorNums.add(errorCount.get());
-		for(int j = 0; j < clientDevicesNum; j++){
-			LOOGER.info("Thread_{} , device_{} : The result points is {}, the query time is {}s, so rate is {} points/s.", 
-					index, index + j * config.CLIENT_NUMBER, queryResultPoints[j], queryResultTimes[j]/1000.0f, 1000.0f * queryResultPoints[j]/queryResultTimes[j]);
-			
-		}
 		this.downLatch.countDown();
 	}
 
-	
-	public void addResultPointAndTime(int dev, long pointNum, long time){
-		int index = (dev - this.index) / config.CLIENT_NUMBER;
-		queryResultPoints[index] += pointNum;
-		queryResultTimes[index] += time;
+	public Long getTotalTime() {
+		return totalTime;
 	}
-	
-	public long getResultPoint(int dev){
-		int index = (dev - this.index) / config.CLIENT_NUMBER;
-		return queryResultPoints[index];
+
+	public void setTotalTime(Long totalTime) {
+		this.totalTime = totalTime;
 	}
-	
-	public long getResultTime(int dev){
-		int index = (dev - this.index) / config.CLIENT_NUMBER;
-		return queryResultTimes[index];
+
+	public Long getTotalPoint() {
+		return totalPoint;
 	}
-	
-	/** 计算arr中所有元素的和 */
-	private static long getSumOfArr(Long[] arr) {
-		long total = 0;
-		for (long c : arr) {
-			total += c;
-		}
-		return total;
+
+	public void setTotalPoint(Long totalPoint) {
+		this.totalPoint = totalPoint;
 	}
-	
-	
 }

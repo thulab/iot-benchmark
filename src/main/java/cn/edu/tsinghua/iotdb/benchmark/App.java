@@ -236,6 +236,7 @@ public class App {
 		try{
 			datebase = idbFactory.buildDB();
 			datebase.init();
+			//datebase.initMysql();
 		}catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
@@ -276,6 +277,7 @@ public class App {
 		
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}",totalErrorPoint);
+		//datebase.closeMysql();
 	}
 	
 	/** 计算list中所有元素的和 */

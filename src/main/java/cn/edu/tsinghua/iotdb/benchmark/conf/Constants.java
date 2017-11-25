@@ -20,4 +20,8 @@ public class Constants {
 
 	public static final String DB_IOT = "IoTDB";
 	public static final String DB_INFLUX = "InfluxDB";
+	
+	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
+	public static final String MYSQL_URL =  "jdbc:mysql://166.111.141.168:3306/test?"
+            + "user=root&password=lse_Nel_2017&useUnicode=true&characterEncoding=UTF8";
 }

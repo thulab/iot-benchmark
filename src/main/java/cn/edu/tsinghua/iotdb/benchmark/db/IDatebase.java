@@ -13,12 +13,12 @@ public interface IDatebase {
 	//void executeOneQuery(String device, int batchIndex,ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount);
 
 	void flush() throws SQLException;;
-	/**void executeOneQuery(String device, int index, long startTime,
-			QueryClientThread client, ThreadLocal<Long> errorCount);*/
 
 	long getTotalTimeInterval() throws SQLException;
 	void executeOneQuery(List<Integer> devices, int index, long startTime,
 			QueryClientThread client, ThreadLocal<Long> errorCount);
 	void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 
+	void initMysql();
+	void closeMysql();
 }
