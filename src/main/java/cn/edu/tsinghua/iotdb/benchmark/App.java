@@ -236,7 +236,7 @@ public class App {
 		try{
 			datebase = idbFactory.buildDB();
 			datebase.init();
-			//datebase.initMysql();
+			datebase.initMysql();
 		}catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
@@ -268,7 +268,7 @@ public class App {
 		
 		LOGGER.info(
 				"execute query ,{}, times in ,{},s with ,{}, result points by ,{}, workers (mean rate ,{}, points/s)",
-				config.DEVICE_NUMBER * config.LOOP
+				config.CLIENT_NUMBER * config.LOOP
 				, totalTime / 1000.0f,
 				totalResultPoint,
 				config.CLIENT_NUMBER,
@@ -277,7 +277,10 @@ public class App {
 		
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}",totalErrorPoint);
-		//datebase.closeMysql();
+		datebase.saveQueryResult(System.currentTimeMillis(), config.CLIENT_NUMBER * config.LOOP, totalResultPoint, 
+				totalTime, config.CLIENT_NUMBER, (1000.0f * totalResultPoint)/ ((float) totalTime),
+				totalErrorPoint);
+		datebase.closeMysql();
 	}
 	
 	/** 计算list中所有元素的和 */

@@ -56,6 +56,7 @@ public class QueryClientThread implements Runnable {
 		int i = 0;
 		try {
 			database.init();
+			database.initMysql();
 		} catch (SQLException e1) {
 			LOOGER.error("{} Fail to init database becasue {}", Thread
 					.currentThread().getName(), e1.getMessage());
@@ -97,6 +98,7 @@ public class QueryClientThread implements Runnable {
 
 		try {
 			database.close();
+			database.closeMysql();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -123,4 +125,6 @@ public class QueryClientThread implements Runnable {
 	public void setTotalPoint(Long totalPoint) {
 		this.totalPoint = totalPoint;
 	}
+	
+	
 }

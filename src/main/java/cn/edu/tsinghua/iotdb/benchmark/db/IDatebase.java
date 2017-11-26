@@ -10,8 +10,7 @@ public interface IDatebase {
 	void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 	void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 	void close() throws SQLException;
-	//void executeOneQuery(String device, int batchIndex,ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount);
-
+	
 	void flush() throws SQLException;;
 
 	long getTotalTimeInterval() throws SQLException;
@@ -21,4 +20,5 @@ public interface IDatebase {
 
 	void initMysql();
 	void closeMysql();
+	void saveQueryResult(long id, long queryNum, long point, long time, int clientNum, double rate, long errorNum);
 }

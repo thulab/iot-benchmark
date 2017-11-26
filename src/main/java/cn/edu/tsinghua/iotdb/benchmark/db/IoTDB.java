@@ -34,7 +34,7 @@ public class IoTDB implements IDatebase {
 	private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	private Connection connection;
-	private Connection MysqlConnection;
+	private Connection mysqlConnection;
 	private Config config;
 	private List<Point> points;
 	private Map<String, String> mp;
@@ -359,10 +359,10 @@ public class IoTDB implements IDatebase {
 			}
 			statement.close();
 			long endTimeStamp = System.currentTimeMillis();
-			
+
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
-			
+
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
@@ -371,6 +371,13 @@ public class IoTDB implements IDatebase {
 					line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER * 1000 / (endTimeStamp - startTimeStamp),
 					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000 / client.getTotalTime());
+			
+			String mysqlSql = String.format("insert into queryProcess values(%d,%s,%d,%d,%d,%f,%d)",
+					System.currentTimeMillis(),Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp),
+					line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER,
+					line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER * 1.0 / (endTimeStamp - startTimeStamp),config.QUERY_CHOICE);
+			Statement stat = mysqlConnection.createStatement();
+			stat.executeUpdate(mysqlSql);
 
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
@@ -445,31 +452,41 @@ public class IoTDB implements IDatebase {
 		connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
 				Constants.PASSWD);
 	}
-	
+
 	@Override
 	public void initMysql() {
 		try {
 			Class.forName(Constants.MYSQL_DRIVENAME);
-			MysqlConnection = DriverManager.getConnection(Constants.MYSQL_URL);
+			mysqlConnection = DriverManager.getConnection(Constants.MYSQL_URL);
+			Statement stat = mysqlConnection.createStatement();
+			if(!hasTable("queryResult")) {
+				stat.executeUpdate("create table queryResult(id BIGINT, queryNum BIGINT, point BIGINT,"
+						+ " time BIGINT, clientNum INTEGER, rate DOUBLE, errorNum BIGINT, query_type int, primary key(id))");
+			}
+			if(!hasTable("queryProcess")) {
+				stat.executeUpdate("create table queryProcess(id int, name varchar(50), "
+						+ "loop int, point int,time int,cur_rate DOUBLE, query_type int, primary key(id))");
+			}
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			LOGGER.error("mysql 连接初始化失败，原因是：{}",e.getMessage());
+			LOGGER.error("mysql 连接初始化失败，原因是：{}", e.getMessage());
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			LOGGER.error("mysql 连接初始化失败，原因是：{}",e.getMessage());
+			LOGGER.error("mysql 连接初始化失败，原因是：{}", e.getMessage());
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
-	public void closeMysql(){
-		if (MysqlConnection != null) {
+	public void closeMysql() {
+		if (mysqlConnection != null) {
 			try {
-				MysqlConnection.close();
+				mysqlConnection.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("mysql 连接关闭失败，原因是：{}",e.getMessage());
+				LOGGER.error("mysql 连接关闭失败，原因是：{}", e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -652,6 +669,22 @@ public class IoTDB implements IDatebase {
 		return "INT64";
 	}
 
+	/**数据库中是否已经存在名字为table的表*/
+	private Boolean hasTable(String table) throws SQLException {
+		String checkTable = "show tables like \""+table+"\"";
+		Statement stmt =  mysqlConnection.createStatement();
+
+		ResultSet resultSet = stmt.executeQuery(checkTable);
+		if (resultSet.next()) {
+			LOGGER.info("table {} exist!",table);
+			return true;
+		} else {
+			LOGGER.info("table {} not exist!",table);
+			return false;
+		}
+
+	}
+
 	/**
 	 * 强制IoTDB数据库将数据写入磁盘
 	 * 
@@ -667,6 +700,24 @@ public class IoTDB implements IDatebase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void saveQueryResult(long id, long queryNum, long point, long time, int clientNum, double rate,
+			long errorNum) {
+		// TODO Auto-generated method stub
+		Statement stat;
+		try {
+			stat = mysqlConnection.createStatement();
+			String sql = String.format("insert into queryResult values(%d,%d,%d,%d,%d,%f,%d)",
+					id, queryNum, point, time, clientNum, rate,errorNum, config.QUERY_CHOICE);
+			stat.executeUpdate(sql);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			LOGGER.error("将查询结果写入mysql失败，because ：{}",e.getMessage());
+			e.printStackTrace();
+		}
+		
 	}
 
 }
