@@ -213,7 +213,7 @@ public class IoTDB implements IDatebase {
 				LOGGER.info("Batch insert failed, the failed number is {}! ",
 						errorNum);
 			} else {
-				LOGGER.info(
+				LOGGER.debug(
 						"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(),
 						loopIndex,
@@ -257,7 +257,7 @@ public class IoTDB implements IDatebase {
 				LOGGER.info("Batch insert failed, the failed number is {}! ",
 						errorNum);
 			} else {
-				LOGGER.info(
+				LOGGER.debug(
 						"{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(),
 						loopIndex,

@@ -92,7 +92,7 @@ public class InfluxDB implements IDatebase {
             long startTime = System.currentTimeMillis();
             String response = HttpRequest.sendPost(url.toString(), body.toString());
             long endTime = System.currentTimeMillis();
-            LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
+            LOGGER.debug("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
                     Thread.currentThread().getName(),
                     batchIndex,
                     (endTime-startTime)/1000.0,
