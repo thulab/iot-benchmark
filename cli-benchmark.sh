@@ -23,7 +23,7 @@ ssh $SERVER_HOST "sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
 echo 'wait a few seconds for lauching IoTDB...'
 
 ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
-sleep 10
+sleep 15
 
 echo '------Client Test Begin Time------'
 date
