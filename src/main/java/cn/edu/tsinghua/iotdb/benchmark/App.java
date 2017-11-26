@@ -61,7 +61,8 @@ public class App {
 					}
 				}
 
-				//将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB
+				/*
+				//将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
 				if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
 					IDBFactory idbFactory = new IoTDBFactory();
 					IDatebase datebase;
@@ -83,6 +84,7 @@ public class App {
 						LOGGER.info("Can not find data file!");
 					}
 				}
+				*/
 
 			}else{
 				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
