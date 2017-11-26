@@ -92,14 +92,14 @@ public class InfluxDB implements IDatebase {
             long startTime = System.currentTimeMillis();
             String response = HttpRequest.sendPost(url.toString(), body.toString());
             long endTime = System.currentTimeMillis();
-            LOGGER.debug("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
+            LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
                     Thread.currentThread().getName(),
                     batchIndex,
                     (endTime-startTime)/1000.0,
                     ((totalTime.get()+(endTime-startTime))/1000.0),
                     (cons.size() / (double) (endTime-startTime))*1000);
             totalTime.set(totalTime.get()+(endTime-startTime));
-            LOGGER.debug(response);
+            LOGGER.info(response);
         } catch (IOException e) {
             // TODO : get accurate insert number
             errorCount.set(errorCount.get() + cons.size());
