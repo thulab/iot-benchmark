@@ -28,11 +28,7 @@ import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IoTDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-
-	// private static final String createStatementSQL = "create timeseries %s with
-	// datatype=DOUBLE,encoding=GORILLA";
 	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=%s";
-
 	private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	private Connection connection;
@@ -42,8 +38,6 @@ public class IoTDB implements IDatebase {
 	private Map<String, String> mp;
 	
 	private String localIP;
-	
-	
 
 	public IoTDB() throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -203,13 +197,14 @@ public class IoTDB implements IDatebase {
 		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
-			// 注意config.CACHE_NUM*config.CLIENT_NUMBER/config.DEVICE_NUMBER=整数,即批导入大小和客户端数的乘积可以被设备数整除
+			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
 			for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
 				for (String device : deviceCodes) {
 					String sql = createSQLStatment(loopIndex, i, device);
 					statement.addBatch(sql);
 				}
 			}
+			LOGGER.info("deviceCodes.size() is {} ", deviceCodes.size());
 			long startTime = System.currentTimeMillis();
 			result = statement.executeBatch();
 			statement.clearBatch();
