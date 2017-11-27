@@ -200,7 +200,7 @@ public class IoTDB implements IDatebase {
 			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
 			for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
 				for (String device : deviceCodes) {
-					String sql = createSQLStatment(loopIndex, i, device);
+					String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
 					statement.addBatch(sql);
 				}
 			}
@@ -533,6 +533,25 @@ public class IoTDB implements IDatebase {
 		}
 		builder.append(") values(");
 		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+		builder.append(currentTime);
+		for (String sensor : config.SENSOR_CODES) {
+			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
+		}
+		builder.append(")");
+		return builder.toString();
+	}
+
+	private String createSQLStatmentOfMulDevice(int loopIndex, int i, String device) {
+		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
+		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
+
+		for (String sensor : config.SENSOR_CODES) {
+			builder.append(",").append(sensor);
+		}
+		builder.append(") values(");
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (loopIndex * config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER) + i);
 		builder.append(currentTime);
 		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
