@@ -204,7 +204,6 @@ public class IoTDB implements IDatebase {
 					statement.addBatch(sql);
 				}
 			}
-			LOGGER.info("deviceCodes.size() is {} ", deviceCodes.size());
 			long startTime = System.currentTimeMillis();
 			result = statement.executeBatch();
 			statement.clearBatch();

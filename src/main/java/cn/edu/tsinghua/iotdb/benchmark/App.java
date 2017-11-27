@@ -166,9 +166,8 @@ public class App {
 				}
 			}
 			LOGGER.info(
-					"READ_FROM_FILE = ,{}, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
-					config.READ_FROM_FILE, config.TAG_PATH, config.STORE_MODE,
-					config.BATCH_OP_NUM);
+					"READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
+					config.TAG_PATH, config.STORE_MODE, config.BATCH_OP_NUM);
 			LOGGER.info(
 					"loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
 					totalItem, totalTime / 1000.0f, config.CLIENT_NUMBER,
@@ -196,6 +195,9 @@ public class App {
 				}
 			}
 			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
+				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
+			}
 			LOGGER.info(
 					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,

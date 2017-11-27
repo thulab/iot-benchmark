@@ -81,12 +81,12 @@ public class ClientThread implements Runnable{
 		}
 		else{
 			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
+			LinkedList<String> deviceCodes = new LinkedList<>();
+			for (int m = 0; m < clientDevicesNum; m++) {
+				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
+			}
 			while(i < config.LOOP){
 				if(config.MUL_DEV_BATCH){
-					LinkedList<String> deviceCodes = new LinkedList<>();
-					for (int m = 0; m < clientDevicesNum; m++) {
-						deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
-					}
 					try {
 						database.insertOneBatchMulDevice(deviceCodes, i, totalTime, errorCount);
 					} catch (SQLException e) {
