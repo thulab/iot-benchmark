@@ -208,9 +208,7 @@ public class App {
 					totalPoints,
 					totalTime / 1000.0f,
 					config.CLIENT_NUMBER,
-					(1000.0f * config.SENSOR_NUMBER * config.DEVICE_NUMBER
-							* config.LOOP * config.CACHE_NUM)
-							/ ((float) totalTime));
+					1000.0f * totalPoints / (float) totalTime);
 
 
 
