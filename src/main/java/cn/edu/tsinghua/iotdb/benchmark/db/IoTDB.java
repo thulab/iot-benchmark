@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -38,12 +40,24 @@ public class IoTDB implements IDatebase {
 	private Config config;
 	private List<Point> points;
 	private Map<String, String> mp;
+	
+	private String localIP;
+	
+	
 
 	public IoTDB() throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
 		config = ConfigDescriptor.getInstance().getConfig();
 		points = new ArrayList<>();
 		mp = new HashMap<>();
+		try {
+			InetAddress localhost = InetAddress.getLocalHost();
+			localIP = localhost.getHostName();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			LOGGER.error("获取本机ip地址失败;UnknownHostException：{}",e.getMessage());
+			e.printStackTrace();
+		} 
 	}
 
 	@Override
@@ -307,6 +321,7 @@ public class IoTDB implements IDatebase {
 			ThreadLocal<Long> errorCount) {
 		Statement statement;
 		String sql = "";
+		String mysqlSql="";
 		try {
 			statement = connection.createStatement();
 			List<String> sensorList = new ArrayList<String>();
@@ -367,25 +382,35 @@ public class IoTDB implements IDatebase {
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
 					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0,
-					line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER,
-					line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER * 1000 / (endTimeStamp - startTimeStamp),
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM,
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM * 1000 / (endTimeStamp - startTimeStamp),
 					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
-					client.getTotalPoint() * 1000 / client.getTotalTime());
-
-			String mysqlSql = String.format("insert into queryProcess values(%d,%s,%d,%d,%d,%f,%d)",
-					System.currentTimeMillis(), Thread.currentThread().getName(), index,
-					(endTimeStamp - startTimeStamp), line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER,
-					line * config.QUERY_SENSOR_NUM * config.DEVICE_NUMBER * 1.0 / (endTimeStamp - startTimeStamp),
-					config.QUERY_CHOICE);
-			Statement stat = mysqlConnection.createStatement();
-			stat.executeUpdate(mysqlSql);
-
+					client.getTotalPoint() * 1000.0f / client.getTotalTime());
+			mysqlSql = String.format("insert into "+config.DB_SWITCH+"QueryProcess values(%d,%s,%d,%d,%d,%f,%s,%s,%d,%d,%d,%s,%d,%f,%b)",
+					System.currentTimeMillis(), "'"+Thread.currentThread().getName() +"'", index,
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM   ,(int)(endTimeStamp - startTimeStamp), 
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM  * 1.0 / (endTimeStamp - startTimeStamp),
+					"'"+config.host+"'","'"+localIP+"'",config.QUERY_CHOICE, config.QUERY_SENSOR_NUM,
+					config.QUERY_DIVICE_NUM, "'"+config.QUERY_AGGREGATE_FUN+"'", config.QUERY_INTERVAL,
+					config.QUERY_LOWER_LIMIT,config.IS_EMPTY_PRECISE_POINT_QUERY);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("{}", sql);
 			e.printStackTrace();
 		}
+		Statement stat;
+		try {
+			stat = mysqlConnection.createStatement();
+			stat.executeUpdate(mysqlSql);
+			stat.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			LOGGER.error("{} save queryProcess info into mysql failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
+			LOGGER.error("{}", mysqlSql);
+			e.printStackTrace();
+		}
+		
 	}
 
 	private void createTimeseries(String path, String sensor) {
@@ -460,13 +485,17 @@ public class IoTDB implements IDatebase {
 			Class.forName(Constants.MYSQL_DRIVENAME);
 			mysqlConnection = DriverManager.getConnection(Constants.MYSQL_URL);
 			Statement stat = mysqlConnection.createStatement();
-			if (!hasTable("queryResult")) {
-				stat.executeUpdate("create table queryResult(id BIGINT, queryNum BIGINT, point BIGINT,"
-						+ " time BIGINT, clientNum INTEGER, rate DOUBLE, errorNum BIGINT, query_type int, primary key(id))");
+			if (!hasTable(config.DB_SWITCH+"QueryResult")) {
+				stat.executeUpdate("create table "+config.DB_SWITCH+"QueryResult(id BIGINT, queryNum BIGINT, point BIGINT,"
+						+ " time BIGINT, clientNum INTEGER, rate DOUBLE, errorNum BIGINT, serverIP varchar(20),localName varchar(50),query_type INTEGER,"
+						+ "QUERY_SENSOR_NUM INTEGER, QUERY_DIVICE_NUM INTEGER, QUERY_AGGREGATE_FUN varchar(30),"
+						+ "QUERY_INTERVAL BIGINT, QUERY_LOWER_LIMIT DOUBLE, IS_EMPTY_PRECISE_POINT_QUERY boolean,primary key(id))");
 			}
-			if (!hasTable("queryProcess")) {
-				stat.executeUpdate("create table queryProcess(id int, name varchar(50), "
-						+ "loop int, point int,time int,cur_rate DOUBLE, query_type int, primary key(id))");
+			if (!hasTable(config.DB_SWITCH+"QueryProcess")) {
+				stat.executeUpdate("create table "+config.DB_SWITCH+"QueryProcess(id BIGINT, clientName varchar(50), "
+						+ "loopIndex INTEGER, point INTEGER, time INTEGER, cur_rate DOUBLE, serverIP varchar(20),localName varchar(50),query_type INTEGER,"
+						+ "QUERY_SENSOR_NUM INTEGER, QUERY_DIVICE_NUM INTEGER, QUERY_AGGREGATE_FUN varchar(30),"
+						+ "QUERY_INTERVAL BIGINT, QUERY_LOWER_LIMIT DOUBLE, IS_EMPTY_PRECISE_POINT_QUERY boolean,primary key(id,clientName))");
 			}
 
 		} catch (SQLException e) {
@@ -708,14 +737,18 @@ public class IoTDB implements IDatebase {
 			long errorNum) {
 		// TODO Auto-generated method stub
 		Statement stat;
+		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			String sql = String.format("insert into queryResult values(%d,%d,%d,%d,%d,%f,%d)", id, queryNum, point,
-					time, clientNum, rate, errorNum, config.QUERY_CHOICE);
+			sql = String.format("insert into "+config.DB_SWITCH+"QueryResult values(%d,%d,%d,%d,%d,%f,%d,%s,%s,%d,%d,%d,%s,%d,%f,%b)", id, queryNum, point,
+					time, clientNum, rate, errorNum,"'"+config.host+"'","'"+localIP+"'", config.QUERY_CHOICE, config.QUERY_SENSOR_NUM,
+					config.QUERY_DIVICE_NUM, "'"+config.QUERY_AGGREGATE_FUN+"'", config.QUERY_INTERVAL,
+					config.QUERY_LOWER_LIMIT,config.IS_EMPTY_PRECISE_POINT_QUERY);
 			stat.executeUpdate(sql);
+			stat.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			LOGGER.error("将查询结果写入mysql失败，because ：{}", e.getMessage());
+			LOGGER.error("{}将查询结果写入mysql失败，because ：{}", sql,e.getMessage());
 			e.printStackTrace();
 		}
 

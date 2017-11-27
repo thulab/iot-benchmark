@@ -279,7 +279,7 @@ public class App {
 		
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}",totalErrorPoint);
-		datebase.saveQueryResult(System.currentTimeMillis(), config.CLIENT_NUMBER * config.LOOP, totalResultPoint, 
+		datebase.saveQueryResult(System.currentTimeMillis(), (long)config.CLIENT_NUMBER * config.LOOP, totalResultPoint, 
 				totalTime, config.CLIENT_NUMBER, (1000.0f * totalResultPoint)/ ((float) totalTime),
 				totalErrorPoint);
 		datebase.closeMysql();

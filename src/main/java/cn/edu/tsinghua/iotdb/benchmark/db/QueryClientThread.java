@@ -126,5 +126,8 @@ public class QueryClientThread implements Runnable {
 		this.totalPoint = totalPoint;
 	}
 	
+	public int getQueryClientIndex() {
+		return index;
+	}
 	
 }
