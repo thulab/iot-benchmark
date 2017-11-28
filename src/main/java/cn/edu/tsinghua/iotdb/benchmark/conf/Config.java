@@ -127,6 +127,7 @@ public class Config {
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
+	public String REMARK = "";
 
 	// InfluxDB参数
 	// Influx服务器URL
