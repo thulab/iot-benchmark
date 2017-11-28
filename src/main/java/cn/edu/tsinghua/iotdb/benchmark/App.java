@@ -193,10 +193,10 @@ public class App {
 				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
 			}
 			LOGGER.info(
-					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}",
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP);
+					config.LOOP, config.MUL_DEV_BATCH);
 			LOGGER.info(
 					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
 					totalPoints,
@@ -205,10 +205,10 @@ public class App {
 					1000.0f * totalPoints / (float) totalTime);
 
 			LOGGER.warn(
-					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}",
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP);
+					config.LOOP, config.MUL_DEV_BATCH);
 			LOGGER.warn(
 					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
 					totalPoints,
