@@ -207,6 +207,11 @@ public class InfluxDB implements IDatebase {
 
     }
 
+    @Override
+    public long count(String group, String device,String sensor){
+
+        return 0;
+    }
 //	@Override
 //	public void initMysql() {
 //		// TODO Auto-generated method stub

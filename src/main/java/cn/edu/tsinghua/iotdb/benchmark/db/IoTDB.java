@@ -668,4 +668,10 @@ public class IoTDB implements IDatebase {
 			e.printStackTrace();
 		}
 	}
+
+	@Override
+	public long count(String group,String device,String sensor){
+
+		return 0;
+	}
 }

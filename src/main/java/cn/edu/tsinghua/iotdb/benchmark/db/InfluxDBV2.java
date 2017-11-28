@@ -8,6 +8,8 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 
 import org.influxdb.dto.BatchPoints;
+import org.influxdb.dto.Query;
+import org.influxdb.dto.QueryResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,7 @@ public class InfluxDBV2 implements IDatebase {
     private String InfluxDBName;
     private Config config;
     private final String DEFAULT_RP = "autogen";
+    private static final String countSQL = "select count(%s) from %s where device='%s'";
     private org.influxdb.InfluxDB influxDB;
 
     @Override
@@ -199,6 +202,27 @@ public class InfluxDBV2 implements IDatebase {
 
     }
 
+    @Override
+    public long count(String group, String device,String sensor){
+        String sql = String.format(countSQL, sensor, group, device);
+        Query q = new Query(sql, config.INFLUX_DB_NAME);
+        QueryResult results = influxDB.query(q);
+
+
+        long countResult = 0;
+
+        if(results.getResults() != null) {
+            for (QueryResult.Result result : results.getResults()) {
+                for (QueryResult.Series s : result.getSeries()) {
+                    for (List<Object> values : s.getValues()) {
+                        countResult = (long) Float.parseFloat(values.get(1).toString());
+                    }
+                }
+            }
+        }
+        return countResult;
+
+    }
 //	@Override
 //	public void initMysql() {
 //		// TODO Auto-generated method stub
