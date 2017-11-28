@@ -13,7 +13,7 @@ mvn clean package -Dmaven.test.skip=true
 
 #initial database in server
 IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
-SERVER_HOST=liurui@192.168.130.9
+SERVER_HOST=liurui@192.168.130.1
 REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
 LOG_STOP_FLAG_PATH=/home/liurui
 
