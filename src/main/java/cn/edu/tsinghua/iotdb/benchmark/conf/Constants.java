@@ -23,5 +23,5 @@ public class Constants {
 	
 	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 	public static final String MYSQL_URL =  "jdbc:mysql://166.111.141.168:3306/test?"
-            + "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8";
+            + "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 }

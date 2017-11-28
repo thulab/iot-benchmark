@@ -25,20 +25,21 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-	public static void main(String[] args) throws ClassNotFoundException,
-			SQLException {
+	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
 		CommandCli cli = new CommandCli();
 		if (!cli.init(args)) {
 			return;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
-		if(config.SERVER_MODE) {
+		MySqlLog mySql = new MySqlLog();
+		mySql.initMysql();
+		if (config.SERVER_MODE) {
 			File dir = new File(config.LOG_STOP_FLAG_PATH);
-			if(dir.exists()&&dir.isDirectory()) {
+			if (dir.exists() && dir.isDirectory()) {
 				File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
 				int interval = config.INTERVAL;
-				//检测所需的时间在目前代码的参数下至少为2秒
+				// 检测所需的时间在目前代码的参数下至少为2秒
 				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
 				while (true) {
 					ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
@@ -47,6 +48,8 @@ public class App {
 					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
 					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
 					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
+					mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
+							netUsageList.get(0), netUsageList.get(1),"");
 					try {
 						Thread.sleep(interval * 1000);
 					} catch (InterruptedException e) {
@@ -60,47 +63,37 @@ public class App {
 						break;
 					}
 				}
-
+				mySql.closeMysql();
 				/*
-				//将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
-				if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
-					IDBFactory idbFactory = new IoTDBFactory();
-					IDatebase datebase;
-					datebase = idbFactory.buildDB();
-					File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
-					if (dataDir.exists() && dataDir.isDirectory()) {
-						long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
-						datebase.init();
-						datebase.flush();
-						datebase.close();
-						long walSize2 = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
-						float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") * 1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM);
-						LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size before and after flush, {},{},KB",
-								pointByteSize,
-								config.ENCODING,
-								walSize,
-								walSize2);
-					} else {
-						LOGGER.info("Can not find data file!");
-					}
-				}
-				*/
+				 * //将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
+				 * if(config.DB_SWITCH.equals(Constants.DB_IOT)) { IDBFactory idbFactory = new
+				 * IoTDBFactory(); IDatebase datebase; datebase = idbFactory.buildDB(); File
+				 * dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data"); if (dataDir.exists()
+				 * && dataDir.isDirectory()) { long walSize =
+				 * getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ; datebase.init();
+				 * datebase.flush(); datebase.close(); long walSize2 =
+				 * getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ; float
+				 * pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
+				 * 1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
+				 * config.CACHE_NUM); LOGGER.
+				 * info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size before and after flush, {},{},KB"
+				 * , pointByteSize, config.ENCODING, walSize, walSize2); } else {
+				 * LOGGER.info("Can not find data file!"); } }
+				 */
 
-			}else{
+			} else {
 				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 			}
 		} else {
-			if(config.IS_QUERY_TEST){
+			if (config.IS_QUERY_TEST) {
 				queryTest(config);
-			}
-			else{
+			} else {
 				insertTest(config);
 			}
-			
-		}// else--SERVER_MODE
+
+		} // else--SERVER_MODE
 	}// main
 
-	
 	/**
 	 * 数据库插入测试
 	 * 
@@ -138,6 +131,7 @@ public class App {
 		}
 
 		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
+		long totalErrorPoint;
 		if (config.READ_FROM_FILE) {
 			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 			ArrayList<Long> totalTimes = new ArrayList<>();
@@ -209,19 +203,26 @@ public class App {
 					(1000.0f * config.SENSOR_NUMBER * config.DEVICE_NUMBER
 							* config.LOOP * config.CACHE_NUM)
 							/ ((float) totalTime));
-
-
-
+			totalErrorPoint = getSumOfList(totalInsertErrorNums);
+			LOGGER.info("total error num is {}, create schema cost {},s",
+					totalErrorPoint, createSchemaTime);
+			MySqlLog mysql = new MySqlLog();
+			mysql.initMysql();
+			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER, 
+					totalErrorPoint,createSchemaTime,config.REMARK);
+			mysql.closeMysql();
+			
 		}// else--
-		long totalErrorPoint = getSumOfList(totalInsertErrorNums);
-		LOGGER.info("total error num is {}, create schema cost {},s",
-				totalErrorPoint, createSchemaTime);
-
+		
+		
 	}
 
-	/** 数据库查询测试 
-	 * @throws SQLException 
-	 * @throws ClassNotFoundException */
+	/**
+	 * 数据库查询测试
+	 * 
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
 	private static void queryTest(Config config) throws SQLException, ClassNotFoundException {
 		IDBFactory idbFactory = null;
 		switch (config.DB_SWITCH) {
@@ -235,24 +236,24 @@ public class App {
 			throw new SQLException("unsupported database " + config.DB_SWITCH);
 		}
 		IDatebase datebase = null;
-		try{
+		MySqlLog mySql = new MySqlLog();
+		try {
 			datebase = idbFactory.buildDB();
 			datebase.init();
-			datebase.initMysql();
-		}catch (SQLException e) {
+			mySql.initMysql();
+		} catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
 		}
-		
+
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 		ArrayList<Long> totalTimes = new ArrayList<>();
 		ArrayList<Long> totalPoints = new ArrayList<>();
 		ArrayList<Long> totalQueryErrorNums = new ArrayList<>();
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(config.CLIENT_NUMBER);
+		ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
 		for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-			executorService.submit(new QueryClientThread(idbFactory.buildDB(),
-					i, downLatch, totalTimes, totalPoints, totalQueryErrorNums));
+			executorService.submit(new QueryClientThread(idbFactory.buildDB(), i, downLatch, totalTimes, totalPoints,
+					totalQueryErrorNums));
 		}
 		executorService.shutdown();
 		try {
@@ -267,24 +268,20 @@ public class App {
 			}
 		}
 		long totalResultPoint = getSumOfList(totalPoints);
-		
+
 		LOGGER.info(
 				"execute query ,{}, times in ,{},s with ,{}, result points by ,{}, workers (mean rate ,{}, points/s)",
-				config.CLIENT_NUMBER * config.LOOP
-				, totalTime / 1000.0f,
-				totalResultPoint,
-				config.CLIENT_NUMBER,
-				(1000.0f * totalResultPoint)
-				/ ((float) totalTime));
-		
+				config.CLIENT_NUMBER * config.LOOP, totalTime / 1000.0f, totalResultPoint, config.CLIENT_NUMBER,
+				(1000.0f * totalResultPoint) / ((float) totalTime));
+
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
-		LOGGER.info("total error num is {}",totalErrorPoint);
-		datebase.saveQueryResult(System.currentTimeMillis(), (long)config.CLIENT_NUMBER * config.LOOP, totalResultPoint, 
-				totalTime, config.CLIENT_NUMBER, (1000.0f * totalResultPoint)/ ((float) totalTime),
-				totalErrorPoint);
-		datebase.closeMysql();
+		LOGGER.info("total error num is {}", totalErrorPoint);
+		mySql.saveQueryResult(System.currentTimeMillis(), (long) config.CLIENT_NUMBER * config.LOOP, totalResultPoint,
+				totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * (totalResultPoint-totalErrorPoint) )/  totalTime,
+				totalErrorPoint,config.REMARK);
+		mySql.closeMysql();
 	}
-	
+
 	/** 计算list中所有元素的和 */
 	private static long getSumOfList(ArrayList<Long> list) {
 		long total = 0;
@@ -293,23 +290,23 @@ public class App {
 		}
 		return total;
 	}
-	
+
 	/***/
-	private static long getDirTotalSize(String dir){
+	private static long getDirTotalSize(String dir) {
 		long totalsize = 0;
 
 		Process pro = null;
 		Runtime r = Runtime.getRuntime();
 		try {
-			//获得文件夹大小，单位 Byte
-			String command = "du "+ dir;
+			// 获得文件夹大小，单位 Byte
+			String command = "du " + dir;
 			pro = r.exec(command);
 			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
 			String line = null;
 			String lastLine = null;
-			while(true){
+			while (true) {
 				lastLine = line;
-				if((line = in.readLine()) == null){
+				if ((line = in.readLine()) == null) {
 					System.out.println(lastLine);
 					break;
 				}

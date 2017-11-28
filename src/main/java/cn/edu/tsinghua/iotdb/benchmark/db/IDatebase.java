@@ -17,8 +17,4 @@ public interface IDatebase {
 	void executeOneQuery(List<Integer> devices, int index, long startTime,
 			QueryClientThread client, ThreadLocal<Long> errorCount);
 	void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
-
-	void initMysql();
-	void closeMysql();
-	void saveQueryResult(long id, long queryNum, long point, long time, int clientNum, double rate, long errorNum);
 }
