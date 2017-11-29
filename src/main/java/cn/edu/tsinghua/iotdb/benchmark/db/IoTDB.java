@@ -637,7 +637,7 @@ public class IoTDB implements IDatebase {
 			}
 		}
 		builder.delete(builder.lastIndexOf("AND"), builder.length());
-		builder.append(" GROUP BY TIME(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
+		builder.append(" GROUP BY(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
 		for(int i = 0;i<startTime.size();i++) {
 			builder.append(",[").append(startTime.get(i)).append(",").append(endTime.get(i)).append("]");
 		}
