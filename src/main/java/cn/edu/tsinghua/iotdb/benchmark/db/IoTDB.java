@@ -37,8 +37,9 @@ public class IoTDB implements IDatebase {
 	private Config config;
 	private List<Point> points;
 	private Map<String, String> mp;
-	
+
 	private MySqlLog mySql;
+
 	public IoTDB() throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
 		config = ConfigDescriptor.getInstance().getConfig();
@@ -210,16 +211,16 @@ public class IoTDB implements IDatebase {
 			}
 
 			if (errorNum > 0) {
-				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);		
+				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
 						(totalTime.get() + costTime) / 1000.0,
 						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
 				totalTime.set(totalTime.get() + costTime);
-				errorCount.set(errorCount.get() + errorNum);	
+				errorCount.set(errorCount.get() + errorNum);
 			}
-			mySql.saveInsertProcess(loopIndex, costTime/1000.0, totalTime.get()/1000.0,errorNum,config.REMARK);
+			mySql.saveInsertProcess(loopIndex, costTime / 1000.0, totalTime.get() / 1000.0, errorNum, config.REMARK);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -259,7 +260,8 @@ public class IoTDB implements IDatebase {
 				totalTime.set(totalTime.get() + (endTime - startTime));
 				errorCount.set(errorCount.get() + errorNum);
 			}
-			mySql.saveInsertProcess(loopIndex, (endTime - startTime)/1000.0, totalTime.get()/1000.0,errorNum,config.REMARK);
+			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+					config.REMARK);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -310,7 +312,7 @@ public class IoTDB implements IDatebase {
 			ThreadLocal<Long> errorCount) {
 		Statement statement;
 		String sql = "";
-		long startTimeStamp = 0,endTimeStamp = 0;
+		long startTimeStamp = 0, endTimeStamp = 0;
 		try {
 			statement = connection.createStatement();
 			List<String> sensorList = new ArrayList<String>();
@@ -327,7 +329,7 @@ public class IoTDB implements IDatebase {
 			case 2:// 模糊点查询（暂未实现）
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
 				break;
-			case 3:// 聚合函数查询（目前只支持单设备）
+			case 3:// 聚合函数查询
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
 				break;
 			case 4:// 范围查询
@@ -341,29 +343,32 @@ public class IoTDB implements IDatebase {
 			case 6:// 最近点查询
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
 				break;
-			case 7:// groupBy查询（暂未实现）
-					// sql = createQuerySQLStatment(device, "max_time",
-					// sensorList);
+			case 7:// groupBy查询（暂时只有一个时间段）
+				List<Long> startTimes = new ArrayList<Long>();
+				List<Long> endTimes = new ArrayList<Long>();
+				startTimes.add(startTime);
+				endTimes.add(startTime+config.QUERY_GROUP_BY_SCOPE);
+				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
+						startTimes, endTimes, config.QUERY_LOWER_LIMIT,
+						sensorList);
 				break;
 			}
 			int line = 0;
+			StringBuilder builder = new StringBuilder(sql);
 			startTimeStamp = System.currentTimeMillis();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
 			while (resultSet.next()) {
 				line++;
-				/**
-				 * 将查询返回结果写入日志 int sensorNum = sensorList.size(); StringBuilder builder = new
-				 * StringBuilder(); builder.append(" timestamp = "
-				 * ).append(resultSet.getLong(0)).append("; "); for(int i = 1;i<=sensorNum;i++){
-				 * builder.append(device).append(sensorList. get(i-1)).append(" = "
-				 * ).append(resultSet.getDouble(i)).append("; "); }
-				 * LOGGER.info(builder.toString());
-				 */
+				int sensorNum = sensorList.size();
+				builder.append(" \ntimestamp = ").append(resultSet.getLong(0)).append("; ");
+				for (int i = 1; i <= sensorNum; i++) {
+					builder.append(resultSet.getDouble(i)).append("; ");
+				}	
 			}
 			statement.close();
+			LOGGER.info(builder.toString());
 			endTimeStamp = System.currentTimeMillis();
-
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
@@ -375,14 +380,15 @@ public class IoTDB implements IDatebase {
 					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
 					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM, (endTimeStamp - startTimeStamp)/1000.0f,config.REMARK);
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM,
+					(endTimeStamp - startTimeStamp) / 1000.0f, config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp)/1000.0f,"query fail!"+sql);
+			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!"+sql);
 			e.printStackTrace();
-		}	
+		}
 	}
 
 	private void createTimeseries(String path, String sensor) {
@@ -457,7 +463,7 @@ public class IoTDB implements IDatebase {
 		if (connection != null) {
 			connection.close();
 		}
-		if(mySql != null) {
+		if (mySql != null) {
 			mySql.closeMysql();
 		}
 	}
@@ -535,12 +541,23 @@ public class IoTDB implements IDatebase {
 			list.add(sensor);
 		}
 		Collections.shuffle(list);
-		builder.append(method).append("(").append(list.get(0)).append(")");
-		sensorList.add(list.get(0));
-		for (int i = 1; i < num; i++) {
-			builder.append(" , ").append(method).append("(").append(list.get(i)).append(")");
-			sensorList.add(list.get(i));
+		if(method.length()>2) {
+			builder.append(method).append("(").append(list.get(0)).append(")");
+			sensorList.add(list.get(0));
+			for (int i = 1; i < num; i++) {
+				builder.append(" , ").append(method).append("(").append(list.get(i)).append(")");
+				sensorList.add(list.get(i));
+			}
 		}
+		else {
+			builder.append(list.get(0));
+			sensorList.add(list.get(0));
+			for (int i = 1; i < num; i++) {
+				builder.append(" , ").append(list.get(i));
+				sensorList.add(list.get(i));
+			}
+		}
+		
 
 		builder.append(" from ").append(getFullGroupDevicePathByID(0));
 		for (int i = 1; i < devices.size(); i++) {
@@ -571,14 +588,42 @@ public class IoTDB implements IDatebase {
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, startTime, endTime, sensorList));
-
+		
 		for (int id : devices) {
 			String prefix = getFullGroupDevicePathByID(id);
 			for (int i = 0; i < sensorList.size(); i++) {
 				builder.append(" AND ").append(prefix).append(".").append(sensorList.get(i)).append(" > ")
-						.append(value);
+				.append(value);
+				
 			}
 		}
+		
+		return builder.toString();
+	}
+	
+	/**
+	 * 创建查询语句--(带有时间约束以及条件约束的GroupBy查询)
+	 * 
+	 * @throws SQLException
+	 */
+	private String createQuerySQLStatment(List<Integer> devices, String method, int num, List<Long> startTime, List<Long> endTime, Number value,
+			List<String> sensorList) throws SQLException {
+		StringBuilder builder = new StringBuilder();
+		builder.append(createQuerySQLStatment(devices,num,method, sensorList));
+		builder.append(" WHERE ");
+		for (int id : devices) {
+			String prefix = getFullGroupDevicePathByID(id);
+			for (int i = 0; i < sensorList.size(); i++) {
+				builder.append(prefix).append(".").append(sensorList.get(i)).append(" > ")
+				.append(value).append(" AND ");
+			}
+		}
+		builder.delete(builder.lastIndexOf("AND"), builder.length());
+		builder.append(" GROUP BY TIME(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
+		for(int i = 0;i<startTime.size();i++) {
+			builder.append(",[").append(startTime.get(i)).append(",").append(endTime.get(i)).append("]");
+		}
+		builder.append(")");
 		return builder.toString();
 	}
 
