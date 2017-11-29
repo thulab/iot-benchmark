@@ -80,11 +80,10 @@ public class MySqlLog {
 		}
 	}
 	public void saveInsertProcess(int index, double costTime,double totalTime,long errorPoint,String remark) {
-		
 		String mysqlSql = String.format("insert into "+config.DB_SWITCH+"InsertProcess values(%d,%s,%d,%f,%f,%f,%d,%s,%s,%d,%d,%d,%d,%d,%d,%s)",
 				System.currentTimeMillis(), "'"+Thread.currentThread().getName() +"'", index,
 				costTime, totalTime,
-				(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000,
+				(config.CACHE_NUM * config.SENSOR_NUMBER / costTime) ,
 				errorPoint,"'"+config.host+"'","'"+localName+"'",
 				config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 				config.CACHE_NUM, config.POINT_STEP,config.LOOP,"'"+remark+"'");

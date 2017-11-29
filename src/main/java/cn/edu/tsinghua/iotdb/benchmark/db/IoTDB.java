@@ -243,24 +243,23 @@ public class IoTDB implements IDatebase {
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
-
+			long costTime = endTime - startTime;
 			for (int i = 0; i < result.length; i++) {
 				if (result[i] == -1) {
 					errorNum++;
 				}
 			}
-
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-						Thread.currentThread().getName(), loopIndex, (endTime - startTime) / 1000.0,
-						(totalTime.get() + (endTime - startTime)) / 1000.0,
-						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) (endTime - startTime)) * 1000);
-				totalTime.set(totalTime.get() + (endTime - startTime));
+						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
+						(totalTime.get() + costTime) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+				totalTime.set(totalTime.get() + costTime);
 				errorCount.set(errorCount.get() + errorNum);
 			}
-			mySql.saveInsertProcess(loopIndex, (endTime - startTime)/1000.0, totalTime.get()/1000.0,errorNum,config.REMARK);
+			mySql.saveInsertProcess(loopIndex, costTime / 1000.0, totalTime.get()/1000.0,errorNum,config.REMARK);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
