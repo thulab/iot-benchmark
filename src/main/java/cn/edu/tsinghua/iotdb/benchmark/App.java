@@ -63,7 +63,7 @@ public class App {
 						break;
 					}
 				}
-				mySql.closeMysql();
+				//mySql.closeMysql();
 				/*
 				 * //将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
 				 * if(config.DB_SWITCH.equals(Constants.DB_IOT)) { IDBFactory idbFactory = new
@@ -131,7 +131,7 @@ public class App {
 		}
 
 		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
-		long totalErrorPoint;
+		long totalErrorPoint ;
 		if (config.READ_FROM_FILE) {
 			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 			ArrayList<Long> totalTimes = new ArrayList<>();
@@ -160,9 +160,8 @@ public class App {
 				}
 			}
 			LOGGER.info(
-					"READ_FROM_FILE = ,{}, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
-					config.READ_FROM_FILE, config.TAG_PATH, config.STORE_MODE,
-					config.BATCH_OP_NUM);
+					"READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
+					config.TAG_PATH, config.STORE_MODE, config.BATCH_OP_NUM);
 			LOGGER.info(
 					"loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
 					totalItem, totalTime / 1000.0f, config.CLIENT_NUMBER,
@@ -190,31 +189,65 @@ public class App {
 				}
 			}
 			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
+				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
+			}
+			switch (config.DB_SWITCH) {
+				case Constants.DB_IOT:
+					totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+					break;
+				case Constants.DB_INFLUX:
+					totalErrorPoint = getErrorNumInflux(config, datebase);
+					break;
+				default:
+					throw new SQLException("unsupported database " + config.DB_SWITCH);
+			}
 			LOGGER.info(
-					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}",
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP);
+					config.LOOP, config.MUL_DEV_BATCH);
+
 			LOGGER.info(
 					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-					totalPoints,
+					totalPoints ,
 					totalTime / 1000.0f,
 					config.CLIENT_NUMBER,
-					(1000.0f * config.SENSOR_NUMBER * config.DEVICE_NUMBER
-							* config.LOOP * config.CACHE_NUM)
-							/ ((float) totalTime));
-			totalErrorPoint = getSumOfList(totalInsertErrorNums);
-			LOGGER.info("total error num is {}, create schema cost {},s",
-					totalErrorPoint, createSchemaTime);
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+
+			LOGGER.info("Total error num is {}, create schema cost {},s",
+						totalErrorPoint, createSchemaTime);
+
 			MySqlLog mysql = new MySqlLog();
 			mysql.initMysql();
-			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER, 
+			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
 					totalErrorPoint,createSchemaTime,config.REMARK);
 			mysql.closeMysql();
-			
+
 		}// else--
 		
 		
+	}
+
+	private static long getErrorNumInflux(Config config, IDatebase database) {
+		//同一个device中不同sensor的点数是相同的，因此不对sensor遍历
+		long insertedPointNum = 0;
+		int groupIndex = 0;
+		int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+		for(int i=0;i<config.DEVICE_NUMBER;i++){
+			groupIndex=i/groupSize;
+			insertedPointNum += database.count("group_" + groupIndex,"d_" + i,"s_0") * config.SENSOR_NUMBER;
+		}
+		try {
+			database.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM - insertedPointNum;
+	}
+
+	private static long getErrorNumIoT(ArrayList<Long> totalInsertErrorNums) {
+		return getSumOfList(totalInsertErrorNums);
 	}
 
 	/**

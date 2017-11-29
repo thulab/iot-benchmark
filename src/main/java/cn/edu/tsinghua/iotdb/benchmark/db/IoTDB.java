@@ -28,8 +28,6 @@ import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IoTDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-	// private static final String createStatementSQL = "create timeseries %s with
-	// datatype=DOUBLE,encoding=GORILLA";
 	private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=%s";
 	private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
@@ -191,10 +189,10 @@ public class IoTDB implements IDatebase {
 		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
-			// 注意config.CACHE_NUM*config.CLIENT_NUMBER/config.DEVICE_NUMBER=整数,即批导入大小和客户端数的乘积可以被设备数整除
+			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
 			for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
 				for (String device : deviceCodes) {
-					String sql = createSQLStatment(loopIndex, i, device);
+					String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
 					statement.addBatch(sql);
 				}
 			}
@@ -243,25 +241,26 @@ public class IoTDB implements IDatebase {
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
-
+			long costTime = endTime - startTime;
 			for (int i = 0; i < result.length; i++) {
 				if (result[i] == -1) {
 					errorNum++;
 				}
 			}
-
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-						Thread.currentThread().getName(), loopIndex, (endTime - startTime) / 1000.0,
-						(totalTime.get() + (endTime - startTime)) / 1000.0,
-						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) (endTime - startTime)) * 1000);
-				totalTime.set(totalTime.get() + (endTime - startTime));
+						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
+						(totalTime.get() + costTime) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+				totalTime.set(totalTime.get() + costTime);
 				errorCount.set(errorCount.get() + errorNum);
 			}
+
 			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
 					config.REMARK);
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -367,7 +366,7 @@ public class IoTDB implements IDatebase {
 				}	
 			}
 			statement.close();
-			LOGGER.info(builder.toString());
+			LOGGER.info("{}",builder.toString());
 			endTimeStamp = System.currentTimeMillis();
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
@@ -487,6 +486,25 @@ public class IoTDB implements IDatebase {
 		return builder.toString();
 	}
 
+	private String createSQLStatmentOfMulDevice(int loopIndex, int i, String device) {
+		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
+		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
+
+		for (String sensor : config.SENSOR_CODES) {
+			builder.append(",").append(sensor);
+		}
+		builder.append(") values(");
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (loopIndex * config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER) + i);
+		builder.append(currentTime);
+		for (String sensor : config.SENSOR_CODES) {
+			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
+		}
+		builder.append(")");
+		return builder.toString();
+	}
+
 	/**
 	 * 创建查询语句--(精确点查询)
 	 * 
@@ -495,7 +513,7 @@ public class IoTDB implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList)
 			throws SQLException {
 		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, sensorList));
-		builder.append(" where time = ").append(time);
+		builder.append(" WHERE time = ").append(time);
 		return builder.toString();
 	}
 
@@ -506,7 +524,7 @@ public class IoTDB implements IDatebase {
 	 */
 	private String createQuerySQLStatment(List<Integer> devices, int num, List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append("select ");
+		builder.append("SELECT ");
 		if (num > config.SENSOR_NUMBER) {
 			throw new SQLException("config.SENSOR_NUMBER is " + config.SENSOR_NUMBER
 					+ " shouldn't less than the number of fields in querySql");
@@ -522,7 +540,7 @@ public class IoTDB implements IDatebase {
 			builder.append(" , ").append(list.get(i));
 			sensorList.add(list.get(i));
 		}
-		builder.append(" from ").append(getFullGroupDevicePathByID(0));
+		builder.append(" FROM ").append(getFullGroupDevicePathByID(devices.get(0)));
 		for (int i = 1; i < devices.size(); i++) {
 			builder.append(" , ").append(getFullGroupDevicePathByID(devices.get(i)));
 		}
@@ -534,7 +552,7 @@ public class IoTDB implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, String method, List<String> sensorList) {
 		StringBuilder builder = new StringBuilder();
 
-		builder.append("select ");
+		builder.append("SELECT ");
 
 		List<String> list = new ArrayList<String>();
 		for (String sensor : config.SENSOR_CODES) {
@@ -559,7 +577,7 @@ public class IoTDB implements IDatebase {
 		}
 		
 
-		builder.append(" from ").append(getFullGroupDevicePathByID(0));
+		builder.append(" FROM ").append(getFullGroupDevicePathByID(devices.get(0)));
 		for (int i = 1; i < devices.size(); i++) {
 			builder.append(" , ").append(getFullGroupDevicePathByID(devices.get(i)));
 		}
@@ -574,7 +592,7 @@ public class IoTDB implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" where time > ");
+		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time > ");
 		builder.append(startTime).append(" AND time < ").append(endTime);
 		return builder.toString();
 	}
@@ -692,5 +710,11 @@ public class IoTDB implements IDatebase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public long count(String group,String device,String sensor){
+
+		return 0;
 	}
 }

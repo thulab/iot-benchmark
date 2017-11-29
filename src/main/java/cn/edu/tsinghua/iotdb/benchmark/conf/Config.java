@@ -123,7 +123,7 @@ public class Config {
 	public int QUERY_DIVICE_NUM = 1;
 	public int QUERY_CHOICE = 1;
 	public String QUERY_AGGREGATE_FUN = "";
-	public boolean IS_QUERY_TEST = false;
+	public boolean IS_QUERY_TEST = true;
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
