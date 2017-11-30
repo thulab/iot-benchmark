@@ -180,8 +180,8 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			sql = String.format("insert into SERVER_MODE_"+localName+" values(%d,%s,%f,%f,%f,%f,%f,%s)",
-					System.currentTimeMillis(),"'"+localName+"'",cpu,mem,io,net_recv,net_send,"'"+remark+"'");
+			sql = String.format("insert into SERVER_MODE_"+localName+" values(%d,%f,%f,%f,%f,%f,%s)",
+					System.currentTimeMillis(),cpu,mem,io,net_recv,net_send,"'"+remark+"'");
 			stat.executeUpdate(sql);
 			stat.close();
 		} catch (SQLException e) {
