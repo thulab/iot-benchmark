@@ -212,22 +212,4 @@ public class InfluxDB implements IDatebase {
 
         return 0;
     }
-//	@Override
-//	public void initMysql() {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//
-//	@Override
-//	public void closeMysql() {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//
-//	@Override
-//	public void saveQueryResult(long id, long queryNum, long point, long time, int clientNum, double rate,
-//			long errorNum) {
-//		// TODO Auto-generated method stub
-//		
-//	}
 }

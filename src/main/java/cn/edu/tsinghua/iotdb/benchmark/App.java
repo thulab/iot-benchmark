@@ -32,9 +32,9 @@ public class App {
 			return;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
-		MySqlLog mySql = new MySqlLog();
-		mySql.initMysql();
 		if (config.SERVER_MODE) {
+			MySqlLog mySql = new MySqlLog();
+			mySql.initMysql(System.currentTimeMillis());
 			File dir = new File(config.LOG_STOP_FLAG_PATH);
 			if (dir.exists() && dir.isDirectory()) {
 				File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
@@ -102,6 +102,8 @@ public class App {
 	 */
 	private static void insertTest(Config config) throws SQLException,
 			ClassNotFoundException {
+		MySqlLog mysql = new MySqlLog();
+		mysql.initMysql(System.currentTimeMillis());
 		IDBFactory idbFactory = null;
 		switch (config.DB_SWITCH) {
 		case Constants.DB_IOT:
@@ -118,7 +120,7 @@ public class App {
 		long createSchemaEndTime;
 		float createSchemaTime;
 		try {
-			datebase = idbFactory.buildDB();
+			datebase = idbFactory.buildDB(mysql.getLabID());
 			datebase.init();
 			createSchemaStartTime = System.currentTimeMillis();
 			datebase.createSchema();
@@ -141,7 +143,7 @@ public class App {
 			executorService.submit(new Resolve(config.FILE_PATH, storage));
 			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
 				executorService
-						.submit(new ClientThread(idbFactory.buildDB(), i,
+						.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i,
 								storage, downLatch, totalTimes,
 								totalInsertErrorNums));
 			}
@@ -173,7 +175,7 @@ public class App {
 			ExecutorService executorService = Executors
 					.newFixedThreadPool(config.CLIENT_NUMBER);
 			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-				executorService.submit(new ClientThread(idbFactory.buildDB(),
+				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()),
 						i, downLatch, totalTimes, totalInsertErrorNums));
 			}
 			executorService.shutdown();
@@ -218,8 +220,7 @@ public class App {
 			LOGGER.info("Total error num is {}, create schema cost {},s",
 						totalErrorPoint, createSchemaTime);
 
-			MySqlLog mysql = new MySqlLog();
-			mysql.initMysql();
+			
 			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
 					totalErrorPoint,createSchemaTime,config.REMARK);
 			mysql.closeMysql();
@@ -271,9 +272,9 @@ public class App {
 		IDatebase datebase = null;
 		MySqlLog mySql = new MySqlLog();
 		try {
-			datebase = idbFactory.buildDB();
-			datebase.init();
-			mySql.initMysql();
+			mySql.initMysql(System.currentTimeMillis());
+			datebase = idbFactory.buildDB(mySql.getLabID());
+			datebase.init();	
 		} catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
@@ -285,7 +286,7 @@ public class App {
 		ArrayList<Long> totalQueryErrorNums = new ArrayList<>();
 		ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
 		for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-			executorService.submit(new QueryClientThread(idbFactory.buildDB(), i, downLatch, totalTimes, totalPoints,
+			executorService.submit(new QueryClientThread(idbFactory.buildDB(mySql.getLabID()), i, downLatch, totalTimes, totalPoints,
 					totalQueryErrorNums));
 		}
 		executorService.shutdown();
@@ -310,7 +311,7 @@ public class App {
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
 		mySql.saveQueryResult(System.currentTimeMillis(), (long) config.CLIENT_NUMBER * config.LOOP, totalResultPoint,
-				totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * (totalResultPoint-totalErrorPoint) )/  totalTime,
+				totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * (totalResultPoint) )/  totalTime,
 				totalErrorPoint,config.REMARK);
 		mySql.closeMysql();
 	}

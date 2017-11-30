@@ -7,7 +7,7 @@ import java.sql.SQLException;
  */
 public class InfluxDBFactory implements IDBFactory {
     @Override
-    public IDatebase buildDB() throws SQLException, ClassNotFoundException {
+    public IDatebase buildDB(long labID) throws SQLException, ClassNotFoundException {
         return new InfluxDBV2();
     }
 }

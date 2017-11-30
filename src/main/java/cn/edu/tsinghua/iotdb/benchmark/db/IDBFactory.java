@@ -6,5 +6,5 @@ import java.sql.SQLException;
  * Created by Administrator on 2017/11/16 0016.
  */
 public interface IDBFactory {
-    IDatebase buildDB() throws SQLException, ClassNotFoundException;
+    IDatebase buildDB(long labID) throws SQLException, ClassNotFoundException;
 }

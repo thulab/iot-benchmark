@@ -35,15 +35,16 @@ public class IoTDB implements IDatebase {
 	private Config config;
 	private List<Point> points;
 	private Map<String, String> mp;
-
+	private long labID;
 	private MySqlLog mySql;
 
-	public IoTDB() throws ClassNotFoundException, SQLException {
+	public IoTDB(long labID) throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
 		config = ConfigDescriptor.getInstance().getConfig();
 		points = new ArrayList<>();
 		mp = new HashMap<>();
 		mySql = new MySqlLog();
+		this.labID = labID;
 	}
 
 	@Override
@@ -454,7 +455,7 @@ public class IoTDB implements IDatebase {
 	public void init() throws SQLException {
 		connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
 				Constants.PASSWD);
-		mySql.initMysql();
+		mySql.initMysql(labID);
 	}
 
 	@Override
