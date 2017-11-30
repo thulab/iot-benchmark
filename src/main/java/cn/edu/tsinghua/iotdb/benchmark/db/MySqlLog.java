@@ -127,9 +127,9 @@ public class MySqlLog {
 		// TODO Auto-generated method stub
 		Statement stat;
 		String sql = "";
-		if(rate == Double.NaN||rate == Double.POSITIVE_INFINITY || rate == Double.NEGATIVE_INFINITY) {
-			remark = "rate无效，其 = "+rate;
-			rate = 0 ;
+		if(time == 0) {
+			remark = "rate is Invalid because time = 0";
+			rate = -1 ;
 		}
 		try {
 			stat = mysqlConnection.createStatement();
@@ -147,10 +147,18 @@ public class MySqlLog {
 	}
 	
 	public void saveQueryProcess(int index,int point, double time,String remark) {
+		double rate;
+		if(time == 0) {
+			remark = "rate无效，because time = 0";
+			rate = -1 ;
+		}
+		else {
+			rate = point/time;
+		}
 		String mysqlSql = String.format("insert into "+config.DB_SWITCH+"QueryProcess"+labID+" values(%d,%s,%d,%d,%f,%f,%s,%s,%d,%d,%d,%s,%d,%f,%b,%s)",
 				System.currentTimeMillis(), "'"+Thread.currentThread().getName() +"'", index,
 				point,time, 
-				point/time,
+				rate,
 				"'"+config.host+"'","'"+localName+"'",config.QUERY_CHOICE, config.QUERY_SENSOR_NUM,
 				config.QUERY_DIVICE_NUM, "'"+config.QUERY_AGGREGATE_FUN+"'", config.QUERY_INTERVAL,
 				config.QUERY_LOWER_LIMIT,config.IS_EMPTY_PRECISE_POINT_QUERY,"'"+remark+"'");
