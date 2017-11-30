@@ -129,7 +129,9 @@ public class Config {
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	public String REMARK = "";
 	public long QUERY_GROUP_BY_SCOPE = 5 * QUERY_INTERVAL;
-
+	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
+			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
+	
 	// InfluxDB参数
 	// Influx服务器URL
 	public String INFLUX_URL = "http://localhost:8086";

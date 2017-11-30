@@ -3,10 +3,12 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ public class MySqlLog {
 	private Config config = ConfigDescriptor.getInstance().getConfig();
 	private String localName="";
 	private long labID;
+	private String day="";
 
 	public MySqlLog() {
 		try {
@@ -37,12 +40,15 @@ public class MySqlLog {
 	
 	public void initMysql(long labIndex) {
 		labID = labIndex;
+		Date date= new Date(labID);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
+		day = sdf.format(date);
 		try {
 			Class.forName(Constants.MYSQL_DRIVENAME);
-			mysqlConnection = DriverManager.getConnection(Constants.MYSQL_URL);
+			mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
 			Statement stat = mysqlConnection.createStatement();
-			if(config.SERVER_MODE&&!hasTable("SERVER_MODE_"+localName)) {
-				stat.executeUpdate("create table SERVER_MODE_"+localName+"(id BIGINT, cpu_usage DOUBLE,"
+			if(config.SERVER_MODE&&!hasTable("SERVER_MODE_"+localName+"_"+day)) {
+				stat.executeUpdate("create table SERVER_MODE_"+localName+"_"+day+"(id BIGINT, cpu_usage DOUBLE,"
 						+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, remark varchar(6000),primary key(id))");
 				LOGGER.info("Table SERVER_MODE create success!");
 				return ;
@@ -64,7 +70,7 @@ public class MySqlLog {
 			if(!config.IS_QUERY_TEST&&!hasTable(config.DB_SWITCH+"InsertResult")) {
 				stat.executeUpdate("create table "+config.DB_SWITCH+"InsertResult(id BIGINT, labID BIGINT, totalPoints BIGINT,"
 						+ " time DOUBLE, clientNum INTEGER, rate DOUBLE, errorPoint BIGINT, createSchemaTime DOUBLE,serverIP varchar(20),localName varchar(50),MUL_DEV_BATCH BOOLEAN,"
-						+ "GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id))");
+						+ "ENCODING  VARCHAR(20),GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id))");
 				LOGGER.info("Table {}InsertResult create success!",config.DB_SWITCH);
 			}
 			if (!config.IS_QUERY_TEST&&!hasTable(config.DB_SWITCH+"InsertProcess"+labID)) {
@@ -110,9 +116,9 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			sql = String.format("insert into "+config.DB_SWITCH+"InsertResult values(%d,%d,%d,%f,%d,%f,%d,%f,%s,%s,%b,%d,%d,%d,%d,%d,%d,%s)", 
+			sql = String.format("insert into "+config.DB_SWITCH+"InsertResult values(%d,%d,%d,%f,%d,%f,%d,%f,%s,%s,%b,%s,%d,%d,%d,%d,%d,%d,%s)", 
 					System.currentTimeMillis(),labID, totalPoints,time, clientNum, (totalPoints-errorNum)/time, errorNum,creatSchemaTime,"'"+config.host+"'","'"+localName+"'", 
-					config.MUL_DEV_BATCH,config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.MUL_DEV_BATCH,"'"+config.ENCODING+"'",config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,config.LOOP,"'"+remark+"'");
 			stat.executeUpdate(sql);
 			stat.close();
@@ -180,7 +186,7 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			sql = String.format("insert into SERVER_MODE_"+localName+" values(%d,%f,%f,%f,%f,%f,%s)",
+			sql = String.format("insert into SERVER_MODE_"+localName+"_"+day+" values(%d,%f,%f,%f,%f,%f,%s)",
 					System.currentTimeMillis(),cpu,mem,io,net_recv,net_send,"'"+remark+"'");
 			stat.executeUpdate(sql);
 			stat.close();

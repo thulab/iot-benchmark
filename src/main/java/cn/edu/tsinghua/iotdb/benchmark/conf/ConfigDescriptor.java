@@ -89,6 +89,8 @@ public class ConfigDescriptor {
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
 				config.QUERY_GROUP_BY_SCOPE = Long.parseLong(properties.getProperty("QUERY_GROUP_BY_SCOPE", config.QUERY_GROUP_BY_SCOPE+""));
+				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
+						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");
 				
 				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
