@@ -29,6 +29,13 @@ public class InfluxDBV2 implements IDatebase {
     private final String DEFAULT_RP = "autogen";
     private static final String countSQL = "select count(%s) from %s where device='%s'";
     private org.influxdb.InfluxDB influxDB;
+    private MySqlLog mySql;
+    private long labID;
+    
+    public InfluxDBV2(long labID) {
+    	mySql = new MySqlLog();
+		this.labID = labID;
+    }
 
     @Override
     public void init() throws SQLException {
@@ -40,6 +47,7 @@ public class InfluxDBV2 implements IDatebase {
             influxDB.deleteDatabase(InfluxDBName);
         }
         createDatabase(InfluxDBName);
+        mySql.initMysql(labID);
     }
 
     @Override
@@ -68,10 +76,11 @@ public class InfluxDBV2 implements IDatebase {
             InfluxDataModel model = createDataModel(batchIndex, i, device);
             batchPoints.point(model.toInfluxPoint());
         }
+        long startTime = 0,endTime = 0;
         try {
-            long startTime = System.currentTimeMillis();
+            startTime = System.currentTimeMillis();
             influxDB.write(batchPoints);
-            long endTime = System.currentTimeMillis();
+            endTime = System.currentTimeMillis();
             LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
                     Thread.currentThread().getName(),
                     batchIndex,
@@ -79,11 +88,13 @@ public class InfluxDBV2 implements IDatebase {
                     ((totalTime.get()+(endTime-startTime))/1000.0),
                     (batchPoints.getPoints().size() / (double) (endTime-startTime))*1000);
             totalTime.set(totalTime.get()+(endTime-startTime));
+            mySql.saveInsertProcess(batchIndex, (endTime-startTime) / 1000.0, totalTime.get() / 1000.0, 0, config.REMARK);
         } catch (Exception e) {
             // TODO : get accurate insert number
             errorCount.set(errorCount.get() + batchPoints.getPoints().size());
             LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
                     batchPoints.getPoints().size(), e.getMessage());
+            mySql.saveInsertProcess(batchIndex, (endTime-startTime) / 1000.0, totalTime.get() / 1000.0, batchPoints.getPoints().size(), config.REMARK);
             throw  new SQLException(e.getMessage());
         }
     }
@@ -99,10 +110,11 @@ public class InfluxDBV2 implements IDatebase {
      */
     @Override
     public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
-        try {
-            long startTime = System.currentTimeMillis();
+    	long startTime = 0,endTime = 0;
+    	try {
+            startTime = System.currentTimeMillis();
             influxDB.write(cons);
-            long endTime = System.currentTimeMillis();
+            endTime = System.currentTimeMillis();
             LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
                     Thread.currentThread().getName(),
                     batchIndex,
@@ -110,11 +122,15 @@ public class InfluxDBV2 implements IDatebase {
                     ((totalTime.get()+(endTime-startTime))/1000.0),
                     (cons.size() / (double) (endTime-startTime))*1000);
             totalTime.set(totalTime.get()+(endTime-startTime));
+            mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, 0,
+					config.REMARK);
         } catch (Exception e) {
             // TODO : get accurate insert number
             errorCount.set(errorCount.get() + cons.size());
             LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
                     cons.size(), e.getMessage());
+            mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, cons.size(),
+					config.REMARK+e.getMessage());
             throw  new SQLException(e.getMessage());
         }
     }
@@ -122,6 +138,9 @@ public class InfluxDBV2 implements IDatebase {
     @Override
     public void close() throws SQLException {
         influxDB.close();
+        if (mySql != null) {
+			mySql.closeMysql();
+		}
     }
 
     /**
@@ -180,9 +199,26 @@ public class InfluxDBV2 implements IDatebase {
     }
 
 	@Override
+	/**返回第一个设备的第一个传感器记录的时间跨度*/
 	public long getTotalTimeInterval() throws SQLException {
+		long startTime = Constants.START_TIMESTAMP;
+		long endTime = Constants.START_TIMESTAMP;
+		String sql = "select first(s_0) from group_0 ";
+        Query q = new Query(sql, config.INFLUX_DB_NAME);
+        QueryResult results = influxDB.query(q);
 
-		return 0;
+        if(results.getResults() != null) {
+            for (QueryResult.Result result : results.getResults()) {
+                for (QueryResult.Series s : result.getSeries()) {
+                    for (List<Object> values : s.getValues()) {
+                        startTime = Long.parseLong(values.get(0).toString());
+                    }
+                }
+            }
+        }
+        
+        
+        return endTime-startTime;
 	}
 
 	@Override
@@ -208,7 +244,6 @@ public class InfluxDBV2 implements IDatebase {
         Query q = new Query(sql, config.INFLUX_DB_NAME);
         QueryResult results = influxDB.query(q);
 
-
         long countResult = 0;
 
         if(results.getResults() != null) {
@@ -223,22 +258,4 @@ public class InfluxDBV2 implements IDatebase {
         return countResult;
 
     }
-//	@Override
-//	public void initMysql() {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//
-//	@Override
-//	public void closeMysql() {
-//		// TODO Auto-generated method stub
-//		
-//	}
-//
-//	@Override
-//	public void saveQueryResult(long id, long queryNum, long point, long time, int clientNum, double rate,
-//			long errorNum) {
-//		// TODO Auto-generated method stub
-//		
-//	}
 }

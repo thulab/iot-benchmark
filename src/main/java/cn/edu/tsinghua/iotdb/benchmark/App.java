@@ -63,7 +63,7 @@ public class App {
 						break;
 					}
 				}
-				//mySql.closeMysql();
+				mySql.closeMysql();
 				/*
 				 * //将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
 				 * if(config.DB_SWITCH.equals(Constants.DB_IOT)) { IDBFactory idbFactory = new

@@ -8,6 +8,6 @@ import java.sql.SQLException;
 public class InfluxDBFactory implements IDBFactory {
     @Override
     public IDatebase buildDB(long labID) throws SQLException, ClassNotFoundException {
-        return new InfluxDBV2();
+        return new InfluxDBV2(labID);
     }
 }
