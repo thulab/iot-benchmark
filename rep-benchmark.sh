@@ -7,18 +7,21 @@ if [ -z "${BENCHMARK_HOME}" ]; then
   export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 fi
 
-cat $BENCHMARK_HOME/$FILENAME | while read LINE
+#cat $BENCHMARK_HOME/$FILENAME | while read LINE
+FILE=$(cat $BENCHMARK_HOME/$FILENAME)
+#echo $FILE
+#实际上LINE是以换行或空格为分隔符
+for LINE in $FILE;
 do
   CHANGE_PARAMETER=$(echo $LINE | cut -d = -f 1)
-  #CHANGE_LINE=$(grep -n  $CHANGE_PARAMETER $BENCHMARK_HOME/conf/config.properties | cut -d : -f 1)
-  #sed -i "${CHANGE_LINE}s/^.*$/${LINE}/" $BENCHMARK_HOME/conf/config.properties
+  #CHANGE_LINE=$(grep -n  $CHANGE_PARAMETER $BENCHMARK_HOME/conf/conf$
+  #sed -i "${CHANGE_LINE}s/^.*$/${LINE}/" $BENCHMARK_HOME/conf/config$
   if [ -n "$LINE" ]; then
-    sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf/config.properties
-    #grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
+    sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf$
+    grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
     sh $BENCHMARK_HOME/cli-benchmark.sh
   fi
 done
-
 
 
 
