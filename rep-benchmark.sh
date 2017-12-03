@@ -14,15 +14,14 @@ FILE=$(cat $BENCHMARK_HOME/$FILENAME)
 for LINE in $FILE;
 do
   CHANGE_PARAMETER=$(echo $LINE | cut -d = -f 1)
-  #CHANGE_LINE=$(grep -n  $CHANGE_PARAMETER $BENCHMARK_HOME/conf/conf$
-  #sed -i "${CHANGE_LINE}s/^.*$/${LINE}/" $BENCHMARK_HOME/conf/config$
+  #CHANGE_LINE=$(grep -n  $CHANGE_PARAMETER $BENCHMARK_HOME/conf/config.properties | cut -d : -f 1)
+  #sed -i "${CHANGE_LINE}s/^.*$/${LINE}/" $BENCHMARK_HOME/conf/config.properties
   if [ -n "$LINE" ]; then
-    sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf$
+    sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf/config.properties
     grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
     sh $BENCHMARK_HOME/cli-benchmark.sh
   fi
 done
-
 
 
 
