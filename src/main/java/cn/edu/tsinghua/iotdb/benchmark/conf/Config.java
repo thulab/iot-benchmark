@@ -42,10 +42,10 @@ public class Config {
 	public int GROUP_NUMBER = 1;
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
-	/**服务器性能监测模式*/
-	public boolean SERVER_MODE = false;
 	/**多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
+	/**服务器性能监测模式*/
+	public boolean SERVER_MODE = false;
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/

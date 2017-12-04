@@ -45,50 +45,10 @@ public class MySqlLog {
 			Date date = new Date(labID);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
 			day = sdf.format(date);
-			initTable();
 			try {
 				Class.forName(Constants.MYSQL_DRIVENAME);
 				mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
-				Statement stat = mysqlConnection.createStatement();
-				if (config.SERVER_MODE) {
-					if(!hasTable("SERVER_MODE_" + localName + "_" + day)) {
-						stat.executeUpdate("create table SERVER_MODE_" + localName + "_" + day
-								+ "(id BIGINT, cpu_usage DOUBLE,"
-								+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, remark varchar(6000),primary key(id))");
-						LOGGER.info("Table SERVER_MODE create success!");
-					}
-					return;
-				}
-				if (config.IS_QUERY_TEST && !hasTable(config.DB_SWITCH + "QueryResult")) {
-					stat.executeUpdate("create table " + config.DB_SWITCH
-							+ "QueryResult(id BIGINT, labID BIGINT,queryNum BIGINT, point BIGINT,"
-							+ " time DOUBLE, clientNum INTEGER, rate DOUBLE, errorNum BIGINT, serverIP varchar(20),localName varchar(50),query_type INTEGER,"
-							+ "QUERY_SENSOR_NUM INTEGER, QUERY_DIVICE_NUM INTEGER, QUERY_AGGREGATE_FUN varchar(30),"
-							+ "QUERY_INTERVAL BIGINT, QUERY_LOWER_LIMIT DOUBLE, IS_EMPTY_PRECISE_POINT_QUERY boolean, remark varchar(6000),primary key(id))");
-					LOGGER.info("Table {}QueryResult create success!", config.DB_SWITCH);
-				}
-				if (config.IS_QUERY_TEST && !hasTable(config.DB_SWITCH + "QueryProcess" + labID)) {
-					stat.executeUpdate("create table " + config.DB_SWITCH + "QueryProcess" + labID
-							+ "(id BIGINT, clientName varchar(50), "
-							+ "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, serverIP varchar(20),localName varchar(50),query_type INTEGER,"
-							+ "QUERY_SENSOR_NUM INTEGER, QUERY_DIVICE_NUM INTEGER, QUERY_AGGREGATE_FUN varchar(30),"
-							+ "QUERY_INTERVAL BIGINT, QUERY_LOWER_LIMIT DOUBLE, IS_EMPTY_PRECISE_POINT_QUERY boolean, remark varchar(6000),primary key(id,clientName))");
-					LOGGER.info("Table {}QueryProcess{} create success!", config.DB_SWITCH, labID);
-				}
-				if (!config.IS_QUERY_TEST && !hasTable(config.DB_SWITCH + "InsertResult")) {
-					stat.executeUpdate("create table " + config.DB_SWITCH
-							+ "InsertResult(id BIGINT, labID BIGINT, totalPoints BIGINT,"
-							+ " time DOUBLE, clientNum INTEGER, rate DOUBLE, errorPoint BIGINT, createSchemaTime DOUBLE,serverIP varchar(20),localName varchar(50),MUL_DEV_BATCH BOOLEAN,"
-							+ "ENCODING  VARCHAR(20),GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id))");
-					LOGGER.info("Table {}InsertResult create success!", config.DB_SWITCH);
-				}
-				if (!config.IS_QUERY_TEST && !hasTable(config.DB_SWITCH + "InsertProcess" + labID)) {
-					stat.executeUpdate("create table " + config.DB_SWITCH + "InsertProcess" + labID
-							+ "(id BIGINT, clientName varchar(50), "
-							+ "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT,serverIP varchar(20),localName varchar(50),"
-							+ "MUL_DEV_BATCH BOOLEAN,GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id,clientName))");
-					LOGGER.info("Table {}InsertProcess{} create success!", config.DB_SWITCH, labID);
-				}
+				initTable();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				LOGGER.error("mysql 初始化失败，原因是：{}", e.getMessage());
