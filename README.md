@@ -26,7 +26,7 @@ To use IoTDB-benchmark, you need to have:
 5. IoTDB >= 0.0.1 (IoTDB Github page: [https://github.com/thulab/iotdb](https://github.com/thulab/iotdb))
 6. InfluxDB >= 1.3.7
 7. influxdb-comparisons (If you want to use the load-data-from-file mode)
-8. iostat (If you want to record system information of DB-server during test)
+8. sysstat (If you want to record system information of DB-server during test)
 
 # Quick Start
 
@@ -133,12 +133,14 @@ Current version of information recording is dependent on iostat. Please make sur
 
 Configure 'config.properties'
 Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are INTERVAL and LOG_STOP_FLAG_PATH like:
+
 ```
 INTERVAL=0
 LOG_STOP_FLAG_PATH=/home/liurui
 ```
+
 INTERVAL=0 means the server information recording with the minimal interval 2 seconds. If you set INTERVAL=n then the interval will be n+2 seconds since the recording process require least 2 seconds. You may want to set the INTERVAL longer when conducting long testing.
-LOG_STOP_FLAG_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. 
+LOG_STOP_FLAG_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. It is also the data directory of IoTDB.
 
 Configure 'cli-benchmark.sh'
 
@@ -172,17 +174,83 @@ If you followed the cases above, this will be very easy.
 
 Configure 'config.properties'
 Suppose you are using the same parameters as in Quick Start case. The only parameter you should change is DB_SWITCH and there are two new parameters:
+
 ```
 DB_SWITCH=InfluxDB
 INFLUX_URL=http://127.0.0.1:8086
 INFLUX_DB_NAME=test
 ```
 
-### Start (With Server System information recording)
+> NOTE:
+The benchmark will automatically initial database, there is no need for executing SQL like "drop database test".
+
+### Start (With Server System Information Recording)
 
 After configuring the first-time test environment, you can just launch the test by startup script:
 
 ```
 > ./cli-benchmark.sh
 ```
+
+Then one test process is on going.
+
+## Multiple Tests Comparisons
+
+Usually a single test is meaningless unless it is compared with other test results. Therefore we provide a interface to execute multiple tests by one launch.
+
+### Configure
+
+Configure 'routine'
+Each line of this file should be a parameter each test process will change(otherwise it becomes replication test). For example, the routine is:
+
+```
+LOOP=10
+LOOP=20
+LOOP=50
+```
+
+Then it will serially execute 3 test process with LOOP parameter are 10, 20 and 50, respectively.
+
+> NOTE:
+Each line should contain one and only one parameter with format like DEVICE_NUMBER=10, space is not allowed. If you change different parameters, the changed parameters will remain in next tests.
+
+### Start 
+
+After configuring the file 'routine', you can launch the multi-test task by startup script:
+
+```
+> ./rep-benchmark.sh
+```
+
+Then the test information will show in terminal. 
+
+> NOTE:
+If you close the terminal or lose connection to client machine, the test process will terminate. It is the same to any other cases if the output is transmit to terminal.
+
+Using this interface usually takes a long time, you may want to execute the test process as daemon. In this way, you can just launch the test task as daemon by startup script:
+
+```
+> ./dae-benchmark.sh
+```
+
+In this case, if you want to know what is going on, you can check the log information by command as following:
+
+```
+> cd ./logs
+> tail -f log_info.log
+```
+
+## MySQL Integration
+
+IoTDB-benchmark can automatically store test information into MySQL for further analysis. To enable MySQL Integration, please configure 'config.properties':
+
+```
+IS_USE_MYSQL=true
+MYSQL_URL=jdbc:mysql://[DB_HOST]:3306/[DBName]?user=[UserName]&password=[PassWord]&useUnicode=true&characterEncoding=UTF8&useSSL=false
+```
+
+If you do not need this function, just set 'IS_USE_MYSQL=false' will be fine.
+
+Hope you enjoy your test!
+
 
