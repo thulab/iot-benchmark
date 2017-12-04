@@ -10,7 +10,7 @@ public interface IDatebase {
 	void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 	void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 	void close() throws SQLException;
-	
+
 	void flush() throws SQLException;;
 
 	long getTotalTimeInterval() throws SQLException;

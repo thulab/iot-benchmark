@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.sersyslog;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +16,10 @@ public class NetUsage {
     private static Logger log = LoggerFactory.getLogger(NetUsage.class);
     private static NetUsage INSTANCE = new NetUsage();
     private final static float TotalBandwidth = 1000;   //网口带宽,Mbps,假设是前兆以太网
+    private Config config;
 
     private NetUsage() {
-
+        config = ConfigDescriptor.getInstance().getConfig();
     }
 
     public static NetUsage getInstance() {
@@ -44,7 +47,7 @@ public class NetUsage {
             long inSize1 = 0, outSize1 = 0;
             while ((line = in1.readLine()) != null) {
                 line = line.trim();
-                if (line.startsWith("e")) {
+                if (line.startsWith(config.NET_DEVICE)) {
                     String[] temp = line.split("\\s+");
                     inSize1 = Long.parseLong(temp[1]); //Receive bytes,单位为Byte
                     outSize1 = Long.parseLong(temp[9]);             //Transmit bytes,单位为Byte
@@ -70,7 +73,7 @@ public class NetUsage {
             long inSize2 = 0, outSize2 = 0;
             while ((line = in2.readLine()) != null) {
                 line = line.trim();
-                if (line.startsWith("e")) {
+                if (line.startsWith(config.NET_DEVICE)) {
                     String[] temp = line.split("\\s+");
                     inSize2 = Long.parseLong(temp[1]);
                     outSize2 = Long.parseLong(temp[9]);
@@ -122,7 +125,7 @@ public class NetUsage {
             long inSize1 = 0, outSize1 = 0;
             while ((line = in1.readLine()) != null) {
                 line = line.trim();
-                if (line.startsWith("e")) {
+                if (line.startsWith(config.NET_DEVICE)) {
                     String[] temp = line.split("\\s+");
                     inSize1 = Long.parseLong(temp[1]); //Receive bytes,单位为Byte
                     outSize1 = Long.parseLong(temp[9]);             //Transmit bytes,单位为Byte
@@ -148,7 +151,7 @@ public class NetUsage {
             long inSize2 = 0, outSize2 = 0;
             while ((line = in2.readLine()) != null) {
                 line = line.trim();
-                if (line.startsWith("e")) {
+                if (line.startsWith(config.NET_DEVICE)) {
                     String[] temp = line.split("\\s+");
                     inSize2 = Long.parseLong(temp[1]);
                     outSize2 = Long.parseLong(temp[9]);
