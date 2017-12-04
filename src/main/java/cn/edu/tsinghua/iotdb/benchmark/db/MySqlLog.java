@@ -45,10 +45,10 @@ public class MySqlLog {
 			Date date = new Date(labID);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
 			day = sdf.format(date);
-			initTable();
 			try {
 				Class.forName(Constants.MYSQL_DRIVENAME);
 				mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+				initTable();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				LOGGER.error("mysql 初始化失败，原因是：{}", e.getMessage());
@@ -62,8 +62,9 @@ public class MySqlLog {
 	}
 
 	public void initTable() {
+		Statement stat = null;
 		try {
-			Statement stat = mysqlConnection.createStatement();
+			stat = mysqlConnection.createStatement();
 			if (config.SERVER_MODE) {
 				if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
 					stat.executeUpdate("create table SERVER_MODE_"
@@ -126,6 +127,15 @@ public class MySqlLog {
 			// TODO Auto-generated catch block
 			LOGGER.error("mysql 创建表格失败，原因是：{}", e.getMessage());
 			e.printStackTrace();
+		}
+		finally{
+			try {
+				if(stat!=null)
+					stat.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
