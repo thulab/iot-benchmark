@@ -526,7 +526,7 @@ public class IoTDB implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList)
 			throws SQLException {
 		
-		String strTime = sdf.format(time);
+		String strTime = sdf.format(new Date(time));
 		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, sensorList));
 		builder.append(" WHERE time = ").append(strTime);
 		return builder.toString();
@@ -607,8 +607,8 @@ public class IoTDB implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
 			List<String> sensorList) throws SQLException {
 		
-		String strstartTime = sdf.format(startTime);
-		String strendTime = sdf.format(endTime);
+		String strstartTime = sdf.format(new Date(startTime));
+		String strendTime = sdf.format(new Date(endTime));
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time > ");
 		builder.append(strstartTime).append(" AND time < ").append(strendTime);
@@ -657,8 +657,8 @@ public class IoTDB implements IDatebase {
 		builder.delete(builder.lastIndexOf("AND"), builder.length());
 		builder.append(" GROUP BY(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
 		for(int i = 0;i<startTime.size();i++) {
-			String strstartTime = sdf.format(startTime.get(i));
-			String strendTime = sdf.format(endTime.get(i));
+			String strstartTime = sdf.format(new Date(startTime.get(i)));
+			String strendTime = sdf.format(new Date(endTime.get(i)));
 			builder.append(",[").append(strstartTime).append(",").append(strendTime).append("]");
 		}
 		builder.append(")");
