@@ -26,8 +26,8 @@ ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
 
 if [ "${db#*=}" = "IoTDB" -a "${querymode#*=}" = "false" ]; then
   echo "initial database in server..."
-  ssh $SERVER_HOST "rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
-  ssh $SERVER_HOST "sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
+  ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
+  ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
   echo 'wait a few seconds for lauching IoTDB...'
   sleep 15
 fi

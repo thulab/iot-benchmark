@@ -48,11 +48,13 @@ public class MySqlLog {
 				Class.forName(Constants.MYSQL_DRIVENAME);
 				mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
 				Statement stat = mysqlConnection.createStatement();
-				if (config.SERVER_MODE && !hasTable("SERVER_MODE_" + localName + "_" + day)) {
-					stat.executeUpdate("create table SERVER_MODE_" + localName + "_" + day
-							+ "(id BIGINT, cpu_usage DOUBLE,"
-							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, remark varchar(6000),primary key(id))");
-					LOGGER.info("Table SERVER_MODE create success!");
+				if (config.SERVER_MODE) {
+					if(!hasTable("SERVER_MODE_" + localName + "_" + day)) {
+						stat.executeUpdate("create table SERVER_MODE_" + localName + "_" + day
+								+ "(id BIGINT, cpu_usage DOUBLE,"
+								+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, remark varchar(6000),primary key(id))");
+						LOGGER.info("Table SERVER_MODE create success!");
+					}
 					return;
 				}
 				if (config.IS_QUERY_TEST && !hasTable(config.DB_SWITCH + "QueryResult")) {
