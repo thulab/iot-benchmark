@@ -47,9 +47,10 @@ public class Config {
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;
 	/**系统性能检测时间间隔-2秒*/
-	public int INTERVAL = 0;
-	/**系统性能检测网卡设备名*/
-	public String NET_DEVICE = "e";
+ 	public int INTERVAL = 0;
+ 	/**系统性能检测网卡设备名*/
+ 	public String NET_DEVICE = "e";
+
 
 	/** 文件的名字 */
 	public String FILE_PATH ;
