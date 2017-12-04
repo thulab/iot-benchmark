@@ -361,11 +361,11 @@ public class IoTDB implements IDatebase {
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			while (resultSet.next()) {
 				line++;
-				int sensorNum = sensorList.size();
-				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
-				for (int i = 1; i <= sensorNum; i++) {
-					builder.append(resultSet.getString(i)).append("; ");
-				}	
+//				int sensorNum = sensorList.size();
+//				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
+//				for (int i = 1; i <= sensorNum; i++) {
+//					builder.append(resultSet.getString(i)).append("; ");
+//				}	
 			}
 			statement.close();
 			LOGGER.info("{}",builder.toString());

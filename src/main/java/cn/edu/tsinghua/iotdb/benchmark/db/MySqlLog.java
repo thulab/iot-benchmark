@@ -155,7 +155,7 @@ public class MySqlLog {
 			Statement stat;
 			String sql = "";
 			if (time == 0) {
-				remark = "rate is Invalid because time = 0";
+				remark = "rate is Invalid,because time = 0";
 				rate = -1;
 			}
 			try {
@@ -171,7 +171,7 @@ public class MySqlLog {
 				stat.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{}将查询结果写入mysql失败，because ：{}", sql, e.getMessage());
+				LOGGER.error("{}将查询结果写入mysql失败,because ：{}", sql, e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -181,7 +181,7 @@ public class MySqlLog {
 		double rate;
 		if (config.IS_USE_MYSQL) {
 			if (time == 0) {
-				remark = "rate无效，because time = 0";
+				remark = "rate无效,because time = 0";
 				rate = -1;
 			} else {
 				rate = point / time;
@@ -200,7 +200,7 @@ public class MySqlLog {
 				stat.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{} save queryProcess info into mysql failed! Error：{}", Thread.currentThread().getName(),
+				LOGGER.error("{} save queryProcess info into mysql failed! Error:{}", Thread.currentThread().getName(),
 						e.getMessage());
 				LOGGER.error("{}", mysqlSql);
 				e.printStackTrace();
@@ -221,7 +221,7 @@ public class MySqlLog {
 				stat.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{}将SERVER_MODE写入mysql失败，because ：{}", sql, e.getMessage());
+				LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql, e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -234,7 +234,7 @@ public class MySqlLog {
 					mysqlConnection.close();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
-					LOGGER.error("mysql 连接关闭失败，原因是：{}", e.getMessage());
+					LOGGER.error("mysql 连接关闭失败,原因是：{}", e.getMessage());
 					e.printStackTrace();
 				}
 			}
