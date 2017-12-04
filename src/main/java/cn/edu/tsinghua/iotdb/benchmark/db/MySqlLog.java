@@ -18,7 +18,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 
 public class MySqlLog {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MySqlLog.class);
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(MySqlLog.class);
 	private Connection mysqlConnection = null;
 	private Config config = ConfigDescriptor.getInstance().getConfig();
 	private String localName = "";
@@ -44,6 +45,7 @@ public class MySqlLog {
 			Date date = new Date(labID);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
 			day = sdf.format(date);
+			initTable();
 			try {
 				Class.forName(Constants.MYSQL_DRIVENAME);
 				mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
@@ -99,16 +101,92 @@ public class MySqlLog {
 		}
 	}
 
-	public void saveInsertProcess(int index, double costTime, double totalTime, long errorPoint, String remark) {
+	public void initTable() {
+		try {
+			Statement stat = mysqlConnection.createStatement();
+			if (config.SERVER_MODE) {
+				if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
+					stat.executeUpdate("create table SERVER_MODE_"
+							+ localName
+							+ "_"
+							+ day
+							+ "(id BIGINT, cpu_usage DOUBLE,"
+							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, remark varchar(6000),primary key(id))");
+					LOGGER.info("Table SERVER_MODE create success!");
+				}
+				return;
+			}
+			if (config.IS_QUERY_TEST
+					&& !hasTable(config.DB_SWITCH + "QueryResult")) {
+				stat.executeUpdate("create table "
+						+ config.DB_SWITCH
+						+ "QueryResult(id BIGINT, labID BIGINT,queryNum BIGINT, point BIGINT,"
+						+ " time DOUBLE, clientNum INTEGER, rate DOUBLE, errorNum BIGINT, serverIP varchar(20),localName varchar(50),query_type INTEGER,"
+						+ "QUERY_SENSOR_NUM INTEGER, QUERY_DIVICE_NUM INTEGER, QUERY_AGGREGATE_FUN varchar(30),"
+						+ "QUERY_INTERVAL BIGINT, QUERY_LOWER_LIMIT DOUBLE, IS_EMPTY_PRECISE_POINT_QUERY boolean, remark varchar(6000),primary key(id))");
+				LOGGER.info("Table {}QueryResult create success!",
+						config.DB_SWITCH);
+			}
+			if (config.IS_QUERY_TEST
+					&& !hasTable(config.DB_SWITCH + "QueryProcess" + labID)) {
+				stat.executeUpdate("create table "
+						+ config.DB_SWITCH
+						+ "QueryProcess"
+						+ labID
+						+ "(id BIGINT, clientName varchar(50), "
+						+ "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, serverIP varchar(20),localName varchar(50),query_type INTEGER,"
+						+ "QUERY_SENSOR_NUM INTEGER, QUERY_DIVICE_NUM INTEGER, QUERY_AGGREGATE_FUN varchar(30),"
+						+ "QUERY_INTERVAL BIGINT, QUERY_LOWER_LIMIT DOUBLE, IS_EMPTY_PRECISE_POINT_QUERY boolean, remark varchar(6000),primary key(id,clientName))");
+				LOGGER.info("Table {}QueryProcess{} create success!",
+						config.DB_SWITCH, labID);
+			}
+			if (!config.IS_QUERY_TEST
+					&& !hasTable(config.DB_SWITCH + "InsertResult")) {
+				stat.executeUpdate("create table "
+						+ config.DB_SWITCH
+						+ "InsertResult(id BIGINT, labID BIGINT, totalPoints BIGINT,"
+						+ " time DOUBLE, clientNum INTEGER, rate DOUBLE, errorPoint BIGINT, createSchemaTime DOUBLE,serverIP varchar(20),localName varchar(50),MUL_DEV_BATCH BOOLEAN,"
+						+ "ENCODING  VARCHAR(20),GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id))");
+				LOGGER.info("Table {}InsertResult create success!",
+						config.DB_SWITCH);
+			}
+			if (!config.IS_QUERY_TEST
+					&& !hasTable(config.DB_SWITCH + "InsertProcess" + labID)) {
+				stat.executeUpdate("create table "
+						+ config.DB_SWITCH
+						+ "InsertProcess"
+						+ labID
+						+ "(id BIGINT, clientName varchar(50), "
+						+ "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT,serverIP varchar(20),localName varchar(50),"
+						+ "MUL_DEV_BATCH BOOLEAN,GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id,clientName))");
+				LOGGER.info("Table {}InsertProcess{} create success!",
+						config.DB_SWITCH, labID);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			LOGGER.error("mysql 创建表格失败，原因是：{}", e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void saveInsertProcess(int index, double costTime, double totalTime,
+			long errorPoint, String remark) {
 		if (config.IS_USE_MYSQL) {
-			String mysqlSql = String.format(
-					"insert into " + config.DB_SWITCH + "InsertProcess" + labID
+			String mysqlSql = String
+					.format("insert into "
+							+ config.DB_SWITCH
+							+ "InsertProcess"
+							+ labID
 							+ " values(%d,%s,%d,%f,%f,%f,%d,%s,%s,%b,%d,%d,%d,%d,%d,%d,%s)",
-					System.currentTimeMillis(), "'" + Thread.currentThread().getName() + "'", index, costTime,
-					totalTime, (config.CACHE_NUM * config.SENSOR_NUMBER / costTime), errorPoint,
-					"'" + config.host + "'", "'" + localName + "'", config.MUL_DEV_BATCH, config.GROUP_NUMBER,
-					config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM, config.POINT_STEP, config.LOOP,
-					"'" + remark + "'");
+							System.currentTimeMillis(), "'"
+									+ Thread.currentThread().getName() + "'",
+							index, costTime, totalTime, (config.CACHE_NUM
+									* config.SENSOR_NUMBER / costTime),
+							errorPoint, "'" + config.host + "'", "'"
+									+ localName + "'", config.MUL_DEV_BATCH,
+							config.GROUP_NUMBER, config.DEVICE_NUMBER,
+							config.SENSOR_NUMBER, config.CACHE_NUM,
+							config.POINT_STEP, config.LOOP, "'" + remark + "'");
 			Statement stat;
 			try {
 				stat = mysqlConnection.createStatement();
@@ -116,85 +194,111 @@ public class MySqlLog {
 				stat.close();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{} save queryProcess info into mysql failed! Error：{}", Thread.currentThread().getName(),
-						e.getMessage());
+				LOGGER.error(
+						"{} save queryProcess info into mysql failed! Error：{}",
+						Thread.currentThread().getName(), e.getMessage());
 				LOGGER.error("{}", mysqlSql);
 				e.printStackTrace();
 			}
 		}
 	}
 
-	public void saveInsertResult(long totalPoints, double time, int clientNum, long errorNum, double creatSchemaTime,
+	public void saveInsertResult(long totalPoints, double time, int clientNum,
+			long errorNum, double creatSchemaTime, String remark) {
+		if (config.IS_USE_MYSQL) {
+			// TODO Auto-generated method stub
+			Statement stat;
+			String sql = "";
+			try {
+				stat = mysqlConnection.createStatement();
+				sql = String
+						.format("insert into "
+								+ config.DB_SWITCH
+								+ "InsertResult values(%d,%d,%d,%f,%d,%f,%d,%f,%s,%s,%b,%s,%d,%d,%d,%d,%d,%d,%s)",
+								System.currentTimeMillis(), labID, totalPoints,
+								time, clientNum, (totalPoints - errorNum)
+										/ time, errorNum, creatSchemaTime, "'"
+										+ config.host + "'", "'" + localName
+										+ "'", config.MUL_DEV_BATCH, "'"
+										+ config.ENCODING + "'",
+								config.GROUP_NUMBER, config.DEVICE_NUMBER,
+								config.SENSOR_NUMBER, config.CACHE_NUM,
+								config.POINT_STEP, config.LOOP, "'" + remark
+										+ "'");
+				stat.executeUpdate(sql);
+				stat.close();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				LOGGER.error("{}将写入测试结果写入mysql失败，because ：{}", sql,
+						e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void saveQueryResult(long id, long queryNum, long point,
+			double time, int clientNum, double rate, long errorNum,
 			String remark) {
 		if (config.IS_USE_MYSQL) {
 			// TODO Auto-generated method stub
 			Statement stat;
 			String sql = "";
-			try {
-				stat = mysqlConnection.createStatement();
-				sql = String.format(
-						"insert into " + config.DB_SWITCH
-								+ "InsertResult values(%d,%d,%d,%f,%d,%f,%d,%f,%s,%s,%b,%s,%d,%d,%d,%d,%d,%d,%s)",
-						System.currentTimeMillis(), labID, totalPoints, time, clientNum,
-						(totalPoints - errorNum) / time, errorNum, creatSchemaTime, "'" + config.host + "'",
-						"'" + localName + "'", config.MUL_DEV_BATCH, "'" + config.ENCODING + "'", config.GROUP_NUMBER,
-						config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM, config.POINT_STEP, config.LOOP,
-						"'" + remark + "'");
-				stat.executeUpdate(sql);
-				stat.close();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				LOGGER.error("{}将写入测试结果写入mysql失败，because ：{}", sql, e.getMessage());
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public void saveQueryResult(long id, long queryNum, long point, double time, int clientNum, double rate,
-			long errorNum, String remark) {
-		if (config.IS_USE_MYSQL) {
-			// TODO Auto-generated method stub
-			Statement stat;
-			String sql = "";
 			if (time == 0) {
-				remark = "rate is Invalid because time = 0";
+				remark = "rate is Invalid,because time = 0";
 				rate = -1;
 			}
 			try {
 				stat = mysqlConnection.createStatement();
-				sql = String.format(
-						"insert into " + config.DB_SWITCH
+				sql = String
+						.format("insert into "
+								+ config.DB_SWITCH
 								+ "QueryResult values(%d,%d,%d,%d,%f,%d,%f,%d,%s,%s,%d,%d,%d,%s,%d,%f,%b,%s)",
-						id, labID, queryNum, point, time, clientNum, rate, errorNum, "'" + config.host + "'",
-						"'" + localName + "'", config.QUERY_CHOICE, config.QUERY_SENSOR_NUM, config.QUERY_DIVICE_NUM,
-						"'" + config.QUERY_AGGREGATE_FUN + "'", config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT,
-						config.IS_EMPTY_PRECISE_POINT_QUERY, "'" + remark + "'");
+								id, labID, queryNum, point, time, clientNum,
+								rate, errorNum, "'" + config.host + "'", "'"
+										+ localName + "'", config.QUERY_CHOICE,
+								config.QUERY_SENSOR_NUM,
+								config.QUERY_DIVICE_NUM, "'"
+										+ config.QUERY_AGGREGATE_FUN + "'",
+								config.QUERY_INTERVAL,
+								config.QUERY_LOWER_LIMIT,
+								config.IS_EMPTY_PRECISE_POINT_QUERY, "'"
+										+ remark + "'");
 				stat.executeUpdate(sql);
 				stat.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{}将查询结果写入mysql失败，because ：{}", sql, e.getMessage());
+				LOGGER.error("{}将查询结果写入mysql失败,because ：{}", sql,
+						e.getMessage());
 				e.printStackTrace();
 			}
 		}
 	}
 
-	public void saveQueryProcess(int index, int point, double time, String remark) {
+	public void saveQueryProcess(int index, int point, double time,
+			String remark) {
 		double rate;
 		if (config.IS_USE_MYSQL) {
 			if (time == 0) {
-				remark = "rate无效，because time = 0";
+				remark = "rate无效,because time = 0";
 				rate = -1;
 			} else {
 				rate = point / time;
 			}
-			String mysqlSql = String.format(
-					"insert into " + config.DB_SWITCH + "QueryProcess" + labID
+			String mysqlSql = String
+					.format("insert into "
+							+ config.DB_SWITCH
+							+ "QueryProcess"
+							+ labID
 							+ " values(%d,%s,%d,%d,%f,%f,%s,%s,%d,%d,%d,%s,%d,%f,%b,%s)",
-					System.currentTimeMillis(), "'" + Thread.currentThread().getName() + "'", index, point, time, rate,
-					"'" + config.host + "'", "'" + localName + "'", config.QUERY_CHOICE, config.QUERY_SENSOR_NUM,
-					config.QUERY_DIVICE_NUM, "'" + config.QUERY_AGGREGATE_FUN + "'", config.QUERY_INTERVAL,
-					config.QUERY_LOWER_LIMIT, config.IS_EMPTY_PRECISE_POINT_QUERY, "'" + remark + "'");
+							System.currentTimeMillis(), "'"
+									+ Thread.currentThread().getName() + "'",
+							index, point, time, rate, "'" + config.host + "'",
+							"'" + localName + "'", config.QUERY_CHOICE,
+							config.QUERY_SENSOR_NUM, config.QUERY_DIVICE_NUM,
+							"'" + config.QUERY_AGGREGATE_FUN + "'",
+							config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT,
+							config.IS_EMPTY_PRECISE_POINT_QUERY, "'" + remark
+									+ "'");
 			Statement stat;
 			try {
 				stat = mysqlConnection.createStatement();
@@ -202,28 +306,32 @@ public class MySqlLog {
 				stat.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{} save queryProcess info into mysql failed! Error：{}", Thread.currentThread().getName(),
-						e.getMessage());
+				LOGGER.error(
+						"{} save queryProcess info into mysql failed! Error:{}",
+						Thread.currentThread().getName(), e.getMessage());
 				LOGGER.error("{}", mysqlSql);
 				e.printStackTrace();
 			}
 		}
 	}
 
-	public void insertSERVER_MODE(double cpu, double mem, double io, double net_recv, double net_send, String remark) {
+	public void insertSERVER_MODE(double cpu, double mem, double io,
+			double net_recv, double net_send, String remark) {
 		if (config.IS_USE_MYSQL) {
 			Statement stat;
 			String sql = "";
 			try {
 				stat = mysqlConnection.createStatement();
-				sql = String.format(
-						"insert into SERVER_MODE_" + localName + "_" + day + " values(%d,%f,%f,%f,%f,%f,%s)",
-						System.currentTimeMillis(), cpu, mem, io, net_recv, net_send, "'" + remark + "'");
+				sql = String.format("insert into SERVER_MODE_" + localName
+						+ "_" + day + " values(%d,%f,%f,%f,%f,%f,%s)",
+						System.currentTimeMillis(), cpu, mem, io, net_recv,
+						net_send, "'" + remark + "'");
 				stat.executeUpdate(sql);
 				stat.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
-				LOGGER.error("{}将SERVER_MODE写入mysql失败，because ：{}", sql, e.getMessage());
+				LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql,
+						e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -236,7 +344,7 @@ public class MySqlLog {
 					mysqlConnection.close();
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
-					LOGGER.error("mysql 连接关闭失败，原因是：{}", e.getMessage());
+					LOGGER.error("mysql 连接关闭失败,原因是：{}", e.getMessage());
 					e.printStackTrace();
 				}
 			}

@@ -13,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ public class IoTDB implements IDatebase {
 	private Map<String, String> mp;
 	private long labID;
 	private MySqlLog mySql;
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
 	public IoTDB(long labID) throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -361,11 +363,11 @@ public class IoTDB implements IDatebase {
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			while (resultSet.next()) {
 				line++;
-				int sensorNum = sensorList.size();
-				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
-				for (int i = 1; i <= sensorNum; i++) {
-					builder.append(resultSet.getString(i)).append("; ");
-				}	
+//				int sensorNum = sensorList.size();
+//				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
+//				for (int i = 1; i <= sensorNum; i++) {
+//					builder.append(resultSet.getString(i)).append("; ");
+//				}	
 			}
 			statement.close();
 			LOGGER.info("{}",builder.toString());
@@ -523,8 +525,10 @@ public class IoTDB implements IDatebase {
 	 */
 	private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList)
 			throws SQLException {
+		
+		String strTime = sdf.format(time);
 		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, sensorList));
-		builder.append(" WHERE time = ").append(time);
+		builder.append(" WHERE time = ").append(strTime);
 		return builder.toString();
 	}
 
@@ -602,9 +606,12 @@ public class IoTDB implements IDatebase {
 	 */
 	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
 			List<String> sensorList) throws SQLException {
+		
+		String strstartTime = sdf.format(startTime);
+		String strendTime = sdf.format(endTime);
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time > ");
-		builder.append(startTime).append(" AND time < ").append(endTime);
+		builder.append(strstartTime).append(" AND time < ").append(strendTime);
 		return builder.toString();
 	}
 
@@ -650,7 +657,9 @@ public class IoTDB implements IDatebase {
 		builder.delete(builder.lastIndexOf("AND"), builder.length());
 		builder.append(" GROUP BY(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
 		for(int i = 0;i<startTime.size();i++) {
-			builder.append(",[").append(startTime.get(i)).append(",").append(endTime.get(i)).append("]");
+			String strstartTime = sdf.format(startTime.get(i));
+			String strendTime = sdf.format(endTime.get(i));
+			builder.append(",[").append(strstartTime).append(",").append(strendTime).append("]");
 		}
 		builder.append(")");
 		return builder.toString();
