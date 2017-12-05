@@ -146,15 +146,13 @@ Configure 'cli-benchmark.sh'
 
 ```
 IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
-SERVER_HOST=liurui@192.168.130.9
 REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
-LOG_STOP_FLAG_PATH=/home/liurui
+HOST_NAME=liurui
 ```
 
 + IOTDB_HOME: The bin directory where you installed IoTDB on DB-server.
-+ SERVER_HOST: The host name of DB-server.
-+ REMOTE_BENCHMARK_HOME: The directory where you installed IoTDB-benchmark on DB-server
-+ LOG_STOP_FLAG_PATH: The directory where you set the same as in 'config.properties'. This directory must allow IoTDB-benchmark to touch file. (In later version this parameter may be set automatically.)
++ REMOTE_BENCHMARK_HOME: The directory where you installed IoTDB-benchmark on DB-server.
++ HOST_NAME: The host name of DB-server.
 
 ### Start (With Server System Information Recording)
 
