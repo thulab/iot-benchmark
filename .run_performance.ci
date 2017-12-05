@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "start .run_performance.ci ..."
