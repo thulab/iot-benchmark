@@ -19,7 +19,8 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 
 public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
-	
+	private String deviceCode;
+
 	public Config(){
 
 	}
@@ -29,12 +30,40 @@ public class Config {
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
+	/** 测试客户端线程数量 */
+	public int CLIENT_NUMBER = 2;
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
 	public int CACHE_NUM = 10;
+	/** 存储组数量 */
+	public int GROUP_NUMBER = 1;
+	/** 数据编码方式 */
+	public String ENCODING = "PLAIN";
+	/**多设备批插入模式*/
+	public boolean MUL_DEV_BATCH = false;
+	/**服务器性能监测模式*/
+	public boolean SERVER_MODE = false;
+	/**系统性能检测时间间隔-2秒*/
+ 	public int INTERVAL = 0;
+ 	/**系统性能检测网卡设备名*/
+ 	public String NET_DEVICE = "e";
+
+
+	/** 文件的名字 */
+	public String FILE_PATH ;
+	/** 是否从文件读取数据*/
+	public boolean READ_FROM_FILE = false;
+	/** 一次插入到数据库的条数 */
+	public int BATCH_OP_NUM = 100;
+
+	public boolean TAG_PATH = true;
+
+	public String LOG_STOP_FLAG_PATH;
+
+	public int STORE_MODE = 1;
 	
 	public long LOOP = 10000;
 	
@@ -91,6 +120,34 @@ public class Config {
 	public double SUM_QUERY_RATIO = 0.2;
 	public double RANDOM_INSERT_RATIO = 0.2;
 	public double UPDATE_RATIO = 0.2;
+	
+	//iotDB查询测试相关参数
+	public int QUERY_SENSOR_NUM = 1;
+	public int QUERY_DIVICE_NUM = 1;
+	public int QUERY_CHOICE = 1;
+	public String QUERY_AGGREGATE_FUN = "";
+	public boolean IS_QUERY_TEST = true;
+	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
+	public double QUERY_LOWER_LIMIT = 0;
+	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
+	public String REMARK = "";
+	public long QUERY_GROUP_BY_SCOPE = 5 * QUERY_INTERVAL;
+	
+	//mysql相关参数
+	// mysql服务器URL以及用户名密码
+	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
+			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
+	//是否将结果写入mysql
+	public boolean IS_USE_MYSQL = false;
+	
+	// InfluxDB参数
+	// Influx服务器URL
+	public String INFLUX_URL = "http://localhost:8086";
+	// 使用的数据库名
+	public String INFLUX_DB_NAME = "test";
+
+	// 使用的数据库
+	public String DB_SWITCH = "IoTDB";
 
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;

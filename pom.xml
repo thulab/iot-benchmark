@@ -43,17 +43,32 @@
 			<artifactId>commons-cli</artifactId>
 			<version>${common.cli.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.influxdb</groupId>
+			<artifactId>influxdb-java</artifactId>
+			<version>2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.44</version>
+		</dependency>
 	</dependencies>
 	<build>
-	   <resources>
-	       <resource>
-	           <directory>src/main/java</directory>
-	           <includes>
-	               <include>**/*.xml</include>
-	           </includes>
-	           <filtering>true</filtering>
-	       </resource>
-	   </resources>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -82,48 +97,34 @@
 					</execution>
 				</executions>
 			</plugin>
-			 <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>copy-native-libraries</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy todir="${project.basedir}/lib">
-                                    <fileset dir="${project.basedir}/target/">
-                                        <include name="*.jar" />
-                                    </fileset>
-                                </copy>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-<!-- 			<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.5.5</version>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
 				<executions>
 					<execution>
-						<configuration>
-							<descriptorRefs>
-								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>
-						</configuration>
-						<id>make-assembly</id>
+						<id>copy-native-libraries</id>
 						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>run</goal>
 						</goals>
+						<configuration>
+							<target>
+								<copy todir="${project.basedir}/lib">
+									<fileset dir="${project.basedir}/target/">
+										<include name="*.jar" />
+									</fileset>
+								</copy>
+							</target>
+						</configuration>
 					</execution>
 				</executions>
-			</plugin> -->
+			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-assembly-plugin</artifactId> 
+				<version>2.5.5</version> <executions> <execution> <configuration> <descriptorRefs> 
+				<descriptorRef>jar-with-dependencies</descriptorRef> </descriptorRefs> </configuration> 
+				<id>make-assembly</id> <phase>package</phase> <goals> <goal>single</goal> 
+				</goals> </execution> </executions> </plugin> -->
 		</plugins>
 	</build>
 </project>

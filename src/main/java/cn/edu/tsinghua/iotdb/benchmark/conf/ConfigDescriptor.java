@@ -62,7 +62,43 @@ public class ConfigDescriptor {
 				config.SQUARE_RATIO = Double.parseDouble(properties.getProperty("SQUARE_RATIO", config.SQUARE_RATIO+""));
 				config.RANDOM_RATIO = Double.parseDouble(properties.getProperty("RANDOM_RATIO", config.RANDOM_RATIO+""));
 				config.CONSTANT_RATIO = Double.parseDouble(properties.getProperty("CONSTANT_RATIO", config.CONSTANT_RATIO+""));
+
+				config.READ_FROM_FILE = Boolean.parseBoolean(properties.getProperty("READ_FROM_FILE", config.READ_FROM_FILE+""));
+				config.FILE_PATH = properties.getProperty("FILE_PATH", "no file");
+				config.BATCH_OP_NUM = Integer.parseInt(properties.getProperty("BATCH_OP_NUM", config.BATCH_OP_NUM+""));
+				config.TAG_PATH = Boolean.parseBoolean(properties.getProperty("TAG_PATH", config.TAG_PATH+""));
+				config.STORE_MODE = Integer.parseInt(properties.getProperty("STORE_MODE", config.STORE_MODE+""));
+				config.SERVER_MODE = Boolean.parseBoolean(properties.getProperty("SERVER_MODE", config.SERVER_MODE+""));
+				config.INTERVAL = Integer.parseInt(properties.getProperty("INTERVAL", config.INTERVAL+""));
+				config.CLIENT_NUMBER = Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.CLIENT_NUMBER+""));
+				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
+
+				config.INFLUX_URL = properties.getProperty("INFLUX_URL", "localhost");
+				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
+
+				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
+
 				
+				config.IS_QUERY_TEST = Boolean.parseBoolean(properties.getProperty("IS_QUERY_TEST", config.IS_QUERY_TEST+""));
+				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
+				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
+				config.QUERY_DIVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DIVICE_NUM", config.QUERY_DIVICE_NUM+""));
+				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
+				config.QUERY_INTERVAL = Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.QUERY_INTERVAL+""));
+				config.QUERY_LOWER_LIMIT = Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.QUERY_LOWER_LIMIT+""));
+				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
+				config.REMARK = properties.getProperty("REMARK", "-");
+				config.QUERY_GROUP_BY_SCOPE = Long.parseLong(properties.getProperty("QUERY_GROUP_BY_SCOPE", config.QUERY_GROUP_BY_SCOPE+""));
+				
+				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
+						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");
+				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
+				
+				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
+				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
+				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
+				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
