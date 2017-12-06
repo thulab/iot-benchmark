@@ -332,7 +332,8 @@ public class IoTDB implements IDatebase {
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
 				break;
 			case 3:// 聚合函数查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN,startTime,
+						startTime + config.QUERY_INTERVAL, sensorList);
 				break;
 			case 4:// 范围查询
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
@@ -596,6 +597,17 @@ public class IoTDB implements IDatebase {
 		for (int i = 1; i < devices.size(); i++) {
 			builder.append(" , ").append(getFullGroupDevicePathByID(devices.get(i)));
 		}
+		return builder.toString();
+	}
+	
+	/** 创建查询语句--(带有聚合函数以及时间约束的查询) */
+	private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime, 
+			long endTime, List<String> sensorList) {
+		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, method, sensorList));
+		String strstartTime = sdf.format(new Date(startTime));
+		String strendTime = sdf.format(new Date(endTime));
+		builder.append(" WHERE time > ");
+		builder.append(strstartTime).append(" AND time < ").append(strendTime);
 		return builder.toString();
 	}
 
