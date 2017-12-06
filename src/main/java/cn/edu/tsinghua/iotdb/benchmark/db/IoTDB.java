@@ -371,7 +371,7 @@ public class IoTDB implements IDatebase {
 //				}	
 			}
 			statement.close();
-			LOGGER.info("{}",builder.toString());
+//			LOGGER.info("{}",builder.toString());
 			endTimeStamp = System.currentTimeMillis();
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
