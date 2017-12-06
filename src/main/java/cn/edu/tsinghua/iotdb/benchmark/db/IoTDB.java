@@ -358,10 +358,10 @@ public class IoTDB implements IDatebase {
 			}
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
+			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			startTimeStamp = System.currentTimeMillis();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
-			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			while (resultSet.next()) {
 				line++;
 //				int sensorNum = sensorList.size();
@@ -371,8 +371,8 @@ public class IoTDB implements IDatebase {
 //				}	
 			}
 			statement.close();
-//			LOGGER.info("{}",builder.toString());
 			endTimeStamp = System.currentTimeMillis();
+//			LOGGER.info("{}",builder.toString());
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
