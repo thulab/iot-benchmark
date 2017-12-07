@@ -8,7 +8,7 @@ echo "start .run_performance.ci ..."
 date
 
 HOST_NAME=liurui
-BUILD_PATH=/home/liurui/jenkins_daily_test
+BUILD_PATH=/home/liurui/github
 
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
