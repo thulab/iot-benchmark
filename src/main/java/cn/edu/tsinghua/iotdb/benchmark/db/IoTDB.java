@@ -332,7 +332,8 @@ public class IoTDB implements IDatebase {
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
 				break;
 			case 3:// 聚合函数查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN,startTime,
+						startTime + config.QUERY_INTERVAL, sensorList);
 				break;
 			case 4:// 范围查询
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
@@ -357,10 +358,10 @@ public class IoTDB implements IDatebase {
 			}
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
+			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			startTimeStamp = System.currentTimeMillis();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
-			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			while (resultSet.next()) {
 				line++;
 //				int sensorNum = sensorList.size();
@@ -370,8 +371,8 @@ public class IoTDB implements IDatebase {
 //				}	
 			}
 			statement.close();
-			LOGGER.info("{}",builder.toString());
 			endTimeStamp = System.currentTimeMillis();
+//			LOGGER.info("{}",builder.toString());
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
@@ -596,6 +597,17 @@ public class IoTDB implements IDatebase {
 		for (int i = 1; i < devices.size(); i++) {
 			builder.append(" , ").append(getFullGroupDevicePathByID(devices.get(i)));
 		}
+		return builder.toString();
+	}
+	
+	/** 创建查询语句--(带有聚合函数以及时间约束的查询) */
+	private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime, 
+			long endTime, List<String> sensorList) {
+		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, method, sensorList));
+		String strstartTime = sdf.format(new Date(startTime));
+		String strendTime = sdf.format(new Date(endTime));
+		builder.append(" WHERE time > ");
+		builder.append(strstartTime).append(" AND time < ").append(strendTime);
 		return builder.toString();
 	}
 
