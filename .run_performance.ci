@@ -13,9 +13,9 @@ BUILD_PATH=/home/liurui/jenkins_daily_test
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
 #更新tsfile iotdb-jdbc iotdb
-ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf tsfile;git clone https://github.com/thulab/tsfile.git;cd tsfile;mvn clean install -Dmaven.test.skip=true"
-ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb-jdbc;git clone https://github.com/thulab/iotdb-jdbc.git;cd iotdb-jdbc;mvn clean install -Dmaven.test.skip=true"
-ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb;git clone https://github.com/thulab/iotdb.git;cd iotdb;mvn clean install -Dmaven.test.skip=true"
+ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf tsfile;git clone https://github.com/thulab/tsfile.git;cd tsfile;mvn clean install -Dmaven.test.skip=true"
+ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb-jdbc;git clone https://github.com/thulab/iotdb-jdbc.git;cd iotdb-jdbc;mvn clean install -Dmaven.test.skip=true"
+ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb;git clone https://github.com/thulab/iotdb.git;cd iotdb;mvn clean install -Dmaven.test.skip=true"
 
 sh ./rep-benchmark.sh
 
