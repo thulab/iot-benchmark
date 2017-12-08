@@ -17,9 +17,12 @@ do
   #CHANGE_LINE=$(grep -n  $CHANGE_PARAMETER $BENCHMARK_HOME/conf/config.properties | cut -d : -f 1)
   #sed -i "${CHANGE_LINE}s/^.*$/${LINE}/" $BENCHMARK_HOME/conf/config.properties
   if [ -n "$LINE" ]; then
-    sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf/config.properties
-    grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
-    sh $BENCHMARK_HOME/cli-benchmark.sh
+    if [ "$LINE" != "TEST" ]; then
+        sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf/config.properties
+        grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
+    else
+        sh $BENCHMARK_HOME/cli-benchmark.sh
+    fi
   fi
 done
 

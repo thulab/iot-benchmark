@@ -1,4 +1,5 @@
 #!/bin/sh
+
 if [ -z "${BENCHMARK_HOME}" ]; then
   export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 fi
@@ -34,7 +35,7 @@ if [ "${DB#*=}" = "IoTDB" -a "${QUERY_MODE#*=}" = "false" ]; then
   ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
   ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
   echo 'wait a few seconds for lauching IoTDB...'
-  sleep 15
+  sleep 20
 fi
 
 echo '------Client Test Begin Time------'
