@@ -118,8 +118,7 @@ public class MySqlLog {
 						+ "InsertProcess"
 						+ labID
 						+ "(id BIGINT, clientName varchar(50), "
-						+ "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT,serverIP varchar(20),localName varchar(50),"
-						+ "MUL_DEV_BATCH BOOLEAN,GROUP_NUMBER INTEGER,DEVICE_NUMBER INTEGER,SENSOR_NUMBER INTEGER,CACHE_NUM INTEGER,POINT_STEP BIGINT,LOOP_NUM BIGINT, remark varchar(6000),primary key(id,clientName))");
+						+ "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT, remark varchar(6000),primary key(id,clientName))");
 				LOGGER.info("Table {}InsertProcess{} create success!",
 						config.DB_SWITCH, labID);
 			}
@@ -147,16 +146,12 @@ public class MySqlLog {
 							+ config.DB_SWITCH
 							+ "InsertProcess"
 							+ labID
-							+ " values(%d,%s,%d,%f,%f,%f,%d,%s,%s,%b,%d,%d,%d,%d,%d,%d,%s)",
+							+ " values(%d,%s,%d,%f,%f,%f,%d,%s)",
 							System.currentTimeMillis(), "'"
 									+ Thread.currentThread().getName() + "'",
 							index, costTime, totalTime, (config.CACHE_NUM
 									* config.SENSOR_NUMBER / costTime),
-							errorPoint, "'" + config.host + "'", "'"
-									+ localName + "'", config.MUL_DEV_BATCH,
-							config.GROUP_NUMBER, config.DEVICE_NUMBER,
-							config.SENSOR_NUMBER, config.CACHE_NUM,
-							config.POINT_STEP, config.LOOP, "'" + remark + "'");
+							errorPoint, "'" + remark + "'");
 			Statement stat;
 			try {
 				stat = mysqlConnection.createStatement();
