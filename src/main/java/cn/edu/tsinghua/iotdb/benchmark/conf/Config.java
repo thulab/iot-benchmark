@@ -123,15 +123,14 @@ public class Config {
 	
 	//iotDB查询测试相关参数
 	public int QUERY_SENSOR_NUM = 1;
-	public int QUERY_DIVICE_NUM = 1;
+	public int QUERY_DEVICE_NUM = 1;
 	public int QUERY_CHOICE = 1;
 	public String QUERY_AGGREGATE_FUN = "";
 	public boolean IS_QUERY_TEST = true;
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
-	public String REMARK = "";
-	public long QUERY_GROUP_BY_SCOPE = 5 * QUERY_INTERVAL;
+	public long TIME_UNIT = QUERY_INTERVAL / 2;
 	
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
@@ -139,6 +138,8 @@ public class Config {
 			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
+	public String REMARK = "";
+	public String VERSION = "";
 	
 	// InfluxDB参数
 	// Influx服务器URL

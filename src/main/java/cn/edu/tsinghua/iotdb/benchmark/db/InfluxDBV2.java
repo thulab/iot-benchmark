@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;

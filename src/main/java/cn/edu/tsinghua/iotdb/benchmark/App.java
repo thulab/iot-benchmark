@@ -21,6 +21,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
@@ -104,6 +105,9 @@ public class App {
 			ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
+		mysql.saveTestModel();
+		mysql.savaTestConfig();
+		
 		IDBFactory idbFactory = null;
 		switch (config.DB_SWITCH) {
 		case Constants.DB_IOT:
@@ -220,9 +224,10 @@ public class App {
 			LOGGER.info("Total error num is {}, create schema cost {},s",
 						totalErrorPoint, createSchemaTime);
 
-			
-			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
-					totalErrorPoint,createSchemaTime,config.REMARK);
+			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
+			mysql.saveResult("totalPoints", ""+totalPoints);
+			mysql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
+			mysql.saveResult("totalErrorPoint", ""+totalErrorPoint);
 			mysql.closeMysql();
 
 		}// else--
@@ -274,11 +279,13 @@ public class App {
 		try {
 			mySql.initMysql(System.currentTimeMillis());
 			datebase = idbFactory.buildDB(mySql.getLabID());
-			datebase.init();	
+			datebase.init();
 		} catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
 		}
+		mySql.saveTestModel();
+		mySql.savaTestConfig();
 
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 		ArrayList<Long> totalTimes = new ArrayList<>();
@@ -310,9 +317,12 @@ public class App {
 
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
-		mySql.saveQueryResult(System.currentTimeMillis(), (long) config.CLIENT_NUMBER * config.LOOP, totalResultPoint,
-				totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * (totalResultPoint) )/  totalTime,
-				totalErrorPoint,config.REMARK);
+		
+		mySql.saveResult("queryNumber", ""+config.CLIENT_NUMBER * config.LOOP);
+		mySql.saveResult("totalPoint", ""+totalResultPoint);
+		mySql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
+		mySql.saveResult("resultPointPerSecond(points/s)", ""+(1000.0f * (totalResultPoint) )/  totalTime);
+		mySql.saveResult("totalErrorQuery", ""+totalErrorPoint);
 		mySql.closeMysql();
 	}
 

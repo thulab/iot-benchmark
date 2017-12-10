@@ -86,7 +86,7 @@ public class QueryClientThread implements Runnable {
 		}
 		while (i < config.LOOP) {
 			Collections.shuffle(clientDevicesIndex);
-			for (int m = 0; m < config.QUERY_DIVICE_NUM; m++){
+			for (int m = 0; m < config.QUERY_DEVICE_NUM; m++){
 				queryDevicesIndex.add(clientDevicesIndex.get(m));
 			}
 			database.executeOneQuery(queryDevicesIndex,
