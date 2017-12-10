@@ -46,6 +46,7 @@ public class MySqlLog {
 
 	public void initMysql(long labIndex) {
 		labID = labIndex;
+		projectID = config.REMARK+labID;
 		if (config.IS_USE_MYSQL) {
 			Date date = new Date(labID);
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
@@ -64,7 +65,7 @@ public class MySqlLog {
 				e.printStackTrace();
 			}
 		}
-		projectID = config.REMARK+labID;
+		
 	}
 
 	// 检查记录本次实验的表格是否已经创建，没有则创建
@@ -88,14 +89,14 @@ public class MySqlLog {
 			case Constants.DB_IOT:
 				if (!hasTable("IOTDB_DATA_MODEL"+ "_" + day)) {
 					stat.executeUpdate("create table IOTDB_DATA_MODEL"+ "_" + day+" (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), sensor VARCHAR(50) NOT NULL, path VARCHAR(600))AUTO_INCREMENT = 1;");
-					LOGGER.info("Table IOTDB_DATA_MODEL create success!");
+					LOGGER.info("Table IOTDB_DATA_MODEL_{} create success!",day);
 				}
 				break;
 			case Constants.DB_INFLUX:
 				int i = 0, groupId = 0;
 				if (!hasTable("INFLUXDB_DATA_MODEL"+ "_" + day)) {
 					stat.executeUpdate("create table INFLUXDB_DATA_MODEL"+ "_" + day+" (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), measurement VARCHAR(50), tag VARCHAR(100), field VARCHAR(100))AUTO_INCREMENT = 1;");
-					LOGGER.info("Table INFLUXDB_DATA_MODEL create success!");
+					LOGGER.info("Table INFLUXDB_DATA_MODEL_ create success!",day);
 				}
 				break;
 			}
