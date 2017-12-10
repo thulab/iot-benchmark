@@ -22,13 +22,14 @@ import cn.edu.tsinghua.iotdb.benchmark.db.IoTDBFactory;
 public class MySqlLog {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(MySqlLog.class);
-	private final String SAVE_CONFIG = "insert into CONFIG values(NULL, %d, %s, %s)";
-	private final String SAVE_RESULT = "insert into RESULT values(NULL, %d, %s,%s)";
+	private final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
+	private final String SAVE_RESULT = "insert into RESULT values(NULL, %s, %s,%s)";
 	private Connection mysqlConnection = null;
 	private Config config = ConfigDescriptor.getInstance().getConfig();
 	private String localName = "";
 	private long labID;
 	private String day = "";
+	private String projectID="";
 
 	public MySqlLog() {
 		try {
@@ -63,6 +64,7 @@ public class MySqlLog {
 				e.printStackTrace();
 			}
 		}
+		projectID = config.REMARK+labID;
 	}
 
 	// 检查记录本次实验的表格是否已经创建，没有则创建
@@ -82,39 +84,44 @@ public class MySqlLog {
 				}
 				return;
 			}
-			if (!hasTable("IOTDB_DATA_MODEL")) {
-				stat.executeUpdate("create table IOTDB_DATA_MODEL (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID BIGINT, sensor VARCHAR(50) NOT NULL, path VARCHAR(600))AUTO_INCREMENT = 1;");
-				LOGGER.info("Table IOTDB_DATA_MODEL create success!");
+			switch (config.DB_SWITCH) {
+			case Constants.DB_IOT:
+				if (!hasTable("IOTDB_DATA_MODEL"+ "_" + day)) {
+					stat.executeUpdate("create table IOTDB_DATA_MODEL"+ "_" + day+" (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), sensor VARCHAR(50) NOT NULL, path VARCHAR(600))AUTO_INCREMENT = 1;");
+					LOGGER.info("Table IOTDB_DATA_MODEL create success!");
+				}
+				break;
+			case Constants.DB_INFLUX:
+				int i = 0, groupId = 0;
+				if (!hasTable("INFLUXDB_DATA_MODEL"+ "_" + day)) {
+					stat.executeUpdate("create table INFLUXDB_DATA_MODEL"+ "_" + day+" (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), measurement VARCHAR(50), tag VARCHAR(100), field VARCHAR(100))AUTO_INCREMENT = 1;");
+					LOGGER.info("Table INFLUXDB_DATA_MODEL create success!");
+				}
+				break;
 			}
-			if (!hasTable("INFLUXDB_DATA_MODEL")) {
-				stat.executeUpdate("create table INFLUXDB_DATA_MODEL (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID BIGINT, measurement VARCHAR(50), tag VARCHAR(100), field VARCHAR(100))AUTO_INCREMENT = 1;");
-				LOGGER.info("Table INFLUXDB_DATA_MODEL create success!");
-			}
+			
+			
 			if (!hasTable("CONFIG")) {
-				stat.executeUpdate("create table CONFIG (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID BIGINT, configuration_item VARCHAR(150), configuration_value VARCHAR(150))AUTO_INCREMENT = 1;");
+				stat.executeUpdate("create table CONFIG (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), configuration_item VARCHAR(150), configuration_value VARCHAR(150))AUTO_INCREMENT = 1;");
 				LOGGER.info("Table CONFIG create success!");
 			}
 			if (!hasTable("RESULT")) {
-				stat.executeUpdate("create table RESULT (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID BIGINT, result_key VARCHAR(150), result_value VARCHAR(150))AUTO_INCREMENT = 1;");
+				stat.executeUpdate("create table RESULT (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), result_key VARCHAR(150), result_value VARCHAR(150))AUTO_INCREMENT = 1;");
 				LOGGER.info("Table RESULT create success!");
 			}
-			if (config.IS_QUERY_TEST && !hasTable(config.REMARK + labID)) {
+			if (config.IS_QUERY_TEST && !hasTable(projectID)) {
 				stat.executeUpdate("create table "
-						+ config.REMARK
-						+ labID
+						+ projectID
 						+ "(id BIGINT, clientName varchar(50), "
 						+ "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, remark varchar(6000), primary key(id,clientName))");
-				LOGGER.info("Table {}QueryProcess{} create success!",
-						config.DB_SWITCH, labID);
+				LOGGER.info("Table {} create success!",projectID);
 			}
-			if (!config.IS_QUERY_TEST && !hasTable(config.REMARK + labID)) {
+			if (!config.IS_QUERY_TEST && !hasTable(projectID)) {
 				stat.executeUpdate("create table "
-						+ config.REMARK
-						+ labID
+						+ projectID
 						+ "(id BIGINT, clientName varchar(50), "
 						+ "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT, remark varchar(6000),primary key(id,clientName))");
-				LOGGER.info("Table {}InsertProcess{} create success!",
-						config.DB_SWITCH, labID);
+				LOGGER.info("Table {} create success!",projectID);
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -231,8 +238,8 @@ public class MySqlLog {
 		try {
 			stat = mysqlConnection.createStatement();
 			sql = String.format(
-					"insert into IOTDB_DATA_MODEL values(NULL, %d, %s, %s)",
-					labID, "'" + sensor + "'", "'" + path + "'");
+					"insert into IOTDB_DATA_MODEL"+ "_" + day+" values(NULL, %s, %s, %s)",
+					"'"+ projectID+"'", "'" + sensor + "'", "'" + path + "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -261,8 +268,8 @@ public class MySqlLog {
 		try {
 			stat = mysqlConnection.createStatement();
 			sql = String
-					.format("insert into INFLUXDB_DATA_MODEL values(NULL, %d, %s, %s, %s)",
-							labID, "'" + measurement + "'", "'" + tag + "'",
+					.format("insert into INFLUXDB_DATA_MODEL"+ "_" + day+" values(NULL, %s, %s, %s, %s)",
+							"'"+ projectID+"'", "'" + measurement + "'", "'" + tag + "'",
 							"'" + field + "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
@@ -290,7 +297,7 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			sql = String.format(SAVE_RESULT, labID, "'" + k + "'", "'" + v
+			sql = String.format(SAVE_RESULT, "'"+ projectID+"'", "'" + k + "'", "'" + v
 					+ "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
@@ -319,7 +326,7 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			sql = String.format(SAVE_CONFIG, labID, "'" + k + "'", "'" + v
+			sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'" + k + "'", "'" + v
 					+ "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
@@ -385,83 +392,85 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			sql = String.format(SAVE_CONFIG, labID, "'DB_SWITCH'", "'"
+			sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'DB_SWITCH'", "'"
 					+ config.DB_SWITCH + "'");
 			stat.addBatch(sql);
-			sql = String.format(SAVE_CONFIG, labID, "'VERSION'", "'"
+			sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'VERSION'", "'"
 					+ config.VERSION + "'");
 			stat.addBatch(sql);
-			sql = String.format(SAVE_CONFIG, labID, "'CLIENT_NUMBER'", "'"
+			sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'CLIENT_NUMBER'", "'"
 					+ config.CLIENT_NUMBER + "'");
 			stat.addBatch(sql);
-			sql = String.format(SAVE_CONFIG, labID, "'LOOP'", "'" + config.LOOP
+			sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'LOOP'", "'" + config.LOOP
 					+ "'");
 			stat.addBatch(sql);
 			if (config.IS_QUERY_TEST) {// 查询测试
-				sql = String.format(SAVE_CONFIG, labID, "'QUERY_CHOICE'", "'"
-						+ Constants.QUERY_CHOICE_NAME[config.QUERY_CHOICE]
-						+ "'");
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'QUERY_CHOICE'", "'"
+						+ Constants.QUERY_CHOICE_NAME[config.QUERY_CHOICE]+ "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'QUERY_DEVICE_NUM'",
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'QUERY_DEVICE_NUM'",
 						"'" + config.QUERY_DEVICE_NUM + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'QUERY_SENSOR_NUM'",
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'QUERY_SENSOR_NUM'",
 						"'" + config.QUERY_SENSOR_NUM + "'");
 				stat.addBatch(sql);
 				switch (config.QUERY_CHOICE) {
+				case 1:
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'",
+							"'IS_RESULTSET_NULL'", "'"+ config.IS_EMPTY_PRECISE_POINT_QUERY + "'");
+					stat.addBatch(sql);
 				case 3:
-					sql = String.format(SAVE_CONFIG, labID,
-							"'QUERY_AGGREGATE_FUN'", "'"
-									+ config.QUERY_AGGREGATE_FUN + "'");
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'",
+							"'QUERY_AGGREGATE_FUN'", "'"+ config.QUERY_AGGREGATE_FUN + "'");
 					stat.addBatch(sql);
 					break;
 				case 4:
-					sql = String.format(SAVE_CONFIG, labID, "'TIME_INTERVAL'",
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'TIME_INTERVAL'",
 							"'" + config.QUERY_INTERVAL + "'");
 					stat.addBatch(sql);
 					break;
 				case 5:
-					sql = String.format(SAVE_CONFIG, labID,
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'",
 							"'FILTRATION_CONDITION'", "'values > "
 									+ config.QUERY_LOWER_LIMIT + "'");
 					stat.addBatch(sql);
-					sql = String.format(SAVE_CONFIG, labID, "'TIME_INTERVAL'",
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'TIME_INTERVAL'",
 							"'" + config.QUERY_INTERVAL + "'");
 					stat.addBatch(sql);
 					break;
 				case 7:
-					sql = String.format(SAVE_CONFIG, labID,
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'",
 							"'FILTRATION_CONDITION'", "'values > "
 									+ config.QUERY_LOWER_LIMIT + "'");
 					stat.addBatch(sql);
-					sql = String.format(SAVE_CONFIG, labID, "'TIME_INTERVAL'",
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'TIME_INTERVAL'",
 							"'" + config.QUERY_INTERVAL + "'");
 					stat.addBatch(sql);
-					sql = String.format(SAVE_CONFIG, labID, "'TIME_UNIT'", "' "
+					sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'TIME_UNIT'", "' "
 							+ config.TIME_UNIT + "'");
 					stat.addBatch(sql);
 					break;
 				}
 			} else {// 写入测试
-				sql = String.format(SAVE_CONFIG, labID, "'GROUP_NUMBER'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'GROUP_NUMBER'", "'"
 						+ config.GROUP_NUMBER + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'DEVICE_NUMBER'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'DEVICE_NUMBER'", "'"
 						+ config.DEVICE_NUMBER + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'SENSOR_NUMBER'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'SENSOR_NUMBER'", "'"
 						+ config.SENSOR_NUMBER + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'CACHE_NUM'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'CACHE_NUM'", "'"
 						+ config.CACHE_NUM + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'POINT_STEP'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'POINT_STEP'", "'"
 						+ config.POINT_STEP + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'ENCODING'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'ENCODING'", "'"
 						+ config.ENCODING + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, labID, "'MUL_DEV_BATCH'", "'"
+				sql = String.format(SAVE_CONFIG, "'"+ projectID+"'", "'MUL_DEV_BATCH'", "'"
 						+ config.MUL_DEV_BATCH + "'");
 				stat.addBatch(sql);
 			}
