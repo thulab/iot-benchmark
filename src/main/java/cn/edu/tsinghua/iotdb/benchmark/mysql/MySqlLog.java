@@ -135,8 +135,7 @@ public class MySqlLog {
 	public void saveInsertProcess(int index, double costTime, double totalTime,
 			long errorPoint, String remark) {
 		if (config.IS_USE_MYSQL) {
-			String mysqlSql = String.format("insert into " + config.DB_SWITCH
-					+ "InsertProcess" + labID
+			String mysqlSql = String.format("insert into "+ config.REMARK + labID
 					+ " values(%d,%s,%d,%f,%f,%f,%d,%s)",
 					System.currentTimeMillis(), "'"
 							+ Thread.currentThread().getName() + "'", index,
@@ -170,8 +169,8 @@ public class MySqlLog {
 			} else {
 				rate = point / time;
 			}
-			String mysqlSql = String.format("insert into " + config.DB_SWITCH
-					+ "QueryProcess" + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
+			String mysqlSql = String.format("insert into "
+					+ config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
 					System.currentTimeMillis(), "'"
 							+ Thread.currentThread().getName() + "'", index,
 					point, time, rate, "'" + remark + "'");
