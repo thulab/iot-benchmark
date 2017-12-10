@@ -202,15 +202,15 @@ Configure 'routine'
 Each line of this file should be a parameter each test process will change(otherwise it becomes replication test). For example, the routine is:
 
 ```
-LOOP=10
-LOOP=20
-LOOP=50
+LOOP=10 DEVICE_NUMBER=100 TEST
+LOOP=20 DEVICE_NUMBER=50 TEST
+LOOP=50 DEVICE_NUMBER=20 TEST
 ```
 
 Then it will serially execute 3 test process with LOOP parameter are 10, 20 and 50, respectively.
 
 > NOTE:
-Each line should contain one and only one parameter with format like DEVICE_NUMBER=10, space is not allowed. If you change different parameters, the changed parameters will remain in next tests.
+You can change multiple parameters in each test with format like 'LOOP=20 DEVICE_NUMBER=10 TEST', unnecessary space is not allowed. The key word 'TEST' means a new test begins. If you change different parameters, the changed parameters will remain in next tests.
 
 ### Start 
 

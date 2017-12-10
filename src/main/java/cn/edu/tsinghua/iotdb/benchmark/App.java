@@ -63,23 +63,34 @@ public class App {
 						break;
 					}
 				}
+
+				MySqlLog mysql = new MySqlLog();
+				mysql.initMysql(System.currentTimeMillis());
+				IDBFactory idbFactory = null;
+				idbFactory = getDBFactory(config);
+
+				IDatebase datebase;
+
+				try {
+					datebase = idbFactory.buildDB(mysql.getLabID());
+					datebase.init();
+					LOGGER.info("Before flush:");
+					datebase.getUnitPointStorageSize();
+					datebase.flush();
+					LOGGER.info("After flush:");
+					datebase.getUnitPointStorageSize();
+					datebase.close();
+
+				} catch (SQLException e) {
+					LOGGER.error("Fail to init database becasue {}", e.getMessage());
+					return;
+				}
+
+
 				mySql.closeMysql();
-				/*
-				 * //将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
-				 * if(config.DB_SWITCH.equals(Constants.DB_IOT)) { IDBFactory idbFactory = new
-				 * IoTDBFactory(); IDatebase datebase; datebase = idbFactory.buildDB(); File
-				 * dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data"); if (dataDir.exists()
-				 * && dataDir.isDirectory()) { long walSize =
-				 * getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ; datebase.init();
-				 * datebase.flush(); datebase.close(); long walSize2 =
-				 * getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ; float
-				 * pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
-				 * 1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
-				 * config.CACHE_NUM); LOGGER.
-				 * info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size before and after flush, {},{},KB"
-				 * , pointByteSize, config.ENCODING, walSize, walSize2); } else {
-				 * LOGGER.info("Can not find data file!"); } }
-				 */
+
+
+
 
 			} else {
 				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
@@ -91,7 +102,7 @@ public class App {
 				insertTest(config);
 			}
 
-		} // else--SERVER_MODE
+		}
 	}// main
 
 	/**
@@ -105,16 +116,8 @@ public class App {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
 		IDBFactory idbFactory = null;
-		switch (config.DB_SWITCH) {
-		case Constants.DB_IOT:
-			idbFactory = new IoTDBFactory();
-			break;
-		case Constants.DB_INFLUX:
-			idbFactory = new InfluxDBFactory();
-			break;
-		default:
-			throw new SQLException("unsupported database " + config.DB_SWITCH);
-		}
+		idbFactory = getDBFactory(config);
+
 		IDatebase datebase;
 		long createSchemaStartTime;
 		long createSchemaEndTime;
@@ -230,6 +233,17 @@ public class App {
 		
 	}
 
+	private static IDBFactory getDBFactory(Config config) throws SQLException{
+		switch (config.DB_SWITCH) {
+			case Constants.DB_IOT:
+				return new IoTDBFactory();
+			case Constants.DB_INFLUX:
+				return new InfluxDBFactory();
+			default:
+				throw new SQLException("unsupported database " + config.DB_SWITCH);
+		}
+	}
+
 	private static long getErrorNumInflux(Config config, IDatebase database) {
 		//同一个device中不同sensor的点数是相同的，因此不对sensor遍历
 		long insertedPointNum = 0;
@@ -259,16 +273,8 @@ public class App {
 	 */
 	private static void queryTest(Config config) throws SQLException, ClassNotFoundException {
 		IDBFactory idbFactory = null;
-		switch (config.DB_SWITCH) {
-		case Constants.DB_IOT:
-			idbFactory = new IoTDBFactory();
-			break;
-		case Constants.DB_INFLUX:
-			idbFactory = new InfluxDBFactory();
-			break;
-		default:
-			throw new SQLException("unsupported database " + config.DB_SWITCH);
-		}
+		idbFactory = getDBFactory(config);
+
 		IDatebase datebase = null;
 		MySqlLog mySql = new MySqlLog();
 		try {
@@ -325,37 +331,5 @@ public class App {
 		return total;
 	}
 
-	/***/
-	private static long getDirTotalSize(String dir) {
-		long totalsize = 0;
-
-		Process pro = null;
-		Runtime r = Runtime.getRuntime();
-		try {
-			// 获得文件夹大小，单位 Byte
-			String command = "du " + dir;
-			pro = r.exec(command);
-			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-			String line = null;
-			String lastLine = null;
-			while (true) {
-				lastLine = line;
-				if ((line = in.readLine()) == null) {
-					System.out.println(lastLine);
-					break;
-				}
-			}
-			String[] temp = lastLine.split("\\s+");
-			totalsize = Long.parseLong(temp[0]);
-
-			in.close();
-			pro.destroy();
-		} catch (IOException e) {
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-		}
-
-		return totalsize;
-	}
 
 }

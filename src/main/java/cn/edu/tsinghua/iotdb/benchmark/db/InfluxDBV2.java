@@ -334,6 +334,11 @@ public class InfluxDBV2 implements IDatebase {
     }
 
     @Override
+    public void getUnitPointStorageSize() throws SQLException {
+
+    }
+
+    @Override
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
 
     }

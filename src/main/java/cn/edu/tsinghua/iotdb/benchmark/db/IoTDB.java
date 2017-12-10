@@ -1,10 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.BatchUpdateException;
@@ -745,8 +741,58 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
+	public void getUnitPointStorageSize() throws SQLException {
+		File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
+		if (dataDir.exists() && dataDir.isDirectory()) {
+			long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+			long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
+			long metadataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/metadata") ;
+			float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
+					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
+					config.CACHE_NUM);
+			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: data ,{}, wal ,{}, metadata ,{},KB"
+					, pointByteSize, config.ENCODING, dataSize, walSize, metadataSize);
+		} else {
+			LOGGER.info("Can not find data directory!");
+		}
+	}
+
+	@Override
 	public long count(String group,String device,String sensor){
 
 		return 0;
+	}
+
+	/***/
+	private static long getDirTotalSize(String dir) {
+		long totalsize = 0;
+
+		Process pro = null;
+		Runtime r = Runtime.getRuntime();
+		try {
+			// 获得文件夹大小，单位 Byte
+			String command = "du " + dir;
+			pro = r.exec(command);
+			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+			String line = null;
+			String lastLine = null;
+			while (true) {
+				lastLine = line;
+				if ((line = in.readLine()) == null) {
+					System.out.println(lastLine);
+					break;
+				}
+			}
+			String[] temp = lastLine.split("\\s+");
+			totalsize = Long.parseLong(temp[0]);
+
+			in.close();
+			pro.destroy();
+		} catch (IOException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+		}
+
+		return totalsize;
 	}
 }
