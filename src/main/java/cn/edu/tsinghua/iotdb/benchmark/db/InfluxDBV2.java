@@ -345,11 +345,11 @@ public class InfluxDBV2 implements IDatebase {
 				for (Series serie : series) {
 					List<List<Object>> values= serie.getValues();
 					line += values.size()*(serie.getColumns().size()-1);
-					builder.append(serie.toString());
+					//builder.append(serie.toString());
 				}
 			}
 
-			LOGGER.info("{}", builder.toString());
+			//LOGGER.info("{}", builder.toString());
 			endTimeStamp = System.currentTimeMillis();
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
