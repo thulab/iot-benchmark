@@ -91,16 +91,12 @@ public class ClientThread implements Runnable{
 						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + config.TIMESERIES_NAME, i, totalTime, errorCount);
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
-					} catch (Exception e){
-						LOOGER.error("{} Fail to insert one batch into database becasue {} , The General Exception.", Thread.currentThread().getName(), e.getMessage());
 					}
 				}else if(config.MUL_DEV_BATCH){
 					try {
 						database.insertOneBatchMulDevice(deviceCodes, i, totalTime, errorCount);
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
-					} catch (Exception e){
-						LOOGER.error("{} Fail to insert one batch into database becasue {} , The General Exception.", Thread.currentThread().getName(), e.getMessage());
 					}
 				}else {
 					try {
@@ -109,8 +105,6 @@ public class ClientThread implements Runnable{
 						}
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
-					} catch (Exception e){
-						LOOGER.error("{} Fail to insert one batch into database becasue {} , The General Exception.", Thread.currentThread().getName(), e.getMessage());
 					}
 				}
 				i++;

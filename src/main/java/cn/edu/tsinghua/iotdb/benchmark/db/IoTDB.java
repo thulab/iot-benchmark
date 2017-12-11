@@ -849,7 +849,7 @@ public class IoTDB implements IDatebase {
 
 	@Override
 	public void createSchemaOfDataGen() throws SQLException{
-		setStorgeGroup(config.STORAGE_GROUP_NAME);
+		//setStorgeGroup(config.STORAGE_GROUP_NAME);
 		createTimeseries(config.STORAGE_GROUP_NAME, config.TIMESERIES_NAME);
 	}
 

@@ -96,12 +96,13 @@ public class App {
 				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 			}
 		} else {
-			if (config.IS_QUERY_TEST) {
+			if (config.IS_GEN_DATA) {
+				genData(config);
+			} else if(config.IS_QUERY_TEST) {
 				queryTest(config);
-			} else if(config.IS_GEN_DATA) {
+			} else {
 				insertTest(config);
 			}
-				genData(config);
 		}
 	}// main
 
