@@ -1,10 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.BatchUpdateException;
@@ -38,7 +34,7 @@ public class IoTDB implements IDatebase {
 	private Map<String, String> mp;
 	private long labID;
 	private MySqlLog mySql;
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	public IoTDB(long labID) throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -332,7 +328,8 @@ public class IoTDB implements IDatebase {
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
 				break;
 			case 3:// 聚合函数查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN,startTime,
+						startTime + config.QUERY_INTERVAL, sensorList);
 				break;
 			case 4:// 范围查询
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
@@ -357,10 +354,10 @@ public class IoTDB implements IDatebase {
 			}
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
+			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			startTimeStamp = System.currentTimeMillis();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
-			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			while (resultSet.next()) {
 				line++;
 //				int sensorNum = sensorList.size();
@@ -370,8 +367,8 @@ public class IoTDB implements IDatebase {
 //				}	
 			}
 			statement.close();
-			LOGGER.info("{}",builder.toString());
 			endTimeStamp = System.currentTimeMillis();
+//			LOGGER.info("{}",builder.toString());
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
@@ -598,6 +595,17 @@ public class IoTDB implements IDatebase {
 		}
 		return builder.toString();
 	}
+	
+	/** 创建查询语句--(带有聚合函数以及时间约束的查询) */
+	private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime, 
+			long endTime, List<String> sensorList) {
+		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, method, sensorList));
+		String strstartTime = sdf.format(new Date(startTime));
+		String strendTime = sdf.format(new Date(endTime));
+		builder.append(" WHERE time > ");
+		builder.append(strstartTime).append(" AND time < ").append(strendTime);
+		return builder.toString();
+	}
 
 	/**
 	 * 创建查询语句--(带有时间约束条件的查询)
@@ -733,8 +741,58 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
+	public void getUnitPointStorageSize() throws SQLException {
+		File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
+		if (dataDir.exists() && dataDir.isDirectory()) {
+			long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+			long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
+			long metadataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/metadata") ;
+			float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
+					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
+					config.CACHE_NUM);
+			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: data ,{}, wal ,{}, metadata ,{},KB"
+					, pointByteSize, config.ENCODING, dataSize, walSize, metadataSize);
+		} else {
+			LOGGER.info("Can not find data directory!");
+		}
+	}
+
+	@Override
 	public long count(String group,String device,String sensor){
 
 		return 0;
+	}
+
+	/***/
+	private static long getDirTotalSize(String dir) {
+		long totalsize = 0;
+
+		Process pro = null;
+		Runtime r = Runtime.getRuntime();
+		try {
+			// 获得文件夹大小，单位 Byte
+			String command = "du " + dir;
+			pro = r.exec(command);
+			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+			String line = null;
+			String lastLine = null;
+			while (true) {
+				lastLine = line;
+				if ((line = in.readLine()) == null) {
+					System.out.println(lastLine);
+					break;
+				}
+			}
+			String[] temp = lastLine.split("\\s+");
+			totalsize = Long.parseLong(temp[0]);
+
+			in.close();
+			pro.destroy();
+		} catch (IOException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+		}
+
+		return totalsize;
 	}
 }

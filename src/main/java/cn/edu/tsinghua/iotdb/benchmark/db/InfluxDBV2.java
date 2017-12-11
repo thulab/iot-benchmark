@@ -375,17 +375,6 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	@Override
-	public void flush() {
-
-	}
-
-	@Override
-	public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime,
-			ThreadLocal<Long> errorCount) {
-
-	}
-
-	@Override
 	public long count(String group, String device, String sensor) {
 		String sql = String.format(countSQL, sensor, group, device);
 		Query q = new Query(sql, config.INFLUX_DB_NAME);
@@ -555,4 +544,17 @@ public class InfluxDBV2 implements IDatebase {
 		builder.append(" GROUP BY time(").append(config.QUERY_INTERVAL).append("ms)");
 		return builder.toString();
 	}
+    public void flush(){
+
+    }
+
+    @Override
+    public void getUnitPointStorageSize() throws SQLException {
+
+    }
+
+    @Override
+    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
+
+    }
 }

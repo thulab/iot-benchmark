@@ -11,8 +11,8 @@ public interface IDatebase {
 	void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 	void close() throws SQLException;
 
-	void flush() throws SQLException;;
-
+	void flush() throws SQLException;
+	void getUnitPointStorageSize() throws SQLException;
 	long getTotalTimeInterval() throws SQLException;
 	void executeOneQuery(List<Integer> devices, int index, long startTime,
 			QueryClientThread client, ThreadLocal<Long> errorCount);
