@@ -690,7 +690,7 @@ public class IoTDB implements IDatebase {
 			startTime = resultSet.getLong(1);
 		}
 		statement.close();
-
+		LOGGER.info("时间间隔：{}",endTime - startTime);
 		return endTime - startTime;
 	}
 
