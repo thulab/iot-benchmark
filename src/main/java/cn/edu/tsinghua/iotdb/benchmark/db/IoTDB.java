@@ -394,7 +394,6 @@ public class IoTDB implements IDatebase {
 				if(statement!=null)
 					statement.close();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -406,10 +405,16 @@ public class IoTDB implements IDatebase {
 			statement = connection.createStatement();
 			if (config.READ_FROM_FILE) {
 				String type = getTypeByField(sensor);
-				statement.execute(String.format(createStatementFromFileSQL, path + "." + sensor, type, mp.get(type)));
-			} else {
+				statement.execute(String.format(createStatementFromFileSQL,
+						path + "." + sensor, type, mp.get(type)));
+			} else if(config.IS_GEN_DATA){
+				statement.execute(String.format(createStatementFromFileSQL,
+						path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING));
+				writeSQLIntoFile(String.format(createStatementFromFileSQL,
+						path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING),config.GEN_DATA_FILE_PATH);
+			} else{
 				statement.execute(String.format(createStatementSQL,
-						Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, "GORILLA"));
+						Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, config.ENCODING));
 			}
 			statement.close();
 		} catch (SQLException e) {
@@ -450,12 +455,14 @@ public class IoTDB implements IDatebase {
 			statement = connection.createStatement();
 			if (config.READ_FROM_FILE) {
 				statement.execute(String.format(setStorageLevelSQL, device));
+			} else if(config.IS_GEN_DATA){
+				statement.execute(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME));
+				writeSQLIntoFile(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME),config.GEN_DATA_FILE_PATH);
 			} else {
 				statement.execute(String.format(setStorageLevelSQL, Constants.ROOT_SERIES_NAME + "." + device));
 			}
 			statement.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -494,6 +501,83 @@ public class IoTDB implements IDatebase {
 		}
 		builder.append(")");
 		return builder.toString();
+	}
+
+	private String createGenDataSQLStatment(int batch, int index, String device) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("insert into ");
+		String[] spl = device.trim().split(".");
+		builder.append(spl[0]);
+		for(int i = 1;i < spl.length - 1;i++){
+			builder.append(".");
+			builder.append(spl[i]);
+		}
+		builder.append("(timestamp");
+		builder.append(",").append(spl[spl.length - 1]);
+		builder.append(") values(");
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+		builder.append(currentTime);
+		try {
+			builder.append(",").append(getDataByTypeAndScope(currentTime, config));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		builder.append(")");
+		return builder.toString();
+	}
+
+	private String getDataByTypeAndScope(long currentTime, Config config) throws SQLException{
+		String data = null;
+		switch (config.TIMESERIES_TYPE){
+			case "Boolean":
+				data = getRandomBoolean(currentTime);
+				break;
+			case "Float":
+				data = getRandomFloat(currentTime, config.TIMESERIES_VALUE_SCOPE);
+				break;
+			case "Int32":
+				data = getRandomInt(currentTime, config.TIMESERIES_VALUE_SCOPE);
+				break;
+			case "Text":
+				data = getRandomText(currentTime, config.TIMESERIES_VALUE_SCOPE);
+				break;
+			default:
+				throw new SQLException("unsupported type " + config.TIMESERIES_TYPE);
+		}
+		return data;
+	}
+
+	private static String getRandomText(long currentTime, String text) {
+		String[] enu = text.split(",");
+		int max = enu.length - 1;
+		int min = 0;
+		Random random = new Random(currentTime);
+		int i = random.nextInt(max) % (max - min + 1) + min;
+		return enu[i];
+	}
+
+	private static String getRandomInt(long currentTime, String scope) {
+		String[] spl = scope.split(",");
+		int max = Integer.parseInt(spl[0]);
+		int min = Integer.parseInt(spl[1]);
+		Random random = new Random(currentTime);
+		int i = random.nextInt(max) % (max - min + 1) + min;
+		return String.valueOf(i);
+	}
+
+	private static String getRandomBoolean(long currentTime) {
+		Random random = new Random(currentTime);
+		boolean b = random.nextBoolean();
+		return String.valueOf(b);
+	}
+
+	private static String getRandomFloat(long currentTime, String scope) {
+		String[] spl = scope.split(",");
+		float min = Float.parseFloat(spl[0]);
+		float max = Float.parseFloat(spl[1]);
+		Random random = new Random(currentTime);
+		float f = random.nextFloat() * (max - min) + min;
+		return String.valueOf(f);
 	}
 
 	private String createSQLStatmentOfMulDevice(int loopIndex, int i, String device) {
@@ -761,6 +845,72 @@ public class IoTDB implements IDatebase {
 	public long count(String group,String device,String sensor){
 
 		return 0;
+	}
+
+	@Override
+	public void createSchemaOfDataGen() throws SQLException{
+		setStorgeGroup(config.STORAGE_GROUP_NAME);
+		createTimeseries(config.STORAGE_GROUP_NAME, config.TIMESERIES_NAME);
+	}
+
+	@Override
+	public void insertGenDataOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+		Statement statement;
+		int[] result;
+		int errorNum = 0;
+		try {
+			statement = connection.createStatement();
+			for (int i = 0; i < config.CACHE_NUM; i++) {
+				String sql = createGenDataSQLStatment(loopIndex, i, device);
+				writeSQLIntoFile(sql,config.GEN_DATA_FILE_PATH);
+				statement.addBatch(sql);
+			}
+			long startTime = System.currentTimeMillis();
+			result = statement.executeBatch();
+			statement.clearBatch();
+			statement.close();
+			long endTime = System.currentTimeMillis();
+			long costTime = endTime - startTime;
+			for (int i = 0; i < result.length; i++) {
+				if (result[i] == -1) {
+					errorNum++;
+				}
+			}
+			if (errorNum > 0) {
+				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+			} else {
+				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
+						(totalTime.get() + costTime) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+				totalTime.set(totalTime.get() + costTime);
+				errorCount.set(errorCount.get() + errorNum);
+			}
+
+			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+					config.REMARK);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void writeSQLIntoFile(String sql, String gen_data_file_path) {
+		BufferedWriter out = null;
+		try {
+			out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(gen_data_file_path, true)));
+			out.write(sql);
+			out.newLine();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/***/

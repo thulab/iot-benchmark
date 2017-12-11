@@ -217,4 +217,14 @@ public class InfluxDB implements IDatebase {
 
         return 0;
     }
+
+    @Override
+    public void createSchemaOfDataGen() throws SQLException {
+
+    }
+
+    @Override
+    public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+
+    }
 }

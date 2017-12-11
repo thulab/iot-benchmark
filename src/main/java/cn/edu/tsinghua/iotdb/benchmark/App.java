@@ -98,12 +98,100 @@ public class App {
 		} else {
 			if (config.IS_QUERY_TEST) {
 				queryTest(config);
-			} else {
+			} else if(config.IS_GEN_DATA) {
 				insertTest(config);
 			}
-
+				genData(config);
 		}
 	}// main
+
+	private static void genData(Config config) throws SQLException, ClassNotFoundException  {
+		//一次生成一个timeseries的数据
+		MySqlLog mysql = new MySqlLog();
+		mysql.initMysql(System.currentTimeMillis());
+		IDBFactory idbFactory = null;
+		idbFactory = getDBFactory(config);
+
+		IDatebase datebase;
+		long createSchemaStartTime;
+		long createSchemaEndTime;
+		float createSchemaTime;
+		try {
+			datebase = idbFactory.buildDB(mysql.getLabID());
+			datebase.init();
+			createSchemaStartTime = System.currentTimeMillis();
+			datebase.createSchemaOfDataGen();
+			datebase.close();
+			createSchemaEndTime = System.currentTimeMillis();
+			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000.0f;
+		} catch (SQLException e) {
+			LOGGER.error("Fail to init database becasue {}", e.getMessage());
+			return;
+		}
+
+		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
+		long totalErrorPoint ;
+
+			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+			ArrayList<Long> totalTimes = new ArrayList<>();
+			ExecutorService executorService = Executors
+					.newFixedThreadPool(config.CLIENT_NUMBER);
+			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()),
+						i, downLatch, totalTimes, totalInsertErrorNums));
+			}
+			executorService.shutdown();
+			try {
+				downLatch.await();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			long totalTime = 0;
+			for (long c : totalTimes) {
+				if (c > totalTime) {
+					totalTime = c;
+				}
+			}
+			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
+				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
+			}
+			switch (config.DB_SWITCH) {
+				case Constants.DB_IOT:
+					totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+					break;
+				case Constants.DB_INFLUX:
+					totalErrorPoint = getErrorNumInflux(config, datebase);
+					break;
+				default:
+					throw new SQLException("unsupported database " + config.DB_SWITCH);
+			}
+			LOGGER.info(
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP, config.MUL_DEV_BATCH);
+
+			LOGGER.info(
+					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+					totalPoints ,
+					totalTime / 1000.0f,
+					config.CLIENT_NUMBER,
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+
+			LOGGER.info("Total error num is {}, create schema cost {},s",
+					totalErrorPoint, createSchemaTime);
+
+
+			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
+					totalErrorPoint,createSchemaTime,config.REMARK);
+			mysql.closeMysql();
+
+
+
+
+	}
+
 
 	/**
 	 * 数据库插入测试

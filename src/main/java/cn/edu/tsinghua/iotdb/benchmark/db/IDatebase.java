@@ -18,4 +18,8 @@ public interface IDatebase {
 			QueryClientThread client, ThreadLocal<Long> errorCount);
 	void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 	long count(String group, String device, String sensor);
+
+	void createSchemaOfDataGen() throws SQLException;
+
+	void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 }

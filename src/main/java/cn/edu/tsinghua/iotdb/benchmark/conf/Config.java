@@ -50,7 +50,18 @@ public class Config {
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
-
+	/**是否运行在样例数据生成模式*/
+ 	public boolean IS_GEN_DATA = false;
+	/**一个样例数据的存储组名称*/
+ 	public String STORAGE_GROUP_NAME ;
+	/**一个样例数据的时序名称*/
+ 	public String TIMESERIES_NAME ;
+	/**一个时序的数据类型*/
+ 	public String TIMESERIES_TYPE ;
+	/**时序数据取值范围*/
+	public String TIMESERIES_VALUE_SCOPE ;
+	/**样例数据生成路径及文件名*/
+	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
 
 	/** 文件的名字 */
 	public String FILE_PATH ;
