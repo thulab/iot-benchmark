@@ -488,7 +488,6 @@ public class IoTDB implements IDatebase {
 		StringBuilder builder = new StringBuilder();
 		String path = getGroupDevicePath(device);
 		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
-
 		for (String sensor : config.SENSOR_CODES) {
 			builder.append(",").append(sensor);
 		}
@@ -506,7 +505,7 @@ public class IoTDB implements IDatebase {
 	private String createGenDataSQLStatment(int batch, int index, String device) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("insert into ");
-		String[] spl = device.trim().split(".");
+		String[] spl = device.split("\\.");
 		builder.append(spl[0]);
 		for(int i = 1;i < spl.length - 1;i++){
 			builder.append(".");
@@ -529,16 +528,16 @@ public class IoTDB implements IDatebase {
 	private String getDataByTypeAndScope(long currentTime, Config config) throws SQLException{
 		String data = null;
 		switch (config.TIMESERIES_TYPE){
-			case "Boolean":
+			case "BOOLEAN":
 				data = getRandomBoolean(currentTime);
 				break;
-			case "Float":
+			case "FLOAT":
 				data = getRandomFloat(currentTime, config.TIMESERIES_VALUE_SCOPE);
 				break;
-			case "Int32":
+			case "INT32":
 				data = getRandomInt(currentTime, config.TIMESERIES_VALUE_SCOPE);
 				break;
-			case "Text":
+			case "TEXT":
 				data = getRandomText(currentTime, config.TIMESERIES_VALUE_SCOPE);
 				break;
 			default:
@@ -549,17 +548,17 @@ public class IoTDB implements IDatebase {
 
 	private static String getRandomText(long currentTime, String text) {
 		String[] enu = text.split(",");
-		int max = enu.length - 1;
+		int max = enu.length;
 		int min = 0;
 		Random random = new Random(currentTime);
-		int i = random.nextInt(max) % (max - min + 1) + min;
-		return enu[i];
+		int i = (int)(random.nextFloat() * max);
+		return "\"" + enu[i] + "\"";
 	}
 
 	private static String getRandomInt(long currentTime, String scope) {
 		String[] spl = scope.split(",");
-		int max = Integer.parseInt(spl[0]);
-		int min = Integer.parseInt(spl[1]);
+		int min = Integer.parseInt(spl[0]);
+		int max = Integer.parseInt(spl[1]);
 		Random random = new Random(currentTime);
 		int i = random.nextInt(max) % (max - min + 1) + min;
 		return String.valueOf(i);

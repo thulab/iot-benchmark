@@ -88,7 +88,7 @@ public class ClientThread implements Runnable{
 			while(i < config.LOOP){
 				if(config.IS_GEN_DATA){
 					try {
-						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + config.TIMESERIES_NAME, i, totalTime, errorCount);
+						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + "." + config.TIMESERIES_NAME, i, totalTime, errorCount);
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}

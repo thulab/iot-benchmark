@@ -1,5 +1,4 @@
 IS_GEN_DATA=true
-GEN_DATA_FILE_PATH=/home/parallels/sampleData
 STORAGE_GROUP_NAME=root.ln
 TIMESERIES_NAME=wf01.wt01.status
 TIMESERIES_TYPE=BOOLEAN
