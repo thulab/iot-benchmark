@@ -21,6 +21,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IoTDB implements IDatebase {
@@ -346,7 +347,7 @@ public class IoTDB implements IDatebase {
 				List<Long> startTimes = new ArrayList<Long>();
 				List<Long> endTimes = new ArrayList<Long>();
 				startTimes.add(startTime);
-				endTimes.add(startTime+config.QUERY_GROUP_BY_SCOPE);
+				endTimes.add(startTime+config.QUERY_INTERVAL);
 				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
 						startTimes, endTimes, config.QUERY_LOWER_LIMIT,
 						sensorList);
@@ -369,18 +370,18 @@ public class IoTDB implements IDatebase {
 			statement.close();
 			endTimeStamp = System.currentTimeMillis();
 //			LOGGER.info("{}",builder.toString());
-			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
+			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
 					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0,
-					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM,
-					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
 					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM,
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
 					(endTimeStamp - startTimeStamp) / 1000.0f, config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
@@ -435,6 +436,7 @@ public class IoTDB implements IDatebase {
 				long endTime = System.currentTimeMillis();
 				LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
 						1000000.0f / (endTime - startTime));
+				mySql.saveResult("batch"+count/1000+"CreateTimeseriesSpeed", ""+1000000.0f / (endTime - startTime));
 				if (count >= timeseriesTotal) {
 					statement.close();
 				}
@@ -746,7 +748,7 @@ public class IoTDB implements IDatebase {
 			}
 		}
 		builder.delete(builder.lastIndexOf("AND"), builder.length());
-		builder.append(" GROUP BY(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
+		builder.append(" GROUP BY(").append(config.TIME_UNIT).append("ms, ").append(Constants.START_TIMESTAMP);
 		for(int i = 0;i<startTime.size();i++) {
 			String strstartTime = sdf.format(new Date(startTime.get(i)));
 			String strendTime = sdf.format(new Date(endTime.get(i)));

@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 import org.apache.log4j.helpers.ISO8601DateFormat;
 import org.influxdb.dto.BatchPoints;
@@ -317,8 +318,13 @@ public class InfluxDBV2 implements IDatebase {
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "last", sensorList);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
-				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM, startTime,
-						startTime + config.QUERY_GROUP_BY_SCOPE, config.QUERY_LOWER_LIMIT, sensorList);
+				List<Long> startTimes = new ArrayList<Long>();
+//				List<Long> endTimes = new ArrayList<Long>();
+//				startTimes.add(startTime);
+//				endTimes.add(startTime+config.QUERY_GROUP_BY_SCOPE);
+//				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
+//						startTimes, endTimes, config.QUERY_LOWER_LIMIT,
+//						sensorList);
 				break;
 			}
 			int line = 0;
