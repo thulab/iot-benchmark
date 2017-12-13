@@ -113,7 +113,6 @@ public class InfluxDBV2 implements IDatebase {
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
-			// TODO : get accurate insert number
 			errorCount.set(errorCount.get() + batchPoints.getPoints().size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
 					e.getMessage());
@@ -153,7 +152,6 @@ public class InfluxDBV2 implements IDatebase {
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
-			// TODO : get accurate insert number
 			errorCount.set(errorCount.get() + cons.size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", cons.size(), e.getMessage());
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, cons.size(),
@@ -254,7 +252,6 @@ public class InfluxDBV2 implements IDatebase {
 					try {
 						date = sdf.parse(str);
 					} catch (ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					startTime = date.getTime();
@@ -275,7 +272,6 @@ public class InfluxDBV2 implements IDatebase {
 					try {
 						date = sdf.parse(str);
 					} catch (ParseException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					endTime = date.getTime();

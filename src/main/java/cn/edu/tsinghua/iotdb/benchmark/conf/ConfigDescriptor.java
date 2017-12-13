@@ -106,7 +106,6 @@ public class ConfigDescriptor {
 				config.GEN_DATA_FILE_PATH = properties.getProperty("GEN_DATA_FILE_PATH", config.GEN_DATA_FILE_PATH);
 
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if (inputStream != null) {
@@ -124,7 +123,7 @@ public class ConfigDescriptor {
 
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+
 
 	}
 

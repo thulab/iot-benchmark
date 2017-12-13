@@ -101,7 +101,6 @@ public class InfluxDB implements IDatebase {
             totalTime.set(totalTime.get()+(endTime-startTime));
             LOGGER.info(response);
         } catch (IOException e) {
-            // TODO : get accurate insert number
             errorCount.set(errorCount.get() + cons.size());
             LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
                     cons.size(), e.getMessage());

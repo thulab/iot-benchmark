@@ -115,7 +115,6 @@ public class ClientThread implements Runnable{
 		try {
 			database.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		this.totalTimes.add(totalTime.get());
