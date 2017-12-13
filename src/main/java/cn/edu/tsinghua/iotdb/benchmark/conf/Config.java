@@ -42,8 +42,13 @@ public class Config {
 	public int GROUP_NUMBER = 1;
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
-	/**多设备批插入模式*/
+	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
+	/**是否为批插入乱序模式*/
+	public boolean IS_OVERFLOW = false;
+	/**批插入乱序比例*/
+	public double OVERFLOW_RATIO = 1.0;
+
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;
 	/**系统性能检测时间间隔-2秒*/
