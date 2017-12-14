@@ -106,6 +106,8 @@ public class ConfigDescriptor {
 				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);
 				config.TIMESERIES_VALUE_SCOPE = properties.getProperty("TIMESERIES_VALUE_SCOPE", config.TIMESERIES_VALUE_SCOPE);
 				config.GEN_DATA_FILE_PATH = properties.getProperty("GEN_DATA_FILE_PATH", config.GEN_DATA_FILE_PATH);
+				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
+				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
 
 			} catch (IOException e) {
 				e.printStackTrace();

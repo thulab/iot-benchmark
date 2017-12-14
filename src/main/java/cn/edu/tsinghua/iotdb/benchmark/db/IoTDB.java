@@ -189,6 +189,42 @@ public class IoTDB implements IDatebase {
 		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
+			int timeStep = config.CACHE_NUM / deviceCodes.size();
+			if(!config.IS_OVERFLOW) {
+				for (int i = 0; i < timeStep; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
+						statement.addBatch(sql);
+					}
+				}
+			}else{
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * timeStep);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+				Random random = new Random(loopIndex);
+				for(int i = 0; i < shuffleSize; i++){
+					int p = random.nextInt(shuffleSize);
+					int tmp = shuffleSequence[i];
+					shuffleSequence[i] = shuffleSequence[p];
+					shuffleSequence[p] = tmp;
+				}
+
+				for (int i = 0; i < shuffleSize; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, shuffleSequence[i], device);
+						statement.addBatch(sql);
+					}
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
+						statement.addBatch(sql);
+					}
+				}
+			}
+
 			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
 			for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
 				for (String device : deviceCodes) {
@@ -232,9 +268,32 @@ public class IoTDB implements IDatebase {
 		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
-			for (int i = 0; i < config.CACHE_NUM; i++) {
-				String sql = createSQLStatment(loopIndex, i, device);
-				statement.addBatch(sql);
+			if(!config.IS_OVERFLOW) {
+				for (int i = 0; i < config.CACHE_NUM; i++) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
+			}else{
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+				Random random = new Random(loopIndex);
+				for(int i = 0; i < shuffleSize; i++){
+					int p = random.nextInt(shuffleSize);
+					int tmp = shuffleSequence[i];
+					shuffleSequence[i] = shuffleSequence[p];
+					shuffleSequence[p] = tmp;
+				}
+				for (int i = 0; i < shuffleSize; i++) {
+					String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
+					statement.addBatch(sql);
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
 			}
 			long startTime = System.currentTimeMillis();
 			result = statement.executeBatch();
@@ -501,6 +560,7 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
+		LOGGER.debug("createSQLStatment:  {}", builder.toString());
 		return builder.toString();
 	}
 
@@ -524,6 +584,7 @@ public class IoTDB implements IDatebase {
 			e.printStackTrace();
 		}
 		builder.append(")");
+		LOGGER.debug("createGenDataSQLStatment:  {}", builder.toString());
 		return builder.toString();
 	}
 
@@ -597,6 +658,7 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
+		LOGGER.debug("createSQLStatmentOfMulDevice:  {}",builder.toString());
 		return builder.toString();
 	}
 
