@@ -504,6 +504,20 @@ public class MySqlLog {
 				}
 			} else {// 写入测试
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'IS_OVERFLOW'", "'" + config.IS_OVERFLOW + "'");
+				stat.addBatch(sql);
+				if(config.IS_OVERFLOW){
+					sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+							"'OVERFLOW_RATIO'", "'" + config.OVERFLOW_RATIO + "'");
+					stat.addBatch(sql);
+				}
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'MUL_DEV_BATCH'", "'" + config.MUL_DEV_BATCH + "'");
+				stat.addBatch(sql);
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'DEVICE_NUMBER'", "'" + config.DEVICE_NUMBER + "'");
+				stat.addBatch(sql);
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'GROUP_NUMBER'", "'" + config.GROUP_NUMBER + "'");
 				stat.addBatch(sql);
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
@@ -520,9 +534,6 @@ public class MySqlLog {
 				stat.addBatch(sql);
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'ENCODING'", "'" + config.ENCODING + "'");
-				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-						"'MUL_DEV_BATCH'", "'" + config.MUL_DEV_BATCH + "'");
 				stat.addBatch(sql);
 			}
 			stat.executeBatch();
