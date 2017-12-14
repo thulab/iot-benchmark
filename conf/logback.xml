@@ -92,13 +92,38 @@
 			<level>DEBUG</level>
 		</filter>
 	</appender>
-	
+
+	<appender name="RESULTINFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${BENCHMARK_HOME}/logs/log_result_info.csv</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${BENCHMARK_HOME}/logs/log-result-info-%d{yyyy-MM-dd}.%i.csv</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>200MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<append>true</append>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d %-5p %C:%L - %m %n</pattern>
+			<charset>utf-8</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+	</appender>
+
+	<category name="result">
+		<priority value="info"/>
+		<appender-ref ref="RESULTINFO"/>
+	</category>
 
 	<root level="INFO">
 		<appender-ref ref="FILEDEBUG" />
 		<appender-ref ref="FILEINFO" />
 		<appender-ref ref="FILEWARN" />
 		<appender-ref ref="FILEERROR" />
+		<appender-ref ref="RESULTINFO" />
 		<appender-ref ref="stdout" />
 	</root>
 </configuration>

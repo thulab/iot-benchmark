@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+	private static final Logger LOGGER_RESULT = LoggerFactory.getLogger("result");
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
@@ -217,9 +218,16 @@ public class App {
 					config.CLIENT_NUMBER,
 					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
-			LOGGER.info("Total error num is {}, create schema cost {},s",
+			LOGGER.info("Total error num is {}, create schema cost ,{},s",
 						totalErrorPoint, createSchemaTime);
 
+			LOGGER_RESULT.info("Loaded ,{}, points in ,{}, seconds, mean rate ,{}, points/s",
+					totalPoints,
+					totalTime / 1000.0f,
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+
+			LOGGER_RESULT.info("Total error point num is ,{}, create schema cost ,{}, seconds",
+					totalErrorPoint, createSchemaTime);
 			
 			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
 					totalErrorPoint,createSchemaTime,config.REMARK);
@@ -304,16 +312,48 @@ public class App {
 		long totalResultPoint = getSumOfList(totalPoints);
 
 		LOGGER.info(
-				"execute query ,{}, times in ,{},s with ,{}, result points by ,{}, workers (mean rate ,{}, points/s)",
+				"execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
 				config.CLIENT_NUMBER * config.LOOP, totalTime / 1000.0f, totalResultPoint, config.CLIENT_NUMBER,
 				(1000.0f * totalResultPoint) / ((float) totalTime));
 
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
+
+		LOGGER_RESULT.info("{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers, mean rate ,{}, query/s ,{}, points/s; Total error point number is ,{}",
+				getQueryName(config),
+				config.CLIENT_NUMBER * config.LOOP,
+				totalTime / 1000.0f,
+				totalResultPoint,
+				config.CLIENT_NUMBER,
+				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
+				(1000.0f * totalResultPoint) / ((float) totalTime),
+				totalErrorPoint);
+
 		mySql.saveQueryResult(System.currentTimeMillis(), (long) config.CLIENT_NUMBER * config.LOOP, totalResultPoint,
 				totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * (totalResultPoint) )/  totalTime,
 				totalErrorPoint,config.REMARK);
 		mySql.closeMysql();
+	}
+
+	private static String getQueryName(Config config) throws SQLException {
+		switch (config.QUERY_CHOICE){
+			case 1:
+				return "Exact point query";
+			case 2:
+				return "Fuzzy point query";
+			case 3:
+				return "Aggregation function query";
+			case 4:
+				return "Range query";
+			case 5:
+				return "Criteria query";
+			case 6:
+				return "Nearest point query";
+			case 7:
+				return "Group by query";
+			default:
+				throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
+		}
 	}
 
 	/** 计算list中所有元素的和 */
