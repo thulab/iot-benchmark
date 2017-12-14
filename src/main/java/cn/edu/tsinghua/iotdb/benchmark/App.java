@@ -221,13 +221,12 @@ public class App {
 			LOGGER.info("Total error num is {}, create schema cost ,{},s",
 						totalErrorPoint, createSchemaTime);
 
-			LOGGER_RESULT.info("Loaded ,{}, points in ,{}, seconds, mean rate ,{}, points/s",
+			LOGGER_RESULT.info("Loaded ,{}, points in ,{}, seconds, mean rate ,{}, points/s; Total error point num is ,{}, create schema cost ,{}, seconds",
 					totalPoints,
 					totalTime / 1000.0f,
-					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
-
-			LOGGER_RESULT.info("Total error point num is ,{}, create schema cost ,{}, seconds",
-					totalErrorPoint, createSchemaTime);
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
+					totalErrorPoint,
+					createSchemaTime);
 			
 			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
 					totalErrorPoint,createSchemaTime,config.REMARK);
