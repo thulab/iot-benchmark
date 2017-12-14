@@ -318,13 +318,9 @@ public class InfluxDBV2 implements IDatebase {
 				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "last", sensorList);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
-				List<Long> startTimes = new ArrayList<Long>();
-//				List<Long> endTimes = new ArrayList<Long>();
-//				startTimes.add(startTime);
-//				endTimes.add(startTime+config.QUERY_GROUP_BY_SCOPE);
-//				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
-//						startTimes, endTimes, config.QUERY_LOWER_LIMIT,
-//						sensorList);
+				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
+						startTime, startTime+config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT,
+						sensorList);
 				break;
 			}
 			int line = 0;
@@ -332,7 +328,7 @@ public class InfluxDBV2 implements IDatebase {
 			startTimeStamp = System.currentTimeMillis();
 			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
 			for (Result result : results.getResults()) {
-				LOGGER.info(result.toString());
+				//LOGGER.info(result.toString());
 				List<Series> series = result.getSeries();
 				if (series == null) {
 					break;
@@ -543,7 +539,7 @@ public class InfluxDBV2 implements IDatebase {
 		for (int i = 0; i < sensorList.size(); i++) {
 			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
 		}
-		builder.append(" GROUP BY time(").append(config.QUERY_INTERVAL).append("ms)");
+		builder.append(" GROUP BY time(").append(config.TIME_UNIT).append("ms)");
 		return builder.toString();
 	}
     public void flush(){

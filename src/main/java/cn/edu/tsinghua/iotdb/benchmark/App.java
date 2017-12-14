@@ -111,6 +111,8 @@ public class App {
 		//一次生成一个timeseries的数据
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
+		mysql.saveTestModel(config.TIMESERIES_TYPE, config.ENCODING);
+		mysql.savaTestConfig();
 		IDBFactory idbFactory = null;
 		idbFactory = getDBFactory(config);
 
@@ -186,10 +188,11 @@ public class App {
 
 
 			//加入新版的mysql表中
+			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
+			mysql.saveResult("totalPoints", ""+totalPoints);
+			mysql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
+			mysql.saveResult("totalErrorPoint", ""+totalErrorPoint);
 			mysql.closeMysql();
-
-
-
 
 	}
 
@@ -204,7 +207,7 @@ public class App {
 			ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
-		mysql.saveTestModel();
+		mysql.saveTestModel("Double", config.ENCODING);
 		mysql.savaTestConfig();
 		
 		IDBFactory idbFactory = null;
@@ -378,7 +381,7 @@ public class App {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
 		}
-		mySql.saveTestModel();
+		mySql.saveTestModel("Double", config.ENCODING);
 		mySql.savaTestConfig();
 
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);

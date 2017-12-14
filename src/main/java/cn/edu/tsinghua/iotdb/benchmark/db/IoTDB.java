@@ -837,6 +837,12 @@ public class IoTDB implements IDatebase {
 					config.CACHE_NUM);
 			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: data ,{}, wal ,{}, metadata ,{},KB"
 					, pointByteSize, config.ENCODING, dataSize, walSize, metadataSize);
+			
+			mySql.saveResult("AverageSizeOfDataPoint", ""+pointByteSize );
+			mySql.saveResult("DirSize_data", ""+dataSize );
+			mySql.saveResult("DirSize_wal", ""+walSize );
+			mySql.saveResult("DirSize_metadata", ""+metadataSize );
+			
 		} else {
 			LOGGER.info("Can not find data directory!");
 		}
