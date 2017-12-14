@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-	private static final Logger LOGGER_RESULT = LoggerFactory.getLogger("result");
+	private static final Logger LOGGER_RESULT = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 

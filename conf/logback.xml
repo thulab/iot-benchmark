@@ -113,17 +113,16 @@
 		</filter>
 	</appender>
 
-	<category name="result">
-		<priority value="info"/>
+
+	<logger name="cn.edu.tsinghua.iotdb.benchmark.App" level="INFO" additivity="false">
 		<appender-ref ref="RESULTINFO"/>
-	</category>
+	</logger>
 
 	<root level="INFO">
 		<appender-ref ref="FILEDEBUG" />
 		<appender-ref ref="FILEINFO" />
 		<appender-ref ref="FILEWARN" />
 		<appender-ref ref="FILEERROR" />
-		<appender-ref ref="RESULTINFO" />
 		<appender-ref ref="stdout" />
 	</root>
 </configuration>
