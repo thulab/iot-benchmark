@@ -285,7 +285,7 @@ public class MySqlLog {
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			LOGGER.error("{}将结果信息写入mysql失败，because ：{}", sql, e.getMessage());
+			LOGGER.error("{}InfluxDBDataModel写入mysql失败，because ：{}", sql, e.getMessage());
 			e.printStackTrace();
 		} finally {
 			if (stat != null) {
@@ -364,7 +364,7 @@ public class MySqlLog {
 		if (config.IS_GEN_DATA) {
 			switch (config.DB_SWITCH) {
 			case Constants.DB_IOT:
-				this.saveIoTDBDataModel(config.TIMESERIES_NAME, config.STORAGE_GROUP_NAME, type,encoding);
+				this.saveIoTDBDataModel(config.TIMESERIES_NAME, config.STORAGE_GROUP_NAME+"."+config.TIMESERIES_NAME, type,encoding);
 				break;
 			case Constants.DB_INFLUX:
 				break;
@@ -386,8 +386,7 @@ public class MySqlLog {
 			groupId = 0;
 			for (String d : config.DEVICE_CODES) {
 				for (String s : config.SENSOR_CODES) {
-					this.saveInfluxDBDataModel("group_" + groupId, "'"
-							+ "device=" + d + "'", "'" + s + "'", type);
+					this.saveInfluxDBDataModel("group_" + groupId, "device=" + d, s, type);
 				}
 				i++;
 				if (i % config.GROUP_NUMBER == 0) {
@@ -418,6 +417,37 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
+			if (config.IS_GEN_DATA) {
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'MODE'", "'GEN_DATA_MODE'");
+				stat.addBatch(sql);
+			} else if(config.IS_QUERY_TEST) {
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'MODE'", "'QUERY_TEST_MODE'");
+				stat.addBatch(sql);
+			} else {
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'MODE'", "'INSERT_TEST_MODE'");
+				stat.addBatch(sql);
+			}
+			switch (config.DB_SWITCH) {
+			case Constants.DB_IOT:
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'ServerIP'", "'" + config.host + "'");
+				stat.addBatch(sql);
+				break;
+			case Constants.DB_INFLUX:
+				String influxHost = config.INFLUX_URL.substring(config.INFLUX_URL.lastIndexOf('/')+1, config.INFLUX_URL.lastIndexOf(':'));
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'ServerIP'", "'" + config.host + "'");
+				stat.addBatch(sql);
+				break;
+			default:
+				throw new SQLException("unsupported database " + config.DB_SWITCH);
+			}
+			sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+					"'CLIENT'", "'" + localName + "'");
+			stat.addBatch(sql);
 			sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 					"'DB_SWITCH'", "'" + config.DB_SWITCH + "'");
 			stat.addBatch(sql);
@@ -532,9 +562,11 @@ public class MySqlLog {
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'POINT_STEP'", "'" + config.POINT_STEP + "'");
 				stat.addBatch(sql);
-				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-						"'ENCODING'", "'" + config.ENCODING + "'");
-				stat.addBatch(sql);
+				if(config.DB_SWITCH.equals(Constants.DB_IOT)) {
+					sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+							"'ENCODING'", "'" + config.ENCODING + "'");
+					stat.addBatch(sql);
+				}	
 			}
 			stat.executeBatch();
 		} catch (SQLException e) {
