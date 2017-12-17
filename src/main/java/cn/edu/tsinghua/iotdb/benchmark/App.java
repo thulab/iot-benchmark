@@ -316,8 +316,13 @@ public class App {
 			LOGGER.info("Total error num is {}, create schema cost ,{},s",
 						totalErrorPoint, createSchemaTime);
 
+			LOGGER_RESULT.error(
+					"Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},config.IS_OVERFLOW=,{}",
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
 
-			LOGGER_RESULT.info("Loaded ,{}, points in ,{}, seconds, mean rate ,{}, points/s; Total error point num is ,{}, create schema cost ,{}, seconds",
+			LOGGER_RESULT.error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds",
 					totalPoints,
 					totalTime / 1000.0f,
 					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
@@ -415,7 +420,8 @@ public class App {
 		long totalResultPoint = getSumOfList(totalPoints);
 
 		LOGGER.info(
-				"execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
+				"{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
+				getQueryName(config),
 				config.CLIENT_NUMBER * config.LOOP, totalTime / 1000.0f, totalResultPoint, config.CLIENT_NUMBER,
 				(1000.0f * totalResultPoint) / ((float) totalTime));
 
@@ -423,7 +429,7 @@ public class App {
 		LOGGER.info("total error num is {}", totalErrorPoint);
 
 
-		LOGGER_RESULT.info("{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers, mean rate ,{}, query/s ,{}, points/s; Total error point number is ,{}",
+		LOGGER_RESULT.error("{}: execute,{},query in,{},seconds, get,{},result points with,{},workers, mean rate,{},query/s,{},points/s; Total error point number is,{}",
 				getQueryName(config),
 				config.CLIENT_NUMBER * config.LOOP,
 				totalTime / 1000.0f,
