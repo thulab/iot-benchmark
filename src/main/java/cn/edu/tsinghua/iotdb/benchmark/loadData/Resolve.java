@@ -30,13 +30,11 @@ public class Resolve implements Runnable{
             reader = null;
 			reader = new BufferedReader(new FileReader(file));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	private static String handleFieldValue(String str) {
-		// TODO Auto-generated method stub
 		if(str.endsWith("i")){
 			return str.substring(0,str.length()-1);		
 		}
@@ -58,7 +56,6 @@ public class Resolve implements Runnable{
 		try {
 			super.finalize();
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -74,7 +71,6 @@ public class Resolve implements Runnable{
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		while(true){
 			
 			try {
@@ -127,7 +123,6 @@ public class Resolve implements Runnable{
 	}//run
 	
 	private static Number string2num(String str) {
-		// TODO Auto-generated method stub
 		if(str.endsWith("i")){	
 			return Long.parseLong(str.substring(0,str.length()-1));
 		}

@@ -199,18 +199,18 @@ Usually a single test is meaningless unless it is compared with other test resul
 ### Configure
 
 Configure 'routine'
-Each line of this file should be a parameter each test process will change(otherwise it becomes replication test). For example, the routine is:
+Each line of this file should be the parameters each test process will change(otherwise it becomes replication test). For example, the 'routine' file is:
 
 ```
-LOOP=10
-LOOP=20
-LOOP=50
+LOOP=10 DEVICE_NUMBER=100 TEST
+LOOP=20 DEVICE_NUMBER=50 TEST
+LOOP=50 DEVICE_NUMBER=20 TEST
 ```
 
 Then it will serially execute 3 test process with LOOP parameter are 10, 20 and 50, respectively.
 
 > NOTE:
-Each line should contain one and only one parameter with format like DEVICE_NUMBER=10, space is not allowed. If you change different parameters, the changed parameters will remain in next tests.
+You can change multiple parameters in each test with format like 'LOOP=20 DEVICE_NUMBER=10 TEST', unnecessary space is not allowed. The key word 'TEST' means a new test begins. If you change different parameters, the changed parameters will remain in next tests.
 
 ### Start 
 
@@ -237,6 +237,90 @@ In this case, if you want to know what is going on, you can check the log inform
 > cd ./logs
 > tail -f log_info.log
 ```
+
+## Sample Data Generation
+
+If you want to generate and insert customized sample timeseries data into IoTDB(we may support other database later). And write the corresponding insertion SQL into a file at the same time. Please follow instructions of this section. We will show you an example.
+
+Suppose you want generate a sample dataset as following:
+
+```
++-------------------------------+-----------+-----------+---------------+---------------+
+|          timeseries           |    type   |   encode  |     scope     | storage group | 
++-------------------------------+-----------+-----------+---------------+---------------+
+|    root.ln.wf01.wt01.status   |  BOOLEAN  |   PLAIN   |   true,false  |    root.ln    | 
++-------------------------------+-----------+-----------+---------------+---------------+
+| root.ln.wf01.wt01.temperature |   INT32   |    RLE    |     13,16     |    root.ln    |    
++-------------------------------+-----------+-----------+---------------+---------------+
+|     root.ln.wf01.wt01.time    |   FLOAT   |    RLE    | 5600.0,6200.0 |    root.ln    | 
++-------------------------------+-----------+-----------+---------------+---------------+
+|   root.ln.wf02.wt02.hardware  |   TEXT    |   PLAIN   |     v1,v2     |    root.ln    |  
++-------------------------------+-----------+-----------+---------------+---------------+
+```
+
+data point frequency: 1 minite 
+time range of data point: 2017/11/1T00:00:00 - 2017/11/7T24:00:00
+
+### Configure
+
+Configure 'config.properties'
+The other writing related parameters are the same way in previous cases, the parameters related are:
+
+```
+HOST=127.0.0.1
+PORT=6667
+DB_SWITCH=IoTDB
+CLIENT_NUMBER=1
+CACHE_NUM=10
+LOOP=1008
+POINT_STEP=60000
+IS_GEN_DATA=true
+GEN_DATA_FILE_PATH=/home/parallels/sampleData
+```
+
+Configure 'routine'
+For the case above, you need to configure the 'routine' file as:
+
+```
+IS_GEN_DATA=true
+STORAGE_GROUP_NAME=root.ln
+TIMESERIES_NAME=wf01.wt01.status
+TIMESERIES_TYPE=BOOLEAN
+ENCODING=PLAIN
+TIMESERIES_VALUE_SCOPE=true,false
+TEST
+TIMESERIES_NAME=wf01.wt01.temperature
+TIMESERIES_TYPE=INT32
+ENCODING=RLE
+TIMESERIES_VALUE_SCOPE=13,16
+TEST
+TIMESERIES_NAME=wf01.wt01.time
+TIMESERIES_TYPE=FLOAT
+ENCODING=RLE
+TIMESERIES_VALUE_SCOPE=5600.0,6200.0
+TEST
+TIMESERIES_NAME=wf02.wt02.hardware
+TIMESERIES_TYPE=TEXT
+ENCODING=PLAIN
+TIMESERIES_VALUE_SCOPE=v1,v2
+```
+
+> NOTE:
+If 'TIMESERIES_TYPE' is 'BOOLEAN', the parameter 'TIMESERIES_VALUE_SCOPE' is optional. 
+If 'TIMESERIES_TYPE' is 'INT32' or 'FLOAT', the parameter 'TIMESERIES_VALUE_SCOPE' can contain only one range. 
+If 'TIMESERIES_TYPE' is 'TEXT', the parameter 'TIMESERIES_VALUE_SCOPE' can contain several different enum values devided by ',' like 'TIMESERIES_VALUE_SCOPE=apple,egg,orange,cake'. 
+
+### Start 
+
+After configuring the file 'routine', you can launch the sample data generation task by startup script:
+
+```
+> ./rep-benchmark.sh
+```
+
+Then the sample timeseries will be generated one by one in order of the sequence in routine. 
+
+
 
 ## MySQL Integration
 

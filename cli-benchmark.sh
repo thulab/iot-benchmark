@@ -19,6 +19,7 @@ LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
 sed -i 's/SERVER_MODE *= *true/SERVER_MODE=false/g' $BENCHMARK_HOME/conf/config.properties
 DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 QUERY_MODE=$(grep "IS_QUERY_TEST" $BENCHMARK_HOME/conf/config.properties)
+GEN_DATA_MODE=$(grep "IS_GEN_DATA" $BENCHMARK_HOME/conf/config.properties)
 echo Testing ${DB#*=} ...
 
 mvn clean package -Dmaven.test.skip=true
@@ -43,8 +44,10 @@ date
 cd bin
 sh startup.sh -cf ../conf/config.properties
 wait
+
 #stop server system information recording
 ssh -p 1309 $SERVER_HOST "touch $LOG_STOP_FLAG_PATH/log_stop_flag"
+
 echo '------Client Test Complete Time------'
 date
 

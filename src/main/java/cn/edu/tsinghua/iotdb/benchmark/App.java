@@ -21,6 +21,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
@@ -64,36 +65,135 @@ public class App {
 						break;
 					}
 				}
+
+				MySqlLog mysql = new MySqlLog();
+				mysql.initMysql(System.currentTimeMillis());
+				IDBFactory idbFactory = null;
+				idbFactory = getDBFactory(config);
+
+				IDatebase datebase;
+
+				try {
+					datebase = idbFactory.buildDB(mysql.getLabID());
+					datebase.init();
+					LOGGER.info("Before flush:");
+					datebase.getUnitPointStorageSize();
+					datebase.flush();
+					LOGGER.info("After flush:");
+					datebase.getUnitPointStorageSize();
+					datebase.close();
+
+				} catch (SQLException e) {
+					LOGGER.error("Fail to init database becasue {}", e.getMessage());
+					return;
+				}
+
+
 				mySql.closeMysql();
-				/*
-				 * //将来需要加入InfluxDB的数据点耗存统计以下代码需要重构，现在只考虑IoTDB,参数需要与客户端一致
-				 * if(config.DB_SWITCH.equals(Constants.DB_IOT)) { IDBFactory idbFactory = new
-				 * IoTDBFactory(); IDatebase datebase; datebase = idbFactory.buildDB(); File
-				 * dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data"); if (dataDir.exists()
-				 * && dataDir.isDirectory()) { long walSize =
-				 * getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ; datebase.init();
-				 * datebase.flush(); datebase.close(); long walSize2 =
-				 * getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ; float
-				 * pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
-				 * 1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
-				 * config.CACHE_NUM); LOGGER.
-				 * info("Average size of data point ,{},Byte ,ENCODING = ,{}, wal size before and after flush, {},{},KB"
-				 * , pointByteSize, config.ENCODING, walSize, walSize2); } else {
-				 * LOGGER.info("Can not find data file!"); } }
-				 */
+
+
+
 
 			} else {
 				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 			}
 		} else {
-			if (config.IS_QUERY_TEST) {
+			if (config.IS_GEN_DATA) {
+				genData(config);
+			} else if(config.IS_QUERY_TEST) {
 				queryTest(config);
 			} else {
 				insertTest(config);
 			}
-
-		} // else--SERVER_MODE
+		}
 	}// main
+
+	private static void genData(Config config) throws SQLException, ClassNotFoundException  {
+		//一次生成一个timeseries的数据
+		MySqlLog mysql = new MySqlLog();
+		mysql.initMysql(System.currentTimeMillis());
+		IDBFactory idbFactory = null;
+		idbFactory = getDBFactory(config);
+
+		IDatebase datebase;
+		long createSchemaStartTime;
+		long createSchemaEndTime;
+		float createSchemaTime;
+		try {
+			datebase = idbFactory.buildDB(mysql.getLabID());
+			datebase.init();
+			createSchemaStartTime = System.currentTimeMillis();
+			datebase.createSchemaOfDataGen();
+			datebase.close();
+			createSchemaEndTime = System.currentTimeMillis();
+			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000.0f;
+		} catch (SQLException e) {
+			LOGGER.error("Fail to init database becasue {}", e.getMessage());
+			return;
+		}
+
+		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
+		long totalErrorPoint ;
+
+			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+			ArrayList<Long> totalTimes = new ArrayList<>();
+			ExecutorService executorService = Executors
+					.newFixedThreadPool(config.CLIENT_NUMBER);
+			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()),
+						i, downLatch, totalTimes, totalInsertErrorNums));
+			}
+			executorService.shutdown();
+			try {
+				downLatch.await();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			long totalTime = 0;
+			for (long c : totalTimes) {
+				if (c > totalTime) {
+					totalTime = c;
+				}
+			}
+			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
+				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
+			}
+			switch (config.DB_SWITCH) {
+				case Constants.DB_IOT:
+					totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+					break;
+				case Constants.DB_INFLUX:
+					totalErrorPoint = getErrorNumInflux(config, datebase);
+					break;
+				default:
+					throw new SQLException("unsupported database " + config.DB_SWITCH);
+			}
+			LOGGER.info(
+					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP, config.MUL_DEV_BATCH);
+
+			LOGGER.info(
+					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+					totalPoints ,
+					totalTime / 1000.0f,
+					config.CLIENT_NUMBER,
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+
+			LOGGER.info("Total error num is {}, create schema cost {},s",
+					totalErrorPoint, createSchemaTime);
+
+
+			//加入新版的mysql表中
+			mysql.closeMysql();
+
+
+
+
+	}
+
 
 	/**
 	 * 数据库插入测试
@@ -105,17 +205,12 @@ public class App {
 			ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
+		mysql.saveTestModel();
+		mysql.savaTestConfig();
+		
 		IDBFactory idbFactory = null;
-		switch (config.DB_SWITCH) {
-		case Constants.DB_IOT:
-			idbFactory = new IoTDBFactory();
-			break;
-		case Constants.DB_INFLUX:
-			idbFactory = new InfluxDBFactory();
-			break;
-		default:
-			throw new SQLException("unsupported database " + config.DB_SWITCH);
-		}
+		idbFactory = getDBFactory(config);
+
 		IDatebase datebase;
 		long createSchemaStartTime;
 		long createSchemaEndTime;
@@ -221,6 +316,7 @@ public class App {
 			LOGGER.info("Total error num is {}, create schema cost ,{},s",
 						totalErrorPoint, createSchemaTime);
 
+
 			LOGGER_RESULT.info("Loaded ,{}, points in ,{}, seconds, mean rate ,{}, points/s; Total error point num is ,{}, create schema cost ,{}, seconds",
 					totalPoints,
 					totalTime / 1000.0f,
@@ -228,13 +324,27 @@ public class App {
 					totalErrorPoint,
 					createSchemaTime);
 			
-			mysql.saveInsertResult(totalPoints, totalTime / 1000.0f, config.CLIENT_NUMBER,
-					totalErrorPoint,createSchemaTime,config.REMARK);
+
+			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
+			mysql.saveResult("totalPoints", ""+totalPoints);
+			mysql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
+			mysql.saveResult("totalErrorPoint", ""+totalErrorPoint);
 			mysql.closeMysql();
 
 		}// else--
 		
 		
+	}
+
+	private static IDBFactory getDBFactory(Config config) throws SQLException{
+		switch (config.DB_SWITCH) {
+			case Constants.DB_IOT:
+				return new IoTDBFactory();
+			case Constants.DB_INFLUX:
+				return new InfluxDBFactory();
+			default:
+				throw new SQLException("unsupported database " + config.DB_SWITCH);
+		}
 	}
 
 	private static long getErrorNumInflux(Config config, IDatebase database) {
@@ -266,26 +376,20 @@ public class App {
 	 */
 	private static void queryTest(Config config) throws SQLException, ClassNotFoundException {
 		IDBFactory idbFactory = null;
-		switch (config.DB_SWITCH) {
-		case Constants.DB_IOT:
-			idbFactory = new IoTDBFactory();
-			break;
-		case Constants.DB_INFLUX:
-			idbFactory = new InfluxDBFactory();
-			break;
-		default:
-			throw new SQLException("unsupported database " + config.DB_SWITCH);
-		}
+		idbFactory = getDBFactory(config);
+
 		IDatebase datebase = null;
 		MySqlLog mySql = new MySqlLog();
 		try {
 			mySql.initMysql(System.currentTimeMillis());
 			datebase = idbFactory.buildDB(mySql.getLabID());
-			datebase.init();	
+			datebase.init();
 		} catch (SQLException e) {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
 		}
+		mySql.saveTestModel();
+		mySql.savaTestConfig();
 
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 		ArrayList<Long> totalTimes = new ArrayList<>();
@@ -318,6 +422,7 @@ public class App {
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
 
+
 		LOGGER_RESULT.info("{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers, mean rate ,{}, query/s ,{}, points/s; Total error point number is ,{}",
 				getQueryName(config),
 				config.CLIENT_NUMBER * config.LOOP,
@@ -328,9 +433,14 @@ public class App {
 				(1000.0f * totalResultPoint) / ((float) totalTime),
 				totalErrorPoint);
 
-		mySql.saveQueryResult(System.currentTimeMillis(), (long) config.CLIENT_NUMBER * config.LOOP, totalResultPoint,
-				totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * (totalResultPoint) )/  totalTime,
-				totalErrorPoint,config.REMARK);
+
+		
+		mySql.saveResult("queryNumber", ""+config.CLIENT_NUMBER * config.LOOP);
+		mySql.saveResult("totalPoint", ""+totalResultPoint);
+		mySql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
+		mySql.saveResult("resultPointPerSecond(points/s)", ""+(1000.0f * (totalResultPoint) )/  totalTime);
+		mySql.saveResult("totalErrorQuery", ""+totalErrorPoint);
+
 		mySql.closeMysql();
 	}
 
@@ -364,37 +474,5 @@ public class App {
 		return total;
 	}
 
-	/***/
-	private static long getDirTotalSize(String dir) {
-		long totalsize = 0;
-
-		Process pro = null;
-		Runtime r = Runtime.getRuntime();
-		try {
-			// 获得文件夹大小，单位 Byte
-			String command = "du " + dir;
-			pro = r.exec(command);
-			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-			String line = null;
-			String lastLine = null;
-			while (true) {
-				lastLine = line;
-				if ((line = in.readLine()) == null) {
-					System.out.println(lastLine);
-					break;
-				}
-			}
-			String[] temp = lastLine.split("\\s+");
-			totalsize = Long.parseLong(temp[0]);
-
-			in.close();
-			pro.destroy();
-		} catch (IOException e) {
-			StringWriter sw = new StringWriter();
-			e.printStackTrace(new PrintWriter(sw));
-		}
-
-		return totalsize;
-	}
 
 }

@@ -21,12 +21,12 @@ public class LoadRatio {
 		super();
 		if (writeRatio < 0 || randomInsertRatio < 0 || simpleQueryRatio < 0 || aggrQueryRatio < 0 || updateRatio < 0) {
 			LOGGER.error("some ratio cannot less than 0, {}, {}, {}, {} ,{}",
-					writeRatio, randomInsertRatio, simpleQueryRatio, aggrQueryRatio, updateRatio);// TODO
+					writeRatio, randomInsertRatio, simpleQueryRatio, aggrQueryRatio, updateRatio);
 			System.exit(0);
 		}
 		sumRatio = writeRatio + randomInsertRatio + simpleQueryRatio + aggrQueryRatio + updateRatio;
 		if (sumRatio < 0) {
-			LOGGER.error("sum ratio cannot less than 0, {}", sumRatio);// TODO
+			LOGGER.error("sum ratio cannot less than 0, {}", sumRatio);
 			System.exit(0);
 		}
 		this.writeEndRatio = writeRatio / sumRatio;

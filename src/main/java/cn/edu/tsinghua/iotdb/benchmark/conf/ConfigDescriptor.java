@@ -53,7 +53,7 @@ public class ConfigDescriptor {
 				config.port = properties.getProperty("PORT", "no port");
 				config.DEVICE_NUMBER = Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.DEVICE_NUMBER+""));
 				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
-				
+
 				config.POINT_STEP = Long.parseLong(properties.getProperty("POINT_STEP", config.POINT_STEP+""));
 				config.CACHE_NUM = Integer.parseInt(properties.getProperty("CACHE_NUM", config.CACHE_NUM+""));
 				config.LOOP = Long.parseLong(properties.getProperty("LOOP", config.LOOP+""));
@@ -78,29 +78,38 @@ public class ConfigDescriptor {
 
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
-				
+
 				config.IS_QUERY_TEST = Boolean.parseBoolean(properties.getProperty("IS_QUERY_TEST", config.IS_QUERY_TEST+""));
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
 				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
-				config.QUERY_DIVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DIVICE_NUM", config.QUERY_DIVICE_NUM+""));
+				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));
 				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
 				config.QUERY_INTERVAL = Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.QUERY_INTERVAL+""));
 				config.QUERY_LOWER_LIMIT = Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.QUERY_LOWER_LIMIT+""));
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
-				config.QUERY_GROUP_BY_SCOPE = Long.parseLong(properties.getProperty("QUERY_GROUP_BY_SCOPE", config.QUERY_GROUP_BY_SCOPE+""));
-				
+
+
 				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
 						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");
 				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
-				
+				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
+				config.VERSION = properties.getProperty("VERSION", "");
+
 				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
+				config.IS_GEN_DATA = Boolean.parseBoolean(properties.getProperty("IS_GEN_DATA", config.IS_GEN_DATA+""));
+				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
+				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);
+				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);
+				config.TIMESERIES_VALUE_SCOPE = properties.getProperty("TIMESERIES_VALUE_SCOPE", config.TIMESERIES_VALUE_SCOPE);
+				config.GEN_DATA_FILE_PATH = properties.getProperty("GEN_DATA_FILE_PATH", config.GEN_DATA_FILE_PATH);
+				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
+				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
 
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			if (inputStream != null) {
@@ -118,7 +127,7 @@ public class ConfigDescriptor {
 
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+
 
 	}
 
