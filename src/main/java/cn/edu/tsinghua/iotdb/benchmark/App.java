@@ -205,7 +205,7 @@ public class App {
 			ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
-		mysql.saveTestModel();
+		//mysql.saveTestModel();
 		mysql.savaTestConfig();
 		
 		IDBFactory idbFactory = null;
@@ -317,7 +317,7 @@ public class App {
 						totalErrorPoint, createSchemaTime);
 
 			LOGGER_RESULT.error(
-					"Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},config.IS_OVERFLOW=,{}",
+					"Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},IS_OVERFLOW=,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
 					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
@@ -393,7 +393,7 @@ public class App {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
 		}
-		mySql.saveTestModel();
+		//mySql.saveTestModel();
 		mySql.savaTestConfig();
 
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
