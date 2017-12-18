@@ -93,6 +93,7 @@ public class ConfigDescriptor {
 				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
 						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");
 				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
+				config.IS_SAVE_DATAMODEL = Boolean.parseBoolean(properties.getProperty("IS_SAVE_DATAMODEL", config.IS_SAVE_DATAMODEL+""));
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
