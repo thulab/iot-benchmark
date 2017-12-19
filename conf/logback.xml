@@ -94,9 +94,9 @@
 	</appender>
 
 	<appender name="RESULTINFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${BENCHMARK_HOME}/logs/log_result_info.csv</file>
+		<file>${BENCHMARK_HOME}/logs/log_result_info.txt</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${BENCHMARK_HOME}/logs/log-result-info-%d{yyyy-MM-dd}.%i.csv</fileNamePattern>
+			<fileNamePattern>${BENCHMARK_HOME}/logs/log-result-info-%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 				<maxFileSize>200MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>
