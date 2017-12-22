@@ -268,7 +268,7 @@ public class MySqlLog {
 		}
 	}
 
-	// 存储IOTDB实验模型
+	// 存储InfluxDB实验模型
 	public void saveInfluxDBDataModel(String measurement, String tag,
 			String field, String type) {
 		if (!config.IS_USE_MYSQL) {
