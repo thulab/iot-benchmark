@@ -106,7 +106,7 @@ public class InfluxDBV2 implements IDatebase {
 			startTime = System.currentTimeMillis();
 			influxDB.write(batchPoints);
 			endTime = System.currentTimeMillis();
-			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
+			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
 					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000.0),
 					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000);
