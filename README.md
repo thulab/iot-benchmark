@@ -13,7 +13,8 @@ IoTDB-benchmark's features are as following:
 
 1. Easy to use. IoTDB-benchmark is a tool combined multiple testing functions so users do not need to switch different tools. 
 2. Different writing test model: Load existing data from file; Generate real-time data continuously.
-3. Surpporting storing testing information and results for further query or analysis.
+3. Supporting storing testing information and results for further query or analysis.
+4. Integration with Jenkins to report test result automatically.
 
 # Prerequisites
 
