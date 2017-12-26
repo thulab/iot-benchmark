@@ -9,7 +9,7 @@ date
 
 HOST_NAME=liurui
 BUILD_PATH=/home/liurui/github
-LOG_PATH=/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark
+LOG_PATH=/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs
 
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
