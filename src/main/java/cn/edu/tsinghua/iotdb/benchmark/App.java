@@ -342,6 +342,7 @@ public class App {
 
 			HashMap<String,Float> lastPeriodResults = getLastPeriodResults(config);
 			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+			float lastRate = 1;
 			if (file.exists()) {
 				LOGGER_RESULT.error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds.",
 						lastPeriodResults.get("WriteTotalPoint"),
@@ -349,15 +350,17 @@ public class App {
 						lastPeriodResults.get("WriteMeanRate"),
 						lastPeriodResults.get("WriteErrorNum"),
 						lastPeriodResults.get("WriteSchemaCost"));
+				lastRate = lastPeriodResults.get("WriteMeanRate");
 			}
 
+			float thisRate = 1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime;
 			LOGGER_RESULT.error("This period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds. Mean rate change {} %.",
 					totalPoints,
 					totalTime / 1000.0f,
-					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
+					thisRate,
 					totalErrorPoint,
 					createSchemaTime,
-					(1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime - lastPeriodResults.get("WriteMeanRate")) / lastPeriodResults.get("WriteMeanRate") * 100
+					(thisRate - lastRate) / lastRate * 100
 			);
 
 
@@ -596,6 +599,7 @@ public class App {
 
 		HashMap<String,Float> lastPeriodResults = getLastPeriodResults(config);
 		File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+		float lastRate = 1;
 		if (file.exists()) {
 			LOGGER_RESULT.error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} .",
 					getQueryName(config),
@@ -606,18 +610,20 @@ public class App {
 					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"),
 					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryPointRate"),
 					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryErrorNum"));
+			lastRate = lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate");
 		}
 
+		float thisRate = 1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime;
 		LOGGER_RESULT.error("This period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} . Mean rate change {} %.",
 				getQueryName(config),
 				config.CLIENT_NUMBER * config.LOOP,
 				totalTime / 1000.0f,
 				totalResultPoint,
 				config.CLIENT_NUMBER,
-				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
+				thisRate,
 				(1000.0f * totalResultPoint) / ((float) totalTime),
 				totalErrorPoint,
-				(1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime - lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryRate")) / lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryRate") * 100
+				(thisRate - lastRate) / lastRate * 100
 		);
 
 		
