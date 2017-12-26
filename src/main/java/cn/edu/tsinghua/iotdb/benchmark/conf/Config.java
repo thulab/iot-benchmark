@@ -68,6 +68,8 @@ public class Config {
 	/**样例数据生成路径及文件名*/
 	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
 
+	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/每周性能测试/iotdb-benchmark/logs";
+
 	/** 文件的名字 */
 	public String FILE_PATH ;
 	/** 是否从文件读取数据*/

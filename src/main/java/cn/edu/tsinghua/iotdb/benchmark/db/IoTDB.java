@@ -894,6 +894,8 @@ public class IoTDB implements IDatebase {
 			long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
 			long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
 			long metadataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/metadata") ;
+			long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta") ;
+			long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow") ;
 			float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
 					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
 					config.CACHE_NUM);

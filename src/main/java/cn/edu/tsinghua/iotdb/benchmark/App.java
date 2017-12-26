@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -316,29 +317,46 @@ public class App {
 			LOGGER.info("Total error num is {}, create schema cost ,{},s",
 						totalErrorPoint, createSchemaTime);
 
-			/*LOGGER_RESULT.error(
+			/*
+			LOGGER_RESULT.error(
 					"Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},IS_OVERFLOW=,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);*/
+					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
+			*/
+
 			LOGGER_RESULT.error(
 					"Writing test parameters: GROUP_NUMBER={}, DEVICE_NUMBER={}, SENSOR_NUMBER={}, CACHE_NUM={}, POINT_STEP={}, LOOP={}, MUL_DEV_BATCH={}, IS_OVERFLOW={}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
 					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
 
-			/*LOGGER_RESULT.error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds",
-					totalPoints,
-					totalTime / 1000.0f,
-					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
-					totalErrorPoint,
-					createSchemaTime);*/
-			LOGGER_RESULT.error("Loaded {} points in {} seconds, mean rate {} points/s, total error point num is {}, create schema cost {} seconds.",
+			/*
+			LOGGER_RESULT.error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds",
 					totalPoints,
 					totalTime / 1000.0f,
 					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
 					totalErrorPoint,
 					createSchemaTime);
+			*/
+
+			HashMap<String,Float> lastPeriodResults = getLastPeriodResults(config);
+			LOGGER_RESULT.error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds.",
+					lastPeriodResults.get("WriteTotalPoint"),
+					lastPeriodResults.get("WriteTotalTime"),
+					lastPeriodResults.get("WriteMeanRate"),
+					lastPeriodResults.get("WriteErrorNum"),
+					lastPeriodResults.get("WriteSchemaCost"));
+
+			LOGGER_RESULT.error("This period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds. Mean rate change {} %.",
+					totalPoints,
+					totalTime / 1000.0f,
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
+					totalErrorPoint,
+					createSchemaTime,
+					(1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime - lastPeriodResults.get("WriteMeanRate")) / lastPeriodResults.get("WriteMeanRate") * 100
+			);
+
 
 			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
 			mysql.saveResult("totalPoints", ""+totalPoints);
@@ -349,6 +367,124 @@ public class App {
 		}// else--
 		
 		
+	}
+
+	private static HashMap<String,Float> getLastPeriodResults(Config config) {
+		File dir = new File(config.LAST_RESULT_PATH);
+		HashMap<String,Float> lastResults = new HashMap<>();
+		if (dir.exists() && dir.isDirectory()) {
+			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+			BufferedReader br = null;
+			try {
+				br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			String line = null;
+
+
+			try {
+				while ((line = br.readLine()) != null) {
+					String[] writeResult = line.split("\\s+");
+					if (writeResult[0].startsWith("This")) {
+						if (writeResult[2].startsWith("Load")) {
+							lastResults.put("WriteTotalPoint", Float.parseFloat(writeResult[3]));
+							lastResults.put("WriteTotalTime", Float.parseFloat(writeResult[6]));
+							lastResults.put("WriteMeanRate", Float.parseFloat(writeResult[10]));
+							lastResults.put("WriteErrorNum", Float.parseFloat(writeResult[17]));
+							lastResults.put("WriteSchemaCost", Float.parseFloat(writeResult[22]));
+						} else if (writeResult[2].startsWith("Exa")) {
+							lastResults.put("ExaQueryNum", Float.parseFloat(writeResult[6]));
+							lastResults.put("ExaQueryTime", Float.parseFloat(writeResult[9]));
+							lastResults.put("ExaQueryResults", Float.parseFloat(writeResult[12]));
+							lastResults.put("ExaQueryWorkers", Float.parseFloat(writeResult[16]));
+							lastResults.put("ExaQueryRate", Float.parseFloat(writeResult[20]));
+							lastResults.put("ExaQueryPointRate", Float.parseFloat(writeResult[23]));
+							lastResults.put("ExaQueryErrorNum", Float.parseFloat(writeResult[31]));
+						} else if (writeResult[2].startsWith("Fuz")) {
+							lastResults.put("FuzQueryNum", Float.parseFloat(writeResult[6]));
+							lastResults.put("FuzQueryTime", Float.parseFloat(writeResult[9]));
+							lastResults.put("FuzQueryResults", Float.parseFloat(writeResult[12]));
+							lastResults.put("FuzQueryWorkers", Float.parseFloat(writeResult[16]));
+							lastResults.put("FuzQueryRate", Float.parseFloat(writeResult[20]));
+							lastResults.put("FuzQueryPointRate", Float.parseFloat(writeResult[23]));
+							lastResults.put("FuzQueryErrorNum", Float.parseFloat(writeResult[31]));
+						} else if (writeResult[2].startsWith("Agg")) {
+							lastResults.put("AggQueryNum", Float.parseFloat(writeResult[6]));
+							lastResults.put("AggQueryTime", Float.parseFloat(writeResult[9]));
+							lastResults.put("AggQueryResults", Float.parseFloat(writeResult[12]));
+							lastResults.put("AggQueryWorkers", Float.parseFloat(writeResult[16]));
+							lastResults.put("AggQueryRate", Float.parseFloat(writeResult[20]));
+							lastResults.put("AggQueryPointRate", Float.parseFloat(writeResult[23]));
+							lastResults.put("AggQueryErrorNum", Float.parseFloat(writeResult[31]));
+						} else if (writeResult[2].startsWith("Ran")) {
+							lastResults.put("RanQueryNum", Float.parseFloat(writeResult[5]));
+							lastResults.put("RanQueryTime", Float.parseFloat(writeResult[8]));
+							lastResults.put("RanQueryResults", Float.parseFloat(writeResult[1]));
+							lastResults.put("RanQueryWorkers", Float.parseFloat(writeResult[15]));
+							lastResults.put("RanQueryRate", Float.parseFloat(writeResult[19]));
+							lastResults.put("RanQueryPointRate", Float.parseFloat(writeResult[22]));
+							lastResults.put("RanQueryErrorNum", Float.parseFloat(writeResult[30]));
+						} else if (writeResult[2].startsWith("Cri")) {
+							lastResults.put("CriQueryNum", Float.parseFloat(writeResult[5]));
+							lastResults.put("CriQueryTime", Float.parseFloat(writeResult[8]));
+							lastResults.put("CriQueryResults", Float.parseFloat(writeResult[1]));
+							lastResults.put("CriQueryWorkers", Float.parseFloat(writeResult[15]));
+							lastResults.put("CriQueryRate", Float.parseFloat(writeResult[19]));
+							lastResults.put("CriQueryPointRate", Float.parseFloat(writeResult[22]));
+							lastResults.put("CriQueryErrorNum", Float.parseFloat(writeResult[30]));
+						} else if (writeResult[2].startsWith("Nea")) {
+							lastResults.put("NeaQueryNum", Float.parseFloat(writeResult[6]));
+							lastResults.put("NeaQueryTime", Float.parseFloat(writeResult[9]));
+							lastResults.put("NeaQueryResults", Float.parseFloat(writeResult[12]));
+							lastResults.put("NeaQueryWorkers", Float.parseFloat(writeResult[16]));
+							lastResults.put("NeaQueryRate", Float.parseFloat(writeResult[20]));
+							lastResults.put("NeaQueryPointRate", Float.parseFloat(writeResult[23]));
+							lastResults.put("NeaQueryErrorNum", Float.parseFloat(writeResult[31]));
+						} else if (writeResult[2].startsWith("Gro")) {
+							lastResults.put("GroQueryNum", Float.parseFloat(writeResult[6]));
+							lastResults.put("GroQueryTime", Float.parseFloat(writeResult[9]));
+							lastResults.put("GroQueryResults", Float.parseFloat(writeResult[12]));
+							lastResults.put("GroQueryWorkers", Float.parseFloat(writeResult[16]));
+							lastResults.put("GroQueryRate", Float.parseFloat(writeResult[20]));
+							lastResults.put("GroQueryPointRate", Float.parseFloat(writeResult[23]));
+							lastResults.put("GroQueryErrorNum", Float.parseFloat(writeResult[31]));
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+			/*以下代码功能在脚本中实现了
+			//读取上一次的结果完毕，删除上一次的结果文件
+			if (file.exists()) {
+				boolean f = file.delete();
+				if (!f) {
+					LOGGER.error("上一次测试结果的对比文件删除失败");
+				}
+			} else {
+				LOGGER.error("上一次测试结果的对比文件不存在");
+			}
+			//获取进程
+			Runtime run = Runtime.getRuntime();
+			Process process = null;
+			//将本次产生的新结果作为下一次测试的上一次测试结果文件
+			String command = "cp  " + config.LAST_RESULT_PATH + "/log_result_info.txt" + "  " + config.LAST_RESULT_PATH + "/lastPeriodResult.txt";
+			System.out.println(command);
+			//执行doc命令
+			try {
+				process = run.exec(command);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}else{
+			LOGGER.error("上一次测试结果的路径不存在");
+		}
+			*/
+
+		return lastResults;
 	}
 
 	private static IDBFactory getDBFactory(Config config) throws SQLException{
@@ -438,17 +574,8 @@ public class App {
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
 
-
-		/*LOGGER_RESULT.error("{}: execute,{},query in,{},seconds, get,{},result points with,{},workers, mean rate,{},query/s,{},points/s; Total error point number is,{}",
-				getQueryName(config),
-				config.CLIENT_NUMBER * config.LOOP,
-				totalTime / 1000.0f,
-				totalResultPoint,
-				config.CLIENT_NUMBER,
-				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
-				(1000.0f * totalResultPoint) / ((float) totalTime),
-				totalErrorPoint);*/
-		LOGGER_RESULT.error("{}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ({} points/s), total error point num is {}.",
+		/*
+		LOGGER_RESULT.error("{}: execute,{},query in,{},seconds, get,{},result points with,{},workers, mean rate,{},query/s,{},points/s; Total error point number is,{}",
 				getQueryName(config),
 				config.CLIENT_NUMBER * config.LOOP,
 				totalTime / 1000.0f,
@@ -457,6 +584,31 @@ public class App {
 				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
 				(1000.0f * totalResultPoint) / ((float) totalTime),
 				totalErrorPoint);
+		*/
+
+		HashMap<String,Float> lastPeriodResults = getLastPeriodResults(config);
+
+		LOGGER_RESULT.error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} .",
+				getQueryName(config),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryNum"),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryTime"),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryResults"),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryWorkers"),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryRate"),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryPointRate"),
+				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryErrorNum"));
+
+		LOGGER_RESULT.error("This period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} . Mean rate change {} %.",
+				getQueryName(config),
+				config.CLIENT_NUMBER * config.LOOP,
+				totalTime / 1000.0f,
+				totalResultPoint,
+				config.CLIENT_NUMBER,
+				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
+				(1000.0f * totalResultPoint) / ((float) totalTime),
+				totalErrorPoint,
+				(1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime - lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryRate")) / lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryRate") * 100
+		);
 
 		
 		mySql.saveResult("queryNumber", ""+config.CLIENT_NUMBER * config.LOOP);
@@ -471,19 +623,19 @@ public class App {
 	private static String getQueryName(Config config) throws SQLException {
 		switch (config.QUERY_CHOICE){
 			case 1:
-				return "Exact point query";
+				return "Exact Point Query";
 			case 2:
-				return "Fuzzy point query";
+				return "Fuzzy Point Query";
 			case 3:
-				return "Aggregation function query";
+				return "Aggregation Function Query";
 			case 4:
-				return "Range query";
+				return "Range Query";
 			case 5:
-				return "Criteria query";
+				return "Criteria Query";
 			case 6:
-				return "Nearest point query";
+				return "Nearest Point Query";
 			case 7:
-				return "Group by query";
+				return "Group By Query";
 			default:
 				throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
 		}
