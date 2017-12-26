@@ -341,12 +341,15 @@ public class App {
 			*/
 
 			HashMap<String,Float> lastPeriodResults = getLastPeriodResults(config);
-			LOGGER_RESULT.error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds.",
-					lastPeriodResults.get("WriteTotalPoint"),
-					lastPeriodResults.get("WriteTotalTime"),
-					lastPeriodResults.get("WriteMeanRate"),
-					lastPeriodResults.get("WriteErrorNum"),
-					lastPeriodResults.get("WriteSchemaCost"));
+			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+			if (file.exists()) {
+				LOGGER_RESULT.error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds.",
+						lastPeriodResults.get("WriteTotalPoint"),
+						lastPeriodResults.get("WriteTotalTime"),
+						lastPeriodResults.get("WriteMeanRate"),
+						lastPeriodResults.get("WriteErrorNum"),
+						lastPeriodResults.get("WriteSchemaCost"));
+			}
 
 			LOGGER_RESULT.error("This period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds. Mean rate change {} %.",
 					totalPoints,
@@ -374,89 +377,94 @@ public class App {
 		HashMap<String,Float> lastResults = new HashMap<>();
 		if (dir.exists() && dir.isDirectory()) {
 			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
-			BufferedReader br = null;
-			try {
-				br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			String line = null;
+			if (file.exists()) {
+				BufferedReader br = null;
+				try {
+					br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+				String line = null;
 
 
-			try {
-				while ((line = br.readLine()) != null) {
-					String[] writeResult = line.split("\\s+");
-					if (writeResult[0].startsWith("This")) {
-						if (writeResult[2].startsWith("Load")) {
-							lastResults.put("WriteTotalPoint", Float.parseFloat(writeResult[3]));
-							lastResults.put("WriteTotalTime", Float.parseFloat(writeResult[6]));
-							lastResults.put("WriteMeanRate", Float.parseFloat(writeResult[10]));
-							lastResults.put("WriteErrorNum", Float.parseFloat(writeResult[17]));
-							lastResults.put("WriteSchemaCost", Float.parseFloat(writeResult[22]));
-						} else if (writeResult[2].startsWith("Exa")) {
-							lastResults.put("ExaQueryNum", Float.parseFloat(writeResult[6]));
-							lastResults.put("ExaQueryTime", Float.parseFloat(writeResult[9]));
-							lastResults.put("ExaQueryResults", Float.parseFloat(writeResult[12]));
-							lastResults.put("ExaQueryWorkers", Float.parseFloat(writeResult[16]));
-							lastResults.put("ExaQueryRate", Float.parseFloat(writeResult[20]));
-							lastResults.put("ExaQueryPointRate", Float.parseFloat(writeResult[23]));
-							lastResults.put("ExaQueryErrorNum", Float.parseFloat(writeResult[31]));
-						} else if (writeResult[2].startsWith("Fuz")) {
-							lastResults.put("FuzQueryNum", Float.parseFloat(writeResult[6]));
-							lastResults.put("FuzQueryTime", Float.parseFloat(writeResult[9]));
-							lastResults.put("FuzQueryResults", Float.parseFloat(writeResult[12]));
-							lastResults.put("FuzQueryWorkers", Float.parseFloat(writeResult[16]));
-							lastResults.put("FuzQueryRate", Float.parseFloat(writeResult[20]));
-							lastResults.put("FuzQueryPointRate", Float.parseFloat(writeResult[23]));
-							lastResults.put("FuzQueryErrorNum", Float.parseFloat(writeResult[31]));
-						} else if (writeResult[2].startsWith("Agg")) {
-							lastResults.put("AggQueryNum", Float.parseFloat(writeResult[6]));
-							lastResults.put("AggQueryTime", Float.parseFloat(writeResult[9]));
-							lastResults.put("AggQueryResults", Float.parseFloat(writeResult[12]));
-							lastResults.put("AggQueryWorkers", Float.parseFloat(writeResult[16]));
-							lastResults.put("AggQueryRate", Float.parseFloat(writeResult[20]));
-							lastResults.put("AggQueryPointRate", Float.parseFloat(writeResult[23]));
-							lastResults.put("AggQueryErrorNum", Float.parseFloat(writeResult[31]));
-						} else if (writeResult[2].startsWith("Ran")) {
-							lastResults.put("RanQueryNum", Float.parseFloat(writeResult[5]));
-							lastResults.put("RanQueryTime", Float.parseFloat(writeResult[8]));
-							lastResults.put("RanQueryResults", Float.parseFloat(writeResult[1]));
-							lastResults.put("RanQueryWorkers", Float.parseFloat(writeResult[15]));
-							lastResults.put("RanQueryRate", Float.parseFloat(writeResult[19]));
-							lastResults.put("RanQueryPointRate", Float.parseFloat(writeResult[22]));
-							lastResults.put("RanQueryErrorNum", Float.parseFloat(writeResult[30]));
-						} else if (writeResult[2].startsWith("Cri")) {
-							lastResults.put("CriQueryNum", Float.parseFloat(writeResult[5]));
-							lastResults.put("CriQueryTime", Float.parseFloat(writeResult[8]));
-							lastResults.put("CriQueryResults", Float.parseFloat(writeResult[1]));
-							lastResults.put("CriQueryWorkers", Float.parseFloat(writeResult[15]));
-							lastResults.put("CriQueryRate", Float.parseFloat(writeResult[19]));
-							lastResults.put("CriQueryPointRate", Float.parseFloat(writeResult[22]));
-							lastResults.put("CriQueryErrorNum", Float.parseFloat(writeResult[30]));
-						} else if (writeResult[2].startsWith("Nea")) {
-							lastResults.put("NeaQueryNum", Float.parseFloat(writeResult[6]));
-							lastResults.put("NeaQueryTime", Float.parseFloat(writeResult[9]));
-							lastResults.put("NeaQueryResults", Float.parseFloat(writeResult[12]));
-							lastResults.put("NeaQueryWorkers", Float.parseFloat(writeResult[16]));
-							lastResults.put("NeaQueryRate", Float.parseFloat(writeResult[20]));
-							lastResults.put("NeaQueryPointRate", Float.parseFloat(writeResult[23]));
-							lastResults.put("NeaQueryErrorNum", Float.parseFloat(writeResult[31]));
-						} else if (writeResult[2].startsWith("Gro")) {
-							lastResults.put("GroQueryNum", Float.parseFloat(writeResult[6]));
-							lastResults.put("GroQueryTime", Float.parseFloat(writeResult[9]));
-							lastResults.put("GroQueryResults", Float.parseFloat(writeResult[12]));
-							lastResults.put("GroQueryWorkers", Float.parseFloat(writeResult[16]));
-							lastResults.put("GroQueryRate", Float.parseFloat(writeResult[20]));
-							lastResults.put("GroQueryPointRate", Float.parseFloat(writeResult[23]));
-							lastResults.put("GroQueryErrorNum", Float.parseFloat(writeResult[31]));
+				try {
+					while ((line = br.readLine()) != null) {
+						String[] writeResult = line.split("\\s+");
+						if (writeResult[0].startsWith("This")) {
+							if (writeResult[2].startsWith("Load")) {
+								lastResults.put("WriteTotalPoint", Float.parseFloat(writeResult[3]));
+								lastResults.put("WriteTotalTime", Float.parseFloat(writeResult[6]));
+								lastResults.put("WriteMeanRate", Float.parseFloat(writeResult[10]));
+								lastResults.put("WriteErrorNum", Float.parseFloat(writeResult[17]));
+								lastResults.put("WriteSchemaCost", Float.parseFloat(writeResult[22]));
+							} else if (writeResult[2].startsWith("Exa")) {
+								lastResults.put("ExaQueryNum", Float.parseFloat(writeResult[6]));
+								lastResults.put("ExaQueryTime", Float.parseFloat(writeResult[9]));
+								lastResults.put("ExaQueryResults", Float.parseFloat(writeResult[12]));
+								lastResults.put("ExaQueryWorkers", Float.parseFloat(writeResult[16]));
+								lastResults.put("ExaQueryRate", Float.parseFloat(writeResult[20]));
+								lastResults.put("ExaQueryPointRate", Float.parseFloat(writeResult[23]));
+								lastResults.put("ExaQueryErrorNum", Float.parseFloat(writeResult[31]));
+							} else if (writeResult[2].startsWith("Fuz")) {
+								lastResults.put("FuzQueryNum", Float.parseFloat(writeResult[6]));
+								lastResults.put("FuzQueryTime", Float.parseFloat(writeResult[9]));
+								lastResults.put("FuzQueryResults", Float.parseFloat(writeResult[12]));
+								lastResults.put("FuzQueryWorkers", Float.parseFloat(writeResult[16]));
+								lastResults.put("FuzQueryRate", Float.parseFloat(writeResult[20]));
+								lastResults.put("FuzQueryPointRate", Float.parseFloat(writeResult[23]));
+								lastResults.put("FuzQueryErrorNum", Float.parseFloat(writeResult[31]));
+							} else if (writeResult[2].startsWith("Agg")) {
+								lastResults.put("AggQueryNum", Float.parseFloat(writeResult[6]));
+								lastResults.put("AggQueryTime", Float.parseFloat(writeResult[9]));
+								lastResults.put("AggQueryResults", Float.parseFloat(writeResult[12]));
+								lastResults.put("AggQueryWorkers", Float.parseFloat(writeResult[16]));
+								lastResults.put("AggQueryRate", Float.parseFloat(writeResult[20]));
+								lastResults.put("AggQueryPointRate", Float.parseFloat(writeResult[23]));
+								lastResults.put("AggQueryErrorNum", Float.parseFloat(writeResult[31]));
+							} else if (writeResult[2].startsWith("Ran")) {
+								lastResults.put("RanQueryNum", Float.parseFloat(writeResult[5]));
+								lastResults.put("RanQueryTime", Float.parseFloat(writeResult[8]));
+								lastResults.put("RanQueryResults", Float.parseFloat(writeResult[1]));
+								lastResults.put("RanQueryWorkers", Float.parseFloat(writeResult[15]));
+								lastResults.put("RanQueryRate", Float.parseFloat(writeResult[19]));
+								lastResults.put("RanQueryPointRate", Float.parseFloat(writeResult[22]));
+								lastResults.put("RanQueryErrorNum", Float.parseFloat(writeResult[30]));
+							} else if (writeResult[2].startsWith("Cri")) {
+								lastResults.put("CriQueryNum", Float.parseFloat(writeResult[5]));
+								lastResults.put("CriQueryTime", Float.parseFloat(writeResult[8]));
+								lastResults.put("CriQueryResults", Float.parseFloat(writeResult[1]));
+								lastResults.put("CriQueryWorkers", Float.parseFloat(writeResult[15]));
+								lastResults.put("CriQueryRate", Float.parseFloat(writeResult[19]));
+								lastResults.put("CriQueryPointRate", Float.parseFloat(writeResult[22]));
+								lastResults.put("CriQueryErrorNum", Float.parseFloat(writeResult[30]));
+							} else if (writeResult[2].startsWith("Nea")) {
+								lastResults.put("NeaQueryNum", Float.parseFloat(writeResult[6]));
+								lastResults.put("NeaQueryTime", Float.parseFloat(writeResult[9]));
+								lastResults.put("NeaQueryResults", Float.parseFloat(writeResult[12]));
+								lastResults.put("NeaQueryWorkers", Float.parseFloat(writeResult[16]));
+								lastResults.put("NeaQueryRate", Float.parseFloat(writeResult[20]));
+								lastResults.put("NeaQueryPointRate", Float.parseFloat(writeResult[23]));
+								lastResults.put("NeaQueryErrorNum", Float.parseFloat(writeResult[31]));
+							} else if (writeResult[2].startsWith("Gro")) {
+								lastResults.put("GroQueryNum", Float.parseFloat(writeResult[6]));
+								lastResults.put("GroQueryTime", Float.parseFloat(writeResult[9]));
+								lastResults.put("GroQueryResults", Float.parseFloat(writeResult[12]));
+								lastResults.put("GroQueryWorkers", Float.parseFloat(writeResult[16]));
+								lastResults.put("GroQueryRate", Float.parseFloat(writeResult[20]));
+								lastResults.put("GroQueryPointRate", Float.parseFloat(writeResult[23]));
+								lastResults.put("GroQueryErrorNum", Float.parseFloat(writeResult[31]));
+							}
 						}
 					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			}else{
+				LOGGER.error("上一次测试结果的对比文件不存在");
 			}
+		}else{
+			LOGGER.error("上一次测试结果的路径不存在");
 		}
-
 			/*以下代码功能在脚本中实现了
 			//读取上一次的结果完毕，删除上一次的结果文件
 			if (file.exists()) {
@@ -587,16 +595,18 @@ public class App {
 		*/
 
 		HashMap<String,Float> lastPeriodResults = getLastPeriodResults(config);
-
-		LOGGER_RESULT.error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} .",
-				getQueryName(config),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryNum"),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryTime"),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryResults"),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryWorkers"),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryRate"),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryPointRate"),
-				lastPeriodResults.get(getQueryName(config).substring(0,3)+"QueryErrorNum"));
+		File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+		if (file.exists()) {
+			LOGGER_RESULT.error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} .",
+					getQueryName(config),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryNum"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryTime"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryResults"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryWorkers"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryPointRate"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryErrorNum"));
+		}
 
 		LOGGER_RESULT.error("This period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} . Mean rate change {} %.",
 				getQueryName(config),
