@@ -27,7 +27,7 @@ ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb;git clone https://github.com/thula
 #ssh -p 1309 $SERVER_HOST "sed -i 's/Xmx2G/Xmx16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
 
 ssh $SERVER_HOST "sed -i 's/# Maximum heap size/MAX_HEAP_SIZE=16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
-ssh $SERVER_HOST "sed -i 's/# Minimum heap size\"'/HEAP_NEWSIZE=16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
+ssh $SERVER_HOST "sed -i 's/# Minimum heap size/HEAP_NEWSIZE=16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
 
 sh ./rep-benchmark.sh
 
