@@ -394,7 +394,7 @@ public class App {
 					while ((line = br.readLine()) != null) {
 						String[] writeResult = line.split("\\s+");
 						if (writeResult[0].startsWith("This")) {
-							if (writeResult[2].startsWith("Load")) {
+							if (writeResult[2].startsWith("load")) {
 								lastResults.put("WriteTotalPoint", writeResult[3]);
 								lastResults.put("WriteTotalTime", writeResult[6]);
 								lastResults.put("WriteMeanRate", writeResult[10]);
