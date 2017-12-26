@@ -427,7 +427,7 @@ public class App {
 							} else if (writeResult[2].startsWith("Ran")) {
 								lastResults.put("RanQueryNum", Float.parseFloat(writeResult[5]));
 								lastResults.put("RanQueryTime", Float.parseFloat(writeResult[8]));
-								lastResults.put("RanQueryResults", Float.parseFloat(writeResult[1]));
+								lastResults.put("RanQueryResults", Float.parseFloat(writeResult[11]));
 								lastResults.put("RanQueryWorkers", Float.parseFloat(writeResult[15]));
 								lastResults.put("RanQueryRate", Float.parseFloat(writeResult[19]));
 								lastResults.put("RanQueryPointRate", Float.parseFloat(writeResult[22]));
@@ -435,7 +435,7 @@ public class App {
 							} else if (writeResult[2].startsWith("Cri")) {
 								lastResults.put("CriQueryNum", Float.parseFloat(writeResult[5]));
 								lastResults.put("CriQueryTime", Float.parseFloat(writeResult[8]));
-								lastResults.put("CriQueryResults", Float.parseFloat(writeResult[1]));
+								lastResults.put("CriQueryResults", Float.parseFloat(writeResult[11]));
 								lastResults.put("CriQueryWorkers", Float.parseFloat(writeResult[15]));
 								lastResults.put("CriQueryRate", Float.parseFloat(writeResult[19]));
 								lastResults.put("CriQueryPointRate", Float.parseFloat(writeResult[22]));
@@ -463,10 +463,10 @@ public class App {
 					e.printStackTrace();
 				}
 			}else{
-				LOGGER.error("上一次测试结果的对比文件不存在");
+				LOGGER.warn("上一次测试结果的对比文件不存在");
 			}
 		}else{
-			LOGGER.error("上一次测试结果的路径不存在");
+			LOGGER.warn("上一次测试结果的路径不存在");
 		}
 			/*以下代码功能在脚本中实现了
 			//读取上一次的结果完毕，删除上一次的结果文件
