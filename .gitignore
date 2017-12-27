@@ -25,3 +25,4 @@
 
 ./conf/*.properties
 **/routine
+/target/

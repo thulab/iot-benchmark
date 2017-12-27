@@ -155,6 +155,8 @@ public class Config {
 			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
+	public boolean IS_SAVE_DATAMODEL = false;
+	
 	public String REMARK = "";
 	public String VERSION = "";
 	

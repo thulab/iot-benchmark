@@ -361,6 +361,9 @@ public class MySqlLog {
 		if (!config.IS_USE_MYSQL) {
 			return;
 		}
+		if (!config.IS_SAVE_DATAMODEL) {
+			return;
+		}
 		if (config.IS_GEN_DATA) {
 			switch (config.DB_SWITCH) {
 			case Constants.DB_IOT:
@@ -462,6 +465,12 @@ public class MySqlLog {
 			stat.addBatch(sql);
 			if (config.IS_GEN_DATA) {
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'STORAGE_GROUP_NAME'", "'" + config.STORAGE_GROUP_NAME + "'");
+				stat.addBatch(sql);
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'TIMESERIES_NAME'", "'" + config.TIMESERIES_NAME + "'");
+				stat.addBatch(sql);
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'TIMESERIES_TYPE'", "'" + config.TIMESERIES_TYPE + "'");
 				stat.addBatch(sql);
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
@@ -475,6 +484,24 @@ public class MySqlLog {
 				stat.addBatch(sql);
 			}
 			else if (config.IS_QUERY_TEST) {// 查询测试
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'查询数据集存储组数'",
+						"'" + config.GROUP_NUMBER + "'");
+				stat.addBatch(sql);
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'查询数据集设备数'", "'" + config.DEVICE_NUMBER
+								+ "'");
+				stat.addBatch(sql);
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'查询数据集传感器数'", "'" + config.SENSOR_NUMBER
+								+ "'");
+				stat.addBatch(sql);
+				if(config.DB_SWITCH.equals(Constants.DB_IOT)){
+					sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+							"'IOTDB编码方式'", "'" + config.ENCODING + "'");
+					stat.addBatch(sql);
+				}
+				
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'QUERY_CHOICE'",
 						"'" + Constants.QUERY_CHOICE_NAME[config.QUERY_CHOICE]
