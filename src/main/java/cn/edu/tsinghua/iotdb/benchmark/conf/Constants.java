@@ -7,7 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
  * 系统运行常量值
  */
 public class Constants {
-	public static final String START_TIME = "2010-01-1T00:00:00+08:00";
+	public static final String START_TIME = "2017-11-1T00:00:00+08:00";
 	public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(START_TIME);
 	public static final String URL ="jdbc:tsfile://%s:%s/";
 	public static final String USER ="root";
@@ -23,4 +23,8 @@ public class Constants {
 	
 	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 	
+	public static final String[] QUERY_CHOICE_NAME = {" ","精确点查询","模糊点查询","聚合函数查询",
+		"范围查询（限制起止时间）","条件查询","最近点查询","groupBy查询"};
+
+	public static final String EXE_SQL_FROM_FILE_MODE = "1";
 }

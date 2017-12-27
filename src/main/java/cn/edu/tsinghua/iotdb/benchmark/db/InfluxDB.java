@@ -101,7 +101,6 @@ public class InfluxDB implements IDatebase {
             totalTime.set(totalTime.get()+(endTime-startTime));
             LOGGER.info(response);
         } catch (IOException e) {
-            // TODO : get accurate insert number
             errorCount.set(errorCount.get() + cons.size());
             LOGGER.error("Batch insert failed, the failed num is {}! Error：{}",
                     cons.size(), e.getMessage());
@@ -203,6 +202,11 @@ public class InfluxDB implements IDatebase {
     }
 
     @Override
+    public void getUnitPointStorageSize() throws SQLException {
+
+    }
+
+    @Override
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
 
     }
@@ -210,6 +214,21 @@ public class InfluxDB implements IDatebase {
     @Override
     public long count(String group, String device,String sensor){
 
+        return 0;
+    }
+
+    @Override
+    public void createSchemaOfDataGen() throws SQLException {
+
+    }
+
+    @Override
+    public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+
+    }
+
+    @Override
+    public int exeSQLFromFileByOneBatch() {
         return 0;
     }
 }

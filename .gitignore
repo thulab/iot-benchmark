@@ -24,3 +24,4 @@
 *.tar
 
 ./conf/*.properties
+**/routine

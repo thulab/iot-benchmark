@@ -13,7 +13,6 @@ public class TimeUtils {
 	}
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		System.out.println(convertDateStrToTimestamp("2006-01-26T13:30:00+08:00"));
 		System.out.println(convertDateStrToTimestamp("2006-01-26T13:30:01+08:00"));
 	}

@@ -42,15 +42,39 @@ public class Config {
 	public int GROUP_NUMBER = 1;
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
-	/**多设备批插入模式*/
+	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
+	/**是否为批插入乱序模式*/
+	public boolean IS_OVERFLOW = false;
+	/**批插入乱序比例*/
+	public double OVERFLOW_RATIO = 1.0;
+
 	/**服务器性能监测模式*/
 	public boolean SERVER_MODE = false;
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
+	/**是否运行在样例数据生成模式*/
+ 	public boolean IS_GEN_DATA = false;
+	/**一个样例数据的存储组名称*/
+ 	public String STORAGE_GROUP_NAME ;
+	/**一个样例数据的时序名称*/
+ 	public String TIMESERIES_NAME ;
+	/**一个时序的数据类型*/
+ 	public String TIMESERIES_TYPE ;
+	/**时序数据取值范围*/
+	public String TIMESERIES_VALUE_SCOPE ;
+	/**样例数据生成路径及文件名*/
+	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
+	/**上一次结果的日志路径*/
+	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
 
+	public String OTHER_MODE_CHOICE = "1";
+	/**是否运行在OTHER模式下*/
+	public boolean IS_OTHER_MODE = false;
+	/**存放SQL语句文件的完整路径*/
+	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
 
 	/** 文件的名字 */
 	public String FILE_PATH ;
@@ -123,15 +147,15 @@ public class Config {
 	
 	//iotDB查询测试相关参数
 	public int QUERY_SENSOR_NUM = 1;
-	public int QUERY_DIVICE_NUM = 1;
+	public int QUERY_DEVICE_NUM = 1;
 	public int QUERY_CHOICE = 1;
 	public String QUERY_AGGREGATE_FUN = "";
 	public boolean IS_QUERY_TEST = true;
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
-	public String REMARK = "";
-	public long QUERY_GROUP_BY_SCOPE = 5 * QUERY_INTERVAL;
+	public long TIME_UNIT = QUERY_INTERVAL / 2;
+
 	
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
@@ -139,6 +163,8 @@ public class Config {
 			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
+	public String REMARK = "";
+	public String VERSION = "";
 	
 	// InfluxDB参数
 	// Influx服务器URL

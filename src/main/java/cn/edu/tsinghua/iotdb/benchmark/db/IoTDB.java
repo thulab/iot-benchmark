@@ -1,10 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.BatchUpdateException;
@@ -25,6 +21,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IoTDB implements IDatebase {
@@ -38,7 +35,7 @@ public class IoTDB implements IDatebase {
 	private Map<String, String> mp;
 	private long labID;
 	private MySqlLog mySql;
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	public IoTDB(long labID) throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -192,6 +189,42 @@ public class IoTDB implements IDatebase {
 		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
+			int timeStep = config.CACHE_NUM / deviceCodes.size();
+			if(!config.IS_OVERFLOW) {
+				for (int i = 0; i < timeStep; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
+						statement.addBatch(sql);
+					}
+				}
+			}else{
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * timeStep);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+				Random random = new Random(loopIndex);
+				for(int i = 0; i < shuffleSize; i++){
+					int p = random.nextInt(shuffleSize);
+					int tmp = shuffleSequence[i];
+					shuffleSequence[i] = shuffleSequence[p];
+					shuffleSequence[p] = tmp;
+				}
+
+				for (int i = 0; i < shuffleSize; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, shuffleSequence[i], device);
+						statement.addBatch(sql);
+					}
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
+						statement.addBatch(sql);
+					}
+				}
+			}
+
 			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
 			for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
 				for (String device : deviceCodes) {
@@ -235,9 +268,32 @@ public class IoTDB implements IDatebase {
 		int errorNum = 0;
 		try {
 			statement = connection.createStatement();
-			for (int i = 0; i < config.CACHE_NUM; i++) {
-				String sql = createSQLStatment(loopIndex, i, device);
-				statement.addBatch(sql);
+			if(!config.IS_OVERFLOW) {
+				for (int i = 0; i < config.CACHE_NUM; i++) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
+			}else{
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+				Random random = new Random(loopIndex);
+				for(int i = 0; i < shuffleSize; i++){
+					int p = random.nextInt(shuffleSize);
+					int tmp = shuffleSequence[i];
+					shuffleSequence[i] = shuffleSequence[p];
+					shuffleSequence[p] = tmp;
+				}
+				for (int i = 0; i < shuffleSize; i++) {
+					String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
+					statement.addBatch(sql);
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
 			}
 			long startTime = System.currentTimeMillis();
 			result = statement.executeBatch();
@@ -350,7 +406,7 @@ public class IoTDB implements IDatebase {
 				List<Long> startTimes = new ArrayList<Long>();
 				List<Long> endTimes = new ArrayList<Long>();
 				startTimes.add(startTime);
-				endTimes.add(startTime+config.QUERY_GROUP_BY_SCOPE);
+				endTimes.add(startTime+config.QUERY_INTERVAL);
 				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
 						startTimes, endTimes, config.QUERY_LOWER_LIMIT,
 						sensorList);
@@ -373,18 +429,18 @@ public class IoTDB implements IDatebase {
 			statement.close();
 			endTimeStamp = System.currentTimeMillis();
 //			LOGGER.info("{}",builder.toString());
-			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM);
+			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
 					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0,
-					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM,
-					line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
 					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DIVICE_NUM,
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
 					(endTimeStamp - startTimeStamp) / 1000.0f, config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
@@ -398,7 +454,6 @@ public class IoTDB implements IDatebase {
 				if(statement!=null)
 					statement.close();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -410,10 +465,16 @@ public class IoTDB implements IDatebase {
 			statement = connection.createStatement();
 			if (config.READ_FROM_FILE) {
 				String type = getTypeByField(sensor);
-				statement.execute(String.format(createStatementFromFileSQL, path + "." + sensor, type, mp.get(type)));
-			} else {
+				statement.execute(String.format(createStatementFromFileSQL,
+						path + "." + sensor, type, mp.get(type)));
+			} else if(config.IS_GEN_DATA){
+				statement.execute(String.format(createStatementFromFileSQL,
+						path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING));
+				writeSQLIntoFile(String.format(createStatementFromFileSQL,
+						path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING),config.GEN_DATA_FILE_PATH);
+			} else{
 				statement.execute(String.format(createStatementSQL,
-						Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, "GORILLA"));
+						Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, config.ENCODING));
 			}
 			statement.close();
 		} catch (SQLException e) {
@@ -434,6 +495,7 @@ public class IoTDB implements IDatebase {
 				long endTime = System.currentTimeMillis();
 				LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
 						1000000.0f / (endTime - startTime));
+				mySql.saveResult("batch"+count/1000+"CreateTimeseriesSpeed", ""+1000000.0f / (endTime - startTime));
 				if (count >= timeseriesTotal) {
 					statement.close();
 				}
@@ -454,12 +516,14 @@ public class IoTDB implements IDatebase {
 			statement = connection.createStatement();
 			if (config.READ_FROM_FILE) {
 				statement.execute(String.format(setStorageLevelSQL, device));
+			} else if(config.IS_GEN_DATA){
+				statement.execute(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME));
+				writeSQLIntoFile(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME),config.GEN_DATA_FILE_PATH);
 			} else {
 				statement.execute(String.format(setStorageLevelSQL, Constants.ROOT_SERIES_NAME + "." + device));
 			}
 			statement.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -485,7 +549,6 @@ public class IoTDB implements IDatebase {
 		StringBuilder builder = new StringBuilder();
 		String path = getGroupDevicePath(device);
 		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
-
 		for (String sensor : config.SENSOR_CODES) {
 			builder.append(",").append(sensor);
 		}
@@ -497,7 +560,86 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
+		LOGGER.debug("createSQLStatment:  {}", builder.toString());
 		return builder.toString();
+	}
+
+	private String createGenDataSQLStatment(int batch, int index, String device) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("insert into ");
+		String[] spl = device.split("\\.");
+		builder.append(spl[0]);
+		for(int i = 1;i < spl.length - 1;i++){
+			builder.append(".");
+			builder.append(spl[i]);
+		}
+		builder.append("(timestamp");
+		builder.append(",").append(spl[spl.length - 1]);
+		builder.append(") values(");
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+		builder.append(currentTime);
+		try {
+			builder.append(",").append(getDataByTypeAndScope(currentTime, config));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		builder.append(")");
+		LOGGER.debug("createGenDataSQLStatment:  {}", builder.toString());
+		return builder.toString();
+	}
+
+	private String getDataByTypeAndScope(long currentTime, Config config) throws SQLException{
+		String data = null;
+		switch (config.TIMESERIES_TYPE){
+			case "BOOLEAN":
+				data = getRandomBoolean(currentTime);
+				break;
+			case "FLOAT":
+				data = getRandomFloat(currentTime, config.TIMESERIES_VALUE_SCOPE);
+				break;
+			case "INT32":
+				data = getRandomInt(currentTime, config.TIMESERIES_VALUE_SCOPE);
+				break;
+			case "TEXT":
+				data = getRandomText(currentTime, config.TIMESERIES_VALUE_SCOPE);
+				break;
+			default:
+				throw new SQLException("unsupported type " + config.TIMESERIES_TYPE);
+		}
+		return data;
+	}
+
+	private static String getRandomText(long currentTime, String text) {
+		String[] enu = text.split(",");
+		int max = enu.length;
+		int min = 0;
+		Random random = new Random(currentTime);
+		int i = (int)(random.nextFloat() * max);
+		return "\"" + enu[i] + "\"";
+	}
+
+	private static String getRandomInt(long currentTime, String scope) {
+		String[] spl = scope.split(",");
+		int min = Integer.parseInt(spl[0]);
+		int max = Integer.parseInt(spl[1]);
+		Random random = new Random(currentTime);
+		int i = random.nextInt(max) % (max - min + 1) + min;
+		return String.valueOf(i);
+	}
+
+	private static String getRandomBoolean(long currentTime) {
+		Random random = new Random(currentTime);
+		boolean b = random.nextBoolean();
+		return String.valueOf(b);
+	}
+
+	private static String getRandomFloat(long currentTime, String scope) {
+		String[] spl = scope.split(",");
+		float min = Float.parseFloat(spl[0]);
+		float max = Float.parseFloat(spl[1]);
+		Random random = new Random(currentTime);
+		float f = random.nextFloat() * (max - min) + min;
+		return String.valueOf(f);
 	}
 
 	private String createSQLStatmentOfMulDevice(int loopIndex, int i, String device) {
@@ -516,6 +658,7 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
+		LOGGER.debug("createSQLStatmentOfMulDevice:  {}",builder.toString());
 		return builder.toString();
 	}
 
@@ -667,7 +810,7 @@ public class IoTDB implements IDatebase {
 			}
 		}
 		builder.delete(builder.lastIndexOf("AND"), builder.length());
-		builder.append(" GROUP BY(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
+		builder.append(" GROUP BY(").append(config.TIME_UNIT).append("ms, ").append(Constants.START_TIMESTAMP);
 		for(int i = 0;i<startTime.size();i++) {
 			String strstartTime = sdf.format(new Date(startTime.get(i)));
 			String strendTime = sdf.format(new Date(endTime.get(i)));
@@ -702,7 +845,7 @@ public class IoTDB implements IDatebase {
 			startTime = resultSet.getLong(1);
 		}
 		statement.close();
-
+		LOGGER.info("时间间隔：{}",endTime - startTime);
 		return endTime - startTime;
 	}
 
@@ -745,8 +888,186 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
+	public void getUnitPointStorageSize() throws SQLException {
+		File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
+		if (dataDir.exists() && dataDir.isDirectory()) {
+			long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
+			long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
+			long metadataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/metadata") ;
+			long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta") ;
+			long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow") ;
+			float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
+					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
+					config.CACHE_NUM);
+			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: data ,{}, wal ,{}, metadata ,{},KB"
+					, pointByteSize, config.ENCODING, dataSize, walSize, metadataSize);
+		} else {
+			LOGGER.info("Can not find data directory!");
+		}
+	}
+
+	@Override
 	public long count(String group,String device,String sensor){
 
 		return 0;
+	}
+
+	@Override
+	public void createSchemaOfDataGen() throws SQLException{
+		setStorgeGroup(config.STORAGE_GROUP_NAME);
+		createTimeseries(config.STORAGE_GROUP_NAME, config.TIMESERIES_NAME);
+	}
+
+	@Override
+	public void insertGenDataOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+		Statement statement;
+		int[] result;
+		int errorNum = 0;
+		try {
+			statement = connection.createStatement();
+			for (int i = 0; i < config.CACHE_NUM; i++) {
+				String sql = createGenDataSQLStatment(loopIndex, i, device);
+				writeSQLIntoFile(sql,config.GEN_DATA_FILE_PATH);
+				statement.addBatch(sql);
+			}
+			long startTime = System.currentTimeMillis();
+			result = statement.executeBatch();
+			statement.clearBatch();
+			statement.close();
+			long endTime = System.currentTimeMillis();
+			long costTime = endTime - startTime;
+			for (int i = 0; i < result.length; i++) {
+				if (result[i] == -1) {
+					errorNum++;
+				}
+			}
+			if (errorNum > 0) {
+				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+			} else {
+				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
+						(totalTime.get() + costTime) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+				totalTime.set(totalTime.get() + costTime);
+				errorCount.set(errorCount.get() + errorNum);
+			}
+
+			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+					config.REMARK);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public int exeSQLFromFileByOneBatch() throws SQLException{
+		Statement statement;
+		int count = 0;
+		int[] result;
+		int errorNum = 0;
+		File file = new File(config.SQL_FILE);
+		if(file.exists()) {
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(file));
+
+				try {
+					statement = connection.createStatement();
+					String line = null;
+					while ((line = br.readLine()) != null ) {
+						if(!line.startsWith("#") && !line.equals("")) {
+							String sql = line;
+							statement.addBatch(sql);
+						}
+						count++;
+					}
+					long startTime = System.currentTimeMillis();
+					result = statement.executeBatch();
+					statement.clearBatch();
+					statement.close();
+					long endTime = System.currentTimeMillis();
+					long costTime = endTime - startTime;
+					for (int i = 0; i < result.length; i++) {
+						if (result[i] == -1) {
+							errorNum++;
+						}
+					}
+					if (errorNum > 0) {
+						LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+					} else {
+						LOGGER.info("Execute SQL from file , it costs {} seconds, mean rate {} SQL/s",
+								costTime / 1000.0f,
+								1000.0f * count / costTime
+								);
+					}
+
+					//mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,config.REMARK);
+
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+
+
+		} else {
+			LOGGER.error("Execute SQL from file mode: SQL file not found.");
+		}
+		return 0;
+	}
+
+	private void writeSQLIntoFile(String sql, String gen_data_file_path) {
+		BufferedWriter out = null;
+		try {
+			out = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(gen_data_file_path, true)));
+			out.write(sql);
+			out.newLine();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/***/
+	private static long getDirTotalSize(String dir) {
+		long totalsize = 0;
+
+		Process pro = null;
+		Runtime r = Runtime.getRuntime();
+		try {
+			// 获得文件夹大小，单位 Byte
+			String command = "du " + dir;
+			pro = r.exec(command);
+			BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+			String line = null;
+			String lastLine = null;
+			while (true) {
+				lastLine = line;
+				if ((line = in.readLine()) == null) {
+					System.out.println(lastLine);
+					break;
+				}
+			}
+			String[] temp = lastLine.split("\\s+");
+			totalsize = Long.parseLong(temp[0]);
+
+			in.close();
+			pro.destroy();
+		} catch (IOException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+		}
+
+		return totalsize;
 	}
 }

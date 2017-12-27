@@ -9,19 +9,31 @@ date
 
 HOST_NAME=liurui
 BUILD_PATH=/home/liurui/github
+LOG_PATH=/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs
 
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
 #更新tsfile iotdb-jdbc iotdb
-ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf tsfile;git clone https://github.com/thulab/tsfile.git;cd tsfile;mvn clean install -Dmaven.test.skip=true"
-ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb-jdbc;git clone https://github.com/thulab/iotdb-jdbc.git;cd iotdb-jdbc;mvn clean install -Dmaven.test.skip=true"
-ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb;git clone https://github.com/thulab/iotdb.git;cd iotdb;mvn clean install -Dmaven.test.skip=true"
+#ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf tsfile;git clone https://github.com/thulab/tsfile.git;cd tsfile;mvn clean install -Dmaven.test.skip=true"
+#ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb-jdbc;git clone https://github.com/thulab/iotdb-jdbc.git;cd iotdb-jdbc;mvn clean install -Dmaven.test.skip=true"
+#ssh -p 1309 $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb;git clone https://github.com/thulab/iotdb.git;cd iotdb;mvn clean install -Dmaven.test.skip=true"
 
-#更改iotdb的JVM内存上限
-ssh -p 1309 $SERVER_HOST "sed -i 's/Xms2G/Xms16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
-ssh -p 1309 $SERVER_HOST "sed -i 's/Xmx2G/Xmx16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
+ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf tsfile;git clone https://github.com/thulab/tsfile.git;cd tsfile;mvn clean install -Dmaven.test.skip=true"
+ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb-jdbc;git clone https://github.com/thulab/iotdb-jdbc.git;cd iotdb-jdbc;mvn clean install -Dmaven.test.skip=true"
+ssh $SERVER_HOST "cd $BUILD_PATH;rm -rf iotdb;git clone https://github.com/thulab/iotdb.git;cd iotdb;mvn clean install -Dmaven.test.skip=true"
+
+#更改iotdb的JVM内存上限，默认最大分配总内存的1/4
+#ssh -p 1309 $SERVER_HOST "sed -i 's/Xms2G/Xms16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
+#ssh -p 1309 $SERVER_HOST "sed -i 's/Xmx2G/Xmx16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
+
+ssh $SERVER_HOST "sed -i 's/# Maximum heap size/MAX_HEAP_SIZE=16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
+ssh $SERVER_HOST "sed -i 's/# Minimum heap size/HEAP_NEWSIZE=16G/g' $BUILD_PATH/iotdb/iotdb/conf/iotdb-env.sh"
 
 sh ./rep-benchmark.sh
+
+rm $LOG_PATH/lastPeriodResult.txt
+cp $LOG_PATH/log_result_info.txt $LOG_PATH/lastPeriodResult.txt
+
 
 #三次重复测试实验
 #for i in {1..3}
