@@ -570,6 +570,11 @@ public class InfluxDBV2 implements IDatebase {
 
     }
 
+	@Override
+	public int exeSQLFromFileByOneBatch() {
+		return 0;
+	}
+
 //    /**
 //	 * 创建查询语句--(精确点查询)
 //	 * 

@@ -25,4 +25,6 @@ public class Constants {
 	
 	public static final String[] QUERY_CHOICE_NAME = {" ","精确点查询","模糊点查询","聚合函数查询",
 		"范围查询（限制起止时间）","条件查询","最近点查询","groupBy查询"};
+
+	public static final String EXE_SQL_FROM_FILE_MODE = "1";
 }

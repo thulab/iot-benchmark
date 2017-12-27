@@ -103,11 +103,54 @@ public class App {
 				genData(config);
 			} else if(config.IS_QUERY_TEST) {
 				queryTest(config);
+			} else if(config.IS_OTHER_MODE){
+				switch (config.OTHER_MODE_CHOICE) {
+					case Constants.EXE_SQL_FROM_FILE_MODE:
+						executeSQLFromFile(config);
+						break;
+					default:
+						throw new SQLException("unsupported OTHER_MODE_CHOICE " + config.OTHER_MODE_CHOICE);
+				}
 			} else {
 				insertTest(config);
 			}
 		}
 	}// main
+
+	private static void executeSQLFromFile(Config config) throws SQLException, ClassNotFoundException{
+		MySqlLog mysql = new MySqlLog();
+		mysql.initMysql(System.currentTimeMillis());
+		IDBFactory idbFactory = null;
+		idbFactory = getDBFactory(config);
+		IDatebase datebase;
+		long exeSQLFromFileStartTime;
+		long exeSQLFromFileEndTime;
+		float exeSQLFromFileTime = 1;
+		int SQLCount = 0;
+		try {
+			datebase = idbFactory.buildDB(mysql.getLabID());
+			datebase.init();
+			exeSQLFromFileStartTime = System.currentTimeMillis();
+			SQLCount = datebase.exeSQLFromFileByOneBatch();
+			datebase.close();
+			exeSQLFromFileEndTime = System.currentTimeMillis();
+			exeSQLFromFileTime = (exeSQLFromFileEndTime - exeSQLFromFileStartTime) / 1000.0f;
+		} catch (SQLException e) {
+			LOGGER.error("Fail to init database becasue {}", e.getMessage());
+			return;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		LOGGER.info("Execute SQL from file {} by one batch cost {} seconds. Mean rate {} SQL/s",
+				config.SQL_FILE,
+				exeSQLFromFileTime,
+				1.0f * SQLCount / exeSQLFromFileTime
+				);
+
+
+		//加入新版的mysql表中
+		mysql.closeMysql();
+	}
 
 	private static void genData(Config config) throws SQLException, ClassNotFoundException  {
 		//一次生成一个timeseries的数据

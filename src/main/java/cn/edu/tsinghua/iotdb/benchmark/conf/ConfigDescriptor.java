@@ -109,6 +109,9 @@ public class ConfigDescriptor {
 				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
 				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
 				config.LAST_RESULT_PATH = properties.getProperty("LAST_RESULT_PATH", config.LAST_RESULT_PATH);
+				config.IS_OTHER_MODE = Boolean.parseBoolean(properties.getProperty("IS_OTHER_MODE", config.IS_OTHER_MODE+""));
+				config.OTHER_MODE_CHOICE = properties.getProperty("OTHER_MODE_CHOICE", config.OTHER_MODE_CHOICE);
+				config.SQL_FILE = properties.getProperty("SQL_FILE", config.SQL_FILE);
 
 			} catch (IOException e) {
 				e.printStackTrace();

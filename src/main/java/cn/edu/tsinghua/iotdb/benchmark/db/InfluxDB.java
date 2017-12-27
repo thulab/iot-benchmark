@@ -226,4 +226,9 @@ public class InfluxDB implements IDatebase {
     public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
 
     }
+
+    @Override
+    public int exeSQLFromFileByOneBatch() {
+        return 0;
+    }
 }
