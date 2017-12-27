@@ -966,18 +966,21 @@ public class IoTDB implements IDatebase {
 
 	private void writeSQLIntoFile(String sql, String gen_data_file_path) {
 		BufferedWriter out = null;
-		try {
-			out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(gen_data_file_path, true)));
-			out.write(sql);
-			out.newLine();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
+		File dir = new File(gen_data_file_path);
+		if(dir.exists()&&dir.isDirectory()) {
 			try {
-				out.close();
-			} catch (IOException e) {
+				out = new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream(gen_data_file_path + Constants.SAMPLE_DATA_FILE_NAME, true)));
+				out.write(sql);
+				out.newLine();
+			} catch (Exception e) {
 				e.printStackTrace();
+			} finally {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
