@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ -z "${BENCHMARK_HOME}" ]; then
-    export TSFILE_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+    export BENCHMARK_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
 
 if [ -n "$JAVA_HOME" ]; then
