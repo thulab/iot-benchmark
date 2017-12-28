@@ -5,9 +5,9 @@ if [ -z "${BENCHMARK_HOME}" ]; then
 fi
 
 #configure the related path and host name
-IOTDB_HOME=/home/parallels/Desktop/github/iotdb/iotdb/bin
-REMOTE_BENCHMARK_HOME=/home/parallels/Desktop/github/realtime/iotdb-benchmark
-HOST_NAME=parallels
+IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
+REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
+HOST_NAME=liurui
 
 #extract parameters from config.properties
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
