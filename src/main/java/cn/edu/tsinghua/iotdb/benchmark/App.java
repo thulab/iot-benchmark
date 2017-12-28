@@ -156,7 +156,7 @@ public class App {
 					totalTime = c;
 				}
 			}
-			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+			long totalPoints = config.LOOP * config.CACHE_NUM;
 			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
 				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
 			}
