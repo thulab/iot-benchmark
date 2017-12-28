@@ -891,20 +891,14 @@ public class IoTDB implements IDatebase {
 	public void getUnitPointStorageSize() throws SQLException {
 		File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
 		if (dataDir.exists() && dataDir.isDirectory()) {
-			long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
-			long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
-			long metadataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/metadata") ;
-			float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
+			long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta") ;
+			//long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
+			long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow") ;
+			float pointByteSize = (deltaSize + overflowSize) *
 					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
 					config.CACHE_NUM);
-			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: data ,{}, wal ,{}, metadata ,{},KB"
-					, pointByteSize, config.ENCODING, dataSize, walSize, metadataSize);
-			
-			mySql.saveResult("AverageSizeOfDataPoint", ""+pointByteSize );
-			mySql.saveResult("DirSize_data", ""+dataSize );
-			mySql.saveResult("DirSize_wal", ""+walSize );
-			mySql.saveResult("DirSize_metadata", ""+metadataSize );
-			
+			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
+					, pointByteSize, config.ENCODING, deltaSize, overflowSize);
 		} else {
 			LOGGER.info("Can not find data directory!");
 		}
