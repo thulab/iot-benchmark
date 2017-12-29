@@ -894,11 +894,13 @@ public class IoTDB implements IDatebase {
 			long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta") ;
 			//long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
 			long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow") ;
-			float pointByteSize = (deltaSize + overflowSize) *
-					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
-					config.CACHE_NUM);
-			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
-					, pointByteSize, config.ENCODING, deltaSize, overflowSize);
+		//	float pointByteSize = (deltaSize + overflowSize) *
+		//			1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
+		//			config.CACHE_NUM);
+		//	LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
+		//			, pointByteSize, config.ENCODING, deltaSize, overflowSize);
+			LOGGER.info("ENCODING = {} , dir size: delta {} KB ;overflow {} KB "
+					, config.ENCODING, deltaSize, overflowSize);
 		} else {
 			LOGGER.info("Can not find data directory!");
 		}
