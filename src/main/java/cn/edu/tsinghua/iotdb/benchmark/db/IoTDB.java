@@ -186,7 +186,7 @@ public class IoTDB implements IDatebase {
 			ThreadLocal<Long> errorCount) {
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			int timeStep = config.CACHE_NUM / deviceCodes.size();
@@ -265,7 +265,7 @@ public class IoTDB implements IDatebase {
 			ThreadLocal<Long> errorCount) {
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			if(!config.IS_OVERFLOW) {
@@ -331,7 +331,7 @@ public class IoTDB implements IDatebase {
 
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			for (String sql : cons) {
@@ -922,7 +922,7 @@ public class IoTDB implements IDatebase {
 	public void insertGenDataOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			for (int i = 0; i < config.CACHE_NUM; i++) {
