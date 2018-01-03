@@ -246,7 +246,7 @@ public class IoTDB implements IDatebase {
 
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-				errorCount.set(errorCount.get() + errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
@@ -254,6 +254,7 @@ public class IoTDB implements IDatebase {
 						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
 				totalTime.set(totalTime.get() + costTime);
 			}
+			errorCount.set(errorCount.get() + errorNum);
 			mySql.saveInsertProcess(loopIndex, costTime / 1000.0, totalTime.get() / 1000.0, errorNum, config.REMARK);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -317,7 +318,6 @@ public class IoTDB implements IDatebase {
 				totalTime.set(totalTime.get() + costTime);
 			}
 			errorCount.set(errorCount.get() + errorNum);
-			System.out.println("errorCount="+errorCount.get());
 
 			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
 					config.REMARK);
@@ -354,7 +354,7 @@ public class IoTDB implements IDatebase {
 
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-				errorCount.set(errorCount.get() + errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
 						Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
@@ -362,6 +362,7 @@ public class IoTDB implements IDatebase {
 						(cons.size() / (double) (endTime - startTime)) * 1000);
 				totalTime.set(totalTime.get() + (endTime - startTime));
 			}
+			errorCount.set(errorCount.get() + errorNum);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -945,7 +946,7 @@ public class IoTDB implements IDatebase {
 			}
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-				errorCount.set(errorCount.get() + errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
@@ -953,6 +954,7 @@ public class IoTDB implements IDatebase {
 						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
 				totalTime.set(totalTime.get() + costTime);
 			}
+			errorCount.set(errorCount.get() + errorNum);
 
 			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
 					config.REMARK);
