@@ -1,20 +1,22 @@
 package cn.edu.tsinghua.iotdb.benchmark.concurrency;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class App {
 
-	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws ClassNotFoundException{
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
-		int maxConnectionNum = 40000;
-		for(int i = 0; i < maxConnectionNum;i++){
-			Connection connection =  DriverManager.getConnection("jdbc:tsfile://192.168.130.15:6667/", "root", "root");
-			System.out.println(String.format("Open %d connection", i));
+		ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+		Config config = ConfigDescriptor.getInstance().getConfig();
+		for(int i = 0; i < config.MAX_CONNECTION_NUM;i++){
+			cachedThreadPool.execute(new QueryThread(config.CONCURRENCY_URL));
 		}
+
 	}
 
 }

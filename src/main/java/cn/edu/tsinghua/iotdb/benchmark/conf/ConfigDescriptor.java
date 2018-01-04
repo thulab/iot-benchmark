@@ -110,6 +110,9 @@ public class ConfigDescriptor {
 				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
 				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
 
+				// Concurrency test
+				config.MAX_CONNECTION_NUM = Integer.parseInt(properties.getProperty("MAX_CONNECTION_NUM", config.MAX_CONNECTION_NUM+""));
+				config.CONCURRENCY_URL = properties.getProperty("CONCURRENCY_URL", config.CONCURRENCY_URL);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
