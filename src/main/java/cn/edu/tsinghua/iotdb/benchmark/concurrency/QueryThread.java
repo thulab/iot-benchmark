@@ -39,8 +39,9 @@ public class QueryThread implements Runnable {
 						i);
 			}
 		} catch (Exception e) {
-			LOGGER.error("{} encouters an exception because of {}", 
+			LOGGER.error("{} encouters an exception at {} because of {}", 
 					Thread.currentThread().getId(), 
+					url,
 					e.getMessage());
 		} finally {
 			if(statement != null){
