@@ -38,6 +38,7 @@ public class ConfigDescriptor {
 
 	private void loadProps() {
 		String url = System.getProperty(Constants.BENCHMARK_CONF, null);
+		System.out.println(url);
 		if (url != null) {
 			InputStream inputStream = null;
 			try {
@@ -113,6 +114,7 @@ public class ConfigDescriptor {
 				// Concurrency test
 				config.MAX_CONNECTION_NUM = Integer.parseInt(properties.getProperty("MAX_CONNECTION_NUM", config.MAX_CONNECTION_NUM+""));
 				config.CONCURRENCY_URL = properties.getProperty("CONCURRENCY_URL", config.CONCURRENCY_URL);
+				System.out.println(config.CONCURRENCY_URL);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
