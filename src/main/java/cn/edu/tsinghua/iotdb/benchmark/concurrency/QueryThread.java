@@ -28,15 +28,18 @@ public class QueryThread implements Runnable {
 			Statement statement = connection.createStatement();
 			int i = 0;
 			while(true){
+				int count = 0;
 				statement.execute(ConcurrentConfig.QUERY_SQL);
 				ResultSet resultSet = statement.getResultSet();
 				while(resultSet.next()){
+					count++;
 				}
 				statement.close();
 				i++;
-				LOGGER.info("{} executes {} times",
+				LOGGER.info("{} executes {} times count numer {}",
 						Thread.currentThread().getId(),
-						i);
+						i,
+						count);
 			}
 		} catch (Exception e) {
 			LOGGER.error("{} encouters an exception at {} because of {}", 
