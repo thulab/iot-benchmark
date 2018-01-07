@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.db.*;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
+import cn.edu.tsinghua.iotdb.benchmark.tool.*;
 
 import java.io.*;
 import java.sql.Connection;
@@ -33,79 +34,112 @@ public class App {
 			return;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
-		if (config.SERVER_MODE) {
-			MySqlLog mySql = new MySqlLog();
-			mySql.initMysql(System.currentTimeMillis());
-			File dir = new File(config.LOG_STOP_FLAG_PATH);
-			if (dir.exists() && dir.isDirectory()) {
-				File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
-				int interval = config.INTERVAL;
-				// 检测所需的时间在目前代码的参数下至少为2秒
-				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
-				while (true) {
-					ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
-					ArrayList<Float> netUsageList = NetUsage.getInstance().get();
-					LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
-					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
-					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-					mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
-							netUsageList.get(0), netUsageList.get(1),"");
-					try {
-						Thread.sleep(interval * 1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					if (file.exists()) {
-						boolean f = file.delete();
-						if (!f) {
-							LOGGER.error("log_stop_flag 文件删除失败");
-						}
-						break;
-					}
-				}
-
-				MySqlLog mysql = new MySqlLog();
-				mysql.initMysql(System.currentTimeMillis());
-				IDBFactory idbFactory = null;
-				idbFactory = getDBFactory(config);
-
-				IDatebase datebase;
-
-				try {
-					datebase = idbFactory.buildDB(mysql.getLabID());
-					datebase.init();
-					LOGGER.info("Before flush:");
-					datebase.getUnitPointStorageSize();
-					datebase.flush();
-					LOGGER.info("After flush:");
-					datebase.getUnitPointStorageSize();
-					datebase.close();
-
-				} catch (SQLException e) {
-					LOGGER.error("Fail to init database becasue {}", e.getMessage());
-					return;
-				}
-
-
-				mySql.closeMysql();
-
-
-
-
-			} else {
-				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
-			}
-		} else {
-			if (config.IS_GEN_DATA) {
-				genData(config);
-			} else if(config.IS_QUERY_TEST) {
-				queryTest(config);
-			} else {
-				insertTest(config);
-			}
-		}
+		switch (config.BENCHMARK_WORK_MODE) {
+		case Constants.MODE_SERVER_MODE:
+			serverMode(config);
+			break;
+		case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
+			insertTest(config);
+			break;
+		case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
+			genData(config);
+			break;
+		case Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH:
+			queryTest(config);
+			break;
+		case Constants.MODE_IMPORT_DATA_FROM_CSV:
+			importDataFromCSV(config);
+			break;
+		default:
+			throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
+	}
+		
 	}// main
+	
+	/**
+	 * 将数据从CSV文件导入IOTDB
+	 * @throws SQLException 
+	 * 
+	 * */
+	private static void importDataFromCSV(Config config) throws SQLException {
+		// TODO Auto-generated method stub
+		MetaDateBuilder builder = new MetaDateBuilder();
+		builder.createMataData(config.METADATA_FILE_PATH);
+		ImportDataFromCSV importTool = new ImportDataFromCSV();
+		importTool.importData(config.IMPORT_DATA_FILE_PATH);
+	}
+
+	/**
+	 * 服务器端模式，监测系统内存等性能指标，获得插入的数据文件大小
+	 * 
+	 * @throws SQLException
+	 * @throws ClassNotFoundException
+	 */
+	private static void serverMode(Config config) throws SQLException, ClassNotFoundException{
+		MySqlLog mySql = new MySqlLog();
+		mySql.initMysql(System.currentTimeMillis());
+		File dir = new File(config.LOG_STOP_FLAG_PATH);
+		if (dir.exists() && dir.isDirectory()) {
+			File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
+			int interval = config.INTERVAL;
+			// 检测所需的时间在目前代码的参数下至少为2秒
+			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
+			while (true) {
+				ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+				ArrayList<Float> netUsageList = NetUsage.getInstance().get();
+				LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
+				LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
+				LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
+				LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
+				mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
+						netUsageList.get(0), netUsageList.get(1),"");
+				try {
+					Thread.sleep(interval * 1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				if (file.exists()) {
+					boolean f = file.delete();
+					if (!f) {
+						LOGGER.error("log_stop_flag 文件删除失败");
+					}
+					break;
+				}
+			}
+
+			MySqlLog mysql = new MySqlLog();
+			mysql.initMysql(System.currentTimeMillis());
+			IDBFactory idbFactory = null;
+			idbFactory = getDBFactory(config);
+
+			IDatebase datebase;
+
+			try {
+				datebase = idbFactory.buildDB(mysql.getLabID());
+				datebase.init();
+				LOGGER.info("Before flush:");
+				datebase.getUnitPointStorageSize();
+				datebase.flush();
+				LOGGER.info("After flush:");
+				datebase.getUnitPointStorageSize();
+				datebase.close();
+
+			} catch (SQLException e) {
+				LOGGER.error("Fail to init database becasue {}", e.getMessage());
+				return;
+			}
+
+
+			mySql.closeMysql();
+
+
+
+
+		} else {
+			LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
+		}
+	}
+	
 
 	private static void genData(Config config) throws SQLException, ClassNotFoundException  {
 		//一次生成一个timeseries的数据

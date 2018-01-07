@@ -1,0 +1,6 @@
+path,stroageGroup,type,encoding
+root.fit.p.s1,root.fit,INT64,PLAIN
+root.fit.d1.s1,root.fit,INT64,PLAIN
+root.fit.d1.s2,root.fit,INT64,PLAIN
+root.fit.d2.s1,root.fit,INT64,PLAIN
+root.fit.d2.s3,root.fit,INT64,PLAIN
