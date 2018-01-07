@@ -163,7 +163,7 @@ public class ImportDataFromCSV {
 			LOGGER.info(
 					"Load data from {} successfully, it takes {}ms, insertData takes {}ms",
 					file.getName(), (System.currentTimeMillis() - startTime),
-					totalTime);
+					totalTime.get());
 
 		} catch (FileNotFoundException e) {
 			LOGGER.error("Cannot find {}", file.getName());
@@ -181,7 +181,7 @@ public class ImportDataFromCSV {
 			if (errorCount.get() > 0) {
 				LOGGER.error(
 						"Format of some lines in {} error, the error number is {}",
-						file.getAbsolutePath(), errorCount);
+						file.getAbsolutePath(), errorCount.get());
 			}
 		}
 	}

@@ -48,7 +48,6 @@ public class MetaDateBuilder {
 		}
 		iotdb.init();
 		File file = new File(path);
-
 		if (file.isFile()) {
 			if (file.getName().endsWith(FILE_SUFFIX)) {
 				createMataDataFromCSV(file, 1);
@@ -87,8 +86,8 @@ public class MetaDateBuilder {
 			String header = br.readLine();
 			LOGGER.info(header);
 			if (!parseFileFirstLine(header)) {
-				LOGGER.error("The CSV file illegal, please check first line",
-						file.getAbsolutePath());
+				LOGGER.error("The CSV file {} illegal, please check first line. {}",
+						file.getAbsolutePath(), header);
 				return;
 			}
 
