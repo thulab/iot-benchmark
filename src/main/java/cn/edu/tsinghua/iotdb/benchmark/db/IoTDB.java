@@ -904,6 +904,8 @@ public class IoTDB implements IDatebase {
 		//			, pointByteSize, config.ENCODING, deltaSize, overflowSize);
 			LOGGER.info("ENCODING = {} , dir size: delta {} KB ;overflow {} KB "
 					, config.ENCODING, deltaSize, overflowSize);
+			mySql.saveResult("DeltaSize",String.valueOf(deltaSize));
+			mySql.saveResult("OverflowSize",String.valueOf(overflowSize));
 		} else {
 			LOGGER.info("Can not find data directory!");
 		}
