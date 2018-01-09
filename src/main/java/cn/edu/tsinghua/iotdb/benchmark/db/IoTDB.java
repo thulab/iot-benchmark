@@ -198,6 +198,8 @@ public class IoTDB implements IDatebase {
 					}
 				}
 			}else{
+				//随机重排，无法准确控制overflow比例
+				/*
 				int shuffleSize = (int) (config.OVERFLOW_RATIO * timeStep);
 				int[] shuffleSequence = new int[shuffleSize];
 				for(int i = 0; i < shuffleSize; i++){
@@ -223,6 +225,30 @@ public class IoTDB implements IDatebase {
 						statement.addBatch(sql);
 					}
 				}
+				*/
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * timeStep);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+
+				int tmp = shuffleSequence[shuffleSize-1];
+				shuffleSequence[shuffleSize-1] = shuffleSequence[0];
+				shuffleSequence[0] = tmp;
+
+				for (int i = 0; i < shuffleSize; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, shuffleSequence[i], device);
+						statement.addBatch(sql);
+					}
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
+						statement.addBatch(sql);
+					}
+				}
+
 			}
 
 			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
@@ -275,6 +301,8 @@ public class IoTDB implements IDatebase {
 					statement.addBatch(sql);
 				}
 			}else{
+				//随机重排，无法准确控制overflow比例
+				/*
 				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
 				int[] shuffleSequence = new int[shuffleSize];
 				for(int i = 0; i < shuffleSize; i++){
@@ -295,6 +323,27 @@ public class IoTDB implements IDatebase {
 					String sql = createSQLStatment(loopIndex, i, device);
 					statement.addBatch(sql);
 				}
+				*/
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+
+				int tmp = shuffleSequence[shuffleSize-1];
+				shuffleSequence[shuffleSize-1] = shuffleSequence[0];
+				shuffleSequence[0] = tmp;
+
+				for (int i = 0; i < shuffleSize; i++) {
+					String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
+					statement.addBatch(sql);
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
+
+
 			}
 			long startTime = System.currentTimeMillis();
 			result = statement.executeBatch();
