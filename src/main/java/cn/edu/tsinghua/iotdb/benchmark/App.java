@@ -62,7 +62,6 @@ public class App {
 	 * 
 	 * */
 	private static void importDataFromCSV(Config config) throws SQLException {
-		// TODO Auto-generated method stub
 		MetaDateBuilder builder = new MetaDateBuilder();
 		builder.createMataData(config.METADATA_FILE_PATH);
 		ImportDataFromCSV importTool = new ImportDataFromCSV();
@@ -194,16 +193,8 @@ public class App {
 			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
 				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
 			}
-			switch (config.DB_SWITCH) {
-				case Constants.DB_IOT:
-					totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-					break;
-				case Constants.DB_INFLUX:
-					totalErrorPoint = getErrorNumInflux(config, datebase);
-					break;
-				default:
-					throw new SQLException("unsupported database " + config.DB_SWITCH);
-			}
+
+			totalErrorPoint = getErrorNum(config,totalInsertErrorNums,datebase);
 			LOGGER.info(
 					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
@@ -326,16 +317,8 @@ public class App {
 			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
 				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
 			}
-			switch (config.DB_SWITCH) {
-				case Constants.DB_IOT:
-					totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-					break;
-				case Constants.DB_INFLUX:
-					totalErrorPoint = getErrorNumInflux(config, datebase);
-					break;
-				default:
-					throw new SQLException("unsupported database " + config.DB_SWITCH);
-			}
+
+			totalErrorPoint = getErrorNum(config,totalInsertErrorNums,datebase);
 			LOGGER.info(
 					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
@@ -361,6 +344,21 @@ public class App {
 		}// else--
 		
 		
+	}
+
+	private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase) throws SQLException {
+		long totalErrorPoint ;
+		switch (config.DB_SWITCH) {
+			case Constants.DB_IOT:
+				totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+				break;
+			case Constants.DB_INFLUX:
+				totalErrorPoint = getErrorNumInflux(config, datebase);
+				break;
+			default:
+				throw new SQLException("unsupported database " + config.DB_SWITCH);
+		}
+		return totalErrorPoint;
 	}
 
 	private static IDBFactory getDBFactory(Config config) throws SQLException{
