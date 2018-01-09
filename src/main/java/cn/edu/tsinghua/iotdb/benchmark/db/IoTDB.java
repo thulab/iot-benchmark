@@ -418,6 +418,7 @@ public class IoTDB implements IDatebase {
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
+			
 			startTimeStamp = System.currentTimeMillis();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
@@ -431,6 +432,7 @@ public class IoTDB implements IDatebase {
 			}
 			statement.close();
 			endTimeStamp = System.currentTimeMillis();
+			
 //			LOGGER.info("{}",builder.toString());
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
@@ -449,7 +451,14 @@ public class IoTDB implements IDatebase {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!"+sql);
+			mySql.saveQueryProcess(index, 0, -1, "query fail!"+sql);
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			errorCount.set(errorCount.get() + 1);
+			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
+			LOGGER.error("执行失败的查询语句：{}", sql);
+			mySql.saveQueryProcess(index, 0, -1, "query fail!"+sql);
 			e.printStackTrace();
 		}
 		finally{
