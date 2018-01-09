@@ -168,6 +168,15 @@ public class Config {
 
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
+	
+	//benchmark 运行模式
+	public String BENCHMARK_WORK_MODE="";
+	//the file path of import data
+	public String IMPORT_DATA_FILE_PATH = "";
+	//import csv数据文件时的BATCH
+	public int BATCH_EXECUTE_COUNT = 5000;
+	//mataData文件路径
+	public String METADATA_FILE_PATH = "";
 
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;

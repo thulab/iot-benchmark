@@ -110,6 +110,10 @@ public class ConfigDescriptor {
 				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
 				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
 
+				config.BENCHMARK_WORK_MODE = properties.getProperty("BENCHMARK_WORK_MODE", "");
+				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
+				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
+				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
