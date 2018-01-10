@@ -172,6 +172,7 @@ public class Config {
 	
 	public int MAX_CONNECTION_NUM = 2000;
 	public String CONCURRENCY_URL = "jdbc:tsfile://127.0.0.1:6667/";
+	public boolean CONCURRENCY_QUERY_FULL_DATA = false;
 
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;

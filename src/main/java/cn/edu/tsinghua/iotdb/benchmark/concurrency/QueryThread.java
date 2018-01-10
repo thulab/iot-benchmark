@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +23,24 @@ public class QueryThread implements Runnable {
 	
 	@Override
 	public void run() {
+		List<String> paths = App.getAllTimeSeries();
+		if(paths== null || paths.size() == 0){
+			LOGGER.info("{} exits, because the query timeSeries path set is empty!",Thread.currentThread().getId());
+			return ;
+		}
+		int size = paths.size();
+		Random random = new Random();
 		try {
 			connection =  DriverManager.getConnection(url,
 					ConcurrentConfig.USER_NAME,
 					ConcurrentConfig.PASSWORD);
 			Statement statement = connection.createStatement();
 			int i = 0;
+			String sql="";
 			while(true){
 				int count = 0;
-				statement.execute(ConcurrentConfig.QUERY_SQL);
+				sql = String.format(ConcurrentConfig.QUERY_SQL, paths.get(random.nextInt(size)) );
+				statement.execute(sql);
 				ResultSet resultSet = statement.getResultSet();
 				while(resultSet.next()){
 					count++;
@@ -37,9 +48,7 @@ public class QueryThread implements Runnable {
 				statement.close();
 				i++;
 				LOGGER.info("{} executes {} times count numer {}",
-						Thread.currentThread().getId(),
-						i,
-						count);
+						Thread.currentThread().getId(), i, count);
 			}
 		} catch (Exception e) {
 			LOGGER.error("{} encouters an exception at {} because of {}", 
