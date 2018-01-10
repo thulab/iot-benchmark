@@ -46,7 +46,6 @@ public class QueryThread implements Runnable {
 				while(resultSet.next()){
 					count++;
 				}
-				statement.close();
 				i++;
 				LOGGER.info("{} executes {} times count numer {}",
 						Thread.currentThread().getId(), i, count);
