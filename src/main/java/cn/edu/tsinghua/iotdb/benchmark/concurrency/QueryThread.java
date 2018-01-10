@@ -30,13 +30,14 @@ public class QueryThread implements Runnable {
 		}
 		int size = paths.size();
 		Random random = new Random();
+		String sql = "";
 		try {
 			connection =  DriverManager.getConnection(url,
 					ConcurrentConfig.USER_NAME,
 					ConcurrentConfig.PASSWORD);
 			Statement statement = connection.createStatement();
 			int i = 0;
-			String sql="";
+			
 			while(true){
 				int count = 0;
 				sql = String.format(ConcurrentConfig.QUERY_SQL, paths.get(random.nextInt(size)) );
@@ -55,6 +56,7 @@ public class QueryThread implements Runnable {
 					Thread.currentThread().getId(), 
 					url,
 					e.getMessage());
+			LOGGER.error("query statement is {} ", sql);
 		} finally {
 			if(statement != null){
 				try {

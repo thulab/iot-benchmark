@@ -23,19 +23,18 @@ public class App {
 
 	public static List<String> allTimeSeries = null;
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-	private static Config config = ConfigDescriptor.getInstance().getConfig();
 	public static void main(String[] args) throws ClassNotFoundException {
 		CommandCli cli = new CommandCli();
 		if (!cli.init(args)) {
 			return;
 		}
-
+		Config config = ConfigDescriptor.getInstance().getConfig();
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
 		getAllTimeSeries();
 		ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
-		Config config = ConfigDescriptor.getInstance().getConfig();
 		for (int i = 0; i < config.MAX_CONNECTION_NUM; i++) {
 			cachedThreadPool.execute(new QueryThread(config.CONCURRENCY_URL));
+			LOGGER.info("Create thread {}, the url is {}!",config.CONCURRENCY_URL);
 		}
 
 	}
@@ -44,10 +43,12 @@ public class App {
 		if(allTimeSeries != null){
 			return allTimeSeries;
 		}
+		Config config = ConfigDescriptor.getInstance().getConfig();
 		if(config.CONCURRENCY_QUERY_FULL_DATA){
 			allTimeSeries.add("root");
 			return allTimeSeries;
 		}
+		LOGGER.info("start query timeSeries info ...");
 		Connection connection = null;
 		allTimeSeries = new ArrayList<String>();
 		try {
@@ -66,6 +67,7 @@ public class App {
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
+			LOGGER.error("Meet error in get timeSeries path, because {}",e.getMessage());
 			e.printStackTrace();
 		} finally {
 			if (connection != null) {
