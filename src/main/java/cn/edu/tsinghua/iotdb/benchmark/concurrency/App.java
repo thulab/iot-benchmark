@@ -34,7 +34,7 @@ public class App {
 		ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 		for (int i = 0; i < config.MAX_CONNECTION_NUM; i++) {
 			cachedThreadPool.execute(new QueryThread(config.CONCURRENCY_URL));
-			LOGGER.info("Create thread {}, the url is {}!",config.CONCURRENCY_URL);
+			LOGGER.info("Create thread {}, the url is {}!",i,config.CONCURRENCY_URL);
 		}
 
 	}
@@ -52,8 +52,7 @@ public class App {
 		Connection connection = null;
 		allTimeSeries = new ArrayList<String>();
 		try {
-			connection = DriverManager.getConnection(
-					"jdbc:tsfile://192.168.130.18:6667/", "root", "root");
+			connection = DriverManager.getConnection(config.CONCURRENCY_URL, "root", "root");
 			ResultSet resultSet = connection.getMetaData().getColumns(null,
 					null, "root.*", null);
 			Set<String> tmp = new HashSet<String>();
