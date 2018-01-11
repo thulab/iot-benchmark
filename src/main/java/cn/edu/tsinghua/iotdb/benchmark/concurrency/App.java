@@ -44,13 +44,14 @@ public class App {
 			return allTimeSeries;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
+		allTimeSeries = new ArrayList<String>();
 		if(config.CONCURRENCY_QUERY_FULL_DATA){
 			allTimeSeries.add("root");
 			return allTimeSeries;
 		}
 		LOGGER.info("start query timeSeries info ...");
 		Connection connection = null;
-		allTimeSeries = new ArrayList<String>();
+		
 		try {
 			connection = DriverManager.getConnection(config.CONCURRENCY_URL, "root", "root");
 			ResultSet resultSet = connection.getMetaData().getColumns(null,
