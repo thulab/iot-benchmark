@@ -35,11 +35,12 @@ public class QueryThread implements Runnable {
 			connection =  DriverManager.getConnection(url,
 					ConcurrentConfig.USER_NAME,
 					ConcurrentConfig.PASSWORD);
-			Statement statement = connection.createStatement();
+			Statement statement = null;
 			int i = 0;
 			
 			while(true){
 				int count = 0;
+				statement = connection.createStatement();
 				sql = String.format(ConcurrentConfig.QUERY_SQL, paths.get(random.nextInt(size)) );
 				statement.execute(sql);
 				ResultSet resultSet = statement.getResultSet();
@@ -47,6 +48,7 @@ public class QueryThread implements Runnable {
 					count++;
 				}
 				i++;
+				connection.close();
 				LOGGER.info("{} executes {} times count numer {}",
 						Thread.currentThread().getId(), i, count);
 			}
