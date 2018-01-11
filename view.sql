@@ -150,4 +150,5 @@ END IF;
 END $$ 
 
 DELIMITER ;
+
 CALL creatView();

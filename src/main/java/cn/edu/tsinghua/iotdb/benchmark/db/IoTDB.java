@@ -952,6 +952,7 @@ public class IoTDB implements IDatebase {
 	public void getUnitPointStorageSize() throws SQLException {
 		File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
 		if (dataDir.exists() && dataDir.isDirectory()) {
+
 			long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta") ;
 			//long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
 			long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow") ;
@@ -964,6 +965,7 @@ public class IoTDB implements IDatebase {
 					, config.ENCODING, deltaSize, overflowSize);
 			mySql.saveResult("DeltaSize",String.valueOf(deltaSize));
 			mySql.saveResult("OverflowSize",String.valueOf(overflowSize));
+
 		} else {
 			LOGGER.info("Can not find data directory!");
 		}
@@ -1022,6 +1024,66 @@ public class IoTDB implements IDatebase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public int exeSQLFromFileByOneBatch() throws SQLException{
+		Statement statement;
+		int count = 0;
+		int[] result;
+		int errorNum = 0;
+		File file = new File(config.SQL_FILE);
+		if(file.exists()) {
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(file));
+
+				try {
+					statement = connection.createStatement();
+					String line = null;
+					while ((line = br.readLine()) != null ) {
+						if(!line.startsWith("#") && !line.equals("")) {
+							String sql = line;
+							statement.addBatch(sql);
+						}
+						count++;
+					}
+					long startTime = System.currentTimeMillis();
+					result = statement.executeBatch();
+					statement.clearBatch();
+					statement.close();
+					long endTime = System.currentTimeMillis();
+					long costTime = endTime - startTime;
+					for (int i = 0; i < result.length; i++) {
+						if (result[i] == -1) {
+							errorNum++;
+						}
+					}
+					if (errorNum > 0) {
+						LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+					} else {
+						LOGGER.info("Execute SQL from file , it costs {} seconds, mean rate {} SQL/s",
+								costTime / 1000.0f,
+								1000.0f * count / costTime
+								);
+					}
+
+					//mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,config.REMARK);
+
+				} catch (SQLException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+
+
+		} else {
+			LOGGER.error("Execute SQL from file mode: SQL file not found.");
+		}
+		return 0;
 	}
 
 	private void writeSQLIntoFile(String sql, String gen_data_file_path) {

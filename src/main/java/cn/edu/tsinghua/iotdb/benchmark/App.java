@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,6 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+	private static final Logger LOGGER_RESULT = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
@@ -140,6 +142,41 @@ public class App {
 	}
 	
 
+	private static void executeSQLFromFile(Config config) throws SQLException, ClassNotFoundException{
+		MySqlLog mysql = new MySqlLog();
+		mysql.initMysql(System.currentTimeMillis());
+		IDBFactory idbFactory = null;
+		idbFactory = getDBFactory(config);
+		IDatebase datebase;
+		long exeSQLFromFileStartTime;
+		long exeSQLFromFileEndTime;
+		float exeSQLFromFileTime = 1;
+		int SQLCount = 0;
+		try {
+			datebase = idbFactory.buildDB(mysql.getLabID());
+			datebase.init();
+			exeSQLFromFileStartTime = System.currentTimeMillis();
+			SQLCount = datebase.exeSQLFromFileByOneBatch();
+			datebase.close();
+			exeSQLFromFileEndTime = System.currentTimeMillis();
+			exeSQLFromFileTime = (exeSQLFromFileEndTime - exeSQLFromFileStartTime) / 1000.0f;
+		} catch (SQLException e) {
+			LOGGER.error("Fail to init database becasue {}", e.getMessage());
+			return;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		LOGGER.info("Execute SQL from file {} by one batch cost {} seconds. Mean rate {} SQL/s",
+				config.SQL_FILE,
+				exeSQLFromFileTime,
+				1.0f * SQLCount / exeSQLFromFileTime
+				);
+
+
+		//加入新版的mysql表中
+		mysql.closeMysql();
+	}
+
 	private static void genData(Config config) throws SQLException, ClassNotFoundException  {
 		//一次生成一个timeseries的数据
 		MySqlLog mysql = new MySqlLog();
@@ -232,6 +269,7 @@ public class App {
 			ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
+        
 		mysql.saveTestModel("Double", config.ENCODING);
 		mysql.savaTestConfig();
 		
@@ -332,8 +370,55 @@ public class App {
 					config.CLIENT_NUMBER,
 					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
-			LOGGER.info("Total error num is {}, create schema cost {},s",
+			LOGGER.info("Total error num is {}, create schema cost ,{},s",
 						totalErrorPoint, createSchemaTime);
+
+			/*
+			LOGGER_RESULT.error(
+					"Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},IS_OVERFLOW=,{}",
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
+			*/
+
+			LOGGER_RESULT.error(
+					"Writing test parameters: GROUP_NUMBER={}, DEVICE_NUMBER={}, SENSOR_NUMBER={}, CACHE_NUM={}, POINT_STEP={}, LOOP={}, MUL_DEV_BATCH={}, IS_OVERFLOW={}",
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+					config.CACHE_NUM, config.POINT_STEP,
+					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
+
+			/*
+			LOGGER_RESULT.error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds",
+					totalPoints,
+					totalTime / 1000.0f,
+					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
+					totalErrorPoint,
+					createSchemaTime);
+			*/
+
+			HashMap<String,String> lastPeriodResults = getLastPeriodResults(config);
+			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+			float lastRate = 1;
+			if (file.exists()) {
+				LOGGER_RESULT.error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds.",
+						lastPeriodResults.get("WriteTotalPoint"),
+						lastPeriodResults.get("WriteTotalTime"),
+						lastPeriodResults.get("WriteMeanRate"),
+						lastPeriodResults.get("WriteErrorNum"),
+						lastPeriodResults.get("WriteSchemaCost"));
+				lastRate = Float.parseFloat(lastPeriodResults.get("WriteMeanRate"));
+			}
+
+			float thisRate = 1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime;
+			LOGGER_RESULT.error("This period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds. Mean rate change {} %.",
+					totalPoints,
+					totalTime / 1000.0f,
+					thisRate,
+					totalErrorPoint,
+					createSchemaTime,
+					((thisRate - lastRate) / lastRate * 100)
+			);
+
 
 			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
 			mysql.saveResult("totalPoints", ""+totalPoints);
@@ -345,6 +430,7 @@ public class App {
 		
 		
 	}
+
 
 	private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase) throws SQLException {
 		long totalErrorPoint ;
@@ -359,6 +445,130 @@ public class App {
 				throw new SQLException("unsupported database " + config.DB_SWITCH);
 		}
 		return totalErrorPoint;
+  }
+  
+	private static HashMap<String,String> getLastPeriodResults(Config config) {
+		File dir = new File(config.LAST_RESULT_PATH);
+		HashMap<String,String> lastResults = new HashMap<>();
+		if (dir.exists() && dir.isDirectory()) {
+			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+			if (file.exists()) {
+				BufferedReader br = null;
+				try {
+					br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+				String line = null;
+
+
+				try {
+					while ((line = br.readLine()) != null) {
+						String[] writeResult = line.split("\\s+");
+						if (writeResult[0].startsWith("This")) {
+							if (writeResult[2].startsWith("load")) {
+								lastResults.put("WriteTotalPoint", writeResult[3]);
+								lastResults.put("WriteTotalTime", writeResult[6]);
+								lastResults.put("WriteMeanRate", writeResult[10]);
+								lastResults.put("WriteErrorNum", writeResult[17]);
+								lastResults.put("WriteSchemaCost", writeResult[22]);
+							} else if (writeResult[2].startsWith("Exa")) {
+								lastResults.put("ExaQueryNum", writeResult[6]);
+								lastResults.put("ExaQueryTime", writeResult[9]);
+								lastResults.put("ExaQueryResults", writeResult[12]);
+								lastResults.put("ExaQueryWorkers", writeResult[16]);
+								lastResults.put("ExaQueryRate", writeResult[20]);
+								lastResults.put("ExaQueryPointRate", writeResult[23]);
+								lastResults.put("ExaQueryErrorNum", writeResult[31]);
+							} else if (writeResult[2].startsWith("Fuz")) {
+								lastResults.put("FuzQueryNum", (writeResult[6]));
+								lastResults.put("FuzQueryTime", (writeResult[9]));
+								lastResults.put("FuzQueryResults", (writeResult[12]));
+								lastResults.put("FuzQueryWorkers", (writeResult[16]));
+								lastResults.put("FuzQueryRate", (writeResult[20]));
+								lastResults.put("FuzQueryPointRate", (writeResult[23]));
+								lastResults.put("FuzQueryErrorNum", (writeResult[31]));
+							} else if (writeResult[2].startsWith("Agg")) {
+								lastResults.put("AggQueryNum", (writeResult[6]));
+								lastResults.put("AggQueryTime", (writeResult[9]));
+								lastResults.put("AggQueryResults", (writeResult[12]));
+								lastResults.put("AggQueryWorkers", (writeResult[16]));
+								lastResults.put("AggQueryRate", (writeResult[20]));
+								lastResults.put("AggQueryPointRate", (writeResult[23]));
+								lastResults.put("AggQueryErrorNum", (writeResult[31]));
+							} else if (writeResult[2].startsWith("Ran")) {
+								lastResults.put("RanQueryNum", (writeResult[5]));
+								lastResults.put("RanQueryTime", (writeResult[8]));
+								lastResults.put("RanQueryResults", (writeResult[11]));
+								lastResults.put("RanQueryWorkers", (writeResult[15]));
+								lastResults.put("RanQueryRate", (writeResult[19]));
+								lastResults.put("RanQueryPointRate", (writeResult[22]));
+								lastResults.put("RanQueryErrorNum", (writeResult[30]));
+							} else if (writeResult[2].startsWith("Cri")) {
+								lastResults.put("CriQueryNum", (writeResult[5]));
+								lastResults.put("CriQueryTime", (writeResult[8]));
+								lastResults.put("CriQueryResults", (writeResult[11]));
+								lastResults.put("CriQueryWorkers", (writeResult[15]));
+								lastResults.put("CriQueryRate", (writeResult[19]));
+								lastResults.put("CriQueryPointRate", (writeResult[22]));
+								lastResults.put("CriQueryErrorNum", (writeResult[30]));
+							} else if (writeResult[2].startsWith("Nea")) {
+								lastResults.put("NeaQueryNum", (writeResult[6]));
+								lastResults.put("NeaQueryTime", (writeResult[9]));
+								lastResults.put("NeaQueryResults", (writeResult[12]));
+								lastResults.put("NeaQueryWorkers", (writeResult[16]));
+								lastResults.put("NeaQueryRate", (writeResult[20]));
+								lastResults.put("NeaQueryPointRate", (writeResult[23]));
+								lastResults.put("NeaQueryErrorNum",(writeResult[31]));
+							} else if (writeResult[2].startsWith("Gro")) {
+								lastResults.put("GroQueryNum", (writeResult[6]));
+								lastResults.put("GroQueryTime", (writeResult[9]));
+								lastResults.put("GroQueryResults", (writeResult[12]));
+								lastResults.put("GroQueryWorkers", (writeResult[16]));
+								lastResults.put("GroQueryRate", (writeResult[20]));
+								lastResults.put("GroQueryPointRate", (writeResult[23]));
+								lastResults.put("GroQueryErrorNum", (writeResult[31]));
+							}
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}else{
+				LOGGER.warn("上一次测试结果的对比文件不存在");
+			}
+		}else{
+			LOGGER.warn("上一次测试结果的路径不存在");
+		}
+			/*以下代码功能在脚本中实现了
+			//读取上一次的结果完毕，删除上一次的结果文件
+			if (file.exists()) {
+				boolean f = file.delete();
+				if (!f) {
+					LOGGER.error("上一次测试结果的对比文件删除失败");
+				}
+			} else {
+				LOGGER.error("上一次测试结果的对比文件不存在");
+			}
+			//获取进程
+			Runtime run = Runtime.getRuntime();
+			Process process = null;
+			//将本次产生的新结果作为下一次测试的上一次测试结果文件
+			String command = "cp  " + config.LAST_RESULT_PATH + "/log_result_info.txt" + "  " + config.LAST_RESULT_PATH + "/lastPeriodResult.txt";
+			System.out.println(command);
+			//执行doc命令
+			try {
+				process = run.exec(command);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}else{
+			LOGGER.error("上一次测试结果的路径不存在");
+		}
+			*/
+
+		return lastResults;
+
 	}
 
 	private static IDBFactory getDBFactory(Config config) throws SQLException{
@@ -413,7 +623,9 @@ public class App {
 			LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
 			return;
 		}
+
 		mySql.saveTestModel("Double", config.ENCODING);
+
 		mySql.savaTestConfig();
 
 		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
@@ -440,19 +652,84 @@ public class App {
 		long totalResultPoint = getSumOfList(totalPoints);
 
 		LOGGER.info(
-				"execute query ,{}, times in ,{},s with ,{}, result points by ,{}, workers (mean rate ,{}, points/s)",
+				"{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
+				getQueryName(config),
 				config.CLIENT_NUMBER * config.LOOP, totalTime / 1000.0f, totalResultPoint, config.CLIENT_NUMBER,
 				(1000.0f * totalResultPoint) / ((float) totalTime));
 
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
+
+		/*
+		LOGGER_RESULT.error("{}: execute,{},query in,{},seconds, get,{},result points with,{},workers, mean rate,{},query/s,{},points/s; Total error point number is,{}",
+				getQueryName(config),
+				config.CLIENT_NUMBER * config.LOOP,
+				totalTime / 1000.0f,
+				totalResultPoint,
+				config.CLIENT_NUMBER,
+				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
+				(1000.0f * totalResultPoint) / ((float) totalTime),
+				totalErrorPoint);
+		*/
+
+		HashMap<String,String> lastPeriodResults = getLastPeriodResults(config);
+		File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
+		float lastRate = 1;
+		if (file.exists()) {
+			LOGGER_RESULT.error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} .",
+					getQueryName(config),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryNum"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryTime"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryResults"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryWorkers"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryPointRate"),
+					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryErrorNum"));
+			lastRate = Float.parseFloat(lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"));
+		}
+
+		float thisRate = 1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime;
+		LOGGER_RESULT.error("This period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} . Mean rate change {} %.",
+				getQueryName(config),
+				config.CLIENT_NUMBER * config.LOOP,
+				totalTime / 1000.0f,
+				totalResultPoint,
+				config.CLIENT_NUMBER,
+				thisRate,
+				(1000.0f * totalResultPoint) / ((float) totalTime),
+				totalErrorPoint,
+				((thisRate - lastRate) / lastRate * 100)
+		);
+
 		
 		mySql.saveResult("queryNumber", ""+config.CLIENT_NUMBER * config.LOOP);
 		mySql.saveResult("totalPoint", ""+totalResultPoint);
 		mySql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
 		mySql.saveResult("resultPointPerSecond(points/s)", ""+(1000.0f * (totalResultPoint) )/  totalTime);
 		mySql.saveResult("totalErrorQuery", ""+totalErrorPoint);
+
 		mySql.closeMysql();
+	}
+
+	private static String getQueryName(Config config) throws SQLException {
+		switch (config.QUERY_CHOICE){
+			case 1:
+				return "Exact Point Query";
+			case 2:
+				return "Fuzzy Point Query";
+			case 3:
+				return "Aggregation Function Query";
+			case 4:
+				return "Range Query";
+			case 5:
+				return "Criteria Query";
+			case 6:
+				return "Nearest Point Query";
+			case 7:
+				return "Group By Query";
+			default:
+				throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
+		}
 	}
 
 	/** 计算list中所有元素的和 */

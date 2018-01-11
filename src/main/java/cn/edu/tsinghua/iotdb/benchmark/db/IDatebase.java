@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,4 +23,6 @@ public interface IDatebase {
 	void createSchemaOfDataGen() throws SQLException;
 
 	void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
+
+    int exeSQLFromFileByOneBatch() throws SQLException, IOException;
 }

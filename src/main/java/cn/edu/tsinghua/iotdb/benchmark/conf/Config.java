@@ -67,6 +67,14 @@ public class Config {
 	public String TIMESERIES_VALUE_SCOPE ;
 	/**样例数据生成路径及文件名*/
 	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
+	/**上一次结果的日志路径*/
+	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
+
+	public String OTHER_MODE_CHOICE = "1";
+	/**是否运行在OTHER模式下*/
+	public boolean IS_OTHER_MODE = false;
+	/**存放SQL语句文件的完整路径*/
+	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
 
 	/** 文件的名字 */
 	public String FILE_PATH ;

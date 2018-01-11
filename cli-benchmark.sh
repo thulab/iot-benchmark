@@ -25,21 +25,25 @@ echo Testing ${DB#*=} ...
 mvn clean package -Dmaven.test.skip=true
 
 #synchronize config server benchmark
-if [ "${IP#*=}" != "127.0.0.1" ]; then
-    ssh $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
-    scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
-    #start server system information recording
-    ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
-fi
+#ssh -p 1309 $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
+#scp -P 1309 $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
 
-if [ "${GEN_DATA_MODE#*=}" = "false" ]; then
-    if [ "${DB#*=}" = "IoTDB" -a "${QUERY_MODE#*=}" = "false" ]; then
-        echo "initial database in server..."
-        ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
-        ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
-        echo 'wait a few seconds for lauching IoTDB...'
-        sleep 20
-    fi
+ssh $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
+scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
+
+#start server system information recording
+#ssh -p 1309 $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
+
+ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
+
+if [ "${DB#*=}" = "IoTDB" -a "${QUERY_MODE#*=}" = "false" ]; then
+  echo "initial database in server..."
+  #ssh -p 1309 $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
+  #ssh -p 1309 $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
+  ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
+  ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
+  echo 'wait a few seconds for lauching IoTDB...'
+  sleep 20
 fi
 
 echo '------Client Test Begin Time------'
@@ -47,6 +51,7 @@ date
 cd bin
 sh startup.sh -cf ../conf/config.properties
 wait
+
 if [ "${IP#*=}" != "127.0.0.1" ]; then
     #stop server system information recording
     ssh $SERVER_HOST "touch $LOG_STOP_FLAG_PATH/log_stop_flag"
@@ -58,6 +63,7 @@ fi
     #ssh $SERVER_HOST "tail -n 2 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_info.log
     #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
 #fi
+
 
 echo '------Client Test Complete Time------'
 date
