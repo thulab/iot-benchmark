@@ -163,6 +163,8 @@ public class Config {
 			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
+	public boolean IS_SAVE_DATAMODEL = false;
+	
 	public String REMARK = "";
 	public String VERSION = "";
 	
@@ -174,6 +176,15 @@ public class Config {
 
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
+	
+	//benchmark 运行模式
+	public String BENCHMARK_WORK_MODE="";
+	//the file path of import data
+	public String IMPORT_DATA_FILE_PATH = "";
+	//import csv数据文件时的BATCH
+	public int BATCH_EXECUTE_COUNT = 5000;
+	//mataData文件路径
+	public String METADATA_FILE_PATH = "";
 
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;

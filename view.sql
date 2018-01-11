@@ -6,7 +6,7 @@ DROP PROCEDURE IF EXISTS `creatView`;
 DELIMITER $$ 
 
 CREATE PROCEDURE exists_view(IN viewName VARCHAR(500), OUT re BOOLEAN)   
- BEGIN   
+BEGIN   
    DECLARE num INT;
    SELECT COUNT(information_schema.VIEWS.TABLE_SCHEMA) INTO num
 	FROM information_schema.VIEWS
@@ -150,4 +150,5 @@ END IF;
 END $$ 
 
 DELIMITER ;
+
 CALL creatView();

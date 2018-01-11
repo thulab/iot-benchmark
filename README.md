@@ -13,7 +13,8 @@ IoTDB-benchmark's features are as following:
 
 1. Easy to use. IoTDB-benchmark is a tool combined multiple testing functions so users do not need to switch different tools. 
 2. Different writing test model: Load existing data from file; Generate real-time data continuously.
-3. Surpporting storing testing information and results for further query or analysis.
+3. Supporting storing testing information and results for further query or analysis.
+4. Integration with Jenkins to report test result automatically.
 
 # Prerequisites
 
@@ -64,6 +65,7 @@ HOST=192.168.130.9
 PORT=6667
 DB_SWITCH=IoTDB
 SERVER_MODE=false
+IS_GEN_DATA=false
 GROUP_NUMBER = 10
 DEVICE_NUMBER=100
 SENSOR_NUMBER=100
@@ -303,6 +305,7 @@ TIMESERIES_NAME=wf02.wt02.hardware
 TIMESERIES_TYPE=TEXT
 ENCODING=PLAIN
 TIMESERIES_VALUE_SCOPE=v1,v2
+TEST
 ```
 
 > NOTE:

@@ -186,7 +186,7 @@ public class IoTDB implements IDatebase {
 			ThreadLocal<Long> errorCount) {
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			int timeStep = config.CACHE_NUM / deviceCodes.size();
@@ -198,6 +198,8 @@ public class IoTDB implements IDatebase {
 					}
 				}
 			}else{
+				//随机重排，无法准确控制overflow比例
+				/*
 				int shuffleSize = (int) (config.OVERFLOW_RATIO * timeStep);
 				int[] shuffleSequence = new int[shuffleSize];
 				for(int i = 0; i < shuffleSize; i++){
@@ -223,6 +225,30 @@ public class IoTDB implements IDatebase {
 						statement.addBatch(sql);
 					}
 				}
+				*/
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * timeStep);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+
+				int tmp = shuffleSequence[shuffleSize-1];
+				shuffleSequence[shuffleSize-1] = shuffleSequence[0];
+				shuffleSequence[0] = tmp;
+
+				for (int i = 0; i < shuffleSize; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, shuffleSequence[i], device);
+						statement.addBatch(sql);
+					}
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					for (String device : deviceCodes) {
+						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
+						statement.addBatch(sql);
+					}
+				}
+
 			}
 
 			// 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
@@ -246,14 +272,15 @@ public class IoTDB implements IDatebase {
 
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
 						(totalTime.get() + costTime) / 1000.0,
 						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
 				totalTime.set(totalTime.get() + costTime);
-				errorCount.set(errorCount.get() + errorNum);
 			}
+			errorCount.set(errorCount.get() + errorNum);
 			mySql.saveInsertProcess(loopIndex, costTime / 1000.0, totalTime.get() / 1000.0, errorNum, config.REMARK);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -265,7 +292,7 @@ public class IoTDB implements IDatebase {
 			ThreadLocal<Long> errorCount) {
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			if(!config.IS_OVERFLOW) {
@@ -274,6 +301,8 @@ public class IoTDB implements IDatebase {
 					statement.addBatch(sql);
 				}
 			}else{
+				//随机重排，无法准确控制overflow比例
+				/*
 				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
 				int[] shuffleSequence = new int[shuffleSize];
 				for(int i = 0; i < shuffleSize; i++){
@@ -294,6 +323,27 @@ public class IoTDB implements IDatebase {
 					String sql = createSQLStatment(loopIndex, i, device);
 					statement.addBatch(sql);
 				}
+				*/
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+				int[] shuffleSequence = new int[shuffleSize];
+				for(int i = 0; i < shuffleSize; i++){
+					shuffleSequence[i] = i;
+				}
+
+				int tmp = shuffleSequence[shuffleSize-1];
+				shuffleSequence[shuffleSize-1] = shuffleSequence[0];
+				shuffleSequence[0] = tmp;
+
+				for (int i = 0; i < shuffleSize; i++) {
+					String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
+					statement.addBatch(sql);
+				}
+				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+					String sql = createSQLStatment(loopIndex, i, device);
+					statement.addBatch(sql);
+				}
+
+
 			}
 			long startTime = System.currentTimeMillis();
 			result = statement.executeBatch();
@@ -308,14 +358,15 @@ public class IoTDB implements IDatebase {
 			}
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
 						(totalTime.get() + costTime) / 1000.0,
 						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
 				totalTime.set(totalTime.get() + costTime);
-				errorCount.set(errorCount.get() + errorNum);
 			}
+			errorCount.set(errorCount.get() + errorNum);
 
 			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
 					config.REMARK);
@@ -331,7 +382,7 @@ public class IoTDB implements IDatebase {
 
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			for (String sql : cons) {
@@ -352,14 +403,15 @@ public class IoTDB implements IDatebase {
 
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
 						Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
 						((totalTime.get() + (endTime - startTime)) / 1000.0),
 						(cons.size() / (double) (endTime - startTime)) * 1000);
 				totalTime.set(totalTime.get() + (endTime - startTime));
-				errorCount.set(errorCount.get() + errorNum);
 			}
+			errorCount.set(errorCount.get() + errorNum);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -415,6 +467,7 @@ public class IoTDB implements IDatebase {
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
+			
 			startTimeStamp = System.currentTimeMillis();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
@@ -428,6 +481,7 @@ public class IoTDB implements IDatebase {
 			}
 			statement.close();
 			endTimeStamp = System.currentTimeMillis();
+			
 //			LOGGER.info("{}",builder.toString());
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
@@ -446,7 +500,14 @@ public class IoTDB implements IDatebase {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!"+sql);
+			mySql.saveQueryProcess(index, 0, -1, "query fail!"+sql);
+			e.printStackTrace();
+		}
+		catch (Exception e) {
+			errorCount.set(errorCount.get() + 1);
+			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
+			LOGGER.error("执行失败的查询语句：{}", sql);
+			mySql.saveQueryProcess(index, 0, -1, "query fail!"+sql);
 			e.printStackTrace();
 		}
 		finally{
@@ -891,16 +952,20 @@ public class IoTDB implements IDatebase {
 	public void getUnitPointStorageSize() throws SQLException {
 		File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
 		if (dataDir.exists() && dataDir.isDirectory()) {
-			long walSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/wals") ;
-			long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
-			long metadataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/metadata") ;
+
 			long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta") ;
+			//long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
 			long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow") ;
-			float pointByteSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") *
-					1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
-					config.CACHE_NUM);
-			LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: data ,{}, wal ,{}, metadata ,{},KB"
-					, pointByteSize, config.ENCODING, dataSize, walSize, metadataSize);
+		//	float pointByteSize = (deltaSize + overflowSize) *
+		//			1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
+		//			config.CACHE_NUM);
+		//	LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
+		//			, pointByteSize, config.ENCODING, deltaSize, overflowSize);
+			LOGGER.info("ENCODING = {} , dir size: delta {} KB ;overflow {} KB "
+					, config.ENCODING, deltaSize, overflowSize);
+			mySql.saveResult("DeltaSize",String.valueOf(deltaSize));
+			mySql.saveResult("OverflowSize",String.valueOf(overflowSize));
+
 		} else {
 			LOGGER.info("Can not find data directory!");
 		}
@@ -922,7 +987,7 @@ public class IoTDB implements IDatebase {
 	public void insertGenDataOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
 		Statement statement;
 		int[] result;
-		int errorNum = 0;
+		long errorNum = 0;
 		try {
 			statement = connection.createStatement();
 			for (int i = 0; i < config.CACHE_NUM; i++) {
@@ -943,14 +1008,15 @@ public class IoTDB implements IDatebase {
 			}
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
 						(totalTime.get() + costTime) / 1000.0,
 						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
 				totalTime.set(totalTime.get() + costTime);
-				errorCount.set(errorCount.get() + errorNum);
 			}
+			errorCount.set(errorCount.get() + errorNum);
 
 			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
 					config.REMARK);
@@ -1022,18 +1088,21 @@ public class IoTDB implements IDatebase {
 
 	private void writeSQLIntoFile(String sql, String gen_data_file_path) {
 		BufferedWriter out = null;
-		try {
-			out = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(gen_data_file_path, true)));
-			out.write(sql);
-			out.newLine();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
+		File dir = new File(gen_data_file_path);
+		if(dir.exists()&&dir.isDirectory()) {
 			try {
-				out.close();
-			} catch (IOException e) {
+				out = new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream(gen_data_file_path + Constants.SAMPLE_DATA_FILE_NAME, true)));
+				out.write(sql);
+				out.newLine();
+			} catch (Exception e) {
 				e.printStackTrace();
+			} finally {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

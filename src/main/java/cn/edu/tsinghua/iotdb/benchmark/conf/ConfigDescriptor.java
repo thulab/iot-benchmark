@@ -93,6 +93,7 @@ public class ConfigDescriptor {
 				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
 						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");
 				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
+				config.IS_SAVE_DATAMODEL = Boolean.parseBoolean(properties.getProperty("IS_SAVE_DATAMODEL", config.IS_SAVE_DATAMODEL+""));
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
@@ -113,6 +114,10 @@ public class ConfigDescriptor {
 				config.OTHER_MODE_CHOICE = properties.getProperty("OTHER_MODE_CHOICE", config.OTHER_MODE_CHOICE);
 				config.SQL_FILE = properties.getProperty("SQL_FILE", config.SQL_FILE);
 
+				config.BENCHMARK_WORK_MODE = properties.getProperty("BENCHMARK_WORK_MODE", "");
+				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
+				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
+				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
