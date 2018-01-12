@@ -39,6 +39,7 @@ public class QueryThread implements Runnable {
 		String sql = "";
 		try {
 			connection = DriverManager.getConnection(url, ConcurrentConfig.USER_NAME, ConcurrentConfig.PASSWORD);
+			App.addConnectionSuccess();
 			Statement statement = null;
 			int i = 0;
 			statement = connection.createStatement();
@@ -57,7 +58,7 @@ public class QueryThread implements Runnable {
 					LOGGER.info("{} executes {} times count numer {}", Thread.currentThread().getId(), i, count);
 				}
 			}
-			App.add();
+			App.addQuerySuccess();;
 		} catch (Exception e) {
 			LOGGER.error("{} encouters an exception at {} because of {}", Thread.currentThread().getId(), url,
 					e.getMessage());

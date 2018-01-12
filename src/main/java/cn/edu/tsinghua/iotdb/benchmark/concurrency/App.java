@@ -24,7 +24,8 @@ public class App {
 
 	public static List<String> allTimeSeries = null;
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-	public static long clientNum = (long) 0;
+	public static long clientNumQuerySuccess = (long) 0;
+	public static long clientNumConnectionSuccess = (long) 0;
 	
 	public static void main(String[] args) throws ClassNotFoundException, InterruptedException {
 		CommandCli cli = new CommandCli();
@@ -41,7 +42,8 @@ public class App {
 		}
 		cachedThreadPool.shutdown();
 		cachedThreadPool.awaitTermination((long)1800, TimeUnit.MINUTES);
-		LOGGER.info("The successful thread num is {}!", clientNum);
+		LOGGER.info("成功连接到IOTDB的线程数目为： {}， 成功执行完所有查询的线程数目为：{} !", 
+				clientNumConnectionSuccess, clientNumQuerySuccess);
 	}
 
 	public static List<String> getAllTimeSeries() {
@@ -88,7 +90,10 @@ public class App {
 		return allTimeSeries;
 	}
 
-	public synchronized static void add() {
-		clientNum++;
+	public synchronized static void addQuerySuccess() {
+		clientNumQuerySuccess++;
+	}
+	public synchronized static void addConnectionSuccess() {
+		clientNumConnectionSuccess++;
 	}
 }
