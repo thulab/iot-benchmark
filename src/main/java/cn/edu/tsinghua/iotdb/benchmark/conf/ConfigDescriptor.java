@@ -115,6 +115,7 @@ public class ConfigDescriptor {
 				config.MAX_CONNECTION_NUM = Integer.parseInt(properties.getProperty("MAX_CONNECTION_NUM", config.MAX_CONNECTION_NUM+""));
 				config.CONCURRENCY_URL = properties.getProperty("CONCURRENCY_URL", config.CONCURRENCY_URL);
 				config.CONCURRENCY_QUERY_FULL_DATA = Boolean.parseBoolean(properties.getProperty("CONCURRENCY_QUERY_FULL_DATA", config.CONCURRENCY_QUERY_FULL_DATA+""));
+				config.CONCURRENCY_LOOP = Integer.parseInt(properties.getProperty("CONCURRENCY_LOOP", config.CONCURRENCY_LOOP+""));
 				System.out.println(config.CONCURRENCY_URL);
 				System.out.println("CONCURRENCY_QUERY_FULL_DATA = " + config.CONCURRENCY_QUERY_FULL_DATA);
 			} catch (IOException e) {

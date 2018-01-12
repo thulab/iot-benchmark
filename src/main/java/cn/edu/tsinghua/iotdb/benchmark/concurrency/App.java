@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,9 @@ public class App {
 
 	public static List<String> allTimeSeries = null;
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-	public static void main(String[] args) throws ClassNotFoundException {
+	public static long clientNum = (long) 0;
+	
+	public static void main(String[] args) throws ClassNotFoundException, InterruptedException {
 		CommandCli cli = new CommandCli();
 		if (!cli.init(args)) {
 			return;
@@ -33,10 +36,12 @@ public class App {
 		getAllTimeSeries();
 		ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 		for (int i = 0; i < config.MAX_CONNECTION_NUM; i++) {
-			cachedThreadPool.execute(new QueryThread(config.CONCURRENCY_URL));
+			cachedThreadPool.execute(new QueryThread(config));
 			LOGGER.info("Create thread {}, the url is {}!",i,config.CONCURRENCY_URL);
 		}
-
+		cachedThreadPool.shutdown();
+		cachedThreadPool.awaitTermination((long)1800, TimeUnit.MINUTES);
+		LOGGER.info("The successful thread num is {}!", clientNum);
 	}
 
 	public static List<String> getAllTimeSeries() {
@@ -59,7 +64,6 @@ public class App {
 			Set<String> tmp = new HashSet<String>();
 			while (resultSet.next()) {
 				tmp.add(resultSet.getString(1).substring(0, resultSet.getString(1).lastIndexOf('.')));
-				//System.out.println(resultSet.getString(1));
 			}
 			for (String str : tmp){
 				allTimeSeries.add(str);
@@ -84,4 +88,7 @@ public class App {
 		return allTimeSeries;
 	}
 
+	public synchronized static void add() {
+		clientNum++;
+	}
 }
