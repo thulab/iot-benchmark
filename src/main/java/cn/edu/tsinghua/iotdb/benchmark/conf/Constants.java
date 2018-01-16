@@ -33,7 +33,7 @@ public class Constants {
 	public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
 	public static final String MODE_SERVER_MODE = "serverMODE";
 	public static final String MODE_INSERT_TEST_WITH_USERDEFINED_PATH = "insertTestWithUserDefinedPath";
-
+	public static final String MODE_EXECUTE_SQL_FROM_FILE = "executeSQLFromFile";
 
 	public static final String EXE_SQL_FROM_FILE_MODE = "1";
 

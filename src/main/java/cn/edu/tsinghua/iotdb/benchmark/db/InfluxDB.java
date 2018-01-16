@@ -228,7 +228,7 @@ public class InfluxDB implements IDatebase {
     }
 
     @Override
-    public int exeSQLFromFileByOneBatch() {
-        return 0;
+    public void exeSQLFromFileByOneBatch() {
+
     }
 }

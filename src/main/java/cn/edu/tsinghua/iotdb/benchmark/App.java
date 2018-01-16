@@ -37,24 +37,26 @@ public class App {
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
 		switch (config.BENCHMARK_WORK_MODE) {
-		case Constants.MODE_SERVER_MODE:
-			serverMode(config);
-			break;
-		case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
-			insertTest(config);
-			break;
-		case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
-			genData(config);
-			break;
-		case Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH:
-			queryTest(config);
-			break;
-		case Constants.MODE_IMPORT_DATA_FROM_CSV:
-			importDataFromCSV(config);
-			break;
-		default:
-			throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
-	}
+			case Constants.MODE_SERVER_MODE:
+				serverMode(config);
+				break;
+			case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
+				insertTest(config);
+				break;
+			case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
+				genData(config);
+				break;
+			case Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH:
+				queryTest(config);
+				break;
+			case Constants.MODE_IMPORT_DATA_FROM_CSV:
+				importDataFromCSV(config);
+				break;
+			case Constants.MODE_EXECUTE_SQL_FROM_FILE:
+				executeSQLFromFile(config);
+			default:
+				throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
+		}
 		
 	}// main
 	
@@ -139,7 +141,6 @@ public class App {
 			LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 		}
 	}
-	
 
 	private static void executeSQLFromFile(Config config) throws SQLException, ClassNotFoundException{
 		MySqlLog mysql = new MySqlLog();
@@ -155,7 +156,7 @@ public class App {
 			datebase = idbFactory.buildDB(mysql.getLabID());
 			datebase.init();
 			exeSQLFromFileStartTime = System.currentTimeMillis();
-			SQLCount = datebase.exeSQLFromFileByOneBatch();
+			datebase.exeSQLFromFileByOneBatch();
 			datebase.close();
 			exeSQLFromFileEndTime = System.currentTimeMillis();
 			exeSQLFromFileTime = (exeSQLFromFileEndTime - exeSQLFromFileStartTime) / 1000.0f;
@@ -165,12 +166,13 @@ public class App {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		LOGGER.info("Execute SQL from file {} by one batch cost {} seconds. Mean rate {} SQL/s",
-				config.SQL_FILE,
-				exeSQLFromFileTime,
-				1.0f * SQLCount / exeSQLFromFileTime
-				);
-
+	/*
+	LOGGER.info("Execute SQL from file {} by one batch cost {} seconds. Mean rate {} SQL/s",
+			config.SQL_FILE,
+			exeSQLFromFileTime,
+			1.0f * SQLCount / exeSQLFromFileTime
+			);
+	*/
 
 		//加入新版的mysql表中
 		mysql.closeMysql();
