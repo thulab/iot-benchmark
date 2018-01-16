@@ -27,7 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-	private static final Logger LOGGER_RESULT = LoggerFactory.getLogger(App.class);
+	//private static final Logger LOGGER_RESULT = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
@@ -108,15 +108,14 @@ public class App {
 				}
 			}
 
-			MySqlLog mysql = new MySqlLog();
-			mysql.initMysql(System.currentTimeMillis());
+			/*
 			IDBFactory idbFactory = null;
 			idbFactory = getDBFactory(config);
 
 			IDatebase datebase;
 
 			try {
-				datebase = idbFactory.buildDB(mysql.getLabID());
+				datebase = idbFactory.buildDB(mySql.getLabID());
 				datebase.init();
 				LOGGER.info("Before flush:");
 				datebase.getUnitPointStorageSize();
@@ -129,7 +128,7 @@ public class App {
 				LOGGER.error("Fail to init database becasue {}", e.getMessage());
 				return;
 			}
-
+*/
 
 			mySql.closeMysql();
 
@@ -381,11 +380,13 @@ public class App {
 					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
 			*/
 
+			/*weekly test的日志输出
 			LOGGER_RESULT.error(
 					"Writing test parameters: GROUP_NUMBER={}, DEVICE_NUMBER={}, SENSOR_NUMBER={}, CACHE_NUM={}, POINT_STEP={}, LOOP={}, MUL_DEV_BATCH={}, IS_OVERFLOW={}",
 					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
 					config.CACHE_NUM, config.POINT_STEP,
 					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
+			weekly test的日志输出
 
 			/*
 			LOGGER_RESULT.error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds",
@@ -396,6 +397,7 @@ public class App {
 					createSchemaTime);
 			*/
 
+			/*weekly test的日志输出
 			HashMap<String,String> lastPeriodResults = getLastPeriodResults(config);
 			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
 			float lastRate = 1;
@@ -418,7 +420,7 @@ public class App {
 					createSchemaTime,
 					((thisRate - lastRate) / lastRate * 100)
 			);
-
+			weekly test的日志输出*/
 
 			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
 			mysql.saveResult("totalPoints", ""+totalPoints);
@@ -671,7 +673,7 @@ public class App {
 				(1000.0f * totalResultPoint) / ((float) totalTime),
 				totalErrorPoint);
 		*/
-
+		/*weekly test的日志输出
 		HashMap<String,String> lastPeriodResults = getLastPeriodResults(config);
 		File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
 		float lastRate = 1;
@@ -700,7 +702,7 @@ public class App {
 				totalErrorPoint,
 				((thisRate - lastRate) / lastRate * 100)
 		);
-
+		weekly test的日志输出*/
 		
 		mySql.saveResult("queryNumber", ""+config.CLIENT_NUMBER * config.LOOP);
 		mySql.saveResult("totalPoint", ""+totalResultPoint);
