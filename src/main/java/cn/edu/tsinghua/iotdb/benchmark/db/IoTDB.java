@@ -528,7 +528,7 @@ public class IoTDB implements IDatebase {
 				String type = getTypeByField(sensor);
 				statement.execute(String.format(createStatementFromFileSQL,
 						path + "." + sensor, type, mp.get(type)));
-			} else if(config.IS_GEN_DATA){
+			} else if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)){
 				statement.execute(String.format(createStatementFromFileSQL,
 						path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING));
 				writeSQLIntoFile(String.format(createStatementFromFileSQL,
@@ -577,7 +577,7 @@ public class IoTDB implements IDatebase {
 			statement = connection.createStatement();
 			if (config.READ_FROM_FILE) {
 				statement.execute(String.format(setStorageLevelSQL, device));
-			} else if(config.IS_GEN_DATA){
+			} else if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)){
 				statement.execute(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME));
 				writeSQLIntoFile(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME),config.GEN_DATA_FILE_PATH);
 			} else {
