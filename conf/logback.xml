@@ -114,9 +114,7 @@
 	</appender>
 
 
-	<logger name="cn.edu.tsinghua.iotdb.benchmark.App" level="INFO" additivity="false">
-		<appender-ref ref="RESULTINFO"/>
-	</logger>
+
 
 	<root level="INFO">
 		<appender-ref ref="FILEDEBUG" />
