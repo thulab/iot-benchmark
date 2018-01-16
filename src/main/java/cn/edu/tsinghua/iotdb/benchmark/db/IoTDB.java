@@ -528,7 +528,7 @@ public class IoTDB implements IDatebase {
 				String type = getTypeByField(sensor);
 				statement.execute(String.format(createStatementFromFileSQL,
 						path + "." + sensor, type, mp.get(type)));
-			} else if(config.IS_GEN_DATA){
+			} else if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)){
 				statement.execute(String.format(createStatementFromFileSQL,
 						path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING));
 				writeSQLIntoFile(String.format(createStatementFromFileSQL,
@@ -577,7 +577,7 @@ public class IoTDB implements IDatebase {
 			statement = connection.createStatement();
 			if (config.READ_FROM_FILE) {
 				statement.execute(String.format(setStorageLevelSQL, device));
-			} else if(config.IS_GEN_DATA){
+			} else if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)){
 				statement.execute(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME));
 				writeSQLIntoFile(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME),config.GEN_DATA_FILE_PATH);
 			} else {
@@ -1027,16 +1027,19 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
-	public int exeSQLFromFileByOneBatch() throws SQLException{
+	public void exeSQLFromFileByOneBatch() throws SQLException{
 		Statement statement;
 		int count = 0;
-		int[] result;
+		long startTime;
+		long endTime;
+		long costTime;
+		long totalCostTime = 0;
 		int errorNum = 0;
 		File file = new File(config.SQL_FILE);
 		if(file.exists()) {
 			try {
 				BufferedReader br = new BufferedReader(new FileReader(file));
-
+				/*
 				try {
 					statement = connection.createStatement();
 					String line = null;
@@ -1053,19 +1056,64 @@ public class IoTDB implements IDatebase {
 					statement.close();
 					long endTime = System.currentTimeMillis();
 					long costTime = endTime - startTime;
-					for (int i = 0; i < result.length; i++) {
-						if (result[i] == -1) {
-							errorNum++;
+					*/
+
+
+				try {
+					statement = connection.createStatement();
+					String sql = null;
+					int line = 0;
+					while ((sql = br.readLine()) != null ) {
+						line ++;
+						if(!sql.startsWith("#") && !sql.equals("")) {
+							count++;
+							int lines = 0;
+
+							startTime = System.currentTimeMillis();
+							try {
+								boolean hasResult = statement.execute(sql);
+								if (hasResult) {
+									ResultSet resultSet = statement.getResultSet();
+									while (resultSet.next()) {
+										lines++;
+//				int sensorNum = sensorList.size();
+//				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
+//				for (int i = 1; i <= sensorNum; i++) {
+//					builder.append(resultSet.getString(i)).append("; ");
+//				}
+									}
+								}
+							}catch (SQLException e){
+								errorNum++;
+								LOGGER.error("Line {} : Execute ' {} ' failed ! Because {}",
+										line,
+										sql,
+										e
+								);
+							}
+							statement.close();
+							endTime = System.currentTimeMillis();
+
+							costTime = endTime - startTime;
+							totalCostTime += costTime;
+							LOGGER.info("Execute one SQL from file, resultSet size is {}, it costs {} ms, current total time {} ms, the SQL : {}",
+									lines,
+									costTime,
+									totalCostTime,
+									sql
+							);
 						}
 					}
-					if (errorNum > 0) {
-						LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-					} else {
-						LOGGER.info("Execute SQL from file , it costs {} seconds, mean rate {} SQL/s",
-								costTime / 1000.0f,
-								1000.0f * count / costTime
-								);
-					}
+
+
+
+					LOGGER.info("Execute {} SQL from file finished, it costs {} seconds, mean rate {} SQL/s . {} SQL execute failed.",
+							count,
+							totalCostTime / 1000.0f,
+							1000.0f * (count - errorNum) / totalCostTime,
+							errorNum
+					);
+
 
 					//mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,config.REMARK);
 
@@ -1083,8 +1131,8 @@ public class IoTDB implements IDatebase {
 		} else {
 			LOGGER.error("Execute SQL from file mode: SQL file not found.");
 		}
-		return 0;
 	}
+
 
 	private void writeSQLIntoFile(String sql, String gen_data_file_path) {
 		BufferedWriter out = null;

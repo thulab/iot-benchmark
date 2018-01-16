@@ -23,17 +23,17 @@ public class Constants {
 	
 	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 	
-	public static final String[] QUERY_CHOICE_NAME = {" ","精确点查询","模糊点查询","聚合函数查询",
-		"范围查询（限制起止时间）","条件查询","最近点查询","groupBy查询"};
+	public static final String[] QUERY_CHOICE_NAME = {" ","Precise","Fuzzy","Aggregation",
+		"Range","Criteria","Nearest Point","Group By"};
 
 	public static final String SAMPLE_DATA_FILE_NAME = "sampleData.txt";
 	
-	public static final String MODE_IMPORT_DATA_FROM_CSV = "importDateFromCSV";
+	public static final String MODE_IMPORT_DATA_FROM_CSV = "importDataFromCSV";
 	public static final String MODE_QUERY_TEST_WITH_DEFAULT_PATH = "queryTestWithDefaultPath"; 
 	public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
 	public static final String MODE_SERVER_MODE = "serverMODE";
 	public static final String MODE_INSERT_TEST_WITH_USERDEFINED_PATH = "insertTestWithUserDefinedPath";
-
+	public static final String MODE_EXECUTE_SQL_FROM_FILE = "executeSQLFromFile";
 
 	public static final String EXE_SQL_FROM_FILE_MODE = "1";
 

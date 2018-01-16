@@ -24,5 +24,5 @@ public interface IDatebase {
 
 	void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException;
 
-    int exeSQLFromFileByOneBatch() throws SQLException, IOException;
+    void exeSQLFromFileByOneBatch() throws SQLException, IOException;
 }

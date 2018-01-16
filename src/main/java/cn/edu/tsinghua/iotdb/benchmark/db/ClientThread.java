@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class ClientThread implements Runnable{
 				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
 			}
 			while(i < config.LOOP){
-				if(config.IS_GEN_DATA){
+				if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)){
 					try {
 						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + "." + config.TIMESERIES_NAME, i, totalTime, errorCount);
 					} catch (SQLException e) {

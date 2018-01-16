@@ -59,7 +59,7 @@ public class InfluxDBV2 implements IDatebase {
 		InfluxURL = config.INFLUX_URL;
 		InfluxDBName = config.INFLUX_DB_NAME;
 		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
-		if (config.IS_QUERY_TEST) {
+		if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
 			if (!influxDB.databaseExists(InfluxDBName)) {
 				throw new SQLException("要查询的数据库" + InfluxDBName + "不存在！");
 			}
@@ -567,8 +567,8 @@ public class InfluxDBV2 implements IDatebase {
     }
 
 	@Override
-	public int exeSQLFromFileByOneBatch() {
-		return 0;
+	public void exeSQLFromFileByOneBatch() {
+
 	}
 
 //    /**

@@ -68,7 +68,6 @@ public class ConfigDescriptor {
 				config.BATCH_OP_NUM = Integer.parseInt(properties.getProperty("BATCH_OP_NUM", config.BATCH_OP_NUM+""));
 				config.TAG_PATH = Boolean.parseBoolean(properties.getProperty("TAG_PATH", config.TAG_PATH+""));
 				config.STORE_MODE = Integer.parseInt(properties.getProperty("STORE_MODE", config.STORE_MODE+""));
-				config.SERVER_MODE = Boolean.parseBoolean(properties.getProperty("SERVER_MODE", config.SERVER_MODE+""));
 				config.INTERVAL = Integer.parseInt(properties.getProperty("INTERVAL", config.INTERVAL+""));
 				config.CLIENT_NUMBER = Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.CLIENT_NUMBER+""));
 				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
@@ -78,8 +77,6 @@ public class ConfigDescriptor {
 
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
-
-				config.IS_QUERY_TEST = Boolean.parseBoolean(properties.getProperty("IS_QUERY_TEST", config.IS_QUERY_TEST+""));
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
 				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
 				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));
@@ -101,7 +98,6 @@ public class ConfigDescriptor {
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				config.IS_GEN_DATA = Boolean.parseBoolean(properties.getProperty("IS_GEN_DATA", config.IS_GEN_DATA+""));
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
 				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);
 				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);
@@ -110,8 +106,6 @@ public class ConfigDescriptor {
 				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
 				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
 				config.LAST_RESULT_PATH = properties.getProperty("LAST_RESULT_PATH", config.LAST_RESULT_PATH);
-				config.IS_OTHER_MODE = Boolean.parseBoolean(properties.getProperty("IS_OTHER_MODE", config.IS_OTHER_MODE+""));
-				config.OTHER_MODE_CHOICE = properties.getProperty("OTHER_MODE_CHOICE", config.OTHER_MODE_CHOICE);
 				config.SQL_FILE = properties.getProperty("SQL_FILE", config.SQL_FILE);
 
 				config.BENCHMARK_WORK_MODE = properties.getProperty("BENCHMARK_WORK_MODE", "");

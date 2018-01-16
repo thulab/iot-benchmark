@@ -49,14 +49,11 @@ public class Config {
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
 
-	/**服务器性能监测模式*/
-	public boolean SERVER_MODE = false;
+
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
-	/**是否运行在样例数据生成模式*/
- 	public boolean IS_GEN_DATA = false;
 	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 	/**一个样例数据的时序名称*/
@@ -70,9 +67,6 @@ public class Config {
 	/**上一次结果的日志路径*/
 	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
 
-	public String OTHER_MODE_CHOICE = "1";
-	/**是否运行在OTHER模式下*/
-	public boolean IS_OTHER_MODE = false;
 	/**存放SQL语句文件的完整路径*/
 	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
 
@@ -150,7 +144,6 @@ public class Config {
 	public int QUERY_DEVICE_NUM = 1;
 	public int QUERY_CHOICE = 1;
 	public String QUERY_AGGREGATE_FUN = "";
-	public boolean IS_QUERY_TEST = true;
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;

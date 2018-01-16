@@ -36,7 +36,6 @@ public class MySqlLog {
 			InetAddress localhost = InetAddress.getLocalHost();
 			localName = localhost.getHostName();
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("获取本机主机名称失败;UnknownHostException：{}", e.getMessage());
 			e.printStackTrace();
 		}
@@ -56,11 +55,9 @@ public class MySqlLog {
 				mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
 				initTable();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				LOGGER.error("mysql 初始化失败，原因是：{}", e.getMessage());
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				LOGGER.error("mysql 连接初始化失败，原因是：{}", e.getMessage());
 				e.printStackTrace();
 			}
@@ -73,7 +70,7 @@ public class MySqlLog {
 		Statement stat = null;
 		try {
 			stat = mysqlConnection.createStatement();
-			if (config.SERVER_MODE) {
+			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)) {
 				if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
 					stat.executeUpdate("create table SERVER_MODE_"
 							+ localName
@@ -118,14 +115,14 @@ public class MySqlLog {
 				stat.executeUpdate("create table RESULT (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), result_key VARCHAR(150), result_value VARCHAR(150))AUTO_INCREMENT = 1;");
 				LOGGER.info("Table RESULT create success!");
 			}
-			if (config.IS_QUERY_TEST && !hasTable(projectID)) {
+			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH) && !hasTable(projectID)) {
 				stat.executeUpdate("create table "
 						+ projectID
 						+ "(id BIGINT, clientName varchar(50), "
 						+ "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, remark varchar(6000), primary key(id,clientName))");
 				LOGGER.info("Table {} create success!", projectID);
 			}
-			if (!config.IS_QUERY_TEST && !hasTable(projectID)) {
+			if (!config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH) && !hasTable(projectID)) {
 				stat.executeUpdate("create table "
 						+ projectID
 						+ "(id BIGINT, clientName varchar(50), "
@@ -133,7 +130,6 @@ public class MySqlLog {
 				LOGGER.info("Table {} create success!", projectID);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("mysql 创建表格失败,原因是：{}", e.getMessage());
 			e.printStackTrace();
 		} finally {
@@ -141,7 +137,6 @@ public class MySqlLog {
 				if (stat != null)
 					stat.close();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -164,7 +159,6 @@ public class MySqlLog {
 				stat.executeUpdate(mysqlSql);
 				stat.close();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				LOGGER.error(
 						"{} save queryProcess info into mysql failed! Error：{}",
 						Thread.currentThread().getName(), e.getMessage());
@@ -196,7 +190,6 @@ public class MySqlLog {
 				stat.executeUpdate(mysqlSql);
 				stat.close();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				LOGGER.error(
 						"{} save queryProcess info into mysql failed! Error:{}",
 						Thread.currentThread().getName(), e.getMessage());
@@ -220,7 +213,6 @@ public class MySqlLog {
 						net_send, "'" + remark + "'");
 				stat.executeUpdate(sql);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql,
 						e.getMessage());
 				e.printStackTrace();
@@ -229,7 +221,6 @@ public class MySqlLog {
 					try {
 						stat.close();
 					} catch (SQLException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -253,7 +244,6 @@ public class MySqlLog {
 					+ "'", "'" + encoding + "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("{}将结果信息写入mysql失败，because ：{}", sql, e.getMessage());
 			e.printStackTrace();
 		} finally {
@@ -261,7 +251,6 @@ public class MySqlLog {
 				try {
 					stat.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -284,7 +273,7 @@ public class MySqlLog {
 					+ field + "'", "'" + type + "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+
 			LOGGER.error("{}InfluxDBDataModel写入mysql失败，because ：{}", sql, e.getMessage());
 			e.printStackTrace();
 		} finally {
@@ -292,7 +281,7 @@ public class MySqlLog {
 				try {
 					stat.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
+
 					e.printStackTrace();
 				}
 			}
@@ -312,7 +301,7 @@ public class MySqlLog {
 					+ "'", "'" + v + "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+
 			LOGGER.error("{}将结果信息写入mysql失败，because ：{}", sql, e.getMessage());
 			e.printStackTrace();
 		} finally {
@@ -320,7 +309,7 @@ public class MySqlLog {
 				try {
 					stat.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
+
 					e.printStackTrace();
 				}
 			}
@@ -341,7 +330,7 @@ public class MySqlLog {
 					+ "'", "'" + v + "'");
 			stat.executeUpdate(sql);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+
 			LOGGER.error("{}将配置信息写入mysql失败，because ：{}", sql, e.getMessage());
 			e.printStackTrace();
 		} finally {
@@ -349,7 +338,7 @@ public class MySqlLog {
 				try {
 					stat.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
+
 					e.printStackTrace();
 				}
 			}
@@ -364,7 +353,7 @@ public class MySqlLog {
 		if (!config.IS_SAVE_DATAMODEL) {
 			return;
 		}
-		if (config.IS_GEN_DATA) {
+		if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
 			switch (config.DB_SWITCH) {
 			case Constants.DB_IOT:
 				this.saveIoTDBDataModel(config.TIMESERIES_NAME, config.STORAGE_GROUP_NAME+"."+config.TIMESERIES_NAME, type,encoding);
@@ -420,11 +409,11 @@ public class MySqlLog {
 		String sql = "";
 		try {
 			stat = mysqlConnection.createStatement();
-			if (config.IS_GEN_DATA) {
+			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'MODE'", "'GEN_DATA_MODE'");
 				stat.addBatch(sql);
-			} else if(config.IS_QUERY_TEST) {
+			} else if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'MODE'", "'QUERY_TEST_MODE'");
 				stat.addBatch(sql);
@@ -463,7 +452,7 @@ public class MySqlLog {
 			sql = String.format(SAVE_CONFIG, "'" + projectID + "'", "'LOOP'",
 					"'" + config.LOOP + "'");
 			stat.addBatch(sql);
-			if (config.IS_GEN_DATA) {
+			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'STORAGE_GROUP_NAME'", "'" + config.STORAGE_GROUP_NAME + "'");
 				stat.addBatch(sql);
@@ -483,7 +472,7 @@ public class MySqlLog {
 						"'POINT_STEP'", "'" + config.POINT_STEP + "'");
 				stat.addBatch(sql);
 			}
-			else if (config.IS_QUERY_TEST) {// 查询测试
+			else if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {// 查询测试
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'查询数据集存储组数'",
 						"'" + config.GROUP_NUMBER + "'");
@@ -597,7 +586,6 @@ public class MySqlLog {
 			}
 			stat.executeBatch();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			LOGGER.error("{}将配置信息写入mysql失败，because ：{}", sql, e.getMessage());
 			e.printStackTrace();
 		} finally {
@@ -605,7 +593,6 @@ public class MySqlLog {
 				try {
 					stat.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -618,7 +605,6 @@ public class MySqlLog {
 				try {
 					mysqlConnection.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
 					LOGGER.error("mysql 连接关闭失败,原因是：{}", e.getMessage());
 					e.printStackTrace();
 				}
