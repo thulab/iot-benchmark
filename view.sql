@@ -6,7 +6,7 @@ DROP PROCEDURE IF EXISTS `creatView`;
 DELIMITER $$ 
 
 CREATE PROCEDURE exists_view(IN viewName VARCHAR(500), OUT re BOOLEAN)   
-BEGIN   
+ BEGIN   
    DECLARE num INT;
    SELECT COUNT(information_schema.VIEWS.TABLE_SCHEMA) INTO num
 	FROM information_schema.VIEWS
@@ -23,16 +23,21 @@ END $$
 
 CREATE PROCEDURE creatView()
 BEGIN
-DECLARE isExits BOOLEAN;
+DECLARE isExits1 BOOLEAN;
+DECLARE isExits2 BOOLEAN;
+DECLARE isExits3 BOOLEAN;
+DECLARE isExits4 BOOLEAN;
+DECLARE isExits5 BOOLEAN;
+DECLARE isExits6 BOOLEAN;
 
-CALL exists_view('insertResult',isExits);
-SELECT isExits;
-IF(isExits = FALSE) THEN
+CALL exists_view('insertResultView',isExits1);
+SELECT isExits1;
+IF(isExits1 = FALSE) THEN
 CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `insertResult` (projectID,createSchemaTime,totalPoints,totalTimes,totalErrorPoint)
+    VIEW `insertResultView` (projectID,createSchemaTime,totalPoints,totalTimes,totalErrorPoint)
     AS
 (SELECT a.projectID,a.result_value,b.result_value,c.result_value,d.result_value FROM (
 (SELECT projectID, result_value FROM RESULT WHERE result_key = 'createSchemaTime(s)') a  JOIN 
@@ -42,14 +47,14 @@ CREATE
 );
 END IF;
 
-CALL exists_view('queryResult',isExits);
-SELECT isExits;
-IF(isExits = FALSE) THEN
+CALL exists_view('queryResultView',isExits2);
+SELECT isExits2;
+IF(isExits2 = FALSE) THEN
 CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `queryResult`(projectID,queryNumber,totalPoints,totalTimes,totalErrorPoint,resultPointPerSecond)
+    VIEW `queryResultView`(projectID,queryNumber,totalPoints,totalTimes,totalErrorPoint,resultPointPerSecond)
     AS
 (SELECT a.projectID,a.result_value,b.result_value,c.result_value,d.result_value,e.result_value FROM 
 (SELECT projectID, result_value FROM RESULT WHERE result_key = 'queryNumber') a  JOIN 
@@ -60,14 +65,14 @@ CREATE
 );
 END IF;
 
-CALL exists_view('configCommonInfo',isExits);
-SELECT isExits;
-IF(isExits = FALSE) THEN
+CALL exists_view('configCommonInfoView',isExits3);
+SELECT isExits3;
+IF(isExits3 = FALSE) THEN
 CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `configCommonInfo`(projectID,`mode`,dbSwitch,`version`,clientNumber,`loop`,serverIP,clientName)
+    VIEW `configCommonInfoView`(projectID,`mode`,dbSwitch,`version`,clientNumber,`loop`,serverIP,clientName)
     AS
 (SELECT a.projectID,a.configuration_value,b.configuration_value,c.configuration_value,d.configuration_value,e.configuration_value ,f.configuration_value,g.configuration_value FROM 
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'MODE') a  JOIN 
@@ -80,19 +85,19 @@ CREATE
 );
 END IF;
 
-CALL exists_view('configInsertInfo',isExits);
-SELECT isExits;
-IF(isExits = FALSE) THEN
+CALL exists_view('configInsertInfoView',isExits4);
+SELECT isExits4;
+IF(isExits4 = FALSE) THEN
 CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `configInsertInfo`(projectID,`mode`,dbSwitch,`version`,clientNumber,`loop`,serverIP,clientName,
+    VIEW `configInsertInfoView`(projectID,`mode`,dbSwitch,`version`,clientNumber,`loop`,serverIP,clientName,
     IS_OVERFLOW,MUL_DEV_BATCH,GROUP_NUMBER,DEVICE_NUMBER,SENSOR_NUMBER,CACHE_NUM,POINT_STEP,ENCODING)
     AS
 (SELECT  DISTINCT (a.projectID),a.mode,a.dbSwitch,a.version,a.clientNumber,a.loop,a.serverIP,a.clientName,aa.configuration_value,
 b.configuration_value,d.configuration_value,e.configuration_value ,f.configuration_value,g.configuration_value ,h.configuration_value,i.configuration_value FROM 
-(SELECT * FROM configCommonInfo ) a  JOIN
+(SELECT * FROM configCommonInfoView ) a  JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'IS_OVERFLOW') aa  ON a.projectID = aa.projectID JOIN 
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'MUL_DEV_BATCH') b ON a.projectID = b.projectID JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'GROUP_NUMBER') d ON a.projectID = d.projectID JOIN
@@ -104,14 +109,14 @@ b.configuration_value,d.configuration_value,e.configuration_value ,f.configurati
 );
 END IF;
 
-CALL exists_view('configQueryBasicInfo',isExits);
-SELECT isExits;
-IF(isExits = FALSE) THEN
+CALL exists_view('configQueryBasicInfoView',isExits5);
+SELECT isExits5;
+IF(isExits5 = FALSE) THEN
 CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `configQueryBasicInfo`(projectID,QUERY_CHOICE,QUERY_DEVICE_NUM,QUERY_SENSOR_NUM,查询数据集存储组数,查询数据集设备数,查询数据集传感器数,IOTDB编码方式)
+    VIEW `configQueryBasicInfoView`(projectID,QUERY_CHOICE,QUERY_DEVICE_NUM,QUERY_SENSOR_NUM,查询数据集存储组数,查询数据集设备数,查询数据集传感器数,IOTDB编码方式)
     AS
 (SELECT a.projectID,a.configuration_value,b.configuration_value,c.configuration_value,d.configuration_value,e.configuration_value ,f.configuration_value,g.configuration_value  FROM 
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'QUERY_CHOICE') a  JOIN 
@@ -125,20 +130,20 @@ CREATE
 
 END IF;
 
-CALL exists_view('configQueryInfo',isExits);
-SELECT isExits;
-IF(isExits = FALSE) THEN
+CALL exists_view('configQueryInfoView',isExits6);
+SELECT isExits6;
+IF(isExits6 = FALSE) THEN
 CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `configQueryInfo`(projectID,QUERY_CHOICE,`LOOP`,CLIENT_NUMBER,QUERY_DEVICE_NUM,QUERY_SENSOR_NUM,IS_RESULTSET_NULL,QUERY_AGGREGATE_FUN,
+    VIEW `configQueryInfoView`(projectID,dbSwitch,`version`,QUERY_CHOICE,`LOOP`,CLIENT_NUMBER,QUERY_DEVICE_NUM,QUERY_SENSOR_NUM,IS_RESULTSET_NULL,QUERY_AGGREGATE_FUN,
     TIME_INTERVAL,FILTRATION_CONDITION,TIME_UNIT)
     AS
-(SELECT  DISTINCT (a.projectID),a.QUERY_CHOICE, aa.loop, aa.clientNumber,a.QUERY_DEVICE_NUM,a.QUERY_SENSOR_NUM,
+(SELECT  DISTINCT (a.projectID),aa.dbSwitch,aa.version,a.QUERY_CHOICE, aa.loop, aa.clientNumber,a.QUERY_DEVICE_NUM,a.QUERY_SENSOR_NUM,
 b.configuration_value,d.configuration_value,e.configuration_value ,f.configuration_value,g.configuration_value FROM 
-(SELECT projectID,QUERY_CHOICE,QUERY_DEVICE_NUM,QUERY_SENSOR_NUM FROM configQueryBasicInfo) a  JOIN
-(SELECT projectID, `loop`,clientNumber FROM configCommonInfo) aa  ON a.projectID = aa.projectID LEFT JOIN 
+(SELECT projectID,QUERY_CHOICE,QUERY_DEVICE_NUM,QUERY_SENSOR_NUM FROM configQueryBasicInfoView) a  JOIN
+(SELECT projectID, `loop`,clientNumber,dbSwitch,`version` FROM configCommonInfoView) aa  ON a.projectID = aa.projectID LEFT JOIN 
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'IS_RESULTSET_NULL') b ON a.projectID = b.projectID LEFT JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'QUERY_AGGREGATE_FUN') d ON a.projectID = d.projectID LEFT  JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'TIME_INTERVAL') e ON a.projectID = e.projectID LEFT  JOIN
@@ -147,8 +152,8 @@ b.configuration_value,d.configuration_value,e.configuration_value ,f.configurati
 );
 END IF;
 
+
 END $$ 
 
 DELIMITER ;
-
 CALL creatView();
