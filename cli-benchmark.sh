@@ -15,11 +15,11 @@ FLAG_AND_DATA_PATH=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/config.prope
 SERVER_HOST=$HOST_NAME@${IP#*=}
 LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
 
-#change to client mode
-sed -i 's/SERVER_MODE *= *true/SERVER_MODE=false/g' $BENCHMARK_HOME/conf/config.properties
+#get mode parameter
+#sed -i 's/SERVER_MODE *= *true/SERVER_MODE=false/g' $BENCHMARK_HOME/conf/config.properties
+BENCHMARK_WORK_MODE=$(grep "BENCHMARK_WORK_MODE" $BENCHMARK_HOME/conf/config.properties)
 DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
-QUERY_MODE=$(grep "IS_QUERY_TEST" $BENCHMARK_HOME/conf/config.properties)
-GEN_DATA_MODE=$(grep "IS_GEN_DATA" $BENCHMARK_HOME/conf/config.properties)
+
 echo Testing ${DB#*=} ...
 
 mvn clean package -Dmaven.test.skip=true
@@ -36,7 +36,7 @@ scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/c
 
 ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
 
-if [ "${DB#*=}" = "IoTDB" -a "${QUERY_MODE#*=}" = "false" ]; then
+if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
   COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;git rev-parse HEAD")
   sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
   echo "initial database in server..."
@@ -61,7 +61,7 @@ fi
 
 #ssh $SERVER_HOST "grep Statistic $LOG_STOP_FLAG_PATH/logs/log_info.log | tail -n 1 " >> $BENCHMARK_HOME/logs/MemoryMonitor.log
 
-#if [ "${DB#*=}" = "IoTDB" -a "${QUERY_MODE#*=}" = "false" ]; then
+#if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
     #ssh $SERVER_HOST "tail -n 2 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_info.log
     #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
 #fi
