@@ -98,6 +98,9 @@ public class ConfigDescriptor {
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
+				config.PASSWARD = properties.getProperty("PASSWARD", "no passward");
+				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
+				
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
 				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);
 				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);

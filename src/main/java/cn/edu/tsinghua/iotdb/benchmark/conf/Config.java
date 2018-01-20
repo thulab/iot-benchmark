@@ -25,8 +25,8 @@ public class Config {
 
 	}
 
-	public String host;
-	public String port;
+	public String host="127.0.0.1";
+	public String port="6667";
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
@@ -54,6 +54,11 @@ public class Config {
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
+ 	/**iotdb登录用户的密码*/
+ 	public String PASSWARD = "";
+ 	/**存储系统性能信息的文件路径*/
+ 	public String SERVER_MODE_INFO_FILE = "";
+ 	
 	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 	/**一个样例数据的时序名称*/
