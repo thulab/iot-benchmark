@@ -28,6 +28,7 @@ mvn clean package -Dmaven.test.skip=true
 #ssh -p 1309 $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
 #scp -P 1309 $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
 
+#IP is localhost not trigger off server mode
 if [ "${IP#*=}" != "127.0.0.1" ]; then
     ssh $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
     scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
@@ -36,7 +37,9 @@ fi
 #start server system information recording
 #ssh -p 1309 $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
 
-ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
+if [ "${IP#*=}" != "127.0.0.1" ]; then
+    ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
+fi
 
 if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
   COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;git rev-parse HEAD")
