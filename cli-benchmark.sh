@@ -28,8 +28,10 @@ mvn clean package -Dmaven.test.skip=true
 #ssh -p 1309 $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
 #scp -P 1309 $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
 
-ssh $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
-scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
+if [ "${IP#*=}" != "127.0.0.1" ]; then
+    ssh $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
+    scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
+fi
 
 #start server system information recording
 #ssh -p 1309 $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
