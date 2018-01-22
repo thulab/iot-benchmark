@@ -69,7 +69,7 @@ public class OpenFileNumber {
 			String line = null;
 			while ((line = in1.readLine()) != null) {
 				line = line.trim();
-				System.out.println(line);
+				//System.out.println(line);
 				String[] temp = line.split("\\s+");
 				if (temp.length > 1 && isNumeric(temp[1])){
 					pid = Integer.parseInt(temp[1]);
