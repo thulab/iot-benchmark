@@ -24,15 +24,15 @@ public class OpenFileNumber {
 	private static int pid = -1;
 	private static int port = -1;
 
-	private static final String SEARCH_PID = "echo %s | sudo -S ps -aux | grep -i %s | grep -v grep";
-	private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "echo %s | sudo -S lsof -p %d";
+	private static final String SEARCH_PID = "ps -aux | grep -i %s | grep -v grep";
+	private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
 	private static String cmds[] = {"/bin/bash", "-c",""};
-	private static String passward = "";
+	//private static String passward = "";
 	
 	private static OpenFileNumber INSTANCE = null;
 	private OpenFileNumber() {
 		config = ConfigDescriptor.getInstance().getConfig();
-		pid = getPID(config.DB_SWITCH,config.PASSWARD);
+		pid = getPID(config.DB_SWITCH);
 	}
 
 	public static OpenFileNumber getInstance() {
@@ -47,7 +47,7 @@ public class OpenFileNumber {
 	 * @return int, pid
 	 * @Purpose:获得当前指定的数据库服务器的PID
 	 */
-	public int getPID(String dbName,String pwd) {
+	public int getPID(String dbName) {
 		int pid = -1;
 		Process pro1;
 		Runtime r = Runtime.getRuntime();
@@ -61,7 +61,7 @@ public class OpenFileNumber {
 			break;
 		}
 		try {
-			String command = String.format(SEARCH_PID, pwd, filter);
+			String command = String.format(SEARCH_PID, filter);
 			//System.out.println(command);
 			cmds[2] = command;
             pro1 = r.exec(cmds);
@@ -93,7 +93,7 @@ public class OpenFileNumber {
 	 * 1ist[1]表示该进程打开的数据文件和写前日志的数目
 	 * 1ist[2]表示该进程打开的socket的数目
 	 * */
-	private ArrayList<Integer> getOpenFile(int pid, String passward) throws SQLException{
+	private ArrayList<Integer> getOpenFile(int pid) throws SQLException{
         //log.info("开始收集打开的socket数目：");
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		int dataFileNum = 0;
@@ -113,7 +113,7 @@ public class OpenFileNumber {
         Process pro = null;
         Runtime r = Runtime.getRuntime();
         try {
-            String command = String.format(SEARCH_OPEN_DATA_FILE_BY_PID, passward, pid);
+            String command = String.format(SEARCH_OPEN_DATA_FILE_BY_PID, pid);
             cmds[2] = command;
             pro = r.exec(cmds);
             BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
@@ -162,7 +162,7 @@ public class OpenFileNumber {
 		//如果pid合理，则加入打开文件总数和数据文件数目以及socket数目
 		if(pid > 0) {
 			try {
-				list = getOpenFile(pid, passward);
+				list = getOpenFile(pid);
 			} catch (SQLException e) {
 				log.error(e.getMessage());
 				e.printStackTrace();

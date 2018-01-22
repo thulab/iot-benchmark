@@ -54,8 +54,6 @@ public class Config {
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
- 	/**iotdb登录用户的密码*/
- 	public String PASSWARD = "";
  	/**存储系统性能信息的文件路径*/
  	public String SERVER_MODE_INFO_FILE = "";
  	

@@ -110,7 +110,7 @@ public class App {
 					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
 					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
 					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-					LOGGER.info("\nPID{}打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
+					LOGGER.info("\nPID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
 							openFileList.get(0), openFileList.get(1), openFileList.get(2));
 					mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
 							netUsageList.get(0), netUsageList.get(1),"");
