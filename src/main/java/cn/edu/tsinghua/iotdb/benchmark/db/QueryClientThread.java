@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -34,6 +35,8 @@ public class QueryClientThread implements Runnable {
 	
 	private Long totalTime;
 	private Long totalPoint;
+	
+	private Random deviceRandom = null; 
 
 	public QueryClientThread(IDatebase datebase, int index,
 			CountDownLatch downLatch, ArrayList<Long> totalTimes, ArrayList<Long> totalPoints,
@@ -48,7 +51,8 @@ public class QueryClientThread implements Runnable {
 		
 		totalTime = (long)0;
 		totalPoint = (long)0;
-			
+		
+		deviceRandom = new Random(2 * index + config.QUERY_SEED);
 	}
 
 	@Override
@@ -85,7 +89,7 @@ public class QueryClientThread implements Runnable {
 			clientDevicesIndex.add( m );
 		}
 		while (i < config.LOOP) {
-			Collections.shuffle(clientDevicesIndex);
+			Collections.shuffle(clientDevicesIndex, deviceRandom);
 			for (int m = 0; m < config.QUERY_DEVICE_NUM; m++){
 				queryDevicesIndex.add(clientDevicesIndex.get(m));
 			}

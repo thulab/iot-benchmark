@@ -36,6 +36,7 @@ public class IoTDB implements IDatebase {
 	private long labID;
 	private MySqlLog mySql;
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private Random sensorRandom = null;
 
 	public IoTDB(long labID) throws ClassNotFoundException, SQLException {
 		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -44,6 +45,7 @@ public class IoTDB implements IDatebase {
 		mp = new HashMap<>();
 		mySql = new MySqlLog();
 		this.labID = labID;
+		sensorRandom = new Random(1 + config.QUERY_SEED);
 	}
 
 	@Override
@@ -753,7 +755,7 @@ public class IoTDB implements IDatebase {
 		for (String sensor : config.SENSOR_CODES) {
 			list.add(sensor);
 		}
-		Collections.shuffle(list);
+		Collections.shuffle(list, sensorRandom);
 		builder.append(list.get(0));
 		sensorList.add(list.get(0));
 		for (int i = 1; i < num; i++) {
@@ -778,7 +780,7 @@ public class IoTDB implements IDatebase {
 		for (String sensor : config.SENSOR_CODES) {
 			list.add(sensor);
 		}
-		Collections.shuffle(list);
+		Collections.shuffle(list, sensorRandom);
 		if(method.length()>2) {
 			builder.append(method).append("(").append(list.get(0)).append(")");
 			sensorList.add(list.get(0));
