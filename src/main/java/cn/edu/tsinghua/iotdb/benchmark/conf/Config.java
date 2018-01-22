@@ -170,7 +170,10 @@ public class Config {
 	public String INFLUX_URL = "http://localhost:8086";
 	// 使用的数据库名
 	public String INFLUX_DB_NAME = "test";
-
+	
+	//Opentsdb参数
+	public String OPENTSDB_URL="http://localhost:4242";
+	
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
 	
