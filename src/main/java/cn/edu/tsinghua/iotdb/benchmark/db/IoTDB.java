@@ -347,20 +347,24 @@ public class IoTDB implements IDatebase {
 
 
 			}
+
 			long startTime = System.currentTimeMillis();
-			result = statement.executeBatch();
+			try {
+				result = statement.executeBatch();
+			} catch (BatchUpdateException e){
+				long[] arr = e.getLargeUpdateCounts();
+				for(long i : arr){
+					if(i == -3){
+						errorNum++;
+					}
+				}
+			}
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
 			long costTime = endTime - startTime;
-			for (int i = 0; i < result.length; i++) {
-				if (result[i] == -1) {
-					errorNum++;
-				}
-			}
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-
 			} else {
 				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
 						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
@@ -392,16 +396,20 @@ public class IoTDB implements IDatebase {
 			}
 
 			long startTime = System.currentTimeMillis();
-			result = statement.executeBatch();
+			try {
+				result = statement.executeBatch();
+			} catch (BatchUpdateException e){
+				long[] arr = e.getLargeUpdateCounts();
+				for(long i : arr){
+					if(i == -3){
+						errorNum++;
+					}
+				}
+			}
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
 
-			for (int i = 0; i < result.length; i++) {
-				if (result[i] == -1) {
-					errorNum++;
-				}
-			}
 
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
@@ -998,16 +1006,21 @@ public class IoTDB implements IDatebase {
 				statement.addBatch(sql);
 			}
 			long startTime = System.currentTimeMillis();
-			result = statement.executeBatch();
+			try {
+				result = statement.executeBatch();
+			} catch (BatchUpdateException e){
+				long[] arr = e.getLargeUpdateCounts();
+				for(long i : arr){
+					if(i == -3){
+						errorNum++;
+					}
+				}
+			}
 			statement.clearBatch();
 			statement.close();
 			long endTime = System.currentTimeMillis();
 			long costTime = endTime - startTime;
-			for (int i = 0; i < result.length; i++) {
-				if (result[i] == -1) {
-					errorNum++;
-				}
-			}
+
 			if (errorNum > 0) {
 				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 
