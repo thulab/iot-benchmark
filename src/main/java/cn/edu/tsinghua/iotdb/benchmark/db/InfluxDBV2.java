@@ -325,7 +325,7 @@ public class InfluxDBV2 implements IDatebase {
 			}
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
-			startTimeStamp = System.currentTimeMillis();
+			startTimeStamp = System.nanoTime();
 			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
 			for (Result result : results.getResults()) {
 				//LOGGER.info(result.toString());
@@ -348,25 +348,25 @@ public class InfluxDBV2 implements IDatebase {
 			}
 
 			//LOGGER.info("{}", builder.toString());
-			endTimeStamp = System.currentTimeMillis();
+			endTimeStamp = System.nanoTime();
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0,
+					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/100000.0,
 					line * config.QUERY_SENSOR_NUM,
-					line * config.QUERY_SENSOR_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
-					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
-					client.getTotalPoint() * 1000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, (endTimeStamp - startTimeStamp) / 1000.0f,
+					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/100000.0),
+					((client.getTotalTime()) / 1000.0)/100000.0, client.getTotalPoint(),
+					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/100000.0));
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/100000.0,
 					config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!" + sql);
+			mySql.saveQueryProcess(index, 0, ((endTimeStamp - startTimeStamp) / 1000.0f)/100000.0, "query fail!" + sql);
 			e.printStackTrace();
 		}
 

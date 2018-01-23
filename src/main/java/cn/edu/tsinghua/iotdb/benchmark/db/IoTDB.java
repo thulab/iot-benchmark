@@ -482,7 +482,7 @@ public class IoTDB implements IDatebase {
 			StringBuilder builder = new StringBuilder(sql);
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}",Thread.currentThread().getName(), index,builder.toString());
 			
-			startTimeStamp = System.currentTimeMillis();
+			startTimeStamp = System.nanoTime();
 			statement.execute(sql);
 			ResultSet resultSet = statement.getResultSet();
 			while (resultSet.next()) {
@@ -494,7 +494,7 @@ public class IoTDB implements IDatebase {
 //				}	
 			}
 			statement.close();
-			endTimeStamp = System.currentTimeMillis();
+			endTimeStamp = System.nanoTime();
 			
 //			LOGGER.info("{}",builder.toString());
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
@@ -503,13 +503,13 @@ public class IoTDB implements IDatebase {
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0,
+					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0)/1000000.0,
 					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
-					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
-					client.getTotalPoint() * 1000.0f / client.getTotalTime());
+					line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+					(client.getTotalTime()/ 1000.0)/1000000.0, client.getTotalPoint(),
+					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/1000000.0));
 			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-					(endTimeStamp - startTimeStamp) / 1000.0f, config.REMARK);
+					((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0, config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());

@@ -629,8 +629,8 @@ public class App {
 
 		LOGGER.info(
 				"{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
-				getQueryName(config), config.CLIENT_NUMBER * config.LOOP, totalTime / 1000.0f, totalResultPoint,
-				config.CLIENT_NUMBER, (1000.0f * totalResultPoint) / ((float) totalTime));
+				getQueryName(config), config.CLIENT_NUMBER * config.LOOP, (totalTime / 1000.0f)/1000000.0, totalResultPoint,
+				config.CLIENT_NUMBER, (1000.0f * totalResultPoint) / ((float) totalTime / 1000000.0f));
 
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
@@ -672,8 +672,8 @@ public class App {
 
 		mySql.saveResult("queryNumber", "" + config.CLIENT_NUMBER * config.LOOP);
 		mySql.saveResult("totalPoint", "" + totalResultPoint);
-		mySql.saveResult("totalTime(s)", "" + totalTime / 1000.0f);
-		mySql.saveResult("resultPointPerSecond(points/s)", "" + (1000.0f * (totalResultPoint)) / totalTime);
+		mySql.saveResult("totalTime(s)", "" + (totalTime / 1000.0f)/1000000.0);
+		mySql.saveResult("resultPointPerSecond(points/s)", "" + (1000.0f * (totalResultPoint)) / (totalTime)/1000000.0);
 		mySql.saveResult("totalErrorQuery", "" + totalErrorPoint);
 
 		mySql.closeMysql();
