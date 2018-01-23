@@ -673,7 +673,7 @@ public class App {
 		mySql.saveResult("queryNumber", "" + config.CLIENT_NUMBER * config.LOOP);
 		mySql.saveResult("totalPoint", "" + totalResultPoint);
 		mySql.saveResult("totalTime(s)", "" + (totalTime / 1000.0f)/1000000.0);
-		mySql.saveResult("resultPointPerSecond(points/s)", "" + (1000.0f * (totalResultPoint)) / (totalTime)/1000000.0);
+		mySql.saveResult("resultPointPerSecond(points/s)", "" + (1000.0f * (totalResultPoint)) / (totalTime / 1000000.0));
 		mySql.saveResult("totalErrorQuery", "" + totalErrorPoint);
 
 		mySql.closeMysql();

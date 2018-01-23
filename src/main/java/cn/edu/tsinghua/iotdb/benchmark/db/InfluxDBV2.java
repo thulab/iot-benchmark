@@ -355,18 +355,18 @@ public class InfluxDBV2 implements IDatebase {
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/100000.0,
+					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
 					line * config.QUERY_SENSOR_NUM,
-					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/100000.0),
-					((client.getTotalTime()) / 1000.0)/100000.0, client.getTotalPoint(),
-					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/100000.0));
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/100000.0,
+					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
+					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/1000000.0));
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
 					config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, ((endTimeStamp - startTimeStamp) / 1000.0f)/100000.0, "query fail!" + sql);
+			mySql.saveQueryProcess(index, 0, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0, "query fail!" + sql);
 			e.printStackTrace();
 		}
 
