@@ -35,7 +35,7 @@ public class App {
 			return;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
-		switch (config.BENCHMARK_WORK_MODE) {
+		switch (config.BENCHMARK_WORK_MODE.trim()) {
 		case Constants.MODE_SERVER_MODE:
 			serverMode(config);
 			break;
@@ -426,7 +426,7 @@ public class App {
 	private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase)
 			throws SQLException {
 		long totalErrorPoint;
-		switch (config.DB_SWITCH) {
+		switch (config.DB_SWITCH.trim()) {
 		case Constants.DB_IOT:
 			totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
 			break;

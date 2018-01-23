@@ -82,7 +82,7 @@ public class MySqlLog {
 				}
 				return;
 			}
-			switch (config.DB_SWITCH) {
+			switch (config.DB_SWITCH.trim()) {
 			case Constants.DB_IOT:
 				if (!hasTable("IOTDB_DATA_MODEL" + "_" + day)) {
 					stat.executeUpdate("create table IOTDB_DATA_MODEL"
@@ -354,7 +354,7 @@ public class MySqlLog {
 			return;
 		}
 		if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
-			switch (config.DB_SWITCH) {
+			switch (config.DB_SWITCH.trim()) {
 			case Constants.DB_IOT:
 				this.saveIoTDBDataModel(config.TIMESERIES_NAME, config.STORAGE_GROUP_NAME+"."+config.TIMESERIES_NAME, type,encoding);
 				break;
@@ -363,7 +363,7 @@ public class MySqlLog {
 			}
 			return;
 		}
-		switch (config.DB_SWITCH) {
+		switch (config.DB_SWITCH.trim()) {
 		case Constants.DB_IOT:
 			for (String d : config.DEVICE_CODES) {
 				for (String s : config.SENSOR_CODES) {
@@ -422,7 +422,7 @@ public class MySqlLog {
 						"'MODE'", "'INSERT_TEST_MODE'");
 				stat.addBatch(sql);
 			}
-			switch (config.DB_SWITCH) {
+			switch (config.DB_SWITCH.trim()) {
 			case Constants.DB_IOT:
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'ServerIP'", "'" + config.host + "'");
