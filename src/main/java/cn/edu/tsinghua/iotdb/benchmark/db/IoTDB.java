@@ -517,13 +517,6 @@ public class IoTDB implements IDatebase {
 			mySql.saveQueryProcess(index, 0, -1, "query fail!"+sql);
 			e.printStackTrace();
 		}
-		catch (Exception e) {
-			errorCount.set(errorCount.get() + 1);
-			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
-			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, -1, "query fail!"+sql);
-			e.printStackTrace();
-		}
 		finally{
 			try {
 				if(statement!=null)
@@ -1174,7 +1167,11 @@ public class IoTDB implements IDatebase {
 		}
 	}
 
-	/***/
+	/**
+	 * 拿到某个路径的大小
+	 * @param dir
+	 * @return
+	 */
 	private static long getDirTotalSize(String dir) {
 		long totalsize = 0;
 
@@ -1206,4 +1203,13 @@ public class IoTDB implements IDatebase {
 
 		return totalsize;
 	}
+
+	boolean returnTrueByProb(double p){
+		if(Math.random()<p){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 }
