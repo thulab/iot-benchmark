@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,10 @@ public class MySqlLog {
 							+ "_"
 							+ day
 							+ "(id BIGINT, cpu_usage DOUBLE,"
-							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, remark varchar(6000),primary key(id))");
+							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, "
+							+ "totalFileNum INT, dataFileNum INT, socketNum INT, deltaNum INT, derbyNum INT,"
+							+ "digestNum INT, metadataNum INT, overflowNum INT, walsNum INT, "
+							+ "remark varchar(6000), primary key(id))");
 					LOGGER.info("Table SERVER_MODE create success!");
 				}
 				return;
@@ -199,18 +203,20 @@ public class MySqlLog {
 		}
 	}
 
+	
 	// 将系统资源利用信息存入mysql
 	public void insertSERVER_MODE(double cpu, double mem, double io,
-			double net_recv, double net_send, String remark) {
+			double net_recv, double net_send, List<Integer> openFileList, String remark) {
 		if (config.IS_USE_MYSQL) {
 			Statement stat = null;
 			String sql = "";
 			try {
 				stat = mysqlConnection.createStatement();
 				sql = String.format("insert into SERVER_MODE_" + localName
-						+ "_" + day + " values(%d,%f,%f,%f,%f,%f,%s)",
-						System.currentTimeMillis(), cpu, mem, io, net_recv,
-						net_send, "'" + remark + "'");
+						+ "_" + day + " values(%d,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
+						System.currentTimeMillis(), cpu, mem, io, net_recv,net_send, openFileList.get(0), openFileList.get(1), openFileList.get(2),
+						openFileList.get(3),openFileList.get(4),openFileList.get(5), openFileList.get(6),
+						openFileList.get(7),openFileList.get(8),"'" + remark + "'");
 				stat.executeUpdate(sql);
 			} catch (SQLException e) {
 				LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql,

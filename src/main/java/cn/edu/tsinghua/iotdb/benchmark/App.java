@@ -112,7 +112,7 @@ public class App {
 					LOGGER.info("\nPID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
 							openFileList.get(0), openFileList.get(1), openFileList.get(2));
 					mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
-							netUsageList.get(0), netUsageList.get(1),"");
+							netUsageList.get(0), netUsageList.get(1),openFileList,"");
 					if(write2File) {
 						out.write(String.format("%d%14f%14f%15f",System.currentTimeMillis(),
 								ioUsageList.get(0),MemUsage.getInstance().get(),ioUsageList.get(1)));
