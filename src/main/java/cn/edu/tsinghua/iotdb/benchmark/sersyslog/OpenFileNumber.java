@@ -89,9 +89,17 @@ public class OpenFileNumber {
 
 	/**
 	 * 返回打开的文件数目的列表，
-	 * 其中list[0]表示该进程一共打开的文件数目，
+	 * 其中:
+	 * list[0]表示该进程一共打开的文件数目，
 	 * 1ist[1]表示该进程打开的数据文件和写前日志的数目
 	 * 1ist[2]表示该进程打开的socket的数目
+	 * 
+	 * list[3]表示该进程打开delta文件的数目，
+	 * 1ist[4]表示该进程打开derby文件的数目
+	 * 1ist[5]表示该进程打开digest文件的数目
+	 * 1ist[6]表示该进程打开metadata文件的数目
+	 * 1ist[7]表示该进程打开overflow文件的数目
+	 * 1ist[8]表示该进程打开wals文件的数目
 	 * */
 	private ArrayList<Integer> getOpenFile(int pid) throws SQLException{
         //log.info("开始收集打开的socket数目：");
@@ -99,6 +107,14 @@ public class OpenFileNumber {
 		int dataFileNum = 0;
 		int totalFileNum = 0;
 		int socketNum = 0;
+		
+		int deltaNum = 0;
+		int derbyNum = 0;
+		int digestNum = 0;
+		int metadataNum = 0;
+		int overflowNum = 0;
+		int walsNum = 0;
+		
 		String filter = "";
 		switch (config.DB_SWITCH) {
 		case Constants.DB_IOT:
@@ -126,6 +142,24 @@ public class OpenFileNumber {
                 	totalFileNum++;
                 	if(temp[8].contains(filter)) {
                 		dataFileNum++;
+                		if(temp[8].contains("delta")){
+                			deltaNum++;
+                		}
+                		else if(temp[8].contains("derby")){
+                			derbyNum++;
+                		}
+                		else if(temp[8].contains("digest")){
+                			digestNum++;
+                		}
+                		else if(temp[8].contains("metadata")){
+                			metadataNum++;
+                		}
+                		else if(temp[8].contains("overflow")){
+                			overflowNum++;
+                		}
+                		else if(temp[8].contains("wals")){
+                			walsNum++;
+                		}
                 	}
                 	if(temp[7].contains("TCP") || temp[7].contains("UDP")) {
                 		socketNum++;
@@ -143,6 +177,13 @@ public class OpenFileNumber {
         list.add(totalFileNum);
         list.add(dataFileNum);
         list.add(socketNum);
+        
+        list.add(deltaNum);
+        list.add(derbyNum);
+        list.add(digestNum);
+        list.add(metadataNum);
+        list.add(overflowNum);
+        list.add(walsNum);
         return list;
     }
 	/**
@@ -150,6 +191,13 @@ public class OpenFileNumber {
 	 * list[0]表示该进程一共打开的文件数目
 	 * 1ist[1]表示该进程打开的数据文件和写前日志的数目
 	 * 1ist[2]表示该进程打开的socket的数目
+	 *
+	 * list[3]表示该进程打开delta文件的数目，
+	 * 1ist[4]表示该进程打开derby文件的数目
+	 * 1ist[5]表示该进程打开digest文件的数目
+	 * 1ist[6]表示该进程打开metadata文件的数目
+	 * 1ist[7]表示该进程打开overflow文件的数目
+	 * 1ist[8]表示该进程打开wals文件的数目
 	 * */
 	public ArrayList<Integer> get(){
 		//System.out.println("port :"+port + " ; pid :"+pid);
@@ -172,9 +220,9 @@ public class OpenFileNumber {
 			//pid 不合理，赋不合法的值
 			if(list == null)
 				list = new ArrayList<Integer>();
-			list.add(-1);
-			list.add(-1);
-			list.add(-1);
+			for(int i = 0;i < 9;i++){
+				list.add(-1);
+			}			
 		}
 		return list;
 	}
