@@ -403,7 +403,7 @@ public class IoTDB implements IDatebase {
 				String sql = createSQLStatment(device,maxTimestampIndex);
 				statement.addBatch(sql);
 				for (int i = 1; i < config.CACHE_NUM; i++) {
-					if(returnTrueByProb(config.OVERFLOW_RATIO,random)){
+					if(returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)){
 						maxTimestampIndex ++;
 						timestampIndex = maxTimestampIndex;
 					}else {
@@ -418,7 +418,7 @@ public class IoTDB implements IDatebase {
 				String sql ;
 				for (int i = 0; i < config.CACHE_NUM; i++) {
 					if(maxTimestampIndex < (config.CACHE_NUM * config.LOOP - 1) && before.size() > 0){
-						if(returnTrueByProb(config.OVERFLOW_RATIO,random)){
+						if(returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)){
 							maxTimestampIndex ++;
 							timestampIndex = maxTimestampIndex;
 						}else {
@@ -740,7 +740,8 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
-		LOGGER.debug("createSQLStatment:  {}", builder.toString());
+		LOGGER.debug("timestampIndex:  {}", timestampIndex);
+		//LOGGER.debug("createSQLStatment:  {}", builder.toString());
 		return builder.toString();
 	}
 
@@ -1322,7 +1323,7 @@ public class IoTDB implements IDatebase {
 	 * @return 布尔值
 	 */
 	boolean returnTrueByProb(double p, Random random){
-		if(random.nextDouble()<p){
+		if(random.nextDouble() < p){
 			return true;
 		} else {
 			return false;
