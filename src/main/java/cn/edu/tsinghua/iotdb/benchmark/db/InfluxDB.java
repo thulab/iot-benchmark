@@ -17,6 +17,7 @@ import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Administrator on 2017/11/16 0016.
@@ -230,5 +231,10 @@ public class InfluxDB implements IDatebase {
     @Override
     public void exeSQLFromFileByOneBatch() {
 
+    }
+
+    @Override
+    public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, LinkedList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+        return 0;
     }
 }

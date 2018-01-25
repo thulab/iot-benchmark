@@ -24,14 +24,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * This version use influx-java api instead of simple http.
@@ -570,6 +563,11 @@ public class InfluxDBV2 implements IDatebase {
 	@Override
 	public void exeSQLFromFileByOneBatch() {
 
+	}
+
+	@Override
+	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, LinkedList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+		return 0;
 	}
 
 }

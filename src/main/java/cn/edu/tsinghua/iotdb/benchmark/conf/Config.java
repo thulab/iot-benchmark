@@ -46,6 +46,8 @@ public class Config {
 	public boolean MUL_DEV_BATCH = false;
 	/**是否为批插入乱序模式*/
 	public boolean IS_OVERFLOW = false;
+	/**乱序模式*/
+	public int OVERFLOW_MODE = 0;
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
 

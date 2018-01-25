@@ -387,6 +387,99 @@ public class IoTDB implements IDatebase {
 	}
 
 	@Override
+	public int insertOverflowOneBatch(String device, int loopIndex,
+									   ThreadLocal<Long> totalTime,
+									   ThreadLocal<Long> errorCount,
+									   LinkedList<Integer> before,
+									   Integer maxTimestampIndex,
+									   Random random) {
+		Statement statement;
+		long errorNum = 0;
+		int timestampIndex = maxTimestampIndex;
+
+		try {
+			statement = connection.createStatement();
+			if(loopIndex==0){
+				String sql = createSQLStatment(device,maxTimestampIndex);
+				statement.addBatch(sql);
+				for (int i = 1; i < config.CACHE_NUM; i++) {
+					if(returnTrueByProb(config.OVERFLOW_RATIO,random)){
+						maxTimestampIndex ++;
+						timestampIndex = maxTimestampIndex;
+					}else {
+						int randomIndexOfBefore = (int) (random.nextDouble() * (before.size() - 1));
+						timestampIndex = before.get(randomIndexOfBefore);
+						before.remove(randomIndexOfBefore);
+					}
+					sql = createSQLStatment(device,timestampIndex);
+					statement.addBatch(sql);
+				}
+			}else {
+				String sql ;
+				for (int i = 0; i < config.CACHE_NUM; i++) {
+					if(maxTimestampIndex < (config.CACHE_NUM * config.LOOP - 1) && before.size() > 0){
+						if(returnTrueByProb(config.OVERFLOW_RATIO,random)){
+							maxTimestampIndex ++;
+							timestampIndex = maxTimestampIndex;
+						}else {
+							int size = before.size() - 1;
+							int randomIndexOfBefore = (int) (random.nextDouble() * size);
+							timestampIndex = before.get(randomIndexOfBefore);
+							before.remove(randomIndexOfBefore);
+						}
+					}else if(before.size() == 0){
+						maxTimestampIndex ++;
+						timestampIndex = maxTimestampIndex;
+					}else if(before.size() > 0){
+						int size = before.size() - 1;
+						int randomIndexOfBefore = (int) (random.nextDouble() * size);
+						timestampIndex = before.get(randomIndexOfBefore);
+						before.remove(randomIndexOfBefore);
+					}
+
+					sql = createSQLStatment(device,timestampIndex);
+					statement.addBatch(sql);
+				}
+			}
+
+			long startTime = System.currentTimeMillis();
+			try {
+				statement.executeBatch();
+			} catch (BatchUpdateException e){
+				long[] arr = e.getLargeUpdateCounts();
+				for(long i : arr){
+					if(i == -3){
+						errorNum++;
+					}
+				}
+			}
+			statement.clearBatch();
+			statement.close();
+			long endTime = System.currentTimeMillis();
+			long costTime = endTime - startTime;
+
+			if (errorNum > 0) {
+				LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+			} else {
+				LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+						Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
+						(totalTime.get() + costTime) / 1000.0,
+						(config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+				totalTime.set(totalTime.get() + costTime);
+			}
+			errorCount.set(errorCount.get() + errorNum);
+
+			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+					config.REMARK);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return maxTimestampIndex;
+	}
+
+	@Override
 	public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime,
 			ThreadLocal<Long> errorCount) throws SQLException {
 
@@ -622,6 +715,25 @@ public class IoTDB implements IDatebase {
 		}
 		builder.append(") values(");
 		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+		builder.append(currentTime);
+		for (String sensor : config.SENSOR_CODES) {
+			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
+		}
+		builder.append(")");
+		LOGGER.debug("createSQLStatment:  {}", builder.toString());
+		return builder.toString();
+	}
+
+	private String createSQLStatment(String device, int timestampIndex) {
+		StringBuilder builder = new StringBuilder();
+		String path = getGroupDevicePath(device);
+		builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
+		for (String sensor : config.SENSOR_CODES) {
+			builder.append(",").append(sensor);
+		}
+		builder.append(") values(");
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
 		builder.append(currentTime);
 		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -1204,8 +1316,13 @@ public class IoTDB implements IDatebase {
 		return totalsize;
 	}
 
-	boolean returnTrueByProb(double p){
-		if(Math.random()<p){
+	/**
+	 * 使用QUERY_SEED参数作为随机数种子
+	 * @param p 返回true的概率
+	 * @return 布尔值
+	 */
+	boolean returnTrueByProb(double p, Random random){
+		if(random.nextDouble()<p){
 			return true;
 		} else {
 			return false;

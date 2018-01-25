@@ -116,6 +116,7 @@ public class ConfigDescriptor {
 				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
 				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
 				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
+				config.OVERFLOW_MODE = Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.OVERFLOW_MODE+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

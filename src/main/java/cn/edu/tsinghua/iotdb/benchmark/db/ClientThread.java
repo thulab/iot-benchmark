@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -83,6 +84,15 @@ public class ClientThread implements Runnable{
 		else{
 			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
 			LinkedList<String> deviceCodes = new LinkedList<>();
+
+			//overflow mode 2 related variables initial
+			Random random = new Random(config.QUERY_SEED);
+			LinkedList<Integer> before = new LinkedList<>();
+            int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
+			for(int beforeIndex = 0;beforeIndex < maxIndex; beforeIndex++){
+			    before.add(beforeIndex);
+            }
+
 			for (int m = 0; m < clientDevicesNum; m++) {
 				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
 			}
@@ -99,7 +109,7 @@ public class ClientThread implements Runnable{
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
-				}else {
+				}else if(config.OVERFLOW_MODE==0){
 					try {
 						for (int m = 0; m < clientDevicesNum; m++) {
 							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount);
@@ -107,7 +117,24 @@ public class ClientThread implements Runnable{
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
-				}
+				}else if(config.IS_OVERFLOW && config.OVERFLOW_MODE==1){
+                    try {
+                        for (int m = 0; m < clientDevicesNum; m++) {
+                            maxIndex = database.insertOverflowOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m),
+                                    i,
+                                    totalTime,
+                                    errorCount,
+                                    before,
+                                    maxIndex,
+                                    random);
+                        }
+                    } catch (SQLException e) {
+                        LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+                    }
+				}else {
+                    System.out.println("unsupported overflow mode:" + config.OVERFLOW_MODE);
+                    break;
+                }
 				i++;
 			}
 		}
