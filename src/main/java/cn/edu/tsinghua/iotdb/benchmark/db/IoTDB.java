@@ -740,8 +740,8 @@ public class IoTDB implements IDatebase {
 			builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
 		}
 		builder.append(")");
-		LOGGER.debug("timestampIndex:  ,{}", timestampIndex);
-		//LOGGER.debug("createSQLStatment:  {}", builder.toString());
+		//LOGGER.debug("timestampIndex:  ,{}", timestampIndex);
+		LOGGER.debug("createSQLStatment:  {}", builder.toString());
 		return builder.toString();
 	}
 
