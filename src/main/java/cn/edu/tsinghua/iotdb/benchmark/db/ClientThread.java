@@ -87,7 +87,7 @@ public class ClientThread implements Runnable{
 
 			//overflow mode 2 related variables initial
 			Random random = new Random(config.QUERY_SEED);
-			LinkedList<Integer> before = new LinkedList<>();
+			ArrayList<Integer> before = new ArrayList<>();
             int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
 			for(int beforeIndex = 0;beforeIndex < maxIndex; beforeIndex++){
 			    before.add(beforeIndex);

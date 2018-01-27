@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -55,7 +56,7 @@ public interface IDatebase {
                                int loopIndex,
                                ThreadLocal<Long> totalTime,
                                ThreadLocal<Long> errorCount,
-                               LinkedList<Integer> before,
+                               ArrayList<Integer> before,
                                Integer maxTimestampIndex,
                                Random random) throws SQLException;
 }

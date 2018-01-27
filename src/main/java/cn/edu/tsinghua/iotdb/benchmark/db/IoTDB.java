@@ -390,7 +390,7 @@ public class IoTDB implements IDatebase {
 	public int insertOverflowOneBatch(String device, int loopIndex,
 									   ThreadLocal<Long> totalTime,
 									   ThreadLocal<Long> errorCount,
-									   LinkedList<Integer> before,
+									   ArrayList<Integer> before,
 									   Integer maxTimestampIndex,
 									   Random random) {
 		Statement statement;
@@ -1322,7 +1322,7 @@ public class IoTDB implements IDatebase {
 	 * @param p 返回true的概率
 	 * @return 布尔值
 	 */
-	boolean returnTrueByProb(double p, Random random){
+	private boolean returnTrueByProb(double p, Random random){
 		if(random.nextDouble() < p){
 			return true;
 		} else {
