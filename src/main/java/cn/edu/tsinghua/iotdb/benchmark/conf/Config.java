@@ -51,6 +51,11 @@ public class Config {
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
 
+	public double LAMBDA = 3;
+
+	public int MAX_K = 10;
+
+	public boolean IS_RANDOM_TIMESTAMP_INTERVAL = false ;
 
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
@@ -58,7 +63,7 @@ public class Config {
  	public String NET_DEVICE = "e";
  	/**存储系统性能信息的文件路径*/
  	public String SERVER_MODE_INFO_FILE = "";
- 	
+
 	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 	/**一个样例数据的时序名称*/
@@ -87,9 +92,9 @@ public class Config {
 	public String LOG_STOP_FLAG_PATH;
 
 	public int STORE_MODE = 1;
-	
+
 	public long LOOP = 10000;
-	
+
 	/** 数据采集丢失率 */
 	public double POINT_LOSE_RATIO = 0.01;
 	// ============各函数比例start============//FIXME 传参数时加上这几个参数
@@ -143,7 +148,7 @@ public class Config {
 	public double SUM_QUERY_RATIO = 0.2;
 	public double RANDOM_INSERT_RATIO = 0.2;
 	public double UPDATE_RATIO = 0.2;
-	
+
 	//iotDB查询测试相关参数
 	public int QUERY_SENSOR_NUM = 1;
 	public int QUERY_DEVICE_NUM = 1;
@@ -155,7 +160,7 @@ public class Config {
 	public long TIME_UNIT = QUERY_INTERVAL / 2;
 	public long QUERY_SEED = 1516580959202L;
 
-	
+
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
 	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
@@ -163,10 +168,10 @@ public class Config {
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
 	public boolean IS_SAVE_DATAMODEL = false;
-	
+
 	public String REMARK = "";
 	public String VERSION = "";
-	
+
 	// InfluxDB参数
 	// Influx服务器URL
 	public String INFLUX_URL = "http://localhost:8086";
@@ -175,7 +180,7 @@ public class Config {
 
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
-	
+
 	//benchmark 运行模式
 	public String BENCHMARK_WORK_MODE="";
 	//the file path of import data
@@ -293,7 +298,7 @@ public class Config {
 
 	/**
 	 * 根据传感器数，初始化传感器编号
-	 * 
+	 *
 	 * @param sensorSum
 	 * @return
 	 */
@@ -307,7 +312,7 @@ public class Config {
 
 	/**
 	 * 根据设备数，初始化设备编号
-	 * 
+	 *
 	 * @param deviceSum
 	 * @return
 	 */

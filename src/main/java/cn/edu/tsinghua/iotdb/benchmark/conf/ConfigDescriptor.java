@@ -117,6 +117,10 @@ public class ConfigDescriptor {
 				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
 				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
 				config.OVERFLOW_MODE = Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.OVERFLOW_MODE+""));
+				config.MAX_K = Integer.parseInt(properties.getProperty("MAX_K", config.MAX_K+""));
+				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
+				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

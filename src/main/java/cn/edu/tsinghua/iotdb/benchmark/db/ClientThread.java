@@ -89,6 +89,7 @@ public class ClientThread implements Runnable{
 			Random random = new Random(config.QUERY_SEED);
 			ArrayList<Integer> before = new ArrayList<>();
             int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
+            int currMaxIndexOfDist = 20;
 			for(int beforeIndex = 0;beforeIndex < maxIndex; beforeIndex++){
 			    before.add(beforeIndex);
             }
@@ -131,6 +132,19 @@ public class ClientThread implements Runnable{
                     } catch (SQLException e) {
                         LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
                     }
+				}else if(config.IS_OVERFLOW && config.OVERFLOW_MODE==2){
+					try {
+						for (int m = 0; m < clientDevicesNum; m++) {
+							currMaxIndexOfDist = database.insertOverflowOneBatchDist(config.DEVICE_CODES.get(index * clientDevicesNum + m),
+									i,
+									totalTime,
+									errorCount,
+									currMaxIndexOfDist,
+									random);
+						}
+					} catch (SQLException e) {
+						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+					}
 				}else {
                     System.out.println("unsupported overflow mode:" + config.OVERFLOW_MODE);
                     break;

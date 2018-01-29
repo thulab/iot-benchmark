@@ -59,4 +59,11 @@ public interface IDatebase {
                                ArrayList<Integer> before,
                                Integer maxTimestampIndex,
                                Random random) throws SQLException;
+
+    int insertOverflowOneBatchDist(String device,
+                               int loopIndex,
+                               ThreadLocal<Long> totalTime,
+                               ThreadLocal<Long> errorCount,
+                               Integer maxTimestampIndex,
+                               Random random) throws SQLException;
 }

@@ -28,7 +28,11 @@ public class OpenFileNumber {
 	private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
 	private static String cmds[] = {"/bin/bash", "-c",""};
 	//private static String passward = "";
-	
+
+	private static class OpenFileNumberHolder {
+
+	}
+
 	private static OpenFileNumber INSTANCE = null;
 	private OpenFileNumber() {
 		config = ConfigDescriptor.getInstance().getConfig();
