@@ -3,10 +3,13 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -46,12 +49,14 @@ public class OpenTSDB implements IDatebase {
 		       .connectTimeout(500000, TimeUnit.MILLISECONDS)
 		       .writeTimeout(500000, TimeUnit.MILLISECONDS)
 		       .build();
+	private Random sensorRandom = null;
 	private  static OkHttpClient getOkHttpClient(){
 		return OK_HTTP_CLIENT;
 	}
 	public OpenTSDB(long labID) {
 		mySql = new MySqlLog();
 		this.labID = labID;
+		sensorRandom = new Random(1 + config.QUERY_SEED);
 	}
 	@Override
 	public void init() throws SQLException {
@@ -76,6 +81,7 @@ public class OpenTSDB implements IDatebase {
         for (int i = 0; i < config.CACHE_NUM; i++) {
         		String key=UUID.randomUUID().toString();
         		dataMap.put(key, createDataModel(batchIndex, i, device));
+        		keys.add(key);
         }
         insertOneBatch(keys, batchIndex, totalTime, errorCount);
 	}
@@ -86,19 +92,19 @@ public class OpenTSDB implements IDatebase {
         int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
         int groupNum = deviceNum / groupSize;
         String groupId = "group_"+groupNum;
-//        String metric="root."+groupId;
+        String metricName = metric + groupId;
         for(String sensor: config.SENSOR_CODES){
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             TSDBDataModel model = new TSDBDataModel();
-            model.setMetric(metric);
+            model.setMetric(metricName);
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String,String> tags=new HashMap<>();
-            tags.put("g", groupId);
-            tags.put("d", device);
-            tags.put("s", sensor);
+            //tags.put("g", groupId);
+            tags.put("device", device);
+            tags.put("sensor", sensor);
             models.addLast(model);
         }
         return  models;
@@ -133,8 +139,23 @@ public class OpenTSDB implements IDatebase {
 
 	@Override
 	public long getTotalTimeInterval() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		long endTime = 250000000 + Constants.START_TIMESTAMP;
+	
+		Map<String,Object> queryMap=new HashMap<>();
+		Map<String,Object> subQuery = new HashMap<String ,Object>();
+		subQuery.put("metric", getMetricName(0));
+		List<Map<String,Object>> list = new ArrayList<>(); 
+		list.add(subQuery);
+		queryMap.put("queries",list);
+		try {
+			String str = HttpRequest.sendGet(queryUrl+"/last", JSON.toJSONString(queryMap));
+			endTime = JSON.parseObject(str).getLong("timestamp");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return endTime - Constants.START_TIMESTAMP;
 	}
 
 	@Override
@@ -143,6 +164,9 @@ public class OpenTSDB implements IDatebase {
 		String sql = "";
 		long startTimeStamp = 0, endTimeStamp = 0;
 		Map<String,Object> queryMap=new HashMap<>();
+		queryMap.put("start",startTime);
+		queryMap.put("end", startTime+config.QUERY_INTERVAL);
+		List<Map<String,Object>> list = null; 
 		try {
 			List<String> sensorList = new ArrayList<String>();
 			switch (config.QUERY_CHOICE) {
@@ -157,6 +181,8 @@ public class OpenTSDB implements IDatebase {
 			case 2:// 模糊点查询（暂未实现）
 				break;
 			case 3:// 聚合函数查询
+				list = getSubQueries(devices);
+				queryMap.put("queries", list);
 				break;
 			case 4:// 范围查询
 				break;
@@ -164,23 +190,24 @@ public class OpenTSDB implements IDatebase {
 				
 				break;
 			case 6:// 最近点查询
+				
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
-				queryMap.put("start",startTime);
-				queryMap.put("end", startTime+config.QUERY_INTERVAL);
+				
 				Map<String,Object> subQuery = new HashMap<String ,Object>();
-				subQuery.put("aggregator", "avg");////FIXME 值的意义需要再研究一下
+				subQuery.put("aggregator", config.QUERY_AGGREGATE_FUN);////FIXME 值的意义需要再研究一下
 				subQuery.put("metric", metric);
 				subQuery.put("downsample", "1m-avg");//FIXME 根据method进行计算
 //				Map<String,Object> subTag = new HashMap<String ,Object>();
 //				subTag.put("d",point.getDeviceCode());
 //				subTag.put("s",point.getSensorCode());
 //				subQuery.put("tags", subTag);	
-				List<Map<String,Object>> list = new ArrayList<>(); 
+				
 				list.add(subQuery);
 				queryMap.put("queries",list);
 				break;
 			}
+			
 			int line = 0;
 			startTimeStamp = System.currentTimeMillis();
 			//TODO 执行查询
@@ -208,6 +235,48 @@ public class OpenTSDB implements IDatebase {
 			e.printStackTrace();
 		}
 	}
+	
+	private String getMetricName(Integer deviceNum){
+        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+        int groupNum = deviceNum / groupSize;
+        String groupId = "group_"+groupNum;
+        return metric + groupId;
+	}
+	
+	private List<Map<String,Object>> getSubQueries(List<Integer> devices){
+		List<Map<String,Object>> list = new ArrayList<>(); 
+		
+		List<String> sensorList = new ArrayList<String>();
+		for (String sensor : config.SENSOR_CODES) {
+			sensorList.add(sensor);
+		}
+		Collections.shuffle(sensorList, sensorRandom);
+		
+		Map<String, List<Integer>> metric2devices = new HashMap<String, List<Integer>>();
+		for(int d : devices){
+			String m = getMetricName(d);
+			metric2devices.putIfAbsent(m, new ArrayList<Integer>());
+			metric2devices.get(m).add(d);
+		}
+		
+		for(Entry<String, List<Integer>> queryMetric:metric2devices.entrySet()){
+			Map<String,Object> subQuery = new HashMap<String ,Object>();
+			subQuery.put("aggregator", config.QUERY_AGGREGATE_FUN);////FIXME 值的意义需要再研究一下
+			subQuery.put("metric", queryMetric.getKey());
+			
+			Map<String,String> tags = new HashMap<String,String>();
+			for(int d : queryMetric.getValue()){
+				tags.put("device", config.DEVICE_CODES.get(d));
+			}
+			for(int i = 0; i < config.QUERY_SENSOR_NUM; i++){
+				tags.put("sensor", sensorList.get(i));
+			}
+			subQuery.put("tags", tags);
+			subQuery.put("downsample", "1m-avg");//FIXME 根据method进行计算
+			list.add(subQuery);
+		}
+		return list;
+	}
 
 	@Override
 	public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime,
@@ -219,6 +288,7 @@ public class OpenTSDB implements IDatebase {
 	@Override
 	public long count(String group, String device, String sensor) {
 		// TODO Auto-generated method stub
+		
 		return 0;
 	}
 

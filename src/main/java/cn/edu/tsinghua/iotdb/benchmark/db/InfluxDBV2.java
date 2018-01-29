@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -47,6 +48,7 @@ public class InfluxDBV2 implements IDatebase {
 	private org.influxdb.InfluxDB influxDB;
 	private MySqlLog mySql;
 	private long labID;
+	private Random sensorRandom = null;
 
 	public InfluxDBV2(long labID) {
 		mySql = new MySqlLog();
@@ -70,6 +72,7 @@ public class InfluxDBV2 implements IDatebase {
 			createDatabase(InfluxDBName);
 		}
 		mySql.initMysql(labID);
+		sensorRandom = new Random(1 + config.QUERY_SEED);
 	}
 
 	@Override
@@ -417,7 +420,7 @@ public class InfluxDBV2 implements IDatebase {
 		for (String sensor : config.SENSOR_CODES) {
 			list.add(sensor);
 		}
-		Collections.shuffle(list);
+		Collections.shuffle(list, sensorRandom);
 		if (is_aggregate_fun && method.length() > 2) {
 			builder.append(method).append("(").append(list.get(0)).append(")");
 			sensorList.add(list.get(0));
