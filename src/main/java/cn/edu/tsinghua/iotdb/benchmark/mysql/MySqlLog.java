@@ -105,6 +105,8 @@ public class MySqlLog {
 							day);
 				}
 				break;
+			case Constants.DB_OPENTS:
+				break;
 			}
 
 			if (!hasTable("CONFIG")) {
@@ -386,6 +388,8 @@ public class MySqlLog {
 				}
 			}
 			break;
+		case Constants.DB_OPENTS:
+			break;
 		default:
 			throw new SQLException("unsupported database " + config.DB_SWITCH);
 		}
@@ -430,6 +434,12 @@ public class MySqlLog {
 				break;
 			case Constants.DB_INFLUX:
 				String influxHost = config.INFLUX_URL.substring(config.INFLUX_URL.lastIndexOf('/')+1, config.INFLUX_URL.lastIndexOf(':'));
+				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+						"'ServerIP'", "'" + config.host + "'");
+				stat.addBatch(sql);
+				break;
+			case Constants.DB_OPENTS:
+				String opentsHost = config.OPENTSDB_URL.substring(config.OPENTSDB_URL.lastIndexOf('/')+1, config.OPENTSDB_URL.lastIndexOf(':'));
 				sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
 						"'ServerIP'", "'" + config.host + "'");
 				stat.addBatch(sql);

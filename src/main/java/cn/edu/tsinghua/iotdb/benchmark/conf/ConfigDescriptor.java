@@ -74,7 +74,8 @@ public class ConfigDescriptor {
 
 				config.INFLUX_URL = properties.getProperty("INFLUX_URL", "localhost");
 				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
-
+				config.OPENTSDB_URL = properties.getProperty("OPENTSDB_URL", config.OPENTSDB_URL);
+				
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
@@ -99,7 +100,6 @@ public class ConfigDescriptor {
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				//config.PASSWARD = properties.getProperty("PASSWARD", "no passward");
 				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
 				
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);

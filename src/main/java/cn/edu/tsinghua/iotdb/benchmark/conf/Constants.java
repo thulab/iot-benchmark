@@ -7,7 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
  * 系统运行常量值
  */
 public class Constants {
-	public static final String START_TIME = "2017-11-1T00:00:00+08:00";
+	public static final String START_TIME = "2018-1-1T00:00:00+08:00";
 	public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(START_TIME);
 	public static final String URL ="jdbc:tsfile://%s:%s/";
 	public static final String USER ="root";
@@ -20,6 +20,7 @@ public class Constants {
 
 	public static final String DB_IOT = "IoTDB";
 	public static final String DB_INFLUX = "InfluxDB";
+	public static final String DB_OPENTS = "OpentsDB";
 	
 	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 	
