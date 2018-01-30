@@ -319,12 +319,18 @@ public class OpenTSDB implements IDatebase {
 			subQuery.put("metric", queryMetric.getKey());
 
 			Map<String, String> tags = new HashMap<String, String>();
+			String deviceStr = "";
 			for (int d : queryMetric.getValue()) {
-				tags.put("device", config.DEVICE_CODES.get(d));
+				deviceStr+="|"+config.DEVICE_CODES.get(d);
 			}
+			deviceStr=deviceStr.substring(1);
+			
+			String sensorStr = sensorList.get(0);
 			for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
-				tags.put("sensor", sensorList.get(i));
+				sensorStr+="|"+sensorList.get(i);
 			}
+			tags.put("sensor", sensorStr);
+			tags.put("device", deviceStr);
 			subQuery.put("tags", tags);
 			list.add(subQuery);
 		}
