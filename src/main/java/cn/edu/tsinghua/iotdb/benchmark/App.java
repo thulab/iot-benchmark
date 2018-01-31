@@ -27,7 +27,6 @@ import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 
 public class App {
 	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-	//private static final Logger LOGGER_RESULT = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
@@ -36,35 +35,36 @@ public class App {
 			return;
 		}
 		Config config = ConfigDescriptor.getInstance().getConfig();
-		switch (config.BENCHMARK_WORK_MODE) {
-			case Constants.MODE_SERVER_MODE:
-				serverMode(config);
-				break;
-			case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
-				insertTest(config);
-				break;
-			case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
-				genData(config);
-				break;
-			case Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH:
-				queryTest(config);
-				break;
-			case Constants.MODE_IMPORT_DATA_FROM_CSV:
-				importDataFromCSV(config);
-				break;
-			case Constants.MODE_EXECUTE_SQL_FROM_FILE:
-				executeSQLFromFile(config);
-			default:
-				throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
+		switch (config.BENCHMARK_WORK_MODE.trim()) {
+		case Constants.MODE_SERVER_MODE:
+			serverMode(config);
+			break;
+		case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
+			insertTest(config);
+			break;
+		case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
+			genData(config);
+			break;
+		case Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH:
+			queryTest(config);
+			break;
+		case Constants.MODE_IMPORT_DATA_FROM_CSV:
+			importDataFromCSV(config);
+			break;
+		case Constants.MODE_EXECUTE_SQL_FROM_FILE:
+			executeSQLFromFile(config);
+		default:
+			throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
 		}
-		
+
 	}// main
-	
+
 	/**
 	 * 将数据从CSV文件导入IOTDB
-	 * @throws SQLException 
 	 * 
-	 * */
+	 * @throws SQLException
+	 * 
+	 */
 	private static void importDataFromCSV(Config config) throws SQLException {
 		MetaDateBuilder builder = new MetaDateBuilder();
 		builder.createMataData(config.METADATA_FILE_PATH);
@@ -78,71 +78,94 @@ public class App {
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
 	 */
-	private static void serverMode(Config config) throws SQLException, ClassNotFoundException{
+	private static void serverMode(Config config) throws SQLException, ClassNotFoundException {
 		MySqlLog mySql = new MySqlLog();
 		mySql.initMysql(System.currentTimeMillis());
 		File dir = new File(config.LOG_STOP_FLAG_PATH);
-		if (dir.exists() && dir.isDirectory()) {
-			File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
-			int interval = config.INTERVAL;
-			// 检测所需的时间在目前代码的参数下至少为2秒
-			LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
-			while (true) {
-				ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
-				ArrayList<Float> netUsageList = NetUsage.getInstance().get();
-				LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
-				LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-				LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
-				LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-				mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
-						netUsageList.get(0), netUsageList.get(1),"");
-				try {
-					Thread.sleep(interval * 1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				if (file.exists()) {
-					boolean f = file.delete();
-					if (!f) {
-						LOGGER.error("log_stop_flag 文件删除失败");
+
+		boolean write2File = false;
+		BufferedWriter out = null;
+		char space = ' ';
+		try {
+			if (config.SERVER_MODE_INFO_FILE.length() > 0) {
+				write2File = true;
+				// if the file doesn't exits, tnen create the file, else append.
+				out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(config.SERVER_MODE_INFO_FILE, true)));
+				out.write(String.format("时间%15cCPU使用率%7c内存使用率%5c磁盘IO使用率%5ceth0接收速率%5ceth0发送速率%5cTotalFiles%5cDataAndWalFiles%5cSockets"
+						+ "%5cdeltaFileNum%5cderbyFileNum%5cdigestFileNum%5cmetadataFileNum%5coverflowFileNum%5cwalsFileNum\r\n",
+						space,space,space,space,space,space,space,space));
+			}
+
+			if (dir.exists() && dir.isDirectory()) {
+				File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
+				int interval = config.INTERVAL;
+				// 检测所需的时间在目前代码的参数下至少为2秒
+				LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
+				while (true) {
+					ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+					ArrayList<Float> netUsageList = NetUsage.getInstance().get();
+					ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+					LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
+					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
+					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
+					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
+					LOGGER.info("\nPID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
+							openFileList.get(0), openFileList.get(1), openFileList.get(2));
+					mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
+							netUsageList.get(0), netUsageList.get(1),openFileList,"");
+					if(write2File) {
+						out.write(String.format("%d%14f%14f%15f",System.currentTimeMillis(),
+								ioUsageList.get(0),MemUsage.getInstance().get(),ioUsageList.get(1)));
+						out.write(String.format("%16f%16f%12d%8s%8d%10s%5d",netUsageList.get(0),
+								netUsageList.get(1),openFileList.get(0),space,openFileList.get(1),
+								space,openFileList.get(2)));
+						out.write(String.format("%16d%16d%16d%16d%16d%16d\n",openFileList.get(3),
+								openFileList.get(4),openFileList.get(5),space,openFileList.get(6),
+								openFileList.get(7),openFileList.get(8)));
 					}
-					break;
+					try {
+						Thread.sleep(interval * 1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if (file.exists()) {
+						boolean f = file.delete();
+						if (!f) {
+							LOGGER.error("log_stop_flag 文件删除失败");
+						}
+						break;
+					}
 				}
+			} else {
+				LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
 			}
-
-			/*
-			IDBFactory idbFactory = null;
-			idbFactory = getDBFactory(config);
-
-			IDatebase datebase;
-
-			try {
-				datebase = idbFactory.buildDB(mySql.getLabID());
-				datebase.init();
-				LOGGER.info("Before flush:");
-				datebase.getUnitPointStorageSize();
-				datebase.flush();
-				LOGGER.info("After flush:");
-				datebase.getUnitPointStorageSize();
-				datebase.close();
-
-			} catch (SQLException e) {
-				LOGGER.error("Fail to init database becasue {}", e.getMessage());
-				return;
-			}
-*/
-
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
 			mySql.closeMysql();
-
-
-
-
-		} else {
-			LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
+			try {
+				if(out != null)
+					out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+		/*
+		 * IDBFactory idbFactory = null; idbFactory = getDBFactory(config);
+		 * 
+		 * IDatebase datebase;
+		 * 
+		 * try { datebase = idbFactory.buildDB(mySql.getLabID()); datebase.init();
+		 * LOGGER.info("Before flush:"); datebase.getUnitPointStorageSize();
+		 * datebase.flush(); LOGGER.info("After flush:");
+		 * datebase.getUnitPointStorageSize(); datebase.close();
+		 * 
+		 * } catch (SQLException e) { LOGGER.error("Fail to init database becasue {}",
+		 * e.getMessage()); return; }
+		 */
 	}
 
-	private static void executeSQLFromFile(Config config) throws SQLException, ClassNotFoundException{
+	private static void executeSQLFromFile(Config config) throws SQLException, ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
 		IDBFactory idbFactory = null;
@@ -166,20 +189,19 @@ public class App {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	/*
-	LOGGER.info("Execute SQL from file {} by one batch cost {} seconds. Mean rate {} SQL/s",
-			config.SQL_FILE,
-			exeSQLFromFileTime,
-			1.0f * SQLCount / exeSQLFromFileTime
-			);
-	*/
+		/*
+		 * LOGGER.
+		 * info("Execute SQL from file {} by one batch cost {} seconds. Mean rate {} SQL/s"
+		 * , config.SQL_FILE, exeSQLFromFileTime, 1.0f * SQLCount / exeSQLFromFileTime
+		 * );
+		 */
 
-		//加入新版的mysql表中
+		// 加入新版的mysql表中
 		mysql.closeMysql();
 	}
 
-	private static void genData(Config config) throws SQLException, ClassNotFoundException  {
-		//一次生成一个timeseries的数据
+	private static void genData(Config config) throws SQLException, ClassNotFoundException {
+		// 一次生成一个timeseries的数据
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
 		mysql.saveTestModel(config.TIMESERIES_TYPE, config.ENCODING);
@@ -205,60 +227,52 @@ public class App {
 		}
 
 		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
-		long totalErrorPoint ;
+		long totalErrorPoint;
 
-			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
-			ArrayList<Long> totalTimes = new ArrayList<>();
-			ExecutorService executorService = Executors
-					.newFixedThreadPool(config.CLIENT_NUMBER);
-			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()),
-						i, downLatch, totalTimes, totalInsertErrorNums));
+		CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+		ArrayList<Long> totalTimes = new ArrayList<>();
+		ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+		for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+			executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i, downLatch, totalTimes,
+					totalInsertErrorNums));
+		}
+		executorService.shutdown();
+		try {
+			downLatch.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		long totalTime = 0;
+		for (long c : totalTimes) {
+			if (c > totalTime) {
+				totalTime = c;
 			}
-			executorService.shutdown();
-			try {
-				downLatch.await();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			long totalTime = 0;
-			for (long c : totalTimes) {
-				if (c > totalTime) {
-					totalTime = c;
-				}
-			}
-			long totalPoints = config.LOOP * config.CACHE_NUM;
-			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
-				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
-			}
+		}
+		long totalPoints = config.LOOP * config.CACHE_NUM;
+		if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
+			totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
+		}
 
-			totalErrorPoint = getErrorNum(config,totalInsertErrorNums,datebase);
-			LOGGER.info(
-					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
-					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
-					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP, config.MUL_DEV_BATCH);
+		totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
+		LOGGER.info(
+				"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
+				config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM, config.POINT_STEP,
+				config.LOOP, config.MUL_DEV_BATCH);
 
-			LOGGER.info(
-					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-					totalPoints ,
-					totalTime / 1000.0f,
-					config.CLIENT_NUMBER,
-					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+		LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
+				totalTime / 1000.0f, config.CLIENT_NUMBER,
+				1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
-			LOGGER.info("Total error num is {}, create schema cost {},s",
-					totalErrorPoint, createSchemaTime);
+		LOGGER.info("Total error num is {}, create schema cost {},s", totalErrorPoint, createSchemaTime);
 
-
-			//加入新版的mysql表中
-			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
-			mysql.saveResult("totalPoints", ""+totalPoints);
-			mysql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
-			mysql.saveResult("totalErrorPoint", ""+totalErrorPoint);
-			mysql.closeMysql();
+		// 加入新版的mysql表中
+		mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
+		mysql.saveResult("totalPoints", "" + totalPoints);
+		mysql.saveResult("totalTime(s)", "" + totalTime / 1000.0f);
+		mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
+		mysql.closeMysql();
 
 	}
-
 
 	/**
 	 * 数据库插入测试
@@ -266,14 +280,13 @@ public class App {
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
 	 */
-	private static void insertTest(Config config) throws SQLException,
-			ClassNotFoundException {
+	private static void insertTest(Config config) throws SQLException, ClassNotFoundException {
 		MySqlLog mysql = new MySqlLog();
 		mysql.initMysql(System.currentTimeMillis());
-        
+
 		mysql.saveTestModel("Double", config.ENCODING);
 		mysql.savaTestConfig();
-		
+
 		IDBFactory idbFactory = null;
 		idbFactory = getDBFactory(config);
 
@@ -295,19 +308,16 @@ public class App {
 		}
 
 		ArrayList<Long> totalInsertErrorNums = new ArrayList<>();
-		long totalErrorPoint ;
+		long totalErrorPoint;
 		if (config.READ_FROM_FILE) {
 			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 			ArrayList<Long> totalTimes = new ArrayList<>();
 			Storage storage = new Storage();
-			ExecutorService executorService = Executors
-					.newFixedThreadPool(config.CLIENT_NUMBER + 1);
+			ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER + 1);
 			executorService.submit(new Resolve(config.FILE_PATH, storage));
 			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-				executorService
-						.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i,
-								storage, downLatch, totalTimes,
-								totalInsertErrorNums));
+				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i, storage, downLatch,
+						totalTimes, totalInsertErrorNums));
 			}
 			executorService.shutdown();
 			// wait for all threads complete
@@ -323,22 +333,18 @@ public class App {
 					totalTime = c;
 				}
 			}
-			LOGGER.info(
-					"READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}",
-					config.TAG_PATH, config.STORE_MODE, config.BATCH_OP_NUM);
-			LOGGER.info(
-					"loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)",
-					totalItem, totalTime / 1000.0f, config.CLIENT_NUMBER,
-					(1000.0f * totalItem) / ((float) totalTime));
+			LOGGER.info("READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}", config.TAG_PATH,
+					config.STORE_MODE, config.BATCH_OP_NUM);
+			LOGGER.info("loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)", totalItem,
+					totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * totalItem) / ((float) totalTime));
 
 		} else {
 			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 			ArrayList<Long> totalTimes = new ArrayList<>();
-			ExecutorService executorService = Executors
-					.newFixedThreadPool(config.CLIENT_NUMBER);
+			ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
 			for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()),
-						i, downLatch, totalTimes, totalInsertErrorNums));
+				executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i, downLatch, totalTimes,
+						totalInsertErrorNums));
 			}
 			executorService.shutdown();
 			try {
@@ -353,107 +359,93 @@ public class App {
 				}
 			}
 			long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
-			if(config.DB_SWITCH.equals(Constants.DB_IOT)&&config.MUL_DEV_BATCH){
-				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM ;
+			if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
+				totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
 			}
 
-			totalErrorPoint = getErrorNum(config,totalInsertErrorNums,datebase);
+			totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
 			LOGGER.info(
 					"GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
-					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
-					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP, config.MUL_DEV_BATCH);
+					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM,
+					config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
 
-			LOGGER.info(
-					"Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-					totalPoints ,
-					totalTime / 1000.0f,
-					config.CLIENT_NUMBER,
+			LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
+					totalTime / 1000.0f, config.CLIENT_NUMBER,
 					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
-			LOGGER.info("Total error num is {}, create schema cost ,{},s",
-						totalErrorPoint, createSchemaTime);
+			LOGGER.info("Total error num is {}, create schema cost ,{},s", totalErrorPoint, createSchemaTime);
 
 			/*
-			LOGGER_RESULT.error(
-					"Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},IS_OVERFLOW=,{}",
-					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
-					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
-			*/
-
-			/*weekly test的日志输出
-			LOGGER_RESULT.error(
-					"Writing test parameters: GROUP_NUMBER={}, DEVICE_NUMBER={}, SENSOR_NUMBER={}, CACHE_NUM={}, POINT_STEP={}, LOOP={}, MUL_DEV_BATCH={}, IS_OVERFLOW={}",
-					config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
-					config.CACHE_NUM, config.POINT_STEP,
-					config.LOOP, config.MUL_DEV_BATCH, config.IS_OVERFLOW);
-			weekly test的日志输出
+			 * LOGGER_RESULT.error(
+			 * "Writing test parameters: GROUP_NUMBER=,{},DEVICE_NUMBER=,{},SENSOR_NUMBER=,{},CACHE_NUM=,{},POINT_STEP=,{},LOOP=,{},MUL_DEV_BATCH=,{},IS_OVERFLOW=,{}"
+			 * , config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+			 * config.CACHE_NUM, config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH,
+			 * config.IS_OVERFLOW);
+			 */
 
 			/*
-			LOGGER_RESULT.error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds",
-					totalPoints,
-					totalTime / 1000.0f,
-					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime,
-					totalErrorPoint,
-					createSchemaTime);
-			*/
+			 * weekly test的日志输出 LOGGER_RESULT.error(
+			 * "Writing test parameters: GROUP_NUMBER={}, DEVICE_NUMBER={}, SENSOR_NUMBER={}, CACHE_NUM={}, POINT_STEP={}, LOOP={}, MUL_DEV_BATCH={}, IS_OVERFLOW={}"
+			 * , config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER,
+			 * config.CACHE_NUM, config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH,
+			 * config.IS_OVERFLOW); weekly test的日志输出
+			 * 
+			 * /* LOGGER_RESULT.
+			 * error("Loaded,{},points in,{},seconds, mean rate,{},points/s, Total error point num is,{},create schema cost,{},seconds"
+			 * , totalPoints, totalTime / 1000.0f, 1000.0f * (totalPoints - totalErrorPoint)
+			 * / (float) totalTime, totalErrorPoint, createSchemaTime);
+			 */
 
-			/*weekly test的日志输出
-			HashMap<String,String> lastPeriodResults = getLastPeriodResults(config);
-			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
-			float lastRate = 1;
-			if (file.exists()) {
-				LOGGER_RESULT.error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds.",
-						lastPeriodResults.get("WriteTotalPoint"),
-						lastPeriodResults.get("WriteTotalTime"),
-						lastPeriodResults.get("WriteMeanRate"),
-						lastPeriodResults.get("WriteErrorNum"),
-						lastPeriodResults.get("WriteSchemaCost"));
-				lastRate = Float.parseFloat(lastPeriodResults.get("WriteMeanRate"));
-			}
+			/*
+			 * weekly test的日志输出 HashMap<String,String> lastPeriodResults =
+			 * getLastPeriodResults(config); File file = new File(config.LAST_RESULT_PATH +
+			 * "/lastPeriodResult.txt"); float lastRate = 1; if (file.exists()) {
+			 * LOGGER_RESULT.
+			 * error("Last period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds."
+			 * , lastPeriodResults.get("WriteTotalPoint"),
+			 * lastPeriodResults.get("WriteTotalTime"),
+			 * lastPeriodResults.get("WriteMeanRate"),
+			 * lastPeriodResults.get("WriteErrorNum"),
+			 * lastPeriodResults.get("WriteSchemaCost")); lastRate =
+			 * Float.parseFloat(lastPeriodResults.get("WriteMeanRate")); }
+			 * 
+			 * float thisRate = 1000.0f * (totalPoints - totalErrorPoint) / (float)
+			 * totalTime; LOGGER_RESULT.
+			 * error("This period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds. Mean rate change {} %."
+			 * , totalPoints, totalTime / 1000.0f, thisRate, totalErrorPoint,
+			 * createSchemaTime, ((thisRate - lastRate) / lastRate * 100) ); weekly
+			 * test的日志输出
+			 */
 
-			float thisRate = 1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime;
-			LOGGER_RESULT.error("This period loaded {} points in {} seconds, mean rate {} points/s, total error point num is {} , create schema cost {} seconds. Mean rate change {} %.",
-					totalPoints,
-					totalTime / 1000.0f,
-					thisRate,
-					totalErrorPoint,
-					createSchemaTime,
-					((thisRate - lastRate) / lastRate * 100)
-			);
-			weekly test的日志输出*/
-
-			mysql.saveResult("createSchemaTime(s)", ""+createSchemaTime);
-			mysql.saveResult("totalPoints", ""+totalPoints);
-			mysql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
-			mysql.saveResult("totalErrorPoint", ""+totalErrorPoint);
+			mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
+			mysql.saveResult("totalPoints", "" + totalPoints);
+			mysql.saveResult("totalTime(s)", "" + totalTime / 1000.0f);
+			mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
 			mysql.closeMysql();
 
-		}// else--
-		
-		
+		} // else--
+
 	}
 
-
-	private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase) throws SQLException {
-		long totalErrorPoint ;
-		switch (config.DB_SWITCH) {
-			case Constants.DB_IOT:
-				totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-				break;
-			case Constants.DB_INFLUX:
-				totalErrorPoint = getErrorNumInflux(config, datebase);
-				break;
-			default:
-				throw new SQLException("unsupported database " + config.DB_SWITCH);
+	private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase)
+			throws SQLException {
+		long totalErrorPoint;
+		switch (config.DB_SWITCH.trim()) {
+		case Constants.DB_IOT:
+			totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+			break;
+		case Constants.DB_INFLUX:
+			totalErrorPoint = getErrorNumInflux(config, datebase);
+			break;
+		default:
+			throw new SQLException("unsupported database " + config.DB_SWITCH);
 		}
 		return totalErrorPoint;
-  }
-  
-	private static HashMap<String,String> getLastPeriodResults(Config config) {
+	}
+
+	private static HashMap<String, String> getLastPeriodResults(Config config) {
 		File dir = new File(config.LAST_RESULT_PATH);
-		HashMap<String,String> lastResults = new HashMap<>();
+		HashMap<String, String> lastResults = new HashMap<>();
 		if (dir.exists() && dir.isDirectory()) {
 			File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
 			if (file.exists()) {
@@ -464,7 +456,6 @@ public class App {
 					e.printStackTrace();
 				}
 				String line = null;
-
 
 				try {
 					while ((line = br.readLine()) != null) {
@@ -523,7 +514,7 @@ public class App {
 								lastResults.put("NeaQueryWorkers", (writeResult[16]));
 								lastResults.put("NeaQueryRate", (writeResult[20]));
 								lastResults.put("NeaQueryPointRate", (writeResult[23]));
-								lastResults.put("NeaQueryErrorNum",(writeResult[31]));
+								lastResults.put("NeaQueryErrorNum", (writeResult[31]));
 							} else if (writeResult[2].startsWith("Gro")) {
 								lastResults.put("GroQueryNum", (writeResult[6]));
 								lastResults.put("GroQueryTime", (writeResult[9]));
@@ -538,62 +529,47 @@ public class App {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}else{
+			} else {
 				LOGGER.warn("上一次测试结果的对比文件不存在");
 			}
-		}else{
+		} else {
 			LOGGER.warn("上一次测试结果的路径不存在");
 		}
-			/*以下代码功能在脚本中实现了
-			//读取上一次的结果完毕，删除上一次的结果文件
-			if (file.exists()) {
-				boolean f = file.delete();
-				if (!f) {
-					LOGGER.error("上一次测试结果的对比文件删除失败");
-				}
-			} else {
-				LOGGER.error("上一次测试结果的对比文件不存在");
-			}
-			//获取进程
-			Runtime run = Runtime.getRuntime();
-			Process process = null;
-			//将本次产生的新结果作为下一次测试的上一次测试结果文件
-			String command = "cp  " + config.LAST_RESULT_PATH + "/log_result_info.txt" + "  " + config.LAST_RESULT_PATH + "/lastPeriodResult.txt";
-			System.out.println(command);
-			//执行doc命令
-			try {
-				process = run.exec(command);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}else{
-			LOGGER.error("上一次测试结果的路径不存在");
-		}
-			*/
+		/*
+		 * 以下代码功能在脚本中实现了 //读取上一次的结果完毕，删除上一次的结果文件 if (file.exists()) { boolean f =
+		 * file.delete(); if (!f) { LOGGER.error("上一次测试结果的对比文件删除失败"); } } else {
+		 * LOGGER.error("上一次测试结果的对比文件不存在"); } //获取进程 Runtime run = Runtime.getRuntime();
+		 * Process process = null; //将本次产生的新结果作为下一次测试的上一次测试结果文件 String command = "cp  "
+		 * + config.LAST_RESULT_PATH + "/log_result_info.txt" + "  " +
+		 * config.LAST_RESULT_PATH + "/lastPeriodResult.txt";
+		 * System.out.println(command); //执行doc命令 try { process = run.exec(command); }
+		 * catch (Exception e) { e.printStackTrace(); } }else{
+		 * LOGGER.error("上一次测试结果的路径不存在"); }
+		 */
 
 		return lastResults;
 
 	}
 
-	private static IDBFactory getDBFactory(Config config) throws SQLException{
+	private static IDBFactory getDBFactory(Config config) throws SQLException {
 		switch (config.DB_SWITCH) {
-			case Constants.DB_IOT:
-				return new IoTDBFactory();
-			case Constants.DB_INFLUX:
-				return new InfluxDBFactory();
-			default:
-				throw new SQLException("unsupported database " + config.DB_SWITCH);
+		case Constants.DB_IOT:
+			return new IoTDBFactory();
+		case Constants.DB_INFLUX:
+			return new InfluxDBFactory();
+		default:
+			throw new SQLException("unsupported database " + config.DB_SWITCH);
 		}
 	}
 
 	private static long getErrorNumInflux(Config config, IDatebase database) {
-		//同一个device中不同sensor的点数是相同的，因此不对sensor遍历
+		// 同一个device中不同sensor的点数是相同的，因此不对sensor遍历
 		long insertedPointNum = 0;
 		int groupIndex = 0;
 		int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-		for(int i=0;i<config.DEVICE_NUMBER;i++){
-			groupIndex=i/groupSize;
-			insertedPointNum += database.count("group_" + groupIndex,"d_" + i,"s_0") * config.SENSOR_NUMBER;
+		for (int i = 0; i < config.DEVICE_NUMBER; i++) {
+			groupIndex = i / groupSize;
+			insertedPointNum += database.count("group_" + groupIndex, "d_" + i, "s_0") * config.SENSOR_NUMBER;
 		}
 		try {
 			database.close();
@@ -638,8 +614,8 @@ public class App {
 		ArrayList<Long> totalQueryErrorNums = new ArrayList<>();
 		ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
 		for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-			executorService.submit(new QueryClientThread(idbFactory.buildDB(mySql.getLabID()), i, downLatch, totalTimes, totalPoints,
-					totalQueryErrorNums));
+			executorService.submit(new QueryClientThread(idbFactory.buildDB(mySql.getLabID()), i, downLatch, totalTimes,
+					totalPoints, totalQueryErrorNums));
 		}
 		executorService.shutdown();
 		try {
@@ -657,82 +633,74 @@ public class App {
 
 		LOGGER.info(
 				"{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
-				getQueryName(config),
-				config.CLIENT_NUMBER * config.LOOP, totalTime / 1000.0f, totalResultPoint, config.CLIENT_NUMBER,
-				(1000.0f * totalResultPoint) / ((float) totalTime));
+				getQueryName(config), config.CLIENT_NUMBER * config.LOOP, (totalTime / 1000.0f)/1000000.0, totalResultPoint,
+				config.CLIENT_NUMBER, (1000.0f * totalResultPoint) / ((float) totalTime / 1000000.0f));
 
 		long totalErrorPoint = getSumOfList(totalQueryErrorNums);
 		LOGGER.info("total error num is {}", totalErrorPoint);
 
 		/*
-		LOGGER_RESULT.error("{}: execute,{},query in,{},seconds, get,{},result points with,{},workers, mean rate,{},query/s,{},points/s; Total error point number is,{}",
-				getQueryName(config),
-				config.CLIENT_NUMBER * config.LOOP,
-				totalTime / 1000.0f,
-				totalResultPoint,
-				config.CLIENT_NUMBER,
-				1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime,
-				(1000.0f * totalResultPoint) / ((float) totalTime),
-				totalErrorPoint);
-		*/
-		/*weekly test的日志输出
-		HashMap<String,String> lastPeriodResults = getLastPeriodResults(config);
-		File file = new File(config.LAST_RESULT_PATH + "/lastPeriodResult.txt");
-		float lastRate = 1;
-		if (file.exists()) {
-			LOGGER_RESULT.error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} .",
-					getQueryName(config),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryNum"),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryTime"),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryResults"),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryWorkers"),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryPointRate"),
-					lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryErrorNum"));
-			lastRate = Float.parseFloat(lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"));
-		}
+		 * LOGGER_RESULT.
+		 * error("{}: execute,{},query in,{},seconds, get,{},result points with,{},workers, mean rate,{},query/s,{},points/s; Total error point number is,{}"
+		 * , getQueryName(config), config.CLIENT_NUMBER * config.LOOP, totalTime /
+		 * 1000.0f, totalResultPoint, config.CLIENT_NUMBER, 1000.0f *
+		 * config.CLIENT_NUMBER * config.LOOP / totalTime, (1000.0f * totalResultPoint)
+		 * / ((float) totalTime), totalErrorPoint);
+		 */
+		/*
+		 * weekly test的日志输出 HashMap<String,String> lastPeriodResults =
+		 * getLastPeriodResults(config); File file = new File(config.LAST_RESULT_PATH +
+		 * "/lastPeriodResult.txt"); float lastRate = 1; if (file.exists()) {
+		 * LOGGER_RESULT.
+		 * error("Last period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} ."
+		 * , getQueryName(config),
+		 * lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryNum"),
+		 * lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryTime"),
+		 * lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryResults"),
+		 * lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryWorkers"),
+		 * lastPeriodResults.get(getQueryName(config).substring(0, 3) + "QueryRate"),
+		 * lastPeriodResults.get(getQueryName(config).substring(0, 3) +
+		 * "QueryPointRate"), lastPeriodResults.get(getQueryName(config).substring(0, 3)
+		 * + "QueryErrorNum")); lastRate =
+		 * Float.parseFloat(lastPeriodResults.get(getQueryName(config).substring(0, 3) +
+		 * "QueryRate")); }
+		 * 
+		 * float thisRate = 1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime;
+		 * LOGGER_RESULT.
+		 * error("This period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} . Mean rate change {} %."
+		 * , getQueryName(config), config.CLIENT_NUMBER * config.LOOP, totalTime /
+		 * 1000.0f, totalResultPoint, config.CLIENT_NUMBER, thisRate, (1000.0f *
+		 * totalResultPoint) / ((float) totalTime), totalErrorPoint, ((thisRate -
+		 * lastRate) / lastRate * 100) ); weekly test的日志输出
+		 */
 
-		float thisRate = 1000.0f * config.CLIENT_NUMBER * config.LOOP / totalTime;
-		LOGGER_RESULT.error("This period {}: execute {} query in {} seconds, get {} result points with {} workers, mean rate {} query/s ( {} points/s ), total error point num is {} . Mean rate change {} %.",
-				getQueryName(config),
-				config.CLIENT_NUMBER * config.LOOP,
-				totalTime / 1000.0f,
-				totalResultPoint,
-				config.CLIENT_NUMBER,
-				thisRate,
-				(1000.0f * totalResultPoint) / ((float) totalTime),
-				totalErrorPoint,
-				((thisRate - lastRate) / lastRate * 100)
-		);
-		weekly test的日志输出*/
-		
-		mySql.saveResult("queryNumber", ""+config.CLIENT_NUMBER * config.LOOP);
-		mySql.saveResult("totalPoint", ""+totalResultPoint);
-		mySql.saveResult("totalTime(s)", ""+totalTime / 1000.0f);
-		mySql.saveResult("resultPointPerSecond(points/s)", ""+(1000.0f * (totalResultPoint) )/  totalTime);
-		mySql.saveResult("totalErrorQuery", ""+totalErrorPoint);
+		mySql.saveResult("queryNumber", "" + config.CLIENT_NUMBER * config.LOOP);
+		mySql.saveResult("totalPoint", "" + totalResultPoint);
+		mySql.saveResult("totalTime(s)", "" + (totalTime / 1000.0f)/1000000.0);
+		mySql.saveResult("resultPointPerSecond(points/s)", "" + (1000.0f * (totalResultPoint)) / (totalTime / 1000000.0));
+		mySql.saveResult("totalErrorQuery", "" + totalErrorPoint);
 
 		mySql.closeMysql();
 	}
 
 	private static String getQueryName(Config config) throws SQLException {
-		switch (config.QUERY_CHOICE){
-			case 1:
-				return "Exact Point Query";
-			case 2:
-				return "Fuzzy Point Query";
-			case 3:
-				return "Aggregation Function Query";
-			case 4:
-				return "Range Query";
-			case 5:
-				return "Criteria Query";
-			case 6:
-				return "Nearest Point Query";
-			case 7:
-				return "Group By Query";
-			default:
-				throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
+		switch (config.QUERY_CHOICE) {
+		case 1:
+			return "Exact Point Query";
+		case 2:
+			return "Fuzzy Point Query";
+		case 3:
+			return "Aggregation Function Query";
+		case 4:
+			return "Range Query";
+		case 5:
+			return "Criteria Query";
+		case 6:
+			return "Nearest Point Query";
+		case 7:
+			return "Group By Query";
+		default:
+			throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
 		}
 	}
 
@@ -744,6 +712,4 @@ public class App {
 		}
 		return total;
 	}
-
-
 }

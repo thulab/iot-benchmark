@@ -24,14 +24,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * This version use influx-java api instead of simple http.
@@ -323,9 +316,10 @@ public class InfluxDBV2 implements IDatebase {
 						sensorList);
 				break;
 			}
+			LOGGER.debug(sql);
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
-			startTimeStamp = System.currentTimeMillis();
+			startTimeStamp = System.nanoTime();
 			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
 			for (Result result : results.getResults()) {
 				//LOGGER.info(result.toString());
@@ -348,25 +342,25 @@ public class InfluxDBV2 implements IDatebase {
 			}
 
 			//LOGGER.info("{}", builder.toString());
-			endTimeStamp = System.currentTimeMillis();
+			endTimeStamp = System.nanoTime();
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
 			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
 
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0,
+					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
 					line * config.QUERY_SENSOR_NUM,
-					line * config.QUERY_SENSOR_NUM * 1000.0 / (endTimeStamp - startTimeStamp),
-					(client.getTotalTime()) / 1000.0, client.getTotalPoint(),
-					client.getTotalPoint() * 1000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, (endTimeStamp - startTimeStamp) / 1000.0f,
+					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
+					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/1000000.0));
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
 					config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!" + sql);
+			mySql.saveQueryProcess(index, 0, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0, "query fail!" + sql);
 			e.printStackTrace();
 		}
 
@@ -571,144 +565,14 @@ public class InfluxDBV2 implements IDatebase {
 
 	}
 
-//    /**
-//	 * 创建查询语句--(精确点查询)
-//	 * 
-//	 * @throws SQLException
-//	 */
-//	private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList)
-//			throws SQLException {
-//		StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, sensorList));
-//		builder.append(" WHERE time = ").append(time);
-//		return builder.toString();
-//	}
-//
-//	/**
-//	 * 创建查询语句--(查询设备下的num个传感器数值)
-//	 * 
-//	 * @throws SQLException
-//	 */
-//	private String createQuerySQLStatment(List<Integer> devices, int num, List<String> sensorList) throws SQLException {
-//		StringBuilder builder = new StringBuilder();
-//		builder.append("SELECT ");
-//		if (num > config.SENSOR_NUMBER) {
-//			throw new SQLException("config.SENSOR_NUMBER is " + config.SENSOR_NUMBER
-//					+ " shouldn't less than the number of fields in querySql");
-//		}
-//		List<String> list = new ArrayList<String>();
-//		for (String sensor : config.SENSOR_CODES) {
-//			list.add(sensor);
-//		}
-//		Collections.shuffle(list);
-//		builder.append(list.get(0));
-//		sensorList.add(list.get(0));
-//		for (int i = 1; i < num; i++) {
-//			builder.append(" , ").append(list.get(i));
-//			sensorList.add(list.get(i));
-//		}
-//		builder.append(" FROM ").append(getFullGroupDevicePathByID(devices.get(0)));
-//		for (int i = 1; i < devices.size(); i++) {
-//			builder.append(" , ").append(getFullGroupDevicePathByID(devices.get(i)));
-//		}
-//
-//		return builder.toString();
-//	}
-//
-//	/** 创建查询语句--(带有聚合函数的查询) */
-//	private String createQuerySQLStatment(List<Integer> devices, int num, String method, List<String> sensorList) {
-//		StringBuilder builder = new StringBuilder();
-//
-//		builder.append("SELECT ");
-//
-//		List<String> list = new ArrayList<String>();
-//		for (String sensor : config.SENSOR_CODES) {
-//			list.add(sensor);
-//		}
-//		Collections.shuffle(list);
-//		if(method.length()>2) {
-//			builder.append(method).append("(").append(list.get(0)).append(")");
-//			sensorList.add(list.get(0));
-//			for (int i = 1; i < num; i++) {
-//				builder.append(" , ").append(method).append("(").append(list.get(i)).append(")");
-//				sensorList.add(list.get(i));
-//			}
-//		}
-//		else {
-//			builder.append(list.get(0));
-//			sensorList.add(list.get(0));
-//			for (int i = 1; i < num; i++) {
-//				builder.append(" , ").append(list.get(i));
-//				sensorList.add(list.get(i));
-//			}
-//		}
-//		
-//
-//		builder.append(" FROM ").append(getFullGroupDevicePathByID(devices.get(0)));
-//		for (int i = 1; i < devices.size(); i++) {
-//			builder.append(" , ").append(getFullGroupDevicePathByID(devices.get(i)));
-//		}
-//		return builder.toString();
-//	}
-//
-//	/**
-//	 * 创建查询语句--(带有时间约束条件的查询)
-//	 * 
-//	 * @throws SQLException
-//	 */
-//	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
-//			List<String> sensorList) throws SQLException {
-//		StringBuilder builder = new StringBuilder();
-//		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time > ");
-//		builder.append(startTime).append(" AND time < ").append(endTime);
-//		return builder.toString();
-//	}
-//
-//	/**
-//	 * 创建查询语句--(带有时间约束以及条件约束的查询)
-//	 * 
-//	 * @throws SQLException
-//	 */
-//	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
-//			List<String> sensorList) throws SQLException {
-//		StringBuilder builder = new StringBuilder();
-//		builder.append(createQuerySQLStatment(devices, num, startTime, endTime, sensorList));
-//		
-//		for (int id : devices) {
-//			String prefix = getFullGroupDevicePathByID(id);
-//			for (int i = 0; i < sensorList.size(); i++) {
-//				builder.append(" AND ").append(prefix).append(".").append(sensorList.get(i)).append(" > ")
-//				.append(value);
-//				
-//			}
-//		}
-//		
-//		return builder.toString();
-//	}
-//	
-//	/**
-//	 * 创建查询语句--(带有时间约束以及条件约束的GroupBy查询)
-//	 * 
-//	 * @throws SQLException
-//	 */
-//	private String createQuerySQLStatment(List<Integer> devices, String method, int num, List<Long> startTime, List<Long> endTime, Number value,
-//			List<String> sensorList) throws SQLException {
-//		StringBuilder builder = new StringBuilder();
-//		builder.append(createQuerySQLStatment(devices,num,method, sensorList));
-//		builder.append(" WHERE ");
-//		for (int id : devices) {
-//			String prefix = getFullGroupDevicePathByID(id);
-//			for (int i = 0; i < sensorList.size(); i++) {
-//				builder.append(prefix).append(".").append(sensorList.get(i)).append(" > ")
-//				.append(value).append(" AND ");
-//			}
-//		}
-//		builder.delete(builder.lastIndexOf("AND"), builder.length());
-//		builder.append(" GROUP BY(").append(config.QUERY_INTERVAL).append("ms, ").append(Constants.START_TIMESTAMP);
-//		for(int i = 0;i<startTime.size();i++) {
-//			builder.append(",[").append(startTime.get(i)).append(",").append(endTime.get(i)).append("]");
-//		}
-//		builder.append(")");
-//		return builder.toString();
-//	}
+	@Override
+	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+		return 0;
+	}
+
+	@Override
+	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+		return 0;
+	}
 
 }
