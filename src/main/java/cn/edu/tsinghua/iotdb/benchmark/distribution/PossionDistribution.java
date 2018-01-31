@@ -14,6 +14,14 @@ public class PossionDistribution {
     private Random random;
     private int deltaKinds;
 
+    public void setLambda(double lambda) {
+        this.lambda = lambda;
+    }
+
+    public void setDeltaKinds(int deltaKinds) {
+        this.deltaKinds = deltaKinds;
+    }
+
     public PossionDistribution(Random ran) {
         this.config = ConfigDescriptor.getInstance().getConfig();
         this.lambda = config.LAMBDA;

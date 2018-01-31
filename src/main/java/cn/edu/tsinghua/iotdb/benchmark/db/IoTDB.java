@@ -720,30 +720,54 @@ public class IoTDB implements IDatebase {
         try {
             statement.addBatch(String.format(createStatementSQL, Constants.ROOT_SERIES_NAME + "." + path + "." + sensor,
                     config.ENCODING));
-            if ((count % 1000) == 0) {
-                long startTime = System.currentTimeMillis();
-                statement.executeBatch();
-                statement.clearBatch();
-                long endTime = System.currentTimeMillis();
-                LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
-                        1000000.0f / (endTime - startTime));
-                mySql.saveResult("batch" + count / 1000 + "CreateTimeseriesSpeed", "" + 1000000.0f / (endTime - startTime));
-                if (count >= timeseriesTotal) {
-                    statement.close();
-                }
-                // statement.close();
-            } else if (count >= timeseriesTotal) {
-                statement.executeBatch();
-                statement.clearBatch();
-                statement.close();
-            }
         } catch (SQLException e) {
-            LOGGER.warn(e.getMessage());
+            LOGGER.warn("Can`t add batch when creating timeseries because: {}", e.getMessage());
+        }
+        if ((count % 1000) == 0) {
+            long startTime = System.currentTimeMillis();
+            try {
+                statement.executeBatch();
+            } catch (SQLException e) {
+                LOGGER.warn("Can`t execute batch when creating timeseries because: {}", e.getMessage());
+            }
+            try {
+                statement.clearBatch();
+            } catch (SQLException e) {
+                LOGGER.warn("Can`t clear batch when creating timeseries because: {}", e.getMessage());
+            }
+            long endTime = System.currentTimeMillis();
+            LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
+                    1000000.0f / (endTime - startTime));
+            mySql.saveResult("batch" + count / 1000 + "CreateTimeseriesSpeed", "" + 1000000.0f / (endTime - startTime));
+            if (count >= timeseriesTotal) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    LOGGER.warn("Can`t close statement when creating timeseries because: {}", e.getMessage());
+                }
+            }
+            // statement.close();
+        } else if (count >= timeseriesTotal) {
+            try {
+                statement.executeBatch();
+            } catch (SQLException e) {
+                LOGGER.warn("Can`t execute batch when creating timeseries because: {}", e.getMessage());
+            }
+            try {
+                statement.clearBatch();
+            } catch (SQLException e) {
+                LOGGER.warn("Can`t clear batch when creating timeseries because: {}", e.getMessage());
+            }
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                LOGGER.warn("Can`t close statement when creating timeseries because: {}", e.getMessage());
+            }
         }
     }
 
     private void setStorgeGroup(String device) {
-        Statement statement;
+        Statement statement = null;
         try {
             statement = connection.createStatement();
             if (config.READ_FROM_FILE) {
@@ -754,9 +778,15 @@ public class IoTDB implements IDatebase {
             } else {
                 statement.execute(String.format(setStorageLevelSQL, Constants.ROOT_SERIES_NAME + "." + device));
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try{
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            LOGGER.warn("Can`t close statement when setting storage group because: {}", e.getMessage());
         }
     }
 
@@ -805,9 +835,9 @@ public class IoTDB implements IDatebase {
         }
         builder.append(") values(");
         long currentTime;
-        if(config.IS_RANDOM_TIMESTAMP_INTERVAL){
+        if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
             currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-        }else {
+        } else {
             currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
         }
         builder.append(currentTime);
