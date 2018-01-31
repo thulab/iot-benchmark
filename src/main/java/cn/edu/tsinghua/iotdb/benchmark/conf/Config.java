@@ -57,6 +57,8 @@ public class Config {
 
 	public boolean IS_RANDOM_TIMESTAMP_INTERVAL = false ;
 
+	public int START_TIMESTAMP_INDEX = 20;
+
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/

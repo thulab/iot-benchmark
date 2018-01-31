@@ -120,6 +120,7 @@ public class ConfigDescriptor {
 				config.MAX_K = Integer.parseInt(properties.getProperty("MAX_K", config.MAX_K+""));
 				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
 				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
+				config.START_TIMESTAMP_INDEX = Integer.parseInt(properties.getProperty("START_TIMESTAMP_INDEX", config.START_TIMESTAMP_INDEX+""));
 
 			} catch (IOException e) {
 				e.printStackTrace();
