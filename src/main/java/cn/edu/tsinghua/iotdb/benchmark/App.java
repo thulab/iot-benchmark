@@ -178,11 +178,11 @@ public class App {
 		try {
 			datebase = idbFactory.buildDB(mysql.getLabID());
 			datebase.init();
-			exeSQLFromFileStartTime = System.currentTimeMillis();
+			exeSQLFromFileStartTime = System.nanoTime();
 			datebase.exeSQLFromFileByOneBatch();
 			datebase.close();
-			exeSQLFromFileEndTime = System.currentTimeMillis();
-			exeSQLFromFileTime = (exeSQLFromFileEndTime - exeSQLFromFileStartTime) / 1000.0f;
+			exeSQLFromFileEndTime = System.nanoTime();
+			exeSQLFromFileTime = (exeSQLFromFileEndTime - exeSQLFromFileStartTime) / 1000000000.0f;
 		} catch (SQLException e) {
 			LOGGER.error("Fail to init database becasue {}", e.getMessage());
 			return;
@@ -216,11 +216,11 @@ public class App {
 		try {
 			datebase = idbFactory.buildDB(mysql.getLabID());
 			datebase.init();
-			createSchemaStartTime = System.currentTimeMillis();
+			createSchemaStartTime = System.nanoTime();
 			datebase.createSchemaOfDataGen();
 			datebase.close();
-			createSchemaEndTime = System.currentTimeMillis();
-			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000.0f;
+			createSchemaEndTime = System.nanoTime();
+			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000000000.0f;
 		} catch (SQLException e) {
 			LOGGER.error("Fail to init database becasue {}", e.getMessage());
 			return;
@@ -297,11 +297,11 @@ public class App {
 		try {
 			datebase = idbFactory.buildDB(mysql.getLabID());
 			datebase.init();
-			createSchemaStartTime = System.currentTimeMillis();
+			createSchemaStartTime = System.nanoTime();
 			datebase.createSchema();
 			datebase.close();
-			createSchemaEndTime = System.currentTimeMillis();
-			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000.0f;
+			createSchemaEndTime = System.nanoTime();
+			createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000000000.0f;
 		} catch (SQLException e) {
 			LOGGER.error("Fail to init database becasue {}", e.getMessage());
 			return;
