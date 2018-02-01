@@ -53,6 +53,7 @@ public class App {
 			break;
 		case Constants.MODE_EXECUTE_SQL_FROM_FILE:
 			executeSQLFromFile(config);
+			break;
 		default:
 			throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
 		}
