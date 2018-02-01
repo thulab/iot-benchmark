@@ -1184,6 +1184,7 @@ public class IoTDB implements IDatebase {
         if (dataDir.exists() && dataDir.isDirectory()) {
 
             long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta");
+            long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data");
             //long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
             long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow");
             //	float pointByteSize = (deltaSize + overflowSize) *
@@ -1191,8 +1192,9 @@ public class IoTDB implements IDatebase {
             //			config.CACHE_NUM);
             //	LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
             //			, pointByteSize, config.ENCODING, deltaSize, overflowSize);
-            LOGGER.info("ENCODING = {} , dir size: delta {} KB ;overflow {} KB "
-                    , config.ENCODING, deltaSize, overflowSize);
+            LOGGER.info("ENCODING = {} , dir size: data {} KB ;delta {} KB ;overflow {} KB "
+                    , config.ENCODING, dataSize, deltaSize, overflowSize);
+            mySql.saveResult("DataSize", String.valueOf(dataSize));
             mySql.saveResult("DeltaSize", String.valueOf(deltaSize));
             mySql.saveResult("OverflowSize", String.valueOf(overflowSize));
 
