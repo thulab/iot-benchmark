@@ -738,8 +738,8 @@ public class IoTDB implements IDatebase {
             }
             long endTime = System.nanoTime();
             LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
-                    1000000.0f / (endTime - startTime));
-            mySql.saveResult("batch" + count / 1000 + "CreateTimeseriesSpeed", "" + 1000000.0f / (endTime - startTime));
+                    1000000000000.0f / (endTime - startTime));
+            mySql.saveResult("batch" + count / 1000 + "CreateTimeseriesSpeed", "" + 1000000000000.0f / (endTime - startTime));
             if (count >= timeseriesTotal) {
                 try {
                     statement.close();
