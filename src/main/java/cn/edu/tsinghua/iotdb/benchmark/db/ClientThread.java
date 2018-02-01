@@ -104,13 +104,13 @@ public class ClientThread implements Runnable{
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
-				}else if(config.MUL_DEV_BATCH){
+				}else if(config.MUL_DEV_BATCH && !config.IS_OVERFLOW){
 					try {
 						database.insertOneBatchMulDevice(deviceCodes, i, totalTime, errorCount);
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
-				}else if(config.OVERFLOW_MODE==0){
+				}else if(!config.IS_OVERFLOW){
 					try {
 						for (int m = 0; m < clientDevicesNum; m++) {
 							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount);
@@ -118,7 +118,7 @@ public class ClientThread implements Runnable{
 					} catch (SQLException e) {
 						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
-				}else if(config.IS_OVERFLOW && config.OVERFLOW_MODE==1){
+				}else if(config.OVERFLOW_MODE==1){
                     try {
                         for (int m = 0; m < clientDevicesNum; m++) {
                             maxIndex = database.insertOverflowOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m),
@@ -132,7 +132,7 @@ public class ClientThread implements Runnable{
                     } catch (SQLException e) {
                         LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
                     }
-				}else if(config.IS_OVERFLOW && config.OVERFLOW_MODE==2){
+				}else if(config.OVERFLOW_MODE==2){
 					try {
 						for (int m = 0; m < clientDevicesNum; m++) {
 							currMaxIndexOfDist = database.insertOverflowOneBatchDist(config.DEVICE_CODES.get(index * clientDevicesNum + m),
