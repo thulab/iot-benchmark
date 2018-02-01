@@ -89,7 +89,7 @@ public class ClientThread implements Runnable{
 			Random random = new Random(config.QUERY_SEED);
 			ArrayList<Integer> before = new ArrayList<>();
             int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
-            int currMaxIndexOfDist = 20;
+            int currMaxIndexOfDist = config.START_TIMESTAMP_INDEX;
 			for(int beforeIndex = 0;beforeIndex < maxIndex; beforeIndex++){
 			    before.add(beforeIndex);
             }

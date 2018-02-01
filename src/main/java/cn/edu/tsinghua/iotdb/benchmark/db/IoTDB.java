@@ -32,6 +32,7 @@ public class IoTDB implements IDatebase {
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private Random sensorRandom;
     private Random timestampRandom;
+    private final double unitTransfer = 1000000000.0;
 
     public IoTDB(long labID) throws ClassNotFoundException, SQLException {
         Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
@@ -256,7 +257,7 @@ public class IoTDB implements IDatebase {
                     statement.addBatch(sql);
                 }
             }
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 result = statement.executeBatch();
             } catch (BatchUpdateException e) {
@@ -269,7 +270,7 @@ public class IoTDB implements IDatebase {
             }
             statement.clearBatch();
             statement.close();
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
             long costTime = endTime - startTime;
 
             if (errorNum > 0) {
@@ -277,13 +278,13 @@ public class IoTDB implements IDatebase {
 
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
-                        (totalTime.get() + costTime) / 1000.0,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                        (totalTime.get() + costTime) / unitTransfer,
+                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
-            mySql.saveInsertProcess(loopIndex, costTime / 1000.0, totalTime.get() / 1000.0, errorNum, config.REMARK);
+            mySql.saveInsertProcess(loopIndex, costTime / unitTransfer, totalTime.get() / unitTransfer, errorNum, config.REMARK);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -348,7 +349,7 @@ public class IoTDB implements IDatebase {
 
             }
 
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 result = statement.executeBatch();
             } catch (BatchUpdateException e) {
@@ -361,20 +362,20 @@ public class IoTDB implements IDatebase {
             }
             statement.clearBatch();
             statement.close();
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
             long costTime = endTime - startTime;
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
-                        (totalTime.get() + costTime) / 1000.0,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                        (totalTime.get() + costTime) / unitTransfer,
+                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
 
-            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
                     config.REMARK);
 
         } catch (SQLException e) {
@@ -438,7 +439,7 @@ public class IoTDB implements IDatebase {
                 }
             }
 
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 statement.executeBatch();
             } catch (BatchUpdateException e) {
@@ -451,21 +452,21 @@ public class IoTDB implements IDatebase {
             }
             statement.clearBatch();
             statement.close();
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
             long costTime = endTime - startTime;
 
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
-                        (totalTime.get() + costTime) / 1000.0,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                        (totalTime.get() + costTime) / unitTransfer,
+                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
 
-            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
                     config.REMARK);
 
         } catch (SQLException e) {
@@ -514,7 +515,7 @@ public class IoTDB implements IDatebase {
                 }
             }
 
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 statement.executeBatch();
             } catch (BatchUpdateException e) {
@@ -527,21 +528,21 @@ public class IoTDB implements IDatebase {
             }
             statement.clearBatch();
             statement.close();
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
             long costTime = endTime - startTime;
 
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
-                        (totalTime.get() + costTime) / 1000.0,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                        (totalTime.get() + costTime) / unitTransfer,
+                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
 
-            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
                     config.REMARK);
 
         } catch (SQLException e) {
@@ -564,7 +565,7 @@ public class IoTDB implements IDatebase {
                 statement.addBatch(sql);
             }
 
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 result = statement.executeBatch();
             } catch (BatchUpdateException e) {
@@ -577,7 +578,7 @@ public class IoTDB implements IDatebase {
             }
             statement.clearBatch();
             statement.close();
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
 
 
             if (errorNum > 0) {
@@ -585,9 +586,9 @@ public class IoTDB implements IDatebase {
 
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
-                        Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
-                        ((totalTime.get() + (endTime - startTime)) / 1000.0),
-                        (cons.size() / (double) (endTime - startTime)) * 1000);
+                        Thread.currentThread().getName(), batchIndex, (endTime - startTime) / unitTransfer,
+                        ((totalTime.get() + (endTime - startTime)) / unitTransfer),
+                        (cons.size() / (double) (endTime - startTime)) * unitTransfer);
                 totalTime.set(totalTime.get() + (endTime - startTime));
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -724,7 +725,7 @@ public class IoTDB implements IDatebase {
             LOGGER.warn("Can`t add batch when creating timeseries because: {}", e.getMessage());
         }
         if ((count % 1000) == 0) {
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 statement.executeBatch();
             } catch (SQLException e) {
@@ -735,7 +736,7 @@ public class IoTDB implements IDatebase {
             } catch (SQLException e) {
                 LOGGER.warn("Can`t clear batch when creating timeseries because: {}", e.getMessage());
             }
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
             LOGGER.info("batch create timeseries execute speed ,{},timeseries/s",
                     1000000.0f / (endTime - startTime));
             mySql.saveResult("batch" + count / 1000 + "CreateTimeseriesSpeed", "" + 1000000.0f / (endTime - startTime));
@@ -1183,6 +1184,7 @@ public class IoTDB implements IDatebase {
         if (dataDir.exists() && dataDir.isDirectory()) {
 
             long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta");
+            long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data");
             //long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
             long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow");
             //	float pointByteSize = (deltaSize + overflowSize) *
@@ -1190,8 +1192,9 @@ public class IoTDB implements IDatebase {
             //			config.CACHE_NUM);
             //	LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
             //			, pointByteSize, config.ENCODING, deltaSize, overflowSize);
-            LOGGER.info("ENCODING = {} , dir size: delta {} KB ;overflow {} KB "
-                    , config.ENCODING, deltaSize, overflowSize);
+            LOGGER.info("ENCODING = {} , dir size: data {} KB ;delta {} KB ;overflow {} KB "
+                    , config.ENCODING, dataSize, deltaSize, overflowSize);
+            mySql.saveResult("DataSize", String.valueOf(dataSize));
             mySql.saveResult("DeltaSize", String.valueOf(deltaSize));
             mySql.saveResult("OverflowSize", String.valueOf(overflowSize));
 
@@ -1224,7 +1227,7 @@ public class IoTDB implements IDatebase {
                 writeSQLIntoFile(sql, config.GEN_DATA_FILE_PATH);
                 statement.addBatch(sql);
             }
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             try {
                 result = statement.executeBatch();
             } catch (BatchUpdateException e) {
@@ -1237,7 +1240,7 @@ public class IoTDB implements IDatebase {
             }
             statement.clearBatch();
             statement.close();
-            long endTime = System.currentTimeMillis();
+            long endTime = System.nanoTime();
             long costTime = endTime - startTime;
 
             if (errorNum > 0) {
@@ -1245,14 +1248,14 @@ public class IoTDB implements IDatebase {
 
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / 1000.0,
-                        (totalTime.get() + costTime) / 1000.0,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * 1000);
+                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                        (totalTime.get() + costTime) / unitTransfer,
+                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
 
-            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
                     config.REMARK);
 
         } catch (SQLException e) {
@@ -1273,26 +1276,6 @@ public class IoTDB implements IDatebase {
         if (file.exists()) {
             try {
                 BufferedReader br = new BufferedReader(new FileReader(file));
-				/*
-				try {
-					statement = connection.createStatement();
-					String line = null;
-					while ((line = br.readLine()) != null ) {
-						if(!line.startsWith("#") && !line.equals("")) {
-							String sql = line;
-							statement.addBatch(sql);
-						}
-						count++;
-					}
-					long startTime = System.currentTimeMillis();
-					result = statement.executeBatch();
-					statement.clearBatch();
-					statement.close();
-					long endTime = System.currentTimeMillis();
-					long costTime = endTime - startTime;
-					*/
-
-
                 try {
                     statement = connection.createStatement();
                     String sql = null;
@@ -1303,7 +1286,7 @@ public class IoTDB implements IDatebase {
                             count++;
                             int lines = 0;
 
-                            startTime = System.currentTimeMillis();
+                            startTime = System.nanoTime();
                             try {
                                 boolean hasResult = statement.execute(sql);
                                 if (hasResult) {
@@ -1326,14 +1309,14 @@ public class IoTDB implements IDatebase {
                                 );
                             }
                             statement.close();
-                            endTime = System.currentTimeMillis();
+                            endTime = System.nanoTime();
 
                             costTime = endTime - startTime;
                             totalCostTime += costTime;
                             LOGGER.info("Execute one SQL from file, resultSet size is {}, it costs {} ms, current total time {} ms, the SQL : {}",
                                     lines,
-                                    costTime,
-                                    totalCostTime,
+                                    costTime / 1000000.0,
+                                    totalCostTime / 1000000.0,
                                     sql
                             );
                         }
@@ -1342,8 +1325,8 @@ public class IoTDB implements IDatebase {
 
                     LOGGER.info("Execute {} SQL from file finished, it costs {} seconds, mean rate {} SQL/s . {} SQL execute failed.",
                             count,
-                            totalCostTime / 1000.0f,
-                            1000.0f * (count - errorNum) / totalCostTime,
+                            totalCostTime / unitTransfer,
+                            unitTransfer * (count - errorNum) / totalCostTime,
                             errorNum
                     );
 
