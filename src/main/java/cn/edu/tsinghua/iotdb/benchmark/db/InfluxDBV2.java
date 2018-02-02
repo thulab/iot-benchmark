@@ -96,21 +96,21 @@ public class InfluxDBV2 implements IDatebase {
 		}
 		long startTime = 0, endTime = 0;
 		try {
-			startTime = System.currentTimeMillis();
+			startTime = System.nanoTime();
 			influxDB.write(batchPoints);
-			endTime = System.currentTimeMillis();
+			endTime = System.nanoTime();
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
-					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000.0),
-					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000);
+					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
+					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
 			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, 0,
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
 			errorCount.set(errorCount.get() + batchPoints.getPoints().size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
 					e.getMessage());
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0,
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
 					batchPoints.getPoints().size(), config.REMARK);
 			throw new SQLException(e.getMessage());
 		}
@@ -135,20 +135,20 @@ public class InfluxDBV2 implements IDatebase {
 			ThreadLocal<Long> errorCount) throws SQLException {
 		long startTime = 0, endTime = 0;
 		try {
-			startTime = System.currentTimeMillis();
+			startTime = System.nanoTime();
 			influxDB.write(cons);
-			endTime = System.currentTimeMillis();
+			endTime = System.nanoTime();
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
-					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000.0),
-					(cons.size() / (double) (endTime - startTime)) * 1000);
+					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
+					(cons.size() / (double) (endTime - startTime)) * 1000000000.0);
 			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, 0,
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
 			errorCount.set(errorCount.get() + cons.size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", cons.size(), e.getMessage());
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, cons.size(),
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, cons.size(),
 					config.REMARK + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
@@ -332,7 +332,7 @@ public class InfluxDBV2 implements IDatebase {
 					LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(),
 							result.getError());
 					LOGGER.error("执行失败的查询语句：{}", sql);
-					mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!" + sql);
+					mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000000000.0f, "query fail!" + sql);
 				}
 				for (Series serie : series) {
 					List<List<Object>> values= serie.getValues();
