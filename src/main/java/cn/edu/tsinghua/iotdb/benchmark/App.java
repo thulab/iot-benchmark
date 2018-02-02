@@ -53,6 +53,7 @@ public class App {
 			break;
 		case Constants.MODE_EXECUTE_SQL_FROM_FILE:
 			executeSQLFromFile(config);
+			break;
 		default:
 			throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
 		}
@@ -260,15 +261,15 @@ public class App {
 				config.LOOP, config.MUL_DEV_BATCH);
 
 		LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
-				totalTime / 1000.0f, config.CLIENT_NUMBER,
-				1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+				totalTime / 1000000000.0f, config.CLIENT_NUMBER,
+				1000000000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
 		LOGGER.info("Total error num is {}, create schema cost {},s", totalErrorPoint, createSchemaTime);
 
 		// 加入新版的mysql表中
 		mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
 		mysql.saveResult("totalPoints", "" + totalPoints);
-		mysql.saveResult("totalTime(s)", "" + totalTime / 1000.0f);
+		mysql.saveResult("totalTime(s)", "" + totalTime / 1000000000.0f);
 		mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
 		mysql.closeMysql();
 
@@ -336,7 +337,7 @@ public class App {
 			LOGGER.info("READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}", config.TAG_PATH,
 					config.STORE_MODE, config.BATCH_OP_NUM);
 			LOGGER.info("loaded ,{}, items in ,{},s with ,{}, workers (mean rate ,{}, items/s)", totalItem,
-					totalTime / 1000.0f, config.CLIENT_NUMBER, (1000.0f * totalItem) / ((float) totalTime));
+					totalTime / 1000000000.0f, config.CLIENT_NUMBER, (1000000000.0f * totalItem) / ((float) totalTime));
 
 		} else {
 			CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
@@ -370,8 +371,8 @@ public class App {
 					config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
 
 			LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
-					totalTime / 1000.0f, config.CLIENT_NUMBER,
-					1000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+					totalTime / 1000000000.0f, config.CLIENT_NUMBER,
+					1000000000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
 			LOGGER.info("Total error num is {}, create schema cost ,{},s", totalErrorPoint, createSchemaTime);
 
@@ -419,7 +420,7 @@ public class App {
 
 			mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
 			mysql.saveResult("totalPoints", "" + totalPoints);
-			mysql.saveResult("totalTime(s)", "" + totalTime / 1000.0f);
+			mysql.saveResult("totalTime(s)", "" + totalTime / 1000000000.0f);
 			mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
 			mysql.closeMysql();
 
