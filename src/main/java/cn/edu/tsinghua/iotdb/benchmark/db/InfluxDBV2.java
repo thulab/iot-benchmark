@@ -100,9 +100,11 @@ public class InfluxDBV2 implements IDatebase {
 			influxDB.write(batchPoints);
 			endTime = System.nanoTime();
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
-					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+					Thread.currentThread().getName(),
+					batchIndex,
+					(endTime - startTime) / 1000000000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
+					config.SENSOR_NUMBER * (batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
 			totalTime.set(totalTime.get() + (endTime - startTime));
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
@@ -139,7 +141,9 @@ public class InfluxDBV2 implements IDatebase {
 			influxDB.write(cons);
 			endTime = System.nanoTime();
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
-					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+					Thread.currentThread().getName(),
+					batchIndex,
+					(endTime - startTime) / 1000000000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
 					(cons.size() / (double) (endTime - startTime)) * 1000000000.0);
 			totalTime.set(totalTime.get() + (endTime - startTime));
