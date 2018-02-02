@@ -88,12 +88,13 @@ public class ClientThread implements Runnable{
 			//overflow mode 2 related variables initial
 			Random random = new Random(config.QUERY_SEED);
 			ArrayList<Integer> before = new ArrayList<>();
-            int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
-            int currMaxIndexOfDist = config.START_TIMESTAMP_INDEX;
-			for(int beforeIndex = 0;beforeIndex < maxIndex; beforeIndex++){
-			    before.add(beforeIndex);
-            }
-
+			int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
+			int currMaxIndexOfDist = config.START_TIMESTAMP_INDEX;
+			if(config.IS_OVERFLOW && config.OVERFLOW_MODE==1) {
+				for (int beforeIndex = 0; beforeIndex < maxIndex; beforeIndex++) {
+					before.add(beforeIndex);
+				}
+			}
 			for (int m = 0; m < clientDevicesNum; m++) {
 				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
 			}
