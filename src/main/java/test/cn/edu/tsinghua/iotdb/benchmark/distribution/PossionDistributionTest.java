@@ -57,17 +57,16 @@ public void testGetNextPossionDelta() throws Exception {
     }
     */
     assertEquals(0,count[0]);
-    assertEquals(5,count[1]);
-    assertEquals(35,count[2]);
-    assertEquals(84,count[3]);
-    assertEquals(137,count[4]);
-    assertEquals(182,count[5]);
-    assertEquals(183,count[6]);
-    assertEquals(148,count[7]);
-    assertEquals(94,count[8]);
-    assertEquals(61,count[9]);
-    assertEquals(71,count[10]);
-
+    assertEquals(47,count[1]);
+    assertEquals(152,count[2]);
+    assertEquals(227,count[3]);
+    assertEquals(232,count[4]);
+    assertEquals(167,count[5]);
+    assertEquals(89,count[6]);
+    assertEquals(46,count[7]);
+    assertEquals(28,count[8]);
+    assertEquals(7,count[9]);
+    assertEquals(5,count[10]);
 } 
 
 
@@ -77,18 +76,36 @@ public void testGetNextPossionDelta() throws Exception {
 * 
 */ 
 @Test
-public void testGetPossionProbability() throws Exception { 
-//TODO: Test goes here... 
-/* 
-try { 
-   Method method = PossionDistribution.getClass().getMethod("getPossionProbability", int.class); 
-   method.setAccessible(true); 
-   method.invoke(<Object>, <Parameters>); 
-} catch(NoSuchMethodException e) { 
-} catch(IllegalAccessException e) { 
-} catch(InvocationTargetException e) { 
-} 
-*/ 
+public void testGetPossionProbability() throws Exception {
+    /*
+    int testSize = 10000;
+    int deltaKinds = 3000;
+    ArrayList<Integer> list = new ArrayList<>();
+    PossionDistribution possionDistribution = new PossionDistribution(new Random(100));
+    possionDistribution.setDeltaKinds(deltaKinds);
+    possionDistribution.setLambda(800.0);
+    for(int i=0;i<testSize;i++){
+        list.add(possionDistribution.getNextPossionDelta());
+    }
+
+    /*
+    for(int a : list){
+        System.out.println(a);
+    }
+
+
+    int[] count = new int[deltaKinds+1];
+    for(int a : list){
+        count[a] ++;
+    }
+    for(int i=0; i<deltaKinds+1 ;i++){
+        System.out.print(count[i] + ",");
+    }
+    System.out.println();
+    for(int i=0;i<deltaKinds+1;i++){
+        System.out.print(i + ",");
+    }
+    */
 } 
 
 /** 
