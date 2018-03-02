@@ -13,6 +13,7 @@ public class MemUsage {
 
     private static Logger log = LoggerFactory.getLogger(MemUsage.class);
     private static MemUsage INSTANCE = new MemUsage();
+    private final float KB2GB = 1024 * 1024f;
 
     private MemUsage(){
 
@@ -63,6 +64,7 @@ public class MemUsage {
         return memUsage;
     }
 
+    /*
     public float get(){
         //log.info("开始收集内存使用率");
         float memUsage = 0.0f;
@@ -92,6 +94,60 @@ public class MemUsage {
             e.printStackTrace(new PrintWriter(sw));
         }
         return memUsage;
+    }
+    */
+
+    public float get(){
+        //log.info("开始收集内存使用率");
+        float memUsage = 0.0f;
+        Process pro = null;
+        Runtime r = Runtime.getRuntime();
+        try {
+            String command = "free";
+            pro = r.exec(command);
+            BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+            String line = null;
+            while((line=in.readLine()) != null) {
+                //log.info(line);
+                String[] temp = line.split("\\s+");
+                if (temp[0].startsWith("M")) {
+                    float memTotal = Float.parseFloat(temp[1]);
+                    float memUsed = Float.parseFloat(temp[2]);
+                    memUsage = memUsed / memTotal;
+                }
+
+            }
+            in.close();
+            pro.destroy();
+        } catch (IOException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+        }
+        return memUsage;
+    }
+
+    public float getProcessMemUsage(){
+        float processMemUsage = 0.0f;
+        Process pro = null;
+        Runtime r = Runtime.getRuntime();
+        int pid = OpenFileNumber.getInstance().getPid();
+        if(pid > 0) {
+            String command = "pmap -d " + String.valueOf(pid) + " | grep write | cut -d ' ' -f 7";
+            try {
+                pro = r.exec(command);
+                BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+                String line = null;
+                while ((line = in.readLine()) != null) {
+                    String[] temp = line.split("K");
+                    processMemUsage = Long.parseLong(temp[0]) / KB2GB;
+                }
+            } catch (IOException e) {
+                log.error("Get Process Memory Usage failed.");
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+            }
+        }
+        return processMemUsage;
     }
 
 }

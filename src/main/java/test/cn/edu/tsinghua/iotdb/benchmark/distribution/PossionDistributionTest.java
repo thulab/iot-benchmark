@@ -1,6 +1,7 @@
 package test.cn.edu.tsinghua.iotdb.benchmark.distribution; 
 
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
 import org.junit.Test;
 import org.junit.Before; 
 import org.junit.After;
@@ -146,6 +147,24 @@ try {
 } catch(InvocationTargetException e) { 
 } 
 */ 
-} 
+}
+
+    public static void main(String[] args) {
+        int loop = 2;
+        int count = 0;
+        System.out.println("TotalFiles  DataAndWalFiles  Sockets");
+        while (count < loop) {
+            count++;
+            ArrayList<Integer> fileList = OpenFileNumber.getInstance().get();
+            System.out.println(fileList.get(0) + "		" + fileList.get(1)  + "		" + fileList.get(2));
+            try {
+                Thread.sleep(1 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
+        System.out.println("END!");
+    }
 
 } 
