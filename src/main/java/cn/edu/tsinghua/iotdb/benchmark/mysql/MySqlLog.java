@@ -78,7 +78,7 @@ public class MySqlLog {
 							+ "_"
 							+ day
 							+ "(id BIGINT, cpu_usage DOUBLE,"
-							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE,pro_mem_size DOUBLE, "
+							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
 							+ "totalFileNum INT, dataFileNum INT, socketNum INT, deltaNum INT, derbyNum INT,"
 							+ "digestNum INT, metadataNum INT, overflowNum INT, walsNum INT, "
 							+ "remark varchar(6000), primary key(id))");

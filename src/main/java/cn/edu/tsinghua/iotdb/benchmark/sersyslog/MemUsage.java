@@ -139,6 +139,7 @@ public class MemUsage {
                 String line = null;
                 while ((line = in.readLine()) != null) {
                     String[] temp = line.split("K");
+                    log.info("line:"+line);
                     processMemUsage = Long.parseLong(temp[0]) / KB2GB;
                 }
             } catch (IOException e) {
