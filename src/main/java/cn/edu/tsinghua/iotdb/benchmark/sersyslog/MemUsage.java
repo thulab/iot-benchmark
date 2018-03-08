@@ -144,13 +144,14 @@ public class MemUsage {
 
                     if(line.startsWith("map")) {
                         String[] temp = line.split(" ");
+                        for(String s:temp){
+                            log.info(s);
+                        }
                         log.info("temp[3]:" + temp[3]);
                         String[] tmp = temp[3].split("K");
                         String size = tmp[0];
                         processMemUsage = Long.parseLong(size) / KB2GB;
-                        for(String s:temp){
-                            log.info(s);
-                        }
+
                     }
                 }
             } catch (IOException e) {
