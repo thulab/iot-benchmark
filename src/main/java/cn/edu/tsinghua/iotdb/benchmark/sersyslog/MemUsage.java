@@ -132,7 +132,9 @@ public class MemUsage {
         Runtime r = Runtime.getRuntime();
         int pid = OpenFileNumber.getInstance().getPid();
         if(pid > 0) {
-            String command = "pmap -d " + String.valueOf(pid) + " | grep write | cut -d ' ' -f 7";
+            log.info("pid:"+ String.valueOf(pid));
+            //String command = "pmap -d " + String.valueOf(pid) + " | grep write | cut -d ' ' -f 7";
+            String command = "pmap -d " + String.valueOf(pid) ;
             try {
                 pro = r.exec(command);
                 BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
@@ -140,7 +142,7 @@ public class MemUsage {
                 String line = null;
                 while ((line = in.readLine()) != null) {
                     String[] temp = line.split("K");
-
+                    log.info("line:"+in.readLine());
                     processMemUsage = Long.parseLong(temp[0]) / KB2GB;
                 }
             } catch (IOException e) {
