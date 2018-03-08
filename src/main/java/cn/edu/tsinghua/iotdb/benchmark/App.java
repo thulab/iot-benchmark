@@ -90,7 +90,7 @@ public class App {
 		try {
 			if (config.SERVER_MODE_INFO_FILE.length() > 0) {
 				write2File = true;
-				// if the file doesn't exits, tnen create the file, else append.
+				// if the file doesn't exits, then create the file, else append.
 				out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(config.SERVER_MODE_INFO_FILE, true)));
 				out.write(String.format("时间%15cCPU使用率%7c内存使用率%5c磁盘IO使用率%5ceth0接收速率%5ceth0发送速率%5cTotalFiles%5cDataAndWalFiles%5cSockets"
 						+ "%5cdeltaFileNum%5cderbyFileNum%5cdigestFileNum%5cmetadataFileNum%5coverflowFileNum%5cwalsFileNum\r\n",
@@ -108,12 +108,13 @@ public class App {
 					ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
 					LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
 					LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
+					LOGGER.info("内存使用,{},GB", MemUsage.getInstance().getProcessMemUsage());
 					LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
 					LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
 					LOGGER.info("\nPID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
 							openFileList.get(0), openFileList.get(1), openFileList.get(2));
 					mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
-							netUsageList.get(0), netUsageList.get(1),openFileList,"");
+							netUsageList.get(0), netUsageList.get(1), MemUsage.getInstance().getProcessMemUsage(),openFileList,"");
 					if(write2File) {
 						out.write(String.format("%d%14f%14f%15f",System.currentTimeMillis(),
 								ioUsageList.get(0),MemUsage.getInstance().get(),ioUsageList.get(1)));

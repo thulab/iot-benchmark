@@ -13,7 +13,7 @@ public class MemUsage {
 
     private static Logger log = LoggerFactory.getLogger(MemUsage.class);
     private static MemUsage INSTANCE = new MemUsage();
-    private final float KB2GB = 1024 * 1024f;
+    private final double KB2GB = 1024 * 1024f;
 
     private MemUsage(){
 
@@ -126,8 +126,8 @@ public class MemUsage {
         return memUsage;
     }
 
-    public float getProcessMemUsage(){
-        float processMemUsage = 0.0f;
+    public double getProcessMemUsage(){
+        double processMemUsage = 0.0d;
         Process pro = null;
         Runtime r = Runtime.getRuntime();
         int pid = OpenFileNumber.getInstance().getPid();
