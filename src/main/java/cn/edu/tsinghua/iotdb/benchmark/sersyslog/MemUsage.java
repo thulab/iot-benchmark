@@ -141,9 +141,14 @@ public class MemUsage {
                 log.info("line:"+in.readLine());
                 String line = null;
                 while ((line = in.readLine()) != null) {
-                    String[] temp = line.split("K");
-                    log.info("line:"+in.readLine());
-                    processMemUsage = Long.parseLong(temp[0]) / KB2GB;
+
+                    if(line.startsWith("map")) {
+                        String[] temp = line.split(" ");
+                        log.info("line:" + in.readLine());
+                        String[] tmp = temp[3].split("K");
+                        String size = tmp[0];
+                        processMemUsage = Long.parseLong(size) / KB2GB;
+                    }
                 }
             } catch (IOException e) {
                 log.error("Get Process Memory Usage failed.");
