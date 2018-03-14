@@ -27,6 +27,8 @@ echo Testing ${DB#*=} ...
 
 mvn clean package -Dmaven.test.skip=true
 
+sh $IOTDB_HOME/ser_cli-benchmark.sh > /dev/null 2>&1 &
+
 #synchronize config server benchmark
 if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
     ssh -p $SSH_PORT $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
@@ -84,8 +86,10 @@ fi
     #ssh $SERVER_HOST "tail -n 2 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_info.log
     #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
 #fi
-
+##stop system info recording on client machine
+touch $LOG_STOP_FLAG_PATH/log_stop_flag
 
 echo '------Client Test Complete Time------'
 date
 
+touch $LOG_STOP_FLAG_PATH/log_stop_flag
