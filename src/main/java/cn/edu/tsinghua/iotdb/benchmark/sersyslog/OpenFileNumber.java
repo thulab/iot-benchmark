@@ -119,6 +119,8 @@ public class OpenFileNumber {
             case Constants.DB_INFLUX:
                 filter = ".influxdb";
                 break;
+            case Constants.BENCHMARK_IOTDB:
+                filter = "benchmark";
             default:
                 throw new SQLException("unsupported db name :" + config.DB_SWITCH);
         }
