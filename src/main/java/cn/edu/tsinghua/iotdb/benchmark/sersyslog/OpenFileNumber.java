@@ -53,7 +53,7 @@ public class OpenFileNumber {
                 filter = "/usr/bin/influxd";
                 break;
             case Constants.BENCHMARK_IOTDB:
-                filter = "../conf/config.properties";
+                filter = "/iotdb-benchmark";
                 break;
         }
         try {
