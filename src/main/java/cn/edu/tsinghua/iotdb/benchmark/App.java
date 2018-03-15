@@ -93,8 +93,6 @@ public class App {
                 LOGGER.info("内存使用,{},GB", MemUsage.getInstance().getProcessMemUsage());
                 LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
                 LOGGER.info("网口接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-                System.out.println("App进程号:"+ OpenFileNumber.getInstance().getPid());
-                System.out.println("打开文件总数:"+ openFileList.get(0)+openFileList.get(1)+openFileList.get(2));
                 LOGGER.info("进程号,{},打开文件总数,{},打开data目录下文件数,{},打开socket数,{}", OpenFileNumber.getInstance().getPid(),
                         openFileList.get(0), openFileList.get(1), openFileList.get(2));
                 mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),

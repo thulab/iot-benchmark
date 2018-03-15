@@ -53,7 +53,7 @@ public class OpenFileNumber {
                 filter = "/usr/bin/influxd";
                 break;
             case Constants.BENCHMARK_IOTDB:
-                filter = "App";
+                filter = "iotdb-benchmark";
                 break;
         }
         try {
@@ -120,7 +120,7 @@ public class OpenFileNumber {
                 filter = ".influxdb";
                 break;
             case Constants.BENCHMARK_IOTDB:
-                filter = "benchmark";
+                filter = "iotdb-benchmark";
                 break;
             default:
                 throw new SQLException("unsupported db name :" + config.DB_SWITCH);
