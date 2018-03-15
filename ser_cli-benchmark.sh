@@ -9,7 +9,7 @@ fi
 echo $BENCHMARK_HOME
 
 #sed -i 's/SERVER_MODE *= *false/SERVER_MODE=true/g' $BENCHMARK_HOME/conf/config.properties
-sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_HOME/conf/config.properties
+#sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=clientSystemInfo/g" $BENCHMARK_HOME/conf/config.properties
 
 cd $BENCHMARK_HOME
 
@@ -21,7 +21,7 @@ date
 
 cd bin
 
-sh startup.sh -cf ../conf/config.properties
+sh startup.sh -cf ../conf/clientSystemInfo.properties
 
 echo '------Server Test Complete Time------'
 

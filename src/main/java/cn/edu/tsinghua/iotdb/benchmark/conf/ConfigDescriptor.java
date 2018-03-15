@@ -69,7 +69,6 @@ public class ConfigDescriptor {
 				config.BATCH_OP_NUM = Integer.parseInt(properties.getProperty("BATCH_OP_NUM", config.BATCH_OP_NUM+""));
 				config.TAG_PATH = Boolean.parseBoolean(properties.getProperty("TAG_PATH", config.TAG_PATH+""));
 				config.STORE_MODE = Integer.parseInt(properties.getProperty("STORE_MODE", config.STORE_MODE+""));
-				config.SERVER_MODE = Boolean.parseBoolean(properties.getProperty("SERVER_MODE", config.SERVER_MODE+""));
 				config.INTERVAL = Integer.parseInt(properties.getProperty("INTERVAL", config.INTERVAL+""));
 				config.CLIENT_NUMBER = Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.CLIENT_NUMBER+""));
 				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
@@ -79,14 +78,13 @@ public class ConfigDescriptor {
 
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
-
-				config.IS_QUERY_TEST = Boolean.parseBoolean(properties.getProperty("IS_QUERY_TEST", config.IS_QUERY_TEST+""));
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
 				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
 				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));
 				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
 				config.QUERY_INTERVAL = Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.QUERY_INTERVAL+""));
 				config.QUERY_LOWER_LIMIT = Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.QUERY_LOWER_LIMIT+""));
+				config.QUERY_SEED = Long.parseLong(properties.getProperty("QUERY_SEED", config.QUERY_SEED+""));
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
 
@@ -102,7 +100,9 @@ public class ConfigDescriptor {
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				config.IS_GEN_DATA = Boolean.parseBoolean(properties.getProperty("IS_GEN_DATA", config.IS_GEN_DATA+""));
+				//config.PASSWARD = properties.getProperty("PASSWARD", "no passward");
+				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
+				
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
 				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);
 				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);
@@ -110,6 +110,18 @@ public class ConfigDescriptor {
 				config.GEN_DATA_FILE_PATH = properties.getProperty("GEN_DATA_FILE_PATH", config.GEN_DATA_FILE_PATH);
 				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
 				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
+				config.LAST_RESULT_PATH = properties.getProperty("LAST_RESULT_PATH", config.LAST_RESULT_PATH);
+				config.SQL_FILE = properties.getProperty("SQL_FILE", config.SQL_FILE);
+
+				config.BENCHMARK_WORK_MODE = properties.getProperty("BENCHMARK_WORK_MODE", "");
+				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
+				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
+				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
+				config.OVERFLOW_MODE = Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.OVERFLOW_MODE+""));
+				config.MAX_K = Integer.parseInt(properties.getProperty("MAX_K", config.MAX_K+""));
+				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
+				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
+				config.START_TIMESTAMP_INDEX = Integer.parseInt(properties.getProperty("START_TIMESTAMP_INDEX", config.START_TIMESTAMP_INDEX+""));
 
 				// Concurrency test
 				config.MAX_CONNECTION_NUM = Integer.parseInt(properties.getProperty("MAX_CONNECTION_NUM", config.MAX_CONNECTION_NUM+""));

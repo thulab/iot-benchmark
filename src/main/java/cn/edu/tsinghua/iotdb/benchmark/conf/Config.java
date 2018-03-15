@@ -25,8 +25,8 @@ public class Config {
 
 	}
 
-	public String host;
-	public String port;
+	public String host="127.0.0.1";
+	public String port="6667";
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
@@ -46,17 +46,26 @@ public class Config {
 	public boolean MUL_DEV_BATCH = false;
 	/**是否为批插入乱序模式*/
 	public boolean IS_OVERFLOW = false;
+	/**乱序模式*/
+	public int OVERFLOW_MODE = 0;
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
 
-	/**服务器性能监测模式*/
-	public boolean SERVER_MODE = false;
+	public double LAMBDA = 3;
+
+	public int MAX_K = 10;
+
+	public boolean IS_RANDOM_TIMESTAMP_INTERVAL = false ;
+
+	public int START_TIMESTAMP_INDEX = 20;
+
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
-	/**是否运行在样例数据生成模式*/
- 	public boolean IS_GEN_DATA = false;
+ 	/**存储系统性能信息的文件路径*/
+ 	public String SERVER_MODE_INFO_FILE = "";
+
 	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 	/**一个样例数据的时序名称*/
@@ -67,6 +76,11 @@ public class Config {
 	public String TIMESERIES_VALUE_SCOPE ;
 	/**样例数据生成路径及文件名*/
 	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
+	/**上一次结果的日志路径*/
+	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
+
+	/**存放SQL语句文件的完整路径*/
+	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
 
 	/** 文件的名字 */
 	public String FILE_PATH ;
@@ -80,9 +94,9 @@ public class Config {
 	public String LOG_STOP_FLAG_PATH;
 
 	public int STORE_MODE = 1;
-	
+
 	public long LOOP = 10000;
-	
+
 	/** 数据采集丢失率 */
 	public double POINT_LOSE_RATIO = 0.01;
 	// ============各函数比例start============//FIXME 传参数时加上这几个参数
@@ -136,19 +150,19 @@ public class Config {
 	public double SUM_QUERY_RATIO = 0.2;
 	public double RANDOM_INSERT_RATIO = 0.2;
 	public double UPDATE_RATIO = 0.2;
-	
+
 	//iotDB查询测试相关参数
 	public int QUERY_SENSOR_NUM = 1;
 	public int QUERY_DEVICE_NUM = 1;
 	public int QUERY_CHOICE = 1;
 	public String QUERY_AGGREGATE_FUN = "";
-	public boolean IS_QUERY_TEST = true;
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	public long TIME_UNIT = QUERY_INTERVAL / 2;
+	public long QUERY_SEED = 1516580959202L;
 
-	
+
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
 	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
@@ -156,10 +170,10 @@ public class Config {
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
 	public boolean IS_SAVE_DATAMODEL = false;
-	
+
 	public String REMARK = "";
 	public String VERSION = "";
-	
+
 	// InfluxDB参数
 	// Influx服务器URL
 	public String INFLUX_URL = "http://localhost:8086";
@@ -169,12 +183,20 @@ public class Config {
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
 	
-	
 	public int MAX_CONNECTION_NUM = 2000;
 	public String CONCURRENCY_URL = "jdbc:tsfile://127.0.0.1:6667/";
 	public boolean CONCURRENCY_QUERY_FULL_DATA = false;
 	public int CONCURRENCY_LOOP=60;
-	
+
+	//benchmark 运行模式
+	public String BENCHMARK_WORK_MODE="";
+	//the file path of import data
+	public String IMPORT_DATA_FILE_PATH = "";
+	//import csv数据文件时的BATCH
+	public int BATCH_EXECUTE_COUNT = 5000;
+	//mataData文件路径
+	public String METADATA_FILE_PATH = "";
+
 	public void updateLoadTypeRatio(double wr, double rir, double mqr, double sqr, double ur) {
 		WRITE_RATIO = wr;
 		RANDOM_INSERT_RATIO = rir;
@@ -283,7 +305,7 @@ public class Config {
 
 	/**
 	 * 根据传感器数，初始化传感器编号
-	 * 
+	 *
 	 * @param sensorSum
 	 * @return
 	 */
@@ -297,7 +319,7 @@ public class Config {
 
 	/**
 	 * 根据设备数，初始化设备编号
-	 * 
+	 *
 	 * @param deviceSum
 	 * @return
 	 */

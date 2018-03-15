@@ -92,7 +92,7 @@
 			<level>DEBUG</level>
 		</filter>
 	</appender>
-	
+
 
 	<root level="INFO">
 		<appender-ref ref="FILEDEBUG" />
