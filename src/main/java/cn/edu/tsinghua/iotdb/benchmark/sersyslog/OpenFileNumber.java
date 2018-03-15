@@ -53,7 +53,7 @@ public class OpenFileNumber {
                 filter = "/usr/bin/influxd";
                 break;
             case Constants.BENCHMARK_IOTDB:
-                filter = "iotdb-benchmark";
+                filter = "../conf/config.properties";
                 break;
         }
         try {
@@ -199,8 +199,8 @@ public class OpenFileNumber {
 
         ArrayList<Integer> list = null;
         //如果port和pid不合理，再次尝试获取
-        if (pid < 0) {
-            pid = getPid();
+        if (!(pid > 0)) {
+            pid = getPID(config.DB_SWITCH);
         }
         //如果pid合理，则加入打开文件总数和数据文件数目以及socket数目
         if (pid > 0) {
@@ -232,7 +232,7 @@ public class OpenFileNumber {
     }
 
     public int getPid() {
-        return pid;
+        return getPID(config.DB_SWITCH);
     }
 
 
