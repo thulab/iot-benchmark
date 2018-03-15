@@ -13,6 +13,7 @@ public class MemUsage {
 
     private static Logger log = LoggerFactory.getLogger(MemUsage.class);
     private static MemUsage INSTANCE = new MemUsage();
+    private final double KB2GB = 1024 * 1024f;
 
     private MemUsage(){
 
@@ -27,42 +28,6 @@ public class MemUsage {
      * @param
      * @return float,内存使用率,小于1
      */
-    public float getUsageBasedOnFreemem() {
-        //通过1-freeMem/totalMem的方式计算Usage
-        float memUsage = 0.0f;
-        Process pro = null;
-        Runtime r = Runtime.getRuntime();
-        try {
-            String command = "cat /proc/meminfo";
-            pro = r.exec(command);
-            BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-            String line = null;
-            int count = 0;
-            long totalMem = 0, freeMem = 0;
-            while((line=in.readLine()) != null){
-                //log.info(line);
-                String[] memInfo = line.split("\\s+");
-                if(memInfo[0].startsWith("MemTotal")){
-                    totalMem = Long.parseLong(memInfo[1]);
-                }
-                if(memInfo[0].startsWith("MemFree")){
-                    freeMem = Long.parseLong(memInfo[1]);
-                }
-                memUsage = 1 - (float)freeMem/(float)totalMem;
-                //log.info("本节点内存使用率为: {}" ,memUsage);
-                if(++count == 2){
-                    break;
-                }
-            }
-            in.close();
-            pro.destroy();
-        } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-        }
-        return memUsage;
-    }
-
     public float get(){
         //log.info("开始收集内存使用率");
         float memUsage = 0.0f;
@@ -73,8 +38,6 @@ public class MemUsage {
             pro = r.exec(command);
             BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
             String line = null;
-            int count =  0;
-
             while((line=in.readLine()) != null) {
                 //log.info(line);
                 String[] temp = line.split("\\s+");
@@ -92,6 +55,35 @@ public class MemUsage {
             e.printStackTrace(new PrintWriter(sw));
         }
         return memUsage;
+    }
+
+    public double getProcessMemUsage(){
+        double processMemUsage = 0.0d;
+        Process pro = null;
+        Runtime r = Runtime.getRuntime();
+        int pid = OpenFileNumber.getInstance().getPid();
+        if(pid > 0) {
+            //String command = "pmap -d " + String.valueOf(pid) + " | grep write | cut -d ' ' -f 7";
+            String command = "pmap -d " + String.valueOf(pid) ;
+            try {
+                pro = r.exec(command);
+                BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+                String line = null;
+                while ((line = in.readLine()) != null) {
+                    if(line.startsWith("map")) {
+                        String[] temp = line.split(" ");
+                        String[] tmp = temp[6].split("K");
+                        String size = tmp[0];
+                        processMemUsage = Long.parseLong(size) / KB2GB;
+                    }
+                }
+            } catch (IOException e) {
+                log.error("Get Process Memory Usage failed.");
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+            }
+        }
+        return processMemUsage;
     }
 
 }

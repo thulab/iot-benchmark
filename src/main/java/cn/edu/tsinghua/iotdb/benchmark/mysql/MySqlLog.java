@@ -71,14 +71,14 @@ public class MySqlLog {
 		Statement stat = null;
 		try {
 			stat = mysqlConnection.createStatement();
-			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)) {
+			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE) || config.BENCHMARK_WORK_MODE.equals(Constants.MODE_CLIENT_SYSTEM_INFO)) {
 				if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
 					stat.executeUpdate("create table SERVER_MODE_"
 							+ localName
 							+ "_"
 							+ day
 							+ "(id BIGINT, cpu_usage DOUBLE,"
-							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, "
+							+ "mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
 							+ "totalFileNum INT, dataFileNum INT, socketNum INT, deltaNum INT, derbyNum INT,"
 							+ "digestNum INT, metadataNum INT, overflowNum INT, walsNum INT, "
 							+ "remark varchar(6000), primary key(id))");
@@ -206,15 +206,15 @@ public class MySqlLog {
 	
 	// 将系统资源利用信息存入mysql
 	public void insertSERVER_MODE(double cpu, double mem, double io,
-			double net_recv, double net_send, List<Integer> openFileList, String remark) {
+			double net_recv, double net_send,double pro_mem_size, List<Integer> openFileList, String remark) {
 		if (config.IS_USE_MYSQL) {
 			Statement stat = null;
 			String sql = "";
 			try {
 				stat = mysqlConnection.createStatement();
 				sql = String.format("insert into SERVER_MODE_" + localName
-						+ "_" + day + " values(%d,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
-						System.currentTimeMillis(), cpu, mem, io, net_recv,net_send, openFileList.get(0), openFileList.get(1), openFileList.get(2),
+						+ "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
+						System.currentTimeMillis(), cpu, mem, io, net_recv,net_send, pro_mem_size,openFileList.get(0), openFileList.get(1), openFileList.get(2),
 						openFileList.get(3),openFileList.get(4),openFileList.get(5), openFileList.get(6),
 						openFileList.get(7),openFileList.get(8),"'" + remark + "'");
 				stat.executeUpdate(sql);

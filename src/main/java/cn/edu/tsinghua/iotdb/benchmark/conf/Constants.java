@@ -20,7 +20,8 @@ public class Constants {
 
 	public static final String DB_IOT = "IoTDB";
 	public static final String DB_INFLUX = "InfluxDB";
-	
+	public static final String BENCHMARK_IOTDB = "App";
+
 	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 	
 	public static final String[] QUERY_CHOICE_NAME = {" ","Precise","Fuzzy","Aggregation",
@@ -32,8 +33,10 @@ public class Constants {
 	public static final String MODE_QUERY_TEST_WITH_DEFAULT_PATH = "queryTestWithDefaultPath"; 
 	public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
 	public static final String MODE_SERVER_MODE = "serverMODE";
+	public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
 	public static final String MODE_INSERT_TEST_WITH_USERDEFINED_PATH = "insertTestWithUserDefinedPath";
 	public static final String MODE_EXECUTE_SQL_FROM_FILE = "executeSQLFromFile";
+
 
 	public static final String EXE_SQL_FROM_FILE_MODE = "1";
 
