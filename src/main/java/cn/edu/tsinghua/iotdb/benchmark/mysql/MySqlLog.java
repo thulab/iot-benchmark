@@ -71,7 +71,7 @@ public class MySqlLog {
 		Statement stat = null;
 		try {
 			stat = mysqlConnection.createStatement();
-			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)) {
+			if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE) || config.BENCHMARK_WORK_MODE.equals(Constants.MODE_CLIENT_SYSTEM_INFO)) {
 				if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
 					stat.executeUpdate("create table SERVER_MODE_"
 							+ localName
