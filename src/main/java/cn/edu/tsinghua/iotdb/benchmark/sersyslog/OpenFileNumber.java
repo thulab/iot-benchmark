@@ -121,6 +121,7 @@ public class OpenFileNumber {
                 break;
             case Constants.BENCHMARK_IOTDB:
                 filter = "benchmark";
+                break;
             default:
                 throw new SQLException("unsupported db name :" + config.DB_SWITCH);
         }
