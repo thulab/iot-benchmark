@@ -182,6 +182,11 @@ public class Config {
 
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
+	
+	public int MAX_CONNECTION_NUM = 2000;
+	public String CONCURRENCY_URL = "jdbc:tsfile://127.0.0.1:6667/";
+	public boolean CONCURRENCY_QUERY_FULL_DATA = false;
+	public int CONCURRENCY_LOOP=60;
 
 	//benchmark 运行模式
 	public String BENCHMARK_WORK_MODE="";

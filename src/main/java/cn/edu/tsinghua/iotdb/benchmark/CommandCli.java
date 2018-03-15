@@ -69,6 +69,7 @@ public class CommandCli {
 
 			if(commandLine.hasOption(CONFIG_ARGS)) {
 				System.setProperty(Constants.BENCHMARK_CONF, commandLine.getOptionValue(CONFIG_ARGS));
+				System.out.println(commandLine.getOptionValue(CONFIG_ARGS));
 			}
 			
 		} catch (ParseException e) {
