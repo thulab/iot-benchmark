@@ -17,6 +17,8 @@ IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
 FLAG_AND_DATA_PATH=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
 LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
+CLIENT_LOG_STOP_FLAG_PATH_LINE=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/clientSystemInfo.properties)
+CLIENT_LOG_STOP_FLAG_PATH=${CLIENT_LOG_STOP_FLAG_PATH_LINE#*=}
 
 #get mode parameter
 #sed -i 's/SERVER_MODE *= *true/SERVER_MODE=false/g' $BENCHMARK_HOME/conf/config.properties
@@ -27,7 +29,7 @@ echo Testing ${DB#*=} ...
 
 mvn clean package -Dmaven.test.skip=true
 
-sh $IOTDB_HOME/ser_cli-benchmark.sh > /dev/null 2>&1 &
+ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
 
 #synchronize config server benchmark
 if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
@@ -87,9 +89,9 @@ fi
     #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
 #fi
 ##stop system info recording on client machine
-touch $LOG_STOP_FLAG_PATH/log_stop_flag
+touch $CLIENT_LOG_STOP_FLAG_PATH/log_stop_flag
 
 echo '------Client Test Complete Time------'
 date
 
-touch $LOG_STOP_FLAG_PATH/log_stop_flag
+

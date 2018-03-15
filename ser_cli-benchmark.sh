@@ -21,7 +21,7 @@ date
 
 cd bin
 
-sh startup.sh -cf ../conf/clientServerInfo.properties
+sh startup.sh -cf ../conf/clientSystemInfo.properties
 
 echo '------Server Test Complete Time------'
 
