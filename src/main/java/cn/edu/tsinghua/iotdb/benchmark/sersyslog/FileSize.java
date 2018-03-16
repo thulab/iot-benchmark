@@ -65,7 +65,7 @@ public class FileSize {
         Runtime runtime = Runtime.getRuntime();
 
         for(FileSizeKinds kinds : FileSizeKinds.values()){
-            String command = String.format(LINUX_FILE_SIZE_CMD,kinds);
+            String command = String.format(LINUX_FILE_SIZE_CMD,kinds.path);
             cmds[2] = command;
 
             try {
