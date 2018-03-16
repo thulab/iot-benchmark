@@ -82,11 +82,12 @@ public class FileSize {
                 log.error("Read command input stream failed :" + command);
                 e.printStackTrace();
             }
-            System.out.println("line:"+line);
-            String size = line.split("\\s+")[0];
-            double fileSizeGB = ABNORMALVALUE;
-            if(size != null && !size.equals("")) {
+            double fileSizeGB;
+            if(line != null && line.equals("")) {
+                String size = line.split("\\s+")[0];
                 fileSizeGB = Long.parseLong(size) / MB2GB;
+            } else{
+                fileSizeGB = ABNORMALVALUE;
             }
             fileSize.put(kinds,fileSizeGB);
         }
