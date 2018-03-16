@@ -63,14 +63,14 @@ public class FileSize {
 
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
-
         for(FileSizeKinds kinds : FileSizeKinds.values()){
+
             String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
             cmds[2] = command;
             try {
                 pro = runtime.exec(command);
             } catch (IOException e) {
-                log.error("Execute command failed :" + command);
+                log.info("Execute command failed :" + command);
                 e.printStackTrace();
             }
             BufferedReader br = new BufferedReader(new InputStreamReader(pro.getInputStream()));
@@ -78,9 +78,10 @@ public class FileSize {
             try {
                 //line = br.readLine();
                 while ((line = br.readLine()) != null) {}
+                br.close();
                 System.out.println("line==="+line);
             } catch (IOException e) {
-                log.error("Read command input stream failed :" + command);
+                log.info("Read command input stream failed :" + command);
                 e.printStackTrace();
             }
             double fileSizeGB;
@@ -93,6 +94,7 @@ public class FileSize {
             }
             fileSize.put(kinds,fileSizeGB);
         }
+        pro.destroy();
 
         return fileSize;
     }
