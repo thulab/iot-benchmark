@@ -68,7 +68,7 @@ public class FileSize {
             String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
             cmds[2] = command;
             try {
-                pro = runtime.exec(cmds);
+                pro = runtime.exec(command);
             } catch (IOException e) {
                 log.error("Execute command failed :" + command);
                 e.printStackTrace();
@@ -85,7 +85,7 @@ public class FileSize {
             }
             double fileSizeGB;
             if(line != null && line.equals("")) {
-                System.out.println("line==="+line);
+                System.out.println("line="+line);
                 String size = line.split("\\s+")[0];
                 fileSizeGB = Long.parseLong(size) / MB2GB;
             } else{
