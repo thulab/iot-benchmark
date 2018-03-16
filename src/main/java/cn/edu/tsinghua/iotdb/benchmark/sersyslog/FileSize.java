@@ -82,6 +82,7 @@ public class FileSize {
                 log.error("Read command input stream failed :" + command);
                 e.printStackTrace();
             }
+            log.info("line:"+line);
             String size = line.split(" ")[0];
             double fileSizeGB = ABNORMALVALUE;
             if(size != null && !size.equals("")) {
