@@ -7,10 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.db.*;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.NetUsage;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import org.slf4j.Logger;
@@ -75,6 +72,7 @@ public class App {
     }
 
     private static void clientSystemInfo(Config config) {
+        double abnormalValue = -1;
         MySqlLog mySql = new MySqlLog();
         mySql.initMysql(System.currentTimeMillis());
         File dir = new File(config.LOG_STOP_FLAG_PATH);
@@ -90,13 +88,24 @@ public class App {
                 ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
                 LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
                 LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-                LOGGER.info("内存使用,{},GB", MemUsage.getInstance().getProcessMemUsage());
+                LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
                 LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
                 LOGGER.info("网口接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
                 LOGGER.info("进程号,{},打开文件总数,{},打开benchmark目录下文件数,{},打开socket数,{}", OpenFileNumber.getInstance().getPid(),
                         openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
-                        netUsageList.get(0), netUsageList.get(1), MemUsage.getInstance().getProcessMemUsage(), openFileList, "");
+                mySql.insertSERVER_MODE(
+                        ioUsageList.get(0),
+                        MemUsage.getInstance().get(),
+                        ioUsageList.get(1),
+                        netUsageList.get(0),
+                        netUsageList.get(1),
+                        MemUsage.getInstance().getProcessMemUsage(),
+                        abnormalValue,
+                        abnormalValue,
+                        abnormalValue,
+                        abnormalValue,
+                        abnormalValue,
+                        openFileList, "");
 
                 try {
                     Thread.sleep(interval * 1000);
@@ -151,15 +160,33 @@ public class App {
                     ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
                     ArrayList<Float> netUsageList = NetUsage.getInstance().get();
                     ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                    HashMap<FileSize.FileSizeKinds,Double> fileSizeStatistics = FileSize.getInstance().getFileSize();
                     LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
                     LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-                    LOGGER.info("内存使用,{},GB", MemUsage.getInstance().getProcessMemUsage());
+                    LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
                     LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
                     LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-                    LOGGER.info("\nPID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
+                    LOGGER.info("PID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
                             openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                    mySql.insertSERVER_MODE(ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1),
-                            netUsageList.get(0), netUsageList.get(1), MemUsage.getInstance().getProcessMemUsage(), openFileList, "");
+                    LOGGER.info("文件大小GB,data,{},digest,{},metadata,{},overflow,{},delta,{}",
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.DIGEST),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA));
+                    mySql.insertSERVER_MODE(
+                            ioUsageList.get(0),
+                            MemUsage.getInstance().get(),
+                            ioUsageList.get(1),
+                            netUsageList.get(0),
+                            netUsageList.get(1),
+                            MemUsage.getInstance().getProcessMemUsage(),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.DIGEST),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA),
+                            openFileList, "");
                     if (write2File) {
                         out.write(String.format("%d%14f%14f%15f", System.currentTimeMillis(),
                                 ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1)));
