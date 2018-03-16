@@ -59,67 +59,31 @@ public class FileSize {
 
     public HashMap<FileSizeKinds, Double> getFileSize() {
         HashMap<FileSizeKinds, Double> fileSize = new HashMap<>();
-        BufferedReader in = null;
+        BufferedReader in ;
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
-        double fileSizeGB = ABNORMALVALUE;;
         for(FileSizeKinds kinds : FileSizeKinds.values()){
-
+            double fileSizeGB = ABNORMALVALUE;
             try {
                 String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
                 pro = runtime.exec(command);
                 in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
                 String line = null;
                 while((line=in.readLine()) != null) {
-                    System.out.println("line="+line);
                     String size = line.split("\\s+")[0];
                     fileSizeGB = Long.parseLong(size) / MB2GB;
                 }
-
+                in.close();
             } catch (IOException e) {
                 StringWriter sw = new StringWriter();
                 e.printStackTrace(new PrintWriter(sw));
             }
-
-
-
-            /*
-            String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
-            cmds[2] = command;
-            try {
-                pro = runtime.exec(cmds);
-            } catch (IOException e) {
-                log.info("Execute command failed :" + command);
-                e.printStackTrace();
-            }
-            BufferedReader br = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-            String line = null;
-            try {
-                line = br.readLine();
-                br.close();
-                System.out.println("line==="+line);
-            } catch (IOException e) {
-                log.info("Read command input stream failed :" + command);
-                e.printStackTrace();
-            }
-            if(line != null && line.equals("")) {
-                System.out.println("line="+line);
-                String size = line.split("\\s+")[0];
-                fileSizeGB = Long.parseLong(size) / MB2GB;
-            } else{
-                fileSizeGB = ABNORMALVALUE;
-            }
-            */
             fileSize.put(kinds,fileSizeGB);
 
         }
-        try {
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (pro != null) {
+            pro.destroy();
         }
-        pro.destroy();
-
         return fileSize;
     }
 
