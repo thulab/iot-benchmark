@@ -65,9 +65,8 @@ public class FileSize {
         Runtime runtime = Runtime.getRuntime();
 
         for(FileSizeKinds kinds : FileSizeKinds.values()){
-            String command = String.format(LINUX_FILE_SIZE_CMD,kinds.path);
+            String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
             cmds[2] = command;
-
             try {
                 pro = runtime.exec(cmds);
             } catch (IOException e) {
@@ -77,7 +76,9 @@ public class FileSize {
             BufferedReader br = new BufferedReader(new InputStreamReader(pro.getInputStream()));
             String line = null;
             try {
-                line = br.readLine();
+                //line = br.readLine();
+                while ((line = br.readLine()) != null) {}
+                System.out.println("line==="+line);
             } catch (IOException e) {
                 log.error("Read command input stream failed :" + command);
                 e.printStackTrace();
