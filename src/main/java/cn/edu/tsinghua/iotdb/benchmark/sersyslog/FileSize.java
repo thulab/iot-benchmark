@@ -83,7 +83,7 @@ public class FileSize {
                 e.printStackTrace();
             }
             System.out.println("line:"+line);
-            String size = line.split(" ")[0];
+            String size = line.split("\\s+")[0];
             double fileSizeGB = ABNORMALVALUE;
             if(size != null && !size.equals("")) {
                 fileSizeGB = Long.parseLong(size) / MB2GB;
