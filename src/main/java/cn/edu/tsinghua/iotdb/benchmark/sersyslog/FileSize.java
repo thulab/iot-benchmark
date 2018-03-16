@@ -17,7 +17,7 @@ public class FileSize {
     private final String LINUX_FILE_SIZE_CMD = "du -sm %s";
     private String cmds[] = {"/bin/bash", "-c", ""};
     private final double MB2GB = 1024.0;
-    private final double ABNORMALVALUE = -1;
+    private final double ABNORMALVALUE = -2;
     public enum FileSizeKinds {
         DATA(config.LOG_STOP_FLAG_PATH + "/data"),
         DIGEST(config.LOG_STOP_FLAG_PATH + "/data/digest"),
@@ -84,6 +84,7 @@ public class FileSize {
             }
             double fileSizeGB;
             if(line != null && line.equals("")) {
+                System.out.println("line==="+line);
                 String size = line.split("\\s+")[0];
                 fileSizeGB = Long.parseLong(size) / MB2GB;
             } else{

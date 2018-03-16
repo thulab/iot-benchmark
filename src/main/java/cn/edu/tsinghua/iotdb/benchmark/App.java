@@ -153,6 +153,7 @@ public class App {
 
             if (dir.exists() && dir.isDirectory()) {
                 File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
+                HashMap<FileSize.FileSizeKinds,Double> fileSizeStatistics;
                 int interval = config.INTERVAL;
                 // 检测所需的时间在目前代码的参数下至少为2秒
                 LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
@@ -160,7 +161,7 @@ public class App {
                     ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
                     ArrayList<Float> netUsageList = NetUsage.getInstance().get();
                     ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
-                    HashMap<FileSize.FileSizeKinds,Double> fileSizeStatistics = FileSize.getInstance().getFileSize();
+                    fileSizeStatistics = FileSize.getInstance().getFileSize();
                     LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
                     LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
                     LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
