@@ -5,9 +5,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -60,15 +59,35 @@ public class FileSize {
 
     public HashMap<FileSizeKinds, Double> getFileSize() {
         HashMap<FileSizeKinds, Double> fileSize = new HashMap<>();
-
+        BufferedReader in = null;
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
+        double fileSizeGB = ABNORMALVALUE;;
         for(FileSizeKinds kinds : FileSizeKinds.values()){
 
+            try {
+                String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
+                pro = runtime.exec(command);
+                in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+                String line = null;
+                while((line=in.readLine()) != null) {
+                    System.out.println("line="+line);
+                    String size = line.split("\\s+")[0];
+                    fileSizeGB = Long.parseLong(size) / MB2GB;
+                }
+
+            } catch (IOException e) {
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+            }
+
+
+
+            /*
             String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
             cmds[2] = command;
             try {
-                pro = runtime.exec(command);
+                pro = runtime.exec(cmds);
             } catch (IOException e) {
                 log.info("Execute command failed :" + command);
                 e.printStackTrace();
@@ -76,15 +95,13 @@ public class FileSize {
             BufferedReader br = new BufferedReader(new InputStreamReader(pro.getInputStream()));
             String line = null;
             try {
-                //line = br.readLine();
-                while ((line = br.readLine()) != null) {}
+                line = br.readLine();
                 br.close();
                 System.out.println("line==="+line);
             } catch (IOException e) {
                 log.info("Read command input stream failed :" + command);
                 e.printStackTrace();
             }
-            double fileSizeGB;
             if(line != null && line.equals("")) {
                 System.out.println("line="+line);
                 String size = line.split("\\s+")[0];
@@ -92,7 +109,14 @@ public class FileSize {
             } else{
                 fileSizeGB = ABNORMALVALUE;
             }
+            */
             fileSize.put(kinds,fileSizeGB);
+
+        }
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         pro.destroy();
 
