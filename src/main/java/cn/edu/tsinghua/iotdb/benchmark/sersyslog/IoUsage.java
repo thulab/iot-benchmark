@@ -15,14 +15,16 @@ public class IoUsage {
     private static Logger log = LoggerFactory.getLogger(IoUsage.class);
     private static IoUsage INSTANCE = new IoUsage();
     public enum IOStatistics {
-        TPS(1),
-        MB_READ(2),
-        MB_WRTN(3);
+        TPS(1,0),
+        MB_READ(2,0),
+        MB_WRTN(3,0);
 
         public int pos;
+        public float max;
 
-        IOStatistics(int p){
+        IOStatistics(int p,float m){
             this.pos = p;
+            this.max = m;
         }
     };
 
@@ -57,8 +59,8 @@ public class IoUsage {
                         //返回设备中最大的
                         for(IOStatistics iostat : IOStatistics.values()) {
                             float t = Float.parseFloat(temp[iostat.pos]);
-                            max = (max > t) ? max : t;
-                            ioStaMap.put(iostat, max);
+                            iostat.max = (iostat.max > t) ? iostat.max : t;
+                            ioStaMap.put(iostat, iostat.max);
                         }
                     }
                 }
