@@ -76,20 +76,25 @@ public class App {
         MySqlLog mySql = new MySqlLog();
         mySql.initMysql(System.currentTimeMillis());
         File dir = new File(config.LOG_STOP_FLAG_PATH);
-
         if (dir.exists() && dir.isDirectory()) {
             File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
             int interval = config.INTERVAL;
+            HashMap<IoUsage.IOStatistics,Float> ioStatistics;
             // 检测所需的时间在目前代码的参数下至少为2秒
             LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
             while (true) {
                 ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
                 ArrayList<Float> netUsageList = NetUsage.getInstance().get();
                 ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                ioStatistics = IoUsage.getInstance().getIOStatistics();
                 LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
                 LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
                 LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
-                LOGGER.info("磁盘IO使用率,{}", ioUsageList.get(1));
+                LOGGER.info("磁盘IO使用率,{},TPS,{},读速率MB/s,{},写速率MB/s,{}",
+                        ioUsageList.get(1),
+                        ioStatistics.get(IoUsage.IOStatistics.TPS),
+                        ioStatistics.get(IoUsage.IOStatistics.MB_READ),
+                        ioStatistics.get(IoUsage.IOStatistics.MB_WRTN));
                 LOGGER.info("网口接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
                 LOGGER.info("进程号,{},打开文件总数,{},打开benchmark目录下文件数,{},打开socket数,{}", OpenFileNumber.getInstance().getPid(),
                         openFileList.get(0), openFileList.get(1), openFileList.get(2));
@@ -105,6 +110,9 @@ public class App {
                         abnormalValue,
                         abnormalValue,
                         abnormalValue,
+                        ioStatistics.get(IoUsage.IOStatistics.TPS),
+                        ioStatistics.get(IoUsage.IOStatistics.MB_READ),
+                        ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
                         openFileList, "");
 
                 try {
@@ -193,6 +201,9 @@ public class App {
                             fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA),
+                            ioStatistics.get(IoUsage.IOStatistics.TPS),
+                            ioStatistics.get(IoUsage.IOStatistics.MB_READ),
+                            ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
                             openFileList, "");
                     if (write2File) {
                         out.write(String.format("%d%14f%14f%15f", System.currentTimeMillis(),
