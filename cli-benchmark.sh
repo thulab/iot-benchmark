@@ -20,6 +20,8 @@ LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
 CLIENT_LOG_STOP_FLAG_PATH_LINE=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/clientSystemInfo.properties)
 CLIENT_LOG_STOP_FLAG_PATH=${CLIENT_LOG_STOP_FLAG_PATH_LINE#*=}
 
+
+
 #get mode parameter
 #sed -i 's/SERVER_MODE *= *true/SERVER_MODE=false/g' $BENCHMARK_HOME/conf/config.properties
 BENCHMARK_WORK_MODE=$(grep "BENCHMARK_WORK_MODE" $BENCHMARK_HOME/conf/config.properties)
@@ -29,7 +31,20 @@ echo Testing ${DB#*=} ...
 
 mvn clean package -Dmaven.test.skip=true
 
-ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
+#prepare for client system info recording benchmark
+if [ -d $CLIENT_LOG_STOP_FLAG_PATH ]; then
+#    MYSQL_URL_LINE=$(grep "MYSQL_URL" $BENCHMARK_HOME/conf/config.properties)
+#    MYSQL_URL_VALUE=${MYSQL_URL_LINE#*=}
+#    IS_USE_MYSQL_LINE=$(grep "IS_USE_MYSQL" $BENCHMARK_HOME/conf/config.properties)
+#    IS_USE_MYSQL_VALUE=${IS_USE_MYSQL_LINE#*=}
+#    sed -i "s/^MYSQL_URL.*$/MYSQL_URL=${MYSQL_URL_VALUE}/g" $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
+#    sed -i "s/^IS_USE_MYSQL.*$/MYSQL_URL=${IS_USE_MYSQL_VALUE}/g" $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
+#
+    ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
+    else
+    ssh $HOST_NAME@127.0.0.1 "mkdir $CLIENT_LOG_STOP_FLAG_PATH;cp -r $REMOTE_BENCHMARK_HOME $CLIENT_LOG_STOP_FLAG_PATH"
+    ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
+fi
 
 #synchronize config server benchmark
 if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
