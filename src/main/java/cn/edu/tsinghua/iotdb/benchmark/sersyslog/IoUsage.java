@@ -14,6 +14,7 @@ public class IoUsage {
 
     private static Logger log = LoggerFactory.getLogger(IoUsage.class);
     private static IoUsage INSTANCE = new IoUsage();
+    private final int  BEGIN_LINE = 10;
     public enum IOStatistics {
         TPS(1,0),
         MB_READ(2,0),
@@ -42,7 +43,9 @@ public class IoUsage {
 
     public HashMap<IOStatistics,Float> getIOStatistics(){
         HashMap<IOStatistics,Float> ioStaMap = new HashMap<>();
-        float max = 0;
+        for(IOStatistics iostat : IOStatistics.values()) {
+            iostat.max = 0;
+        }
         Process pro = null;
         Runtime r = Runtime.getRuntime();
         try {
@@ -54,7 +57,7 @@ public class IoUsage {
             int flag = 1;
             while((line=in.readLine()) != null) {
                 String[] temp = line.split("\\s+");
-                if (++count >= 8) {
+                if (++count >= BEGIN_LINE) {
                     if(temp.length > 1 && temp[0].startsWith("s")) {
                         //返回设备中最大的
                         for(IOStatistics iostat : IOStatistics.values()) {
