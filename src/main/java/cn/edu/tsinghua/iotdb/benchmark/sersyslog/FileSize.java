@@ -14,9 +14,8 @@ public class FileSize {
     private static Logger log = LoggerFactory.getLogger(FileSize.class);
     private static Config config;
     private final String LINUX_FILE_SIZE_CMD = "du -sm %s";
-    private String cmds[] = {"/bin/bash", "-c", ""};
     private final double MB2GB = 1024.0;
-    private final double ABNORMALVALUE = -2;
+    private final double ABNORMALVALUE = -1;
     public enum FileSizeKinds {
         DATA(config.LOG_STOP_FLAG_PATH + "/data"),
         DIGEST(config.LOG_STOP_FLAG_PATH + "/data/digest"),
@@ -63,23 +62,21 @@ public class FileSize {
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
         for(FileSizeKinds kinds : FileSizeKinds.values()){
+            String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
             double fileSizeGB = ABNORMALVALUE;
             try {
-                String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
                 pro = runtime.exec(command);
                 in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-                String line = null;
+                String line ;
                 while((line=in.readLine()) != null) {
                     String size = line.split("\\s+")[0];
                     fileSizeGB = Long.parseLong(size) / MB2GB;
                 }
                 in.close();
             } catch (IOException e) {
-                StringWriter sw = new StringWriter();
-                e.printStackTrace(new PrintWriter(sw));
+                log.info("Execute command failed: " + command);
             }
             fileSize.put(kinds,fileSizeGB);
-
         }
         if (pro != null) {
             pro.destroy();

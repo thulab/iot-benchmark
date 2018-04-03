@@ -17,6 +17,7 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 public class ClientThread implements Runnable{
 	private IDatebase database;
 	private int index;
+	private long oldTotalTime;
 	private Config config;
 	private static final Logger LOOGER = LoggerFactory.getLogger(ClientThread.class);
 	private Storage storage;
@@ -99,6 +100,7 @@ public class ClientThread implements Runnable{
 				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
 			}
 			while(i < config.LOOP){
+				oldTotalTime = totalTime.get();
 				if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)){
 					try {
 						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + "." + config.TIMESERIES_NAME, i, totalTime, errorCount);
@@ -152,6 +154,10 @@ public class ClientThread implements Runnable{
                 }
 				i++;
 			}
+			long batchDeltaTime = totalTime.get() - oldTotalTime;
+
+
+
 		}
 
 

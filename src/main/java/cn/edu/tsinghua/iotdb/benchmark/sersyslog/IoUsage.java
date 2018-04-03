@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * 采集磁盘IO使用率
@@ -13,13 +14,62 @@ public class IoUsage {
 
     private static Logger log = LoggerFactory.getLogger(IoUsage.class);
     private static IoUsage INSTANCE = new IoUsage();
+    public enum IOStatistics {
+        TPS(1),
+        MB_READ(2),
+        MB_WRTN(3);
+
+        public int pos;
+
+        IOStatistics(int p){
+            this.pos = p;
+        }
+    };
+
+    private static class IoUsageHolder{
+        private static final IoUsage INSTANCE = new IoUsage();
+    }
 
     private IoUsage(){
 
     }
 
     public static IoUsage getInstance(){
-        return INSTANCE;
+        return IoUsageHolder.INSTANCE;
+    }
+
+    public HashMap<IOStatistics,Float> getIOStatistics(){
+        HashMap<IOStatistics,Float> ioStaMap = new HashMap<>();
+        float max = 0;
+        Process pro = null;
+        Runtime r = Runtime.getRuntime();
+        try {
+            String command = "iostat -m 1 2";
+            pro = r.exec(command);
+            BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+            String line = null;
+            int count =  0;
+            int flag = 1;
+            while((line=in.readLine()) != null) {
+                String[] temp = line.split("\\s+");
+                if (++count >= 8) {
+                    if(temp.length > 1 && temp[0].startsWith("s")) {
+                        //返回设备中最大的
+                        for(IOStatistics iostat : IOStatistics.values()) {
+                            float t = Float.parseFloat(temp[iostat.pos]);
+                            max = (max > t) ? max : t;
+                            ioStaMap.put(iostat, max);
+                        }
+                    }
+                }
+            }
+            in.close();
+            pro.destroy();
+        } catch (IOException e) {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+        }
+        return ioStaMap;
     }
 
     /**
@@ -27,7 +77,6 @@ public class IoUsage {
      * @param
      * @return float,磁盘IO使用率,小于1
      */
-
     public ArrayList<Float> get() {
         //log.info("开始收集磁盘IO使用率");
         ArrayList<Float> list = new ArrayList<>();
