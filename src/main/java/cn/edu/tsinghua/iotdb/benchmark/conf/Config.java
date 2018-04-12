@@ -59,6 +59,10 @@ public class Config {
 
 	public int START_TIMESTAMP_INDEX = 20;
 
+	public boolean USE_OPS = false;
+
+	public double CLIENT_MAX_WRT_RATE = 10000000.0;
+
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/

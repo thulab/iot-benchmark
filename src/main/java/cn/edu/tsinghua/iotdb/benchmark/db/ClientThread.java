@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class ClientThread implements Runnable{
 	private IDatebase database;
+	private MySqlLog mySql;
 	private int index;
 	private long oldTotalTime;
 	private Config config;
@@ -43,6 +45,7 @@ public class ClientThread implements Runnable{
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
 		this.totalInsertErrorNums = totalInsertErrorNums;
+		mySql = new MySqlLog();
 	}
 
 	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch,
@@ -54,6 +57,7 @@ public class ClientThread implements Runnable{
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
 		this.totalInsertErrorNums = totalInsertErrorNums;
+		mySql = new MySqlLog();
 	}
 
 
@@ -85,7 +89,9 @@ public class ClientThread implements Runnable{
 		else{
 			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
 			LinkedList<String> deviceCodes = new LinkedList<>();
-
+			//may not correct in multiple device per batch mode
+			long pointsOneLoop = config.DEVICE_NUMBER / config.CLIENT_NUMBER * config.SENSOR_NUMBER * config.CACHE_NUM;
+			double actual_loopSecond = (double) pointsOneLoop / config.CLIENT_MAX_WRT_RATE;
 			//overflow mode 2 related variables initial
 			Random random = new Random(config.QUERY_SEED);
 			ArrayList<Integer> before = new ArrayList<>();
@@ -154,10 +160,29 @@ public class ClientThread implements Runnable{
                 }
 				i++;
 			}
-			long batchDeltaTime = totalTime.get() - oldTotalTime;
 
+			long loopDeltaTime = totalTime.get() - oldTotalTime;
 
+			double loopSecond = loopDeltaTime * 0.000000001d;
 
+			double loopRate = pointsOneLoop / loopSecond;
+
+			if(config.USE_OPS) {
+				long delayStart = System.nanoTime();
+				if (loopSecond < actual_loopSecond) {
+					try {
+						Thread.sleep((long) (1000 * (actual_loopSecond - loopSecond)));
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				long delayEnd = System.nanoTime();
+				long delayTime = delayEnd - delayStart;
+				loopRate = pointsOneLoop / (loopSecond + delayTime * 0.000000001d);
+			}
+
+			LOOGER.info("LOOP RATE,{},points/s,LOOP DELTA TIME,{},second", loopRate, loopSecond);
+			mySql.saveInsertProcessOfLoop(i, loopRate);
 		}
 
 

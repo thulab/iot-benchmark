@@ -126,6 +126,12 @@ public class MySqlLog {
                         + "(id BIGINT, clientName varchar(50), "
                         + "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT, remark varchar(6000),primary key(id,clientName))");
                 LOGGER.info("Table {} create success!", projectID);
+
+                stat.executeUpdate("create table "
+                        + projectID + "Loop"
+                        + "(id BIGINT, clientName varchar(50), "
+                        + "loopIndex INTEGER, cur_rate DOUBLE, primary key(id, clientName))");
+                LOGGER.info("Table {} Loop create success!", projectID);
             }
         } catch (SQLException e) {
             LOGGER.error("mysql 创建表格失败,原因是：{}", e.getMessage());
@@ -140,7 +146,7 @@ public class MySqlLog {
         }
     }
 
-    // 将插入测试的中间结果存入数据库
+    // 将插入测试的以batch为单位的中间结果存入数据库
     public void saveInsertProcess(int index, double costTime, double totalTime,
                                   long errorPoint, String remark) {
         if (config.IS_USE_MYSQL) {
@@ -158,7 +164,30 @@ public class MySqlLog {
                 stat.close();
             } catch (Exception e) {
                 LOGGER.error(
-                        "{} save queryProcess info into mysql failed! Error：{}",
+                        "{} save saveInsertProcess info into mysql failed! Error：{}",
+                        Thread.currentThread().getName(), e.getMessage());
+                LOGGER.error("{}", mysqlSql);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // 将写入测试的以loop为单位的中间结果存入数据库
+    public void saveInsertProcessOfLoop(int index, double loopRate) {
+        if (config.IS_USE_MYSQL) {
+            String mysqlSql = String.format("insert into " + config.REMARK + "Loop" + labID + " values(%d,%s,%d,%f)",
+                    System.currentTimeMillis(),
+                    "'" + Thread.currentThread().getName() + "'",
+                    index,
+                    loopRate);
+            Statement stat;
+            try {
+                stat = mysqlConnection.createStatement();
+                stat.executeUpdate(mysqlSql);
+                stat.close();
+            } catch (Exception e) {
+                LOGGER.error(
+                        "{} save saveInsertProcessLoop info into mysql failed! Error：{}",
                         Thread.currentThread().getName(), e.getMessage());
                 LOGGER.error("{}", mysqlSql);
                 e.printStackTrace();
