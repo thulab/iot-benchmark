@@ -12,6 +12,8 @@ public interface IDatebase {
 
     void createSchema() throws SQLException;
 
+    long getLabID();
+
     void insertOneBatch(String device,
                         int batchIndex,
                         ThreadLocal<Long> totalTime,

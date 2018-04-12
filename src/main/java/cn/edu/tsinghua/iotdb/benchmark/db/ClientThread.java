@@ -46,6 +46,7 @@ public class ClientThread implements Runnable{
 		this.totalTimes = totalTimes;
 		this.totalInsertErrorNums = totalInsertErrorNums;
 		mySql = new MySqlLog();
+		mySql.initMysql(datebase.getLabID());
 	}
 
 	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch,
@@ -58,6 +59,7 @@ public class ClientThread implements Runnable{
 		this.totalTimes = totalTimes;
 		this.totalInsertErrorNums = totalInsertErrorNums;
 		mySql = new MySqlLog();
+		mySql.initMysql(datebase.getLabID());
 	}
 
 

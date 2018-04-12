@@ -116,6 +116,11 @@ public class IoTDB implements IDatebase {
 
     }
 
+    @Override
+    public long getLabID(){
+        return this.labID;
+    }
+
     private void initSchema() {
         // 解析到points
         BufferedReader reader = null;

@@ -244,4 +244,8 @@ public class InfluxDB implements IDatebase {
         return 0;
     }
 
+    @Override
+    public long getLabID(){
+        return 0;
+    }
 }
