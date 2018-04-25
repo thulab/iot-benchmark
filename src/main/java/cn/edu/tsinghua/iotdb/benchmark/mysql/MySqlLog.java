@@ -71,7 +71,7 @@ public class MySqlLog {
                             + day
                             + "(id BIGINT, "
                             + "cpu_usage DOUBLE,mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
-                            + "dataFileSize DOUBLE,digestFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, "
+                            + "dataFileSize DOUBLE,infoFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, walFileSize DOUBLE,"
                             + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
                             + "totalFileNum INT, dataFileNum INT, socketNum INT, deltaNum INT, derbyNum INT,"
                             + "digestNum INT, metadataNum INT, overflowNum INT, walsNum INT, "
@@ -229,7 +229,7 @@ public class MySqlLog {
 
     // 将系统资源利用信息存入mysql
     public void insertSERVER_MODE(double cpu, double mem, double io, double net_recv, double net_send, double pro_mem_size,
-                                  double dataSize, double digestSize, double metadataSize, double overflowSize, double deltaSize,
+                                  double dataSize, double infoSize, double metadataSize, double overflowSize, double deltaSize,double walSize,
                                   float tps, float io_read, float io_wrtn,
                                   List<Integer> openFileList, String remark) {
         if (config.IS_USE_MYSQL) {
@@ -238,7 +238,7 @@ public class MySqlLog {
             try {
                 stat = mysqlConnection.createStatement();
                 sql = String.format("insert into SERVER_MODE_" + localName
-                                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
+                                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
                         System.currentTimeMillis(),
                         cpu,
                         mem,
@@ -247,10 +247,11 @@ public class MySqlLog {
                         net_send,
                         pro_mem_size,
                         dataSize,
-                        digestSize,
+                        infoSize,
                         metadataSize,
                         overflowSize,
                         deltaSize,
+                        walSize,
                         tps,
                         io_read,
                         io_wrtn,

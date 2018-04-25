@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
@@ -32,6 +33,7 @@ public class IoTDB implements IDatebase {
     private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private Random sensorRandom;
     private Random timestampRandom;
+    private ProbTool probTool;
     private final double unitTransfer = 1000000000.0;
 
     public IoTDB(long labID) throws ClassNotFoundException, SQLException {
@@ -43,6 +45,7 @@ public class IoTDB implements IDatebase {
         this.labID = labID;
         sensorRandom = new Random(1 + config.QUERY_SEED);
         timestampRandom = new Random(2 + config.QUERY_SEED);
+        probTool = new ProbTool();
     }
 
     @Override
@@ -405,7 +408,7 @@ public class IoTDB implements IDatebase {
                 String sql = createSQLStatment(device, maxTimestampIndex);
                 statement.addBatch(sql);
                 for (int i = 1; i < config.CACHE_NUM; i++) {
-                    if (returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
+                    if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
                         maxTimestampIndex++;
                         timestampIndex = maxTimestampIndex;
                     } else {
@@ -420,7 +423,7 @@ public class IoTDB implements IDatebase {
                 String sql;
                 for (int i = 0; i < config.CACHE_NUM; i++) {
                     if (maxTimestampIndex < (config.CACHE_NUM * config.LOOP - 1) && before.size() > 0) {
-                        if (returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
+                        if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
                             maxTimestampIndex++;
                             timestampIndex = maxTimestampIndex;
                         } else {
@@ -495,7 +498,7 @@ public class IoTDB implements IDatebase {
                 String sql = createSQLStatment(device, maxTimestampIndex);
                 statement.addBatch(sql);
                 for (int i = 1; i < config.CACHE_NUM; i++) {
-                    if (returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
+                    if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
                         maxTimestampIndex++;
                         timestampIndex = maxTimestampIndex;
                     } else {
@@ -508,7 +511,7 @@ public class IoTDB implements IDatebase {
             } else {
                 String sql;
                 for (int i = 0; i < config.CACHE_NUM; i++) {
-                    if (returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
+                    if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
                         maxTimestampIndex++;
                         timestampIndex = maxTimestampIndex;
                     } else {
@@ -752,7 +755,6 @@ public class IoTDB implements IDatebase {
                     LOGGER.warn("Can`t close statement when creating timeseries because: {}", e.getMessage());
                 }
             }
-            // statement.close();
         } else if (count >= timeseriesTotal) {
             try {
                 statement.executeBatch();
@@ -1414,18 +1416,6 @@ public class IoTDB implements IDatebase {
         return totalsize;
     }
 
-    /**
-     * 使用QUERY_SEED参数作为随机数种子
-     *
-     * @param p 返回true的概率
-     * @return 布尔值
-     */
-    private boolean returnTrueByProb(double p, Random random) {
-        if (random.nextDouble() < p) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+
 
 }

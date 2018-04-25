@@ -3,6 +3,8 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
@@ -40,10 +42,14 @@ public class InfluxDBV2 implements IDatebase {
 	private org.influxdb.InfluxDB influxDB;
 	private MySqlLog mySql;
 	private long labID;
+	private Random timestampRandom;
+	private ProbTool probTool;
 
 	public InfluxDBV2(long labID) {
 		mySql = new MySqlLog();
 		this.labID = labID;
+		probTool = new ProbTool();
+		timestampRandom = new Random(2 + config.QUERY_SEED);
 	}
 
 	@Override
@@ -198,6 +204,28 @@ public class InfluxDBV2 implements IDatebase {
 		model.measurement = "group_" + groupNum;
 		model.tagSet.put("device", device);
 		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+		model.timestamp = currentTime;
+		for (String sensor : config.SENSOR_CODES) {
+			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+			Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+			model.fields.put(sensor, value);
+		}
+		return model;
+	}
+
+	private InfluxDataModel createDataModel(int timestampIndex, String device) {
+		InfluxDataModel model = new InfluxDataModel();
+		int deviceNum = getDeviceNum(device);
+		int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+		int groupNum = deviceNum / groupSize;
+		model.measurement = "group_" + groupNum;
+		model.tagSet.put("device", device);
+		long currentTime;
+		if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+			currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
+		} else {
+			currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+		}
 		model.timestamp = currentTime;
 		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -576,11 +604,72 @@ public class InfluxDBV2 implements IDatebase {
 
 	@Override
 	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
-		return 0;
+		int timestampIndex;
+		PossionDistribution possionDistribution = new PossionDistribution(random);
+		int nextDelta;
+
+		BatchPoints batchPoints = BatchPoints.database(InfluxDBName).tag("async", "true").retentionPolicy(DEFAULT_RP)
+				.consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
+
+		if (loopIndex == 0) {
+			InfluxDataModel model = createDataModel(maxTimestampIndex, device);
+			batchPoints.point(model.toInfluxPoint());
+			for (int i = 1; i < config.CACHE_NUM; i++) {
+				if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
+					maxTimestampIndex++;
+					timestampIndex = maxTimestampIndex;
+				} else {
+					nextDelta = possionDistribution.getNextPossionDelta();
+					timestampIndex = maxTimestampIndex - nextDelta;
+				}
+				model = createDataModel(timestampIndex, device);
+				batchPoints.point(model.toInfluxPoint());
+
+			}
+		}else {
+			InfluxDataModel model;
+			for (int i = 0; i < config.CACHE_NUM; i++) {
+				if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
+					maxTimestampIndex++;
+					timestampIndex = maxTimestampIndex;
+				} else {
+					nextDelta = possionDistribution.getNextPossionDelta();
+					timestampIndex = maxTimestampIndex - nextDelta;
+				}
+				model = createDataModel(timestampIndex, device);
+				batchPoints.point(model.toInfluxPoint());
+			}
+		}
+		long startTime = 0, endTime = 0;
+		try {
+			startTime = System.nanoTime();
+			influxDB.write(batchPoints);
+			endTime = System.nanoTime();
+			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
+					Thread.currentThread().getName(),
+					loopIndex,
+					(endTime - startTime) / 1000000000.0,
+					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
+					config.SENSOR_NUMBER * (batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
+			totalTime.set(totalTime.get() + (endTime - startTime));
+			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
+					config.REMARK);
+		} catch (Exception e) {
+			errorCount.set(errorCount.get() + batchPoints.getPoints().size());
+			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
+					e.getMessage());
+			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
+					batchPoints.getPoints().size(), config.REMARK);
+			throw new SQLException(e.getMessage());
+		}
+
+
+		return maxTimestampIndex;
 	}
 
 	@Override
 	public long getLabID(){
 		return 0;
 	}
+
 }
