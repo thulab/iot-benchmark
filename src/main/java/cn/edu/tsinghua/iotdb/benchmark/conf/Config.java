@@ -165,6 +165,10 @@ public class Config {
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	public long TIME_UNIT = QUERY_INTERVAL / 2;
 	public long QUERY_SEED = 1516580959202L;
+	public int QUERY_LIMIT_N = 1;
+	public int QUERY_LIMIT_OFFSET = 0;
+	public int QUERY_SLIMIT_N = 1;
+	public int QUERY_SLIMIT_OFFSET = 0;
 
 
 	//mysql相关参数

@@ -651,6 +651,21 @@ public class IoTDB implements IDatebase {
                             startTimes, endTimes, config.QUERY_LOWER_LIMIT,
                             sensorList);
                     break;
+                case 8:// query with limit and series limit and their offsets
+                    int device_id = index % devices.size();
+                    sql = createQuerySQLStatment(device_id, config.QUERY_LIMIT_N, config.QUERY_LIMIT_OFFSET, config.QUERY_SLIMIT_N, config.QUERY_SLIMIT_OFFSET);
+                    break;
+                case 9:// range query with limit
+                    sql = createQuerySQLStatment(
+                            devices,
+                            config.QUERY_SENSOR_NUM,
+                            startTime,
+                            startTime + config.QUERY_INTERVAL,
+                            config.QUERY_LOWER_LIMIT,
+                            sensorList,
+                            config.QUERY_LIMIT_N,
+                            config.QUERY_LIMIT_OFFSET);
+                    break;
             }
             int line = 0;
             StringBuilder builder = new StringBuilder(sql);
@@ -1065,6 +1080,33 @@ public class IoTDB implements IDatebase {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time > ");
         builder.append(strstartTime).append(" AND time < ").append(strendTime);
+        return builder.toString();
+    }
+
+    /**
+     * 创建查询语句--(带有limit条件的条件查询)
+     *
+     * @throws SQLException
+     */
+    private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
+                                          List<String> sensorList, int limit_n, int offset) throws SQLException {
+        StringBuilder builder = new StringBuilder();
+        builder.append(createQuerySQLStatment(devices, num, startTime, endTime, value, sensorList)).append(" limit ").append(limit_n);
+        builder.append(" offset ").append(offset);
+        return builder.toString();
+    }
+
+    /**
+     * 创建查询语句--(带有limit条件的查询)
+     *
+     * @throws SQLException
+     */
+    private String createQuerySQLStatment(int device_id, int limit_n, int offset, int series_limit, int series_offset) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SELECT *");
+        builder.append(" FROM ").append(getFullGroupDevicePathByID(device_id));
+        builder.append(" limit ").append(limit_n).append(" offset ").append(offset);
+        builder.append(" slimit ").append(series_limit).append(" soffset ").append(series_offset);
         return builder.toString();
     }
 

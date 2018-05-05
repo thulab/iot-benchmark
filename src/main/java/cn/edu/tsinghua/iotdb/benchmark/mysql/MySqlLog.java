@@ -73,8 +73,8 @@ public class MySqlLog {
                             + "cpu_usage DOUBLE,mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
                             + "dataFileSize DOUBLE,infoFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, walFileSize DOUBLE,"
                             + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
-                            + "totalFileNum INT, dataFileNum INT, socketNum INT, deltaNum INT, derbyNum INT,"
-                            + "digestNum INT, metadataNum INT, overflowNum INT, walsNum INT, "
+                            + "totalFileNum INT, dataFileNum INT, socketNum INT, settledNum INT, infoNum INT,"
+                            + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
                             + "remark varchar(6000), primary key(id))");
                     LOGGER.info("Table SERVER_MODE create success!");
                 }
