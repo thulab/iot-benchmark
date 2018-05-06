@@ -655,7 +655,7 @@ public class IoTDB implements IDatebase {
                     int device_id = index % devices.size();
                     sql = createQuerySQLStatment(device_id, config.QUERY_LIMIT_N, config.QUERY_LIMIT_OFFSET, config.QUERY_SLIMIT_N, config.QUERY_SLIMIT_OFFSET);
                     break;
-                case 9:// range query with limit
+                case 9:// criteria query with limit
                     sql = createQuerySQLStatment(
                             devices,
                             config.QUERY_SENSOR_NUM,

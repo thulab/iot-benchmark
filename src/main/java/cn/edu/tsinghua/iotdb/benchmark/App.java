@@ -598,9 +598,9 @@ public class App {
             case 7:
                 return "Group By Query";
             case 8:
-                return "Limit Offset Query";
+                return "Limit SLimit Query";
             case 9:
-                return "SLimit Query";
+                return "Limit Criteria Query";
             default:
                 throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
         }
