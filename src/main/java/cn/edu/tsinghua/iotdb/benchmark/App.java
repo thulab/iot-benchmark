@@ -597,6 +597,10 @@ public class App {
                 return "Nearest Point Query";
             case 7:
                 return "Group By Query";
+            case 8:
+                return "Limit Offset Query";
+            case 9:
+                return "SLimit Query";
             default:
                 throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
         }
