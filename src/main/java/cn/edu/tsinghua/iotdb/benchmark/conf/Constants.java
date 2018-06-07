@@ -25,7 +25,7 @@ public class Constants {
 	public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 	
 	public static final String[] QUERY_CHOICE_NAME = {" ","Precise","Fuzzy","Aggregation",
-		"Range","Criteria","Nearest Point","Group By","SLimit","Limit Criteria"};
+		"Range","Criteria","Nearest Point","Group By","SLimit","Limit Criteria", "Aggregation Without Filter", "Aggregation With Value Filter"};
 
 	public static final String SAMPLE_DATA_FILE_NAME = "sampleData.txt";
 	
