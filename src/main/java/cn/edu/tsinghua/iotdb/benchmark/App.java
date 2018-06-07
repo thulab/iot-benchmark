@@ -601,6 +601,10 @@ public class App {
                 return "Limit SLimit Query";
             case 9:
                 return "Limit Criteria Query";
+            case 10:
+                return "Aggregation Function Query Without Filter";
+            case 11:
+                return "Aggregation Function Query With Value Filter";
             default:
                 throw new SQLException("unsupported query type " + config.QUERY_CHOICE);
         }
