@@ -25,7 +25,7 @@ public class IoTDB implements IDatebase {
     private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
     private static final String setStorageLevelSQL = "set storage group to %s";
     private Connection connection;
-    private Config config;
+    private static Config config;
     private List<Point> points;
     private Map<String, String> mp;
     private long labID;
@@ -830,7 +830,7 @@ public class IoTDB implements IDatebase {
         }
     }
 
-    private String createSQLStatment(int batch, int index, String device) {
+    public String createSQLStatment(int batch, int index, String device) {
         StringBuilder builder = new StringBuilder();
         String path = getGroupDevicePath(device);
         builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
@@ -849,7 +849,7 @@ public class IoTDB implements IDatebase {
         return builder.toString();
     }
 
-    private String createSQLStatment(String device, int timestampIndex) {
+    public String createSQLStatment(String device, int timestampIndex) {
         StringBuilder builder = new StringBuilder();
         String path = getGroupDevicePath(device);
         builder.append("insert into ").append(Constants.ROOT_SERIES_NAME).append(".").append(path).append("(timestamp");
@@ -874,7 +874,7 @@ public class IoTDB implements IDatebase {
         return builder.toString();
     }
 
-    private String createGenDataSQLStatment(int batch, int index, String device) {
+    public String createGenDataSQLStatment(int batch, int index, String device) {
         StringBuilder builder = new StringBuilder();
         builder.append("insert into ");
         String[] spl = device.split("\\.");
@@ -977,7 +977,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList)
+    public String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList)
             throws SQLException {
 
         String strTime = sdf.format(new Date(time));
@@ -991,7 +991,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, List<String> sensorList) throws SQLException {
+    public String createQuerySQLStatment(List<Integer> devices, int num, List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append("SELECT ");
         if (num > config.SENSOR_NUMBER) {
@@ -1020,7 +1020,7 @@ public class IoTDB implements IDatebase {
     /**
      * 创建查询语句--(带有聚合函数的查询)
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, String method, List<String> sensorList) {
+    public String createQuerySQLStatment(List<Integer> devices, int num, String method, List<String> sensorList) {
         StringBuilder builder = new StringBuilder();
 
         builder.append("SELECT ");
@@ -1057,7 +1057,7 @@ public class IoTDB implements IDatebase {
     /**
      * 创建查询语句--(带有聚合函数以及时间约束的查询)
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime,
+    public String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime,
                                           long endTime, List<String> sensorList) {
         StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, method, sensorList));
         String strstartTime = sdf.format(new Date(startTime));
@@ -1072,7 +1072,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
+    public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
                                           List<String> sensorList) throws SQLException {
 
         String strstartTime = sdf.format(new Date(startTime));
@@ -1088,7 +1088,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
+    public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
                                           List<String> sensorList, int limit_n, int offset) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, startTime, endTime, value, sensorList)).append(" limit ").append(limit_n);
@@ -1101,7 +1101,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(int device_id, int limit_n, int offset, int series_limit, int series_offset) {
+    public String createQuerySQLStatment(int device_id, int limit_n, int offset, int series_limit, int series_offset) {
         StringBuilder builder = new StringBuilder();
         builder.append("SELECT *");
         builder.append(" FROM ").append(getFullGroupDevicePathByID(device_id));
@@ -1115,7 +1115,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
+    public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
                                           List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, startTime, endTime, sensorList));
@@ -1137,7 +1137,7 @@ public class IoTDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, String method, int num, List<Long> startTime, List<Long> endTime, Number value,
+    public String createQuerySQLStatment(List<Integer> devices, String method, int num, List<Long> startTime, List<Long> endTime, Number value,
                                           List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, method, sensorList));
@@ -1208,48 +1208,6 @@ public class IoTDB implements IDatebase {
             return "DOUBLE";
         }
         return "INT64";
-    }
-
-    /**
-     * 强制IoTDB数据库将数据写入磁盘
-     *
-     * @throws SQLException
-     */
-    @Override
-    public void flush() {
-        String sql = "flush";
-        try {
-            Statement statement = connection.createStatement();
-            statement.execute(sql);
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void getUnitPointStorageSize() throws SQLException {
-        File dataDir = new File(config.LOG_STOP_FLAG_PATH + "/data");
-        if (dataDir.exists() && dataDir.isDirectory()) {
-
-            long deltaSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/delta");
-            long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data");
-            //long dataSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data") ;
-            long overflowSize = getDirTotalSize(config.LOG_STOP_FLAG_PATH + "/data/overflow");
-            //	float pointByteSize = (deltaSize + overflowSize) *
-            //			1024.0f / (config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP *
-            //			config.CACHE_NUM);
-            //	LOGGER.info("Average size of data point ,{},Byte ,ENCODING = ,{}, dir size: delta ,{},KB overflow ,{},KB "
-            //			, pointByteSize, config.ENCODING, deltaSize, overflowSize);
-            LOGGER.info("ENCODING = {} , dir size: data {} KB ;delta {} KB ;overflow {} KB "
-                    , config.ENCODING, dataSize, deltaSize, overflowSize);
-            mySql.saveResult("DataSize", String.valueOf(dataSize));
-            mySql.saveResult("DeltaSize", String.valueOf(deltaSize));
-            mySql.saveResult("OverflowSize", String.valueOf(overflowSize));
-
-        } else {
-            LOGGER.info("Can not find data directory!");
-        }
     }
 
     @Override
@@ -1420,44 +1378,23 @@ public class IoTDB implements IDatebase {
         }
     }
 
-    /**
-     * 拿到某个路径的大小
-     *
-     * @param dir
-     * @return
-     */
-    private static long getDirTotalSize(String dir) {
-        long totalsize = 0;
-
-        Process pro = null;
-        Runtime r = Runtime.getRuntime();
+    static public void main(String[] args) throws SQLException {
+        List<Integer> devices ;
+        List<String> sensorList ;
+        devices = new ArrayList<>();
+        sensorList = new ArrayList<>();
+        devices.add(0);
+        devices.add(1);
+        long a = 0;
+        IoTDB ioTDB = null;
         try {
-            // 获得文件夹大小，单位 Byte
-            String command = "du " + dir;
-            pro = r.exec(command);
-            BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-            String line = null;
-            String lastLine = null;
-            while (true) {
-                lastLine = line;
-                if ((line = in.readLine()) == null) {
-                    System.out.println(lastLine);
-                    break;
-                }
-            }
-            String[] temp = lastLine.split("\\s+");
-            totalsize = Long.parseLong(temp[0]);
-
-            in.close();
-            pro.destroy();
-        } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
+            ioTDB = new IoTDB(a);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        return totalsize;
+        //String sql = ioTDB.createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
+        String sql = ioTDB.createQuerySQLStatment(devices, 4, sensorList);
+        System.out.println(sql);
     }
-
-
 
 }

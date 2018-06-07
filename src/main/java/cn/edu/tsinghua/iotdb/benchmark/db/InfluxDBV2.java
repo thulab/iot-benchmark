@@ -46,6 +46,7 @@ public class InfluxDBV2 implements IDatebase {
 	private ProbTool probTool;
 
 	public InfluxDBV2(long labID) {
+		config = ConfigDescriptor.getInstance().getConfig();
 		mySql = new MySqlLog();
 		this.labID = labID;
 		probTool = new ProbTool();
@@ -54,7 +55,6 @@ public class InfluxDBV2 implements IDatebase {
 
 	@Override
 	public void init() throws SQLException {
-		config = ConfigDescriptor.getInstance().getConfig();
 		InfluxURL = config.INFLUX_URL;
 		InfluxDBName = config.INFLUX_DB_NAME;
 		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
@@ -243,16 +243,6 @@ public class InfluxDBV2 implements IDatebase {
 			LOGGER.error("{} {}", device, e.getMessage());
 			throw e;
 		}
-	}
-
-	static public void main(String[] args) throws SQLException {
-		InfluxDB influxDB = new InfluxDB();
-		influxDB.init();
-		ThreadLocal<Long> time = new ThreadLocal<>();
-		time.set((long) 0);
-		ThreadLocal<Long> errorCount = new ThreadLocal<>();
-		errorCount.set((long) 0);
-		influxDB.insertOneBatch("D_0", 0, time, errorCount);
 	}
 
 	@Override
@@ -568,14 +558,6 @@ public class InfluxDBV2 implements IDatebase {
 		builder.append(" GROUP BY time(").append(config.TIME_UNIT).append("ms)");
 		return builder.toString();
 	}
-    public void flush(){
-
-    }
-
-    @Override
-    public void getUnitPointStorageSize() throws SQLException {
-
-    }
 
     @Override
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
@@ -622,6 +604,7 @@ public class InfluxDBV2 implements IDatebase {
 					nextDelta = possionDistribution.getNextPossionDelta();
 					timestampIndex = maxTimestampIndex - nextDelta;
 				}
+				System.out.println("timestampIndex:" + timestampIndex);
 				model = createDataModel(timestampIndex, device);
 				batchPoints.point(model.toInfluxPoint());
 
@@ -636,6 +619,7 @@ public class InfluxDBV2 implements IDatebase {
 					nextDelta = possionDistribution.getNextPossionDelta();
 					timestampIndex = maxTimestampIndex - nextDelta;
 				}
+				System.out.println("timestampIndex:" + timestampIndex);
 				model = createDataModel(timestampIndex, device);
 				batchPoints.point(model.toInfluxPoint());
 			}
@@ -660,16 +644,29 @@ public class InfluxDBV2 implements IDatebase {
 					e.getMessage());
 			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
 					batchPoints.getPoints().size(), config.REMARK);
-			throw new SQLException(e.getMessage());
+			//throw new SQLException(e.getMessage());
 		}
 
 
 		return maxTimestampIndex;
 	}
 
+	static public void main(String[] args) throws SQLException {
+		InfluxDBV2 influxDB = new InfluxDBV2(0);
+		influxDB.init();
+		ThreadLocal<Long> time = new ThreadLocal<>();
+		time.set((long) 0);
+		ThreadLocal<Long> errorCount = new ThreadLocal<>();
+		errorCount.set((long) 0);
+		//influxDB.insertOneBatch("D_0", 0, time, errorCount);
+		int maxTimestampIndex = 50;
+		Random random = new Random(0);
+		influxDB.insertOverflowOneBatchDist("D_0",2, time, errorCount, maxTimestampIndex, random);
+	}
+
 	@Override
 	public long getLabID(){
-		return 0;
+		return labID;
 	}
 
 }

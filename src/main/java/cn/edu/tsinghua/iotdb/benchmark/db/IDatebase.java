@@ -26,10 +26,6 @@ public interface IDatebase {
 
     void close() throws SQLException;
 
-    void flush() throws SQLException;
-
-    void getUnitPointStorageSize() throws SQLException;
-
     long getTotalTimeInterval() throws SQLException;
 
     void executeOneQuery(List<Integer> devices,
