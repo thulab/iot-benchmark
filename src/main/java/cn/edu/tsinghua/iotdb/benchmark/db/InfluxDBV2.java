@@ -9,20 +9,15 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-
-import org.apache.log4j.helpers.ISO8601DateFormat;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.influxdb.dto.QueryResult.Result;
 import org.influxdb.dto.QueryResult.Series;
-import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -306,37 +301,60 @@ public class InfluxDBV2 implements IDatebase {
 		try {
 			List<String> sensorList = new ArrayList<String>();
 			switch (config.QUERY_CHOICE) {
-			case 1:// 精确点查询
-				long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
-						+ Constants.START_TIMESTAMP;
-				if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
-					timeStamp += config.POINT_STEP / 2;
-				}
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, timeStamp, sensorList);
-				break;
-			case 2:// 模糊点查询（暂未实现）
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
-				break;
-			case 3:// 聚合函数查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, startTime,
-						startTime + config.QUERY_INTERVAL, sensorList);
-				break;
-			case 4:// 范围查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
-						startTime + config.QUERY_INTERVAL, sensorList);
-				break;
-			case 5:// 条件查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
-						startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT, sensorList);
-				break;
-			case 6:// 最近点查询
-				sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "last", sensorList);
-				break;
-			case 7:// groupBy查询（暂时只有一个时间段）
-				sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
-						startTime, startTime+config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT,
-						sensorList);
-				break;
+				case 1:// 精确点查询
+					long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
+							+ Constants.START_TIMESTAMP;
+					if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
+						timeStamp += config.POINT_STEP / 2;
+					}
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, timeStamp, sensorList);
+					break;
+				case 2:// 模糊点查询（暂未实现）
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
+					break;
+				case 3:// 聚合函数查询
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, startTime,
+							startTime + config.QUERY_INTERVAL, sensorList);
+					break;
+				case 4:// 范围查询
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
+							startTime + config.QUERY_INTERVAL, sensorList);
+					break;
+				case 5:// 条件查询
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
+							startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT, sensorList);
+					break;
+				case 6:// 最近点查询
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "last", sensorList);
+					break;
+				case 7:// groupBy查询（暂时只有一个时间段）
+					sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
+							startTime, startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT,
+							sensorList);
+					break;
+				case 8:// query with limit and series limit and their offsets
+					int device_id = index % devices.size();
+					sql = createQuerySQLStatment(device_id, config.QUERY_LIMIT_N, config.QUERY_LIMIT_OFFSET, config.QUERY_SLIMIT_N, config.QUERY_SLIMIT_OFFSET);
+					break;
+				case 9:// criteria query with limit
+					sql = createQuerySQLStatment(
+							devices,
+							config.QUERY_SENSOR_NUM,
+							startTime,
+							startTime + config.QUERY_INTERVAL,
+							config.QUERY_LOWER_LIMIT,
+							sensorList,
+							config.QUERY_LIMIT_N,
+							config.QUERY_LIMIT_OFFSET);
+					break;
+				case 10:// aggregation function query without any filter
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+					break;
+				case 11:// aggregation function query with value filter
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT,
+							sensorList);
+					break;
+
 			}
 			LOGGER.debug(sql);
 			int line = 0;
@@ -407,6 +425,50 @@ public class InfluxDBV2 implements IDatebase {
 		}
 		return countResult;
 
+	}
+
+	/**
+	 * 创建查询语句--(带有value约束的聚合查询)
+	 *
+	 * @throws SQLException
+	 */
+	public String createQuerySQLStatment(List<Integer> devices, int num, String method, Number value,
+										 List<String> sensorList) throws SQLException {
+		StringBuilder builder = new StringBuilder();
+		builder.append(createQuerySQLStatment(devices, num, method, sensorList));
+		for (int i = 0; i < sensorList.size(); i++) {
+			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * 创建查询语句--(带有limit条件的条件查询)
+	 *
+	 * @throws SQLException
+	 */
+	public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
+										 List<String> sensorList, int limit_n, int offset) throws SQLException {
+		StringBuilder builder = new StringBuilder();
+		builder.append(createQuerySQLStatment(devices, num, startTime, endTime, value, sensorList)).append(" LIMIT ").append(limit_n);
+		builder.append(" OFFSET ").append(offset);
+		return builder.toString();
+	}
+
+	/**
+	 * 创建查询语句--(带有limit条件的查询)
+	 *
+	 * @throws SQLException
+	 */
+	public String createQuerySQLStatment(int device_id, int limit_n, int offset, int series_limit, int series_offset) {
+		StringBuilder builder = new StringBuilder();
+		List<Integer> devices = new ArrayList<>();
+		devices.add(device_id);
+		builder.append("SELECT * ");
+		builder.append(getPath(devices));
+		builder.append(" LIMIT ").append(limit_n).append(" OFFSET ").append(offset);
+		builder.append(" SLIMIT ").append(series_limit).append(" SOFFSET ").append(series_offset);
+		return builder.toString();
 	}
 
 	/**
