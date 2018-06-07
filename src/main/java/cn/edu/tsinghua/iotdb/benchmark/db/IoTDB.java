@@ -120,7 +120,7 @@ public class IoTDB implements IDatebase {
     }
 
     @Override
-    public long getLabID(){
+    public long getLabID() {
         return this.labID;
     }
 
@@ -666,6 +666,14 @@ public class IoTDB implements IDatebase {
                             config.QUERY_LIMIT_N,
                             config.QUERY_LIMIT_OFFSET);
                     break;
+                case 10:// aggregation function query without any filter
+                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+                    break;
+                case 11:// aggregation function query with value filter
+                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT,
+                            sensorList);
+                    break;
+
             }
             int line = 0;
             StringBuilder builder = new StringBuilder(sql);
@@ -805,7 +813,7 @@ public class IoTDB implements IDatebase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        try{
+        try {
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -1058,7 +1066,7 @@ public class IoTDB implements IDatebase {
      * 创建查询语句--(带有聚合函数以及时间约束的查询)
      */
     public String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime,
-                                          long endTime, List<String> sensorList) {
+                                         long endTime, List<String> sensorList) {
         StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, method, sensorList));
         String strstartTime = sdf.format(new Date(startTime));
         String strendTime = sdf.format(new Date(endTime));
@@ -1073,7 +1081,7 @@ public class IoTDB implements IDatebase {
      * @throws SQLException
      */
     public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
-                                          List<String> sensorList) throws SQLException {
+                                         List<String> sensorList) throws SQLException {
 
         String strstartTime = sdf.format(new Date(startTime));
         String strendTime = sdf.format(new Date(endTime));
@@ -1089,7 +1097,7 @@ public class IoTDB implements IDatebase {
      * @throws SQLException
      */
     public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
-                                          List<String> sensorList, int limit_n, int offset) throws SQLException {
+                                         List<String> sensorList, int limit_n, int offset) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, startTime, endTime, value, sensorList)).append(" limit ").append(limit_n);
         builder.append(" offset ").append(offset);
@@ -1116,7 +1124,7 @@ public class IoTDB implements IDatebase {
      * @throws SQLException
      */
     public String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime, Number value,
-                                          List<String> sensorList) throws SQLException {
+                                         List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, startTime, endTime, sensorList));
 
@@ -1133,12 +1141,32 @@ public class IoTDB implements IDatebase {
     }
 
     /**
+     * 创建查询语句--(带有value约束的聚合查询)
+     *
+     * @throws SQLException
+     */
+    public String createQuerySQLStatment(List<Integer> devices, int num, String method, Number value,
+                                         List<String> sensorList) throws SQLException {
+        StringBuilder builder = new StringBuilder();
+        builder.append(createQuerySQLStatment(devices, num, method, sensorList));
+
+        for (int id : devices) {
+            String prefix = getFullGroupDevicePathByID(id);
+            for (int i = 0; i < sensorList.size(); i++) {
+                builder.append(" AND ").append(prefix).append(".").append(sensorList.get(i)).append(" > ")
+                        .append(value);
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
      * 创建查询语句--(带有时间约束以及条件约束的GroupBy查询)
      *
      * @throws SQLException
      */
     public String createQuerySQLStatment(List<Integer> devices, String method, int num, List<Long> startTime, List<Long> endTime, Number value,
-                                          List<String> sensorList) throws SQLException {
+                                         List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, method, sensorList));
         builder.append(" WHERE ");
@@ -1379,8 +1407,8 @@ public class IoTDB implements IDatebase {
     }
 
     static public void main(String[] args) throws SQLException {
-        List<Integer> devices ;
-        List<String> sensorList ;
+        List<Integer> devices;
+        List<String> sensorList;
         devices = new ArrayList<>();
         sensorList = new ArrayList<>();
         devices.add(0);
@@ -1392,8 +1420,15 @@ public class IoTDB implements IDatebase {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        //String sql = ioTDB.createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
-        String sql = ioTDB.createQuerySQLStatment(devices, 4, sensorList);
+        String sql;
+        //sql = ioTDB.createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
+        //sql = ioTDB.createQuerySQLStatment(devices, 4, sensorList);
+        //聚合函数
+        //sql = ioTDB.createQuerySQLStatment(devices, 3, "max_value", 1000000, 1000000 + config.QUERY_INTERVAL, sensorList);
+        //不带filter的聚合查询
+        // sql = ioTDB.createQuerySQLStatment(devices, 3, "max_value", sensorList);
+        // 带value条件带聚合查询
+        sql = ioTDB.createQuerySQLStatment(devices, 3, "max_value", -3, sensorList);
         System.out.println(sql);
     }
 
