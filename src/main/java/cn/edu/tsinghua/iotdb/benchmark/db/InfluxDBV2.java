@@ -359,6 +359,7 @@ public class InfluxDBV2 implements IDatebase {
 			LOGGER.debug(sql);
 			int line = 0;
 			StringBuilder builder = new StringBuilder(sql);
+			LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, builder.toString());
 			startTimeStamp = System.nanoTime();
 			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
 			for (Result result : results.getResults()) {
