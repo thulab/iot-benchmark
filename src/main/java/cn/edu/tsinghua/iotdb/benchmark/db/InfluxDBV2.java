@@ -31,7 +31,7 @@ public class InfluxDBV2 implements IDatebase {
 
 	private String InfluxURL;
 	private String InfluxDBName;
-	private Config config;
+	private static Config config;
 	private final String DEFAULT_RP = "autogen";
 	private static final String countSQL = "select count(%s) from %s where device='%s'";
 	private org.influxdb.InfluxDB influxDB;
@@ -325,7 +325,7 @@ public class InfluxDBV2 implements IDatebase {
 							startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT, sensorList);
 					break;
 				case 6:// 最近点查询
-					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "last", sensorList);
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "last", sensorList, true);
 					break;
 				case 7:// groupBy查询（暂时只有一个时间段）
 					sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
@@ -348,7 +348,7 @@ public class InfluxDBV2 implements IDatebase {
 							config.QUERY_LIMIT_OFFSET);
 					break;
 				case 10:// aggregation function query without any filter
-					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList, true);
 					break;
 				case 11:// aggregation function query with value filter
 					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT,
@@ -429,21 +429,6 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	/**
-	 * 创建查询语句--(带有value约束的聚合查询)
-	 *
-	 * @throws SQLException
-	 */
-	public String createQuerySQLStatment(List<Integer> devices, int num, String method, Number value,
-										 List<String> sensorList) throws SQLException {
-		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, method, sensorList));
-		for (int i = 0; i < sensorList.size(); i++) {
-			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
-		}
-		return builder.toString();
-	}
-
-	/**
 	 * 创建查询语句--(带有limit条件的条件查询)
 	 *
 	 * @throws SQLException
@@ -519,7 +504,7 @@ public class InfluxDBV2 implements IDatebase {
 		StringBuilder builder = new StringBuilder();
 		Set<Integer> groups = new HashSet<>();
 		for (int d : devices) {
-			groups.add(d / config.GROUP_NUMBER);
+			groups.add(d / (config.DEVICE_NUMBER/config.GROUP_NUMBER));
 		}
 		builder.append(" FROM ");
 		for (int g : groups) {
@@ -532,6 +517,7 @@ public class InfluxDBV2 implements IDatebase {
 		}
 		builder.delete(builder.lastIndexOf("OR"), builder.length());
 		builder.append(")");
+
 		return builder.toString();
 	}
 
@@ -553,11 +539,14 @@ public class InfluxDBV2 implements IDatebase {
 	 * 
 	 * @throws SQLException
 	 */
-	private String createQuerySQLStatment(List<Integer> devices, int num, String method, List<String> sensorList)
+	private String createQuerySQLStatment(List<Integer> devices, int num, String method, List<String> sensorList, boolean isFinal)
 			throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(getSelectClause(num, method, true, sensorList));
 		builder.append(getPath(devices));
+		if(isFinal) {
+			builder.append(" group by device");
+		}
 		return builder.toString();
 	}
 
@@ -569,9 +558,26 @@ public class InfluxDBV2 implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime, long endTime,
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, method, sensorList));
+		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
 		builder.append(" AND time > ");
 		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(" group by device");
+		return builder.toString();
+	}
+
+	/**
+	 * 创建查询语句--(带有value约束的聚合查询)
+	 *
+	 * @throws SQLException
+	 */
+	public String createQuerySQLStatment(List<Integer> devices, int num, String method, Number value,
+										 List<String> sensorList) throws SQLException {
+		StringBuilder builder = new StringBuilder();
+		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
+		for (int i = 0; i < sensorList.size(); i++) {
+			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
+		}
+		builder.append(" group by device");
 		return builder.toString();
 	}
 
@@ -715,16 +721,30 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	static public void main(String[] args) throws SQLException {
+//		InfluxDBV2 influxDB = new InfluxDBV2(0);
+//		influxDB.init();
+//		ThreadLocal<Long> time = new ThreadLocal<>();
+//		time.set((long) 0);
+//		ThreadLocal<Long> errorCount = new ThreadLocal<>();
+//		errorCount.set((long) 0);
+//		//influxDB.insertOneBatch("D_0", 0, time, errorCount);
+//		int maxTimestampIndex = 50;
+//		Random random = new Random(0);
+//		influxDB.insertOverflowOneBatchDist("D_0",2, time, errorCount, maxTimestampIndex, random);
+		String sql ;
 		InfluxDBV2 influxDB = new InfluxDBV2(0);
-		influxDB.init();
-		ThreadLocal<Long> time = new ThreadLocal<>();
-		time.set((long) 0);
-		ThreadLocal<Long> errorCount = new ThreadLocal<>();
-		errorCount.set((long) 0);
-		//influxDB.insertOneBatch("D_0", 0, time, errorCount);
-		int maxTimestampIndex = 50;
-		Random random = new Random(0);
-		influxDB.insertOverflowOneBatchDist("D_0",2, time, errorCount, maxTimestampIndex, random);
+		List<Integer> devices;
+		List<String> sensorList;
+		devices = new ArrayList<>();
+		sensorList = new ArrayList<>();
+		devices.add(0);
+		devices.add(210);
+		config.DEVICE_NUMBER = 5000;
+		config.GROUP_NUMBER = 50;
+//		sql = influxDB.createQuerySQLStatment(devices, 3, "max", 0,
+//				100000000 + 25000, sensorList);
+		sql = influxDB.createQuerySQLStatment(devices, 3, "max",  sensorList, true);
+		System.out.println(sql);
 	}
 
 	@Override
