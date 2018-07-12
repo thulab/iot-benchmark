@@ -93,23 +93,23 @@ public class OpenTSDB implements IDatebase {
 		String body = JSON.toJSONString(models);
 		LOGGER.debug(body);
 		try {
-			startTime = System.currentTimeMillis();
+			startTime = System.nanoTime();
 			response = HttpRequest.sendPost(writeUrl, body);
-			endTime = System.currentTimeMillis();
+			endTime = System.nanoTime();
 			int errorNum = JSON.parseObject(response).getInteger("failed");
 			errorCount.set(errorCount.get() + errorNum);
 			LOGGER.debug(response);
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
-					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000.0),
-					(models.size() / (double) (endTime - startTime)) * 1000);
+					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
+					(models.size() / (double) (endTime - startTime)) * 1000000000);
 			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, errorNum,
 					config.REMARK);
 		} catch (IOException e) {
 			errorCount.set(errorCount.get() + models.size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", models.size(), e.getMessage());
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, models.size(),
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
 					config.REMARK + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
@@ -244,14 +244,14 @@ public class OpenTSDB implements IDatebase {
 			
 			String str = null;
 			if(config.QUERY_CHOICE != 6) {
-				startTimeStamp = System.currentTimeMillis();
+				startTimeStamp = System.nanoTime();
 				str = HttpRequest.sendPost(queryUrl, sql);
-				endTimeStamp = System.currentTimeMillis();
+				endTimeStamp = System.nanoTime();
 			}
 			else {
-				startTimeStamp = System.currentTimeMillis();
+				startTimeStamp = System.nanoTime();
 				str = HttpRequest.sendPost(queryUrl+"/last", sql);
-				endTimeStamp = System.currentTimeMillis();
+				endTimeStamp = System.nanoTime();
 			}
 			LOGGER.debug(str);
 			
@@ -261,15 +261,15 @@ public class OpenTSDB implements IDatebase {
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000.0, pointNum,
-					pointNum * 1000.0 / (endTimeStamp - startTimeStamp), (client.getTotalTime()) / 1000.0,
-					client.getTotalPoint(), client.getTotalPoint() * 1000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000.0f, config.REMARK);
+					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000000000.0, pointNum,
+					pointNum * 1000000000.0 / (endTimeStamp - startTimeStamp), (client.getTotalTime()) / 1000000000.0,
+					client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
+			mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
 		} catch (Exception e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000.0f, "query fail!" + sql);
+			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000000000.0f, "query fail!" + sql);
 			e.printStackTrace();
 		}
 	}
