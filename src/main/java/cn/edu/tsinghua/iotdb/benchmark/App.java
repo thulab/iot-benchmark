@@ -479,6 +479,9 @@ public class App {
             case Constants.DB_INFLUX:
                 totalErrorPoint = getErrorNumInflux(config, datebase);
                 break;
+			case Constants.DB_OPENTS:
+				totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+				break;
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
