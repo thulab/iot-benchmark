@@ -344,9 +344,24 @@ public class OpenTSDB implements IDatebase {
 	}
 
 	@Override
+	public long getLabID() {
+		return this.labID;
+	}
+
+	@Override
 	public void exeSQLFromFileByOneBatch() throws SQLException, IOException {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+		return 0;
+	}
+
+	@Override
+	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+		return 0;
 	}
 
 	@Override
@@ -382,15 +397,4 @@ public class OpenTSDB implements IDatebase {
 
 	}
 
-	@Override
-	public void flush() throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void getUnitPointStorageSize() throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
 }
