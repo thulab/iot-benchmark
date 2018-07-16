@@ -165,10 +165,12 @@ public class OpenTSDB implements IDatebase {
 		list.add(subQuery);
 
 		queryMap.put("queries", list);
+		queryMap.put("resolveNames", false);
 		queryMap.put("backScan", 8760);
+
 		LOGGER.debug(JSON.toJSONString(queryMap));
 		try {
-			String str = HttpRequest.sendPost(queryUrl + "/last", JSON.toJSONString(queryMap));
+			String str = HttpRequest.sendPost(queryUrl + "/last?", JSON.toJSONString(queryMap));
 			LOGGER.debug(str);
 			JSONArray jsonArray = new JSONArray(str);
 			if (jsonArray.length() > 0) {
@@ -229,7 +231,7 @@ public class OpenTSDB implements IDatebase {
 					subQuery.remove("aggregator");
 				}
 				queryMap.put("queries", list);
-				//queryMap.put("backScan", 8760);
+				queryMap.put("backScan", 8760);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
 				list = getSubQueries(devices);
@@ -250,7 +252,7 @@ public class OpenTSDB implements IDatebase {
 			}
 			else {
 				startTimeStamp = System.nanoTime();
-				str = HttpRequest.sendPost(queryUrl+"/last", sql);
+				str = HttpRequest.sendPost(queryUrl+"/last?", sql);
 				endTimeStamp = System.nanoTime();
 			}
 			LOGGER.debug(str);
