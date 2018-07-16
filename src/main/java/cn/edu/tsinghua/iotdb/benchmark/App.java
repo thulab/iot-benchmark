@@ -491,6 +491,8 @@ public class App {
                 return new IoTDBFactory();
             case Constants.DB_INFLUX:
                 return new InfluxDBFactory();
+			case Constants.DB_OPENTS:
+				return new OpenTSDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
