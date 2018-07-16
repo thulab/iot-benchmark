@@ -15,8 +15,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Administrator on 2017/11/16 0016.
@@ -196,16 +198,6 @@ public class InfluxDB implements IDatebase {
 		
 	}
 
-	@Override
-    public void flush(){
-
-    }
-
-    @Override
-    public void getUnitPointStorageSize() throws SQLException {
-
-    }
-
     @Override
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
 
@@ -230,5 +222,20 @@ public class InfluxDB implements IDatebase {
     @Override
     public void exeSQLFromFileByOneBatch() {
 
+    }
+
+    @Override
+    public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public long getLabID(){
+        return 0;
     }
 }

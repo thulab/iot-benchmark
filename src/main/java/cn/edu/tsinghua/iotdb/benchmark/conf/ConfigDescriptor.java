@@ -116,6 +116,18 @@ public class ConfigDescriptor {
 				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
 				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
 				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
+				config.OVERFLOW_MODE = Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.OVERFLOW_MODE+""));
+				config.MAX_K = Integer.parseInt(properties.getProperty("MAX_K", config.MAX_K+""));
+				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
+				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
+				config.START_TIMESTAMP_INDEX = Integer.parseInt(properties.getProperty("START_TIMESTAMP_INDEX", config.START_TIMESTAMP_INDEX+""));
+				config.USE_OPS = Boolean.parseBoolean(properties.getProperty("USE_OPS", config.USE_OPS+""));
+				config.CLIENT_MAX_WRT_RATE = Double.parseDouble(properties.getProperty("CLIENT_MAX_WRT_RATE", config.CLIENT_MAX_WRT_RATE+""));
+				config.QUERY_LIMIT_N = Integer.parseInt(properties.getProperty("QUERY_LIMIT_N", config.QUERY_LIMIT_N+""));
+				config.QUERY_LIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_LIMIT_OFFSET", config.QUERY_LIMIT_OFFSET+""));
+				config.QUERY_SLIMIT_N = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_N", config.QUERY_SLIMIT_N+""));
+				config.QUERY_SLIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_OFFSET", config.QUERY_SLIMIT_OFFSET+""));
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
