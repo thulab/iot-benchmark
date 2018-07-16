@@ -99,7 +99,7 @@ public class OpenTSDB implements IDatebase {
 			int errorNum = JSON.parseObject(response).getInteger("failed");
 			errorCount.set(errorCount.get() + errorNum);
 			LOGGER.debug(response);
-			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
+			LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
 					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
 					(models.size() / (double) (endTime - startTime)) * 1000000000);
@@ -108,7 +108,7 @@ public class OpenTSDB implements IDatebase {
 					config.REMARK);
 		} catch (IOException e) {
 			errorCount.set(errorCount.get() + models.size());
-			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", models.size(), e.getMessage());
+			LOGGER.error("Batch insert failed, the failed num is ,{}, Error：{}", models.size(), e.getMessage());
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
 					config.REMARK + e.getMessage());
 			throw new SQLException(e.getMessage());
@@ -229,7 +229,7 @@ public class OpenTSDB implements IDatebase {
 					subQuery.remove("aggregator");
 				}
 				queryMap.put("queries", list);
-				queryMap.put("backScan", 8760);
+				//queryMap.put("backScan", 8760);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
 				list = getSubQueries(devices);
@@ -326,7 +326,7 @@ public class OpenTSDB implements IDatebase {
 			deviceStr=deviceStr.substring(1);
 			
 			String sensorStr = sensorList.get(0);
-			for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
+			for (int i = 0; i < config.QUERY_SENSOR_NUM - 1; i++) {
 				sensorStr+="|"+sensorList.get(i);
 			}
 			tags.put("sensor", sensorStr);
