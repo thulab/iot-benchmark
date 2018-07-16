@@ -166,11 +166,11 @@ public class OpenTSDB implements IDatebase {
 
 		queryMap.put("queries", list);
 		queryMap.put("resolveNames", false);
-		queryMap.put("backScan", 8760);
+		queryMap.put("backScan", 10);
 
 		LOGGER.debug(JSON.toJSONString(queryMap));
 		try {
-			String str = HttpRequest.sendPost(queryUrl + "/last?", JSON.toJSONString(queryMap));
+			String str = HttpRequest.sendPost(queryUrl + "/last", JSON.toJSONString(queryMap));
 			LOGGER.debug(str);
 			JSONArray jsonArray = new JSONArray(str);
 			if (jsonArray.length() > 0) {
@@ -252,7 +252,7 @@ public class OpenTSDB implements IDatebase {
 			}
 			else {
 				startTimeStamp = System.nanoTime();
-				str = HttpRequest.sendPost(queryUrl+"/last?", sql);
+				str = HttpRequest.sendPost(queryUrl+"/last", sql);
 				endTimeStamp = System.nanoTime();
 			}
 			LOGGER.debug(str);
