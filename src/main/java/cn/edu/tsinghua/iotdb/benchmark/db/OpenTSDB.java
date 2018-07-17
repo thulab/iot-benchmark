@@ -165,7 +165,6 @@ public class OpenTSDB implements IDatebase {
 		list.add(subQuery);
 
 		queryMap.put("queries", list);
-		queryMap.put("resolveNames", false);
 		queryMap.put("backScan", 10);
 
 		LOGGER.debug(JSON.toJSONString(queryMap));
@@ -231,7 +230,7 @@ public class OpenTSDB implements IDatebase {
 					subQuery.remove("aggregator");
 				}
 				queryMap.put("queries", list);
-				queryMap.put("backScan", 8760);
+				queryMap.put("backScan", 10);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
 				list = getSubQueries(devices);
