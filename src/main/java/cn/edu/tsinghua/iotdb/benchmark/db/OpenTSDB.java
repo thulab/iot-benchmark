@@ -49,6 +49,7 @@ public class OpenTSDB implements IDatebase {
 	private long labID;
 	private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
 	private Random sensorRandom = null;
+	private int backScanTime = 24 * 365;
 
 	public OpenTSDB(long labID) {
 		mySql = new MySqlLog();
@@ -165,7 +166,7 @@ public class OpenTSDB implements IDatebase {
 		list.add(subQuery);
 
 		queryMap.put("queries", list);
-		queryMap.put("backScan", 10);
+		queryMap.put("backScan", backScanTime);
 
 		LOGGER.debug(JSON.toJSONString(queryMap));
 		try {
@@ -230,7 +231,7 @@ public class OpenTSDB implements IDatebase {
 					subQuery.remove("aggregator");
 				}
 				queryMap.put("queries", list);
-				queryMap.put("backScan", 10);
+				//queryMap.put("backScan", backScanTime);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
 				list = getSubQueries(devices);
@@ -241,7 +242,7 @@ public class OpenTSDB implements IDatebase {
 				break;
 			}
 			sql = JSON.toJSONString(queryMap);
-			LOGGER.debug(sql);
+			LOGGER.debug("JSON.toJSONString(queryMap): "+sql);
 			
 			String str = null;
 			if(config.QUERY_CHOICE != 6) {
@@ -254,7 +255,7 @@ public class OpenTSDB implements IDatebase {
 				str = HttpRequest.sendPost(queryUrl+"/last", sql);
 				endTimeStamp = System.nanoTime();
 			}
-			LOGGER.debug(str);
+			LOGGER.debug("str of HttpRequest.sendPost(str): "+str);
 			
 			int pointNum = getOneQueryPointNum(str);
 			client.setTotalPoint(client.getTotalPoint() + pointNum);
