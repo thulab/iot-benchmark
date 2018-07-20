@@ -49,7 +49,7 @@ public class OpenTSDB implements IDatebase {
 	private long labID;
 	private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
 	private Random sensorRandom = null;
-	private int backScanTime = 24 * 365;
+	private int backScanTime = 24 ;
 
 	public OpenTSDB(long labID) {
 		mySql = new MySqlLog();
