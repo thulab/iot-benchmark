@@ -231,7 +231,7 @@ public class OpenTSDB implements IDatebase {
 					subQuery.remove("aggregator");
 				}
 				queryMap.put("queries", list);
-				//queryMap.put("backScan", backScanTime);
+				queryMap.put("backScan", backScanTime);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
 				list = getSubQueries(devices);
@@ -255,7 +255,7 @@ public class OpenTSDB implements IDatebase {
 				str = HttpRequest.sendPost(queryUrl+"/last", sql);
 				endTimeStamp = System.nanoTime();
 			}
-			LOGGER.debug("str of HttpRequest.sendPost(str): "+str);
+			LOGGER.debug("Response: "+str);
 			
 			int pointNum = getOneQueryPointNum(str);
 			client.setTotalPoint(client.getTotalPoint() + pointNum);
