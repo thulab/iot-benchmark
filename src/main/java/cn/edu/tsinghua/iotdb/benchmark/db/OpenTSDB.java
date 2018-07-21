@@ -225,14 +225,29 @@ public class OpenTSDB implements IDatebase {
 
 				break;
 			case 6:// 最近点查询
+//				queryMap.clear();
+//				list = getSubQueries(devices);
+//				for (Map<String, Object> subQuery : list) {
+//					subQuery.remove("aggregator");
+//				}
+//				queryMap.put("queries", list);
+//				queryMap.put("backScan", backScanTime);
+
 				queryMap.clear();
 				list = getSubQueries(devices);
 				for (Map<String, Object> subQuery : list) {
+					subQuery.remove("end");
+				}
+				for (Map<String, Object> subQuery : list) {
 					subQuery.remove("aggregator");
 				}
+				for (Map<String, Object> subQuery : list) {
+					subQuery.put("aggregator", "none");
+				}
+				for (Map<String, Object> subQuery : list) {
+					subQuery.put("downsample", "0all-last");
+				}
 				queryMap.put("queries", list);
-				queryMap.put("resolveNames", true);
-//				queryMap.put("backScan", backScanTime);
 				break;
 			case 7:// groupBy查询（暂时只有一个时间段）
 				list = getSubQueries(devices);
