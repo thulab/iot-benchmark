@@ -268,7 +268,8 @@ public class OpenTSDB implements IDatebase {
 			}
 			else {
 				startTimeStamp = System.nanoTime();
-				str = HttpRequest.sendPost(queryUrl+"/last", sql);
+//				str = HttpRequest.sendPost(queryUrl+"/last", sql);
+				str = HttpRequest.sendPost(queryUrl, sql);
 				endTimeStamp = System.nanoTime();
 			}
 			LOGGER.debug("Response: "+str);
