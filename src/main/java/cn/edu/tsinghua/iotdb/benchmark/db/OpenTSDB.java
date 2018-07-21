@@ -233,7 +233,7 @@ public class OpenTSDB implements IDatebase {
 //				queryMap.put("queries", list);
 //				queryMap.put("backScan", backScanTime);
 
-				queryMap.clear();
+
 				list = getSubQueries(devices);
 				for (Map<String, Object> subQuery : list) {
 					subQuery.remove("end");
