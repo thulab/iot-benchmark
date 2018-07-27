@@ -383,7 +383,9 @@ public class App {
             datebase = idbFactory.buildDB(mysql.getLabID());
             datebase.init();
             createSchemaStartTime = System.nanoTime();
-            datebase.createSchema();
+            if(config.CREATE_SCHEMA) {
+                datebase.createSchema();
+            }
             datebase.close();
             createSchemaEndTime = System.nanoTime();
             createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000000000.0f;
