@@ -377,6 +377,8 @@ public class App {
         long createSchemaStartTime;
         long createSchemaEndTime;
         float createSchemaTime;
+
+        long insertStartTime = System.nanoTime();
         try {
             datebase = idbFactory.buildDB(mysql.getLabID());
             datebase.init();
@@ -445,10 +447,18 @@ public class App {
             if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
                 totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
             }
-
+            long insertEndTime = System.nanoTime();
+            float insertElapseTime = (insertEndTime - insertStartTime) / 1000000000.0f;
             totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
             LOGGER.info(
-                    "GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
+                    "Config: \n " +
+                            "GROUP_NUMBER = ,{}, \n" +
+                            "DEVICE_NUMBER = ,{}, \n" +
+                            "SENSOR_NUMBER = ,{}, \n" +
+                            "CACHE_NUM = ,{}, \n" +
+                            "POINT_STEP = ,{}, \n" +
+                            "LOOP = ,{}, \n" +
+                            "MUL_DEV_BATCH = ,{} \n",
                     config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM,
                     config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
 
@@ -456,7 +466,7 @@ public class App {
                     totalTime / 1000000000.0f, config.CLIENT_NUMBER,
                     1000000000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
 
-            LOGGER.info("Total error num is {}, create schema cost ,{},s", totalErrorPoint, createSchemaTime);
+            LOGGER.info("Total error num is {}, create schema cost {} second. Total elapse time: {} second", totalErrorPoint, createSchemaTime, insertElapseTime);
 
             mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
             mysql.saveResult("totalPoints", "" + totalPoints);
