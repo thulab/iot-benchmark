@@ -6,6 +6,7 @@ Current databases supported:
 
 + IoTDB
 + InfluxDB
++ OpenTSDB
 
 # Main Features
 
