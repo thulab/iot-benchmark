@@ -141,17 +141,17 @@ public class OpenFileNumber {
                     totalFileNum++;
                     if (temp[8].contains(filter)) {
                         dataFileNum++;
-                        if (temp[8].contains("delta")) {
+                        if (temp[8].contains("settled")) {
                             deltaNum++;
-                        } else if (temp[8].contains("derby")) {
+                        } else if (temp[8].contains("info")) {
                             derbyNum++;
-                        } else if (temp[8].contains("digest")) {
+                        } else if (temp[8].contains("schema")) {
                             digestNum++;
                         } else if (temp[8].contains("metadata")) {
                             metadataNum++;
                         } else if (temp[8].contains("overflow")) {
                             overflowNum++;
-                        } else if (temp[8].contains("wals")) {
+                        } else if (temp[8].contains("wal")) {
                             walsNum++;
                         }
                     }

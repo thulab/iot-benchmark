@@ -13,7 +13,6 @@ import java.util.HashMap;
 public class IoUsage {
 
     private static Logger log = LoggerFactory.getLogger(IoUsage.class);
-    private static IoUsage INSTANCE = new IoUsage();
     private final int  BEGIN_LINE = 10;
     public enum IOStatistics {
         TPS(1,0),

@@ -17,11 +17,12 @@ public class FileSize {
     private final double MB2GB = 1024.0;
     private final double ABNORMALVALUE = -1;
     public enum FileSizeKinds {
-        DATA(config.LOG_STOP_FLAG_PATH + "/data"),
-        DIGEST(config.LOG_STOP_FLAG_PATH + "/data/digest"),
-        METADATA(config.LOG_STOP_FLAG_PATH + "/data/metadata"),
-        OVERFLOW(config.LOG_STOP_FLAG_PATH + "/data/overflow"),
-        DELTA(config.LOG_STOP_FLAG_PATH + "/data/delta");
+        DATA(config.LOG_STOP_FLAG_PATH + "/data/data"),
+        INFO(config.LOG_STOP_FLAG_PATH + "/data/system/info"),
+        METADATA(config.LOG_STOP_FLAG_PATH + "/data/system/schema"),
+        OVERFLOW(config.LOG_STOP_FLAG_PATH + "/data/data/overflow"),
+        DELTA(config.LOG_STOP_FLAG_PATH + "/data/data/settled"),
+        WAL(config.LOG_STOP_FLAG_PATH + "/data/wal");
 
         public String path;
 

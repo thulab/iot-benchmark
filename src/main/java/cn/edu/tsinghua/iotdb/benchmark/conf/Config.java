@@ -59,6 +59,10 @@ public class Config {
 
 	public int START_TIMESTAMP_INDEX = 20;
 
+	public boolean USE_OPS = false;
+
+	public double CLIENT_MAX_WRT_RATE = 10000000.0;
+
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
@@ -161,7 +165,11 @@ public class Config {
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	public long TIME_UNIT = QUERY_INTERVAL / 2;
 	public long QUERY_SEED = 1516580959202L;
-
+	public int QUERY_LIMIT_N = 1;
+	public int QUERY_LIMIT_OFFSET = 0;
+	public int QUERY_SLIMIT_N = 1;
+	public int QUERY_SLIMIT_OFFSET = 0;
+	public boolean CREATE_SCHEMA = true;
 
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
@@ -179,7 +187,10 @@ public class Config {
 	public String INFLUX_URL = "http://localhost:8086";
 	// 使用的数据库名
 	public String INFLUX_DB_NAME = "test";
-
+	
+	//Opentsdb参数
+	public String OPENTSDB_URL="http://localhost:4242";
+	
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
 	

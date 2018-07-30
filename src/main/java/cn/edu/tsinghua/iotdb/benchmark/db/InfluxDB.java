@@ -198,16 +198,6 @@ public class InfluxDB implements IDatebase {
 		
 	}
 
-	@Override
-    public void flush(){
-
-    }
-
-    @Override
-    public void getUnitPointStorageSize() throws SQLException {
-
-    }
-
     @Override
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
 
@@ -244,4 +234,8 @@ public class InfluxDB implements IDatebase {
         return 0;
     }
 
+    @Override
+    public long getLabID(){
+        return 0;
+    }
 }

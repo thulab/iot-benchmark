@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class MySqlLog {
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MySqlLog.class);
     private final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
@@ -71,10 +72,10 @@ public class MySqlLog {
                             + day
                             + "(id BIGINT, "
                             + "cpu_usage DOUBLE,mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
-                            + "dataFileSize DOUBLE,digestFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, "
+                            + "dataFileSize DOUBLE,infoFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, walFileSize DOUBLE,"
                             + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
-                            + "totalFileNum INT, dataFileNum INT, socketNum INT, deltaNum INT, derbyNum INT,"
-                            + "digestNum INT, metadataNum INT, overflowNum INT, walsNum INT, "
+                            + "totalFileNum INT, dataFileNum INT, socketNum INT, settledNum INT, infoNum INT,"
+                            + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
                             + "remark varchar(6000), primary key(id))");
                     LOGGER.info("Table SERVER_MODE create success!");
                 }
@@ -126,6 +127,12 @@ public class MySqlLog {
                         + "(id BIGINT, clientName varchar(50), "
                         + "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT, remark varchar(6000),primary key(id,clientName))");
                 LOGGER.info("Table {} create success!", projectID);
+
+                stat.executeUpdate("create table "
+                        + projectID + "Loop"
+                        + "(id BIGINT, clientName varchar(50), "
+                        + "loopIndex INTEGER, cur_rate DOUBLE, primary key(id, clientName))");
+                LOGGER.info("Table {} Loop create success!", projectID);
             }
         } catch (SQLException e) {
             LOGGER.error("mysql 创建表格失败,原因是：{}", e.getMessage());
@@ -140,7 +147,7 @@ public class MySqlLog {
         }
     }
 
-    // 将插入测试的中间结果存入数据库
+    // 将插入测试的以batch为单位的中间结果存入数据库
     public void saveInsertProcess(int index, double costTime, double totalTime,
                                   long errorPoint, String remark) {
         if (config.IS_USE_MYSQL) {
@@ -158,7 +165,30 @@ public class MySqlLog {
                 stat.close();
             } catch (Exception e) {
                 LOGGER.error(
-                        "{} save queryProcess info into mysql failed! Error：{}",
+                        "{} save saveInsertProcess info into mysql failed! Error：{}",
+                        Thread.currentThread().getName(), e.getMessage());
+                LOGGER.error("{}", mysqlSql);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // 将写入测试的以loop为单位的中间结果存入数据库
+    public void saveInsertProcessOfLoop(int index, double loopRate) {
+        if (config.IS_USE_MYSQL) {
+            String mysqlSql = String.format("insert into " + config.REMARK + labID + "Loop" + " values(%d,%s,%d,%f)",
+                    System.currentTimeMillis(),
+                    "'" + Thread.currentThread().getName() + "'",
+                    index,
+                    loopRate);
+            Statement stat;
+            try {
+                stat = mysqlConnection.createStatement();
+                stat.executeUpdate(mysqlSql);
+                stat.close();
+            } catch (Exception e) {
+                LOGGER.error(
+                        "{} save saveInsertProcessLoop info into mysql failed! Error：{}",
                         Thread.currentThread().getName(), e.getMessage());
                 LOGGER.error("{}", mysqlSql);
                 e.printStackTrace();
@@ -200,7 +230,7 @@ public class MySqlLog {
 
     // 将系统资源利用信息存入mysql
     public void insertSERVER_MODE(double cpu, double mem, double io, double net_recv, double net_send, double pro_mem_size,
-                                  double dataSize, double digestSize, double metadataSize, double overflowSize, double deltaSize,
+                                  double dataSize, double infoSize, double metadataSize, double overflowSize, double deltaSize,double walSize,
                                   float tps, float io_read, float io_wrtn,
                                   List<Integer> openFileList, String remark) {
         if (config.IS_USE_MYSQL) {
@@ -209,7 +239,7 @@ public class MySqlLog {
             try {
                 stat = mysqlConnection.createStatement();
                 sql = String.format("insert into SERVER_MODE_" + localName
-                                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
+                                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
                         System.currentTimeMillis(),
                         cpu,
                         mem,
@@ -218,10 +248,11 @@ public class MySqlLog {
                         net_send,
                         pro_mem_size,
                         dataSize,
-                        digestSize,
+                        infoSize,
                         metadataSize,
                         overflowSize,
                         deltaSize,
+                        walSize,
                         tps,
                         io_read,
                         io_wrtn,
@@ -665,4 +696,5 @@ public class MySqlLog {
     public void setLabID(long labID) {
         this.labID = labID;
     }
+
 }

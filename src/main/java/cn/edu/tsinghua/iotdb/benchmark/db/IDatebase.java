@@ -12,6 +12,8 @@ public interface IDatebase {
 
     void createSchema() throws SQLException;
 
+    long getLabID();
+
     void insertOneBatch(String device,
                         int batchIndex,
                         ThreadLocal<Long> totalTime,
@@ -23,10 +25,6 @@ public interface IDatebase {
                         ThreadLocal<Long> errorCount) throws SQLException;
 
     void close() throws SQLException;
-
-    void flush() throws SQLException;
-
-    void getUnitPointStorageSize() throws SQLException;
 
     long getTotalTimeInterval() throws SQLException;
 

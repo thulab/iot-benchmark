@@ -75,7 +75,8 @@ public class ConfigDescriptor {
 
 				config.INFLUX_URL = properties.getProperty("INFLUX_URL", "localhost");
 				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
-
+				config.OPENTSDB_URL = properties.getProperty("OPENTSDB_URL", config.OPENTSDB_URL);
+				
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
@@ -100,7 +101,6 @@ public class ConfigDescriptor {
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				//config.PASSWARD = properties.getProperty("PASSWARD", "no passward");
 				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
 				
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
@@ -122,6 +122,13 @@ public class ConfigDescriptor {
 				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
 				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
 				config.START_TIMESTAMP_INDEX = Integer.parseInt(properties.getProperty("START_TIMESTAMP_INDEX", config.START_TIMESTAMP_INDEX+""));
+				config.USE_OPS = Boolean.parseBoolean(properties.getProperty("USE_OPS", config.USE_OPS+""));
+				config.CLIENT_MAX_WRT_RATE = Double.parseDouble(properties.getProperty("CLIENT_MAX_WRT_RATE", config.CLIENT_MAX_WRT_RATE+""));
+				config.QUERY_LIMIT_N = Integer.parseInt(properties.getProperty("QUERY_LIMIT_N", config.QUERY_LIMIT_N+""));
+				config.QUERY_LIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_LIMIT_OFFSET", config.QUERY_LIMIT_OFFSET+""));
+				config.QUERY_SLIMIT_N = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_N", config.QUERY_SLIMIT_N+""));
+				config.QUERY_SLIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_OFFSET", config.QUERY_SLIMIT_OFFSET+""));
+				config.CREATE_SCHEMA = Boolean.parseBoolean(properties.getProperty("CREATE_SCHEMA", config.CREATE_SCHEMA+""));
 
 				// Concurrency test
 				config.MAX_CONNECTION_NUM = Integer.parseInt(properties.getProperty("MAX_CONNECTION_NUM", config.MAX_CONNECTION_NUM+""));
