@@ -23,6 +23,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
 /**
  * This version use influx-java api instead of simple http.
  */
@@ -37,6 +38,7 @@ public class InfluxDBV2 implements IDatebase {
 	private org.influxdb.InfluxDB influxDB;
 	private MySqlLog mySql;
 	private long labID;
+	private Random sensorRandom = null;
 	private Random timestampRandom;
 	private ProbTool probTool;
 
@@ -64,6 +66,7 @@ public class InfluxDBV2 implements IDatebase {
 			createDatabase(InfluxDBName);
 		}
 		mySql.initMysql(labID);
+		sensorRandom = new Random(1 + config.QUERY_SEED);
 	}
 
 	@Override
@@ -481,7 +484,7 @@ public class InfluxDBV2 implements IDatebase {
 		for (String sensor : config.SENSOR_CODES) {
 			list.add(sensor);
 		}
-		Collections.shuffle(list);
+		Collections.shuffle(list, sensorRandom);
 		if (is_aggregate_fun && method.length() > 2) {
 			builder.append(method).append("(").append(list.get(0)).append(")");
 			sensorList.add(list.get(0));

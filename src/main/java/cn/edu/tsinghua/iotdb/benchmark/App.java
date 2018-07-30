@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class App {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
@@ -490,6 +491,9 @@ public class App {
             case Constants.DB_INFLUX:
                 totalErrorPoint = getErrorNumInflux(config, datebase);
                 break;
+			case Constants.DB_OPENTS:
+				totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+				break;
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
@@ -502,6 +506,8 @@ public class App {
                 return new IoTDBFactory();
             case Constants.DB_INFLUX:
                 return new InfluxDBFactory();
+			case Constants.DB_OPENTS:
+				return new OpenTSDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
@@ -632,4 +638,5 @@ public class App {
         }
         return total;
     }
+
 }

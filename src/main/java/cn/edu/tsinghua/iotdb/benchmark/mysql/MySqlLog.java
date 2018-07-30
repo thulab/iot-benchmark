@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class MySqlLog {
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MySqlLog.class);
     private final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
@@ -695,4 +696,5 @@ public class MySqlLog {
     public void setLabID(long labID) {
         this.labID = labID;
     }
+
 }

@@ -67,15 +67,15 @@ public class QueryClientThread implements Runnable {
 		}
 
 		long startTimeInterval = config.CACHE_NUM * config.POINT_STEP;
-		try {
-			startTimeInterval = database.getTotalTimeInterval() / config.LOOP;
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			LOOGER.error("{} Fail to get total time interval becasue {}", Thread
-					.currentThread().getName(), e1.getMessage());
-			e1.printStackTrace();
-			return;
-		}
+//		try {
+//			startTimeInterval = database.getTotalTimeInterval() / config.LOOP;
+//		} catch (SQLException e1) {
+//			// TODO Auto-generated catch block
+//			LOOGER.error("{} Fail to get total time interval becasue {}", Thread
+//					.currentThread().getName(), e1.getMessage());
+//			e1.printStackTrace();
+//			return;
+//		}
 		List<Integer> clientDevicesIndex = new ArrayList<Integer>();
 		List<Integer> queryDevicesIndex = new ArrayList<Integer>();
 		
