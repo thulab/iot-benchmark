@@ -60,9 +60,7 @@ public class OpenTSDB implements IDatebase {
 
 	@Override
 	public void init() throws SQLException {
-		config = ConfigDescriptor.getInstance().getConfig();
-		// FIXME
-		openUrl = config.OPENTSDB_URL;
+		openUrl = config.DB_URL;
 		writeUrl = openUrl + "/api/put?summary ";
 		queryUrl = openUrl + "/api/query";
 		mySql.initMysql(labID);

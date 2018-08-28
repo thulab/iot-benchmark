@@ -94,7 +94,7 @@
 	</appender>
 
 
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="FILEDEBUG" />
 		<appender-ref ref="FILEINFO" />
 		<appender-ref ref="FILEWARN" />

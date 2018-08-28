@@ -52,7 +52,7 @@ public class InfluxDBV2 implements IDatebase {
 
 	@Override
 	public void init() throws SQLException {
-		InfluxURL = config.INFLUX_URL;
+		InfluxURL = config.DB_URL;
 		InfluxDBName = config.INFLUX_DB_NAME;
 		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
 		if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {

@@ -494,6 +494,9 @@ public class App {
 			case Constants.DB_OPENTS:
 				totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
 				break;
+            case Constants.DB_CTS:
+                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+                break;
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
@@ -508,6 +511,8 @@ public class App {
                 return new InfluxDBFactory();
 			case Constants.DB_OPENTS:
 				return new OpenTSDBFactory();
+            case Constants.DB_CTS:
+                return new CTSDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }

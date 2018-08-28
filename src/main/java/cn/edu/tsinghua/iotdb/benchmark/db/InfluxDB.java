@@ -39,7 +39,7 @@ public class InfluxDB implements IDatebase {
     @Override
     public void init() throws SQLException {
         config = ConfigDescriptor.getInstance().getConfig();
-        InfluxURL = config.INFLUX_URL;
+        InfluxURL = config.DB_URL;
         InfluxDBName = config.INFLUX_DB_NAME;
         queryURL = InfluxURL + "/query";
         writeURL = InfluxURL + "/write";
