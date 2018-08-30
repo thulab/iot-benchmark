@@ -41,7 +41,7 @@ public class CTSDB implements IDatebase {
         Url = config.DB_URL;
         writeUrl = Url + "/api/put?summary ";
         queryUrl = Url + "/api/query";
-        createMetricUrl = Url + "/_metric/";
+        createMetricUrl = Url + "PUT /_metric/";
         mySql.initMysql(labID);
     }
 
