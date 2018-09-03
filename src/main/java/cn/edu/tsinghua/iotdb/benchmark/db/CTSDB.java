@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -28,12 +30,24 @@ public class CTSDB implements IDatebase {
     private float nano2million = 1000000;
     private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
     private Random sensorRandom = null;
+    private static final String user = "root";
+    private static final String pwd = "Root_1230!";
 
     public CTSDB(long labID){
         mySql = new MySqlLog();
         this.labID = labID;
         config = ConfigDescriptor.getInstance().getConfig();
         sensorRandom = new Random(1 + config.QUERY_SEED);
+        Authenticator.setDefault(new MyAuthenticator());
+    }
+
+    static class MyAuthenticator extends Authenticator{
+        public PasswordAuthentication getPasswordAuthentication() {
+            // I haven't checked getRequestingScheme() here, since for NTLM
+            // and Negotiate, the usrname and password are all the same.
+            System.err.println("Feeding username and password for " + getRequestingScheme());
+            return (new PasswordAuthentication(user, pwd.toCharArray()));
+        }
     }
 
     @Override
@@ -41,7 +55,7 @@ public class CTSDB implements IDatebase {
         Url = config.DB_URL;
         writeUrl = Url + "/api/put?summary ";
         queryUrl = Url + "/api/query";
-        createMetricUrl = Url + "/PUT /_metric/";
+        createMetricUrl = Url + "/_metric/";
         mySql.initMysql(labID);
     }
 
@@ -49,6 +63,7 @@ public class CTSDB implements IDatebase {
     public void createSchema() throws SQLException {
         long startTime = 0, endTime = 0;
         String response = null;
+        Authenticator.setDefault(new MyAuthenticator());
 
         for(int i = 0;i < config.GROUP_NUMBER;i++){
             String url = createMetricUrl + metric + "group_" + i;
