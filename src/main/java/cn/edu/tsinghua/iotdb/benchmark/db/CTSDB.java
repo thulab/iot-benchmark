@@ -2,16 +2,21 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.function.Function;
+import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.CTSDBMetricModel;
 import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Authenticator;
+import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.sql.SQLException;
 import java.util.*;
@@ -25,7 +30,7 @@ public class CTSDB implements IDatebase {
     private String metric = "root.perform.";
     private String dataType = "double";
     private Config config;
-    private MySqlLog mySql = new MySqlLog();;
+    private MySqlLog mySql = new MySqlLog();
     private long labID;
     private float nano2million = 1000000;
     private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
@@ -43,8 +48,6 @@ public class CTSDB implements IDatebase {
 
     static class MyAuthenticator extends Authenticator{
         public PasswordAuthentication getPasswordAuthentication() {
-            // I haven't checked getRequestingScheme() here, since for NTLM
-            // and Negotiate, the usrname and password are all the same.
             System.err.println("Feeding username and password for " + getRequestingScheme());
             return (new PasswordAuthentication(user, pwd.toCharArray()));
         }
@@ -53,24 +56,36 @@ public class CTSDB implements IDatebase {
     @Override
     public void init() throws SQLException {
         Url = config.DB_URL;
-        writeUrl = Url + "/api/put?summary ";
+        String response;
         queryUrl = Url + "/api/query";
         createMetricUrl = Url + "/_metric/";
         mySql.initMysql(labID);
+
+        //delete old metric
+        for(int i = 0;i < config.GROUP_NUMBER;i++){
+            String url = createMetricUrl + metric + "group_" + i;
+            try {
+                response = HttpRequest.sendDelete(url,"");
+                String message = JSON.parseObject(response).getString("message");
+                LOGGER.debug(response);
+                LOGGER.info(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
     public void createSchema() throws SQLException {
         long startTime = 0, endTime = 0;
         String response = null;
-        Authenticator.setDefault(new MyAuthenticator());
 
         for(int i = 0;i < config.GROUP_NUMBER;i++){
             String url = createMetricUrl + metric + "group_" + i;
             CTSDBMetricModel ctsdbMetricModel = new CTSDBMetricModel();
             Map<String, String> tags = new HashMap<>();
             tags.put("device", "string");
-            tags.put("sensor", "string");
+            //tags.put("sensor", "string");
             Map<String, String> fields = new HashMap<>();
             for (String sensor : config.SENSOR_CODES) {
                 fields.put(sensor, dataType);
@@ -103,12 +118,83 @@ public class CTSDB implements IDatebase {
 
     @Override
     public long getLabID() {
-        return 0;
+        return this.labID;
+    }
+
+    private String getMetricName(String device) {
+        String[] parts = device.split("_");
+        int deviceNum = Integer.parseInt(parts[1]);
+        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+        int groupNum = deviceNum / groupSize;
+        String groupId = "group_" + groupNum;
+        return metric + groupId;
+    }
+
+    private String getMetaJSON(String device) {
+        return "{\"index\":{\"_routing\":\"" + device + "\"}}";
+    }
+
+    /*
+    example:
+    {"index":{"_routing": "sh" }}
+    {"region":"sh","cpuUsage":2.5,"timestamp":1505294654}
+    {"index":{"_routing": "sh" }}
+    {"region":"sh","cpuUsage":2.0,"timestamp":1505294654}
+     */
+    private String getDataJSON(String device, int batchIndex, int dataIndex){
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"device\":\"").append(device).append("\",");
+        long currentTime = Constants.START_TIMESTAMP
+                + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+        for (String sensor : config.SENSOR_CODES) {
+            sb.append("\"").append(sensor).append("\":");
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            sb.append(value).append(",");
+        }
+        sb.append("\"timestamp\":").append(currentTime).append("}");
+        return sb.toString();
     }
 
     @Override
     public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
-
+        StringBuilder body = new StringBuilder();
+        long startTime = 0, endTime = 0;
+        String response;
+        for (int i = 0; i < config.CACHE_NUM; i++) {
+            body.append(getMetaJSON(device)).append("\n");
+            body.append(getDataJSON(device, batchIndex, i)).append("\n");
+        }
+        LOGGER.debug(body.toString());
+        writeUrl = Url + "/" + getMetricName(device) + "/doc/_bulk";
+        int batch_point_num = config.CACHE_NUM * config.SENSOR_NUMBER;
+        long costTime = 0;
+        try {
+            startTime = System.nanoTime();
+            response = HttpRequest.sendPost(writeUrl, body.toString());
+            endTime = System.nanoTime();
+            boolean isError = JSON.parseObject(response).getBoolean("errors");
+            if(isError){
+                errorCount.set(errorCount.get() + batch_point_num);
+            }else{
+                errorCount.set(errorCount.get());
+            }
+            costTime = endTime - startTime;
+            LOGGER.debug(response);
+            LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
+                    Thread.currentThread().getName(), batchIndex, costTime / 1000000000.0,
+                    ((totalTime.get() + costTime) / 1000000000.0),
+                    (batch_point_num / (double) costTime) * 1000000000);
+            totalTime.set(totalTime.get() + costTime);
+            mySql.saveInsertProcess(batchIndex, costTime / 1000000000.0, totalTime.get() / 1000000000.0, batch_point_num,
+                    config.REMARK);
+        } catch (IOException e) {
+            errorCount.set(errorCount.get() + batch_point_num);
+            LOGGER.error("Batch insert failed, the failed num is ,{}, Error：{}", batch_point_num, e.getMessage());
+            mySql.saveInsertProcess(batchIndex, costTime / 1000000000.0, totalTime.get() / 1000000000.0, batch_point_num,
+                    config.REMARK + e.getMessage());
+            throw new SQLException(e.getMessage());
+        }
     }
 
     @Override
