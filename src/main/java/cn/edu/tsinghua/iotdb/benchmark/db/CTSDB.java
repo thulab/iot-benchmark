@@ -149,8 +149,9 @@ public class CTSDB implements IDatebase {
             sb.append("\"").append(sensor).append("\":");
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
-            DecimalFormat df = new DecimalFormat(".0000");
-            sb.append(df.format(value)).append(",");
+            //DecimalFormat df = new DecimalFormat(".0000");
+            //sb.append(df.format(value)).append(",");
+            sb.append(value).append(",");
         }
         sb.append("\"timestamp\":").append(currentTime).append("}");
         return sb.toString();
