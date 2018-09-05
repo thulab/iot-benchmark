@@ -27,7 +27,7 @@ public class CTSDB implements IDatebase {
     private String Url;
     private String queryUrl;
     private String writeUrl;
-    private String createMetricUrl;
+    private String metricUrl;
     private String metric = "root.perform.";
     private String dataType = "double";
     private Config config;
@@ -57,14 +57,19 @@ public class CTSDB implements IDatebase {
     @Override
     public void init() throws SQLException {
         Url = config.DB_URL;
-        String response;
         queryUrl = Url + "/api/query";
-        createMetricUrl = Url + "/_metric/";
+        metricUrl = Url + "/_metric/";
         mySql.initMysql(labID);
+    }
+
+    @Override
+    public void createSchema() throws SQLException {
+        long startTime = 0, endTime = 0;
+        String response = null;
 
         //delete old metric
         for(int i = 0;i < config.GROUP_NUMBER;i++){
-            String url = createMetricUrl + metric + "group_" + i;
+            String url = metricUrl + metric + "group_" + i;
             try {
                 response = HttpRequest.sendDelete(url,"");
                 String message = JSON.parseObject(response).getString("message");
@@ -74,15 +79,10 @@ public class CTSDB implements IDatebase {
                 e.printStackTrace();
             }
         }
-    }
 
-    @Override
-    public void createSchema() throws SQLException {
-        long startTime = 0, endTime = 0;
-        String response = null;
-
+        //create new metric
         for(int i = 0;i < config.GROUP_NUMBER;i++){
-            String url = createMetricUrl + metric + "group_" + i;
+            String url = metricUrl + metric + "group_" + i;
             CTSDBMetricModel ctsdbMetricModel = new CTSDBMetricModel();
             Map<String, String> tags = new HashMap<>();
             tags.put("device", "string");
