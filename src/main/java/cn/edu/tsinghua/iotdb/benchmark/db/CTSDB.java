@@ -86,7 +86,6 @@ public class CTSDB implements IDatebase {
             CTSDBMetricModel ctsdbMetricModel = new CTSDBMetricModel();
             Map<String, String> tags = new HashMap<>();
             tags.put("device", "string");
-            tags.put("sensor", "string");
             Map<String, String> fields = new HashMap<>();
             for (String sensor : config.SENSOR_CODES) {
                 fields.put(sensor, dataType);
@@ -112,7 +111,6 @@ public class CTSDB implements IDatebase {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
 
     }
