@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class CTSDB implements IDatebase {
@@ -38,6 +39,7 @@ public class CTSDB implements IDatebase {
     private Random sensorRandom = null;
     private static final String user = "root";
     private static final String pwd = "Root_1230!";
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public CTSDB(long labID){
         mySql = new MySqlLog();
@@ -57,7 +59,7 @@ public class CTSDB implements IDatebase {
     @Override
     public void init() throws SQLException {
         Url = config.DB_URL;
-        queryUrl = Url + "/api/query";
+        queryUrl = Url + "/%s/_search";
         metricUrl = Url + "/_metric/";
         mySql.initMysql(labID);
     }
@@ -213,9 +215,117 @@ public class CTSDB implements IDatebase {
         return 0;
     }
 
+    private String getQueryJSON(List<Integer> devices, long startTime, long endTime){
+        String sTime = sdf.format(new Date(startTime));
+        String eTime = sdf.format(new Date(endTime));
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        List<String> sensorList = new ArrayList<String>();
+        for (String sensor : config.SENSOR_CODES) {
+            sensorList.add(sensor);
+        }
+        Collections.shuffle(sensorList, sensorRandom);
+        StringBuilder queryJSONBuilder = new StringBuilder();
+        queryJSONBuilder.append(
+                "{ \n" +
+                "\"query\": { \n" +
+                "\t\"bool\": { \n" +
+                "\t\t\"filter\": [ \n" +
+                "\t\t{ \n" +
+                "\t\t\t\"range\": { \n" +
+                "\t\t\t\t\"timestamp\": { \n" +
+                "\t\t\t\t\t\"format\": \"yyyy-MM-dd HH:mm:ss\", \n" +
+                "\t\t\t\t\t\"gt\": \"" + sTime + "\",\n" +
+                "\t\t\t\t\t\"lt\": \"" + eTime + "\", \n" +
+                "\t\t\t\t\t\"time_zone\":\"+08:00\" \n" +
+                "\t\t\t\t} \n" +
+                "\t\t\t}\n" +
+                "\t\t}, \n" +
+                "\t\t{\n" +
+                "\t\t\t\"terms\": { \n" +
+                "\t\t\t\t“device”: ["
+        );
+        for(int d : devices){
+            queryJSONBuilder.append("\"").append(config.DEVICE_CODES.get(d)).append("\",");
+        }
+        queryJSONBuilder.deleteCharAt(queryJSONBuilder.lastIndexOf(","));
+        queryJSONBuilder.append(
+                "] \n" +
+                "\t\t\t} \n" +
+                "\t\t}\n" +
+                "\t\t]\n" +
+                "\t} \n" +
+                "},\n" +
+                "\"docvalue_fields\": [ \n");
+        for(int i = 0;i < config.QUERY_SENSOR_NUM;i++){
+            queryJSONBuilder.append("\t\"").append(sensorList.get(i)).append("\", \n");
+        }
+        queryJSONBuilder.append("\t\"timestamp\"\n")
+                        .append("] \n")
+                        .append("} ");
+
+        return queryJSONBuilder.toString();
+    }
+
     @Override
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client, ThreadLocal<Long> errorCount) {
+        String sql = "";
+        long startTimeStamp = 0, endTimeStamp = 0;
+        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+        int groupNum = devices.get(0) / groupSize;
+        String groupId = "group_" + groupNum;
+        String metricName = metric + groupId;
+        String url = String.format(queryUrl, metricName);
+        try {
+            List<String> sensorList = new ArrayList<String>();
+            switch (config.QUERY_CHOICE) {
+                case 1:// 精确点查询
+                    sql = getQueryJSON(devices, startTime - 1000, startTime + 1000);
+                    break;
+                case 2:// 模糊点查询（暂未实现）
+                    break;
+                case 3:// 聚合函数查询
 
+                    break;
+                case 4:// 范围查询
+                    sql = getQueryJSON(devices, startTime, startTime + config.QUERY_INTERVAL);
+                    break;
+                case 5:// 条件查询
+
+                    break;
+                case 6:// 最近点查询
+
+                    break;
+                case 7:// groupBy查询（暂时只有一个时间段）
+
+                    break;
+            }
+            LOGGER.debug("sql JSON: \n"+sql);
+
+            startTimeStamp = System.nanoTime();
+            String str = HttpRequest.sendGet(url, sql);
+            endTimeStamp = System.nanoTime();
+
+            LOGGER.debug("Response: " + str);
+
+            //int pointNum = getOneQueryPointNum(str);
+            int pointNum = 0;
+            client.setTotalPoint(client.getTotalPoint() + pointNum);
+            client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
+            LOGGER.info(
+                    "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
+                            + "TotalTime {}s with totalPoint {} rate is {}points/s",
+                    Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000000000.0, pointNum,
+                    pointNum * 1000000000.0 / (endTimeStamp - startTimeStamp), (client.getTotalTime()) / 1000000000.0,
+                    client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
+            mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
+        } catch (Exception e) {
+            errorCount.set(errorCount.get() + 1);
+            LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
+            LOGGER.error("执行失败的查询语句：{}", sql);
+            mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000000000.0f, "query fail!" + sql);
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -343,8 +343,8 @@ public class OpenTSDB implements IDatebase {
 			deviceStr=deviceStr.substring(1);
 			
 			String sensorStr = sensorList.get(0);
-			for (int i = 0; i < config.QUERY_SENSOR_NUM - 1; i++) {
-				sensorStr+="|"+sensorList.get(i);
+			for (int i = 1; i < config.QUERY_SENSOR_NUM; i++) {
+				sensorStr += "|"+sensorList.get(i);
 			}
 			tags.put("sensor", sensorStr);
 			tags.put("device", deviceStr);
