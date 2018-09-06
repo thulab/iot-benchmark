@@ -346,7 +346,7 @@ public class CTSDB implements IDatebase {
             LOGGER.debug("sql JSON: \n"+sql);
             //sql = sql.replaceAll("[\r\n\t]","");
             startTimeStamp = System.nanoTime();
-            String str = HttpRequest.sendGet(url, sql);
+            String str = HttpRequest.sendPost(url, sql);
             endTimeStamp = System.nanoTime();
 
             LOGGER.debug("Response: " + str);
