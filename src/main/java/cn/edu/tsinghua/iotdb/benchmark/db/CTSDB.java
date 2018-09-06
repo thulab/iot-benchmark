@@ -223,42 +223,42 @@ public class CTSDB implements IDatebase {
         Collections.shuffle(sensorList, sensorRandom);
         StringBuilder queryJSONBuilder = new StringBuilder();
         queryJSONBuilder.append(
-                "{ \n" +
-                "\"query\": { \n" +
-                "\t\"bool\": { \n" +
-                "\t\t\"filter\": [ \n" +
-                "\t\t{ \n" +
-                "\t\t\t\"range\": { \n" +
-                "\t\t\t\t\"timestamp\": { \n" +
-                "\t\t\t\t\t\"format\": \"yyyy-MM-dd HH:mm:ss\", \n" +
-                "\t\t\t\t\t\"gt\": \"" + sTime + "\",\n" +
-                "\t\t\t\t\t\"lt\": \"" + eTime + "\", \n" +
-                "\t\t\t\t\t\"time_zone\":\"+08:00\" \n" +
-                "\t\t\t\t} \n" +
-                "\t\t\t}\n" +
-                "\t\t}, \n" +
-                "\t\t{\n" +
-                "\t\t\t\"terms\": { \n" +
-                "\t\t\t\t\"device\": ["
+                "{" +
+                "\"query\":{" +
+                "\"bool\":{" +
+                "\"filter\":[" +
+                "{" +
+                "\"range\":{" +
+                "\"timestamp\":{" +
+                "\"format\":\"yyyy-MM-dd HH:mm:ss\"," +
+                "\"gt\":\"" + sTime + "\"," +
+                "\"lt\":\"" + eTime + "\"," +
+                "\"time_zone\":\"+08:00\"" +
+                "}" +
+                "}" +
+                "}," +
+                "{" +
+                "\"terms\":{" +
+                "\"device\":["
         );
         for(int d : devices){
             queryJSONBuilder.append("\"").append(config.DEVICE_CODES.get(d)).append("\",");
         }
         queryJSONBuilder.deleteCharAt(queryJSONBuilder.lastIndexOf(","));
         queryJSONBuilder.append(
-                "] \n" +
-                "\t\t\t} \n" +
-                "\t\t}\n" +
-                "\t\t]\n" +
-                "\t} \n" +
-                "},\n" +
-                "\"docvalue_fields\": [ \n");
+                "]" +
+                "}" +
+                "}" +
+                "]" +
+                "}" +
+                "}," +
+                "\"docvalue_fields\":[");
         for(int i = 0;i < config.QUERY_SENSOR_NUM;i++){
-            queryJSONBuilder.append("\t\"").append(sensorList.get(i)).append("\", \n");
+            queryJSONBuilder.append("\"").append(sensorList.get(i)).append("\",");
         }
-        queryJSONBuilder.append("\t\"timestamp\"\n")
-                        .append("] \n")
-                        .append("} ");
+        queryJSONBuilder.append("\"timestamp\"")
+                        .append("]")
+                        .append("}");
 
         return queryJSONBuilder.toString();
     }
@@ -295,8 +295,7 @@ public class CTSDB implements IDatebase {
             }
             LOGGER.debug("url: \n"+url);
             LOGGER.debug("sql JSON: \n"+sql);
-            sql = sql.replaceAll("[\r\n\t]","");
-            sql = sql.trim();
+            //sql = sql.replaceAll("[\r\n\t]","");
             startTimeStamp = System.nanoTime();
             String str = HttpRequest.sendGet(url, sql);
             endTimeStamp = System.nanoTime();
