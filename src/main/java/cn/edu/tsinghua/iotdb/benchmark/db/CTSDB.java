@@ -239,7 +239,7 @@ public class CTSDB implements IDatebase {
                 "\t\t}, \n" +
                 "\t\t{\n" +
                 "\t\t\t\"terms\": { \n" +
-                "\t\t\t\t“device”: ["
+                "\t\t\t\t\"device\": ["
         );
         for(int d : devices){
             queryJSONBuilder.append("\"").append(config.DEVICE_CODES.get(d)).append("\",");
