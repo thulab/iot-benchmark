@@ -218,12 +218,8 @@ public class CTSDB implements IDatebase {
     private String getQueryJSON(List<Integer> devices, long startTime, long endTime){
         String sTime = sdf.format(new Date(startTime));
         String eTime = sdf.format(new Date(endTime));
-        List<Map<String, Object>> list = new ArrayList<>();
 
-        List<String> sensorList = new ArrayList<String>();
-        for (String sensor : config.SENSOR_CODES) {
-            sensorList.add(sensor);
-        }
+        List<String> sensorList = new ArrayList<>(config.SENSOR_CODES);
         Collections.shuffle(sensorList, sensorRandom);
         StringBuilder queryJSONBuilder = new StringBuilder();
         queryJSONBuilder.append(
@@ -300,6 +296,7 @@ public class CTSDB implements IDatebase {
 
                     break;
             }
+            LOGGER.debug("url: \n"+url);
             LOGGER.debug("sql JSON: \n"+sql);
 
             startTimeStamp = System.nanoTime();

@@ -632,6 +632,7 @@ public class IoTDB implements IDatebase {
 
             switch (config.QUERY_CHOICE) {
                 case 1:// 精确点查询
+                    //以下语句是为了假若使用 startTimeInterval = database.getTotalTimeInterval() / config.LOOP; 可保证能查出点来
                     long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
                             + Constants.START_TIMESTAMP;
                     if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
