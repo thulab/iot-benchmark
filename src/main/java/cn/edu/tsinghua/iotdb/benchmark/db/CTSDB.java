@@ -275,8 +275,10 @@ public class CTSDB implements IDatebase {
         Map<String, Object> boolMap = new HashMap<>();
         List<Map<String, Object>> filterList = new ArrayList<>();
         Map<String, Object> rangeMap = new HashMap<>();
+        Map<String, Object> supRangeMap = new HashMap<>();
         Map<String, String> timestampMap = new HashMap<>();
         Map<String, Object> termsMap = new HashMap<>();
+        Map<String, Object> supTermsMap = new HashMap<>();
         List<String> deviceList = new ArrayList<>();
         List<String> docValueFieldsList = new ArrayList<>();
 
@@ -285,13 +287,16 @@ public class CTSDB implements IDatebase {
         timestampMap.put("lt", eTime);
         timestampMap.put("time_zone", "+08:00");
         rangeMap.put("timestamp", timestampMap);
-        filterList.add(rangeMap);
+        supRangeMap.put("range", rangeMap);
+        filterList.add(supRangeMap);
 
         for(int d : devices){
             deviceList.add(config.DEVICE_CODES.get(d));
         }
         termsMap.put("device", deviceList);
-        filterList.add(termsMap);
+        supTermsMap.put("terms", termsMap);
+        filterList.add(supTermsMap);
+
 
         boolMap.put("filter", filterList);
         subQueryMap.put("bool", boolMap);
