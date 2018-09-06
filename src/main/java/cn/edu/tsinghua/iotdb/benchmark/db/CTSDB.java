@@ -39,7 +39,8 @@ public class CTSDB implements IDatebase {
     private Random sensorRandom = null;
     private static final String user = "root";
     private static final String pwd = "Root_1230!";
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
 
     public CTSDB(long labID){
         mySql = new MySqlLog();
@@ -215,52 +216,94 @@ public class CTSDB implements IDatebase {
         return 0;
     }
 
+//    private String getQueryJSON(List<Integer> devices, long startTime, long endTime){
+//        String sTime = sdf.format(new Date(startTime));
+//        String eTime = sdf.format(new Date(endTime));
+//
+//        List<String> sensorList = new ArrayList<>(config.SENSOR_CODES);
+//        Collections.shuffle(sensorList, sensorRandom);
+//        StringBuilder queryJSONBuilder = new StringBuilder();
+//        queryJSONBuilder.append(
+//                "{" +
+//                "\"query\":{" +
+//                "\"bool\":{" +
+//                "\"filter\":[" +
+//                "{" +
+//                "\"range\":{" +
+//                "\"timestamp\":{" +
+//                "\"format\":\"yyyy-MM-dd HH:mm:ss\"," +
+//                "\"gt\":\"" + sTime + "\"," +
+//                "\"lt\":\"" + eTime + "\"," +
+//                "\"time_zone\":\"+08:00\"" +
+//                "}" +
+//                "}" +
+//                "}," +
+//                "{" +
+//                "\"terms\":{" +
+//                "\"device\":["
+//        );
+//        for(int d : devices){
+//            queryJSONBuilder.append("\"").append(config.DEVICE_CODES.get(d)).append("\",");
+//        }
+//        queryJSONBuilder.deleteCharAt(queryJSONBuilder.lastIndexOf(","));
+//        queryJSONBuilder.append(
+//                "]" +
+//                "}" +
+//                "}" +
+//                "]" +
+//                "}" +
+//                "}," +
+//                "\"docvalue_fields\":[");
+//        for(int i = 0;i < config.QUERY_SENSOR_NUM;i++){
+//            queryJSONBuilder.append("\"").append(sensorList.get(i)).append("\",");
+//        }
+//        queryJSONBuilder.append("\"timestamp\"")
+//                        .append("]")
+//                        .append("}");
+//
+//        return queryJSONBuilder.toString();
+//    }
+
     private String getQueryJSON(List<Integer> devices, long startTime, long endTime){
         String sTime = sdf.format(new Date(startTime));
         String eTime = sdf.format(new Date(endTime));
-
         List<String> sensorList = new ArrayList<>(config.SENSOR_CODES);
         Collections.shuffle(sensorList, sensorRandom);
-        StringBuilder queryJSONBuilder = new StringBuilder();
-        queryJSONBuilder.append(
-                "{" +
-                "\"query\":{" +
-                "\"bool\":{" +
-                "\"filter\":[" +
-                "{" +
-                "\"range\":{" +
-                "\"timestamp\":{" +
-                "\"format\":\"yyyy-MM-dd HH:mm:ss\"," +
-                "\"gt\":\"" + sTime + "\"," +
-                "\"lt\":\"" + eTime + "\"," +
-                "\"time_zone\":\"+08:00\"" +
-                "}" +
-                "}" +
-                "}," +
-                "{" +
-                "\"terms\":{" +
-                "\"device\":["
-        );
-        for(int d : devices){
-            queryJSONBuilder.append("\"").append(config.DEVICE_CODES.get(d)).append("\",");
-        }
-        queryJSONBuilder.deleteCharAt(queryJSONBuilder.lastIndexOf(","));
-        queryJSONBuilder.append(
-                "]" +
-                "}" +
-                "}" +
-                "]" +
-                "}" +
-                "}," +
-                "\"docvalue_fields\":[");
-        for(int i = 0;i < config.QUERY_SENSOR_NUM;i++){
-            queryJSONBuilder.append("\"").append(sensorList.get(i)).append("\",");
-        }
-        queryJSONBuilder.append("\"timestamp\"")
-                        .append("]")
-                        .append("}");
 
-        return queryJSONBuilder.toString();
+        Map<String, Object> queryMap = new HashMap<>();
+        Map<String, Object> subQueryMap = new HashMap<>();
+        Map<String, Object> boolMap = new HashMap<>();
+        List<Map<String, Object>> filterList = new ArrayList<>();
+        Map<String, Object> rangeMap = new HashMap<>();
+        Map<String, String> timestampMap = new HashMap<>();
+        Map<String, Object> termsMap = new HashMap<>();
+        List<String> deviceList = new ArrayList<>();
+        List<String> docValueFieldsList = new ArrayList<>();
+
+        timestampMap.put("format", TIME_FORMAT);
+        timestampMap.put("gt", sTime);
+        timestampMap.put("lt", eTime);
+        timestampMap.put("time_zone", "+08:00");
+        rangeMap.put("timestamp", timestampMap);
+        filterList.add(rangeMap);
+
+        for(int d : devices){
+            deviceList.add(config.DEVICE_CODES.get(d));
+        }
+        termsMap.put("device", deviceList);
+        filterList.add(termsMap);
+
+        boolMap.put("filter", filterList);
+        subQueryMap.put("bool", boolMap);
+        queryMap.put("query", subQueryMap);
+
+        for(int i = 0;i < config.QUERY_SENSOR_NUM;i++){
+            docValueFieldsList.add(sensorList.get(i));
+        }
+        docValueFieldsList.add("timestamp");
+        queryMap.put("docvalue_fields", docValueFieldsList);
+
+        return JSON.toJSONString(queryMap);
     }
 
     @Override
@@ -269,6 +312,7 @@ public class CTSDB implements IDatebase {
         long startTimeStamp = 0, endTimeStamp = 0;
         String metricName = getMetricName("d_" + devices.get(0));
         String url = String.format(queryUrl, metricName);
+
         try {
             List<String> sensorList = new ArrayList<String>();
             switch (config.QUERY_CHOICE) {
