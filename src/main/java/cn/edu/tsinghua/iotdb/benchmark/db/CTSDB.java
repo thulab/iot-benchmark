@@ -267,10 +267,7 @@ public class CTSDB implements IDatebase {
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client, ThreadLocal<Long> errorCount) {
         String sql = "";
         long startTimeStamp = 0, endTimeStamp = 0;
-        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        int groupNum = devices.get(0) / groupSize;
-        String groupId = "group_" + groupNum;
-        String metricName = metric + groupId;
+        String metricName = getMetricName("d_" + devices.get(0));
         String url = String.format(queryUrl, metricName);
         try {
             List<String> sensorList = new ArrayList<String>();
