@@ -23,7 +23,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class CTSDB implements IDatebase {
+public class CTSDB extends TSDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(CTSDB.class);
     private String Url;
     private String queryUrl;
@@ -216,54 +216,6 @@ public class CTSDB implements IDatebase {
         return 0;
     }
 
-//    private String getQueryJSON(List<Integer> devices, long startTime, long endTime){
-//        String sTime = sdf.format(new Date(startTime));
-//        String eTime = sdf.format(new Date(endTime));
-//
-//        List<String> sensorList = new ArrayList<>(config.SENSOR_CODES);
-//        Collections.shuffle(sensorList, sensorRandom);
-//        StringBuilder queryJSONBuilder = new StringBuilder();
-//        queryJSONBuilder.append(
-//                "{" +
-//                "\"query\":{" +
-//                "\"bool\":{" +
-//                "\"filter\":[" +
-//                "{" +
-//                "\"range\":{" +
-//                "\"timestamp\":{" +
-//                "\"format\":\"yyyy-MM-dd HH:mm:ss\"," +
-//                "\"gt\":\"" + sTime + "\"," +
-//                "\"lt\":\"" + eTime + "\"," +
-//                "\"time_zone\":\"+08:00\"" +
-//                "}" +
-//                "}" +
-//                "}," +
-//                "{" +
-//                "\"terms\":{" +
-//                "\"device\":["
-//        );
-//        for(int d : devices){
-//            queryJSONBuilder.append("\"").append(config.DEVICE_CODES.get(d)).append("\",");
-//        }
-//        queryJSONBuilder.deleteCharAt(queryJSONBuilder.lastIndexOf(","));
-//        queryJSONBuilder.append(
-//                "]" +
-//                "}" +
-//                "}" +
-//                "]" +
-//                "}" +
-//                "}," +
-//                "\"docvalue_fields\":[");
-//        for(int i = 0;i < config.QUERY_SENSOR_NUM;i++){
-//            queryJSONBuilder.append("\"").append(sensorList.get(i)).append("\",");
-//        }
-//        queryJSONBuilder.append("\"timestamp\"")
-//                        .append("]")
-//                        .append("}");
-//
-//        return queryJSONBuilder.toString();
-//    }
-
     private String getQueryJSON(List<Integer> devices, long startTime, long endTime){
         String sTime = sdf.format(new Date(startTime));
         String eTime = sdf.format(new Date(endTime));
@@ -308,6 +260,36 @@ public class CTSDB implements IDatebase {
         docValueFieldsList.add("timestamp");
         queryMap.put("docvalue_fields", docValueFieldsList);
 
+        switch (config.QUERY_CHOICE) {
+            case 1:// 精确点查询
+                break;
+            case 2:// 模糊点查询（暂未实现）
+                break;
+            case 3:// 聚合函数查询
+                Map<String, String> fieldMap = new HashMap<>();
+                Map<String, Object> aggFunctionMap = new HashMap<>();
+                Map<String, Object> resultNameMap = new HashMap<>();
+                //not support multiple fields aggregation
+                fieldMap.put("field", sensorList.get(0));
+                aggFunctionMap.put(config.QUERY_AGGREGATE_FUN,fieldMap);
+                String resultName = config.QUERY_AGGREGATE_FUN + "_" + sensorList.get(0);
+                resultNameMap.put(resultName, aggFunctionMap);
+                queryMap.put("aggs", resultNameMap);
+                break;
+            case 4:// 范围查询
+                break;
+            case 5:// 条件查询
+
+                break;
+            case 6:// 最近点查询
+
+                break;
+            case 7:// groupBy查询（暂时只有一个时间段）
+
+                break;
+        }
+
+
         return JSON.toJSONString(queryMap);
     }
 
@@ -319,7 +301,6 @@ public class CTSDB implements IDatebase {
         String url = String.format(queryUrl, metricName);
 
         try {
-            List<String> sensorList = new ArrayList<String>();
             switch (config.QUERY_CHOICE) {
                 case 1:// 精确点查询
                     sql = getQueryJSON(devices, startTime - 1000, startTime + 1000);
@@ -350,25 +331,24 @@ public class CTSDB implements IDatebase {
             endTimeStamp = System.nanoTime();
 
             LOGGER.debug("Response: " + str);
-
-            //int pointNum = getOneQueryPointNum(str);
-            int pointNum = 0;
+            int pointNum;
+            pointNum = getOneQueryPointNum(str) * config.QUERY_SENSOR_NUM;
             client.setTotalPoint(client.getTotalPoint() + pointNum);
             client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
             LOGGER.info(
-                    "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
-                            + "TotalTime {}s with totalPoint {} rate is {}points/s",
-                    Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000000000.0, pointNum,
-                    pointNum * 1000000000.0 / (endTimeStamp - startTimeStamp), (client.getTotalTime()) / 1000000000.0,
-                    client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
+                    "{} execute {} loop, it costs {} ms with 1 query cur_rate is {} query/s, get {} result points; "
+                            + "Thread total time {}s with {} successful query mean rate is {}points/s",
+                    Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000000.0,
+                    1000000000.0 / (endTimeStamp - startTimeStamp), pointNum, client.getTotalTime() / 1000000000.0,
+                    index - errorCount.get(), (index - errorCount.get()) * 1000000000.0f / client.getTotalTime());
             mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
         } catch (Exception e) {
-            errorCount.set(errorCount.get() + 1);
-            LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
-            LOGGER.error("执行失败的查询语句：{}", sql);
-            mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000000000.0f, "query fail!" + sql);
-            e.printStackTrace();
+            queryErrorProcess(index, errorCount, sql, startTimeStamp, endTimeStamp, e, LOGGER, mySql);
         }
+    }
+
+    private int getOneQueryPointNum(String str) {
+        return JSON.parseObject(str).getJSONObject("hits").getJSONArray("hits").size();
     }
 
     @Override

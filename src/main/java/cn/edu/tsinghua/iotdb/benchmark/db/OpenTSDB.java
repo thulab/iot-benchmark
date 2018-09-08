@@ -38,7 +38,7 @@ import okhttp3.Response;
  * @author fasape
  *
  */
-public class OpenTSDB implements IDatebase {
+public class OpenTSDB extends TSDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenTSDB.class);
 	private String openUrl;
 	private String queryUrl;
@@ -283,11 +283,7 @@ public class OpenTSDB implements IDatebase {
 					client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
 			mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
 		} catch (Exception e) {
-			errorCount.set(errorCount.get() + 1);
-			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
-			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000000000.0f, "query fail!" + sql);
-			e.printStackTrace();
+			queryErrorProcess(index, errorCount, sql, startTimeStamp, endTimeStamp, e, LOGGER, mySql);
 		}
 	}
 
