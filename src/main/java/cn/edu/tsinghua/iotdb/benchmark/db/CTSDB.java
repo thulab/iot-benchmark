@@ -308,7 +308,7 @@ public class CTSDB extends TSDB implements IDatebase {
                 case 2:// 模糊点查询（暂未实现）
                     break;
                 case 3:// 聚合函数查询
-
+                    sql = getQueryJSON(devices, startTime, startTime + config.QUERY_INTERVAL);
                     break;
                 case 4:// 范围查询
                     sql = getQueryJSON(devices, startTime, startTime + config.QUERY_INTERVAL);
