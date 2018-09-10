@@ -275,6 +275,7 @@ public class CTSDB extends TSDB implements IDatebase {
                 String resultName = config.QUERY_AGGREGATE_FUN + "_" + sensorList.get(0);
                 resultNameMap.put(resultName, aggFunctionMap);
                 queryMap.put("aggs", resultNameMap);
+                queryMap.put("size", 0);
                 break;
             case 4:// 范围查询
                 break;
