@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.model;
 
-import javafx.util.Pair;
 import org.influxdb.dto.Point;
 
 import java.util.*;
