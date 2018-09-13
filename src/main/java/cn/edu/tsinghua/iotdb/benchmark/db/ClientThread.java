@@ -93,7 +93,7 @@ public class ClientThread implements Runnable{
 			LinkedList<String> deviceCodes = new LinkedList<>();
 			//may not correct in multiple device per batch mode
 			long pointsOneLoop = config.DEVICE_NUMBER / config.CLIENT_NUMBER * config.SENSOR_NUMBER * config.CACHE_NUM;
-			double actual_loopSecond = (double) pointsOneLoop / config.CLIENT_MAX_WRT_RATE;
+			double actualLoopSecond = (double) pointsOneLoop / config.CLIENT_MAX_WRT_RATE;
 			//overflow mode 2 related variables initial
 			Random random = new Random(config.QUERY_SEED);
 			ArrayList<Integer> before = new ArrayList<>();
@@ -170,9 +170,9 @@ public class ClientThread implements Runnable{
 
 				if (config.USE_OPS) {
 					long delayStart = System.nanoTime();
-					if (loopSecond < actual_loopSecond) {
+					if (loopSecond < actualLoopSecond) {
 						try {
-							Thread.sleep((long) (1000 * (actual_loopSecond - loopSecond)));
+							Thread.sleep((long) (1000 * (actualLoopSecond - loopSecond)));
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}

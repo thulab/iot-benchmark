@@ -38,7 +38,7 @@ import okhttp3.Response;
  * @author fasape
  *
  */
-public class OpenTSDB implements IDatebase {
+public class OpenTSDB extends TSDB implements IDatebase {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenTSDB.class);
 	private String openUrl;
 	private String queryUrl;
@@ -60,9 +60,7 @@ public class OpenTSDB implements IDatebase {
 
 	@Override
 	public void init() throws SQLException {
-		config = ConfigDescriptor.getInstance().getConfig();
-		// FIXME
-		openUrl = config.OPENTSDB_URL;
+		openUrl = config.DB_URL;
 		writeUrl = openUrl + "/api/put?summary ";
 		queryUrl = openUrl + "/api/query";
 		mySql.initMysql(labID);
@@ -285,11 +283,7 @@ public class OpenTSDB implements IDatebase {
 					client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
 			mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
 		} catch (Exception e) {
-			errorCount.set(errorCount.get() + 1);
-			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
-			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, (endTimeStamp - startTimeStamp) / 1000000000.0f, "query fail!" + sql);
-			e.printStackTrace();
+			queryErrorProcess(index, errorCount, sql, startTimeStamp, endTimeStamp, e, LOGGER, mySql);
 		}
 	}
 
@@ -345,8 +339,8 @@ public class OpenTSDB implements IDatebase {
 			deviceStr=deviceStr.substring(1);
 			
 			String sensorStr = sensorList.get(0);
-			for (int i = 0; i < config.QUERY_SENSOR_NUM - 1; i++) {
-				sensorStr+="|"+sensorList.get(i);
+			for (int i = 1; i < config.QUERY_SENSOR_NUM; i++) {
+				sensorStr += "|"+sensorList.get(i);
 			}
 			tags.put("sensor", sensorStr);
 			tags.put("device", deviceStr);

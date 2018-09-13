@@ -3,6 +3,10 @@
 if [ -z "${BENCHMARK_HOME}" ]; then
   export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 fi
+#IMPORTANT: to use this script, make sure you have password-free ssh access to 127.0.0.1 and the server of database service
+# if not you need to use the following command:
+# ssh-keygen -t rsa
+# ssh-copy-id [hostname]@[IP]
 
 #configure the related path and host name
 IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
@@ -42,7 +46,7 @@ if [ -d $CLIENT_LOG_STOP_FLAG_PATH ]; then
 #
     ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
     else
-    ssh $HOST_NAME@127.0.0.1 "mkdir $CLIENT_LOG_STOP_FLAG_PATH;cp -r $REMOTE_BENCHMARK_HOME $CLIENT_LOG_STOP_FLAG_PATH"
+    ssh $HOST_NAME@127.0.0.1 "mkdir $CLIENT_LOG_STOP_FLAG_PATH;cp -r ${BENCHMARK_HOME} $CLIENT_LOG_STOP_FLAG_PATH"
     ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
 fi
 

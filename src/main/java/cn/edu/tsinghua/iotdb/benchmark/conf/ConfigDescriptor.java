@@ -72,9 +72,8 @@ public class ConfigDescriptor {
 				config.CLIENT_NUMBER = Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.CLIENT_NUMBER+""));
 				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
 
-				config.INFLUX_URL = properties.getProperty("INFLUX_URL", "localhost");
+				config.DB_URL = properties.getProperty("DB_URL", "localhost");
 				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
-				config.OPENTSDB_URL = properties.getProperty("OPENTSDB_URL", config.OPENTSDB_URL);
 				
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
