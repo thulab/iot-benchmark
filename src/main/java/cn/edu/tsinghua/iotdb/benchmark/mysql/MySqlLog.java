@@ -205,13 +205,13 @@ public class MySqlLog {
                 remark = "rate is insignificance because time = 0";
                 rate = -1;
             } else {
-                rate = point / time;
+                rate = 1 / time;
             }
-            String mysqlSql = String.format("insert into " + config.REMARK
-                            + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
-                    System.currentTimeMillis(), "'"
-                            + Thread.currentThread().getName() + "'", index,
-                    point, time, rate, "'" + remark + "'");
+            String mysqlSql = String.format(
+                    "insert into " + config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
+                    System.currentTimeMillis(),
+                    "'" + Thread.currentThread().getName() + "'",
+                    index, point, time, rate, "'" + remark + "'");
             Statement stat;
             try {
                 stat = mysqlConnection.createStatement();
