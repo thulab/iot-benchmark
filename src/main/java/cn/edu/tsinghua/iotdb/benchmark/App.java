@@ -473,7 +473,8 @@ public class App {
 
             mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
             mysql.saveResult("totalPoints", "" + totalPoints);
-            mysql.saveResult("totalTime(s)", "" + totalTime / 1000000000.0f);
+            mysql.saveResult("totalInsertionTime(s)", "" + totalTime / 1000000000.0f);
+            mysql.saveResult("totalElapseTime(s)", "" + insertElapseTime);
             mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
             mysql.closeMysql();
 

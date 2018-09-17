@@ -205,7 +205,7 @@ public class MySqlLog {
                 remark = "rate is insignificance because time = 0";
                 rate = -1;
             } else {
-                rate = 1 / time;
+                rate = point / time;
             }
             String mysqlSql = String.format(
                     "insert into " + config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",

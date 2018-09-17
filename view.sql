@@ -32,13 +32,14 @@ CREATE
     /*[ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
     [DEFINER = { user | CURRENT_USER }]
     [SQL SECURITY { DEFINER | INVOKER }]*/
-    VIEW `insertResult` (projectID,createSchemaTime,totalPoints,totalTimes,totalErrorPoint)
+    VIEW `insertResult` (projectID,createSchemaTime,totalPoints,totalInsertionTime,totalErrorPoint,totalElapseTime)
     AS
-(SELECT a.projectID,a.result_value,b.result_value,c.result_value,d.result_value FROM (
+(SELECT a.projectID,a.result_value,b.result_value,c.result_value,d.result_value,e.result_value FROM (
 (SELECT projectID, result_value FROM RESULT WHERE result_key = 'createSchemaTime(s)') a  JOIN 
 (SELECT projectID, result_value FROM RESULT WHERE result_key = 'totalPoints') b ON a.projectID = b.projectID JOIN
-(SELECT projectID, result_value FROM RESULT WHERE result_key = 'totalTime(s)') c ON a.projectID = c.projectID JOIN
-(SELECT projectID, result_value FROM RESULT WHERE result_key = 'totalErrorPoint') d ON a.projectID = d.projectID)
+(SELECT projectID, result_value FROM RESULT WHERE result_key = 'totalInsertionTime(s)') c ON a.projectID = c.projectID JOIN
+(SELECT projectID, result_value FROM RESULT WHERE result_key = 'totalErrorPoint') d ON a.projectID = d.projectID JOIN
+(SELECT projectID, result_value FROM RESULT WHERE result_key = 'totalElapseTime') e ON a.projectID = e.projectID)
 );
 END IF;
 
