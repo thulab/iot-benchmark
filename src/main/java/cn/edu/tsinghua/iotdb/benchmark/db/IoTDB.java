@@ -605,6 +605,21 @@ public class IoTDB implements IDatebase {
         }
     }
 
+    /*
+    Example of different query types:
+    1.Exact point query:
+    SELECT s_57 FROM root.performf.group_4.d_49 WHERE time = 2010-01-01 12:00:00
+    2.Aggregation function query:
+    SELECT max_value(s_76) FROM root.performf.group_3.d_31 WHERE time > 2010-01-01 12:00:00 AND time < 2010-01-01 12:30:00
+    3.Range query:
+    SELECT s_30 FROM root.performf.group_4.d_43 WHERE time > 2010-01-01 12:00:00 AND time < 2010-01-01 12:30:00
+    4.Criteria query:
+    SELECT s_39 FROM root.performf.group_2.d_29 WHERE time > 2010-01-01 12:00:00 AND time < 2010-01-01 12:30:00 AND root.performf.group_2.d_29.s_39 > 0.0
+    5.Latest point query:
+    SELECT max_time(s_76) FROM root.performf.group_3.d_31
+    6.Group-by query:
+    SELECT max_value(s_81) FROM root.performf.group_9.d_92 WHERE root.performf.group_9.d_92.s_81 > 0.0  GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
+    */
     @Override
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client,
                                 ThreadLocal<Long> errorCount) {
@@ -617,6 +632,7 @@ public class IoTDB implements IDatebase {
 
             switch (config.QUERY_CHOICE) {
                 case 1:// 精确点查询
+                    //以下语句是为了假若使用 startTimeInterval = database.getTotalTimeInterval() / config.LOOP; 可保证能查出点来
                     long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
                             + Constants.START_TIMESTAMP;
                     if (config.IS_EMPTY_PRECISE_POINT_QUERY) {

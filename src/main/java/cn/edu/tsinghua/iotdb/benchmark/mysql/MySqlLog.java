@@ -484,7 +484,7 @@ public class MySqlLog {
                     stat.addBatch(sql);
                     break;
                 case Constants.DB_INFLUX:
-                    String influxHost = config.INFLUX_URL.substring(config.INFLUX_URL.lastIndexOf('/') + 1, config.INFLUX_URL.lastIndexOf(':'));
+                    String influxHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
                             "'ServerIP'", "'" + config.host + "'");
                     stat.addBatch(sql);
