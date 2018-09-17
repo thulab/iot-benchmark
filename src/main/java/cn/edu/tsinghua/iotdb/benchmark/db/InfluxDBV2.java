@@ -564,7 +564,9 @@ public class InfluxDBV2 implements IDatebase {
 		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
 		builder.append(" AND time > ");
 		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
-		builder.append(" group by device");
+		if(config.QUERY_CHOICE!=7) {
+			builder.append(" group by device");
+		}
 		return builder.toString();
 	}
 
