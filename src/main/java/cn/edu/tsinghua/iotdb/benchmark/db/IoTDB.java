@@ -21,7 +21,7 @@ import java.util.Date;
 
 public class IoTDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-    private static final String createStatementSQL = "create timeseries %s with datatype=DOUBLE,encoding=%s";
+    private static final String createStatementSQL = "create timeseries %s with datatype=%s,encoding=%s";
     private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
     private static final String setStorageLevelSQL = "set storage group to %s";
     private Connection connection;
@@ -754,7 +754,7 @@ public class IoTDB implements IDatebase {
                         path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING), config.GEN_DATA_FILE_PATH);
             } else {
                 statement.execute(String.format(createStatementSQL,
-                        Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, config.ENCODING));
+                        Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, config.DATA_TYPE, config.ENCODING));
             }
             statement.close();
         } catch (SQLException e) {
@@ -767,7 +767,7 @@ public class IoTDB implements IDatebase {
                                        Statement statement) {
         try {
             statement.addBatch(String.format(createStatementSQL, Constants.ROOT_SERIES_NAME + "." + path + "." + sensor,
-                    config.ENCODING));
+                    config.DATA_TYPE, config.ENCODING));
         } catch (SQLException e) {
             LOGGER.warn("Can`t add batch when creating timeseries because: {}", e.getMessage());
         }
