@@ -317,7 +317,7 @@ public class InfluxDBV2 implements IDatebase {
 					break;
 				case 3:// 聚合函数查询
 					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, startTime,
-							startTime + config.QUERY_INTERVAL, sensorList);
+							startTime + config.QUERY_INTERVAL, sensorList, true);
 					break;
 				case 4:// 范围查询
 					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
@@ -559,12 +559,14 @@ public class InfluxDBV2 implements IDatebase {
 	 * @throws SQLException
 	 */
 	private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime, long endTime,
-			List<String> sensorList) throws SQLException {
+			List<String> sensorList, boolean flag) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
 		builder.append(" AND time > ");
 		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
-		builder.append(" group by device");
+		if(flag) {
+			builder.append(" group by device");
+		}
 		return builder.toString();
 	}
 
@@ -622,7 +624,7 @@ public class InfluxDBV2 implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, String method, int num, long startTime, long endTime,
 			Number value, List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, method, startTime, endTime, sensorList));
+		builder.append(createQuerySQLStatment(devices, num, method, startTime, endTime, sensorList, false));
 
 		for (int i = 0; i < sensorList.size(); i++) {
 			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
