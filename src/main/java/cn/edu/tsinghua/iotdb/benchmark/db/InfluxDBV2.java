@@ -394,8 +394,11 @@ public class InfluxDBV2 implements IDatebase {
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
 					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
-					line * config.QUERY_SENSOR_NUM,
-					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+//					line * config.QUERY_SENSOR_NUM,
+//					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+					// FIXME
+					line ,
+					line * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
 					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/1000000.0));
 			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
