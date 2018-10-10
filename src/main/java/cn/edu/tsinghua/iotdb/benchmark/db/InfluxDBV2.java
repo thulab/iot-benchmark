@@ -596,6 +596,7 @@ public class InfluxDBV2 implements IDatebase {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" AND time > ");
 		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(" group by device");
 		return builder.toString();
 	}
 
@@ -608,10 +609,12 @@ public class InfluxDBV2 implements IDatebase {
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, startTime, endTime, sensorList));
+		builder.delete(builder.lastIndexOf("group by device"), builder.length());
 
 		for (int i = 0; i < sensorList.size(); i++) {
 			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
 		}
+		builder.append(" group by device");
 
 		return builder.toString();
 	}
