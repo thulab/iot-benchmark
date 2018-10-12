@@ -104,8 +104,6 @@ public class Function {
 	 * 
 	 * @param max 最大值
 	 * @param min 最小值
-	 * @param cycle 周期，单位为s
-	 * @param currentTime 当前时间 单位为ms
 	 * @return
 	 */
 	private static double getRandomValue(double max, double min) {

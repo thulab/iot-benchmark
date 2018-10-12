@@ -1,7 +1,9 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
 import java.io.IOException;
+import java.sql.BatchUpdateException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +15,8 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -49,6 +53,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
 	private long labID;
 	private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
 	private Random sensorRandom = null;
+	private Random timestampRandom;
+	private ProbTool probTool;
 	private int backScanTime = 24 ;
 
 	public OpenTSDB(long labID) {
@@ -56,6 +62,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
 		this.labID = labID;
 		config = ConfigDescriptor.getInstance().getConfig();
 		sensorRandom = new Random(1 + config.QUERY_SEED);
+		timestampRandom = new Random(2 + config.QUERY_SEED);
+		probTool = new ProbTool();
 	}
 
 	@Override
@@ -125,6 +133,35 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
 			long currentTime = Constants.START_TIMESTAMP
 					+ config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+			Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+			TSDBDataModel model = new TSDBDataModel();
+			model.setMetric(metricName);
+			model.setTimestamp(currentTime);
+			model.setValue(value);
+			Map<String, String> tags = new HashMap<>();
+			tags.put("device", device);
+			tags.put("sensor", sensor);
+			model.setTags(tags);
+			models.addLast(model);
+		}
+		return models;
+	}
+
+	private LinkedList<TSDBDataModel> createDataModel(int timestampIndex, String device) {
+		LinkedList<TSDBDataModel> models = new LinkedList<TSDBDataModel>();
+		int deviceNum = getDeviceNum(device);
+		int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+		int groupNum = deviceNum / groupSize;
+		String groupId = "group_" + groupNum;
+		String metricName = metric + groupId;
+		for (String sensor : config.SENSOR_CODES) {
+			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+			long currentTime;
+			if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+				currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
+			} else {
+				currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+			}
 			Number value = Function.getValueByFuntionidAndParam(param, currentTime);
 			TSDBDataModel model = new TSDBDataModel();
 			model.setMetric(metricName);
@@ -374,7 +411,24 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
 	@Override
 	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
-		return 0;
+		int timestampIndex;
+		PossionDistribution possionDistribution = new PossionDistribution(random);
+		int nextDelta;
+		LinkedList<String> keys = new LinkedList<>();
+		for (int i = 0; i < config.CACHE_NUM; i++) {
+			if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
+				nextDelta = possionDistribution.getNextPossionDelta();
+				timestampIndex = maxTimestampIndex - nextDelta;
+			} else {
+				maxTimestampIndex++;
+				timestampIndex = maxTimestampIndex;
+			}
+			String key = UUID.randomUUID().toString();
+			dataMap.put(key, createDataModel(timestampIndex, device));
+			keys.add(key);
+		}
+		insertOneBatch(keys, loopIndex, totalTime, errorCount);
+		return maxTimestampIndex;
 	}
 
 	@Override
