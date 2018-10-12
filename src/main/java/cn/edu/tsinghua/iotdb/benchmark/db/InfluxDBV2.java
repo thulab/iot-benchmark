@@ -682,7 +682,7 @@ public class InfluxDBV2 implements IDatebase {
 				maxTimestampIndex++;
 				timestampIndex = maxTimestampIndex;
 			}
-			System.out.println("timestampIndex:" + timestampIndex);
+			//System.out.println("timestampIndex:" + timestampIndex);
 			model = createDataModel(timestampIndex, device);
 			batchPoints.point(model.toInfluxPoint());
 		}
