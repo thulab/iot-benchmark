@@ -21,9 +21,9 @@ import java.util.Date;
 
 public class IoTDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-    private static final String createStatementSQL = "create timeseries %s with datatype=%s,encoding=%s";
-    private static final String createStatementFromFileSQL = "create timeseries %s with datatype=%s,encoding=%s";
-    private static final String setStorageLevelSQL = "set storage group to %s";
+    //private static final String createSeriesSQL = "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
+    private static final String createSeriesSQLWithCompressor = "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
+    private static final String setStorageLevelSQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
     private static Config config;
     private List<Point> points;
@@ -724,16 +724,16 @@ public class IoTDB implements IDatebase {
             statement = connection.createStatement();
             if (config.READ_FROM_FILE) {
                 String type = getTypeByField(sensor);
-                statement.execute(String.format(createStatementFromFileSQL,
-                        path + "." + sensor, type, mp.get(type)));
+                statement.execute(String.format(createSeriesSQLWithCompressor,
+                        path + "." + sensor, type, mp.get(type), "SNAPPY"));
             } else if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
-                statement.execute(String.format(createStatementFromFileSQL,
-                        path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING));
-                writeSQLIntoFile(String.format(createStatementFromFileSQL,
-                        path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING), config.GEN_DATA_FILE_PATH);
+                statement.execute(String.format(createSeriesSQLWithCompressor,
+                        path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING, config.COMPRESSOR));
+                writeSQLIntoFile(String.format(createSeriesSQLWithCompressor,
+                        path + "." + sensor, config.TIMESERIES_TYPE, config.ENCODING, config.COMPRESSOR), config.GEN_DATA_FILE_PATH);
             } else {
-                statement.execute(String.format(createStatementSQL,
-                        Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, config.DATA_TYPE, config.ENCODING));
+                statement.execute(String.format(createSeriesSQLWithCompressor,
+                        Constants.ROOT_SERIES_NAME + "." + path + "." + sensor, config.DATA_TYPE, config.ENCODING, config.COMPRESSOR));
             }
             statement.close();
         } catch (SQLException e) {
@@ -745,8 +745,8 @@ public class IoTDB implements IDatebase {
     private void createTimeseriesBatch(String path, String sensor, int count, int timeseriesTotal,
                                        Statement statement) {
         try {
-            statement.addBatch(String.format(createStatementSQL, Constants.ROOT_SERIES_NAME + "." + path + "." + sensor,
-                    config.DATA_TYPE, config.ENCODING));
+            statement.addBatch(String.format(createSeriesSQLWithCompressor, Constants.ROOT_SERIES_NAME + "." + path + "." + sensor,
+                    config.DATA_TYPE, config.ENCODING, config.COMPRESSOR));
         } catch (SQLException e) {
             LOGGER.warn("Can`t add batch when creating timeseries because: {}", e.getMessage());
         }
