@@ -675,37 +675,20 @@ public class InfluxDBV2 implements IDatebase {
 		BatchPoints batchPoints = BatchPoints.database(InfluxDBName).tag("async", "true").retentionPolicy(DEFAULT_RP)
 				.consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
 
-		if (loopIndex == 0) {
-			InfluxDataModel model = createDataModel(maxTimestampIndex, device);
+		InfluxDataModel model;
+		for (int i = 0; i < config.CACHE_NUM; i++) {
+			if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
+				nextDelta = possionDistribution.getNextPossionDelta();
+				timestampIndex = maxTimestampIndex - nextDelta;
+			} else {
+				maxTimestampIndex++;
+				timestampIndex = maxTimestampIndex;
+			}
+			//System.out.println("timestampIndex:" + timestampIndex);
+			model = createDataModel(timestampIndex, device);
 			batchPoints.point(model.toInfluxPoint());
-			for (int i = 1; i < config.CACHE_NUM; i++) {
-				if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
-					maxTimestampIndex++;
-					timestampIndex = maxTimestampIndex;
-				} else {
-					nextDelta = possionDistribution.getNextPossionDelta();
-					timestampIndex = maxTimestampIndex - nextDelta;
-				}
-				System.out.println("timestampIndex:" + timestampIndex);
-				model = createDataModel(timestampIndex, device);
-				batchPoints.point(model.toInfluxPoint());
-
-			}
-		}else {
-			InfluxDataModel model;
-			for (int i = 0; i < config.CACHE_NUM; i++) {
-				if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
-					maxTimestampIndex++;
-					timestampIndex = maxTimestampIndex;
-				} else {
-					nextDelta = possionDistribution.getNextPossionDelta();
-					timestampIndex = maxTimestampIndex - nextDelta;
-				}
-				System.out.println("timestampIndex:" + timestampIndex);
-				model = createDataModel(timestampIndex, device);
-				batchPoints.point(model.toInfluxPoint());
-			}
 		}
+
 		long startTime = 0, endTime = 0;
 		try {
 			startTime = System.nanoTime();
@@ -728,8 +711,6 @@ public class InfluxDBV2 implements IDatebase {
 					batchPoints.getPoints().size(), config.REMARK);
 			//throw new SQLException(e.getMessage());
 		}
-
-
 		return maxTimestampIndex;
 	}
 

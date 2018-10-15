@@ -44,6 +44,8 @@ public class Config {
 	public String DATA_TYPE = "FLOAT";
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
+	/** 数据压缩方式 */
+	public String COMPRESSOR = "UNCOMPRESSOR";
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
 	/**是否为批插入乱序模式*/
@@ -71,7 +73,6 @@ public class Config {
  	public String NET_DEVICE = "e";
  	/**存储系统性能信息的文件路径*/
  	public String SERVER_MODE_INFO_FILE = "";
-
 	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 	/**一个样例数据的时序名称*/
@@ -84,10 +85,8 @@ public class Config {
 	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
 	/**上一次结果的日志路径*/
 	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
-
 	/**存放SQL语句文件的完整路径*/
 	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
-
 	/** 文件的名字 */
 	public String FILE_PATH ;
 	/** 是否从文件读取数据*/
