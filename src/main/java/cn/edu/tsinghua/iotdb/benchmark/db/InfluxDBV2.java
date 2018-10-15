@@ -317,7 +317,7 @@ public class InfluxDBV2 implements IDatebase {
 					break;
 				case 3:// 聚合函数查询
 					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, startTime,
-							startTime + config.QUERY_INTERVAL, sensorList);
+							startTime + config.QUERY_INTERVAL, sensorList, true);
 					break;
 				case 4:// 范围查询
 					sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
@@ -394,8 +394,11 @@ public class InfluxDBV2 implements IDatebase {
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
 					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
-					line * config.QUERY_SENSOR_NUM,
-					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+//					line * config.QUERY_SENSOR_NUM,
+//					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+					// FIXME
+					line ,
+					line * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
 					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/1000000.0));
 			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
@@ -559,12 +562,14 @@ public class InfluxDBV2 implements IDatebase {
 	 * @throws SQLException
 	 */
 	private String createQuerySQLStatment(List<Integer> devices, int num, String method, long startTime, long endTime,
-			List<String> sensorList) throws SQLException {
+			List<String> sensorList, boolean flag) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
 		builder.append(" AND time > ");
 		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
-		if(config.QUERY_CHOICE!=7) {
+
+		if(flag) {
+
 			builder.append(" group by device");
 		}
 		return builder.toString();
@@ -596,6 +601,7 @@ public class InfluxDBV2 implements IDatebase {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" AND time > ");
 		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(" group by device");
 		return builder.toString();
 	}
 
@@ -608,10 +614,12 @@ public class InfluxDBV2 implements IDatebase {
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, startTime, endTime, sensorList));
+		builder.delete(builder.lastIndexOf("group by device"), builder.length());
 
 		for (int i = 0; i < sensorList.size(); i++) {
 			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
 		}
+		builder.append(" group by device");
 
 		return builder.toString();
 	}
@@ -624,7 +632,7 @@ public class InfluxDBV2 implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, String method, int num, long startTime, long endTime,
 			Number value, List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, method, startTime, endTime, sensorList));
+		builder.append(createQuerySQLStatment(devices, num, method, startTime, endTime, sensorList, false));
 
 		for (int i = 0; i < sensorList.size(); i++) {
 			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);

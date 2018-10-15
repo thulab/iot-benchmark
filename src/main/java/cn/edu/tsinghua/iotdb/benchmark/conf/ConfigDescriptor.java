@@ -127,7 +127,7 @@ public class ConfigDescriptor {
 				config.QUERY_SLIMIT_N = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_N", config.QUERY_SLIMIT_N+""));
 				config.QUERY_SLIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_OFFSET", config.QUERY_SLIMIT_OFFSET+""));
 				config.CREATE_SCHEMA = Boolean.parseBoolean(properties.getProperty("CREATE_SCHEMA", config.CREATE_SCHEMA+""));
-
+				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

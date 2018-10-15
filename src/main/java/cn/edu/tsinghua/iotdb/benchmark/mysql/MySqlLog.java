@@ -205,7 +205,7 @@ public class MySqlLog {
                 remark = "rate is insignificance because time = 0";
                 rate = -1;
             } else {
-                rate = 1 / time;
+                rate = point / time;
             }
             String mysqlSql = String.format(
                     "insert into " + config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
@@ -486,7 +486,13 @@ public class MySqlLog {
                 case Constants.DB_INFLUX:
                     String influxHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-                            "'ServerIP'", "'" + config.host + "'");
+                            "'ServerIP'", "'" + influxHost + "'");
+                    stat.addBatch(sql);
+                    break;
+                case Constants.DB_OPENTS:
+                    String openTSHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
+                    sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
+                            "'ServerIP'", "'" + openTSHost + "'");
                     stat.addBatch(sql);
                     break;
                 default:
