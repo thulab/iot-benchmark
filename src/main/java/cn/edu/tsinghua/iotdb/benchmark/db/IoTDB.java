@@ -46,6 +46,9 @@ public class IoTDB implements IDatebase {
         sensorRandom = new Random(1 + config.QUERY_SEED);
         timestampRandom = new Random(2 + config.QUERY_SEED);
         probTool = new ProbTool();
+        connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
+                Constants.PASSWD);
+        mySql.initMysql(labID);
     }
 
     @Override
@@ -818,9 +821,7 @@ public class IoTDB implements IDatebase {
 
     @Override
     public void init() throws SQLException {
-        connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
-                Constants.PASSWD);
-        mySql.initMysql(labID);
+        //delete old data of IoTDB is done in script cli-benchmark.sh
     }
 
     @Override

@@ -64,15 +64,15 @@ public class OpenTSDB extends TSDB implements IDatebase {
 		sensorRandom = new Random(1 + config.QUERY_SEED);
 		timestampRandom = new Random(2 + config.QUERY_SEED);
 		probTool = new ProbTool();
-	}
-
-	@Override
-	public void init() throws SQLException {
 		openUrl = config.DB_URL;
 		writeUrl = openUrl + "/api/put?summary ";
 		queryUrl = openUrl + "/api/query";
 		mySql.initMysql(labID);
-		/// api/query/last
+	}
+
+	@Override
+	public void init() throws SQLException {
+		//OpenTSDB do not support delete old data very well
 	}
 
 	@Override

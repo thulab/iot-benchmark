@@ -48,13 +48,16 @@ public class InfluxDBV2 implements IDatebase {
 		this.labID = labID;
 		probTool = new ProbTool();
 		timestampRandom = new Random(2 + config.QUERY_SEED);
+		mySql.initMysql(labID);
+		sensorRandom = new Random(1 + config.QUERY_SEED);
+		InfluxURL = config.DB_URL;
+		InfluxDBName = config.INFLUX_DB_NAME;
+		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
 	}
 
 	@Override
 	public void init() throws SQLException {
-		InfluxURL = config.DB_URL;
-		InfluxDBName = config.INFLUX_DB_NAME;
-		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
+		//delete old data
 		if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
 			if (!influxDB.databaseExists(InfluxDBName)) {
 				throw new SQLException("要查询的数据库" + InfluxDBName + "不存在！");
@@ -65,8 +68,6 @@ public class InfluxDBV2 implements IDatebase {
 			}
 			createDatabase(InfluxDBName);
 		}
-		mySql.initMysql(labID);
-		sensorRandom = new Random(1 + config.QUERY_SEED);
 	}
 
 	@Override

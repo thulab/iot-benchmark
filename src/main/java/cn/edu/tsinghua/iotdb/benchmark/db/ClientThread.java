@@ -66,12 +66,12 @@ public class ClientThread implements Runnable{
 	@Override
 	public void run() {
 		int i = 0;
-		try {
-			database.init();
-		} catch (SQLException e1) {
-			LOOGER.error("{} Fail to init database becasue {}",Thread.currentThread().getName(), e1.getMessage());
-			return;
-		}
+//		try {
+//			database.init();
+//		} catch (SQLException e1) {
+//			LOOGER.error("{} Fail to init database becasue {}",Thread.currentThread().getName(), e1.getMessage());
+//			return;
+//		}
 
 		if(config.READ_FROM_FILE){
 			while(true){

@@ -43,16 +43,17 @@ public class KairosDB extends TSDB implements IDatebase {
         this.labID = labID;
         config = ConfigDescriptor.getInstance().getConfig();
         sensorRandom = new Random(1 + config.QUERY_SEED);
-        Authenticator.setDefault(new CTSDB.MyAuthenticator());
+
+        Url = config.DB_URL;
+        queryUrl = Url + "/%s/_search";
+        writeUrl = Url + "/api/v1/datapoints";
+        mySql.initMysql(labID);
     }
 
 
     @Override
     public void init() throws SQLException {
-        Url = config.DB_URL;
-        queryUrl = Url + "/%s/_search";
-        writeUrl = Url + "/api/v1/datapoints";
-        mySql.initMysql(labID);
+
     }
 
     @Override
