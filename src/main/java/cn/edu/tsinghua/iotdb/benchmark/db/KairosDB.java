@@ -90,7 +90,7 @@ public class KairosDB extends TSDB implements IDatebase {
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
-            model.setType(config.DATA_TYPE);
+            model.setType(config.DATA_TYPE.toLowerCase());
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String, String> tags = new HashMap<>();

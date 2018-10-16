@@ -498,6 +498,9 @@ public class App {
             case Constants.DB_CTS:
                 totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
                 break;
+            case Constants.DB_KAIROS:
+                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+                break;
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
@@ -514,6 +517,8 @@ public class App {
 				return new OpenTSDBFactory();
             case Constants.DB_CTS:
                 return new CTSDBFactory();
+            case Constants.DB_KAIROS:
+                return new KairosDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }

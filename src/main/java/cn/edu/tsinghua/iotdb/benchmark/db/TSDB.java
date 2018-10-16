@@ -41,7 +41,7 @@ public class TSDB {
             errorCount.set(errorCount.get() + size);
             logger.error("Batch insert failed, the failed num is ,{}, Error：{}", size, e.getMessage());
             mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, size,
-                    config.REMARK + e.getMessage());
+                    "error message: " + e.getMessage());
             throw new SQLException(e.getMessage());
         }
     }
