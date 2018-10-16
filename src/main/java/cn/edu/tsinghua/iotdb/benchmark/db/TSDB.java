@@ -29,7 +29,8 @@ public class TSDB {
             endTime = System.nanoTime();
             logger.debug("response:" + response);
             //int errorNum = JSON.parseObject(response).getInteger("failed");
-            //errorCount.set(errorCount.get() + errorNum);
+            int errorNum = 0;
+            errorCount.set(errorCount.get() + errorNum);
             logger.debug(response);
             logger.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
                     Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
