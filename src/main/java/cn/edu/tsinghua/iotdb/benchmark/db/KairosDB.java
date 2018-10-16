@@ -8,6 +8,8 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.KairosDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
+import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
+import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,19 +82,20 @@ public class KairosDB extends TSDB implements IDatebase {
         int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
         int groupNum = deviceNum / groupSize;
         String groupId = "group_" + groupNum;
-        String metricName = metric + groupId;
+
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP
                     + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             KairosDataModel model = new KairosDataModel();
-            model.setName(metricName);
+            model.setName(sensor);
+            model.setType(config.DATA_TYPE);
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String, String> tags = new HashMap<>();
+            tags.put("group", groupId);
             tags.put("device", device);
-            tags.put("sensor", sensor);
             model.setTags(tags);
             models.addLast(model);
         }
@@ -110,8 +113,17 @@ public class KairosDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
-
+    public void insertOneBatch(LinkedList<String> keys, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+        long startTime = 0, endTime = 0;
+        String response = null;
+        LinkedList<KairosDataModel> models = new LinkedList<>();
+        for (String key : keys) {
+            models.addAll(dataMap.get(key));
+            dataMap.remove(key);
+        }
+        String body = JSON.toJSONString(models);
+        LOGGER.debug(body);
+        measure(batchIndex, totalTime, errorCount, startTime, endTime, body, writeUrl, LOGGER, models.size(), mySql, config);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ import java.util.Map;
  * }]
  */
 
-public class KairosDataModel {
+public class KairosDataModel implements Serializable {
     private static final long serialVersionUID = 1L;
     private String name; //full path like root.perform.group_0.d_0.s_0
     private long timestamp;
