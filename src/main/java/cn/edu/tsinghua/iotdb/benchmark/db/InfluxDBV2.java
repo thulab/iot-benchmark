@@ -117,7 +117,7 @@ public class InfluxDBV2 implements IDatebase {
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
 					e.getMessage());
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
-					batchPoints.getPoints().size(), config.REMARK);
+					batchPoints.getPoints().size(), "error message: " + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
 	}
