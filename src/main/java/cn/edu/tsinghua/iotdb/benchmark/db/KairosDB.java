@@ -90,7 +90,7 @@ public class KairosDB extends TSDB implements IDatebase {
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
-            model.setType(config.DATA_TYPE.toLowerCase());
+            model.setType(config.DATA_TYPE);
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String, String> tags = new HashMap<>();
@@ -123,7 +123,25 @@ public class KairosDB extends TSDB implements IDatebase {
         }
         String body = JSON.toJSONString(models);
         LOGGER.debug(body);
-        measure(batchIndex, totalTime, errorCount, startTime, endTime, body, writeUrl, LOGGER, models.size(), mySql, config);
+        try {
+            startTime = System.nanoTime();
+            response = HttpRequest.sendPost(writeUrl, body);
+            endTime = System.nanoTime();
+            LOGGER.debug("response: " + response);
+            LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
+                    Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+                    ((totalTime.get() + (endTime - startTime)) / 1000000000.0),
+                    (models.size() / (double) (endTime - startTime)) * 1000000000);
+            totalTime.set(totalTime.get() + (endTime - startTime));
+            mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
+                    config.REMARK);
+        } catch (IOException e) {
+            errorCount.set(errorCount.get() + models.size());
+            LOGGER.error("Batch insert failed, the failed num is ,{}, Error：{}", models.size(), e.getMessage());
+            mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
+                    config.REMARK + e.getMessage());
+            throw new SQLException(e.getMessage());
+        }
     }
 
     @Override

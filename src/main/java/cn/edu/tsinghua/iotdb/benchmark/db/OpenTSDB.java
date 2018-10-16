@@ -99,7 +99,27 @@ public class OpenTSDB extends TSDB implements IDatebase {
 		}
 		String body = JSON.toJSONString(models);
 		LOGGER.debug(body);
-		measure(batchIndex, totalTime, errorCount, startTime, endTime, body, writeUrl, LOGGER, models.size(), mySql, config);
+		try {
+			startTime = System.nanoTime();
+			response = HttpRequest.sendPost(writeUrl, body);
+			endTime = System.nanoTime();
+			LOGGER.debug("response: " + response);
+			int errorNum = JSON.parseObject(response).getInteger("failed");
+			errorCount.set(errorCount.get() + errorNum);
+			LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
+					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
+					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
+					((models.size() - errorNum) / (double) (endTime - startTime)) * 1000000000);
+			totalTime.set(totalTime.get() + (endTime - startTime));
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, errorNum,
+					config.REMARK);
+		} catch (IOException e) {
+			errorCount.set(errorCount.get() + models.size());
+			LOGGER.error("Batch insert failed, the failed num is ,{}, Error：{}", models.size(), e.getMessage());
+			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
+					config.REMARK + e.getMessage());
+			throw new SQLException(e.getMessage());
+		}
 	}
 
 	private LinkedList<TSDBDataModel> createDataModel(int batchIndex, int dataIndex, String device) {

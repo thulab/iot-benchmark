@@ -108,7 +108,7 @@ public class InfluxDBV2 implements IDatebase {
 					batchIndex,
 					(endTime - startTime) / 1000000000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					config.SENSOR_NUMBER * (batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
+					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
 			totalTime.set(totalTime.get() + (endTime - startTime));
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
@@ -396,7 +396,7 @@ public class InfluxDBV2 implements IDatebase {
 					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
 //					line * config.QUERY_SENSOR_NUM,
 //					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
-					// FIXME
+					// FIXME: is variable line means data points number when query multiple series?
 					line ,
 					line * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
 					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
