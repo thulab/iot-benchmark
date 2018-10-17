@@ -575,8 +575,8 @@ public class InfluxDBV2 implements IDatebase {
 			List<String> sensorList, boolean flag) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
-		builder.append(" AND time > ");
-		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(" AND time >= ");
+		builder.append(startTime * 1000000).append(" AND time <= ").append(endTime * 1000000);
 
 		if(flag) {
 
@@ -609,8 +609,8 @@ public class InfluxDBV2 implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" AND time > ");
-		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" AND time >= ");
+		builder.append(startTime * 1000000).append(" AND time <= ").append(endTime * 1000000);
 		builder.append(" group by device");
 		return builder.toString();
 	}

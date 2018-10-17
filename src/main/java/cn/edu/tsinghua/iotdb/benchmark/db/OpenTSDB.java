@@ -238,8 +238,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
 				if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
 					timeStamp += config.POINT_STEP / 2;
 				}
-				queryMap.put("start", timeStamp - 1);
-				queryMap.put("end", timeStamp + 1);
+				queryMap.put("start", timeStamp);
+				queryMap.put("end", timeStamp);
 				list = getSubQueries(devices);
 				queryMap.put("queries", list);
 				break;
@@ -248,7 +248,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			case 3:// 聚合函数查询
 				list = getSubQueries(devices);
 				for (Map<String, Object> subQuery : list) {
-					subQuery.put("downsample", config.QUERY_INTERVAL + "ms-" + config.QUERY_AGGREGATE_FUN);
+					subQuery.put("downsample", (config.QUERY_INTERVAL + config.POINT_STEP) + "ms-" + config.QUERY_AGGREGATE_FUN);
 				}
 				queryMap.put("queries", list);
 				break;

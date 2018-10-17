@@ -299,7 +299,7 @@ public class KairosDB extends TSDB implements IDatebase {
         if (isGroupBy) {
             samplingMap.put("value", config.TIME_UNIT);
         } else {
-            samplingMap.put("value", config.QUERY_INTERVAL);
+            samplingMap.put("value", config.QUERY_INTERVAL + config.POINT_STEP);
         }
         samplingMap.put("unit", "milliseconds");
         aggMap.put("sampling", samplingMap);
@@ -316,7 +316,7 @@ public class KairosDB extends TSDB implements IDatebase {
         //queryMap.put("time_zone", "Etc/GMT+8");
         //queryMap.put("cache_time", 0);
         queryMap.put(QUERY_START_TIME, startTime);
-        queryMap.put(QUERY_END_TIME, startTime + config.QUERY_INTERVAL - 1);
+        queryMap.put(QUERY_END_TIME, startTime + config.QUERY_INTERVAL);
 
         try {
             List<String> sensorList = new ArrayList<String>();
