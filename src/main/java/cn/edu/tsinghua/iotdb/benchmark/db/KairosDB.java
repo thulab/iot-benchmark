@@ -297,7 +297,7 @@ public class KairosDB extends TSDB implements IDatebase {
         aggMap.put(NAME, config.QUERY_AGGREGATE_FUN);
         Map<String, Object> samplingMap = new HashMap<>();
         if (isGroupBy) {
-            samplingMap.put("value", config.TIME_UNIT + 1);
+            samplingMap.put("value", config.TIME_UNIT);
         } else {
             // sample by (config.QUERY_INTERVAL + 1) so that the result only contains one point
             samplingMap.put("value", config.QUERY_INTERVAL + 1);
