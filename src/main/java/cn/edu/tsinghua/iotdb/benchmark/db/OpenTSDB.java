@@ -248,7 +248,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			case 3:// 聚合函数查询
 				list = getSubQueries(devices);
 				for (Map<String, Object> subQuery : list) {
-					subQuery.put("downsample", (config.QUERY_INTERVAL + config.POINT_STEP) + "ms-" + config.QUERY_AGGREGATE_FUN);
+					subQuery.put("downsample", (config.QUERY_INTERVAL + 1) + "ms-" + config.QUERY_AGGREGATE_FUN);
 				}
 				queryMap.put("queries", list);
 				break;

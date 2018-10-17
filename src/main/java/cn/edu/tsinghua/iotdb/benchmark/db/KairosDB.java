@@ -299,7 +299,7 @@ public class KairosDB extends TSDB implements IDatebase {
         if (isGroupBy) {
             samplingMap.put("value", config.TIME_UNIT);
         } else {
-            samplingMap.put("value", config.QUERY_INTERVAL + config.POINT_STEP);
+            samplingMap.put("value", config.QUERY_INTERVAL);
         }
         samplingMap.put("unit", "milliseconds");
         aggMap.put("sampling", samplingMap);
