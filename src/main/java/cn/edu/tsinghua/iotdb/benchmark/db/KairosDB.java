@@ -13,7 +13,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -27,18 +26,16 @@ public class KairosDB extends TSDB implements IDatebase {
     private String deleteUrl;
     private String dataType = "double";
     private Config config;
-    private MySqlLog mySql = new MySqlLog();
+    private MySqlLog mySql;
     private long labID;
     private float nano2million = 1000000;
     private Map<String, LinkedList<KairosDataModel>> dataMap = new HashMap<>();
-    private Random sensorRandom = null;
+    private Random sensorRandom;
     private static final String QUERY_START_TIME = "start_absolute";
     private static final String QUERY_END_TIME = "end_absolute";
     private static final String METRICS = "metrics";
     private static final String NAME = "name";
     private static final String AGGREGATORS = "aggregators";
-    private static final String user = "root";
-    private static final String pwd = "Root_1230!";
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
 
@@ -181,6 +178,62 @@ public class KairosDB extends TSDB implements IDatebase {
         return 0;
     }
 
+
+    /*
+    query JSON example
+{
+   "start_absolute": 1357023600000,
+   "end_relative": {
+       "value": "5",
+       "unit": "days"
+   },
+   "time_zone": "Asia/Kabul",
+   "metrics": [
+       {
+           "tags": {
+               "host": ["foo", "foo2"],
+               "customer": ["bar"]
+           },
+           "name": "abc.123",
+           "limit": 10000,
+           "aggregators": [
+               {
+                   "name": "sum",
+                   "sampling": {
+                       "value": 10,
+                       "unit": "minutes"
+                   }
+               }
+           ]
+       },
+       {
+           "tags": {
+               "host": ["foo", "foo2"],
+               "customer": ["bar"]
+           },
+           "name": "xyz.123",
+           "aggregators": [
+               {
+                   "name": "avg",
+                   "sampling": {
+                       "value": 10,
+                       "unit": "minutes"
+                   }
+               }
+           ]
+       }
+   ]
+}
+     */
+
+    /**
+     *
+     * @param devices Devices index for this query client
+     * @param isAggregate Mark whether add time aggregator in JSON or not
+     * @param isLimit Mark whether add limit in query
+     * @param isGroupBy Mark whether add group by in JSON, group by device is in all query by default
+     * @return
+     */
     private List<Map<String, Object>> getSubQueries(List<Integer> devices, boolean isAggregate, boolean isLimit, boolean isGroupBy) {
         List<Map<String, Object>> list = new ArrayList<>();
 
