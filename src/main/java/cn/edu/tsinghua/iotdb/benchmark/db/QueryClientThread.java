@@ -58,13 +58,6 @@ public class QueryClientThread implements Runnable {
 	@Override
 	public void run() {
 		int i = 0;
-		try {
-			database.init();
-		} catch (SQLException e1) {
-			LOOGER.error("{} Fail to init database becasue {}", Thread
-					.currentThread().getName(), e1.getMessage());
-			return;
-		}
 
 		long startTimeInterval = config.CACHE_NUM * config.POINT_STEP;
 //		try {

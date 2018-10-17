@@ -555,19 +555,9 @@ public class App {
         IDBFactory idbFactory = null;
         idbFactory = getDBFactory(config);
 
-        IDatebase datebase = null;
         MySqlLog mySql = new MySqlLog();
-        try {
-            mySql.initMysql(System.currentTimeMillis());
-            datebase = idbFactory.buildDB(mySql.getLabID());
-            datebase.init();
-        } catch (SQLException e) {
-            LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
-            return;
-        }
-
+        mySql.initMysql(System.currentTimeMillis());
         mySql.saveTestModel("Double", config.ENCODING);
-
         mySql.savaTestConfig();
 
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
