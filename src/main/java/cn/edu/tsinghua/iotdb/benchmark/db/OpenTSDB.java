@@ -71,7 +71,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 	}
 
 	@Override
-	public void init() throws SQLException {
+	public void init() {
 		//OpenTSDB do not support delete old data very well
 	}
 

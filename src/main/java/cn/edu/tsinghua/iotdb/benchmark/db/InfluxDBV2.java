@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
+import ch.qos.logback.core.util.TimeUtil;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -9,6 +10,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
@@ -67,6 +69,13 @@ public class InfluxDBV2 implements IDatebase {
 				influxDB.deleteDatabase(InfluxDBName);
 			}
 			createDatabase(InfluxDBName);
+		}
+		// wait for deletion complete
+		try {
+			LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+			Thread.sleep(config.INIT_WAIT_TIME);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 

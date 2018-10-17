@@ -48,6 +48,8 @@ public class Config {
 	public String COMPRESSOR = "UNCOMPRESSOR";
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
+	/**数据库初始化等待时间ms*/
+	public long INIT_WAIT_TIME=5000;
 	/**是否为批插入乱序模式*/
 	public boolean IS_OVERFLOW = false;
 	/**乱序模式*/

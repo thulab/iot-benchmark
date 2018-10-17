@@ -10,6 +10,8 @@ import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
 import com.alibaba.fastjson.JSON;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +22,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class KairosDB extends TSDB implements IDatebase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CTSDB.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KairosDB.class);
     private String Url;
     private String queryUrl;
     private String writeUrl;
-    private String metricUrl;
-    private String metric = Constants.ROOT_SERIES_NAME + ".";
+    private String deleteUrl;
     private String dataType = "double";
     private Config config;
     private MySqlLog mySql = new MySqlLog();
@@ -33,6 +34,11 @@ public class KairosDB extends TSDB implements IDatebase {
     private float nano2million = 1000000;
     private Map<String, LinkedList<KairosDataModel>> dataMap = new HashMap<>();
     private Random sensorRandom = null;
+    private static final String QUERY_START_TIME = "start_absolute";
+    private static final String QUERY_END_TIME = "end_absolute";
+    private static final String METRICS = "metrics";
+    private static final String NAME = "name";
+    private static final String AGGREGATORS = "aggregators";
     private static final String user = "root";
     private static final String pwd = "Root_1230!";
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -47,18 +53,34 @@ public class KairosDB extends TSDB implements IDatebase {
         Url = config.DB_URL;
         queryUrl = Url + "/%s/_search";
         writeUrl = Url + "/api/v1/datapoints";
+        deleteUrl = Url + "/api/v1/metric/%s";
         mySql.initMysql(labID);
     }
 
 
     @Override
-    public void init() throws SQLException {
-
+    public void init() {
+        //delete old data
+        for(String sensor: config.SENSOR_CODES){
+            try {
+                HttpRequest.sendDelete(String.format(deleteUrl, sensor),"");
+            } catch (IOException e) {
+                LOGGER.error("Delete metric {} failed when initializing KairosDB.", sensor);
+                e.printStackTrace();
+            }
+        }
+        // wait for deletion complete
+        try {
+            LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+            Thread.sleep(config.INIT_WAIT_TIME);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void createSchema() throws SQLException {
-
+        //no need for KairosDB
     }
 
     @Override
@@ -77,13 +99,17 @@ public class KairosDB extends TSDB implements IDatebase {
         insertOneBatch(keys, batchIndex, totalTime, errorCount);
     }
 
-    private LinkedList<KairosDataModel> createDataModel(int batchIndex, int dataIndex, String device) {
-        LinkedList<KairosDataModel> models = new LinkedList<>();
+    private String getGroup(String device){
         int deviceNum = getDeviceNum(device);
         int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
         int groupNum = deviceNum / groupSize;
-        String groupId = "group_" + groupNum;
+        return "group_" + groupNum;
 
+    }
+
+    private LinkedList<KairosDataModel> createDataModel(int batchIndex, int dataIndex, String device) {
+        LinkedList<KairosDataModel> models = new LinkedList<>();
+        String groupId = getGroup(device);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP
@@ -91,7 +117,8 @@ public class KairosDB extends TSDB implements IDatebase {
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
-            model.setType(config.DATA_TYPE);
+            // KairosDB do not support float as data type
+            model.setType(config.DATA_TYPE.toLowerCase());
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String, String> tags = new HashMap<>();
@@ -155,9 +182,178 @@ public class KairosDB extends TSDB implements IDatebase {
         return 0;
     }
 
+    private List<Map<String, Object>> getSubQueries(List<Integer> devices, boolean isAggregate, boolean isLimit, boolean isGroupBy) {
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        List<String> sensorList = new ArrayList<>(config.SENSOR_CODES);
+        Collections.shuffle(sensorList, sensorRandom);
+
+        for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
+            String metric = sensorList.get(i);
+            Map<String, Object> subQuery = new HashMap<String, Object>();
+            subQuery.put(NAME, metric);
+            Map<String, List<String>> tags = new HashMap<>();
+            List<String> deviceList = new ArrayList<>();
+            List<String> groupList = new ArrayList<>();
+            for(int d: devices){
+                deviceList.add("d_" + d);
+            }
+            for(String d: deviceList){
+                groupList.add(getGroup(d));
+            }
+            List<String> uniqueGroupList = new ArrayList<>(new TreeSet<>(groupList));
+            tags.put("group", uniqueGroupList);
+            tags.put("device", deviceList);
+            subQuery.put("tags", tags);
+            if(isAggregate && !config.QUERY_AGGREGATE_FUN.equals("")){
+                List<Map<String, Object>> aggList = getAggList();
+                subQuery.put(AGGREGATORS, aggList);
+            }
+            if(isLimit && config.QUERY_LIMIT_N >= 0){
+                subQuery.put("limit", config.QUERY_LIMIT_N);
+            }
+            List<Map<String, Object>> groupByList = new ArrayList<>();
+
+            Map<String, Object> groupByTagsMap = new HashMap<String, Object>();
+            groupByTagsMap.put(NAME, "tag");
+            List<String> groupByTagsList = new ArrayList<>();
+            groupByTagsList.add("device");
+            groupByTagsMap.put("tags", groupByTagsList);
+            groupByList.add(groupByTagsMap);
+
+            if(isGroupBy){
+                Map<String, Object> groupByTimeMap = new HashMap<String, Object>();
+                groupByTimeMap.put(NAME, "time");
+                List<String> groupByTimeList = new ArrayList<>();
+                groupByTimeList.add("device");
+                groupByTimeMap.put("tags", groupByTagsList);
+                groupByList.add(groupByTimeMap);
+            }
+            subQuery.put("group_by", groupByList);
+
+            list.add(subQuery);
+        }
+
+        return list;
+    }
+
+    private List<Map<String, Object>> getAggList() {
+        List<Map<String, Object>> aggList = new ArrayList<>();
+        Map<String, Object> aggMap = new HashMap<>();
+        aggMap.put(NAME, config.QUERY_AGGREGATE_FUN);
+        Map<String, Object> samplingMap = new HashMap<>();
+        samplingMap.put("value", config.QUERY_INTERVAL);
+        samplingMap.put("unit", "milliseconds");
+        aggMap.put("sampling", samplingMap);
+        aggList.add(aggMap);
+        return aggList;
+    }
+
     @Override
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client, ThreadLocal<Long> errorCount) {
+        String sql = "";
+        long startTimeStamp = 0, endTimeStamp = 0;
+        Map<String, Object> queryMap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        //queryMap.put("time_zone", "Etc/GMT+8");
+        //queryMap.put("cache_time", 0);
+        queryMap.put(QUERY_START_TIME, startTime);
+        queryMap.put(QUERY_END_TIME, startTime + config.QUERY_INTERVAL);
 
+        try {
+            List<String> sensorList = new ArrayList<String>();
+            switch (config.QUERY_CHOICE) {
+                case 1:// 精确点查询
+                    long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
+                            + Constants.START_TIMESTAMP;
+                    if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
+                        timeStamp += config.POINT_STEP / 2;
+                    }
+                    queryMap.put(QUERY_START_TIME, timeStamp - 1);
+                    queryMap.put(QUERY_END_TIME, timeStamp + 1);
+                    list = getSubQueries(devices, false, false,false);
+                    queryMap.put(METRICS, list);
+                    break;
+                case 2:// 模糊点查询（暂未实现）
+                    break;
+                case 3:// 聚合函数查询
+                    list = getSubQueries(devices, true, false,false);
+                    queryMap.put(METRICS, list);
+                    break;
+                case 4:// 范围查询
+                    list = getSubQueries(devices, false, false,false);
+                    queryMap.put("queries", list);
+                    break;
+                case 5:// 条件查询
+
+                    break;
+                case 6:// 最近点查询
+
+                    queryMap.put("queries", list);
+                    break;
+                case 7:// groupBy查询（暂时只有一个时间段）
+                    list = getSubQueries(devices, true, false,true);
+                    for (Map<String, Object> subQuery : list) {
+                        subQuery.put("downsample", config.TIME_UNIT + "ms-" + config.QUERY_AGGREGATE_FUN);
+                    }
+                    queryMap.put("queries", list);
+                    break;
+                case 8:// query with limit and series limit and their offsets
+                    break;
+                case 9:// criteria query with limit
+                    break;
+                case 10:// aggregation function query without any filter
+
+                    break;
+                case 11:// aggregation function query with value filter
+                    break;
+            }
+            sql = JSON.toJSONString(queryMap);
+            LOGGER.debug("JSON.toJSONString(queryMap): "+sql);
+
+            String str = null;
+            if(config.QUERY_CHOICE != 6) {
+                startTimeStamp = System.nanoTime();
+                str = HttpRequest.sendPost(queryUrl, sql);
+                endTimeStamp = System.nanoTime();
+            }
+            else {
+                startTimeStamp = System.nanoTime();
+//				str = HttpRequest.sendPost(queryUrl+"/last", sql);
+                str = HttpRequest.sendPost(queryUrl, sql);
+                endTimeStamp = System.nanoTime();
+            }
+            LOGGER.debug("Response: "+str);
+
+            int pointNum = getOneQueryPointNum(str);
+            client.setTotalPoint(client.getTotalPoint() + pointNum);
+            client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
+            LOGGER.info(
+                    "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
+                            + "TotalTime {}s with totalPoint {} rate is {}points/s",
+                    Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000000000.0, pointNum,
+                    pointNum * 1000000000.0 / (endTimeStamp - startTimeStamp), (client.getTotalTime()) / 1000000000.0,
+                    client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
+            mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
+        } catch (Exception e) {
+            queryErrorProcess(index, errorCount, sql, startTimeStamp, endTimeStamp, e, LOGGER, mySql);
+        }
+    }
+
+    private int getOneQueryPointNum(String str) {
+        int pointNum = 0;
+        if(config.QUERY_CHOICE != 6) {
+            JSONArray jsonArray = new JSONArray(str);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject json = (JSONObject) jsonArray.get(i);
+                pointNum += json.getJSONObject("dps").length();
+            }
+        }
+        else {
+            JSONArray jsonArray = new JSONArray(str);
+            pointNum += jsonArray.length();
+        }
+        return pointNum;
     }
 
     @Override

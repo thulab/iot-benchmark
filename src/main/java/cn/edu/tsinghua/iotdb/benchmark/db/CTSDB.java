@@ -40,10 +40,14 @@ public class CTSDB extends TSDB implements IDatebase {
     private SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
 
     public CTSDB(long labID){
+        config = ConfigDescriptor.getInstance().getConfig();
         mySql = new MySqlLog();
         this.labID = labID;
-        config = ConfigDescriptor.getInstance().getConfig();
         sensorRandom = new Random(1 + config.QUERY_SEED);
+        Url = config.DB_URL;
+        queryUrl = Url + "/%s/_search";
+        metricUrl = Url + "/_metric/";
+        mySql.initMysql(labID);
         Authenticator.setDefault(new MyAuthenticator());
     }
 
@@ -55,11 +59,8 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void init() throws SQLException {
-        Url = config.DB_URL;
-        queryUrl = Url + "/%s/_search";
-        metricUrl = Url + "/_metric/";
-        mySql.initMysql(labID);
+    public void init() {
+
     }
 
     @Override
