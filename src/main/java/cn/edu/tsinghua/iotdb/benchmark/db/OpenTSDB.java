@@ -64,15 +64,15 @@ public class OpenTSDB extends TSDB implements IDatebase {
 		sensorRandom = new Random(1 + config.QUERY_SEED);
 		timestampRandom = new Random(2 + config.QUERY_SEED);
 		probTool = new ProbTool();
-	}
-
-	@Override
-	public void init() throws SQLException {
 		openUrl = config.DB_URL;
 		writeUrl = openUrl + "/api/put?summary ";
 		queryUrl = openUrl + "/api/query";
 		mySql.initMysql(labID);
-		/// api/query/last
+	}
+
+	@Override
+	public void init() {
+		//OpenTSDB do not support delete old data very well
 	}
 
 	@Override
@@ -103,13 +103,13 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			startTime = System.nanoTime();
 			response = HttpRequest.sendPost(writeUrl, body);
 			endTime = System.nanoTime();
+			LOGGER.debug("response: " + response);
 			int errorNum = JSON.parseObject(response).getInteger("failed");
 			errorCount.set(errorCount.get() + errorNum);
-			LOGGER.debug(response);
 			LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
 					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					(models.size() / (double) (endTime - startTime)) * 1000000000);
+					((models.size() - errorNum) / (double) (endTime - startTime)) * 1000000000);
 			totalTime.set(totalTime.get() + (endTime - startTime));
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, errorNum,
 					config.REMARK);
@@ -238,8 +238,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
 				if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
 					timeStamp += config.POINT_STEP / 2;
 				}
-				queryMap.put("start", timeStamp - 1);
-				queryMap.put("end", timeStamp + 1);
+				queryMap.put("start", timeStamp);
+				queryMap.put("end", timeStamp);
 				list = getSubQueries(devices);
 				queryMap.put("queries", list);
 				break;
@@ -248,7 +248,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			case 3:// 聚合函数查询
 				list = getSubQueries(devices);
 				for (Map<String, Object> subQuery : list) {
-					subQuery.put("downsample", config.QUERY_INTERVAL + "ms-" + config.QUERY_AGGREGATE_FUN);
+					subQuery.put("downsample", (config.QUERY_INTERVAL + 1) + "ms-" + config.QUERY_AGGREGATE_FUN);
 				}
 				queryMap.put("queries", list);
 				break;
@@ -301,12 +301,12 @@ public class OpenTSDB extends TSDB implements IDatebase {
 				str = HttpRequest.sendPost(queryUrl, sql);
 				endTimeStamp = System.nanoTime();
 			}
-			else {
-				startTimeStamp = System.nanoTime();
-//				str = HttpRequest.sendPost(queryUrl+"/last", sql);
-				str = HttpRequest.sendPost(queryUrl, sql);
-				endTimeStamp = System.nanoTime();
-			}
+//			else {
+//				startTimeStamp = System.nanoTime();
+////				str = HttpRequest.sendPost(queryUrl+"/last", sql);
+//				str = HttpRequest.sendPost(queryUrl, sql);
+//				endTimeStamp = System.nanoTime();
+//			}
 			LOGGER.debug("Response: "+str);
 			
 			int pointNum = getOneQueryPointNum(str);

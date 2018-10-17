@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
+import ch.qos.logback.core.util.TimeUtil;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -9,6 +10,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
@@ -48,13 +50,16 @@ public class InfluxDBV2 implements IDatebase {
 		this.labID = labID;
 		probTool = new ProbTool();
 		timestampRandom = new Random(2 + config.QUERY_SEED);
+		mySql.initMysql(labID);
+		sensorRandom = new Random(1 + config.QUERY_SEED);
+		InfluxURL = config.DB_URL;
+		InfluxDBName = config.INFLUX_DB_NAME;
+		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
 	}
 
 	@Override
 	public void init() throws SQLException {
-		InfluxURL = config.DB_URL;
-		InfluxDBName = config.INFLUX_DB_NAME;
-		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
+		//delete old data
 		if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
 			if (!influxDB.databaseExists(InfluxDBName)) {
 				throw new SQLException("要查询的数据库" + InfluxDBName + "不存在！");
@@ -65,8 +70,13 @@ public class InfluxDBV2 implements IDatebase {
 			}
 			createDatabase(InfluxDBName);
 		}
-		mySql.initMysql(labID);
-		sensorRandom = new Random(1 + config.QUERY_SEED);
+		// wait for deletion complete
+		try {
+			LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+			Thread.sleep(config.INIT_WAIT_TIME);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -108,7 +118,7 @@ public class InfluxDBV2 implements IDatebase {
 					batchIndex,
 					(endTime - startTime) / 1000000000.0,
 					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					config.SENSOR_NUMBER * (batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
+					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
 			totalTime.set(totalTime.get() + (endTime - startTime));
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
@@ -117,7 +127,7 @@ public class InfluxDBV2 implements IDatebase {
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
 					e.getMessage());
 			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
-					batchPoints.getPoints().size(), config.REMARK);
+					batchPoints.getPoints().size(), "error message: " + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
 	}
@@ -396,7 +406,7 @@ public class InfluxDBV2 implements IDatebase {
 					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
 //					line * config.QUERY_SENSOR_NUM,
 //					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
-					// FIXME
+					// FIXME: is variable line means data points number when query multiple series?
 					line ,
 					line * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
 					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
@@ -565,9 +575,11 @@ public class InfluxDBV2 implements IDatebase {
 			List<String> sensorList, boolean flag) throws SQLException {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, method, sensorList, false));
-		builder.append(" AND time > ");
-		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(" AND time >= ");
+		builder.append(startTime * 1000000).append(" AND time <= ").append(endTime * 1000000);
+
 		if(flag) {
+
 			builder.append(" group by device");
 		}
 		return builder.toString();
@@ -597,8 +609,8 @@ public class InfluxDBV2 implements IDatebase {
 	private String createQuerySQLStatment(List<Integer> devices, int num, long startTime, long endTime,
 			List<String> sensorList) throws SQLException {
 		StringBuilder builder = new StringBuilder();
-		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" AND time > ");
-		builder.append(startTime * 1000000).append(" AND time < ").append(endTime * 1000000);
+		builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" AND time >= ");
+		builder.append(startTime * 1000000).append(" AND time <= ").append(endTime * 1000000);
 		builder.append(" group by device");
 		return builder.toString();
 	}

@@ -46,6 +46,9 @@ public class IoTDB implements IDatebase {
         sensorRandom = new Random(1 + config.QUERY_SEED);
         timestampRandom = new Random(2 + config.QUERY_SEED);
         probTool = new ProbTool();
+        connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
+                Constants.PASSWD);
+        mySql.initMysql(labID);
     }
 
     @Override
@@ -589,15 +592,15 @@ public class IoTDB implements IDatebase {
     1.Exact point query:
     SELECT s_57 FROM root.performf.group_4.d_49 WHERE time = 2010-01-01 12:00:00
     2.Aggregation function query:
-    SELECT max_value(s_76) FROM root.performf.group_3.d_31 WHERE time > 2010-01-01 12:00:00 AND time < 2010-01-01 12:30:00
+    SELECT max_value(s_76) FROM root.performf.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01 12:30:00
     3.Range query:
-    SELECT s_30 FROM root.performf.group_4.d_43 WHERE time > 2010-01-01 12:00:00 AND time < 2010-01-01 12:30:00
+    SELECT s_30 FROM root.performf.group_4.d_43 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01 12:30:00
     4.Criteria query:
-    SELECT s_39 FROM root.performf.group_2.d_29 WHERE time > 2010-01-01 12:00:00 AND time < 2010-01-01 12:30:00 AND root.performf.group_2.d_29.s_39 > 0.0
+    SELECT s_39 FROM root.performf.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01 12:30:00 AND root.performf.group_2.d_29.s_39 > 0.0
     5.Latest point query:
     SELECT max_time(s_76) FROM root.performf.group_3.d_31
     6.Group-by query:
-    SELECT max_value(s_81) FROM root.performf.group_9.d_92 WHERE root.performf.group_9.d_92.s_81 > 0.0  GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
+    SELECT max_value(s_81) FROM root.performf.group_9.d_92 WHERE root.performf.group_9.d_92.s_81 >= 0.0  GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
     */
     @Override
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client,
@@ -818,9 +821,7 @@ public class IoTDB implements IDatebase {
 
     @Override
     public void init() throws SQLException {
-        connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
-                Constants.PASSWD);
-        mySql.initMysql(labID);
+        //delete old data of IoTDB is done in script cli-benchmark.sh
     }
 
     @Override
@@ -1065,8 +1066,8 @@ public class IoTDB implements IDatebase {
         StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num, method, sensorList));
         String strstartTime = sdf.format(new Date(startTime));
         String strendTime = sdf.format(new Date(endTime));
-        builder.append(" WHERE time > ");
-        builder.append(strstartTime).append(" AND time < ").append(strendTime);
+        builder.append(" WHERE time >= ");
+        builder.append(strstartTime).append(" AND time <= ").append(strendTime);
         return builder.toString();
     }
 
@@ -1081,8 +1082,8 @@ public class IoTDB implements IDatebase {
         String strstartTime = sdf.format(new Date(startTime));
         String strendTime = sdf.format(new Date(endTime));
         StringBuilder builder = new StringBuilder();
-        builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time > ");
-        builder.append(strstartTime).append(" AND time < ").append(strendTime);
+        builder.append(createQuerySQLStatment(devices, num, sensorList)).append(" WHERE time >= ");
+        builder.append(strstartTime).append(" AND time <= ").append(strendTime);
         return builder.toString();
     }
 

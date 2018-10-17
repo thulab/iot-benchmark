@@ -498,6 +498,9 @@ public class App {
             case Constants.DB_CTS:
                 totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
                 break;
+            case Constants.DB_KAIROS:
+                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+                break;
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
@@ -514,6 +517,8 @@ public class App {
 				return new OpenTSDBFactory();
             case Constants.DB_CTS:
                 return new CTSDBFactory();
+            case Constants.DB_KAIROS:
+                return new KairosDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
@@ -550,19 +555,9 @@ public class App {
         IDBFactory idbFactory = null;
         idbFactory = getDBFactory(config);
 
-        IDatebase datebase = null;
         MySqlLog mySql = new MySqlLog();
-        try {
-            mySql.initMysql(System.currentTimeMillis());
-            datebase = idbFactory.buildDB(mySql.getLabID());
-            datebase.init();
-        } catch (SQLException e) {
-            LOGGER.error("Fail to connect to database becasue {}", e.getMessage());
-            return;
-        }
-
+        mySql.initMysql(System.currentTimeMillis());
         mySql.saveTestModel("Double", config.ENCODING);
-
         mySql.savaTestConfig();
 
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
