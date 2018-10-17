@@ -327,8 +327,8 @@ public class KairosDB extends TSDB implements IDatebase {
                     if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
                         timeStamp += config.POINT_STEP / 2;
                     }
-                    queryMap.put(QUERY_START_TIME, timeStamp - 1);
-                    queryMap.put(QUERY_END_TIME, timeStamp + 1);
+                    queryMap.put(QUERY_START_TIME, timeStamp);
+                    queryMap.put(QUERY_END_TIME, timeStamp);
                     list = getSubQueries(devices, false, false, false);
                     queryMap.put(METRICS, list);
                     break;
