@@ -316,7 +316,7 @@ public class KairosDB extends TSDB implements IDatebase {
         //queryMap.put("time_zone", "Etc/GMT+8");
         //queryMap.put("cache_time", 0);
         queryMap.put(QUERY_START_TIME, startTime);
-        queryMap.put(QUERY_END_TIME, startTime + config.QUERY_INTERVAL);
+        queryMap.put(QUERY_END_TIME, startTime + config.QUERY_INTERVAL - 1);
 
         try {
             List<String> sensorList = new ArrayList<String>();
