@@ -276,7 +276,7 @@ public class KairosDB extends TSDB implements IDatebase {
             if (isGroupBy) {
                 Map<String, Object> groupByTimeMap = new HashMap<>();
                 groupByTimeMap.put(NAME, "time");
-                //groupByTimeMap.put("group_count", String.valueOf(config.QUERY_INTERVAL / config.TIME_UNIT));
+                groupByTimeMap.put("group_count", String.valueOf(config.QUERY_INTERVAL / config.TIME_UNIT));
                 Map<String, String> rangeSizeMap = new HashMap<>();
                 rangeSizeMap.put("value", String.valueOf(config.TIME_UNIT));
                 rangeSizeMap.put("unit", "milliseconds");
@@ -297,7 +297,7 @@ public class KairosDB extends TSDB implements IDatebase {
         aggMap.put(NAME, config.QUERY_AGGREGATE_FUN);
         Map<String, Object> samplingMap = new HashMap<>();
         if (isGroupBy) {
-            samplingMap.put("value", config.TIME_UNIT);
+            samplingMap.put("value", config.TIME_UNIT + 1);
         } else {
             // sample by (config.QUERY_INTERVAL + 1) so that the result only contains one point
             samplingMap.put("value", config.QUERY_INTERVAL + 1);
