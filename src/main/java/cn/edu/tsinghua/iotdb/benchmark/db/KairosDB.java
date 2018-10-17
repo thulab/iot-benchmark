@@ -361,7 +361,7 @@ public class KairosDB extends TSDB implements IDatebase {
                     queryMap.put(METRICS, list);
                     break;
                 case 10:// aggregation function query without any filter
-                    list = getSubQueries(devices, false, true, false);
+                    list = getSubQueries(devices, true, true, false);
                     queryMap.put(METRICS, list);
                     queryMap.remove(QUERY_END_TIME);
                     break;
