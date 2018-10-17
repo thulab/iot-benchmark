@@ -301,12 +301,12 @@ public class OpenTSDB extends TSDB implements IDatebase {
 				str = HttpRequest.sendPost(queryUrl, sql);
 				endTimeStamp = System.nanoTime();
 			}
-			else {
-				startTimeStamp = System.nanoTime();
-//				str = HttpRequest.sendPost(queryUrl+"/last", sql);
-				str = HttpRequest.sendPost(queryUrl, sql);
-				endTimeStamp = System.nanoTime();
-			}
+//			else {
+//				startTimeStamp = System.nanoTime();
+////				str = HttpRequest.sendPost(queryUrl+"/last", sql);
+//				str = HttpRequest.sendPost(queryUrl, sql);
+//				endTimeStamp = System.nanoTime();
+//			}
 			LOGGER.debug("Response: "+str);
 			
 			int pointNum = getOneQueryPointNum(str);

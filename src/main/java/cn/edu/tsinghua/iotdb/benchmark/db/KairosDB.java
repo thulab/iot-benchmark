@@ -6,17 +6,15 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.KairosDataModel;
-import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
 import com.alibaba.fastjson.JSON;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.Authenticator;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -44,14 +42,14 @@ public class KairosDB extends TSDB implements IDatebase {
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
 
-    public KairosDB(long labID){
+    public KairosDB(long labID) {
         mySql = new MySqlLog();
         this.labID = labID;
         config = ConfigDescriptor.getInstance().getConfig();
         sensorRandom = new Random(1 + config.QUERY_SEED);
 
         Url = config.DB_URL;
-        queryUrl = Url + "/%s/_search";
+        queryUrl = Url + "/api/v1/datapoints/query";
         writeUrl = Url + "/api/v1/datapoints";
         deleteUrl = Url + "/api/v1/metric/%s";
         mySql.initMysql(labID);
@@ -61,9 +59,9 @@ public class KairosDB extends TSDB implements IDatebase {
     @Override
     public void init() {
         //delete old data
-        for(String sensor: config.SENSOR_CODES){
+        for (String sensor : config.SENSOR_CODES) {
             try {
-                HttpRequest.sendDelete(String.format(deleteUrl, sensor),"");
+                HttpRequest.sendDelete(String.format(deleteUrl, sensor), "");
             } catch (IOException e) {
                 LOGGER.error("Delete metric {} failed when initializing KairosDB.", sensor);
                 e.printStackTrace();
@@ -99,7 +97,7 @@ public class KairosDB extends TSDB implements IDatebase {
         insertOneBatch(keys, batchIndex, totalTime, errorCount);
     }
 
-    private String getGroup(String device){
+    private String getGroup(String device) {
         int deviceNum = getDeviceNum(device);
         int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
         int groupNum = deviceNum / groupSize;
@@ -179,6 +177,7 @@ public class KairosDB extends TSDB implements IDatebase {
 
     @Override
     public long getTotalTimeInterval() throws SQLException {
+
         return 0;
     }
 
@@ -195,38 +194,40 @@ public class KairosDB extends TSDB implements IDatebase {
             Map<String, List<String>> tags = new HashMap<>();
             List<String> deviceList = new ArrayList<>();
             List<String> groupList = new ArrayList<>();
-            for(int d: devices){
+            for (int d : devices) {
                 deviceList.add("d_" + d);
             }
-            for(String d: deviceList){
+            for (String d : deviceList) {
                 groupList.add(getGroup(d));
             }
             List<String> uniqueGroupList = new ArrayList<>(new TreeSet<>(groupList));
             tags.put("group", uniqueGroupList);
             tags.put("device", deviceList);
             subQuery.put("tags", tags);
-            if(isAggregate && !config.QUERY_AGGREGATE_FUN.equals("")){
-                List<Map<String, Object>> aggList = getAggList();
+            if (isAggregate && !config.QUERY_AGGREGATE_FUN.equals("")) {
+                List<Map<String, Object>> aggList = getAggList(isGroupBy);
                 subQuery.put(AGGREGATORS, aggList);
             }
-            if(isLimit && config.QUERY_LIMIT_N >= 0){
+            if (isLimit && config.QUERY_LIMIT_N >= 0) {
                 subQuery.put("limit", config.QUERY_LIMIT_N);
             }
             List<Map<String, Object>> groupByList = new ArrayList<>();
 
-            Map<String, Object> groupByTagsMap = new HashMap<String, Object>();
+            Map<String, Object> groupByTagsMap = new HashMap<>();
             groupByTagsMap.put(NAME, "tag");
             List<String> groupByTagsList = new ArrayList<>();
             groupByTagsList.add("device");
             groupByTagsMap.put("tags", groupByTagsList);
             groupByList.add(groupByTagsMap);
 
-            if(isGroupBy){
-                Map<String, Object> groupByTimeMap = new HashMap<String, Object>();
+            if (isGroupBy) {
+                Map<String, Object> groupByTimeMap = new HashMap<>();
                 groupByTimeMap.put(NAME, "time");
-                List<String> groupByTimeList = new ArrayList<>();
-                groupByTimeList.add("device");
-                groupByTimeMap.put("tags", groupByTagsList);
+                groupByTimeMap.put("group_count", String.valueOf(config.QUERY_INTERVAL / config.TIME_UNIT));
+                Map<String, String> rangeSizeMap = new HashMap<>();
+                rangeSizeMap.put("value", String.valueOf(config.TIME_UNIT));
+                rangeSizeMap.put("unit", "milliseconds");
+                groupByTimeMap.put("range_size", rangeSizeMap);
                 groupByList.add(groupByTimeMap);
             }
             subQuery.put("group_by", groupByList);
@@ -237,12 +238,16 @@ public class KairosDB extends TSDB implements IDatebase {
         return list;
     }
 
-    private List<Map<String, Object>> getAggList() {
+    private List<Map<String, Object>> getAggList(boolean isGroupBy) {
         List<Map<String, Object>> aggList = new ArrayList<>();
         Map<String, Object> aggMap = new HashMap<>();
         aggMap.put(NAME, config.QUERY_AGGREGATE_FUN);
         Map<String, Object> samplingMap = new HashMap<>();
-        samplingMap.put("value", config.QUERY_INTERVAL);
+        if (isGroupBy) {
+            samplingMap.put("value", config.TIME_UNIT);
+        } else {
+            samplingMap.put("value", config.QUERY_INTERVAL);
+        }
         samplingMap.put("unit", "milliseconds");
         aggMap.put("sampling", samplingMap);
         aggList.add(aggMap);
@@ -271,59 +276,55 @@ public class KairosDB extends TSDB implements IDatebase {
                     }
                     queryMap.put(QUERY_START_TIME, timeStamp - 1);
                     queryMap.put(QUERY_END_TIME, timeStamp + 1);
-                    list = getSubQueries(devices, false, false,false);
+                    list = getSubQueries(devices, false, false, false);
                     queryMap.put(METRICS, list);
                     break;
                 case 2:// 模糊点查询（暂未实现）
                     break;
                 case 3:// 聚合函数查询
-                    list = getSubQueries(devices, true, false,false);
+                    list = getSubQueries(devices, true, false, false);
                     queryMap.put(METRICS, list);
                     break;
                 case 4:// 范围查询
-                    list = getSubQueries(devices, false, false,false);
-                    queryMap.put("queries", list);
+                    list = getSubQueries(devices, false, false, false);
+                    queryMap.put(METRICS, list);
                     break;
-                case 5:// 条件查询
-
+                case 5:// 条件查询: 时间过滤条件 + 值过滤条件
+                    //not support yet
                     break;
                 case 6:// 最近点查询
-
-                    queryMap.put("queries", list);
+                    //not support yet
                     break;
                 case 7:// groupBy查询（暂时只有一个时间段）
-                    list = getSubQueries(devices, true, false,true);
-                    for (Map<String, Object> subQuery : list) {
-                        subQuery.put("downsample", config.TIME_UNIT + "ms-" + config.QUERY_AGGREGATE_FUN);
-                    }
-                    queryMap.put("queries", list);
+                    list = getSubQueries(devices, true, false, true);
+                    queryMap.put(METRICS, list);
                     break;
                 case 8:// query with limit and series limit and their offsets
+                    //not support yet
                     break;
-                case 9:// criteria query with limit
+                case 9:// range query with limit
+                    list = getSubQueries(devices, false, true, false);
+                    queryMap.put(METRICS, list);
                     break;
                 case 10:// aggregation function query without any filter
-
+                    list = getSubQueries(devices, false, true, false);
+                    queryMap.put(METRICS, list);
+                    queryMap.remove(QUERY_END_TIME);
                     break;
                 case 11:// aggregation function query with value filter
+                    //not support yet
                     break;
             }
             sql = JSON.toJSONString(queryMap);
-            LOGGER.debug("JSON.toJSONString(queryMap): "+sql);
+            LOGGER.debug("JSON.toJSONString(queryMap): " + sql);
 
             String str = null;
-            if(config.QUERY_CHOICE != 6) {
-                startTimeStamp = System.nanoTime();
-                str = HttpRequest.sendPost(queryUrl, sql);
-                endTimeStamp = System.nanoTime();
-            }
-            else {
-                startTimeStamp = System.nanoTime();
-//				str = HttpRequest.sendPost(queryUrl+"/last", sql);
-                str = HttpRequest.sendPost(queryUrl, sql);
-                endTimeStamp = System.nanoTime();
-            }
-            LOGGER.debug("Response: "+str);
+
+            startTimeStamp = System.nanoTime();
+            str = HttpRequest.sendPost(queryUrl, sql);
+            endTimeStamp = System.nanoTime();
+
+            LOGGER.debug("Response: " + str);
 
             int pointNum = getOneQueryPointNum(str);
             client.setTotalPoint(client.getTotalPoint() + pointNum);
@@ -342,17 +343,17 @@ public class KairosDB extends TSDB implements IDatebase {
 
     private int getOneQueryPointNum(String str) {
         int pointNum = 0;
-        if(config.QUERY_CHOICE != 6) {
-            JSONArray jsonArray = new JSONArray(str);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject json = (JSONObject) jsonArray.get(i);
-                pointNum += json.getJSONObject("dps").length();
+
+        JSONArray jsonArrayQueries = JSON.parseObject(str).getJSONArray("queries");
+        for (int i = 0; i < jsonArrayQueries.size(); i++) {
+            JSONObject json = jsonArrayQueries.getJSONObject(i);
+            JSONArray results = json.getJSONArray("results");
+            for (int j = 0; j < results.size(); j++) {
+                JSONObject resultJSON = results.getJSONObject(j);
+                pointNum += resultJSON.getJSONArray("values").size();
             }
         }
-        else {
-            JSONArray jsonArray = new JSONArray(str);
-            pointNum += jsonArray.length();
-        }
+
         return pointNum;
     }
 
