@@ -484,15 +484,11 @@ public class MySqlLog {
                     stat.addBatch(sql);
                     break;
                 case Constants.DB_INFLUX:
-                    String influxHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
-                    sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-                            "'ServerIP'", "'" + influxHost + "'");
-                    stat.addBatch(sql);
-                    break;
                 case Constants.DB_OPENTS:
-                    String openTSHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
+                case Constants.DB_KAIROS:
+                    String TSHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-                            "'ServerIP'", "'" + openTSHost + "'");
+                            "'ServerIP'", "'" + TSHost + "'");
                     stat.addBatch(sql);
                     break;
                 default:
