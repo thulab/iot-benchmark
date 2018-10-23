@@ -17,12 +17,14 @@ public interface IDatebase {
     void insertOneBatch(String device,
                         int batchIndex,
                         ThreadLocal<Long> totalTime,
-                        ThreadLocal<Long> errorCount) throws SQLException;
+                        ThreadLocal<Long> errorCount,
+                        ArrayList<Long> latencies) throws SQLException;
 
     void insertOneBatch(LinkedList<String> cons,
                         int batchIndex,
                         ThreadLocal<Long> totalTime,
-                        ThreadLocal<Long> errorCount) throws SQLException;
+                        ThreadLocal<Long> errorCount,
+                        ArrayList<Long> latencies) throws SQLException;
 
     void close() throws SQLException;
 
@@ -32,12 +34,14 @@ public interface IDatebase {
                          int index,
                          long startTime,
                          QueryClientThread client,
-                         ThreadLocal<Long> errorCount);
+                         ThreadLocal<Long> errorCount,
+                         ArrayList<Long> latencies);
 
     void insertOneBatchMulDevice(LinkedList<String> deviceCodes,
                                  int batchIndex,
                                  ThreadLocal<Long> totalTime,
-                                 ThreadLocal<Long> errorCount) throws SQLException;
+                                 ThreadLocal<Long> errorCount,
+                                 ArrayList<Long> latencies) throws SQLException;
 
     long count(String group, String device, String sensor);
 
@@ -46,7 +50,8 @@ public interface IDatebase {
     void insertGenDataOneBatch(String device,
                                int i,
                                ThreadLocal<Long> totalTime,
-                               ThreadLocal<Long> errorCount) throws SQLException;
+                               ThreadLocal<Long> errorCount,
+                               ArrayList<Long> latencies) throws SQLException;
 
     void exeSQLFromFileByOneBatch() throws SQLException, IOException;
 
@@ -56,12 +61,15 @@ public interface IDatebase {
                                ThreadLocal<Long> errorCount,
                                ArrayList<Integer> before,
                                Integer maxTimestampIndex,
-                               Random random) throws SQLException;
+                               Random random,
+                               ArrayList<Long> latencies) throws SQLException;
 
     int insertOverflowOneBatchDist(String device,
-                               int loopIndex,
-                               ThreadLocal<Long> totalTime,
-                               ThreadLocal<Long> errorCount,
-                               Integer maxTimestampIndex,
-                               Random random) throws SQLException;
+                                   int loopIndex,
+                                   ThreadLocal<Long> totalTime,
+                                   ThreadLocal<Long> errorCount,
+                                   Integer maxTimestampIndex,
+                                   Random random,
+                                   ArrayList<Long> latencies) throws SQLException;
+
 }

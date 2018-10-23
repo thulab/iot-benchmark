@@ -76,7 +76,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 	}
 
 	@Override
-	public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount)
+	public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies)
 			throws SQLException {
 		LinkedList<String> keys = new LinkedList<>();
 		for (int i = 0; i < config.CACHE_NUM; i++) {
@@ -84,13 +84,13 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			dataMap.put(key, createDataModel(batchIndex, i, device));
 			keys.add(key);
 		}
-		insertOneBatch(keys, batchIndex, totalTime, errorCount);
+		insertOneBatch(keys, batchIndex, totalTime, errorCount, latencies);
 	}
 
 	@Override
 	public void insertOneBatch(LinkedList<String> keys, int batchIndex, ThreadLocal<Long> totalTime,
-			ThreadLocal<Long> errorCount) throws SQLException {
-		long startTime = 0, endTime = 0;
+			ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
+		long startTime = 0, endTime = 0, latency = 0;
 		String response = null;
 		LinkedList<TSDBDataModel> models = new LinkedList<>();
 		for (String key : keys) {
@@ -103,20 +103,22 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			startTime = System.nanoTime();
 			response = HttpRequest.sendPost(writeUrl, body);
 			endTime = System.nanoTime();
+			latency = endTime - startTime;
+			latencies.add(latency);
 			LOGGER.debug("response: " + response);
 			int errorNum = JSON.parseObject(response).getInteger("failed");
 			errorCount.set(errorCount.get() + errorNum);
 			LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
-					Thread.currentThread().getName(), batchIndex, (endTime - startTime) / 1000000000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					((models.size() - errorNum) / (double) (endTime - startTime)) * 1000000000);
-			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, errorNum,
+					Thread.currentThread().getName(), batchIndex, latency / 1000000000.0,
+					((totalTime.get() + latency) / 1000000000.0),
+					((models.size() - errorNum) / (double) latency) * 1000000000);
+			totalTime.set(totalTime.get() + latency);
+			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, errorNum,
 					config.REMARK);
 		} catch (IOException e) {
 			errorCount.set(errorCount.get() + models.size());
 			LOGGER.error("Batch insert failed, the failed num is ,{}, Error：{}", models.size(), e.getMessage());
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
+			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
 					config.REMARK + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
@@ -220,9 +222,9 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
 	@Override
 	public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client,
-			ThreadLocal<Long> errorCount) {
+			ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
 		String sql = "";
-		long startTimeStamp = 0, endTimeStamp = 0;
+		long startTimeStamp = 0, endTimeStamp = 0, latency = 0;
 		Map<String, Object> queryMap = new HashMap<>();
 		List<Map<String, Object>> list = null;
 		queryMap.put("msResolution", true);
@@ -268,7 +270,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 //				queryMap.put("queries", list);
 //				queryMap.put("backScan", backScanTime);
 
-
+				//FIXME
 				list = getSubQueries(devices);
 				for (Map<String, Object> subQuery : list) {
 					subQuery.remove("end");
@@ -296,11 +298,12 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			LOGGER.debug("JSON.toJSONString(queryMap): "+sql);
 			
 			String str = null;
-			if(config.QUERY_CHOICE != 6) {
-				startTimeStamp = System.nanoTime();
-				str = HttpRequest.sendPost(queryUrl, sql);
-				endTimeStamp = System.nanoTime();
-			}
+
+			startTimeStamp = System.nanoTime();
+			str = HttpRequest.sendPost(queryUrl, sql);
+			endTimeStamp = System.nanoTime();
+			latency = endTimeStamp - startTimeStamp;
+			latencies.add(latency);
 //			else {
 //				startTimeStamp = System.nanoTime();
 ////				str = HttpRequest.sendPost(queryUrl+"/last", sql);
@@ -311,14 +314,14 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			
 			int pointNum = getOneQueryPointNum(str);
 			client.setTotalPoint(client.getTotalPoint() + pointNum);
-			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
+			client.setTotalTime(client.getTotalTime() + latency);
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, (endTimeStamp - startTimeStamp) / 1000000000.0, pointNum,
-					pointNum * 1000000000.0 / (endTimeStamp - startTimeStamp), (client.getTotalTime()) / 1000000000.0,
+					Thread.currentThread().getName(), index, latency / 1000000000.0, pointNum,
+					pointNum * 1000000000.0 / latency, (client.getTotalTime()) / 1000000000.0,
 					client.getTotalPoint(), client.getTotalPoint() * 1000000000.0f / client.getTotalTime());
-			mySql.saveQueryProcess(index, pointNum, (endTimeStamp - startTimeStamp) / 1000000000.0f, config.REMARK);
+			mySql.saveQueryProcess(index, pointNum, latency / 1000000000.0f, config.REMARK);
 		} catch (Exception e) {
 			queryErrorProcess(index, errorCount, sql, startTimeStamp, endTimeStamp, e, LOGGER, mySql);
 		}
@@ -405,12 +408,12 @@ public class OpenTSDB extends TSDB implements IDatebase {
 	}
 
 	@Override
-	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
 		return 0;
 	}
 
 	@Override
-	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
 		int timestampIndex;
 		PossionDistribution possionDistribution = new PossionDistribution(random);
 		int nextDelta;
@@ -427,13 +430,13 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			dataMap.put(key, createDataModel(timestampIndex, device));
 			keys.add(key);
 		}
-		insertOneBatch(keys, loopIndex, totalTime, errorCount);
+		insertOneBatch(keys, loopIndex, totalTime, errorCount, latencies);
 		return maxTimestampIndex;
 	}
 
 	@Override
 	public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime,
-			ThreadLocal<Long> errorCount) throws SQLException {
+			ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 		// TODO Auto-generated method stub
 
 	}
@@ -452,7 +455,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 	}
 
 	@Override
-	public void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount)
+	public void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies)
 			throws SQLException {
 		// TODO Auto-generated method stub
 

@@ -19,9 +19,8 @@ public class ClientThread implements Runnable{
 	private IDatebase database;
 	private MySqlLog mySql;
 	private int index;
-	private long oldTotalTime;
 	private Config config;
-	private static final Logger LOOGER = LoggerFactory.getLogger(ClientThread.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ClientThread.class);
 	private Storage storage;
 	private static ThreadLocal<Long> totalTime = new ThreadLocal<Long>(){
 		protected Long initialValue(){
@@ -36,28 +35,34 @@ public class ClientThread implements Runnable{
 	private CountDownLatch downLatch;
 	private ArrayList<Long> totalTimes;
 	private ArrayList<Long> totalInsertErrorNums;
+	private ArrayList<Long> latencies;
+	private ArrayList<ArrayList> latenciesOfClients;
 
 	public ClientThread(IDatebase datebase, int index, CountDownLatch downLatch,
-			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums) {
+			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums, ArrayList<ArrayList> latenciesOfClients) {
+		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.database = datebase;
 		this.index = index;
-		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
 		this.totalInsertErrorNums = totalInsertErrorNums;
+		this.latencies = new ArrayList<>();
+		this.latenciesOfClients = latenciesOfClients;
 		mySql = new MySqlLog();
 		mySql.initMysql(datebase.getLabID());
 	}
 
 	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch,
-			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums) {
+			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums, ArrayList<ArrayList> latenciesOfClients) {
+		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.database = datebase;
 		this.index = index;
-		this.config = ConfigDescriptor.getInstance().getConfig();
 		this.storage = storage;
 		this.downLatch = downLatch;
 		this.totalTimes = totalTimes;
 		this.totalInsertErrorNums = totalInsertErrorNums;
+		this.latencies = new ArrayList<>();
+		this.latenciesOfClients = latenciesOfClients;
 		mySql = new MySqlLog();
 		mySql.initMysql(datebase.getLabID());
 	}
@@ -81,9 +86,9 @@ public class ClientThread implements Runnable{
 					if(cons.size() == 0) {
 						break;
 					}
-					database.insertOneBatch(cons , i, totalTime, errorCount);
+					database.insertOneBatch(cons , i, totalTime, errorCount, latencies);
 				} catch (SQLException e) {
-					LOOGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
+					LOGGER.error("{} Fail to insert one batch into database becasue {}",Thread.currentThread().getName(), e.getMessage());
 				}
 				i++;
 			}
@@ -108,26 +113,26 @@ public class ClientThread implements Runnable{
 				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
 			}
 			while(i < config.LOOP) {
-				oldTotalTime = totalTime.get();
+				long oldTotalTime = totalTime.get();
 				if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
 					try {
-						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + "." + config.TIMESERIES_NAME, i, totalTime, errorCount);
+						database.insertGenDataOneBatch(config.STORAGE_GROUP_NAME + "." + config.TIMESERIES_NAME, i, totalTime, errorCount, latencies);
 					} catch (SQLException e) {
-						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
 				} else if (config.MUL_DEV_BATCH && !config.IS_OVERFLOW) {
 					try {
-						database.insertOneBatchMulDevice(deviceCodes, i, totalTime, errorCount);
+						database.insertOneBatchMulDevice(deviceCodes, i, totalTime, errorCount, latencies);
 					} catch (SQLException e) {
-						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
 				} else if (!config.IS_OVERFLOW) {
 					try {
 						for (int m = 0; m < clientDevicesNum; m++) {
-							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount);
+							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount, latencies);
 						}
 					} catch (SQLException e) {
-						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
 				} else if (config.OVERFLOW_MODE == 1) {
 					try {
@@ -138,10 +143,10 @@ public class ClientThread implements Runnable{
 									errorCount,
 									before,
 									maxIndex,
-									random);
+									random, latencies);
 						}
 					} catch (SQLException e) {
-						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
 				} else if (config.OVERFLOW_MODE == 2) {
 					try {
@@ -151,10 +156,10 @@ public class ClientThread implements Runnable{
 									totalTime,
 									errorCount,
 									currMaxIndexOfDist,
-									random);
+									random, latencies);
 						}
 					} catch (SQLException e) {
-						LOOGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
 				} else {
 					System.out.println("unsupported overflow mode:" + config.OVERFLOW_MODE);
@@ -182,7 +187,7 @@ public class ClientThread implements Runnable{
 					loopRate = pointsOneLoop / (loopSecond + delayTime * 0.000000001d);
 				}
 
-				LOOGER.info("LOOP RATE,{},points/s,LOOP DELTA TIME,{},second", loopRate, loopSecond);
+				LOGGER.info("LOOP RATE,{},points/s,LOOP DELTA TIME,{},second", loopRate, loopSecond);
 				mySql.saveInsertProcessOfLoop(i, loopRate);
 			}
 		}
@@ -195,6 +200,7 @@ public class ClientThread implements Runnable{
 		}
 		this.totalTimes.add(totalTime.get());
 		this.totalInsertErrorNums.add(errorCount.get());
+		this.latenciesOfClients.add(latencies);
 		this.downLatch.countDown();
 	}
 

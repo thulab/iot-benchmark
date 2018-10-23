@@ -32,7 +32,8 @@ public class QueryClientThread implements Runnable {
 	private ArrayList<Long> totalTimes;
 	private ArrayList<Long> totalPoints;
 	private ArrayList<Long> totalQueryErrorNums;
-	
+	private ArrayList<Long> latencies;
+	private ArrayList<ArrayList> latenciesOfClients;
 	private Long totalTime;
 	private Long totalPoint;
 	
@@ -40,7 +41,7 @@ public class QueryClientThread implements Runnable {
 
 	public QueryClientThread(IDatebase datebase, int index,
 			CountDownLatch downLatch, ArrayList<Long> totalTimes, ArrayList<Long> totalPoints,
-			ArrayList<Long> totalQueryErrorNums) {
+			ArrayList<Long> totalQueryErrorNums, ArrayList<ArrayList> latenciesOfClients) {
 		this.database = datebase;
 		this.index = index;
 		this.config = ConfigDescriptor.getInstance().getConfig();
@@ -48,7 +49,8 @@ public class QueryClientThread implements Runnable {
 		this.totalTimes = totalTimes;
 		this.totalPoints = totalPoints;
 		this.totalQueryErrorNums = totalQueryErrorNums;
-		
+		this.latencies = new ArrayList<>();
+		this.latenciesOfClients = latenciesOfClients;
 		totalTime = (long)0;
 		totalPoint = (long)0;
 		
@@ -87,7 +89,7 @@ public class QueryClientThread implements Runnable {
 				queryDevicesIndex.add(clientDevicesIndex.get(m));
 			}
 			database.executeOneQuery(queryDevicesIndex,
-					i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount);
+					i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount, latencies);
 			i++;
 			queryDevicesIndex.clear();
 		}
@@ -102,6 +104,7 @@ public class QueryClientThread implements Runnable {
 		this.totalTimes.add(totalTime);
 		this.totalPoints.add(totalPoint);
 		this.totalQueryErrorNums.add(errorCount.get());
+		this.latenciesOfClients.add(latencies);
 		this.downLatch.countDown();
 	}
 

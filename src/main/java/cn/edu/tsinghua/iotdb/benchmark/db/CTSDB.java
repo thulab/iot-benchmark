@@ -159,7 +159,7 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
         StringBuilder body = new StringBuilder();
         long startTime = 0, endTime = 0;
         String response;
@@ -200,7 +200,7 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 
     }
 
@@ -293,7 +293,7 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client, ThreadLocal<Long> errorCount) {
+    public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
         String sql = "";
         long startTimeStamp = 0, endTimeStamp = 0;
         String metricName = getMetricName("d_" + devices.get(0));
@@ -351,7 +351,7 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 
     }
 
@@ -366,7 +366,7 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 
     }
 
@@ -376,12 +376,12 @@ public class CTSDB extends TSDB implements IDatebase {
     }
 
     @Override
-    public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+    public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
         return 0;
     }
 
     @Override
-    public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+    public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
         return 0;
     }
 
