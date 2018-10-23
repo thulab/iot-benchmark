@@ -343,7 +343,7 @@ public class App {
         for(long latency: allLatencies){
             totalLatency += latency;
         }
-        double avgLatency = totalLatency / totalOps / unitTransfer;
+        float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
         allLatencies.sort(new LongComparator());
         int min = (int) (allLatencies.get(0) / unitTransfer);
         int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -359,7 +359,7 @@ public class App {
         for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
             midSum += allLatencies.get(i);
         }
-        double midAvgLatency = midSum / (int)(totalOps * 0.9) / unitTransfer;
+        float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
 
         long totalPoints = config.LOOP * config.CACHE_NUM;
         if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
@@ -489,7 +489,7 @@ public class App {
             for(long latency: allLatencies){
                 totalLatency += latency;
             }
-            double avgLatency = totalLatency / totalOps / unitTransfer;
+            float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
             allLatencies.sort(new LongComparator());
             int min = (int) (allLatencies.get(0) / unitTransfer);
             int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -505,7 +505,7 @@ public class App {
             for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
                 midSum += allLatencies.get(i);
             }
-            double midAvgLatency = midSum / (int)(totalOps * 0.9) / unitTransfer;
+            float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
 
             LOGGER.info("READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}", config.TAG_PATH,
                     config.STORE_MODE, config.BATCH_OP_NUM);
@@ -545,7 +545,7 @@ public class App {
             for(long latency: allLatencies){
                 totalLatency += latency;
             }
-            double avgLatency = totalLatency / totalOps / unitTransfer;
+            float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
             allLatencies.sort(new LongComparator());
             int min = (int) (allLatencies.get(0) / unitTransfer);
             int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -561,7 +561,7 @@ public class App {
             for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
                 midSum += allLatencies.get(i);
             }
-            double midAvgLatency = midSum / (int)(totalOps * 0.9) / unitTransfer;
+            float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
 
             long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
             if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
@@ -723,7 +723,7 @@ public class App {
         for(long latency: allLatencies){
             totalLatency += latency;
         }
-        double avgLatency = totalLatency / totalOps / unitTransfer;
+        float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
         allLatencies.sort(new LongComparator());
         int min = (int) (allLatencies.get(0) / unitTransfer);
         int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -739,7 +739,7 @@ public class App {
         for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
             midSum += allLatencies.get(i);
         }
-        double midAvgLatency = midSum / (int)(totalOps * 0.9) / unitTransfer;
+        float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
 
         LOGGER.info("{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
                 getQueryName(config), config.CLIENT_NUMBER * config.LOOP, (totalTime / 1000.0f) / 1000000.0, totalResultPoint,
