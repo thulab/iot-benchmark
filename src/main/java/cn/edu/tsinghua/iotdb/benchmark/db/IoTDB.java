@@ -193,7 +193,7 @@ public class IoTDB implements IDatebase {
 
     @Override
     public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int loopIndex, ThreadLocal<Long> totalTime,
-                                        ThreadLocal<Long> errorCount) {
+                                        ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
         Statement statement;
         int[] result;
         long errorNum = 0;
@@ -283,7 +283,7 @@ public class IoTDB implements IDatebase {
             statement.close();
             long endTime = System.nanoTime();
             long costTime = endTime - startTime;
-
+            latencies.add(costTime);
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 
@@ -303,7 +303,7 @@ public class IoTDB implements IDatebase {
 
     @Override
     public void insertOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime,
-                               ThreadLocal<Long> errorCount) {
+                               ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
         Statement statement;
         int[] result;
         long errorNum = 0;
@@ -375,6 +375,7 @@ public class IoTDB implements IDatebase {
             statement.close();
             long endTime = System.nanoTime();
             long costTime = endTime - startTime;
+            latencies.add(costTime);
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
@@ -400,7 +401,8 @@ public class IoTDB implements IDatebase {
                                       ThreadLocal<Long> errorCount,
                                       ArrayList<Integer> before,
                                       Integer maxTimestampIndex,
-                                      Random random) {
+                                      Random random,
+                                      ArrayList<Long> latencies) {
         Statement statement;
         long errorNum = 0;
         int timestampIndex = maxTimestampIndex;
@@ -456,7 +458,7 @@ public class IoTDB implements IDatebase {
             statement.close();
             long endTime = System.nanoTime();
             long costTime = endTime - startTime;
-
+            latencies.add(costTime);
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
@@ -479,7 +481,13 @@ public class IoTDB implements IDatebase {
     }
 
     @Override
-    public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+    public int insertOverflowOneBatchDist(String device,
+                                          int loopIndex,
+                                          ThreadLocal<Long> totalTime,
+                                          ThreadLocal<Long> errorCount,
+                                          Integer maxTimestampIndex,
+                                          Random random,
+                                          ArrayList<Long> latencies) throws SQLException {
         Statement statement;
         long errorNum = 0;
         int timestampIndex;
@@ -506,7 +514,7 @@ public class IoTDB implements IDatebase {
             statement.close();
             long endTime = System.nanoTime();
             long costTime = endTime - startTime;
-
+            latencies.add(costTime);
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
@@ -544,7 +552,7 @@ public class IoTDB implements IDatebase {
 
     @Override
     public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime,
-                               ThreadLocal<Long> errorCount) throws SQLException {
+                               ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 
         Statement statement;
         int[] result;
@@ -569,17 +577,18 @@ public class IoTDB implements IDatebase {
             statement.clearBatch();
             statement.close();
             long endTime = System.nanoTime();
-
+            long costTime = endTime - startTime;
+            latencies.add(costTime);
 
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} items/s",
-                        Thread.currentThread().getName(), batchIndex, (endTime - startTime) / unitTransfer,
-                        ((totalTime.get() + (endTime - startTime)) / unitTransfer),
-                        (cons.size() / (double) (endTime - startTime)) * unitTransfer);
-                totalTime.set(totalTime.get() + (endTime - startTime));
+                        Thread.currentThread().getName(), batchIndex, costTime / unitTransfer,
+                        ((totalTime.get() + costTime) / unitTransfer),
+                        (cons.size() / (double) costTime) * unitTransfer);
+                totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
         } catch (SQLException e) {
@@ -604,10 +613,10 @@ public class IoTDB implements IDatebase {
     */
     @Override
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client,
-                                ThreadLocal<Long> errorCount) {
+                                ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
         Statement statement = null;
         String sql = "";
-        long startTimeStamp = 0, endTimeStamp = 0;
+        long startTimeStamp = 0, endTimeStamp = 0, latency = 0;
         try {
             statement = connection.createStatement();
             List<String> sensorList = new ArrayList<String>();
@@ -674,8 +683,7 @@ public class IoTDB implements IDatebase {
 
             }
             int line = 0;
-            StringBuilder builder = new StringBuilder(sql);
-            LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, builder.toString());
+            LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
 
             startTimeStamp = System.nanoTime();
             statement.execute(sql);
@@ -690,21 +698,22 @@ public class IoTDB implements IDatebase {
             }
             statement.close();
             endTimeStamp = System.nanoTime();
-
+            latency = endTimeStamp - startTimeStamp;
+            latencies.add(latency);
 //			LOGGER.info("{}",builder.toString());
             client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
-            client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
+            client.setTotalTime(client.getTotalTime() + latency);
 
             LOGGER.info(
                     "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
                             + "TotalTime {}s with totalPoint {} rate is {}points/s",
-                    Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0) / 1000000.0,
+                    Thread.currentThread().getName(), index, (latency / 1000.0) / 1000000.0,
                     line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / ((endTimeStamp - startTimeStamp) / 1000000.0),
+                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (latency / 1000000.0),
                     (client.getTotalTime() / 1000.0) / 1000000.0, client.getTotalPoint(),
                     client.getTotalPoint() * 1000.0f / (client.getTotalTime() / 1000000.0));
             mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-                    ((endTimeStamp - startTimeStamp) / 1000.0f) / 1000000.0, config.REMARK);
+                    (latency / 1000.0f) / 1000000.0, config.REMARK);
         } catch (SQLException e) {
             errorCount.set(errorCount.get() + 1);
             LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
@@ -1249,7 +1258,7 @@ public class IoTDB implements IDatebase {
     }
 
     @Override
-    public void insertGenDataOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertGenDataOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
         Statement statement;
         int[] result;
         long errorNum = 0;
@@ -1275,7 +1284,7 @@ public class IoTDB implements IDatebase {
             statement.close();
             long endTime = System.nanoTime();
             long costTime = endTime - startTime;
-
+            latencies.add(costTime);
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
 

@@ -99,7 +99,7 @@ public class InfluxDBV2 implements IDatebase {
 	 * @throws SQLException
 	 */
 	@Override
-	public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount)
+	public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies)
 			throws SQLException {
 		LinkedList<String> dataStrs = new LinkedList<>();
 		BatchPoints batchPoints = BatchPoints.database(InfluxDBName).tag("async", "true").retentionPolicy(DEFAULT_RP)
@@ -108,25 +108,27 @@ public class InfluxDBV2 implements IDatebase {
 			InfluxDataModel model = createDataModel(batchIndex, i, device);
 			batchPoints.point(model.toInfluxPoint());
 		}
-		long startTime = 0, endTime = 0;
+		long startTime = 0, endTime = 0, latency = 0;
 		try {
 			startTime = System.nanoTime();
 			influxDB.write(batchPoints);
 			endTime = System.nanoTime();
+			latency = endTime - startTime;
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
 					Thread.currentThread().getName(),
 					batchIndex,
-					(endTime - startTime) / 1000000000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					(batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
-			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
+					latency / 1000000000.0,
+					((totalTime.get() + latency) / 1000000000.0),
+					(batchPoints.getPoints().size() / (double) latency) * 1000000000.0);
+			totalTime.set(totalTime.get() + latency);
+			latencies.add(latency);
+			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
 			errorCount.set(errorCount.get() + batchPoints.getPoints().size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
 					e.getMessage());
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
+			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0,
 					batchPoints.getPoints().size(), "error message: " + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
@@ -148,25 +150,27 @@ public class InfluxDBV2 implements IDatebase {
 	 */
 	@Override
 	public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime,
-			ThreadLocal<Long> errorCount) throws SQLException {
-		long startTime = 0, endTime = 0;
+			ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
+		long startTime = 0, endTime = 0, latency = 0;
 		try {
 			startTime = System.nanoTime();
 			influxDB.write(cons);
 			endTime = System.nanoTime();
+			latency = endTime - startTime;
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} items/s",
 					Thread.currentThread().getName(),
 					batchIndex,
-					(endTime - startTime) / 1000000000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					(cons.size() / (double) (endTime - startTime)) * 1000000000.0);
-			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
+					latency / 1000000000.0,
+					((totalTime.get() + latency) / 1000000000.0),
+					(cons.size() / (double) latency) * 1000000000.0);
+			totalTime.set(totalTime.get() + latency);
+			latencies.add(latency);
+			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
 			errorCount.set(errorCount.get() + cons.size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", cons.size(), e.getMessage());
-			mySql.saveInsertProcess(batchIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, cons.size(),
+			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, cons.size(),
 					config.REMARK + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
@@ -308,9 +312,9 @@ public class InfluxDBV2 implements IDatebase {
 
 	@Override
 	public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client,
-			ThreadLocal<Long> errorCount) {
+			ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
 		String sql = "";
-		long startTimeStamp = 0, endTimeStamp = 0;
+		long startTimeStamp = 0, endTimeStamp = 0, latency = 0;
 		try {
 			List<String> sensorList = new ArrayList<String>();
 			switch (config.QUERY_CHOICE) {
@@ -397,27 +401,29 @@ public class InfluxDBV2 implements IDatebase {
 
 			//LOGGER.info("{}", builder.toString());
 			endTimeStamp = System.nanoTime();
+			latency = endTimeStamp - startTimeStamp;
 			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
-			client.setTotalTime(client.getTotalTime() + endTimeStamp - startTimeStamp);
+			client.setTotalTime(client.getTotalTime() + latency);
+			latencies.add(latency);
 
 			LOGGER.info(
 					"{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
 							+ "TotalTime {}s with totalPoint {} rate is {}points/s",
-					Thread.currentThread().getName(), index, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
+					Thread.currentThread().getName(), index, (latency / 1000.0f)/1000000.0,
 //					line * config.QUERY_SENSOR_NUM,
 //					line * config.QUERY_SENSOR_NUM * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
 					// FIXME: is variable line means data points number when query multiple series?
 					line ,
-					line * 1000.0 / ((endTimeStamp - startTimeStamp)/1000000.0),
+					line * 1000.0 / (latency/1000000.0),
 					((client.getTotalTime()) / 1000.0)/1000000.0, client.getTotalPoint(),
 					client.getTotalPoint() * 1000.0f / (client.getTotalTime()/1000000.0));
-			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0,
+			mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM, (latency / 1000.0f)/1000000.0,
 					config.REMARK);
 		} catch (SQLException e) {
 			errorCount.set(errorCount.get() + 1);
 			LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
 			LOGGER.error("执行失败的查询语句：{}", sql);
-			mySql.saveQueryProcess(index, 0, ((endTimeStamp - startTimeStamp) / 1000.0f)/1000000.0, "query fail!" + sql);
+			mySql.saveQueryProcess(index, 0, (latency / 1000.0f)/1000000.0, "query fail!" + sql);
 			e.printStackTrace();
 		}
 
@@ -652,7 +658,7 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
     @Override
-    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
+    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies){
 
     }
 
@@ -662,7 +668,7 @@ public class InfluxDBV2 implements IDatebase {
     }
 
     @Override
-    public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 
     }
 
@@ -672,12 +678,12 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	@Override
-	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+	public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
 		return 0;
 	}
 
 	@Override
-	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+	public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
 		int timestampIndex;
 		PossionDistribution possionDistribution = new PossionDistribution(random);
 		int nextDelta;
@@ -699,25 +705,27 @@ public class InfluxDBV2 implements IDatebase {
 			batchPoints.point(model.toInfluxPoint());
 		}
 
-		long startTime = 0, endTime = 0;
+		long startTime = 0, endTime = 0, latency = 0;
 		try {
 			startTime = System.nanoTime();
 			influxDB.write(batchPoints);
 			endTime = System.nanoTime();
+			latency = endTime - startTime;
 			LOGGER.info("{} execute {} batch, it costs {}s, totalTime{}, throughput {} points/s",
 					Thread.currentThread().getName(),
 					loopIndex,
-					(endTime - startTime) / 1000000000.0,
-					((totalTime.get() + (endTime - startTime)) / 1000000000.0),
-					config.SENSOR_NUMBER * (batchPoints.getPoints().size() / (double) (endTime - startTime)) * 1000000000.0);
-			totalTime.set(totalTime.get() + (endTime - startTime));
-			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0, 0,
+					latency / 1000000000.0,
+					((totalTime.get() + latency) / 1000000000.0),
+					config.SENSOR_NUMBER * (batchPoints.getPoints().size() / (double) latency) * 1000000000.0);
+			totalTime.set(totalTime.get() + latency);
+			latencies.add(latency);
+			mySql.saveInsertProcess(loopIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
 			errorCount.set(errorCount.get() + batchPoints.getPoints().size());
 			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
 					e.getMessage());
-			mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000000000.0, totalTime.get() / 1000000000.0,
+			mySql.saveInsertProcess(loopIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0,
 					batchPoints.getPoints().size(), config.REMARK);
 			//throw new SQLException(e.getMessage());
 		}

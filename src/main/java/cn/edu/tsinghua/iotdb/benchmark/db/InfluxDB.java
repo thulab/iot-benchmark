@@ -62,7 +62,7 @@ public class InfluxDB implements IDatebase {
      * @throws SQLException
      */
     @Override
-    public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
         long exeTime = 0;
         long startTime, endTime;
         LinkedList<String> dataStrs = new LinkedList<>();
@@ -70,7 +70,7 @@ public class InfluxDB implements IDatebase {
             InfluxDataModel model = createDataModel(batchIndex, i, device);
             dataStrs.add(model.toString());
         }
-        insertOneBatch(dataStrs, batchIndex, totalTime, errorCount);
+        insertOneBatch(dataStrs, batchIndex, totalTime, errorCount, latencies);
     }
 
     /**
@@ -83,7 +83,7 @@ public class InfluxDB implements IDatebase {
      * @throws SQLException
      */
     @Override
-    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
         StringBuilder body = new StringBuilder();
         for(String dataRecord : cons) {
             body.append(dataRecord).append("\n");
@@ -182,7 +182,8 @@ public class InfluxDB implements IDatebase {
         time.set((long) 0);
         ThreadLocal<Long> errorCount = new ThreadLocal<>();
         errorCount.set((long) 0);
-        influxDB.insertOneBatch("D_0", 0, time, errorCount);
+        ArrayList<Long> latencies = new ArrayList<>();
+        influxDB.insertOneBatch("D_0", 0, time, errorCount, latencies);
     }
 
 	@Override
@@ -194,12 +195,12 @@ public class InfluxDB implements IDatebase {
 	@Override
 	public void executeOneQuery(List<Integer> devices, int index,
 			long startTime, QueryClientThread client,
-			ThreadLocal<Long> errorCount) {
+			ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
 		
 	}
 
     @Override
-    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount){
+    public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies){
 
     }
 
@@ -215,7 +216,7 @@ public class InfluxDB implements IDatebase {
     }
 
     @Override
-    public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount) throws SQLException {
+    public void insertGenDataOneBatch(String s, int i, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
 
     }
 
@@ -225,12 +226,12 @@ public class InfluxDB implements IDatebase {
     }
 
     @Override
-    public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random) throws SQLException {
+    public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
         return 0;
     }
 
     @Override
-    public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random) throws SQLException {
+    public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
         return 0;
     }
 
