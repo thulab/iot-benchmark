@@ -104,6 +104,7 @@ public class QueryClientThread implements Runnable {
 		this.totalTimes.add(totalTime);
 		this.totalPoints.add(totalPoint);
 		this.totalQueryErrorNums.add(errorCount.get());
+		this.latenciesOfClients.add(latencies);
 		this.downLatch.countDown();
 	}
 
