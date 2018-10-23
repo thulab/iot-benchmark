@@ -39,7 +39,7 @@ public class MySqlLog {
 
     public void initMysql(long labIndex) {
         labID = labIndex;
-        projectID = config.REMARK + labID;
+        projectID = config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID;
         if (config.IS_USE_MYSQL) {
             Date date = new Date(labID);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
@@ -151,8 +151,7 @@ public class MySqlLog {
     public void saveInsertProcess(int index, double costTime, double totalTime,
                                   long errorPoint, String remark) {
         if (config.IS_USE_MYSQL) {
-            String mysqlSql = String.format("insert into " + config.REMARK
-                            + labID + " values(%d,%s,%d,%f,%f,%f,%d,%s)",
+            String mysqlSql = String.format("insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + " values(%d,%s,%d,%f,%f,%f,%d,%s)",
                     System.currentTimeMillis(), "'"
                             + Thread.currentThread().getName() + "'", index,
                     costTime, totalTime, (config.CACHE_NUM
@@ -176,7 +175,7 @@ public class MySqlLog {
     // 将写入测试的以loop为单位的中间结果存入数据库
     public void saveInsertProcessOfLoop(int index, double loopRate) {
         if (config.IS_USE_MYSQL) {
-            String mysqlSql = String.format("insert into " + config.REMARK + labID + "Loop" + " values(%d,%s,%d,%f)",
+            String mysqlSql = String.format("insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + "Loop" + " values(%d,%s,%d,%f)",
                     System.currentTimeMillis(),
                     "'" + Thread.currentThread().getName() + "'",
                     index,
@@ -208,7 +207,7 @@ public class MySqlLog {
                 rate = point / time;
             }
             String mysqlSql = String.format(
-                    "insert into " + config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
+                    "insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
                     System.currentTimeMillis(),
                     "'" + Thread.currentThread().getName() + "'",
                     index, point, time, rate, "'" + remark + "'");
