@@ -6,17 +6,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cn.edu.tsinghua.iotdb.benchmark.db.IoTDB;
+import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
 
 public class MetaDateBuilder {
 	private Set<String> storageGroups;

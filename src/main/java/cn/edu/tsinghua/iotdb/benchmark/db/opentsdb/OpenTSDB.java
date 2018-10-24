@@ -1,8 +1,11 @@
-package cn.edu.tsinghua.iotdb.benchmark.db;
+package cn.edu.tsinghua.iotdb.benchmark.db.opentsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
+import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
+import cn.edu.tsinghua.iotdb.benchmark.db.TSDB;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;

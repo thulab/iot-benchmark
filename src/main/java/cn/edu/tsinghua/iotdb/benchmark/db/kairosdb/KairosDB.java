@@ -1,8 +1,11 @@
-package cn.edu.tsinghua.iotdb.benchmark.db;
+package cn.edu.tsinghua.iotdb.benchmark.db.kairosdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
+import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
+import cn.edu.tsinghua.iotdb.benchmark.db.TSDB;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
@@ -237,7 +240,7 @@ public class KairosDB extends TSDB implements IDatebase {
         list.add(subQuery);
         queryMap.put(METRICS, list);
         String sql = JSON.toJSONString(queryMap);
-        LOGGER.debug("JSON.toJSONString(queryMap): " + sql);
+        LOGGER.debug("JSON in getTotalTimeInterval(): " + sql);
         String str = null;
         try {
             str = HttpRequest.sendPost(queryUrl, sql);

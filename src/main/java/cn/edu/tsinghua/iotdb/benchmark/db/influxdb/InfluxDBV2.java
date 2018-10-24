@@ -1,16 +1,16 @@
-package cn.edu.tsinghua.iotdb.benchmark.db;
+package cn.edu.tsinghua.iotdb.benchmark.db.influxdb;
 
-import ch.qos.logback.core.util.TimeUtil;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
+import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
