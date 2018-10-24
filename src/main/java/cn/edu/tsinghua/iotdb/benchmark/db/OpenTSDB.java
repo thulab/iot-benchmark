@@ -135,6 +135,9 @@ public class OpenTSDB extends TSDB implements IDatebase {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
 			long currentTime = Constants.START_TIMESTAMP
 					+ config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+			if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+				currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+			}
 			Number value = Function.getValueByFuntionidAndParam(param, currentTime);
 			TSDBDataModel model = new TSDBDataModel();
 			model.setMetric(metricName);
@@ -158,11 +161,9 @@ public class OpenTSDB extends TSDB implements IDatebase {
 		String metricName = metric + groupId;
 		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-			long currentTime;
+			long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
 			if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-				currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-			} else {
-				currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+				currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
 			}
 			Number value = Function.getValueByFuntionidAndParam(param, currentTime);
 			TSDBDataModel model = new TSDBDataModel();

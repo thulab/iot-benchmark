@@ -216,6 +216,9 @@ public class InfluxDBV2 implements IDatebase {
 		model.measurement = "group_" + groupNum;
 		model.tagSet.put("device", device);
 		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+		if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+			currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+		}
 		model.timestamp = currentTime;
 		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -232,11 +235,9 @@ public class InfluxDBV2 implements IDatebase {
 		int groupNum = deviceNum / groupSize;
 		model.measurement = "group_" + groupNum;
 		model.tagSet.put("device", device);
-		long currentTime;
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
 		if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-			currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-		} else {
-			currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+			currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
 		}
 		model.timestamp = currentTime;
 		for (String sensor : config.SENSOR_CODES) {

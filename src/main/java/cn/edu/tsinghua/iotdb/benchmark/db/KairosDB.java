@@ -3,6 +3,8 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.KairosDataModel;
@@ -13,6 +15,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -37,14 +40,17 @@ public class KairosDB extends TSDB implements IDatebase {
     private static final String NAME = "name";
     private static final String AGGREGATORS = "aggregators";
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private ProbTool probTool;
+    private Random timestampRandom;
     private SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
 
     public KairosDB(long labID) {
+        config = ConfigDescriptor.getInstance().getConfig();
         mySql = new MySqlLog();
         this.labID = labID;
-        config = ConfigDescriptor.getInstance().getConfig();
         sensorRandom = new Random(1 + config.QUERY_SEED);
-
+        probTool = new ProbTool();
+        timestampRandom = new Random(2 + config.QUERY_SEED);
         Url = config.DB_URL;
         queryUrl = Url + "/api/v1/datapoints/query";
         writeUrl = Url + "/api/v1/datapoints";
@@ -109,6 +115,9 @@ public class KairosDB extends TSDB implements IDatebase {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP
                     + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+            if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+                currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+            }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
@@ -176,8 +185,81 @@ public class KairosDB extends TSDB implements IDatebase {
 
     @Override
     public long getTotalTimeInterval() throws SQLException {
+        //FIXME unchecked method
+        Map<String, Object> queryMap = new HashMap<>();
 
-        return 0;
+        //queryMap.put("time_zone", "Etc/GMT+8");
+        //queryMap.put("cache_time", 0);
+        queryMap.put(QUERY_START_TIME, Constants.START_TIMESTAMP);
+        List<Map<String, Object>> list = new ArrayList<>();
+
+
+        Map<String, Object> subQuery = new HashMap<String, Object>();
+        subQuery.put(NAME, "s_0");
+        Map<String, List<String>> tags = new HashMap<>();
+        List<String> deviceList = new ArrayList<>();
+        List<String> groupList = new ArrayList<>();
+        deviceList.add("d_" + 0);
+
+        for (String d : deviceList) {
+            groupList.add(getGroup(d));
+        }
+        List<String> uniqueGroupList = new ArrayList<>(new TreeSet<>(groupList));
+        tags.put("group", uniqueGroupList);
+        tags.put("device", deviceList);
+        subQuery.put("tags", tags);
+
+        List<Map<String, Object>> aggList = new ArrayList<>();
+        Map<String, Object> aggMap = new HashMap<>();
+        aggMap.put(NAME, "last");
+        Map<String, Object> samplingMap = new HashMap<>();
+
+        samplingMap.put("value", 1000);
+
+        samplingMap.put("unit", "years");
+        aggMap.put("sampling", samplingMap);
+        aggList.add(aggMap);
+
+        subQuery.put(AGGREGATORS, aggList);
+
+
+        List<Map<String, Object>> groupByList = new ArrayList<>();
+
+        Map<String, Object> groupByTagsMap = new HashMap<>();
+        groupByTagsMap.put(NAME, "tag");
+        List<String> groupByTagsList = new ArrayList<>();
+        groupByTagsList.add("device");
+        groupByTagsMap.put("tags", groupByTagsList);
+        groupByList.add(groupByTagsMap);
+
+        subQuery.put("group_by", groupByList);
+
+        list.add(subQuery);
+        queryMap.put(METRICS, list);
+        String sql = JSON.toJSONString(queryMap);
+        LOGGER.debug("JSON.toJSONString(queryMap): " + sql);
+        String str = null;
+        try {
+            str = HttpRequest.sendPost(queryUrl, sql);
+        } catch (IOException e) {
+            LOGGER.error("Failed to get the last time value.");
+            e.printStackTrace();
+        }
+
+        long lastTimestamp = 0;
+
+        JSONArray jsonArrayQueries = JSON.parseObject(str).getJSONArray("queries");
+        for (int i = 0; i < jsonArrayQueries.size(); i++) {
+            JSONObject json = jsonArrayQueries.getJSONObject(i);
+            JSONArray results = json.getJSONArray("results");
+            for (int j = 0; j < results.size(); j++) {
+                JSONObject resultJSON = results.getJSONObject(j);
+                JSONArray valueArray = resultJSON.getJSONArray("values");
+                lastTimestamp = valueArray.getJSONArray(0).getLong(0);
+            }
+        }
+
+        return lastTimestamp - Constants.START_TIMESTAMP;
     }
 
 
@@ -229,11 +311,10 @@ public class KairosDB extends TSDB implements IDatebase {
      */
 
     /**
-     *
-     * @param devices Devices index for this query client
+     * @param devices     Devices index for this query client
      * @param isAggregate Mark whether add time aggregator in JSON or not
-     * @param isLimit Mark whether add limit in query
-     * @param isGroupBy Mark whether add group by in JSON, group by device is in all query by default
+     * @param isLimit     Mark whether add limit in query
+     * @param isGroupBy   Mark whether add group by in JSON, group by device is in all query by default
      * @return
      */
     private List<Map<String, Object>> getSubQueries(List<Integer> devices, boolean isAggregate, boolean isLimit, boolean isGroupBy) {
@@ -298,13 +379,22 @@ public class KairosDB extends TSDB implements IDatebase {
         Map<String, Object> aggMap = new HashMap<>();
         aggMap.put(NAME, config.QUERY_AGGREGATE_FUN);
         Map<String, Object> samplingMap = new HashMap<>();
+        samplingMap.put("unit", "milliseconds");
         if (isGroupBy) {
             samplingMap.put("value", config.TIME_UNIT);
         } else {
-            // sample by (config.QUERY_INTERVAL + 1) so that the result only contains one point
-            samplingMap.put("value", config.QUERY_INTERVAL + 1);
+            if (config.QUERY_CHOICE == 10) {
+                samplingMap.put("unit", "years");
+                samplingMap.put("value", 1000);
+            } else if(config.QUERY_CHOICE == 6){
+                aggMap.put(NAME, "last");
+                samplingMap.put("unit", "years");
+                samplingMap.put("value", 1000);
+            } else {
+                // sample by (config.QUERY_INTERVAL + 1) so that the result only contains one point
+                samplingMap.put("value", config.QUERY_INTERVAL + 1);
+            }
         }
-        samplingMap.put("unit", "milliseconds");
         aggMap.put("sampling", samplingMap);
         aggList.add(aggMap);
         return aggList;
@@ -365,6 +455,7 @@ public class KairosDB extends TSDB implements IDatebase {
                 case 10:// aggregation function query without any filter
                     list = getSubQueries(devices, true, false, false);
                     queryMap.put(METRICS, list);
+                    queryMap.put(QUERY_START_TIME, Constants.START_TIMESTAMP);
                     queryMap.remove(QUERY_END_TIME);
                     break;
                 case 11:// aggregation function query with value filter
@@ -446,6 +537,48 @@ public class KairosDB extends TSDB implements IDatebase {
 
     @Override
     public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
-        return 0;
+        int timestampIndex;
+        PossionDistribution possionDistribution = new PossionDistribution(random);
+        int nextDelta;
+        LinkedList<String> keys = new LinkedList<>();
+        for (int i = 0; i < config.CACHE_NUM; i++) {
+            if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
+                nextDelta = possionDistribution.getNextPossionDelta();
+                timestampIndex = maxTimestampIndex - nextDelta;
+            } else {
+                maxTimestampIndex++;
+                timestampIndex = maxTimestampIndex;
+            }
+            String key = UUID.randomUUID().toString();
+            dataMap.put(key, createDataModel(timestampIndex, device));
+            keys.add(key);
+        }
+        insertOneBatch(keys, loopIndex, totalTime, errorCount, latencies);
+        return maxTimestampIndex;
+    }
+
+    private LinkedList<KairosDataModel> createDataModel(int timestampIndex, String device) {
+        LinkedList<KairosDataModel> models = new LinkedList<>();
+        String groupId = getGroup(device);
+        for (String sensor : config.SENSOR_CODES) {
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+            if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+                currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+            }
+            Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            KairosDataModel model = new KairosDataModel();
+            model.setName(sensor);
+            // KairosDB do not support float as data type
+            model.setType(config.DATA_TYPE.toLowerCase());
+            model.setTimestamp(currentTime);
+            model.setValue(value);
+            Map<String, String> tags = new HashMap<>();
+            tags.put("group", groupId);
+            tags.put("device", device);
+            model.setTags(tags);
+            models.addLast(model);
+        }
+        return models;
     }
 }

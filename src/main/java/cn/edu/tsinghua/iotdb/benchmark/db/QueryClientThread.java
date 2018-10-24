@@ -20,9 +20,7 @@ public class QueryClientThread implements Runnable {
 	private IDatebase database;
 	private int index;
 	private Config config;
-	private static final Logger LOOGER = LoggerFactory
-			.getLogger(QueryClientThread.class);
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(QueryClientThread.class);
 	private static ThreadLocal<Long> errorCount = new ThreadLocal<Long>() {
 		protected Long initialValue() {
 			return (long) 0;
