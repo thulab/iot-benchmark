@@ -33,7 +33,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private String writeUrl;
     private String metric = "root.perform.";
     private Config config;
-    private MySqlLog mySql = new MySqlLog();
+    private MySqlLog mySql;
     ;
     private long labID;
     private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
@@ -299,10 +299,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
                     break;
             }
             sql = JSON.toJSONString(queryMap);
-            LOGGER.debug("JSON.toJSONString(queryMap): " + sql);
-
-            String str = null;
-
+            LOGGER.info("{} execute {} loop,提交的JSON：{}", Thread.currentThread().getName(), index, sql);
+            String str ;
             startTimeStamp = System.nanoTime();
             str = HttpRequest.sendPost(queryUrl, sql);
             endTimeStamp = System.nanoTime();

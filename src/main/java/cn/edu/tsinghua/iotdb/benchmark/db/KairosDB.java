@@ -390,6 +390,11 @@ public class KairosDB extends TSDB implements IDatebase {
                 aggMap.put(NAME, "last");
                 samplingMap.put("unit", "years");
                 samplingMap.put("value", 1000);
+            } else if(config.QUERY_CHOICE == 5){
+                aggMap.put(NAME, "filter");
+                aggMap.put("filter_op", "GT");
+                aggMap.put("threshold", config.QUERY_LOWER_LIMIT);
+                samplingMap.put("value", config.QUERY_INTERVAL + 1);
             } else {
                 // sample by (config.QUERY_INTERVAL + 1) so that the result only contains one point
                 samplingMap.put("value", config.QUERY_INTERVAL + 1);
@@ -436,10 +441,14 @@ public class KairosDB extends TSDB implements IDatebase {
                     queryMap.put(METRICS, list);
                     break;
                 case 5:// 条件查询: 时间过滤条件 + 值过滤条件
-                    //not support yet
+                    list = getSubQueries(devices, false, false, false);
+                    queryMap.put(METRICS, list);
                     break;
                 case 6:// 最近点查询
-                    //not support yet
+                    queryMap.put(QUERY_START_TIME, Constants.START_TIMESTAMP);
+                    queryMap.remove(QUERY_END_TIME);
+                    list = getSubQueries(devices, true, false, false);
+                    queryMap.put(METRICS, list);
                     break;
                 case 7:// groupBy查询（暂时只有一个时间段）
                     list = getSubQueries(devices, true, false, true);
@@ -463,10 +472,8 @@ public class KairosDB extends TSDB implements IDatebase {
                     break;
             }
             sql = JSON.toJSONString(queryMap);
-            LOGGER.debug("JSON.toJSONString(queryMap): " + sql);
-
-            String str = null;
-
+            LOGGER.info("{} execute {} loop,提交的JSON：{}", Thread.currentThread().getName(), index, sql);
+            String str ;
             startTimeStamp = System.nanoTime();
             str = HttpRequest.sendPost(queryUrl, sql);
             endTimeStamp = System.nanoTime();
