@@ -374,7 +374,7 @@ public class InfluxDBV2 implements IDatebase {
 					break;
 
 			}
-			int line = 0;
+			int line = 0; //FIXME need to confirm line is actually result point number
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
 			startTimeStamp = System.nanoTime();
 			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
@@ -401,7 +401,7 @@ public class InfluxDBV2 implements IDatebase {
 			//LOGGER.info("{}", builder.toString());
 			endTimeStamp = System.nanoTime();
 			latency = endTimeStamp - startTimeStamp;
-			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
+			client.setTotalPoint(client.getTotalPoint() + line);
 			client.setTotalTime(client.getTotalTime() + latency);
 			latencies.add(latency);
 
