@@ -3,7 +3,15 @@ package cn.edu.tsinghua.iotdb.benchmark;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.db.*;
+import cn.edu.tsinghua.iotdb.benchmark.db.ClientThread;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
+import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
+import cn.edu.tsinghua.iotdb.benchmark.db.ctsdb.CTSDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.influxdb.InfluxDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.kairosdb.KairosDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.opentsdb.OpenTSDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
@@ -15,7 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -80,7 +91,7 @@ public class App {
         if (dir.exists() && dir.isDirectory()) {
             File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
             int interval = config.INTERVAL;
-            HashMap<IoUsage.IOStatistics,Float> ioStatistics;
+            HashMap<IoUsage.IOStatistics, Float> ioStatistics;
             // 检测所需的时间在目前代码的参数下至少为2秒
             LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
             while (true) {
@@ -163,8 +174,8 @@ public class App {
 
             if (dir.exists() && dir.isDirectory()) {
                 File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
-                HashMap<FileSize.FileSizeKinds,Double> fileSizeStatistics;
-                HashMap<IoUsage.IOStatistics,Float> ioStatistics;
+                HashMap<FileSize.FileSizeKinds, Double> fileSizeStatistics;
+                HashMap<IoUsage.IOStatistics, Float> ioStatistics;
                 int interval = config.INTERVAL;
                 // 检测所需的时间在目前代码的参数下至少为2秒
                 LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
@@ -335,15 +346,15 @@ public class App {
         }
         ArrayList<Long> allLatencies = new ArrayList<>();
         int totalOps;
-        for(ArrayList<Long> oneClientLatencies: latenciesOfClients ){
+        for (ArrayList<Long> oneClientLatencies : latenciesOfClients) {
             allLatencies.addAll(oneClientLatencies);
         }
         totalOps = allLatencies.size();
         double totalLatency = 0;
-        for(long latency: allLatencies){
+        for (long latency : allLatencies) {
             totalLatency += latency;
         }
-        float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
+        float avgLatency = (float) (totalLatency / totalOps / unitTransfer);
         allLatencies.sort(new LongComparator());
         int min = (int) (allLatencies.get(0) / unitTransfer);
         int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -356,10 +367,10 @@ public class App {
         int p999 = (int) (allLatencies.get((int) (totalOps * 0.999)) / unitTransfer);
         int p9999 = (int) (allLatencies.get((int) (totalOps * 0.9999)) / unitTransfer);
         double midSum = 0;
-        for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
+        for (int i = (int) (totalOps * 0.05); i < (int) (totalOps * 0.95); i++) {
             midSum += allLatencies.get(i);
         }
-        float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
+        float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
         long totalPoints = config.LOOP * config.CACHE_NUM;
         if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
@@ -439,9 +450,9 @@ public class App {
         long insertStartTime = System.nanoTime();
         try {
             datebase = idbFactory.buildDB(mysql.getLabID());
-            datebase.init();
             createSchemaStartTime = System.nanoTime();
-            if(config.CREATE_SCHEMA) {
+            if (config.CREATE_SCHEMA) {
+                datebase.init();
                 datebase.createSchema();
             }
             datebase.close();
@@ -481,15 +492,15 @@ public class App {
 
             ArrayList<Long> allLatencies = new ArrayList<>();
             int totalOps;
-            for(ArrayList<Long> oneClientLatencies: latenciesOfClients ){
+            for (ArrayList<Long> oneClientLatencies : latenciesOfClients) {
                 allLatencies.addAll(oneClientLatencies);
             }
             totalOps = allLatencies.size();
             double totalLatency = 0;
-            for(long latency: allLatencies){
+            for (long latency : allLatencies) {
                 totalLatency += latency;
             }
-            float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
+            float avgLatency = (float) (totalLatency / totalOps / unitTransfer);
             allLatencies.sort(new LongComparator());
             int min = (int) (allLatencies.get(0) / unitTransfer);
             int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -502,10 +513,10 @@ public class App {
             int p999 = (int) (allLatencies.get((int) (totalOps * 0.999)) / unitTransfer);
             int p9999 = (int) (allLatencies.get((int) (totalOps * 0.9999)) / unitTransfer);
             double midSum = 0;
-            for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
+            for (int i = (int) (totalOps * 0.05); i < (int) (totalOps * 0.95); i++) {
                 midSum += allLatencies.get(i);
             }
-            float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
+            float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
             LOGGER.info("READ_FROM_FILE = true, TAG_PATH = ,{}, STORE_MODE = ,{}, BATCH_OP_NUM = ,{}", config.TAG_PATH,
                     config.STORE_MODE, config.BATCH_OP_NUM);
@@ -537,15 +548,15 @@ public class App {
 
             ArrayList<Long> allLatencies = new ArrayList<>();
             int totalOps;
-            for(ArrayList<Long> oneClientLatencies: latenciesOfClients ){
+            for (ArrayList<Long> oneClientLatencies : latenciesOfClients) {
                 allLatencies.addAll(oneClientLatencies);
             }
             totalOps = allLatencies.size();
             double totalLatency = 0;
-            for(long latency: allLatencies){
+            for (long latency : allLatencies) {
                 totalLatency += latency;
             }
-            float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
+            float avgLatency = (float) (totalLatency / totalOps / unitTransfer);
             allLatencies.sort(new LongComparator());
             int min = (int) (allLatencies.get(0) / unitTransfer);
             int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -558,10 +569,10 @@ public class App {
             int p999 = (int) (allLatencies.get((int) (totalOps * 0.999)) / unitTransfer);
             int p9999 = (int) (allLatencies.get((int) (totalOps * 0.9999)) / unitTransfer);
             double midSum = 0;
-            for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
+            for (int i = (int) (totalOps * 0.05); i < (int) (totalOps * 0.95); i++) {
                 midSum += allLatencies.get(i);
             }
-            float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
+            float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
             long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
             if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
@@ -622,9 +633,9 @@ public class App {
             case Constants.DB_INFLUX:
                 totalErrorPoint = getErrorNumInflux(config, datebase);
                 break;
-			case Constants.DB_OPENTS:
-				totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-				break;
+            case Constants.DB_OPENTS:
+                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
+                break;
             case Constants.DB_CTS:
                 totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
                 break;
@@ -643,8 +654,8 @@ public class App {
                 return new IoTDBFactory();
             case Constants.DB_INFLUX:
                 return new InfluxDBFactory();
-			case Constants.DB_OPENTS:
-				return new OpenTSDBFactory();
+            case Constants.DB_OPENTS:
+                return new OpenTSDBFactory();
             case Constants.DB_CTS:
                 return new CTSDBFactory();
             case Constants.DB_KAIROS:
@@ -715,15 +726,15 @@ public class App {
 
         ArrayList<Long> allLatencies = new ArrayList<>();
         int totalOps;
-        for(ArrayList<Long> oneClientLatencies: latenciesOfClients ){
+        for (ArrayList<Long> oneClientLatencies : latenciesOfClients) {
             allLatencies.addAll(oneClientLatencies);
         }
         totalOps = allLatencies.size();
         double totalLatency = 0;
-        for(long latency: allLatencies){
+        for (long latency : allLatencies) {
             totalLatency += latency;
         }
-        float avgLatency = (float)(totalLatency / totalOps / unitTransfer);
+        float avgLatency = (float) (totalLatency / totalOps / unitTransfer);
         allLatencies.sort(new LongComparator());
         int min = (int) (allLatencies.get(0) / unitTransfer);
         int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
@@ -736,10 +747,10 @@ public class App {
         int p999 = (int) (allLatencies.get((int) (totalOps * 0.999)) / unitTransfer);
         int p9999 = (int) (allLatencies.get((int) (totalOps * 0.9999)) / unitTransfer);
         double midSum = 0;
-        for(int i = (int) (totalOps * 0.05);i < (int) (totalOps * 0.95);i++){
+        for (int i = (int) (totalOps * 0.05); i < (int) (totalOps * 0.95); i++) {
             midSum += allLatencies.get(i);
         }
-        float midAvgLatency = (float) (midSum / (int)(totalOps * 0.9) / unitTransfer);
+        float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
         LOGGER.info("{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
                 getQueryName(config), config.CLIENT_NUMBER * config.LOOP, (totalTime / 1000.0f) / 1000000.0, totalResultPoint,

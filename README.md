@@ -96,8 +96,8 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ···
-2017-11-16 17:38:46,115 INFO  cn.edu.tsinghua.iotdb.benchmark.db.IoTDB:196 - pool-1-thread-2 execute 0 loop, it costs 0.032s, totalTime1.976, throughput 468750.0 points/s 
-2017-11-16 17:38:46,118 INFO  cn.edu.tsinghua.iotdb.benchmark.db.IoTDB:196 - pool-1-thread-1 execute 0 loop, it costs 0.032s, totalTime1.836, throughput 468750.0 points/s 
+2017-11-16 17:38:46,115 INFO  cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB:196 - pool-1-thread-2 execute 0 loop, it costs 0.032s, totalTime1.976, throughput 468750.0 points/s 
+2017-11-16 17:38:46,118 INFO  cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB:196 - pool-1-thread-1 execute 0 loop, it costs 0.032s, totalTime1.836, throughput 468750.0 points/s 
 ···
 ```
 

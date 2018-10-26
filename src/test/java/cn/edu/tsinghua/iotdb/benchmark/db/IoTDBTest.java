@@ -2,10 +2,7 @@ package java.cn.edu.tsinghua.iotdb.benchmark.db;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.db.IDBFactory;
-import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
-import cn.edu.tsinghua.iotdb.benchmark.db.IoTDB;
-import cn.edu.tsinghua.iotdb.benchmark.db.IoTDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
 import org.junit.Test;
 import org.junit.Before; 
 import org.junit.After;

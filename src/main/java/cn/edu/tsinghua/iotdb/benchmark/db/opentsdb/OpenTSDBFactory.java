@@ -1,4 +1,7 @@
-package cn.edu.tsinghua.iotdb.benchmark.db;
+package cn.edu.tsinghua.iotdb.benchmark.db.opentsdb;
+
+import cn.edu.tsinghua.iotdb.benchmark.db.IDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
 
 import java.sql.SQLException;
 

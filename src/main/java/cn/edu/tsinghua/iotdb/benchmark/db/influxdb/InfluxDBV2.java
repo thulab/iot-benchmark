@@ -1,16 +1,16 @@
-package cn.edu.tsinghua.iotdb.benchmark.db;
+package cn.edu.tsinghua.iotdb.benchmark.db.influxdb;
 
-import ch.qos.logback.core.util.TimeUtil;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
+import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
@@ -216,6 +216,9 @@ public class InfluxDBV2 implements IDatebase {
 		model.measurement = "group_" + groupNum;
 		model.tagSet.put("device", device);
 		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+		if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+			currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+		}
 		model.timestamp = currentTime;
 		for (String sensor : config.SENSOR_CODES) {
 			FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -232,11 +235,9 @@ public class InfluxDBV2 implements IDatebase {
 		int groupNum = deviceNum / groupSize;
 		model.measurement = "group_" + groupNum;
 		model.tagSet.put("device", device);
-		long currentTime;
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
 		if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-			currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-		} else {
-			currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+			currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
 		}
 		model.timestamp = currentTime;
 		for (String sensor : config.SENSOR_CODES) {
@@ -373,10 +374,8 @@ public class InfluxDBV2 implements IDatebase {
 					break;
 
 			}
-			LOGGER.debug(sql);
-			int line = 0;
-			StringBuilder builder = new StringBuilder(sql);
-			LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, builder.toString());
+			int line = 0; //FIXME need to confirm line is actually result point number
+			LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
 			startTimeStamp = System.nanoTime();
 			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
 			for (Result result : results.getResults()) {
@@ -402,7 +401,7 @@ public class InfluxDBV2 implements IDatebase {
 			//LOGGER.info("{}", builder.toString());
 			endTimeStamp = System.nanoTime();
 			latency = endTimeStamp - startTimeStamp;
-			client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
+			client.setTotalPoint(client.getTotalPoint() + line);
 			client.setTotalTime(client.getTotalTime() + latency);
 			latencies.add(latency);
 

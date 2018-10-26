@@ -1,8 +1,10 @@
-package cn.edu.tsinghua.iotdb.benchmark.db;
+package cn.edu.tsinghua.iotdb.benchmark.db.iotdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
+import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
@@ -852,6 +854,9 @@ public class IoTDB implements IDatebase {
         }
         builder.append(") values(");
         long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+        if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+            currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+        }
         builder.append(currentTime);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -870,11 +875,9 @@ public class IoTDB implements IDatebase {
             builder.append(",").append(sensor);
         }
         builder.append(") values(");
-        long currentTime;
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
         if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-            currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-        } else {
-            currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+            currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
         builder.append(currentTime);
         for (String sensor : config.SENSOR_CODES) {

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.db.IoTDB;
+import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
 
 public class ImportDataFromCSV {
 	private Config config;
