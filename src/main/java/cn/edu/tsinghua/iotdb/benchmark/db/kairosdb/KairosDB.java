@@ -108,7 +108,6 @@ public class KairosDB extends TSDB implements IDatebase {
         int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
         int groupNum = deviceNum / groupSize;
         return "group_" + groupNum;
-
     }
 
     private LinkedList<KairosDataModel> createDataModel(int batchIndex, int dataIndex, String device) {

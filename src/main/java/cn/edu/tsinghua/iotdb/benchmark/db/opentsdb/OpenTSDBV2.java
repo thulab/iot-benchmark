@@ -27,10 +27,10 @@ import java.util.Map.Entry;
 /**
  * http://opentsdb.net/docs/build/html/index.html
  *
- * @author fasape
+ * @author liurui
  */
-public class OpenTSDB extends TSDB implements IDatebase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenTSDB.class);
+public class OpenTSDBV2 extends TSDB implements IDatebase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenTSDBV2.class);
     private String openUrl;
     private String queryUrl;
     private String writeUrl;
@@ -44,7 +44,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private ProbTool probTool;
     private int backScanTime = 24;
 
-    public OpenTSDB(long labID) {
+    public OpenTSDBV2(long labID) {
         mySql = new MySqlLog();
         this.labID = labID;
         config = ConfigDescriptor.getInstance().getConfig();
@@ -111,13 +111,16 @@ public class OpenTSDB extends TSDB implements IDatebase {
         }
     }
 
-    private LinkedList<TSDBDataModel> createDataModel(int batchIndex, int dataIndex, String device) {
-        LinkedList<TSDBDataModel> models = new LinkedList<TSDBDataModel>();
+    private String getGroup(String device) {
         int deviceNum = getDeviceNum(device);
         int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
         int groupNum = deviceNum / groupSize;
-        String groupId = "group_" + groupNum;
-        String metricName = metric + groupId;
+        return "group_" + groupNum;
+    }
+
+    private LinkedList<TSDBDataModel> createDataModel(int batchIndex, int dataIndex, String device) {
+        LinkedList<TSDBDataModel> models = new LinkedList<TSDBDataModel>();
+        String groupId = getGroup(device);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP
@@ -127,12 +130,12 @@ public class OpenTSDB extends TSDB implements IDatebase {
             }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             TSDBDataModel model = new TSDBDataModel();
-            model.setMetric(metricName);
+            model.setMetric(sensor);
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String, String> tags = new HashMap<>();
             tags.put("device", device);
-            tags.put("sensor", sensor);
+            tags.put("group", groupId);
             model.setTags(tags);
             models.addLast(model);
         }
@@ -141,11 +144,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
     private LinkedList<TSDBDataModel> createDataModel(int timestampIndex, String device) {
         LinkedList<TSDBDataModel> models = new LinkedList<TSDBDataModel>();
-        int deviceNum = getDeviceNum(device);
-        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        int groupNum = deviceNum / groupSize;
-        String groupId = "group_" + groupNum;
-        String metricName = metric + groupId;
+        String groupId = getGroup(device);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
@@ -154,12 +153,12 @@ public class OpenTSDB extends TSDB implements IDatebase {
             }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             TSDBDataModel model = new TSDBDataModel();
-            model.setMetric(metricName);
+            model.setMetric(sensor);
             model.setTimestamp(currentTime);
             model.setValue(value);
             Map<String, String> tags = new HashMap<>();
             tags.put("device", device);
-            tags.put("sensor", sensor);
+            tags.put("group", groupId);
             model.setTags(tags);
             models.addLast(model);
         }
@@ -182,10 +181,10 @@ public class OpenTSDB extends TSDB implements IDatebase {
         Map<String, Object> queryMap = new HashMap<>();
 
         Map<String, Object> subQuery = new HashMap<String, Object>();
-        subQuery.put("metric", getMetricName(0));
+        subQuery.put("metric", "s_0");
         Map<String, String> tags = new HashMap<String, String>();
         tags.put("device", "d_0");
-        tags.put("sensor", "s_0");
+        tags.put("group", "group_0");
         subQuery.put("tags", tags);
         List<Map<String, Object>> list = new ArrayList<>();
         list.add(subQuery);
@@ -220,7 +219,6 @@ public class OpenTSDB extends TSDB implements IDatebase {
         queryMap.put("end", startTime + config.QUERY_INTERVAL);
 
         try {
-            List<String> sensorList = new ArrayList<String>();
             switch (config.QUERY_CHOICE) {
                 case 1:// 精确点查询
                     long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
@@ -250,14 +248,6 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
                     break;
                 case 6:// 最近点查询
-//				queryMap.clear();
-//				list = getSubQueries(devices);
-//				for (Map<String, Object> subQuery : list) {
-//					subQuery.remove("aggregator");
-//				}
-//				queryMap.put("queries", list);
-//				queryMap.put("backScan", backScanTime);
-
                     //FIXME
                     list = getSubQueries(devices);
                     for (Map<String, Object> subQuery : list) {
@@ -346,13 +336,6 @@ public class OpenTSDB extends TSDB implements IDatebase {
         return pointNum;
     }
 
-    private String getMetricName(Integer deviceNum) {
-        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        int groupNum = deviceNum / groupSize;
-        String groupId = "group_" + groupNum;
-        return metric + groupId;
-    }
-
     private List<Map<String, Object>> getSubQueries(List<Integer> devices) {
         List<Map<String, Object>> list = new ArrayList<>();
 
@@ -362,30 +345,35 @@ public class OpenTSDB extends TSDB implements IDatebase {
         }
         Collections.shuffle(sensorList, sensorRandom);
 
-        Map<String, List<Integer>> metric2devices = new HashMap<String, List<Integer>>();
-        for (int d : devices) {
-            String m = getMetricName(d);
-            metric2devices.putIfAbsent(m, new ArrayList<Integer>());
-            metric2devices.get(m).add(d);
-        }
-
-        for (Entry<String, List<Integer>> queryMetric : metric2devices.entrySet()) {
+        for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
+            String metric = sensorList.get(i);
             Map<String, Object> subQuery = new HashMap<String, Object>();
             subQuery.put("aggregator", config.QUERY_AGGREGATE_FUN);// FIXME 值的意义需要再研究一下
-            subQuery.put("metric", queryMetric.getKey());
+            subQuery.put("metric", metric);
+
+            List<String> deviceList = new ArrayList<>();
+            List<String> groupList = new ArrayList<>();
+            for (int d : devices) {
+                deviceList.add("d_" + d);
+            }
+            for (String d : deviceList) {
+                groupList.add(getGroup(d));
+            }
+            List<String> uniqueGroupList = new ArrayList<>(new TreeSet<>(groupList));
 
             Map<String, String> tags = new HashMap<String, String>();
             String deviceStr = "";
-            for (int d : queryMetric.getValue()) {
-                deviceStr += "|" + config.DEVICE_CODES.get(d);
+            for (String d : deviceList) {
+                deviceStr += "|" + d;
             }
             deviceStr = deviceStr.substring(1);
 
-            String sensorStr = sensorList.get(0);
-            for (int i = 1; i < config.QUERY_SENSOR_NUM; i++) {
-                sensorStr += "|" + sensorList.get(i);
+            String groupStr = "";
+            for (String g : uniqueGroupList) {
+                groupStr += "|" + g;
             }
-            tags.put("sensor", sensorStr);
+            groupStr = groupStr.substring(1);
+            tags.put("group", groupStr);
             tags.put("device", deviceStr);
             subQuery.put("tags", tags);
             list.add(subQuery);
