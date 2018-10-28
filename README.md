@@ -31,7 +31,7 @@ To use IoTDB-benchmark, you need to have:
 6. InfluxDB >= 1.3.7
 7. influxdb-comparisons (If you want to use the load-data-from-file mode)
 8. sysstat (If you want to record system information of DB-server during test)
-9. database system under test (currently support OpenTSDB and CTSDB)
+9. other database system under test
 
 # Quick Start
 

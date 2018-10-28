@@ -10,7 +10,7 @@ public class OpenTSDBFactory implements IDBFactory {
 	@Override
 	public IDatebase buildDB(long labID) throws SQLException, ClassNotFoundException {
 		// TODO Auto-generated method stub
-		return new OpenTSDB(labID);
+		return new OpenTSDBV2(labID);
 	}
 
 }
