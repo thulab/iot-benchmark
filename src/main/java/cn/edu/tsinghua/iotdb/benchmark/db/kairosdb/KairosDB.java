@@ -386,8 +386,8 @@ public class KairosDB extends TSDB implements IDatebase {
             samplingMap.put("value", config.TIME_UNIT);
         } else {
             if (config.QUERY_CHOICE == 10) {
-                samplingMap.put("unit", "years");
-                samplingMap.put("value", 1000);
+                //samplingMap.put("unit", "years");
+                samplingMap.put("value", config.TIME_UNIT);
             } else if(config.QUERY_CHOICE == 6){
                 aggMap.put(NAME, "last");
                 samplingMap.put("unit", "years");
