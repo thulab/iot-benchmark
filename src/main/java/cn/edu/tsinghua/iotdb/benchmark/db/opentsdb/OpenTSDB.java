@@ -292,7 +292,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
                     queryMap.remove("end");
                     list = getSubQueries(devices);
                     for (Map<String, Object> subQuery : list) {
-                        subQuery.put("downsample", "ms-" + config.QUERY_AGGREGATE_FUN);
+                        subQuery.put("downsample", config.TIME_UNIT + "ms-" + config.QUERY_AGGREGATE_FUN);
                     }
                     queryMap.put("queries", list);
                     break;

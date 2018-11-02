@@ -25,7 +25,11 @@ import java.util.*;
 import java.util.Map.Entry;
 
 /**
- * http://opentsdb.net/docs/build/html/index.html
+ * This class use the schema that regard sensor as metric and regard device and storage group as tag, which may
+ * be not suitable for OpenTSDB according to the official document:
+ * http://opentsdb.net/docs/build/html/user_guide/writing/index.html
+ *
+ * but for comparison this class is reserved.
  *
  * @author liurui
  */
