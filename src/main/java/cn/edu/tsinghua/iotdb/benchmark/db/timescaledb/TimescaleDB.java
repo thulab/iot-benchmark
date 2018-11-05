@@ -20,7 +20,7 @@ import java.util.*;
 
 public class TimescaleDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
-    private static final String convertToHypertable = "SELECT create_hypertable('%s', 'time');";
+    private static final String convertToHypertable = "SELECT create_hypertable('%s', 'time', chunk_time_interval => 86400000);";
     private Connection connection;
     private static Config config;
     private List<Point> points;
