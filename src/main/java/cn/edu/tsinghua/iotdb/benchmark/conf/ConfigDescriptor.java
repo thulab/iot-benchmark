@@ -73,7 +73,7 @@ public class ConfigDescriptor {
 				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
 
 				config.DB_URL = properties.getProperty("DB_URL", "localhost");
-				config.INFLUX_DB_NAME = properties.getProperty("INFLUX_DB_NAME", "test");
+				config.DB_NAME = properties.getProperty("DB_NAME", "test");
 				
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
