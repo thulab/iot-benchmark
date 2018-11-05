@@ -54,13 +54,28 @@ public class TimescaleDB implements IDatebase {
     }
 
     @Override
-    public void init() throws SQLException {
+    public void init() {
         Statement statement = null;
-        statement = connection.createStatement();
-        for (int i = 0; i < config.GROUP_NUMBER; i++) {
-            statement.execute(String.format(dropTable, "group_" + i));
+        try {
+            statement = connection.createStatement();
+        } catch (SQLException e) {
+
+            e.printStackTrace();
         }
-        statement.close();
+        for (int i = 0; i < config.GROUP_NUMBER; i++) {
+            String table = "group_" + i;
+            try {
+                statement.execute(String.format(dropTable, table));
+            } catch (SQLException e) {
+                LOGGER.warn("delete old data table {} failed, because: {}", table, e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        try {
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
