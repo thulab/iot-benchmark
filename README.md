@@ -182,7 +182,7 @@ Suppose you are using the same parameters as in Quick Start case. The only param
 ```
 DB_SWITCH=InfluxDB
 DB_URL=http://127.0.0.1:8086
-INFLUX_DB_NAME=test
+DB_NAME=test
 ```
 
 > NOTE:

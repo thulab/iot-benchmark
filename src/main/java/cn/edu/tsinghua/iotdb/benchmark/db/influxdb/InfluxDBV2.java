@@ -53,7 +53,7 @@ public class InfluxDBV2 implements IDatebase {
 		mySql.initMysql(labID);
 		sensorRandom = new Random(1 + config.QUERY_SEED);
 		InfluxURL = config.DB_URL;
-		InfluxDBName = config.INFLUX_DB_NAME;
+		InfluxDBName = config.DB_NAME;
 		influxDB = org.influxdb.InfluxDBFactory.connect(InfluxURL);
 	}
 
@@ -268,7 +268,7 @@ public class InfluxDBV2 implements IDatebase {
 		long endTime = Constants.START_TIMESTAMP;
 		
 		String sql = "select first(s_0) from group_3 ";
-		Query q = new Query(sql, config.INFLUX_DB_NAME);
+		Query q = new Query(sql, config.DB_NAME);
 		QueryResult results = influxDB.query(q);
 
 		for (QueryResult.Result result : results.getResults()) {
@@ -289,7 +289,7 @@ public class InfluxDBV2 implements IDatebase {
 		} // for
 
 		sql = "select last(s_0) from group_3 ";
-		q = new Query(sql, config.INFLUX_DB_NAME);
+		q = new Query(sql, config.DB_NAME);
 		results = influxDB.query(q);
 		for (QueryResult.Result result : results.getResults()) {
 			if (result.getSeries() == null) {
@@ -377,7 +377,7 @@ public class InfluxDBV2 implements IDatebase {
 			int line = 0; //FIXME need to confirm line is actually result point number
 			LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
 			startTimeStamp = System.nanoTime();
-			QueryResult results = influxDB.query(new Query(sql, config.INFLUX_DB_NAME));
+			QueryResult results = influxDB.query(new Query(sql, config.DB_NAME));
 			for (Result result : results.getResults()) {
 				//LOGGER.info(result.toString());
 				List<Series> series = result.getSeries();
@@ -431,7 +431,7 @@ public class InfluxDBV2 implements IDatebase {
 	@Override
 	public long count(String group, String device, String sensor) {
 		String sql = String.format(countSQL, sensor, group, device);
-		Query q = new Query(sql, config.INFLUX_DB_NAME);
+		Query q = new Query(sql, config.DB_NAME);
 		QueryResult results = influxDB.query(q);
 
 		long countResult = 0;

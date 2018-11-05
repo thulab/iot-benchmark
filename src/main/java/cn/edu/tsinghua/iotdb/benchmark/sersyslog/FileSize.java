@@ -43,8 +43,8 @@ public class FileSize {
 
                 break;
             case Constants.DB_INFLUX:
-                FileSizeKinds.DATA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.INFLUX_DB_NAME;
-                FileSizeKinds.DELTA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.INFLUX_DB_NAME + "/autogen";
+                FileSizeKinds.DATA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.DB_NAME;
+                FileSizeKinds.DELTA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.DB_NAME + "/autogen";
                 break;
             case Constants.BENCHMARK_IOTDB:
                 break;
