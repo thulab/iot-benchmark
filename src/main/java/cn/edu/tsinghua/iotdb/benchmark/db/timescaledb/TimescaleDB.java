@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
 import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
@@ -21,6 +22,7 @@ import java.util.*;
 public class TimescaleDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
     private static final String convertToHypertable = "SELECT create_hypertable('%s', 'time', chunk_time_interval => 86400000);";
+    private static final String dropTable = "DROP TABLE %s;";
     private Connection connection;
     private static Config config;
     private List<Point> points;
@@ -53,7 +55,12 @@ public class TimescaleDB implements IDatebase {
 
     @Override
     public void init() throws SQLException {
-
+        Statement statement = null;
+        statement = connection.createStatement();
+        for (int i = 0; i < config.GROUP_NUMBER; i++) {
+            statement.execute(String.format(dropTable, "group_" + i));
+        }
+        statement.close();
     }
 
     /**
@@ -179,7 +186,7 @@ public class TimescaleDB implements IDatebase {
         builder.append(", '").append(device).append("'");
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-            builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
+            builder.append(", ").append(Function.getValueByFuntionidAndParam(param, currentTime));
         }
         builder.append(");");
         LOGGER.debug("createSQLStatement:  {}", builder.toString());
@@ -199,44 +206,35 @@ public class TimescaleDB implements IDatebase {
                     statement.addBatch(sql);
                 }
             } else {
-                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
-                int[] shuffleSequence = new int[shuffleSize];
-                for (int i = 0; i < shuffleSize; i++) {
-                    shuffleSequence[i] = i;
-                }
-
-                int tmp = shuffleSequence[shuffleSize - 1];
-                shuffleSequence[shuffleSize - 1] = shuffleSequence[0];
-                shuffleSequence[0] = tmp;
-
-                for (int i = 0; i < shuffleSize; i++) {
-                    String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
-                    statement.addBatch(sql);
-                }
-                for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
-                    String sql = createSQLStatment(loopIndex, i, device);
-                    statement.addBatch(sql);
-                }
+//                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+//                int[] shuffleSequence = new int[shuffleSize];
+//                for (int i = 0; i < shuffleSize; i++) {
+//                    shuffleSequence[i] = i;
+//                }
+//
+//                int tmp = shuffleSequence[shuffleSize - 1];
+//                shuffleSequence[shuffleSize - 1] = shuffleSequence[0];
+//                shuffleSequence[0] = tmp;
+//
+//                for (int i = 0; i < shuffleSize; i++) {
+//                    String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
+//                    statement.addBatch(sql);
+//                }
+//                for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+//                    String sql = createSQLStatment(loopIndex, i, device);
+//                    statement.addBatch(sql);
+//                }
             }
 
             long startTime = System.nanoTime();
-            try {
-                statement.executeBatch();
-            } catch (BatchUpdateException e) {
-                long[] arr = e.getLargeUpdateCounts();
-                for (long i : arr) {
-                    if (i == -3) {
-                        errorNum++;
-                    }
-                }
-            }
+            errorNum = getErrorNum(statement);
             statement.clearBatch();
             statement.close();
             long endTime = System.nanoTime();
             long costTime = endTime - startTime;
             latencies.add(costTime);
             if (errorNum > 0) {
-                LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+                LOGGER.info("Batch insert failed point number is {}! ", errorNum);
             } else {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
@@ -261,7 +259,12 @@ public class TimescaleDB implements IDatebase {
 
     @Override
     public void close() throws SQLException {
-
+        if (connection != null) {
+            connection.close();
+        }
+        if (mySql != null) {
+            mySql.closeMysql();
+        }
     }
 
     @Override
@@ -306,6 +309,85 @@ public class TimescaleDB implements IDatebase {
 
     @Override
     public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random, ArrayList<Long> latencies) throws SQLException {
-        return 0;
+        Statement statement;
+        long errorNum = 0;
+        int timestampIndex;
+        PossionDistribution possionDistribution = new PossionDistribution(random);
+        int nextDelta;
+
+        try {
+            statement = connection.createStatement();
+            String sql;
+            for (int i = 0; i < config.CACHE_NUM; i++) {
+                if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
+                    nextDelta = possionDistribution.getNextPossionDelta();
+                    timestampIndex = maxTimestampIndex - nextDelta;
+                } else {
+                    maxTimestampIndex++;
+                    timestampIndex = maxTimestampIndex;
+                }
+                sql = createSQLStatment(device, timestampIndex);
+                statement.addBatch(sql);
+            }
+            long startTime = System.nanoTime();
+            errorNum = getErrorNum(statement);
+            statement.clearBatch();
+            statement.close();
+            long endTime = System.nanoTime();
+            long costTime = endTime - startTime;
+            latencies.add(costTime);
+            if (errorNum > 0) {
+                LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+            } else {
+                LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                        (totalTime.get() + costTime) / unitTransfer,
+                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                totalTime.set(totalTime.get() + costTime);
+            }
+            errorCount.set(errorCount.get() + errorNum);
+
+            mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
+                    config.REMARK);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return maxTimestampIndex;
+    }
+
+    private long getErrorNum(Statement statement) throws SQLException {
+        long errorNum = 0;
+        try {
+            statement.executeBatch();
+        } catch (BatchUpdateException e) {
+            LOGGER.error("Batch insert failed because: {}", e.getMessage());
+            errorNum = config.CACHE_NUM * config.SENSOR_NUMBER;
+            e.printStackTrace();
+        }
+        return errorNum;
+    }
+
+    private String createSQLStatment(String device, int timestampIndex) {
+        String group = getGroup(device);
+        StringBuilder builder = new StringBuilder("INSERT INTO ").append(group).append("(time, device");
+        for (String sensor : config.SENSOR_CODES) {
+            builder.append(", ").append(sensor);
+        }
+        builder.append(") ").append("VALUES (");
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+        if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+            currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+        }
+        builder.append(currentTime);
+        builder.append(", '").append(device).append("'");
+        for (String sensor : config.SENSOR_CODES) {
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            builder.append(", ").append(Function.getValueByFuntionidAndParam(param, currentTime));
+        }
+        builder.append(");");
+        LOGGER.debug("createSQLStatement:  {}", builder.toString());
+        return builder.toString();
     }
 }
