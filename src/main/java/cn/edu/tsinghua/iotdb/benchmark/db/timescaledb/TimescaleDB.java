@@ -102,7 +102,9 @@ public class TimescaleDB implements IDatebase {
         try {
             statement = connection.createStatement();
             statement.execute(getCreateTableSQL(tableName));
+            LOGGER.debug("CreateTableSQL Statement:  {}", getCreateTableSQL(tableName));
             statement.execute(String.format(convertToHypertable, tableName));
+            LOGGER.debug("convertToHypertable Statement:  {}", String.format(convertToHypertable, tableName));
         } catch (SQLException e) {
             LOGGER.error("Can't create PG table because: {}", e.getMessage());
             e.printStackTrace();
@@ -120,17 +122,17 @@ public class TimescaleDB implements IDatebase {
      * example:
      *
      * CREATE TABLE group_0 (
-     *   time       TIMESTAMPTZ       NOT NULL,
-     *   device     TEXT              NOT NULL,
-     *   s_0        DOUBLE PRECISION  NULL,
-     *   s_1        DOUBLE PRECISION  NULL
+     *   time       BIGINT              NOT NULL,
+     *   device     TEXT                NOT NULL,
+     *   s_0        DOUBLE PRECISION    NULL,
+     *   s_1        DOUBLE PRECISION    NULL
      * );
      *
      * @return create table SQL String
      */
     private String getCreateTableSQL(String group){
         StringBuilder SQLBuilder = new StringBuilder("CREATE TABLE ").append(group).append(" (");
-        SQLBuilder.append("time TIMESTAMPTZ NOT NULL, device TEXT NOT NULL");
+        SQLBuilder.append("time BIGINT NOT NULL, device TEXT NOT NULL");
         for(String sensor: config.SENSOR_CODES){
             SQLBuilder.append(", ").append(sensor).append(" ").append(config.DATA_TYPE).append(" PRECISION NULL");
         }
@@ -180,7 +182,7 @@ public class TimescaleDB implements IDatebase {
             builder.append(",").append(Function.getValueByFuntionidAndParam(param, currentTime));
         }
         builder.append(");");
-        LOGGER.debug("createSQLStatment:  {}", builder.toString());
+        LOGGER.debug("createSQLStatement:  {}", builder.toString());
         return builder.toString();
     }
 
