@@ -120,7 +120,7 @@ public class TimescaleDB implements IDatebase {
      * example:
      *
      * CREATE TABLE group_0 (
-     *   time       TIMESTAMP         NOT NULL,
+     *   time       TIMESTAMPTZ       NOT NULL,
      *   device     TEXT              NOT NULL,
      *   s_0        DOUBLE PRECISION  NULL,
      *   s_1        DOUBLE PRECISION  NULL
@@ -130,7 +130,7 @@ public class TimescaleDB implements IDatebase {
      */
     private String getCreateTableSQL(String group){
         StringBuilder SQLBuilder = new StringBuilder("CREATE TABLE ").append(group).append(" (");
-        SQLBuilder.append("time TIMESTAMP NOT NULL, device TEXT NOT NULL");
+        SQLBuilder.append("time TIMESTAMPTZ NOT NULL, device TEXT NOT NULL");
         for(String sensor: config.SENSOR_CODES){
             SQLBuilder.append(", ").append(sensor).append(" ").append(config.DATA_TYPE).append(" PRECISION NULL");
         }
@@ -154,8 +154,8 @@ public class TimescaleDB implements IDatebase {
     /**
      * example:
      *
-     * INSERT INTO conditions(time, location, temperature, humidity)
-     *   VALUES (NOW(), 'office', 70.0, 50.0);
+     * INSERT INTO conditions(time, device, s_0, s_1)
+     *   VALUES (1535558400000, 'd_0', 70.0, 50.0);
      *
      * @param batch offset of loop
      * @param index offset of batch
