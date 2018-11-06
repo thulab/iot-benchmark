@@ -8,6 +8,7 @@ Current databases supported:
 + InfluxDB
 + OpenTSDB
 + KairosDB
++ TimescaleDB
 + CTSDB
 
 # Main Features
