@@ -160,7 +160,7 @@ public class TimescaleDB implements IDatebase {
      */
     private String getCreateTableSQL(String tableName) {
         StringBuilder SQLBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
-        SQLBuilder.append("time BIGINT NOT NULL, group TEXT NOT NULL, device TEXT NOT NULL");
+        SQLBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
         for (String sensor : config.SENSOR_CODES) {
             SQLBuilder.append(", ").append(sensor).append(" ").append(config.DATA_TYPE).append(" PRECISION NULL");
         }
@@ -194,7 +194,7 @@ public class TimescaleDB implements IDatebase {
      */
     private String createSQLStatment(int batch, int index, String device) {
         String group = getGroup(device);
-        StringBuilder builder = new StringBuilder("INSERT INTO ").append(config.DB_NAME).append("(time, group, device");
+        StringBuilder builder = new StringBuilder("INSERT INTO ").append(config.DB_NAME).append("(time, sGroup, device");
         for (String sensor : config.SENSOR_CODES) {
             builder.append(", ").append(sensor);
         }
@@ -661,7 +661,7 @@ public class TimescaleDB implements IDatebase {
 
     private String createSQLStatment(String device, int timestampIndex) {
         String group = getGroup(device);
-        StringBuilder builder = new StringBuilder("INSERT INTO ").append(config.DB_NAME).append("(time, group, device");
+        StringBuilder builder = new StringBuilder("INSERT INTO ").append(config.DB_NAME).append("(time, sGroup, device");
         for (String sensor : config.SENSOR_CODES) {
             builder.append(", ").append(sensor);
         }
