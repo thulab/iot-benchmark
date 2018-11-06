@@ -64,27 +64,29 @@ public class TimescaleDB implements IDatebase {
 
             e.printStackTrace();
         }
-
         String table = config.DB_NAME;
         try {
             assert statement != null;
             statement.execute(String.format(dropTable, table));
+            // wait for deletion complete
+            try {
+                LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+                Thread.sleep(config.INIT_WAIT_TIME);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } catch (SQLException e) {
             LOGGER.warn("delete old data table {} failed, because: {}", table, e.getMessage());
-            e.printStackTrace();
-        }
-
-        try {
-            statement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        // wait for deletion complete
-        try {
-            LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-            Thread.sleep(config.INIT_WAIT_TIME);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            if(!e.getMessage().contains("does not exist")) {
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                assert statement != null;
+                statement.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

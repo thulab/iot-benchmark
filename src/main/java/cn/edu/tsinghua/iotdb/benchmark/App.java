@@ -444,16 +444,16 @@ public class App {
         idbFactory = getDBFactory(config);
 
         IDatebase datebase;
-        long createSchemaStartTime;
+        long createSchemaStartTime = 0;
         long createSchemaEndTime;
         float createSchemaTime;
 
         long insertStartTime = System.nanoTime();
         try {
             datebase = idbFactory.buildDB(mysql.getLabID());
-            createSchemaStartTime = System.nanoTime();
             if (config.CREATE_SCHEMA) {
                 datebase.init();
+                createSchemaStartTime = System.nanoTime();
                 datebase.createSchema();
             }
             datebase.close();
