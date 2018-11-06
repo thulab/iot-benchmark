@@ -20,8 +20,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
-public class TimescaleDB implements IDatebase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
+
+/**
+ * this class regards group as different tables, however TimescaleDB has poor support for a query across multiple tables
+ * e.g.
+ * SELECT group_4.s_57, group_4.s_53, group_5.s_57, group_5.s_53 FROM group_4, group_5 WHERE group_4.device = 'd_45' AND group_5.device = 'd_55' AND time = 2010-01-01 12:00:00
+ *
+ */
+public class TimescaleDBV2 implements IDatebase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDBV2.class);
     private static final String convertToHypertable = "SELECT create_hypertable('%s', 'time', chunk_time_interval => 86400000);";
     private static final String dropTable = "DROP TABLE %s;";
     private Connection connection;
@@ -36,7 +43,7 @@ public class TimescaleDB implements IDatebase {
     private ProbTool probTool;
     private final double unitTransfer = 1000000000.0;
 
-    public TimescaleDB(long labID) throws ClassNotFoundException, SQLException {
+    public TimescaleDBV2(long labID) throws ClassNotFoundException, SQLException {
         Class.forName(Constants.POSTGRESQL_JDBC_NAME);
         config = ConfigDescriptor.getInstance().getConfig();
         points = new ArrayList<>();
@@ -64,16 +71,16 @@ public class TimescaleDB implements IDatebase {
 
             e.printStackTrace();
         }
-
-        String table = config.DB_NAME;
-        try {
-            assert statement != null;
-            statement.execute(String.format(dropTable, table));
-        } catch (SQLException e) {
-            LOGGER.warn("delete old data table {} failed, because: {}", table, e.getMessage());
-            e.printStackTrace();
+        for (int i = 0; i < config.GROUP_NUMBER; i++) {
+            String table = "group_" + i;
+            try {
+                assert statement != null;
+                statement.execute(String.format(dropTable, table));
+            } catch (SQLException e) {
+                LOGGER.warn("delete old data table {} failed, because: {}", table, e.getMessage());
+                e.printStackTrace();
+            }
         }
-
         try {
             statement.close();
         } catch (SQLException e) {
@@ -115,7 +122,14 @@ public class TimescaleDB implements IDatebase {
      */
     @Override
     public void createSchema() {
-        createTable(config.DB_NAME);
+        ArrayList<String> group = new ArrayList<>();
+        for (int i = 0; i < config.GROUP_NUMBER; i++) {
+            group.add("group_" + i);
+        }
+        for (String g : group) {
+            createTable(g);
+        }
+
     }
 
     /**
@@ -156,9 +170,9 @@ public class TimescaleDB implements IDatebase {
      *
      * @return create table SQL String
      */
-    private String getCreateTableSQL(String tableName) {
-        StringBuilder SQLBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
-        SQLBuilder.append("time BIGINT NOT NULL, group TEXT NOT NULL, device TEXT NOT NULL");
+    private String getCreateTableSQL(String group) {
+        StringBuilder SQLBuilder = new StringBuilder("CREATE TABLE ").append(group).append(" (");
+        SQLBuilder.append("time BIGINT NOT NULL, device TEXT NOT NULL");
         for (String sensor : config.SENSOR_CODES) {
             SQLBuilder.append(", ").append(sensor).append(" ").append(config.DATA_TYPE).append(" PRECISION NULL");
         }
@@ -181,9 +195,9 @@ public class TimescaleDB implements IDatebase {
 
     /**
      * example:
-     * <p>
-     * INSERT INTO conditions(time, group, device, s_0, s_1)
-     * VALUES (1535558400000, 'group_0', 'd_0', 70.0, 50.0);
+     *
+     * INSERT INTO conditions(time, device, s_0, s_1)
+     * VALUES (1535558400000, 'd_0', 70.0, 50.0);
      *
      * @param batch  offset of loop
      * @param index  offset of batch
@@ -192,7 +206,7 @@ public class TimescaleDB implements IDatebase {
      */
     private String createSQLStatment(int batch, int index, String device) {
         String group = getGroup(device);
-        StringBuilder builder = new StringBuilder("INSERT INTO ").append(config.DB_NAME).append("(time, group, device");
+        StringBuilder builder = new StringBuilder("INSERT INTO ").append(group).append("(time, device");
         for (String sensor : config.SENSOR_CODES) {
             builder.append(", ").append(sensor);
         }
@@ -202,7 +216,6 @@ public class TimescaleDB implements IDatebase {
             currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
         builder.append(currentTime);
-        builder.append(", '").append(group).append("'");
         builder.append(", '").append(device).append("'");
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -225,6 +238,25 @@ public class TimescaleDB implements IDatebase {
                     String sql = createSQLStatment(loopIndex, i, device);
                     statement.addBatch(sql);
                 }
+            } else {
+//                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+//                int[] shuffleSequence = new int[shuffleSize];
+//                for (int i = 0; i < shuffleSize; i++) {
+//                    shuffleSequence[i] = i;
+//                }
+//
+//                int tmp = shuffleSequence[shuffleSize - 1];
+//                shuffleSequence[shuffleSize - 1] = shuffleSequence[0];
+//                shuffleSequence[0] = tmp;
+//
+//                for (int i = 0; i < shuffleSize; i++) {
+//                    String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
+//                    statement.addBatch(sql);
+//                }
+//                for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+//                    String sql = createSQLStatment(loopIndex, i, device);
+//                    statement.addBatch(sql);
+//                }
             }
 
             long startTime = System.nanoTime();
@@ -279,7 +311,7 @@ public class TimescaleDB implements IDatebase {
      *
      * @throws SQLException
      */
-    private String createQuerySQLStatment(List<Integer> devices, int num) throws SQLException {
+    private String createQuerySQLStatment(List<Integer> devices, int num, List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append("SELECT ");
         if (num > config.SENSOR_NUMBER) {
@@ -288,23 +320,16 @@ public class TimescaleDB implements IDatebase {
         }
         List<String> list = new ArrayList<>(config.SENSOR_CODES);
         Collections.shuffle(list, sensorRandom);
-        builder.append("time, device");
+        builder.append("time");
         for (int i = 0; i < num; i++) {
             builder.append(", ").append(list.get(i));
         }
-        builder.append(" FROM ").append(config.DB_NAME);
-        builder.append(" WHERE ");
-        builder.append(getDeviceCondition(devices));
-        return builder.toString();
-    }
-
-    private String getDeviceCondition(List<Integer> devices){
-        StringBuilder builder = new StringBuilder("(");
-        for(int i: devices){
-            builder.append("device='d_").append(i).append("'").append(" OR ");
+        builder.append(" FROM ").append(getGroup("d_" + devices.get(0)));
+        for (int i = 1; i < devices.size(); i++) {
+            builder.append(" , ").append(getGroup("d_" + devices.get(i)));
         }
-        String raw = builder.toString();
-        return raw.substring(0, raw.length() - 4) + ")";
+
+        return builder.toString();
     }
 
     /**
@@ -313,15 +338,16 @@ public class TimescaleDB implements IDatebase {
      * @throws SQLException
      */
     private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList) throws SQLException {
-        //String strTime = sdf.format(new Date(time));
-        String strTime = String.valueOf(time);
-        return createQuerySQLStatment(devices, num) + " AND time = " + strTime;
+        String strTime = sdf.format(new Date(time));
+        return createQuerySQLStatment(devices, num, sensorList) + " WHERE time = " + strTime;
     }
 
     /*
     Example of different query types:
     1.Exact point query:
+    IoTDB:
     SELECT s_57 FROM root.performf.group_4.d_49 WHERE time = 2010-01-01 12:00:00
+    TimescaleDB:
     SELECT group_4.s_57, group_4.s_53, group_5.s_57, group_5.s_53 FROM group_4, group_5 WHERE group_4.device time = 2010-01-01 12:00:00
     2.Aggregation function query:
     SELECT max_value(s_76) FROM root.performf.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01 12:30:00
@@ -334,8 +360,8 @@ public class TimescaleDB implements IDatebase {
     6.Group-by query:
     SELECT max_value(s_81) FROM root.performf.group_9.d_92 WHERE root.performf.group_9.d_92.s_81 >= 0.0  GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
     */
-
     /**
+     *
      * @param devices
      * @param index
      * @param startTime
@@ -345,48 +371,55 @@ public class TimescaleDB implements IDatebase {
      */
     @Override
     public void executeOneQuery(List<Integer> devices, int index, long startTime, QueryClientThread client, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
-        Statement statement = null;
-        String sql = "";
-        long startTimeStamp = 0, endTimeStamp = 0, latency = 0;
-        try {
-            statement = connection.createStatement();
-            List<String> sensorList = new ArrayList<String>();
-
-            switch (config.QUERY_CHOICE) {
-                case 1:// 精确点查询
-                    //以下语句是为了假若使用 startTimeInterval = database.getTotalTimeInterval() / config.LOOP; 可保证能查出点来
-                    long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
-                            + Constants.START_TIMESTAMP;
-                    if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
-                        timeStamp += config.POINT_STEP / 2;
-                    }
-                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, timeStamp, sensorList);
-                    break;
-                case 2:// 模糊点查询（暂未实现）
-
-                case 3:// 聚合函数查询
-                    sql = createQuerySQLStatement(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM, startTime,
-                            startTime + config.QUERY_INTERVAL);
-                    break;
-                case 4:// 范围查询
-                    sql = createQuerySQLStatement(devices, config.QUERY_SENSOR_NUM, startTime,
-                            startTime + config.QUERY_INTERVAL);
-                    break;
-                case 5:// 条件查询
-                    //sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime, startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT, sensorList);
-                    break;
-                case 6:// 最近点查询
-                    //sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
-                    break;
-                case 7:// groupBy查询（暂时只有一个时间段）
-                    sql = createQuerySQLStatement(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, startTime,
-                            startTime + config.QUERY_INTERVAL);
-                    break;
-                case 8:// query with limit and series limit and their offsets
-                    //int device_id = index % devices.size();
-                    //sql = createQuerySQLStatment(device_id, config.QUERY_LIMIT_N, config.QUERY_LIMIT_OFFSET, config.QUERY_SLIMIT_N, config.QUERY_SLIMIT_OFFSET);
-                    break;
-                case 9:// criteria query with limit
+//        Statement statement = null;
+//        String sql = "";
+//        long startTimeStamp = 0, endTimeStamp = 0, latency = 0;
+//        try {
+//            statement = connection.createStatement();
+//            List<String> sensorList = new ArrayList<String>();
+//
+//            switch (config.QUERY_CHOICE) {
+//                case 1:// 精确点查询
+//                    //以下语句是为了假若使用 startTimeInterval = database.getTotalTimeInterval() / config.LOOP; 可保证能查出点来
+//                    long timeStamp = (startTime - Constants.START_TIMESTAMP) / config.POINT_STEP * config.POINT_STEP
+//                            + Constants.START_TIMESTAMP;
+//                    if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
+//                        timeStamp += config.POINT_STEP / 2;
+//                    }
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, timeStamp, sensorList);
+//                    break;
+//                case 2:// 模糊点查询（暂未实现）
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, sensorList);
+//                    break;
+//                case 3:// 聚合函数查询
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, startTime,
+//                            startTime + config.QUERY_INTERVAL, sensorList);
+//                    break;
+//                case 4:// 范围查询
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
+//                            startTime + config.QUERY_INTERVAL, sensorList);
+//                    break;
+//                case 5:// 条件查询
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, startTime,
+//                            startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT, sensorList);
+//                    break;
+//                case 6:// 最近点查询
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
+//                    break;
+//                case 7:// groupBy查询（暂时只有一个时间段）
+//                    List<Long> startTimes = new ArrayList<Long>();
+//                    List<Long> endTimes = new ArrayList<Long>();
+//                    startTimes.add(startTime);
+//                    endTimes.add(startTime + config.QUERY_INTERVAL);
+//                    sql = createQuerySQLStatment(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM,
+//                            startTimes, endTimes, config.QUERY_LOWER_LIMIT,
+//                            sensorList);
+//                    break;
+//                case 8:// query with limit and series limit and their offsets
+//                    int device_id = index % devices.size();
+//                    sql = createQuerySQLStatment(device_id, config.QUERY_LIMIT_N, config.QUERY_LIMIT_OFFSET, config.QUERY_SLIMIT_N, config.QUERY_SLIMIT_OFFSET);
+//                    break;
+//                case 9:// criteria query with limit
 //                    sql = createQuerySQLStatment(
 //                            devices,
 //                            config.QUERY_SENSOR_NUM,
@@ -396,173 +429,61 @@ public class TimescaleDB implements IDatebase {
 //                            sensorList,
 //                            config.QUERY_LIMIT_N,
 //                            config.QUERY_LIMIT_OFFSET);
-                    break;
-                case 10:// aggregation function query without any filter
-                    sql = createQuerySQLStatement(devices, config.QUERY_AGGREGATE_FUN, config.QUERY_SENSOR_NUM);
-                    break;
-                case 11:// aggregation function query with value filter
+//                    break;
+//                case 10:// aggregation function query without any filter
+//                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, sensorList);
+//                    break;
+//                case 11:// aggregation function query with value filter
 //                    sql = createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT,
 //                            sensorList);
-                    break;
-
-            }
-            int line = 0;
-            LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
-
-            startTimeStamp = System.nanoTime();
-            statement.execute(sql);
-            ResultSet resultSet = statement.getResultSet();
-            while (resultSet.next()) {
-                line++;
-//				int sensorNum = sensorList.size();
-//				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
-//				for (int i = 1; i <= sensorNum; i++) {
-//					builder.append(resultSet.getString(i)).append("; ");
-//				}
-            }
-            statement.close();
-            endTimeStamp = System.nanoTime();
-            latency = endTimeStamp - startTimeStamp;
-            latencies.add(latency);
-            client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
-            client.setTotalTime(client.getTotalTime() + latency);
-
-            LOGGER.info(
-                    "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
-                            + "TotalTime {}s with totalPoint {} rate is {}points/s",
-                    Thread.currentThread().getName(), index, (latency / 1000.0) / 1000000.0,
-                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (latency / 1000000.0),
-                    (client.getTotalTime() / 1000.0) / 1000000.0, client.getTotalPoint(),
-                    client.getTotalPoint() * 1000.0f / (client.getTotalTime() / 1000000.0));
-            mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-                    (latency / 1000.0f) / 1000000.0, config.REMARK);
-        } catch (SQLException e) {
-            errorCount.set(errorCount.get() + 1);
-            LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
-            LOGGER.error("执行失败的查询语句：{}", sql);
-            mySql.saveQueryProcess(index, 0, -1, "query fail!" + sql);
-            e.printStackTrace();
-        } finally {
-            try {
-                if (statement != null)
-                    statement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void addFunSensor(String method, int num, StringBuilder builder, List<String> list) {
-        if (method.length() > 1) {
-            builder.append(method).append("(").append(list.get(0)).append(")");
-            for (int i = 1; i < num; i++) {
-                builder.append(" , ").append(method).append("(").append(list.get(i)).append(")");
-            }
-        } else {
-            builder.append(list.get(0));
-            for (int i = 1; i < num; i++) {
-                builder.append(" , ").append(list.get(i));
-            }
-        }
-    }
-
-    /**
-     * 创建查询语句--(带有时间约束条件的查询)
-     *
-     * @throws SQLException
-     */
-    public String createQuerySQLStatement(List<Integer> devices, int num, long startTime, long endTime) throws SQLException {
-//        String strstartTime = sdf.format(new Date(startTime));
-//        String strendTime = sdf.format(new Date(endTime));
-        StringBuilder builder = new StringBuilder(createQuerySQLStatment(devices, num));
-        builder.append(" AND time >= ").append(startTime).append(" AND time <= ").append(endTime);
-        return builder.toString();
-    }
-
-    /**
-     * -- Information about each 15-min period for each location
-     * -- over the past 3 hours, ordered by time and temperature
-     * SELECT time_bucket('15 minutes', time) AS fifteen_min,
-     *   location, COUNT(*),
-     *   MAX(temperature) AS max_temp,
-     *   MAX(humidity) AS max_hum
-     *   FROM conditions
-     *   WHERE time > NOW() - interval '3 hours'
-     *   GROUP BY fifteen_min, location
-     *   ORDER BY fifteen_min DESC, max_temp DESC;
-     *
-     * @param devices
-     * @param querySensorNum
-     * @param aggFunction
-     * @param startTime
-     * @param endTime
-     * @return
-     */
-    private String createQuerySQLStatement(List<Integer> devices, int querySensorNum, String aggFunction, long startTime, long endTime) {
-        StringBuilder builder = new StringBuilder(createQuerySQLStatement(devices, querySensorNum, aggFunction));
-//        String strstartTime = sdf.format(new Date(startTime));
-//        String strendTime = sdf.format(new Date(endTime));
-        builder.append(" AND time >= ");
-        builder.append(startTime).append(" AND time <= ").append(endTime);
-        if(aggFunction.length() > 1){
-            builder.append(" GROUP BY sampleTime ORDER BY sampleTime INC;");
-        }
-        return builder.toString();
-    }
-
-    private String createQuerySQLStatement(List<Integer> devices, String method, int num, long startTime, long endTime) {
-        StringBuilder builder = new StringBuilder(createQuerySQLStatement(devices, method, num));
-        builder.append(" AND time >= ").append(startTime);
-        builder.append(" AND time <= ").append(endTime);
-        return builder.toString();
-    }
-
-    /**
-     * 创建查询语句--(带有聚合函数的查询)
-     * SELECT avg(s_0),
-     *      avg(s_1)
-     *   FROM test
-     *   WHERE device='d_0'
-     *
-     */
-    private String createQuerySQLStatement(List<Integer> devices, String method, int num) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT time, device,");
-        List<String> list = new ArrayList<>(config.SENSOR_CODES);
-        Collections.shuffle(list, sensorRandom);
-        addFunSensor(method, num, builder, list);
-        builder.append(" FROM ").append(config.DB_NAME);
-        builder.append(" WHERE ");
-        builder.append(getDeviceCondition(devices));
-        return builder.toString();
-    }
-
-    /**
-     * 创建查询语句--(带有聚合函数的查询)
-     * SELECT time_bucket('5 minutes', time)
-     *     AS five_min, avg(cpu)
-     *   FROM metrics
-     *   GROUP BY five_min
-     *   ORDER BY five_min DESC LIMIT 10;
-     */
-    private String createQuerySQLStatement(List<Integer> devices, int num, String method) {
-        StringBuilder builder = new StringBuilder();
-
-        if(method.length() > 1) {
-            builder.append("SELECT time_bucket(").append(config.TIME_UNIT).append(", time) AS sampleTime, device,");
-        } else {
-            builder.append("SELECT time, device,");
-        }
-
-        List<String> list = new ArrayList<>(config.SENSOR_CODES);
-        Collections.shuffle(list, sensorRandom);
-        addFunSensor(method, num, builder, list);
-
-        builder.append(" FROM ").append(config.DB_NAME);
-        builder.append(" WHERE ");
-        builder.append(getDeviceCondition(devices));
-        return builder.toString();
+//                    break;
+//
+//            }
+//            int line = 0;
+//            LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
+//
+//            startTimeStamp = System.nanoTime();
+//            statement.execute(sql);
+//            ResultSet resultSet = statement.getResultSet();
+//            while (resultSet.next()) {
+//                line++;
+////				int sensorNum = sensorList.size();
+////				builder.append(" \ntimestamp = ").append(resultSet.getString(0)).append("; ");
+////				for (int i = 1; i <= sensorNum; i++) {
+////					builder.append(resultSet.getString(i)).append("; ");
+////				}
+//            }
+//            statement.close();
+//            endTimeStamp = System.nanoTime();
+//            latency = endTimeStamp - startTimeStamp;
+//            latencies.add(latency);
+//            client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
+//            client.setTotalTime(client.getTotalTime() + latency);
+//
+//            LOGGER.info(
+//                    "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
+//                            + "TotalTime {}s with totalPoint {} rate is {}points/s",
+//                    Thread.currentThread().getName(), index, (latency / 1000.0) / 1000000.0,
+//                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
+//                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (latency / 1000000.0),
+//                    (client.getTotalTime() / 1000.0) / 1000000.0, client.getTotalPoint(),
+//                    client.getTotalPoint() * 1000.0f / (client.getTotalTime() / 1000000.0));
+//            mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
+//                    (latency / 1000.0f) / 1000000.0, config.REMARK);
+//        } catch (SQLException e) {
+//            errorCount.set(errorCount.get() + 1);
+//            LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
+//            LOGGER.error("执行失败的查询语句：{}", sql);
+//            mySql.saveQueryProcess(index, 0, -1, "query fail!" + sql);
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                if (statement != null)
+//                    statement.close();
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     @Override
@@ -659,7 +580,7 @@ public class TimescaleDB implements IDatebase {
 
     private String createSQLStatment(String device, int timestampIndex) {
         String group = getGroup(device);
-        StringBuilder builder = new StringBuilder("INSERT INTO ").append(config.DB_NAME).append("(time, group, device");
+        StringBuilder builder = new StringBuilder("INSERT INTO ").append(group).append("(time, device");
         for (String sensor : config.SENSOR_CODES) {
             builder.append(", ").append(sensor);
         }
@@ -669,7 +590,6 @@ public class TimescaleDB implements IDatebase {
             currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
         builder.append(currentTime);
-        builder.append(", '").append(group).append("'");
         builder.append(", '").append(device).append("'");
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
