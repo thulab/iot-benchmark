@@ -556,9 +556,9 @@ public class TimescaleDB implements IDatebase {
         StringBuilder builder = new StringBuilder();
 
         if(method.length() > 1) {
-            builder.append("SELECT time_bucket(").append(config.TIME_UNIT).append(", time) AS sampleTime, device,");
+            builder.append("SELECT time_bucket(").append(config.TIME_UNIT).append(", time) AS sampleTime, device, ");
         } else {
-            builder.append("SELECT time, device,");
+            builder.append("SELECT time, device, ");
         }
 
         List<String> list = new ArrayList<>(config.SENSOR_CODES);
