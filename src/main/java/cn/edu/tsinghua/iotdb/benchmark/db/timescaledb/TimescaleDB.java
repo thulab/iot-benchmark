@@ -317,7 +317,7 @@ public class TimescaleDB implements IDatebase {
     private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList) throws SQLException {
         //String strTime = sdf.format(new Date(time));
         String strTime = String.valueOf(time);
-        return createQuerySQLStatment(devices, num) + " AND time = " + strTime;
+        return createQuerySQLStatment(devices, num) + " AND time = " + strTime + " ;";
     }
 
     /*
@@ -433,11 +433,11 @@ public class TimescaleDB implements IDatebase {
                     "{} execute {} loop, it costs {}s with {} result points cur_rate is {}points/s; "
                             + "TotalTime {}s with totalPoint {} rate is {}points/s",
                     Thread.currentThread().getName(), index, (latency / 1000.0) / 1000000.0,
-                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
-                    line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM * 1000.0 / (latency / 1000000.0),
+                    line * config.QUERY_SENSOR_NUM,
+                    line * config.QUERY_SENSOR_NUM * 1000.0 / (latency / 1000000.0),
                     (client.getTotalTime() / 1000.0) / 1000000.0, client.getTotalPoint(),
                     client.getTotalPoint() * 1000.0f / (client.getTotalTime() / 1000000.0));
-            mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM,
+            mySql.saveQueryProcess(index, line * config.QUERY_SENSOR_NUM,
                     (latency / 1000.0f) / 1000000.0, config.REMARK);
         } catch (SQLException e) {
             errorCount.set(errorCount.get() + 1);
@@ -508,7 +508,7 @@ public class TimescaleDB implements IDatebase {
         builder.append(" AND time >= ");
         builder.append(startTime).append(" AND time <= ").append(endTime);
         if(aggFunction.length() > 1){
-            builder.append(" GROUP BY sampleTime ORDER BY sampleTime INC;");
+            builder.append(" GROUP BY sampleTime, device ORDER BY sampleTime DESC;");
         }
         return builder.toString();
     }
@@ -517,6 +517,7 @@ public class TimescaleDB implements IDatebase {
         StringBuilder builder = new StringBuilder(createQuerySQLStatement(devices, method, num));
         builder.append(" AND time >= ").append(startTime);
         builder.append(" AND time <= ").append(endTime);
+        builder.append(" GROUP BY device;");
         return builder.toString();
     }
 
@@ -530,13 +531,16 @@ public class TimescaleDB implements IDatebase {
      */
     private String createQuerySQLStatement(List<Integer> devices, String method, int num) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT time, device,");
+        builder.append("SELECT device, ");
         List<String> list = new ArrayList<>(config.SENSOR_CODES);
         Collections.shuffle(list, sensorRandom);
         addFunSensor(method, num, builder, list);
         builder.append(" FROM ").append(config.DB_NAME);
         builder.append(" WHERE ");
         builder.append(getDeviceCondition(devices));
+        if(config.QUERY_CHOICE==10){
+            builder.append(" GROUP BY device;");
+        }
         return builder.toString();
     }
 
