@@ -24,7 +24,7 @@ public class Constants {
     public static final String DB_OPENTS = "OpenTSDB";
     public static final String DB_CTS = "CTSDB";
     public static final String DB_KAIROS = "KairosDB";
-    public static final String DB_TIMESCALE = "TimescaleDBV2";
+    public static final String DB_TIMESCALE = "TimescaleDB";
     //special DB_SWITCH
     public static final String BENCHMARK_IOTDB = "App";
 
