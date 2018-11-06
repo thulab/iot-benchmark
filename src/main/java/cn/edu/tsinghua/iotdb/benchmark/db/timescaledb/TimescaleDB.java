@@ -426,7 +426,7 @@ public class TimescaleDB implements IDatebase {
             endTimeStamp = System.nanoTime();
             latency = endTimeStamp - startTimeStamp;
             latencies.add(latency);
-            client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
+            client.setTotalPoint(client.getTotalPoint() + line * config.QUERY_SENSOR_NUM);
             client.setTotalTime(client.getTotalTime() + latency);
 
             LOGGER.info(
