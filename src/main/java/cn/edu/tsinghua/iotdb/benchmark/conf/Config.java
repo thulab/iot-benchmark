@@ -185,11 +185,11 @@ public class Config {
 	public String REMARK = "";
 	public String VERSION = "";
 
-	// InfluxDB参数
+	// DB参数
 	// 服务器URL
 	public String DB_URL = "http://localhost:8086";
 	// 使用的数据库名
-	public String INFLUX_DB_NAME = "test";
+	public String DB_NAME = "test";
 	
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";

@@ -42,7 +42,7 @@ public class InfluxDB implements IDatebase {
     public void init() throws SQLException {
         config = ConfigDescriptor.getInstance().getConfig();
         InfluxURL = config.DB_URL;
-        InfluxDBName = config.INFLUX_DB_NAME;
+        InfluxDBName = config.DB_NAME;
         queryURL = InfluxURL + "/query";
         writeURL = InfluxURL + "/write";
         createDatabase(InfluxDBName);

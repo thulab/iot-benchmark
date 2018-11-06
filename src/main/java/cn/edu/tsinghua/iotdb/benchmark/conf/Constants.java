@@ -14,12 +14,17 @@ public class Constants {
     public static final String ROOT_SERIES_NAME = "root.perform";
     public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
     public static final String BENCHMARK_CONF = "benchmark-conf";
+    public static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
+    public static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
+    public static final String POSTGRESQL_USER = "postgres";
+    public static final String POSTGRESQL_PASSWD = "postgres";
     //support DB names of DB_SWITCH
     public static final String DB_IOT = "IoTDB";
     public static final String DB_INFLUX = "InfluxDB";
     public static final String DB_OPENTS = "OpenTSDB";
     public static final String DB_CTS = "CTSDB";
     public static final String DB_KAIROS = "KairosDB";
+    public static final String DB_TIMESCALE = "TimescaleDB";
     //special DB_SWITCH
     public static final String BENCHMARK_IOTDB = "App";
 

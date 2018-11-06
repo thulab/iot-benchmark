@@ -12,6 +12,7 @@ import cn.edu.tsinghua.iotdb.benchmark.db.influxdb.InfluxDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.kairosdb.KairosDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.opentsdb.OpenTSDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.timescaledb.TimescaleDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
@@ -443,16 +444,16 @@ public class App {
         idbFactory = getDBFactory(config);
 
         IDatebase datebase;
-        long createSchemaStartTime;
+        long createSchemaStartTime = 0;
         long createSchemaEndTime;
         float createSchemaTime;
 
         long insertStartTime = System.nanoTime();
         try {
             datebase = idbFactory.buildDB(mysql.getLabID());
-            createSchemaStartTime = System.nanoTime();
             if (config.CREATE_SCHEMA) {
                 datebase.init();
+                createSchemaStartTime = System.nanoTime();
                 datebase.createSchema();
             }
             datebase.close();
@@ -627,19 +628,14 @@ public class App {
             throws SQLException {
         long totalErrorPoint;
         switch (config.DB_SWITCH.trim()) {
-            case Constants.DB_IOT:
-                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-                break;
             case Constants.DB_INFLUX:
                 totalErrorPoint = getErrorNumInflux(config, datebase);
                 break;
+            case Constants.DB_IOT:
             case Constants.DB_OPENTS:
-                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-                break;
             case Constants.DB_CTS:
-                totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
-                break;
             case Constants.DB_KAIROS:
+            case Constants.DB_TIMESCALE:
                 totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
                 break;
             default:
@@ -660,6 +656,8 @@ public class App {
                 return new CTSDBFactory();
             case Constants.DB_KAIROS:
                 return new KairosDBFactory();
+            case Constants.DB_TIMESCALE:
+                return new TimescaleDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }

@@ -72,7 +72,7 @@ public class QueryClientThread implements Runnable {
 		List<Integer> clientDevicesIndex = new ArrayList<Integer>();
 		List<Integer> queryDevicesIndex = new ArrayList<Integer>();
 		
-		/**每一个设备只查询clientDevicesNum个设备*/
+		/*每一个设备只查询clientDevicesNum个设备*/
 //		clientDevicesNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;		
 //		for (int m = 0; m < clientDevicesNum; m++){
 //			clientDevicesIndex.add(index + m * config.CLIENT_NUMBER);

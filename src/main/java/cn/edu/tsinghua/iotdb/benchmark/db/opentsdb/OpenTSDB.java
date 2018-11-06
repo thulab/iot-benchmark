@@ -470,4 +470,11 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
     }
 
+    public static void main(String[] arg){
+        OpenTSDB openTSDB = new OpenTSDB(12);
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        list.add(1);
+        openTSDB.getSubQueries(list);
+    }
+
 }

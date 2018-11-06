@@ -806,17 +806,17 @@ public class IoTDB implements IDatebase {
         }
     }
 
-    private void setStorgeGroup(String device) {
+    private void setStorgeGroup(String group) {
         Statement statement = null;
         try {
             statement = connection.createStatement();
             if (config.READ_FROM_FILE) {
-                statement.execute(String.format(setStorageLevelSQL, device));
+                statement.execute(String.format(setStorageLevelSQL, group));
             } else if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
                 statement.execute(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME));
                 writeSQLIntoFile(String.format(setStorageLevelSQL, config.STORAGE_GROUP_NAME), config.GEN_DATA_FILE_PATH);
             } else {
-                statement.execute(String.format(setStorageLevelSQL, Constants.ROOT_SERIES_NAME + "." + device));
+                statement.execute(String.format(setStorageLevelSQL, Constants.ROOT_SERIES_NAME + "." + group));
             }
 
         } catch (SQLException e) {
