@@ -119,17 +119,17 @@ public class InfluxDBV2 implements IDatebase {
 					batchIndex,
 					latency / 1000000000.0,
 					((totalTime.get() + latency) / 1000000000.0),
-					(batchPoints.getPoints().size() / (double) latency) * 1000000000.0);
+					(batchPoints.getPoints().size() * config.SENSOR_NUMBER / (double) latency) * 1000000000.0);
 			totalTime.set(totalTime.get() + latency);
 			latencies.add(latency);
 			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, 0,
 					config.REMARK);
 		} catch (Exception e) {
-			errorCount.set(errorCount.get() + batchPoints.getPoints().size());
-			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size(),
+			errorCount.set(errorCount.get() + batchPoints.getPoints().size() * config.SENSOR_NUMBER);
+			LOGGER.error("Batch insert failed, the failed num is {}! Error：{}", batchPoints.getPoints().size() * config.SENSOR_NUMBER,
 					e.getMessage());
 			mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0,
-					batchPoints.getPoints().size(), "error message: " + e.getMessage());
+					batchPoints.getPoints().size() * config.SENSOR_NUMBER, "error message: " + e.getMessage());
 			throw new SQLException(e.getMessage());
 		}
 	}
