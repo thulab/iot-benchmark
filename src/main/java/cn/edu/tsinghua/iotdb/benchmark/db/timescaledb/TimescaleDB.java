@@ -538,7 +538,7 @@ public class TimescaleDB implements IDatebase {
         builder.append(" FROM ").append(config.DB_NAME);
         builder.append(" WHERE ");
         builder.append(getDeviceCondition(devices));
-        if(config.QUERY_CHOICE==10){
+        if(config.QUERY_CHOICE==10 && method.length() > 1){
             builder.append(" GROUP BY device;");
         }
         return builder.toString();
