@@ -317,7 +317,7 @@ public class TimescaleDB implements IDatebase {
     private String createQuerySQLStatment(List<Integer> devices, int num, long time, List<String> sensorList) throws SQLException {
         //String strTime = sdf.format(new Date(time));
         String strTime = String.valueOf(time);
-        return createQuerySQLStatment(devices, num) + " AND time = " + strTime + " ;";
+        return createQuerySQLStatment(devices, num) + " AND time = " + strTime + " ORDER BY time DESC;";
     }
 
     /*
