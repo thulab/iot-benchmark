@@ -216,8 +216,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
         Map<String, Object> queryMap = new HashMap<>();
         List<Map<String, Object>> list = null;
         queryMap.put("msResolution", true);
-        queryMap.put("start", startTime);
-        queryMap.put("end", startTime + config.QUERY_INTERVAL);
+        queryMap.put("start", startTime - 1);
+        queryMap.put("end", startTime + config.QUERY_INTERVAL + 1);
 
         try {
             List<String> sensorList = new ArrayList<String>();
@@ -228,8 +228,8 @@ public class OpenTSDB extends TSDB implements IDatebase {
                     if (config.IS_EMPTY_PRECISE_POINT_QUERY) {
                         timeStamp += config.POINT_STEP / 2;
                     }
-                    queryMap.put("start", timeStamp);
-                    queryMap.put("end", timeStamp);
+                    queryMap.put("start", timeStamp - 1);
+                    queryMap.put("end", timeStamp + 1);
                     list = getSubQueries(devices);
                     queryMap.put("queries", list);
                     break;
@@ -288,7 +288,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
                     break;
                 case 10:// aggregation function query without any filter
-                    queryMap.put("start", Constants.START_TIMESTAMP);
+                    queryMap.put("start", Constants.START_TIMESTAMP - 1);
                     queryMap.remove("end");
                     list = getSubQueries(devices);
                     for (Map<String, Object> subQuery : list) {
