@@ -640,7 +640,7 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	/**
-	 * 创建查询语句--(带有时间约束以及条件约束的GroupBy查询)
+	 * 创建查询语句--(带有时间约束的GroupBy查询)
 	 *
 	 * @throws SQLException
 	 */
@@ -649,9 +649,9 @@ public class InfluxDBV2 implements IDatebase {
 		StringBuilder builder = new StringBuilder();
 		builder.append(createQuerySQLStatment(devices, num, method, startTime, endTime, sensorList, false));
 
-		for (int i = 0; i < sensorList.size(); i++) {
-			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
-		}
+//		for (int i = 0; i < sensorList.size(); i++) {
+//			builder.append(" AND ").append(sensorList.get(i)).append(" > ").append(value);
+//		}
 		builder.append(" GROUP BY time(").append(config.TIME_UNIT).append("ms)");
 		return builder.toString();
 	}

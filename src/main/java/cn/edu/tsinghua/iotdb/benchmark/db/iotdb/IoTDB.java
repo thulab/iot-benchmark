@@ -1171,7 +1171,7 @@ public class IoTDB implements IDatebase {
     }
 
     /**
-     * 创建查询语句--(带有时间约束以及条件约束的GroupBy查询)
+     * 创建查询语句--(带有时间约束的GroupBy查询)
      *
      * @throws SQLException
      */
@@ -1179,15 +1179,15 @@ public class IoTDB implements IDatebase {
                                          List<String> sensorList) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append(createQuerySQLStatment(devices, num, method, sensorList));
-        builder.append(" WHERE ");
-        for (int id : devices) {
-            String prefix = getFullGroupDevicePathByID(id);
-            for (int i = 0; i < sensorList.size(); i++) {
-                builder.append(prefix).append(".").append(sensorList.get(i)).append(" > ")
-                        .append(value).append(" AND ");
-            }
-        }
-        builder.delete(builder.lastIndexOf("AND"), builder.length());
+//        builder.append(" WHERE ");
+//        for (int id : devices) {
+//            String prefix = getFullGroupDevicePathByID(id);
+//            for (int i = 0; i < sensorList.size(); i++) {
+//                builder.append(prefix).append(".").append(sensorList.get(i)).append(" > ")
+//                        .append(value).append(" AND ");
+//            }
+//        }
+//        builder.delete(builder.lastIndexOf("AND"), builder.length());
         builder.append(" GROUP BY(").append(config.TIME_UNIT).append("ms, ").append(Constants.START_TIMESTAMP);
         for (int i = 0; i < startTime.size(); i++) {
             String strstartTime = sdf.format(new Date(startTime.get(i)));
