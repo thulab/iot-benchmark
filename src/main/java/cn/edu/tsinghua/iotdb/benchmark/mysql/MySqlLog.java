@@ -478,6 +478,7 @@ public class MySqlLog {
             }
             switch (config.DB_SWITCH.trim()) {
                 case Constants.DB_IOT:
+                case Constants.DB_TIMESCALE:
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
                             "'ServerIP'", "'" + config.host + "'");
                     stat.addBatch(sql);
@@ -486,7 +487,6 @@ public class MySqlLog {
                 case Constants.DB_OPENTS:
                 case Constants.DB_KAIROS:
                 case Constants.DB_CTS:
-                case Constants.DB_TIMESCALE:
                     String TSHost = config.DB_URL.substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
                             "'ServerIP'", "'" + TSHost + "'");
