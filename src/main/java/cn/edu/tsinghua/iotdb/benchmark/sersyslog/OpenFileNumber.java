@@ -52,6 +52,12 @@ public class OpenFileNumber {
             case Constants.DB_INFLUX:
                 filter = "/usr/bin/influxd";
                 break;
+            case Constants.DB_KAIROS:
+                filter = "kairosdb";
+                break;
+            case Constants.DB_TIMESCALE:
+                filter = "postgresql";
+                break;
             case Constants.BENCHMARK_IOTDB:
                 filter = "../conf/config.properties";
                 break;
@@ -118,6 +124,12 @@ public class OpenFileNumber {
                 break;
             case Constants.DB_INFLUX:
                 filter = ".influxdb";
+                break;
+            case Constants.DB_KAIROS:
+                filter = "kairosdb";
+                break;
+            case Constants.DB_TIMESCALE:
+                filter = "postgresql";
                 break;
             case Constants.BENCHMARK_IOTDB:
                 filter = "iotdb-benchmark";
