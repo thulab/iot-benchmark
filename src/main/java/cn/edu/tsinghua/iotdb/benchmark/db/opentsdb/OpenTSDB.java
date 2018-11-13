@@ -105,6 +105,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
         } catch (IOException e) {
             errorCount.set(errorCount.get() + models.size());
             LOGGER.error("Batch insert failed, the failed num is ,{}, Error：{}", models.size(), e.getMessage());
+            e.printStackTrace();
             mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, models.size(),
                     config.REMARK + e.getMessage());
             throw new SQLException(e.getMessage());
