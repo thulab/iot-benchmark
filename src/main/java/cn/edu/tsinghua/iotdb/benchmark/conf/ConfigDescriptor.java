@@ -130,6 +130,7 @@ public class ConfigDescriptor {
 				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
+				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

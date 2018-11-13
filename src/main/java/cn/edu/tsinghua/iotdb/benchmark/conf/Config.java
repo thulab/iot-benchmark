@@ -19,6 +19,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 
 public class Config {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
+	private static Config config = ConfigDescriptor.getInstance().getConfig();
 	private String deviceCode;
 
 	public Config(){
@@ -121,7 +122,7 @@ public class Config {
 	public double CONSTANT_RATIO = 0.352;// 0.352
 
 	// ============各函数比例end============
-
+	public long DATA_SEED = 666L;
 	/** 内置函数参数 */
 	public List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
 	public List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
@@ -271,11 +272,11 @@ public class Config {
 			double randomArea = lineArea + RANDOM_RATIO / sumRatio;
 			double sinArea = randomArea + SIN_RATIO / sumRatio;
 			double squareArea = sinArea + SQUARE_RATIO / sumRatio;
-			Random r = new Random();
+			Random r = new Random(config.DATA_SEED);
 			for (int i = 0; i < SENSOR_NUMBER; i++) {
 				double property = r.nextDouble();
 				FunctionParam param = null;
-				Random fr = new Random();
+				Random fr = new Random(config.DATA_SEED + 1);
 				double middle = fr.nextDouble();
 				if (property >= 0 && property < constantArea) {// constant
 					int index = (int) (middle * CONSTANT_LIST.size());
@@ -312,7 +313,7 @@ public class Config {
 	/**
 	 * 根据传感器数，初始化传感器编号
 	 *
-	 * @param sensorSum
+	 * @param
 	 * @return
 	 */
 	public List<String> initSensorCodes() {
@@ -326,7 +327,7 @@ public class Config {
 	/**
 	 * 根据设备数，初始化设备编号
 	 *
-	 * @param deviceSum
+	 * @param
 	 * @return
 	 */
 	public List<String> initDeviceCodes() {
@@ -340,14 +341,14 @@ public class Config {
 	public String getSensorCodeByRandom() {
 		List<String> sensors = SENSOR_CODES;
 		int size = sensors.size();
-		Random r = new Random();
+		Random r = new Random(config.QUERY_SEED);
 		return sensors.get(r.nextInt(size));
 	}
 
 	public String getDeviceCodeByRandom() {
 		List<String> devices = DEVICE_CODES;
 		int size = devices.size();
-		Random r = new Random();
+		Random r = new Random(config.QUERY_SEED);
 		return devices.get(r.nextInt(size));
 	}
 
