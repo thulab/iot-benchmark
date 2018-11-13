@@ -151,12 +151,13 @@ public class MySqlLog {
     public void saveInsertProcess(int index, double costTime, double totalTime,
                                   long errorPoint, String remark) {
         if (config.IS_USE_MYSQL) {
+            double rate = (config.CACHE_NUM * config.SENSOR_NUMBER / costTime);
+            if(Double.isInfinite(rate)) {
+                rate = 0;
+            }
             String mysqlSql = String.format("insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + " values(%d,%s,%d,%f,%f,%f,%d,%s)",
-                    System.currentTimeMillis(), "'"
-                            + Thread.currentThread().getName() + "'", index,
-                    costTime, totalTime, (config.CACHE_NUM
-                            * config.SENSOR_NUMBER / costTime), errorPoint, "'"
-                            + remark + "'");
+                    System.currentTimeMillis(), "'" + Thread.currentThread().getName() + "'", index,
+                    costTime, totalTime, rate, errorPoint, "'" + remark + "'");
             Statement stat;
             try {
                 stat = mysqlConnection.createStatement();
