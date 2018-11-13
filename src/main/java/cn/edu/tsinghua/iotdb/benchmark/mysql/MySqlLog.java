@@ -176,6 +176,9 @@ public class MySqlLog {
     // 将写入测试的以loop为单位的中间结果存入数据库
     public void saveInsertProcessOfLoop(int index, double loopRate) {
         if (config.IS_USE_MYSQL) {
+            if(Double.isInfinite(loopRate)) {
+                loopRate = 0;
+            }
             String mysqlSql = String.format("insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + "Loop" + " values(%d,%s,%d,%f)",
                     System.currentTimeMillis(),
                     "'" + Thread.currentThread().getName() + "'",
