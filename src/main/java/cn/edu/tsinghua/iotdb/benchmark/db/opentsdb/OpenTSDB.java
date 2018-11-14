@@ -42,7 +42,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private Random sensorRandom = null;
     private Random timestampRandom;
     private ProbTool probTool;
-    private final String DELETE_METRIC_URL = "%s?start=%s&m=avg:1ms-avg:%s&method_override=delete";
+    private final String DELETE_METRIC_URL = "%s?start=%s&m=avg:1ms-avg:%s";
     private int backScanTime = 24;
 
     public OpenTSDB(long labID) {
@@ -67,7 +67,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
             String deleteMetricURL = String.format(DELETE_METRIC_URL, queryUrl, Constants.START_TIMESTAMP, metricName);
             String response;
             try {
-                response = HttpRequest.sendGet(deleteMetricURL,"");
+                response = HttpRequest.sendDelete(deleteMetricURL,"");
                 LOGGER.info("Delete old data of {} ...", metricName);
                 LOGGER.info("Delete request response: {}", response);
             } catch (IOException e) {
