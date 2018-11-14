@@ -42,7 +42,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private Random sensorRandom = null;
     private Random timestampRandom;
     private ProbTool probTool;
-    private final String DELETE_METRIC_URL = "%s?start=%s&m=avg:1ms-avg:%s";
+    private final String DELETE_METRIC_URL = "%s?start=%s&m=%s";
     private int backScanTime = 24;
 
     public OpenTSDB(long labID) {
@@ -71,7 +71,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
                 LOGGER.info("Delete old data of {} ...", metricName);
                 LOGGER.info("Delete request response: {}", response);
             } catch (IOException e) {
-                LOGGER.error("Delete old OpenTSDB metric {} failed.", metricName);
+                LOGGER.warn("Delete old OpenTSDB metric {} failed. Error: {}", metricName, e.getMessage());
                 e.printStackTrace();
             }
         }
