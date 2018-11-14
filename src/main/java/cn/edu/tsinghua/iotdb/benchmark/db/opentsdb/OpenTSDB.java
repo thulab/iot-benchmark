@@ -34,7 +34,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private String openUrl;
     private String queryUrl;
     private String writeUrl;
-    private String metric = "root.perform.";
+    private String metric = "";
     private Config config;
     private MySqlLog mySql;
     private long labID;
