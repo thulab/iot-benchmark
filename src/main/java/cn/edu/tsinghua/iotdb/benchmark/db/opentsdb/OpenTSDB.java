@@ -69,10 +69,10 @@ public class OpenTSDB extends TSDB implements IDatebase {
             try {
                 response = HttpRequest.sendDelete(deleteMetricURL,"");
                 LOGGER.info("Delete old data of {} ...", metricName);
-                LOGGER.info("Delete request response: {}", response);
+                LOGGER.debug("Delete request response: {}", response);
             } catch (IOException e) {
                 LOGGER.warn("Delete old OpenTSDB metric {} failed. Error: {}", metricName, e.getMessage());
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
         // wait for deletion complete
