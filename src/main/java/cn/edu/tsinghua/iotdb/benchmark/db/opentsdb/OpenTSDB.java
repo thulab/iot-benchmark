@@ -42,6 +42,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private Random sensorRandom = null;
     private Random timestampRandom;
     private ProbTool probTool;
+    private final String DELETE_METRIC_URL = "%s?start_time=%s&m=%s";
     private int backScanTime = 24;
 
     public OpenTSDB(long labID) {
@@ -59,7 +60,28 @@ public class OpenTSDB extends TSDB implements IDatebase {
 
     @Override
     public void init() {
-        //OpenTSDB do not support delete old data very well
+        //example URL:
+        //http://host:4242/api/query?start=2016/02/16-00:00:00&end=2016/02/17-23:59:59&m=avg:1ms-avg:metricname
+        for(int i = 0;i < config.GROUP_NUMBER;i++){
+            String metricName = metric + "group_" + i;
+            String deleteMetricURL = String.format(DELETE_METRIC_URL, queryUrl, Constants.START_TIMESTAMP, metricName);
+            String response;
+            try {
+                response = HttpRequest.sendDelete(deleteMetricURL,"");
+                LOGGER.info("Delete old data of {} ...", metricName);
+                LOGGER.info("Delete request response: {}", response);
+            } catch (IOException e) {
+                LOGGER.error("Delete old OpenTSDB metric {} failed.", metricName);
+                e.printStackTrace();
+            }
+        }
+        // wait for deletion complete
+        try {
+            LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+            Thread.sleep(config.INIT_WAIT_TIME);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
