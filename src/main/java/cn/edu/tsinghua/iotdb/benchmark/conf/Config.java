@@ -274,7 +274,7 @@ public class Config {
 			for (int i = 0; i < SENSOR_NUMBER; i++) {
 				double property = r.nextDouble();
 				FunctionParam param = null;
-				Random fr = new Random(DATA_SEED + 1);
+				Random fr = new Random(DATA_SEED + 1 + i);
 				double middle = fr.nextDouble();
 				if (property >= 0 && property < constantArea) {// constant
 					int index = (int) (middle * CONSTANT_LIST.size());
