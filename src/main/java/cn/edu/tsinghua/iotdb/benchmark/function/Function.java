@@ -110,7 +110,7 @@ public class Function {
 	 * @return
 	 */
 	private static double getRandomValue(double max, double min) {
-		Random r = new Random(config.QUERY_SEED);
+		Random r = new Random(config.DATA_SEED);
 		return r.nextDouble() * (max - min) + min;
 	}
 	
