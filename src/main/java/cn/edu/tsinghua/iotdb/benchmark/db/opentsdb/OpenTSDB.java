@@ -42,7 +42,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     private Random sensorRandom = null;
     private Random timestampRandom;
     private ProbTool probTool;
-    private final String DELETE_METRIC_URL = "%s?start=%s&m=%s&method_override=delete";
+    private final String DELETE_METRIC_URL = "%s?start=%s&m=avg:1ms-avg:%s&method_override=delete";
     private int backScanTime = 24;
 
     public OpenTSDB(long labID) {
