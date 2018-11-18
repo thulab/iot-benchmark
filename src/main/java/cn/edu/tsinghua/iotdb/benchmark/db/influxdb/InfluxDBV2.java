@@ -752,9 +752,13 @@ public class InfluxDBV2 implements IDatebase {
 		devices.add(210);
 		config.DEVICE_NUMBER = 5000;
 		config.GROUP_NUMBER = 50;
+		long startTime = 15000;
 //		sql = influxDB.createQuerySQLStatment(devices, 3, "max", 0,
 //				100000000 + 25000, sensorList);
-		sql = influxDB.createQuerySQLStatment(devices, 3, "max",  sensorList, true);
+		//sql = influxDB.createQuerySQLStatment(devices, 3, "max",  sensorList, true);
+		sql = influxDB.createQuerySQLStatment(devices, "avg", 2,
+				startTime, startTime + config.QUERY_INTERVAL, config.QUERY_LOWER_LIMIT,
+				sensorList);
 		System.out.println(sql);
 	}
 

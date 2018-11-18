@@ -26,6 +26,7 @@ public class Function {
 //		return value;
 //	}
 	private static Config config = ConfigDescriptor.getInstance().getConfig();
+	private static Random r = new Random(config.DATA_SEED);
 
 	/**
 	 * 获取单调函数浮点值
@@ -37,8 +38,8 @@ public class Function {
 	 * @return
 	 */
 	private static double getMonoValue(double max, double min, double cycle, long currentTime) {
-		double k = (max - min) / (cycle * 1000);
-		return k * (currentTime % 1000000);
+		double k = (max - min) / cycle;
+		return k * (currentTime % cycle);
 	}
 
 	/**
@@ -52,7 +53,7 @@ public class Function {
 	 */
 	private static double getMonoKValue(double max, double min, double cycle, long currentTime) {
 		double k = (max - min) / (cycle);
-		return min + k * currentTime / 1000;
+		return min + k * currentTime / cycle;
 	}
 
 //	/**
@@ -110,7 +111,6 @@ public class Function {
 	 * @return
 	 */
 	private static double getRandomValue(double max, double min) {
-		Random r = new Random(config.DATA_SEED);
 		return r.nextDouble() * (max - min) + min;
 	}
 	
