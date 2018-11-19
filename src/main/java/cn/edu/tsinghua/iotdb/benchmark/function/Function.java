@@ -90,13 +90,13 @@ public class Function {
 	 * 
 	 * @param max 最大值
 	 * @param min 最小值
-	 * @param cycle 周期，单位为s
+	 * @param cycle 周期，单位为ms
 	 * @param currentTime 当前时间 单位为ms
 	 * @return
 	 */
 	private static double getSquareValue(double max, double min, double cycle, long currentTime) {
-		double t = cycle / 2 * 1000;
-		if ((currentTime % (cycle * 1000)) < t) {
+		double t = cycle / 2 ;
+		if ((currentTime % (cycle)) < t) {
 			return max;
 		} else {
 			return min;

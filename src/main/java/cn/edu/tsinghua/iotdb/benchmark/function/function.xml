@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <functions>
 	<!-- 真实数据配置 傅里叶:线性:分段:随机:常数=6:9:3:9:86:58 -->
-	<!-- 线性 无周期 9个方法-->
-	<function id="monok1" function-type="double_mono_k" max="17376.5" min="17366.5" cycle="35000"></function>
-	<function id="monok2" function-type="double_mono_k" max="33919.6" min="33909.6" cycle="35000"></function>
-	<function id="monok3" function-type="double_mono_k" max="35061" min="35051" cycle="35000"></function>
-	<function id="monok4" function-type="double_mono_k" max="35061" min="35051" cycle="35000"></function>
-	<function id="monok5" function-type="double_mono_k" max="6001" min="6000" cycle="42000"></function>
-	<function id="monok6" function-type="double_mono_k" max="6001" min="6000" cycle="42000"></function>
-	<function id="monok7" function-type="double_mono_k" max="34704.8" min="33909.7" cycle="700000"></function>
-	<function id="monok8" function-type="double_mono_k" max="33695.1" min="33501" cycle="700000"></function>
-	<function id="monok9" function-type="double_mono_k" max="34041.5" min="33847.4" cycle="700000"></function>
+	<!-- 线性/锯齿 9个方法 周期单位ms-->
+	<function id="monok1" function-type="double_mono_k" max="17376.5" min="17366.5" cycle="350000"></function>
+	<function id="monok2" function-type="double_mono_k" max="33919.6" min="33909.6" cycle="350000"></function>
+	<function id="monok3" function-type="double_mono_k" max="35061" min="35051" cycle="350000"></function>
+	<function id="monok4" function-type="double_mono_k" max="35061" min="35051" cycle="350000"></function>
+	<function id="monok5" function-type="double_mono_k" max="6001" min="6000" cycle="420000"></function>
+	<function id="monok6" function-type="double_mono_k" max="6001" min="6000" cycle="420000"></function>
+	<function id="monok7" function-type="double_mono_k" max="34704.8" min="33909.7" cycle="7000000"></function>
+	<function id="monok8" function-type="double_mono_k" max="33695.1" min="33501" cycle="7000000"></function>
+	<function id="monok9" function-type="double_mono_k" max="34041.5" min="33847.4" cycle="7000000"></function>
 	<!-- 傅里叶函数 6个方法  都可以转换为正弦函数-->
 	<function id="sin1" function-type="double_sin" max="6.59887" min="3.54113" cycle="1754"></function>
 	<function id="sin2" function-type="double_sin" max="6.65208" min="3.59392" cycle="1757"></function>
@@ -20,15 +20,15 @@
 	<function id="sin6" function-type="double_sin" max="6.34178" min="3.46022" cycle="1799"></function>
 	
 	<!-- 分段常数函数 9个 -->
-	<function id="square1" function-type="double_square" max="5" min="2" cycle="18200"></function>
-	<function id="square2" function-type="double_square" max="2" min="0" cycle="336000"></function>
-	<function id="square3" function-type="double_square" max="6" min="0" cycle="32000"></function>
-	<function id="square4" function-type="double_square" max="1483.42" min="1473.54" cycle="420000"></function>
-	<function id="square5" function-type="double_square" max="36.74" min="25.93" cycle="21000"></function>
-	<function id="square6" function-type="double_square" max="0.99" min="0" cycle="32000"></function>
-	<function id="square7" function-type="double_square" max="787.74" min="781.54" cycle="112000"></function>
-	<function id="square8" function-type="double_square" max="787.74" min="781.54" cycle="112000"></function>
-	<function id="square9" function-type="double_square" max="787.74" min="781.54" cycle="112000"></function>
+	<function id="square1" function-type="double_square" max="5" min="2" cycle="182000"></function>
+	<function id="square2" function-type="double_square" max="2" min="0" cycle="3360000"></function>
+	<function id="square3" function-type="double_square" max="6" min="0" cycle="320000"></function>
+	<function id="square4" function-type="double_square" max="1483.42" min="1473.54" cycle="4200000"></function>
+	<function id="square5" function-type="double_square" max="36.74" min="25.93" cycle="210000"></function>
+	<function id="square6" function-type="double_square" max="0.99" min="0" cycle="320000"></function>
+	<function id="square7" function-type="double_square" max="787.74" min="781.54" cycle="1120000"></function>
+	<function id="square8" function-type="double_square" max="787.74" min="781.54" cycle="1120000"></function>
+	<function id="square9" function-type="double_square" max="787.74" min="781.54" cycle="1120000"></function>
 	
 	<!-- 随机数函数 86 个-->
 	<function id="random1" function-type="int_random" max="1540" min="-55" cycle="18200"></function>
