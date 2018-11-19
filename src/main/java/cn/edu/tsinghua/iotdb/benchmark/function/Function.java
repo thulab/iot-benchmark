@@ -33,13 +33,13 @@ public class Function {
 	 * 
 	 * @param max 最大值
 	 * @param min 最小值
-	 * @param cycle 周期，单位为s
+	 * @param cycle 周期，单位为ms
 	 * @param currentTime 当前时间 单位为ms
 	 * @return
 	 */
 	private static double getMonoValue(double max, double min, double cycle, long currentTime) {
 		double k = (max - min) / cycle;
-		return k * (currentTime % cycle);
+		return min + k * (currentTime % cycle);
 	}
 
 	/**
@@ -47,13 +47,13 @@ public class Function {
 	 * 
 	 * @param max 最大值
 	 * @param min 最小值
-	 * @param cycle 周期，单位为s
+	 * @param cycle 周期，单位为ms
 	 * @param currentTime 当前时间 单位为ms
 	 * @return
 	 */
 	private static double getMonoKValue(double max, double min, double cycle, long currentTime) {
 		double k = (max - min) / (cycle);
-		return min + k * currentTime / cycle;
+		return min + k * (currentTime % cycle);
 	}
 
 //	/**

@@ -282,7 +282,7 @@ public class Config {
 				}
 				if (property >= constantArea && property < lineArea) {// line
 					int index = (int) (middle * LINE_LIST.size());
-					param = CONSTANT_LIST.get(index);
+					param = LINE_LIST.get(index);
 				}
 				if (property >= lineArea && property < randomArea) {// random
 					int index = (int) (middle * RANDOM_LIST.size());
