@@ -2,7 +2,7 @@
 
 IoTDB-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
 
-Current databases supported:
+Databases currently supported:
 
 + IoTDB
 + InfluxDB
