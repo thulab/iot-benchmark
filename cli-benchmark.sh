@@ -9,7 +9,6 @@ fi
 # ssh-copy-id [hostname]@[IP]
 
 #configure the related path and host name
-IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
 REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
 HOST_NAME=liurui
 IS_SSH_CHANGE_PORT=false
@@ -60,8 +59,9 @@ if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
         COMMIT_ID=$(ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;git rev-parse HEAD")
         sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
         echo "initial database in server..."
-        ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
-        ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
+        ssh -p $SSH_PORT $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
+        ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./*;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
+        ssh -p $SSH_PORT $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
         echo 'wait a few seconds for lauching IoTDB...'
         sleep 20
     fi
