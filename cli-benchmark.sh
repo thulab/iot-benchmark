@@ -86,7 +86,7 @@ else
       sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
       echo "initial database in server..."
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
-      ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./*;git clone https://github.com/thulab/iotdb.git;mvn clean package -Dmaven.test.skip=true"
+      ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./*;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
       echo 'wait a few seconds for lauching IoTDB...'
       sleep 20
