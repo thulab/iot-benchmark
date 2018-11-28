@@ -87,6 +87,8 @@ else
       echo "initial database in server..."
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
       ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./*;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
+      scp $BENCHMARK_HOME/iotdbconf/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
+      scp $BENCHMARK_HOME/iotdbconf/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
       echo 'wait a few seconds for lauching IoTDB...'
       sleep 20
@@ -109,7 +111,7 @@ fi
     #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
 #fi
 ##stop system info recording on client machine
-touch $CLIENT_LOG_STOP_FLAG_PATH/log_stop_flag
+#touch $CLIENT_LOG_STOP_FLAG_PATH/log_stop_flag
 
 echo '------Client Test Complete Time------'
 date
