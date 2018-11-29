@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #组实验配置文件名,文件中一行对应一次实验的一个变化参数如LOOP=10,注意等号两边不能有空格
 FILENAME=routine
