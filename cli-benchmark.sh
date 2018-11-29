@@ -91,8 +91,8 @@ else
 
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
       echo "initial database in server..."
-      ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
       ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./iotdb;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
+      ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
       COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git tag -l | tail -n 1")" commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git rev-parse HEAD")
       sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
       scp $BENCHMARK_HOME/iotdbconf/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
