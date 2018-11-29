@@ -9,7 +9,7 @@ fi
 # ssh-copy-id [hostname]@[IP]
 
 #configure the related path and host name
-REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
+
 HOST_NAME=liurui
 IS_SSH_CHANGE_PORT=false
 SSH_PORT=2222
@@ -51,9 +51,9 @@ mvn clean package -Dmaven.test.skip=true
 
 #synchronize config server benchmark
 if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
-    ssh -p $SSH_PORT $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
-    scp -P $SSH_PORT $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
-    ssh -p $SSH_PORT $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
+    ssh -p $SSH_PORT $SERVER_HOST "rm $LOG_STOP_FLAG_PATH/conf/config.properties"
+    scp -P $SSH_PORT $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/conf
+    ssh -p $SSH_PORT $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/ser-benchmark.sh > /dev/null 2>&1 &"
 
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
         COMMIT_ID=$(ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;git rev-parse HEAD")
@@ -75,10 +75,17 @@ if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
 else
     #If IP is localhost not trigger off server mode
     if [ "${IP#*=}" != "127.0.0.1" ]; then
-        ssh $SERVER_HOST "rm $REMOTE_BENCHMARK_HOME/conf/config.properties"
-        scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$REMOTE_BENCHMARK_HOME/conf
+        file=$LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh
+#        if [ "ssh root@${ip} -f filename" ]
+        if ssh $SERVER_HOST test -e $file; then
+            echo "Remote server already has iotdb-benchmark for monitoring."
+        else
+            scp -r $BENCHMARK_HOME $SERVER_HOST:$LOG_STOP_FLAG_PATH
+        fi
+        ssh $SERVER_HOST "rm $LOG_STOP_FLAG_PATH/iotdb-benchmark/conf/config.properties"
+        scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb-benchmark/conf
         #start server system information recording
-        ssh $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
+        ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
     fi
 
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
@@ -104,14 +111,6 @@ else
     fi
 fi
 
-#ssh $SERVER_HOST "grep Statistic $LOG_STOP_FLAG_PATH/logs/log_info.log | tail -n 1 " >> $BENCHMARK_HOME/logs/MemoryMonitor.log
-
-#if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
-    #ssh $SERVER_HOST "tail -n 2 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_info.log
-    #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
-#fi
-##stop system info recording on client machine
-#touch $CLIENT_LOG_STOP_FLAG_PATH/log_stop_flag
 
 echo '------Client Test Complete Time------'
 date
