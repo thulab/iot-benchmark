@@ -18,6 +18,8 @@ public class MySqlLog {
             .getLogger(MySqlLog.class);
     private final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
     private final String SAVE_RESULT = "insert into RESULT values(NULL, %s, %s, %s)";
+    private final String LATEST_INSERT_BATCH_TABLE_NAME = "latestInsertBatchProcess";
+    private final String LATEST_QUERY_TABLE_NAME = "latestQueryProcess";
     private Connection mysqlConnection = null;
     private Config config = ConfigDescriptor.getInstance().getConfig();
     private String localName = "";
@@ -114,12 +116,25 @@ public class MySqlLog {
                 stat.executeUpdate("create table RESULT (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), result_key VARCHAR(150), result_value VARCHAR(150))AUTO_INCREMENT = 1;");
                 LOGGER.info("Table RESULT create success!");
             }
+
             if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH) && !hasTable(projectID)) {
                 stat.executeUpdate("create table "
                         + projectID
                         + "(id BIGINT, clientName varchar(50), "
                         + "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, remark varchar(6000), primary key(id,clientName))");
                 LOGGER.info("Table {} create success!", projectID);
+
+                if (hasTable(LATEST_QUERY_TABLE_NAME)) {
+                    stat.executeUpdate("DROP TABLE " + LATEST_QUERY_TABLE_NAME + ";");
+                    LOGGER.info("Table {} delete success!", LATEST_QUERY_TABLE_NAME);
+                }
+                if (!hasTable(LATEST_QUERY_TABLE_NAME)) {
+                    stat.executeUpdate("create table "
+                            + LATEST_QUERY_TABLE_NAME
+                            + "(id BIGINT, clientName varchar(50), "
+                            + "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, remark varchar(6000), primary key(id,clientName))");
+                    LOGGER.info("Table {} create success!", LATEST_QUERY_TABLE_NAME);
+                }
             }
             if (!config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH) && !hasTable(projectID)) {
                 stat.executeUpdate("create table "
@@ -133,6 +148,18 @@ public class MySqlLog {
                         + "(id BIGINT, clientName varchar(50), "
                         + "loopIndex INTEGER, cur_rate DOUBLE, primary key(id, clientName))");
                 LOGGER.info("Table {} Loop create success!", projectID);
+
+                if (hasTable(LATEST_INSERT_BATCH_TABLE_NAME)) {
+                    stat.executeUpdate("DROP TABLE " + LATEST_INSERT_BATCH_TABLE_NAME + ";");
+                    LOGGER.info("Table {} delete success!", LATEST_INSERT_BATCH_TABLE_NAME);
+                }
+                if (!hasTable(LATEST_INSERT_BATCH_TABLE_NAME)) {
+                    stat.executeUpdate("create table "
+                            + LATEST_INSERT_BATCH_TABLE_NAME
+                            + "(id BIGINT, clientName varchar(50), "
+                            + "loopIndex INTEGER, costTime DOUBLE, totalTime DOUBLE, cur_rate DOUBLE, errorPoint BIGINT, remark varchar(6000),primary key(id,clientName))");
+                    LOGGER.info("Table {} create success!", LATEST_INSERT_BATCH_TABLE_NAME);
+                }
             }
         } catch (SQLException e) {
             LOGGER.error("mysql 创建表格失败,原因是：{}", e.getMessage());
@@ -167,6 +194,22 @@ public class MySqlLog {
                 LOGGER.error(
                         "{} save saveInsertProcess info into mysql failed! Error：{}",
                         Thread.currentThread().getName(), e.getMessage());
+                LOGGER.error("{}", mysqlSql);
+                e.printStackTrace();
+            }
+
+            //写入只包含最新测试数据的表 LATEST_INSERT_BATCH_TABLE_NAME
+            mysqlSql = String.format("insert into " + LATEST_INSERT_BATCH_TABLE_NAME + " values(%d,%s,%d,%f,%f,%f,%d,%s)",
+                    System.currentTimeMillis(), "'" + Thread.currentThread().getName() + "'", index,
+                    costTime, totalTime, rate, errorPoint, "'" + remark + "'");
+            try {
+                stat = mysqlConnection.createStatement();
+                stat.executeUpdate(mysqlSql);
+                stat.close();
+            } catch (Exception e) {
+                LOGGER.error(
+                        "{} save saveInsertProcess info into mysql table '{}' failed! Error：{}",
+                        Thread.currentThread().getName(), LATEST_INSERT_BATCH_TABLE_NAME, e.getMessage());
                 LOGGER.error("{}", mysqlSql);
                 e.printStackTrace();
             }
@@ -206,7 +249,7 @@ public class MySqlLog {
         if (config.IS_USE_MYSQL) {
             if (time == 0) {
                 remark = "rate is insignificance because time = 0";
-                rate = -1;
+                rate = 0;
             } else {
                 rate = point / time;
             }
@@ -224,6 +267,24 @@ public class MySqlLog {
                 LOGGER.error(
                         "{} save queryProcess info into mysql failed! Error:{}",
                         Thread.currentThread().getName(), e.getMessage());
+                LOGGER.error("{}", mysqlSql);
+                e.printStackTrace();
+            }
+
+            //写入只包含最新测试数据的表 LATEST_QUERY_TABLE_NAME
+            mysqlSql = String.format(
+                    "insert into " + LATEST_QUERY_TABLE_NAME + " values(%d,%s,%d,%d,%f,%f,%s)",
+                    System.currentTimeMillis(),
+                    "'" + Thread.currentThread().getName() + "'",
+                    index, point, time, rate, "'" + remark + "'");
+            try {
+                stat = mysqlConnection.createStatement();
+                stat.executeUpdate(mysqlSql);
+                stat.close();
+            } catch (Exception e) {
+                LOGGER.error(
+                        "{} save queryProcess info into mysql table {} failed! Error:{}",
+                        Thread.currentThread().getName(), LATEST_QUERY_TABLE_NAME, e.getMessage());
                 LOGGER.error("{}", mysqlSql);
                 e.printStackTrace();
             }
