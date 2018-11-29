@@ -26,9 +26,9 @@ To use IoTDB-benchmark, you need to have:
 
 1. Java >= 1.8
 2. Maven >= 3.0 (If you want to compile and install IoTDB from source code)
-3. TsFile >= 0.2.0 (TsFile Github page: [https://github.com/thulab/tsfile](https://github.com/thulab/tsfile))
-4. IoTDB-JDBC >= 0.1.2 (IoTDB-JDBC Github page: [https://github.com/thulab/iotdb-jdbc](https://github.com/thulab/iotdb-jdbc))
-5. IoTDB >= 0.0.1 (IoTDB Github page: [https://github.com/thulab/iotdb](https://github.com/thulab/iotdb))
+3. TsFile >= 0.8.0 (TsFile Github page: [https://github.com/thulab/tsfile](https://github.com/thulab/tsfile))
+4. IoTDB-JDBC >= 0.8.0 (IoTDB-JDBC Github page: [https://github.com/thulab/iotdb-jdbc](https://github.com/thulab/iotdb-jdbc))
+5. IoTDB >= 0.8.0 (IoTDB Github page: [https://github.com/thulab/iotdb](https://github.com/thulab/iotdb))
 6. InfluxDB >= 1.3.7
 7. influxdb-comparisons (If you want to use the load-data-from-file mode)
 8. sysstat (If you want to record system information of DB-server during test)
