@@ -21,7 +21,7 @@ do
         sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf/config.properties
         grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
     else
-        sh $BENCHMARK_HOME/cli-benchmark.sh
+        sh $BENCHMARK_HOME/benchmark.sh
     fi
   fi
 done
