@@ -20,6 +20,7 @@ public class MySqlLog {
     private final String SAVE_RESULT = "insert into RESULT values(NULL, %s, %s, %s)";
     private final String LATEST_INSERT_BATCH_TABLE_NAME = "latestInsertBatchProcess";
     private final String LATEST_QUERY_TABLE_NAME = "latestQueryProcess";
+    private final String LATEST_SERVER_TABLE_NAME = "latestServerMonitor";
     private Connection mysqlConnection = null;
     private Config config = ConfigDescriptor.getInstance().getConfig();
     private String localName = "";
@@ -80,6 +81,23 @@ public class MySqlLog {
                             + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
                             + "remark varchar(6000), primary key(id))");
                     LOGGER.info("Table SERVER_MODE create success!");
+                }
+
+                if (hasTable(LATEST_SERVER_TABLE_NAME)) {
+                    stat.executeUpdate("DROP TABLE " + LATEST_SERVER_TABLE_NAME + ";");
+                    LOGGER.info("Table {} delete success!", LATEST_SERVER_TABLE_NAME);
+                }
+                if (!hasTable(LATEST_SERVER_TABLE_NAME)) {
+                    stat.executeUpdate("create table "
+                            + LATEST_SERVER_TABLE_NAME
+                            + " (id BIGINT, "
+                            + "cpu_usage DOUBLE,mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
+                            + "dataFileSize DOUBLE,infoFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, walFileSize DOUBLE,"
+                            + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
+                            + "totalFileNum INT, dataFileNum INT, socketNum INT, settledNum INT, infoNum INT,"
+                            + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
+                            + "remark varchar(6000), primary key(id))");
+                    LOGGER.info("Table {} create success!", LATEST_SERVER_TABLE_NAME);
                 }
                 return;
             }
@@ -333,6 +351,53 @@ public class MySqlLog {
                 stat.executeUpdate(sql);
             } catch (SQLException e) {
                 LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql,
+                        e.getMessage());
+                e.printStackTrace();
+            } finally {
+                if (stat != null) {
+                    try {
+                        stat.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+
+            //写入只包含最新测试数据的表 LATEST_SERVER_TABLE_NAME
+            try {
+                stat = mysqlConnection.createStatement();
+                sql = String.format("insert into " + LATEST_SERVER_TABLE_NAME
+                                + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
+                        System.currentTimeMillis(),
+                        cpu,
+                        mem,
+                        io,
+                        net_recv,
+                        net_send,
+                        pro_mem_size,
+                        dataSize,
+                        infoSize,
+                        metadataSize,
+                        overflowSize,
+                        deltaSize,
+                        walSize,
+                        tps,
+                        io_read,
+                        io_wrtn,
+                        openFileList.get(0),
+                        openFileList.get(1),
+                        openFileList.get(2),
+                        openFileList.get(3),
+                        openFileList.get(4),
+                        openFileList.get(5),
+                        openFileList.get(6),
+                        openFileList.get(7),
+                        openFileList.get(8),
+                        "'" + remark + "'");
+                stat.executeUpdate(sql);
+            } catch (SQLException e) {
+                LOGGER.error("{}将SERVER_MODE写入mysql table {} 失败,because:{}", sql, LATEST_SERVER_TABLE_NAME,
                         e.getMessage());
                 e.printStackTrace();
             } finally {
