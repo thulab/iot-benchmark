@@ -688,8 +688,7 @@ public class IoTDB implements IDatebase {
             LOGGER.info("{} execute {} loop,提交执行的sql：{}", Thread.currentThread().getName(), index, sql);
 
             startTimeStamp = System.nanoTime();
-            statement.execute(sql);
-            ResultSet resultSet = statement.getResultSet();
+            ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
                 line++;
 //				int sensorNum = sensorList.size();
