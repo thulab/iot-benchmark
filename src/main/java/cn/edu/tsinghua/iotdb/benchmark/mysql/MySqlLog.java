@@ -149,7 +149,7 @@ public class MySqlLog {
                 if (!hasTable(LATEST_QUERY_TABLE_NAME)) {
                     stat.executeUpdate("create table "
                             + LATEST_QUERY_TABLE_NAME
-                            + "(id BIGINT, clientName varchar(50), "
+                            + " (id BIGINT, clientName varchar(50), "
                             + "loopIndex INTEGER, point INTEGER, time DOUBLE, cur_rate DOUBLE, remark varchar(6000), primary key(id,clientName))");
                     LOGGER.info("Table {} create success!", LATEST_QUERY_TABLE_NAME);
                 }
