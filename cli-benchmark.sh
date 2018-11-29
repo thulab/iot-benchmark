@@ -84,8 +84,6 @@ else
         fi
         ssh $SERVER_HOST "rm $LOG_STOP_FLAG_PATH/iotdb-benchmark/conf/config.properties"
         scp $BENCHMARK_HOME/conf/config.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb-benchmark/conf
-        #start server system information recording
-        ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
         echo "Replace config.properties for server monitoring complete."
     fi
 
@@ -93,6 +91,8 @@ else
       echo "initial database in server..."
       ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./iotdb;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
+      #start server system information recording
+      ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
       COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git tag -l | tail -n 1")" commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git rev-parse HEAD")
       sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
       scp $BENCHMARK_HOME/iotdbconf/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
