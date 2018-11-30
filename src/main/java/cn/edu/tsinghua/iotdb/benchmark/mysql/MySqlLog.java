@@ -21,7 +21,7 @@ public class MySqlLog {
     private final String LATEST_INSERT_BATCH_TABLE_NAME = "latestInsertBatchProcess";
     private String LATEST_QUERY_TABLE_NAME ;
     private final String LATEST_SERVER_TABLE_NAME = "latestServerMonitor";
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmssSSS");
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
     private Connection mysqlConnection = null;
     private Config config;
     private String localName = "";
