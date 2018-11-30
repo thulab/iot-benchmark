@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: tableauserverclient
+Version: 0.7
+Summary: A Python module for working with the Tableau Server REST API.
+Home-page: https://github.com/tableau/server-client-python
+Author: Tableau
+Author-email: github@tableau.com
+License: MIT
+Platform: UNKNOWN
+Requires-Dist: requests (<3.0,>=2.11)
+
+UNKNOWN
+
+

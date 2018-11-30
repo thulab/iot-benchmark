@@ -32,17 +32,17 @@ public class Constants {
 
     public static final String[] QUERY_CHOICE_NAME = {
             " ",
-            "Precise",
+            "Exact",
             "Fuzzy",
-            "Aggregation",
+            "AggTimeFilter",
             "Range",
             "Criteria",
-            "Nearest Point",
-            "Group By",
-            "SLimit",
-            "Limit Criteria",
-            "Aggregation Without Filter",
-            "Aggregation With Value Filter"
+            "LatestPoint",
+            "GroupBy",
+            "Limit",
+            "CriteriaLimit",
+            "AggregationNoneFilter",
+            "AggValueFilter"
     };
 
     public static final String SAMPLE_DATA_FILE_NAME = "sampleData.txt";

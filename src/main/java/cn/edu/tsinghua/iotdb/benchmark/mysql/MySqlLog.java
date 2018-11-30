@@ -19,16 +19,17 @@ public class MySqlLog {
     private final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
     private final String SAVE_RESULT = "insert into RESULT values(NULL, %s, %s, %s)";
     private final String LATEST_INSERT_BATCH_TABLE_NAME = "latestInsertBatchProcess";
-    private final String LATEST_QUERY_TABLE_NAME = "latestQueryProcess";
+    private String LATEST_QUERY_TABLE_NAME ;
     private final String LATEST_SERVER_TABLE_NAME = "latestServerMonitor";
     private Connection mysqlConnection = null;
-    private Config config = ConfigDescriptor.getInstance().getConfig();
+    private Config config;
     private String localName = "";
     private long labID;
     private String day = "";
     private String projectID = "";
 
     public MySqlLog() {
+        config = ConfigDescriptor.getInstance().getConfig();
         try {
             InetAddress localhost = InetAddress.getLocalHost();
             localName = localhost.getHostName();
@@ -38,6 +39,7 @@ public class MySqlLog {
         }
         localName = localName.replace("-", "_");
         localName = localName.replace(".", "_");
+        LATEST_QUERY_TABLE_NAME = Constants.QUERY_CHOICE_NAME[config.QUERY_CHOICE] + "latestQueryProcess";
     }
 
     public void initMysql(long labIndex) {

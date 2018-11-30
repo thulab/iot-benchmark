@@ -26,3 +26,5 @@
 ./conf/*.properties
 **/routine
 /target/
+
+/tresource/**
