@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#git pull
+git pull
 
 mvn clean package -Dmaven.test.skip=true
 cd bin
