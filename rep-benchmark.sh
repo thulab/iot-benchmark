@@ -6,7 +6,8 @@ FILENAME=routine
 if [ -z "${BENCHMARK_HOME}" ]; then
   export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 fi
-
+DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
+BENCHMARK_WORK_MODE=$(grep "BENCHMARK_WORK_MODE" $BENCHMARK_HOME/conf/config.properties)
 #cat $BENCHMARK_HOME/$FILENAME | while read LINE
 FILE=$(cat $BENCHMARK_HOME/$FILENAME)
 #echo $FILE
@@ -21,7 +22,11 @@ do
         sed -i "s/^${CHANGE_PARAMETER}.*$/${LINE}/g" $BENCHMARK_HOME/conf/config.properties
         grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
     else
-        sh $BENCHMARK_HOME/benchmark.sh
+        if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
+            sh $BENCHMARK_HOME/cli-benchmark.sh
+        else
+            sh $BENCHMARK_HOME/benchmark.sh
+        fi
     fi
   fi
 done
