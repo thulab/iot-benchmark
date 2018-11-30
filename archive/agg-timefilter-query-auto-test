@@ -2,7 +2,7 @@ HOST=192.168.130.20
 PORT=6667
 DB_SWITCH=IoTDB
 BENCHMARK_WORK_MODE=queryTestWithDefaultPath
-MYSQL_URL=jdbc:mysql://166.111.141.168:3306/auto_test?user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false
+MYSQL_URL=jdbc:mysql:\/\/166.111.141.168:3306\/auto_test?user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false
 IS_USE_MYSQL=true
 REMARK=agg_time
 CLIENT_NUMBER=1
