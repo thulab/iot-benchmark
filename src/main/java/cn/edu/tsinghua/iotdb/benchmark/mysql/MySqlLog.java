@@ -21,10 +21,12 @@ public class MySqlLog {
     private final String LATEST_INSERT_BATCH_TABLE_NAME = "latestInsertBatchProcess";
     private String LATEST_QUERY_TABLE_NAME ;
     private final String LATEST_SERVER_TABLE_NAME = "latestServerMonitor";
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmssSSS");
     private Connection mysqlConnection = null;
     private Config config;
     private String localName = "";
-    private long labID;
+    private String labID;
+    private long labIDLong;
     private String day = "";
     private String projectID = "";
 
@@ -43,10 +45,11 @@ public class MySqlLog {
     }
 
     public void initMysql(long labIndex) {
-        labID = labIndex;
-        projectID = config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID;
+        labIDLong = labIndex;
+        labID = sdf.format(new java.util.Date(labIndex));
+        projectID = config.BENCHMARK_WORK_MODE.substring(0, config.BENCHMARK_WORK_MODE.lastIndexOf("Test")) + "_" + config.DB_SWITCH + "_" + config.REMARK + "_" + labID;
         if (config.IS_USE_MYSQL) {
-            Date date = new Date(labID);
+            Date date = new Date(labIndex);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
             day = sdf.format(date);
             try {
@@ -202,7 +205,7 @@ public class MySqlLog {
             if(Double.isInfinite(rate)) {
                 rate = 0;
             }
-            String mysqlSql = String.format("insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + " values(%d,%s,%d,%f,%f,%f,%d,%s)",
+            String mysqlSql = String.format("insert into " + projectID + " values(%d,%s,%d,%f,%f,%f,%d,%s)",
                     System.currentTimeMillis(), "'" + Thread.currentThread().getName() + "'", index,
                     costTime, totalTime, rate, errorPoint, "'" + remark + "'");
             Statement stat;
@@ -242,7 +245,7 @@ public class MySqlLog {
             if(Double.isInfinite(loopRate)) {
                 loopRate = 0;
             }
-            String mysqlSql = String.format("insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + "Loop" + " values(%d,%s,%d,%f)",
+            String mysqlSql = String.format("insert into " + projectID + "Loop" + " values(%d,%s,%d,%f)",
                     System.currentTimeMillis(),
                     "'" + Thread.currentThread().getName() + "'",
                     index,
@@ -274,7 +277,7 @@ public class MySqlLog {
                 rate = point / time;
             }
             String mysqlSql = String.format(
-                    "insert into " + config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID + " values(%d,%s,%d,%d,%f,%f,%s)",
+                    "insert into " + projectID + " values(%d,%s,%d,%d,%f,%f,%s)",
                     System.currentTimeMillis(),
                     "'" + Thread.currentThread().getName() + "'",
                     index, point, time, rate, "'" + remark + "'");
@@ -825,11 +828,11 @@ public class MySqlLog {
     }
 
     public long getLabID() {
-        return labID;
+        return labIDLong;
     }
 
     public void setLabID(long labID) {
-        this.labID = labID;
+        this.labIDLong = labID;
     }
 
 }

@@ -11,7 +11,7 @@ tableau_auth = TSC.TableauAuth(USERNAME, PASSWORD)
 server = TSC.Server('http://' + SERVER_URL, use_server_version=True)
 
 view_name='Query operation cost time histogram ms'
-filepath='../tresource/test.png'
+filepath='./test.png'
 
 
 def main():
