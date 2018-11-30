@@ -39,7 +39,7 @@ public class MySqlLog {
         }
         localName = localName.replace("-", "_");
         localName = localName.replace(".", "_");
-        LATEST_QUERY_TABLE_NAME = Constants.QUERY_CHOICE_NAME[config.QUERY_CHOICE] + "latestQueryProcess";
+        LATEST_QUERY_TABLE_NAME = Constants.QUERY_CHOICE_NAME[config.QUERY_CHOICE] + "LatestQueryProcess";
     }
 
     public void initMysql(long labIndex) {
