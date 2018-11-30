@@ -32,6 +32,7 @@ DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 
 echo Testing ${DB#*=} ...
 git pull
+rm -rf ./lib
 mvn clean package -Dmaven.test.skip=true
 
 #prepare for client system info recording benchmark
