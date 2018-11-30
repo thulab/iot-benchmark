@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd ./iotdb-benchmark
+#cd ./iotdb-benchmark
 git pull
 echo "begin testing the performance..."
 cp ./archive/range-query-auto-test  ./routine
