@@ -1,6 +1,5 @@
 #!/bin/sh
 
-cd ./iotdb-benchmark
 git pull
 echo "begin testing the performance..."
 cp ./archive/agg-timefilter-query-auto-test  ./routine
