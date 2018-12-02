@@ -2,7 +2,7 @@ import tableauserverclient as TSC
 from tableauserverclient import ConnectionCredentials, ConnectionItem
 import logging
 import os
-
+# coding=UTF-8
 USERNAME='thssbdc'
 PASSWORD='thssbdc'
 SERVER_URL='166.111.7.244:8000'

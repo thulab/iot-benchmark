@@ -1,6 +1,7 @@
 # reference:
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # https://blog.csdn.net/m0_37777649/article/details/74938120
+# coding=UTF-8
 import pandas as pd
 import numpy as np
 import pymysql
