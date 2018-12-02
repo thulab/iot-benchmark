@@ -1,7 +1,6 @@
 # reference:
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # https://blog.csdn.net/m0_37777649/article/details/74938120
-# coding=UTF-8
 import pandas as pd
 import numpy as np
 import pymysql
@@ -35,22 +34,13 @@ def get_mysql_field(field, table):
 
 
 def get_query_results():
-    # 初始化数据库连接，使用pymysql模块
-    # MySQL的用户：root, 密码:147369, 端口：3306,数据库：mydb
     engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
-    # 查询语句，选出employee表中的所有数据
     sql = 'select  avg, midAvg, totalTimes from queryResult;'
-    # read_sql_query的两个参数: sql语句， 数据库连接
     data_df = pd.read_sql_query(sql, engine)
     sql = 'select projectID from queryResult;'
     projectID_df = pd.read_sql_query(sql, engine)
-    # 输出employee表的查询结果
     # print(df)
-
-    # # 新建pandas中的DataFrame, 只有id,num两列
     # df = pd.DataFrame({'id':[1,2,3,4],'num':[12,34,56,89]})
-    #
-    # # 将新建的DataFrame储存为MySQL中的数据表，不储存index列
     # df.to_sql('mydf', engine, index= False)
     return data_df, projectID_df
 
@@ -64,17 +54,14 @@ def t_test(field, new_table, baseline_table):
     baseline_std = np.std(cost_time2)
     std_diff_ratio = (baseline_std - new_std) / baseline_std
 
-    # 当不确定两总体方差是否相等时，应先利用levene检验，检验两总体是否具有方差齐性。
     levene_statistic, levene_pvalue = stats.levene(cost_time1, cost_time2)
-    # p值远大于0.05，认为两总体具有方差齐性。
-    # 如果两总体不具有方差齐性，需要将equal_val参数设定为“False”
+
     equal_variance = True
     if levene_pvalue < p_threshold:
         equal_variance = False
     ttest_statistic, ttest_pvalue = stats.ttest_ind(cost_time1, cost_time2, equal_var = equal_variance)
     stats.ttest_ind(cost_time1, cost_time2, equal_var = equal_variance)
     confidence = (1 - p_threshold)
-    # 零假设是两个样本的均值一样 p>阈值并表示没有理由拒绝零假设
     if ttest_pvalue > p_threshold:
         is_significant_difference = False
         # print("By double independent sample t-test analysis, "
