@@ -2,6 +2,7 @@
 
 #组实验配置文件名,文件中一行对应一次实验的一个变化参数如LOOP=10,注意等号两边不能有空格
 FILENAME=routine
+IOTDB_CONF=$1
 
 if [ -z "${BENCHMARK_HOME}" ]; then
   export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
@@ -23,7 +24,7 @@ do
         grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
     else
         if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
-            sh $BENCHMARK_HOME/cli-benchmark.sh
+            sh $BENCHMARK_HOME/cli-benchmark.sh $IOTDB_CONF
         else
             sh $BENCHMARK_HOME/benchmark.sh
         fi

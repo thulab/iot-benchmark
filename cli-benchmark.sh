@@ -13,7 +13,7 @@ fi
 HOST_NAME=liurui
 IS_SSH_CHANGE_PORT=false
 SSH_PORT=2222
-
+IOTDB_CONF=$1
 
 #extract parameters from config.properties
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
@@ -96,8 +96,8 @@ else
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
       COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git tag -l | tail -n 1")" commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git rev-parse HEAD")
       sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
-      scp $BENCHMARK_HOME/iotdbconf/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
-      scp $BENCHMARK_HOME/iotdbconf/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
+      scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
+      scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
       ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
       echo 'wait a few seconds for lauching IoTDB...'
       sleep 20
