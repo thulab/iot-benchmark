@@ -5,7 +5,7 @@ BENCHMARK_WORK_MODE=insertTestWithDefaultPath
 MYSQL_URL=jdbc:mysql:\/\/192.168.10.10:3306\/auto_test_meng?user=root\&password=Ise_Nel_2017\&useUnicode=true\&characterEncoding=UTF8\&useSSL=false
 IS_USE_MYSQL=true
 REMARK=days
-CLIENT_NUMBER=10
+CLIENT_NUMBER=20
 GROUP_NUMBER=20
 DEVICE_NUMBER=2000
 SENSOR_NUMBER=100
