@@ -1,0 +1,4 @@
+
+
+./auto-test.sh meng/exact-query-auto-test iotdbconf/meng auto_test_meng 192.168.10.10:3306
+
