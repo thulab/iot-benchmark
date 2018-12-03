@@ -10,7 +10,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser(description='Generate analysis result of ingestion test.')
-parser.add_argument('--mysql_host', '-h', default='166.111.141.168', help='mysql server address')
+parser.add_argument('--mysql_host', '-a', default='166.111.141.168', help='mysql server address')
 parser.add_argument('--mysql_database', '-d', default='auto_test', help='mysql database')
 args = parser.parse_args()
 host = args.mysql_host
