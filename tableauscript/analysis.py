@@ -17,6 +17,7 @@ passwd='Ise_Nel_2017'
 charset='utf8'
 database='auto_test'
 test_group_size=18
+insert_info_table_name='configInsertInfo'
 
 def get_mysql_field(field, table):
     db = pymysql.connect(host=host, user=user, passwd=passwd, port=port, charset=charset)
@@ -39,10 +40,12 @@ def get_query_results():
     data_df = pd.read_sql_query(sql, engine)
     sql = 'select projectID from queryResult;'
     projectID_df = pd.read_sql_query(sql, engine)
+    sql = 'select version from ' + insert_info_table_name
+    version_df = pd.read_sql_query(sql, engine)
     # print(df)
     # df = pd.DataFrame({'id':[1,2,3,4],'num':[12,34,56,89]})
     # df.to_sql('mydf', engine, index= False)
-    return data_df, projectID_df
+    return data_df, projectID_df, version_df
 
 
 def t_test(field, new_table, baseline_table):
@@ -80,23 +83,25 @@ def t_test(field, new_table, baseline_table):
 
 
 def main():
-    df, project_df = get_query_results()
+    df, project_df, version_df = get_query_results()
+    latest_version = str(version_df.iloc[-1, 0])
+    latest_version.replace(' ', '_')
     project_baseline=project_df[0:test_group_size]
     project_new=project_df[-test_group_size:].reset_index(drop=True)
     t_test_results = []
     std_diffs = []
     for i in range(test_group_size):
-        is_significant, std_diff_ratio = t_test('time', str(project_new.iloc[i,0]), str(project_baseline.iloc[i,0]))
+        is_significant, std_diff_ratio = t_test('time', str(project_new.iloc[i, 0]), str(project_baseline.iloc[i, 0]))
         t_test_results.append(is_significant)
         std_diffs.append(std_diff_ratio)
-    t_test_df = pd.DataFrame(t_test_results,columns = ['sig'])
-    std_diffs_df = pd.DataFrame(std_diffs,columns = ['std'])
+    t_test_df = pd.DataFrame(t_test_results, columns=['sig'])
+    std_diffs_df = pd.DataFrame(std_diffs, columns=['std'])
     # print(t_test_df)
     baseline_df = df[0:test_group_size].reset_index(drop=True)
     new_df = df[-test_group_size:].reset_index(drop=True)
     #  convert type: avg, midAvg, totalTimes
-    baseline_df[['avg','midAvg', 'totalTimes']] = baseline_df[['avg','midAvg', 'totalTimes']].apply(pd.to_numeric)
-    new_df[['avg','midAvg', 'totalTimes']] = new_df[['avg','midAvg', 'totalTimes']].apply(pd.to_numeric)
+    baseline_df[['avg','midAvg', 'totalTimes']] = baseline_df[['avg', 'midAvg', 'totalTimes']].apply(pd.to_numeric)
+    new_df[['avg','midAvg', 'totalTimes']] = new_df[['avg', 'midAvg', 'totalTimes']].apply(pd.to_numeric)
     # print(baseline_df)
     # print(new_df)
     diff_df = baseline_df - new_df
@@ -105,7 +110,7 @@ def main():
     result_df = pd.concat([project_new, diff_ratio_df, std_diffs_df, t_test_df], axis=1)
     analysis_df = pd.DataFrame(result_df)
     print(analysis_df)
-    analysis_df.to_csv(result_file, index=False)
+    analysis_df.to_csv(latest_version + '_' + result_file, index=False, float_format='%.4f')
 
 
 if __name__ == '__main__':
