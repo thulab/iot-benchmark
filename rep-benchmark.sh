@@ -24,7 +24,11 @@ do
         grep $CHANGE_PARAMETER  $BENCHMARK_HOME/conf/config.properties
     else
         if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
-            sh $BENCHMARK_HOME/cli-benchmark.sh $IOTDB_CONF
+            if [ "$2" = "baseline" ]; then
+                sh $BENCHMARK_HOME/benchmark.sh
+            else
+                sh $BENCHMARK_HOME/cli-benchmark.sh $IOTDB_CONF
+            fi
         else
             sh $BENCHMARK_HOME/benchmark.sh
         fi

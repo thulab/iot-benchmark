@@ -1,4 +1,4 @@
 
 
-./auto-test.sh fit/exact-query-auto-test iotdbconf/fit auto_test 166.111.141.168:3306
+./auto-test.sh fit/exact-query-auto-test iotdbconf/fit auto_test 166.111.141.168
 
