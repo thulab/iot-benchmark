@@ -16,7 +16,7 @@
 
 # intermediately generated locally
 **/logs/
-
+tableauscript/*.csv
 
 *.jar
 *.gz
