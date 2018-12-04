@@ -17,6 +17,7 @@
 # intermediately generated locally
 **/logs/
 tableauscript/*.csv
+tableauscript/*.png
 
 *.jar
 *.gz

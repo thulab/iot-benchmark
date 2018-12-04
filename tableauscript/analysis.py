@@ -2,6 +2,7 @@
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # https://blog.csdn.net/m0_37777649/article/details/74938120
 import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
 import pymysql
 from sqlalchemy import create_engine
@@ -24,6 +25,32 @@ passwd='Ise_Nel_2017'
 charset='utf8'
 test_group_size=18
 insert_info_table_name='configInsertInfo'
+
+
+def viz_query(baseline, projectID, query_name):
+    engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
+    sql = 'select time from ' + projectID
+    latency_df = pd.read_sql_query(sql, engine)
+    latency_df = pd.DataFrame(latency_df * 1000)
+    latency_df.columns = ['latest test']
+    engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
+    sql = 'select time from ' + baseline
+    baseline_latency_df = pd.read_sql_query(sql, engine)
+    baseline_latency_df = pd.DataFrame(baseline_latency_df * 1000)
+    baseline_latency_df.columns = ['baseline']
+    latency_df = pd.concat([latency_df, baseline_latency_df],axis=1)
+    # print(latency_df)
+    plt.figure()
+    latency_df['latest test'].hist(grid=True, bins='auto', rwidth=1, color='orange', label='latest test') #607c8e
+    latency_df['baseline'].hist(grid=True, bins='auto', rwidth=1, color=['#66ccff'], label='baseline', alpha=0.5) #607c8e
+    plt.title(query_name + ' Test TTLB [ms] Histogram')
+    plt.xlabel('TTLB [ms]')
+    plt.ylabel('Counts')
+    plt.legend()
+    plt.grid(axis='y', alpha=0.3)
+    # plt.show()
+    plt.savefig(query_name + '_histogram.png')
+
 
 def get_mysql_field(field, table):
     db = pymysql.connect(host=host, user=user, passwd=passwd, port=port, charset=charset)
@@ -88,7 +115,7 @@ def t_test(field, new_table, baseline_table):
     return is_significant_difference, std_diff_ratio
 
 
-def main():
+def gen_query_analysis_csv_png():
     df, project_df, version_df = get_query_results()
     latest_version = str(version_df.iloc[-1, 0])
     latest_version.replace(' ', '_')
@@ -98,6 +125,7 @@ def main():
     std_diffs = []
     for i in range(test_group_size):
         is_significant, std_diff_ratio = t_test('time', str(project_new.iloc[i, 0]), str(project_baseline.iloc[i, 0]))
+        viz_query(str(project_baseline.iloc[i, 0]), str(project_new.iloc[i, 0]), str(project_new.iloc[i, 0]))
         t_test_results.append(is_significant)
         std_diffs.append(std_diff_ratio)
     t_test_df = pd.DataFrame(t_test_results, columns=['sig'])
@@ -117,6 +145,11 @@ def main():
     analysis_df = pd.DataFrame(result_df)
     print(analysis_df)
     analysis_df.to_csv(latest_version + '_' + result_file, index=False, float_format='%.4f')
+
+
+def main():
+    gen_query_analysis_csv_png()
+    # viz_query('query_IoTDB_latest_2018_12_01_02_40_52_849','query_IoTDB_latest_2018_12_01_04_34_47_267', 'latest')
 
 
 if __name__ == '__main__':

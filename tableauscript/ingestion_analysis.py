@@ -2,6 +2,7 @@
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # https://blog.csdn.net/m0_37777649/article/details/74938120
 import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
 import pymysql
 from sqlalchemy import create_engine
@@ -27,6 +28,55 @@ test_group_size=1
 t_test_field='costTime'
 result_table_name='insertResult'
 insert_info_table_name='configInsertInfo'
+
+
+def convert_date(latency_df, field):
+    latency_df[[field]] = latency_df[[field]].apply(pd.to_numeric)
+    latency_df[[field]] = latency_df[[field]] * 1000
+    latency_df[[field]] = latency_df[[field]].apply(pd.to_datetime)
+    return latency_df
+
+
+def viz_ingest(projectID, baseline):
+    plt.figure()
+    engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
+    sql = 'select id, clientName, costTime from ' + projectID
+    latency_df = pd.read_sql_query(sql, engine)
+    latency_df = pd.DataFrame(latency_df * 1000)
+    latency_df.columns = ['time', 'clientName', 'latest test']
+    latency_df['latest test'].hist(grid=True, bins='auto', rwidth=1, color='orange', label='latest test').get_figure()
+
+    engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
+    sql = 'select id, clientName, costTime from ' + baseline
+    baseline_latency_df = pd.read_sql_query(sql, engine)
+    baseline_latency_df = pd.DataFrame(baseline_latency_df * 1000)
+    baseline_latency_df.columns = ['baseline time', 'clientName', 'baseline']
+    baseline_latency_df['baseline'].hist(grid=True, bins='auto', rwidth=1, color=['#66ccff'], label='baseline', alpha=0.5).get_figure() #607c8e
+    plt.title(' Ingestion Test TTLB [ms] Histogram')
+    plt.xlabel('TTLB [ms]')
+    plt.ylabel('Counts')
+    plt.legend()
+    plt.grid(axis='y', alpha=0.3)
+    # plt.show()
+    plt.savefig(projectID + '_histogram.png')
+
+    latency_df = convert_date(latency_df, 'time')
+    latency_df = pd.DataFrame(latency_df)
+    plt.figure()
+
+    plt.subplot(2, 1, 1)
+    plt.plot(latency_df['time'], latency_df['latest test'])
+    plt.title('Original Ingestion Test TTLB [ms] Time Series')
+    plt.xlabel('time')
+    plt.ylabel('TTLB [ms]')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(latency_df['time'], latency_df['latest test'].rolling(window=10000).mean())
+    plt.title('Moving Average of Ingestion Test TTLB [ms] Time Series (window=10000)')
+    plt.xlabel('time')
+    plt.ylabel('TTLB [ms]')
+    # plt.show()
+    plt.savefig(projectID + '_time_series.png')
 
 
 def get_mysql_field(field, table):
@@ -92,7 +142,7 @@ def t_test(field, new_table, baseline_table):
     return is_significant_difference, std_diff_ratio
 
 
-def main():
+def gen_ingestion_analysis_csv_png():
     df, project_df, version_df = get_query_results()
     latest_version = str(version_df.iloc[-1, 0])
     latest_version.replace(' ', '_')
@@ -104,6 +154,7 @@ def main():
         is_significant, std_diff_ratio = t_test(t_test_field, str(project_new.iloc[i, 0]), str(project_baseline.iloc[i, 0]))
         t_test_results.append(is_significant)
         std_diffs.append(std_diff_ratio)
+        viz_ingest(projectID=str(project_new.iloc[i, 0]), baseline=str(project_baseline.iloc[i, 0]))
     t_test_df = pd.DataFrame(t_test_results, columns=['sig'])
     std_diffs_df = pd.DataFrame(std_diffs, columns=['std'])
     # print(t_test_df)
@@ -121,6 +172,12 @@ def main():
     analysis_df = pd.DataFrame(result_df)
     print(analysis_df)
     analysis_df.to_csv(latest_version + '_' + result_file, index=False, float_format='%.4f')
+
+
+def main():
+    gen_ingestion_analysis_csv_png()
+    # viz_ingest('insertTestWithDefaultPath_IoTDB_weekly1543453866543',
+    #            'insertTestWithDefaultPath_IoTDB_weekly1543547886603')
 
 
 if __name__ == '__main__':
