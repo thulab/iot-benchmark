@@ -40,7 +40,7 @@ def convert_date(latency_df, field):
 
 
 def viz_ingest(projectID, baseline):
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(12, 8))
     engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
     sql = 'select id, clientName, costTime from ' + projectID
     latency_df = pd.read_sql_query(sql, engine)
@@ -64,7 +64,7 @@ def viz_ingest(projectID, baseline):
 
     latency_df = convert_date(latency_df, 'time')
     latency_df = pd.DataFrame(latency_df)
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(12, 12))
 
     plt.subplot(2, 1, 1)
     plt.plot(latency_df['time'], latency_df['latest test'])
