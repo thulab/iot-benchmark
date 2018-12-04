@@ -40,20 +40,20 @@ def convert_date(latency_df, field):
 
 
 def viz_ingest(projectID, baseline):
-    plt.figure()
+    plt.figure(figsize=(12, 10))
     engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
     sql = 'select id, clientName, costTime from ' + projectID
     latency_df = pd.read_sql_query(sql, engine)
     latency_df = pd.DataFrame(latency_df * 1000)
     latency_df.columns = ['time', 'clientName', 'latest test']
-    latency_df['latest test'].hist(grid=True, bins='auto', rwidth=1, color='orange', label='latest test').get_figure()
+    latency_df['latest test'].hist(grid=True, bins='auto', rwidth=1, color='orange', label='latest test')
 
     engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
     sql = 'select id, clientName, costTime from ' + baseline
     baseline_latency_df = pd.read_sql_query(sql, engine)
     baseline_latency_df = pd.DataFrame(baseline_latency_df * 1000)
     baseline_latency_df.columns = ['baseline time', 'clientName', 'baseline']
-    baseline_latency_df['baseline'].hist(grid=True, bins='auto', rwidth=1, color=['#66ccff'], label='baseline', alpha=0.5).get_figure() #607c8e
+    baseline_latency_df['baseline'].hist(grid=True, bins='auto', rwidth=1, color=['#66ccff'], label='baseline', alpha=0.5) #607c8e
     plt.title(' Ingestion Test TTLB [ms] Histogram')
     plt.xlabel('TTLB [ms]')
     plt.ylabel('Counts')
@@ -64,7 +64,7 @@ def viz_ingest(projectID, baseline):
 
     latency_df = convert_date(latency_df, 'time')
     latency_df = pd.DataFrame(latency_df)
-    plt.figure()
+    plt.figure(figsize=(12, 10))
 
     plt.subplot(2, 1, 1)
     plt.plot(latency_df['time'], latency_df['latest test'])

@@ -42,7 +42,7 @@ def viz_query(baseline, projectID, query_name):
     baseline_latency_df.columns = ['baseline']
     latency_df = pd.concat([latency_df, baseline_latency_df],axis=1)
     # print(latency_df)
-    plt.figure()
+    plt.figure(figsize=(12, 10))
     latency_df['latest test'].hist(grid=True, bins='auto', rwidth=1, color='orange', label='latest test') #607c8e
     latency_df['baseline'].hist(grid=True, bins='auto', rwidth=1, color=['#66ccff'], label='baseline', alpha=0.5) #607c8e
     plt.title(query_name + ' Test TTLB [ms] Histogram')
