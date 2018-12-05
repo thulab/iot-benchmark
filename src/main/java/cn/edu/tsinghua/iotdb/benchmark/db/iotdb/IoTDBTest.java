@@ -43,9 +43,9 @@ public class IoTDBTest {
 
     public boolean testUserGuide() {
         boolean pass = true;
-        testExecute("set storage group to root.ln", true);
+        pass = pass && testExecute("set storage group to root.ln", true);
 
-        testExecute("set storage group to root.sgcc", true);
+        pass = pass && testExecute("set storage group to root.sgcc", true);
 
 
 

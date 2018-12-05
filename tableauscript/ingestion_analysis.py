@@ -3,7 +3,7 @@
 # https://blog.csdn.net/m0_37777649/article/details/74938120
 import pandas as pd
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pymysql
