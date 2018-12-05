@@ -63,6 +63,9 @@ public class App {
             case Constants.MODE_EXECUTE_SQL_FROM_FILE:
                 executeSQLFromFile(config);
                 break;
+            case Constants.MODE_IOTDB_QA:
+                iotdbQualityAssurance(config);
+                break;
             case Constants.MODE_CLIENT_SYSTEM_INFO:
                 clientSystemInfo(config);
                 break;
@@ -71,6 +74,33 @@ public class App {
         }
 
     }// main
+
+    private static void iotdbQualityAssurance(Config config) throws SQLException, ClassNotFoundException{
+        MySqlLog mysql = new MySqlLog();
+        mysql.initMysql(System.currentTimeMillis());
+        IDBFactory idbFactory = null;
+        idbFactory = getDBFactory(config);
+        IDatebase datebase;
+        long exeSQLFromFileStartTime;
+        long exeSQLFromFileEndTime;
+        float exeSQLFromFileTime = 1;
+        int SQLCount = 0;
+        try {
+            datebase = idbFactory.buildDB(mysql.getLabID());
+            datebase.init();
+            exeSQLFromFileStartTime = System.nanoTime();
+            datebase.exeSQLFromFileByOneBatch();
+            datebase.close();
+            exeSQLFromFileEndTime = System.nanoTime();
+            exeSQLFromFileTime = (exeSQLFromFileEndTime - exeSQLFromFileStartTime) / 1000000000.0f;
+        } catch (SQLException e) {
+            LOGGER.error("Fail to init database becasue {}", e.getMessage());
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     /**
      * 将数据从CSV文件导入IOTDB

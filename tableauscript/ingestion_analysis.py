@@ -3,7 +3,7 @@
 # https://blog.csdn.net/m0_37777649/article/details/74938120
 import pandas as pd
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import pymysql
@@ -32,11 +32,33 @@ result_table_name='insertResult'
 insert_info_table_name='configInsertInfo'
 
 
-def convert_date(latency_df, field):
+def convert_date(latency_df, field, scale=1000):
     latency_df[[field]] = latency_df[[field]].apply(pd.to_numeric)
-    latency_df[[field]] = latency_df[[field]] * 1000
+    latency_df[[field]] = latency_df[[field]] * scale
     latency_df[[field]] = latency_df[[field]].apply(pd.to_datetime)
     return latency_df
+
+
+def viz_server_monitor(projectID):
+    plt.figure(figsize=(12, 40))
+    engine = create_engine('mysql+pymysql://'+user+':'+passwd+'@'+host+':'+str(port)+'/'+database)
+    sql = 'select * from latestServerMonitor'
+    server_monitor_df = pd.read_sql_query(sql, engine)
+    del server_monitor_df['remark']
+    server_monitor_df = convert_date(server_monitor_df, 'id', scale=1000000)
+    server_monitor_df = server_monitor_df[['id', 'net_recv_rate', 'net_send_rate', 'cpu_usage',
+                                           'mem_usage', 'pro_mem_size', 'diskIo_usage', 'tps',
+                                           'MB_wrtn', 'MB_read', 'dataFileSize', 'OverflowFileSize',
+                                           'walFileSize', 'infoFizeSize', 'metadataFileSize', 'deltaFileSize',
+                                           'totalFileNum', 'dataFileNum', 'socketNum', 'overflowNum',
+                                           'walNum', 'settledNum', 'infoNum', 'schemaNum', 'metadataNum']]
+    server_monitor_df.rename(columns={'id': 'time', 'deltaFileSize': 'settledFileSize'}, inplace=True)
+    server_monitor_df.set_index('time', inplace=True)
+    for field in ['net_recv_rate', 'net_send_rate', 'cpu_usage', 'diskIo_usage', 'tps', 'MB_wrtn']:
+        server_monitor_df['MA_' + field] = server_monitor_df[field].rolling(window=500).mean()
+    server_monitor_df.plot(subplots=True, figsize=(12, 40))
+    plt.savefig(projectID + '_ServerResourceConsumption.png')
+    print(server_monitor_df)
 
 
 def viz_ingest(projectID, baseline):
@@ -174,10 +196,12 @@ def gen_ingestion_analysis_csv_png():
     analysis_df = pd.DataFrame(result_df)
     print(analysis_df)
     analysis_df.to_csv(latest_version + '_' + result_file, index=False, float_format='%.4f')
+    viz_server_monitor(str(project_new.iloc[0, 0]))
 
 
 def main():
     gen_ingestion_analysis_csv_png()
+    # viz_server_monitor()
     # viz_ingest('insertTestWithDefaultPath_IoTDB_weekly1543453866543',
     #            'insertTestWithDefaultPath_IoTDB_weekly1543547886603')
 
