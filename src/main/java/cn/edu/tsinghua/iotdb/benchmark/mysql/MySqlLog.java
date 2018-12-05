@@ -47,7 +47,13 @@ public class MySqlLog {
     public void initMysql(long labIndex) {
         labIDLong = labIndex;
         labID = sdf.format(new java.util.Date(labIndex));
-        projectID = config.BENCHMARK_WORK_MODE.substring(0, config.BENCHMARK_WORK_MODE.lastIndexOf("Test")) + "_" + config.DB_SWITCH + "_" + config.REMARK + "_" + labID;
+        String prefix;
+        if(config.BENCHMARK_WORK_MODE.lastIndexOf("Test") > 0){
+            prefix = config.BENCHMARK_WORK_MODE.substring(0, config.BENCHMARK_WORK_MODE.lastIndexOf("Test"));
+        } else {
+            prefix = config.BENCHMARK_WORK_MODE;
+        }
+        projectID = prefix + "_" + config.DB_SWITCH + "_" + config.REMARK + "_" + labID;
         if (config.IS_USE_MYSQL) {
             Date date = new Date(labIndex);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
