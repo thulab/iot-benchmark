@@ -7,6 +7,7 @@ if [ -z "${BENCHMARK_HOME}" ]; then
 fi
 
 echo $BENCHMARK_HOME
+git pull
 
 #sed -i 's/SERVER_MODE *= *false/SERVER_MODE=true/g' $BENCHMARK_HOME/conf/config.properties
 sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_HOME/conf/config.properties

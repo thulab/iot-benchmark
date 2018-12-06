@@ -14,6 +14,7 @@ HOST_NAME=liurui
 IS_SSH_CHANGE_PORT=false
 SSH_PORT=2222
 IOTDB_CONF=$1
+IS_TEST_BASELINE=$2
 
 #extract parameters from config.properties
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
@@ -33,6 +34,11 @@ DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 echo Testing ${DB#*=} ...
 git pull
 rm -rf ./lib
+if [[ ${IS_TEST_BASELINE} = "true" ]]; then
+    cp ./archive/pom/baseline_pom.xml  ./pom.xml
+else
+    cp ./archive/pom/pom.xml  ./pom.xml
+fi
 mvn clean package -Dmaven.test.skip=true
 
 #prepare for client system info recording benchmark
@@ -89,18 +95,30 @@ else
     fi
 
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
-      echo "initial database in server..."
-      ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./iotdb;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
-      ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
-      #start server system information recording
-      ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
-      COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git tag -l | tail -n 1")" commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git rev-parse HEAD")
-      sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
-      scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
-      scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
-      ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
-      echo 'wait a few seconds for lauching IoTDB...'
-      sleep 20
+        echo "initial database in server..."
+        if [ $IS_TEST_BASELINE = "true" ]; then
+            ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./baseline_iotdb;mkdir ./baseline_iotdb;cd ./baseline_iotdb;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;git checkout v0.7.0;mvn clean package -Dmaven.test.skip=true"
+            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
+            #start server system information recording
+            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
+            COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb;git tag -l | tail -n 1")"BASELINE_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb;git rev-parse HEAD")
+            sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
+            scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb/iotdb/conf
+            scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb/iotdb/conf
+            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
+        else
+            ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./iotdb;git clone https://github.com/thulab/iotdb.git;cd ./iotdb;mvn clean package -Dmaven.test.skip=true"
+            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
+            #start server system information recording
+            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
+            COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git tag -l | tail -n 1")"_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git rev-parse HEAD")
+            sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
+            scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
+            scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/conf
+            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
+        fi
+        echo 'wait a few seconds for lauching IoTDB...'
+        sleep 20
     fi
     echo '------Client Test Begin Time------'
     date
