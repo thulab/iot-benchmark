@@ -9,11 +9,18 @@ IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
 FLAG_AND_DATA_PATH=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
 LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
+IS_TEST_BASELINE=$1
+
 
 git pull
 COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git tag -l | tail -n 1")" commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb;git rev-parse HEAD")
 sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
 rm -rf ./lib
+if [ $IS_TEST_BASELINE = "true" ]; then
+    cp ./archive/pom/baseline_pom.xml  ./pom.xml
+else
+    cp ./archive/pom/pom.xml  ./pom.xml
+fi
 mvn clean package -Dmaven.test.skip=true
 cd bin
 sh startup.sh -cf ../conf/config.properties

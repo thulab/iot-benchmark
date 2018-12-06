@@ -31,7 +31,7 @@ do
                 sh $BENCHMARK_HOME/cli-benchmark.sh $IOTDB_CONF $IS_TEST_BASELINE
 #            fi
         else
-            sh $BENCHMARK_HOME/benchmark.sh
+            sh $BENCHMARK_HOME/benchmark.sh $IS_TEST_BASELINE
         fi
     fi
   fi
