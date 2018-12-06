@@ -34,7 +34,7 @@ DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 echo Testing ${DB#*=} ...
 git pull
 rm -rf ./lib
-if [ IS_TEST_BASELINE = "true" ]; then
+if [ $IS_TEST_BASELINE = "true" ]; then
     cp ./archive/pom/baseline_pom.xml  ./pom.xml
 else
     cp ./archive/pom/pom.xml  ./pom.xml
