@@ -54,7 +54,7 @@ def viz_server_monitor(projectID):
                                            'walNum', 'settledNum', 'infoNum', 'schemaNum', 'metadataNum']]
     server_monitor_df.rename(columns={'id': 'time', 'deltaFileSize': 'settledFileSize'}, inplace=True)
     server_monitor_df.set_index('time', inplace=True)
-    if len(server_monitor_df) > 50000:
+    if len(server_monitor_df) > 5000:
         for field in ['net_recv_rate', 'net_send_rate', 'cpu_usage', 'diskIo_usage', 'tps', 'MB_wrtn']:
             server_monitor_df['MA_' + field] = server_monitor_df[field].rolling(window=500).mean()
     server_monitor_df.plot(subplots=True, figsize=(12, 40))
@@ -95,7 +95,7 @@ def viz_ingest(projectID, baseline):
     plt.xlabel('time')
     plt.ylabel('TTLB [ms]')
 
-    if len(latency_df) > 1000000:
+    if len(latency_df) > 100000:
         plt.subplot(2, 1, 2)
         plt.plot(latency_df['time'], latency_df['latest test'].rolling(window=10000).mean())
         plt.title('Moving Average of Ingestion Test TTLB [ms] Time Series (window=10000)')

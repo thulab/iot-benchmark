@@ -118,7 +118,7 @@ else
             ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
         fi
         echo 'wait a few seconds for lauching IoTDB...'
-        sleep 20
+        sleep 40
     fi
     echo '------Client Test Begin Time------'
     date
