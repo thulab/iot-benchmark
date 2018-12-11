@@ -54,9 +54,9 @@ def viz_server_monitor(projectID):
                                            'walNum', 'settledNum', 'infoNum', 'schemaNum', 'metadataNum']]
     server_monitor_df.rename(columns={'id': 'time', 'deltaFileSize': 'settledFileSize'}, inplace=True)
     server_monitor_df.set_index('time', inplace=True)
-    if len(server_monitor_df) > 5000:
+    if len(server_monitor_df) > 500:
         for field in ['net_recv_rate', 'net_send_rate', 'cpu_usage', 'diskIo_usage', 'tps', 'MB_wrtn']:
-            server_monitor_df['MA_' + field] = server_monitor_df[field].rolling(window=500).mean()
+            server_monitor_df['MA_' + field] = server_monitor_df[field].rolling(window=100).mean()
     server_monitor_df.plot(subplots=True, figsize=(12, 40))
     plt.savefig(projectID + '_ServerResourceConsumption.png')
     print(server_monitor_df)
