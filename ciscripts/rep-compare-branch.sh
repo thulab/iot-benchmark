@@ -1,8 +1,11 @@
 #!/bin/sh
 
 if [ -z "${BENCHMARK_HOME}" ]; then
-  export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
+  BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
+  export BENCHMARK_HOME="$(cd $BENCHMARK_HOME/..; pwd)"
 fi
+
+
 
 ROUTINE=$1
 IOTDB_CONF=$2

@@ -1,7 +1,8 @@
 #!/bin/sh
 
 if [ -z "${BENCHMARK_HOME}" ]; then
-  export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
+  BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
+  export BENCHMARK_HOME="$(cd $BENCHMARK_HOME/..; pwd)"
 fi
 #IMPORTANT: to use this script, make sure you have password-free ssh access to 127.0.0.1 and the server of database service
 # if not you need to use the following command:
