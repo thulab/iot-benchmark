@@ -9,3 +9,5 @@ Example
 3. The third parameter decides whether test baseline IoTDB i.e. v0.7.0, e.g. ```false```
 4. The fourth parameter decides which branch to test, e.g. ```master```
 5. The fifth parameter is the path of your maven repository where you want to clean up before each new test, e.g.  ```~/.m2/repository/cn```
+
+The results are collected in result.txt

@@ -15,4 +15,6 @@ git pull
 echo "begin testing the performance..."
 cp $BENCHMARK_HOME/archive/$ROUTINE  $BENCHMARK_HOME/routine
 sh $BENCHMARK_HOME/ciscripts/branch-rep.sh $IOTDB_CONF $IS_BASELINE $BRANCH $MAVEN_CLEAN_REPO_PATH
+date >> result.txt
+echo $BRANCH >> result.txt
 tail -n 3 $BENCHMARK_HOME/logs/log_info.log | cut -d '-' -f 4 >> result.txt
