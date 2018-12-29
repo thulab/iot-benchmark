@@ -20,13 +20,18 @@ public class OpenFileNumber {
     private static final String SEARCH_PID = "ps -aux | grep -i %s | grep -v grep";
     private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
     private static int pid = getPID(config.DB_SWITCH);
+    private static Map<FileSize.FileSizeKinds, String> fileSizePathMap = new EnumMap<> (FileSize.FileSizeKinds.class);
+    private static int fileSizePathCount = 0;
 
     private static class OpenFileNumberHolder {
         private static final OpenFileNumber INSTANCE = new OpenFileNumber();
     }
 
     private OpenFileNumber() {
-
+        //initialize fileSizePathMap
+        for (FileSize.FileSizeKinds openFileNumStatistics : FileSize.FileSizeKinds.values()) {
+            fileSizePathMap.put(openFileNumStatistics, "none");
+        }
     }
 
     public static final OpenFileNumber getInstance() {
@@ -181,40 +186,38 @@ public class OpenFileNumber {
     }
 
     public static Map<FileSize.FileSizeKinds, String> getFileSizePath() {
-        EnumMap<FileSize.FileSizeKinds, String> resultMap = new EnumMap<> (FileSize.FileSizeKinds.class);
-        //initialize resultMap
-        for (FileSize.FileSizeKinds openFileNumStatistics : FileSize.FileSizeKinds.values()) {
-            resultMap.put(openFileNumStatistics, "none");
-        }
-        Process pro;
-        Runtime r = Runtime.getRuntime();
-        try {
-            String command = String.format(SEARCH_OPEN_DATA_FILE_BY_PID, pid);
-            cmds[2] = command;
-            pro = r.exec(cmds);
-            BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
-            String line;
+        if(fileSizePathCount < FileSize.FileSizeKinds.values().length) {
+            Process pro;
+            Runtime r = Runtime.getRuntime();
+            try {
+                String command = String.format(SEARCH_OPEN_DATA_FILE_BY_PID, pid);
+                cmds[2] = command;
+                pro = r.exec(cmds);
+                BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+                String line;
 
-            while ((line = in.readLine()) != null) {
-                String[] temp = line.split("\\s+");
-                if (line.contains("" + pid) && temp.length > 8) {
-                    for(FileSize.FileSizeKinds openFileNumStatistics: FileSize.FileSizeKinds.values()){
-                        if(openFileNumStatistics.getPath()!=null){
-                            String path = openFileNumStatistics.getPath();
-                            if (temp[8].contains(path)) {
-                                String tempPath = temp[8].substring(0, temp[8].indexOf(path) + path.length());
-                                resultMap.put(openFileNumStatistics, tempPath);
+                while ((line = in.readLine()) != null) {
+                    String[] temp = line.split("\\s+");
+                    if (line.contains("" + pid) && temp.length > 8) {
+                        for (FileSize.FileSizeKinds openFileNumStatistics : FileSize.FileSizeKinds.values()) {
+                            if (fileSizePathMap.get(openFileNumStatistics).equals("none")) {
+                                String path = openFileNumStatistics.getPath();
+                                if (temp[8].contains(path)) {
+                                    String tempPath = temp[8].substring(0, temp[8].indexOf(path) + path.length());
+                                    fileSizePathMap.put(openFileNumStatistics, tempPath);
+                                    fileSizePathCount++;
+                                }
                             }
                         }
                     }
                 }
+                in.close();
+                pro.destroy();
+            } catch (IOException e) {
+                log.error("Cannot get file size path of IoTDB process because of {}", e.getMessage());
             }
-            in.close();
-            pro.destroy();
-        } catch (IOException e) {
-            log.error("Cannot get file size path of IoTDB process because of {}", e.getMessage());
         }
-        return resultMap;
+        return fileSizePathMap;
     }
 
     /**
