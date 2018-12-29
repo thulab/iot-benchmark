@@ -24,7 +24,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -116,6 +120,7 @@ public class App {
         MySqlLog mySql = new MySqlLog();
         mySql.initMysql(System.currentTimeMillis());
         File dir = new File(config.LOG_STOP_FLAG_PATH);
+        LOGGER.info("config.LOG_STOP_FLAG_PATH={}", config.LOG_STOP_FLAG_PATH);
         if (dir.exists() && dir.isDirectory()) {
             File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
             int interval = config.INTERVAL;
