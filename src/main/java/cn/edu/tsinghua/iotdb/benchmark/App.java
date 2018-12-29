@@ -24,10 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -205,7 +202,7 @@ public class App {
 
             if (dir.exists() && dir.isDirectory()) {
                 File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
-                HashMap<FileSize.FileSizeKinds, Double> fileSizeStatistics;
+                Map<FileSize.FileSizeKinds, Double> fileSizeStatistics;
                 HashMap<IoUsage.IOStatistics, Float> ioStatistics;
                 int interval = config.INTERVAL;
                 // 检测所需的时间在目前代码的参数下至少为2秒
