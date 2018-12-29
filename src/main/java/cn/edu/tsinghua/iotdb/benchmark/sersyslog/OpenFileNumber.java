@@ -9,26 +9,25 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class OpenFileNumber {
 
     private static Logger log = LoggerFactory.getLogger(OpenFileNumber.class);
-    private Config config;
-    private static int pid = -1;
-    private static int port = -1;
+    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static int pid = getPID(config.DB_SWITCH);
 
     private static final String SEARCH_PID = "ps -aux | grep -i %s | grep -v grep";
     private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
-    private static String cmds[] = {"/bin/bash", "-c", ""};
-    //private static String passward = "";
+    private static String[] cmds = {"/bin/bash", "-c", ""};
 
     private static class OpenFileNumberHolder {
         private static final OpenFileNumber INSTANCE = new OpenFileNumber();
     }
 
     private OpenFileNumber() {
-        config = ConfigDescriptor.getInstance().getConfig();
-        pid = getPID(config.DB_SWITCH);
+
     }
 
     public static final OpenFileNumber getInstance() {
@@ -36,11 +35,11 @@ public class OpenFileNumber {
     }
 
     /**
-     * @param
-     * @return int, pid
-     * @Purpose:获得当前指定的数据库服务器的PID
+     * 获得当前指定的数据库服务器的PID
+     * @param dbName TSDB name
+     * @return int pid
      */
-    public int getPID(String dbName) {
+    public static int getPID(String dbName) {
         int pid = -1;
         Process pro1;
         Runtime r = Runtime.getRuntime();
@@ -64,14 +63,12 @@ public class OpenFileNumber {
         }
         try {
             String command = String.format(SEARCH_PID, filter);
-            //System.out.println(command);
             cmds[2] = command;
             pro1 = r.exec(cmds);
             BufferedReader in1 = new BufferedReader(new InputStreamReader(pro1.getInputStream()));
             String line = null;
             while ((line = in1.readLine()) != null) {
                 line = line.trim();
-                //System.out.println(line);
                 String[] temp = line.split("\\s+");
                 if (temp.length > 1 && isNumeric(temp[1])) {
                     pid = Integer.parseInt(temp[1]);
@@ -81,10 +78,7 @@ public class OpenFileNumber {
             in1.close();
             pro1.destroy();
         } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            log.error("统计打开文件数时getPid()发生InstantiationException. " + e.getMessage());
-            log.error(sw.toString());
+            log.error("统计打开文件数时getPid()发生InstantiationException. {}", e.getMessage());
         }
         return pid;
     }
@@ -103,9 +97,8 @@ public class OpenFileNumber {
      * 1ist[7]表示该进程打开overflow文件的数目
      * 1ist[8]表示该进程打开wals文件的数目
      */
-    private ArrayList<Integer> getOpenFile(int pid) throws SQLException {
-        //log.info("开始收集打开的socket数目：");
-        ArrayList<Integer> list = new ArrayList<Integer>();
+    private static ArrayList<Integer> getOpenFile(int pid) throws SQLException {
+        ArrayList<Integer> list = new ArrayList<>();
         int dataFileNum = 0;
         int totalFileNum = 0;
         int socketNum = 0;
@@ -147,7 +140,6 @@ public class OpenFileNumber {
             String line = null;
 
             while ((line = in.readLine()) != null) {
-                //System.out.println(line);
                 String[] temp = line.split("\\s+");
                 if (line.contains("" + pid) && temp.length > 8) {
                     totalFileNum++;
@@ -175,15 +167,11 @@ public class OpenFileNumber {
             in.close();
             pro.destroy();
         } catch (IOException e) {
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            log.error("统计打开文件数时getOpenFile()发生InstantiationException. " + e.getMessage());
-            log.error(sw.toString());
+            log.error("统计打开文件数时getOpenFile()发生InstantiationException. {}", e.getMessage());
         }
         list.add(totalFileNum);
         list.add(dataFileNum);
         list.add(socketNum);
-
         list.add(deltaNum);
         list.add(derbyNum);
         list.add(digestNum);
@@ -191,6 +179,43 @@ public class OpenFileNumber {
         list.add(overflowNum);
         list.add(walsNum);
         return list;
+    }
+
+    public static Map<FileSize.FileSizeKinds, String> getFileSizePath() {
+        EnumMap<FileSize.FileSizeKinds, String> resultMap = new EnumMap<> (FileSize.FileSizeKinds.class);
+        //initialize resultMap
+        for (FileSize.FileSizeKinds openFileNumStatistics : FileSize.FileSizeKinds.values()) {
+            resultMap.put(openFileNumStatistics, "none");
+        }
+        Process pro;
+        Runtime r = Runtime.getRuntime();
+        try {
+            String command = String.format(SEARCH_OPEN_DATA_FILE_BY_PID, pid);
+            cmds[2] = command;
+            pro = r.exec(cmds);
+            BufferedReader in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
+            String line;
+
+            while ((line = in.readLine()) != null) {
+                String[] temp = line.split("\\s+");
+                if (line.contains("" + pid) && temp.length > 8) {
+                    for(FileSize.FileSizeKinds openFileNumStatistics: FileSize.FileSizeKinds.values()){
+                        if(openFileNumStatistics.getPath()!=null){
+                            String path = openFileNumStatistics.getPath();
+                            if (temp[8].contains(path)) {
+                                String tempPath = temp[8].substring(0, temp[8].indexOf(path) + path.length());
+                                resultMap.put(openFileNumStatistics, tempPath);
+                            }
+                        }
+                    }
+                }
+            }
+            in.close();
+            pro.destroy();
+        } catch (IOException e) {
+            log.error("Cannot get file size path of IoTDB process because of {}", e.getMessage());
+        }
+        return resultMap;
     }
 
     /**

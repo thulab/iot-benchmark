@@ -8,48 +8,61 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 
 import java.io.*;
 import java.sql.SQLException;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Map;
 
 public class FileSize {
     private static Logger log = LoggerFactory.getLogger(FileSize.class);
-    private static Config config;
-    private final String LINUX_FILE_SIZE_CMD = "du -sm %s";
-    private final double MB2GB = 1024.0;
-    private final double ABNORMALVALUE = -1;
+    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final String LINUX_FILE_SIZE_CMD = "du -sm %s";
+    private static final double MB2GB = 1024.0;
+    private static final double ABNORMAL_VALUE = -1;
     public enum FileSizeKinds {
-        DATA(config.LOG_STOP_FLAG_PATH + "/iotdb/iotdb/iotdb/data/data"),
-        INFO(config.LOG_STOP_FLAG_PATH + "/iotdb/iotdb/iotdb/data/system/info"),
-        METADATA(config.LOG_STOP_FLAG_PATH + "/iotdb/iotdb/iotdb/data/system/schema"),
-        OVERFLOW(config.LOG_STOP_FLAG_PATH + "/iotdb/iotdb/iotdb/data/data/overflow"),
-        DELTA(config.LOG_STOP_FLAG_PATH + "/iotdb/iotdb/iotdb/data/data/settled"),
-        WAL(config.LOG_STOP_FLAG_PATH + "/iotdb/iotdb/iotdb/data/wal");
+        DATA("iotdb/data/data"),
+        INFO("iotdb/data/system/info"),
+        METADATA("iotdb/data/system/schema"),
+        OVERFLOW("iotdb/data/data/overflow"),
+        DELTA("iotdb/data/data/settled"),
+        WAL("iotdb/data/wal");
 
-        public String path;
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        private String path;
 
         FileSizeKinds(String path){
             this.path = path;
         }
-    };
+    }
 
     private static class FileSizeHolder {
         private static final FileSize INSTANCE = new FileSize();
     }
 
     private FileSize(){
-        config = ConfigDescriptor.getInstance().getConfig();
-
         switch (config.DB_SWITCH){
             case Constants.DB_IOT:
-
                 break;
             case Constants.DB_INFLUX:
-                FileSizeKinds.DATA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.DB_NAME;
-                FileSizeKinds.DELTA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.DB_NAME + "/autogen";
+                FileSizeKinds.DATA.setPath("/data/" + config.DB_NAME);
+                FileSizeKinds.DELTA.setPath("/data/" + config.DB_NAME + "/autogen");
+                FileSizeKinds.WAL.setPath("/var/lib/influxdb/wal" + config.DB_NAME);
+                FileSizeKinds.METADATA.setPath("/var/lib/influxdb/meta");
                 break;
+            case Constants.DB_CTS:
+            case Constants.DB_KAIROS:
+            case Constants.DB_OPENTS:
+            case Constants.DB_TIMESCALE:
             case Constants.BENCHMARK_IOTDB:
                 break;
             default:
-                log.error("unsupported db name :" + config.DB_SWITCH);
+                log.error("unsupported db name: {}", config.DB_SWITCH);
         }
     }
 
@@ -57,14 +70,15 @@ public class FileSize {
         return FileSizeHolder.INSTANCE;
     }
 
-    public HashMap<FileSizeKinds, Double> getFileSize() {
-        HashMap<FileSizeKinds, Double> fileSize = new HashMap<>();
+    public Map<FileSizeKinds, Double> getFileSize() {
+        Map<FileSize.FileSizeKinds, String> fileSizePathMap = OpenFileNumber.getFileSizePath();
+        EnumMap<FileSizeKinds, Double> fileSize = new EnumMap<> (FileSizeKinds.class);
         BufferedReader in ;
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
         for(FileSizeKinds kinds : FileSizeKinds.values()){
-            String command = String.format(LINUX_FILE_SIZE_CMD, kinds.path);
-            double fileSizeGB = ABNORMALVALUE;
+            String command = String.format(LINUX_FILE_SIZE_CMD, fileSizePathMap.get(kinds));
+            double fileSizeGB = ABNORMAL_VALUE;
             try {
                 pro = runtime.exec(command);
                 in = new BufferedReader(new InputStreamReader(pro.getInputStream()));
@@ -75,9 +89,9 @@ public class FileSize {
                 }
                 in.close();
             } catch (IOException e) {
-                log.info("Execute command failed: " + command);
+                log.info("Execute command failed: {}", command);
             }
-            fileSize.put(kinds,fileSizeGB);
+            fileSize.put(kinds, fileSizeGB);
         }
         if (pro != null) {
             pro.destroy();
