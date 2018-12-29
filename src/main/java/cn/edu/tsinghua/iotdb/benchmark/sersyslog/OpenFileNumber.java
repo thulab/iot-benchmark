@@ -16,11 +16,10 @@ public class OpenFileNumber {
 
     private static Logger log = LoggerFactory.getLogger(OpenFileNumber.class);
     private static Config config = ConfigDescriptor.getInstance().getConfig();
-    private static int pid = getPID(config.DB_SWITCH);
-
+    private static String[] cmds = {"/bin/bash", "-c", ""};
     private static final String SEARCH_PID = "ps -aux | grep -i %s | grep -v grep";
     private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
-    private static String[] cmds = {"/bin/bash", "-c", ""};
+    private static int pid = getPID(config.DB_SWITCH);
 
     private static class OpenFileNumberHolder {
         private static final OpenFileNumber INSTANCE = new OpenFileNumber();
