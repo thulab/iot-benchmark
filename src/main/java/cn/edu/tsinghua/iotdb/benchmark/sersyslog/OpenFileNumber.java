@@ -206,6 +206,7 @@ public class OpenFileNumber {
                                     String rootPath = temp[8].substring(0, temp[8].indexOf(path));
                                     for(FileSize.FileSizeKinds statistics : FileSize.FileSizeKinds.values()){
                                         fileSizePathMap.put(openFileNumStatistics, rootPath + statistics.getPath());
+                                        log.info("{}: {}", openFileNumStatistics.name(), rootPath + statistics.getPath());
                                         fileSizePathCount++;
                                     }
                                 }
@@ -219,7 +220,6 @@ public class OpenFileNumber {
                 log.error("Cannot get file size path of IoTDB process because of {}", e.getMessage());
             }
         }
-        System.out.println(fileSizePathMap);
         return fileSizePathMap;
     }
 
