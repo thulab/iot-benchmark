@@ -213,9 +213,9 @@ public class OpenFileNumber {
                                         fileSizePathCount++;
                                         log.info(fileSizePathCount + "");
                                     }
+                                    flag = true;
+                                    break;
                                 }
-                                flag = true;
-                                break;
                             }
                         }
                     }
