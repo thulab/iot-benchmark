@@ -6,7 +6,9 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -207,11 +209,7 @@ public class OpenFileNumber {
                                     String rootPath = temp[8].substring(0, temp[8].indexOf(path));
                                     for(FileSize.FileSizeKinds statistics : FileSize.FileSizeKinds.values()){
                                         fileSizePathMap.put(statistics, rootPath + statistics.getPath());
-                                        log.info(statistics.toString());
-                                        log.info(rootPath);
-                                        log.info(rootPath + statistics.getPath());
                                         fileSizePathCount++;
-                                        log.info(fileSizePathCount + "");
                                     }
                                     flag = true;
                                     break;
@@ -229,7 +227,6 @@ public class OpenFileNumber {
                 log.error("Cannot get file size path of IoTDB process because of {}", e.getMessage());
             }
         }
-        System.out.println(fileSizePathMap);
         return fileSizePathMap;
     }
 

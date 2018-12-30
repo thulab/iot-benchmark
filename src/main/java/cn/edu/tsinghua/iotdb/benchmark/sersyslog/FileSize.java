@@ -72,7 +72,6 @@ public class FileSize {
 
     public Map<FileSizeKinds, Double> getFileSize() {
         Map<FileSize.FileSizeKinds, String> fileSizePathMap = OpenFileNumber.getFileSizePath();
-        System.out.println(fileSizePathMap);
         EnumMap<FileSizeKinds, Double> fileSize = new EnumMap<> (FileSizeKinds.class);
         BufferedReader in ;
         Process pro = null;
