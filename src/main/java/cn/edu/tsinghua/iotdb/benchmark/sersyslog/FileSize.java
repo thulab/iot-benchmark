@@ -52,8 +52,8 @@ public class FileSize {
             case Constants.DB_INFLUX:
                 FileSizeKinds.DATA.setPath("/data/" + config.DB_NAME);
                 FileSizeKinds.DELTA.setPath("/data/" + config.DB_NAME + "/autogen");
-                FileSizeKinds.WAL.setPath("/var/lib/influxdb/wal" + config.DB_NAME);
-                FileSizeKinds.METADATA.setPath("/var/lib/influxdb/meta");
+                FileSizeKinds.WAL.setPath("/wal/" + config.DB_NAME);
+                FileSizeKinds.METADATA.setPath("/meta");
                 break;
             case Constants.DB_CTS:
             case Constants.DB_KAIROS:
