@@ -185,7 +185,7 @@ public class OpenFileNumber {
         return list;
     }
 
-    public static Map<FileSize.FileSizeKinds, String> getFileSizePath() {
+    static Map<FileSize.FileSizeKinds, String> getFileSizePath() {
         if(fileSizePathCount < FileSize.FileSizeKinds.values().length) {
             Process pro;
             Runtime r = Runtime.getRuntime();
@@ -203,9 +203,11 @@ public class OpenFileNumber {
                             if (fileSizePathMap.get(openFileNumStatistics).equals("none")) {
                                 String path = openFileNumStatistics.getPath();
                                 if (temp[8].contains(path)) {
-                                    String tempPath = temp[8].substring(0, temp[8].indexOf(path) + path.length());
-                                    fileSizePathMap.put(openFileNumStatistics, tempPath);
-                                    fileSizePathCount++;
+                                    String rootPath = temp[8].substring(0, temp[8].indexOf(path));
+                                    for(FileSize.FileSizeKinds statistics : FileSize.FileSizeKinds.values()){
+                                        fileSizePathMap.put(openFileNumStatistics, rootPath + statistics.getPath());
+                                        fileSizePathCount++;
+                                    }
                                 }
                             }
                         }
@@ -217,6 +219,7 @@ public class OpenFileNumber {
                 log.error("Cannot get file size path of IoTDB process because of {}", e.getMessage());
             }
         }
+        System.out.println(fileSizePathMap);
         return fileSizePathMap;
     }
 
