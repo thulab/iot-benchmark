@@ -52,6 +52,8 @@ public class FileSize {
                 FileSizeKinds.DELTA.setPath("/data/" + config.DB_NAME + "/autogen");
                 FileSizeKinds.WAL.setPath("/wal/" + config.DB_NAME);
                 FileSizeKinds.METADATA.setPath("/meta");
+                FileSizeKinds.OVERFLOW.setPath("/overflow");
+                FileSizeKinds.INFO.setPath("/info");
                 break;
             case Constants.DB_CTS:
             case Constants.DB_KAIROS:

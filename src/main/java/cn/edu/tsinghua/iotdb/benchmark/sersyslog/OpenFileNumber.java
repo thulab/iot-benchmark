@@ -198,6 +198,7 @@ public class OpenFileNumber {
 
                 while ((line = in.readLine()) != null) {
                     String[] temp = line.split("\\s+");
+                    boolean flag = false;
                     if (line.contains("" + pid) && temp.length > 8) {
                         for (FileSize.FileSizeKinds openFileNumStatistics : FileSize.FileSizeKinds.values()) {
                             if (fileSizePathMap.get(openFileNumStatistics).equals("none")) {
@@ -210,11 +211,16 @@ public class OpenFileNumber {
                                         log.info(rootPath);
                                         log.info(rootPath + statistics.getPath());
                                         fileSizePathCount++;
+                                        log.info(fileSizePathCount + "");
                                     }
-                                    break;
                                 }
+                                flag = true;
+                                break;
                             }
                         }
+                    }
+                    if (flag){
+                        break;
                     }
                 }
                 in.close();
