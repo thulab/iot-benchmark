@@ -206,9 +206,12 @@ public class OpenFileNumber {
                                     String rootPath = temp[8].substring(0, temp[8].indexOf(path));
                                     for(FileSize.FileSizeKinds statistics : FileSize.FileSizeKinds.values()){
                                         fileSizePathMap.put(openFileNumStatistics, rootPath + statistics.getPath());
-                                        log.info(statistics.getPath());
+                                        log.info(statistics.toString());
+                                        log.info(rootPath);
+                                        log.info(rootPath + statistics.getPath());
                                         fileSizePathCount++;
                                     }
+                                    break;
                                 }
                             }
                         }
