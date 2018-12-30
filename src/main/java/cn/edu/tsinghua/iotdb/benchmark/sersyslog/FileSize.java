@@ -7,9 +7,7 @@ import org.slf4j.LoggerFactory;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 
 import java.io.*;
-import java.sql.SQLException;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 public class FileSize {
@@ -66,12 +64,13 @@ public class FileSize {
         }
     }
 
-    public static final FileSize getInstance(){
+    public static FileSize getInstance(){
         return FileSizeHolder.INSTANCE;
     }
 
     public Map<FileSizeKinds, Double> getFileSize() {
         Map<FileSize.FileSizeKinds, String> fileSizePathMap = OpenFileNumber.getFileSizePath();
+        System.out.println(fileSizePathMap);
         EnumMap<FileSizeKinds, Double> fileSize = new EnumMap<> (FileSizeKinds.class);
         BufferedReader in ;
         Process pro = null;
