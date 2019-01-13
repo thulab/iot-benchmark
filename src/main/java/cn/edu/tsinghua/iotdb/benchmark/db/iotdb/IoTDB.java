@@ -13,7 +13,6 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -49,6 +48,7 @@ public class IoTDB implements IDatebase {
         probTool = new ProbTool();
         connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
                 Constants.PASSWD);
+
         mySql.initMysql(labID);
     }
 

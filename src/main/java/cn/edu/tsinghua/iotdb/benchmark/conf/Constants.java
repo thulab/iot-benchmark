@@ -8,7 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 public class Constants {
     public static final String START_TIME = "2018-8-30T00:00:00+08:00";
     public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(START_TIME);
-    public static final String URL = "jdbc:tsfile://%s:%s/";
+    public static final String URL = "jdbc:iotdb://%s:%s/";
     public static final String USER = "root";
     public static final String PASSWD = "root";
     public static final String ROOT_SERIES_NAME = "root.perform";
