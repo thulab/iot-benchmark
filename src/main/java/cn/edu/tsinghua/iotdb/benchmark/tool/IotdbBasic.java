@@ -16,7 +16,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
-import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 
 public class IotdbBasic {
 	private Config config;
@@ -27,8 +26,8 @@ public class IotdbBasic {
 	private static final String createTimeseriesSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	
-	public IotdbBasic() throws ClassNotFoundException, SQLException {
-		Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
+	public IotdbBasic() throws ClassNotFoundException {
+		Class.forName("org.apache.iotdb.jdbc.TsfileDriver");
 		config = ConfigDescriptor.getInstance().getConfig();	
 	}
 	

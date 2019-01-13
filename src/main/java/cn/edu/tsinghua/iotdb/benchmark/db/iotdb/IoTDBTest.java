@@ -6,7 +6,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ public class IoTDBTest {
     private final double unitTransfer = 1000000000.0;
 
     public IoTDBTest() throws ClassNotFoundException, SQLException {
-        Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
+        Class.forName("org.apache.iotdb.jdbc.TsfileDriver");
         config = ConfigDescriptor.getInstance().getConfig();
         connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
                 Constants.PASSWD);

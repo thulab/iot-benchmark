@@ -48,7 +48,7 @@ public class ImportDataFromCSV {
 		config = ConfigDescriptor.getInstance().getConfig();
 		try {
 			iotdb = new IotdbBasic();
-		} catch (ClassNotFoundException | SQLException e) {
+		} catch (ClassNotFoundException e) {
 			LOGGER.error(e.getMessage());
 			// TODO Auto-generated catch block
 			e.printStackTrace();

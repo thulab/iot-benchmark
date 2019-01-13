@@ -33,7 +33,7 @@ public class MetaDateBuilder {
 		colInfo = new HashMap<String, Integer>();
 		try {
 			iotdb = new IotdbBasic();
-		} catch (ClassNotFoundException | SQLException e) {
+		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			LOGGER.error(e.getMessage());
 			e.printStackTrace();
