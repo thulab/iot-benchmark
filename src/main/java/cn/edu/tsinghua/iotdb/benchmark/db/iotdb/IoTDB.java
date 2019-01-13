@@ -37,7 +37,7 @@ public class IoTDB implements IDatebase {
     private final double unitTransfer = 1000000000.0;
 
     public IoTDB(long labID) throws ClassNotFoundException, SQLException {
-        Class.forName("org.apache.iotdb.jdbc.TsfileDriver");
+        Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         config = ConfigDescriptor.getInstance().getConfig();
         points = new ArrayList<>();
         mp = new HashMap<>();

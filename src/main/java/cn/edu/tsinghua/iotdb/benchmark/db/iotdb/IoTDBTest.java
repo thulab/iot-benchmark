@@ -34,7 +34,7 @@ public class IoTDBTest {
     private final double unitTransfer = 1000000000.0;
 
     public IoTDBTest() throws ClassNotFoundException, SQLException {
-        Class.forName("org.apache.iotdb.jdbc.TsfileDriver");
+        Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         config = ConfigDescriptor.getInstance().getConfig();
         connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
                 Constants.PASSWD);

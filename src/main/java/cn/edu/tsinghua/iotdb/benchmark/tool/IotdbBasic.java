@@ -27,7 +27,7 @@ public class IotdbBasic {
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	
 	public IotdbBasic() throws ClassNotFoundException {
-		Class.forName("org.apache.iotdb.jdbc.TsfileDriver");
+		Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
 		config = ConfigDescriptor.getInstance().getConfig();	
 	}
 	
