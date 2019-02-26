@@ -1,7 +1,7 @@
 #### How to use rep-compare-branch.sh to compare different branch?
 Example
 ```
-./ciscripts/rep-compare-branch.sh fit/ingestion-overflow50-auto-test iotdbconf/fit false master ~/.m2/repository/cn
+./ciscripts/rep-compare-branch.sh fit/ingestion-overflow50-auto-test iotdbconf/fit false master ~/.m2/repository/org/apache/iotdb
 ```
 
 1. The first parameter is to define the workload config file, e.g. ```fit/ingestion-overflow50-auto-test```
