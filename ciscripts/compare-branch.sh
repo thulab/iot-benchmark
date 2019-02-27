@@ -49,6 +49,7 @@ else
     cd $BENCHMARK_HOME/iotdb-$BRANCH/incubator-iotdb
     git checkout $BRANCH
     mvn clean install -Dmaven.test.skip=true
+    echo "install incubator-iotdb locally finished"
 fi
 cd $BENCHMARK_HOME
 mvn clean package -Dmaven.test.skip=true
@@ -81,7 +82,7 @@ if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
         ssh -p $SSH_PORT $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/incubator-iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
         ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./*;git clone https://github.com/apache/incubator-iotdb.git;cd ./incubator-iotdb;mvn clean package -Dmaven.test.skip=true"
         ssh -p $SSH_PORT $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/incubator-iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
-        echo 'wait a few seconds for lauching IoTDB...'
+        echo 'wait a few seconds for launching IoTDB...'
         sleep 20
     fi
     echo '------Client Test Begin Time------'
@@ -109,6 +110,7 @@ else
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
         echo "initial database in server..."
         if [ $IS_TEST_BASELINE = "true" ]; then
+            echo "testing baseline IoTDB version: v0.7.0"
             ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf ./baseline_iotdb;mkdir ./baseline_iotdb;cd ./baseline_iotdb;git clone https://github.com/apache/incubator-iotdb.git;cd ./incubator-iotdb;git checkout v0.7.0;mvn clean package -Dmaven.test.skip=true"
             ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/baseline_iotdb/incubator-iotdb/iotdb/bin/stop-server.sh;sleep 5"
             #start server system information recording
@@ -119,7 +121,7 @@ else
             scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/baseline_iotdb/incubator-iotdb/iotdb/conf
             ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/baseline_iotdb/incubator-iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
         else
-
+            echo "testing IoTDB branch: $BRANCH"
             ssh $SERVER_HOST "rm -rf $LOG_STOP_FLAG_PATH/iotdb-$BRANCH;mkdir $LOG_STOP_FLAG_PATH/iotdb-$BRANCH;cd $LOG_STOP_FLAG_PATH/iotdb-$BRANCH;git clone https://github.com/apache/incubator-iotdb.git;cd ./incubator-iotdb;git checkout $BRANCH;mvn clean package -Dmaven.test.skip=true"
             ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb/iotdb/iotdb/bin/stop-server.sh;sleep 5"
             #start server system information recording
