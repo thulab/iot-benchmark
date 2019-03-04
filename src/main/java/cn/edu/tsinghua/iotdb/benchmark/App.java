@@ -563,7 +563,9 @@ public class App {
             int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
             int p1 = (int) (allLatencies.get((int) (totalOps * 0.01)) / unitTransfer);
             int p5 = (int) (allLatencies.get((int) (totalOps * 0.05)) / unitTransfer);
+            int p25 = (int) (allLatencies.get((int) (totalOps * 0.25)) / unitTransfer);
             int p50 = (int) (allLatencies.get((int) (totalOps * 0.5)) / unitTransfer);
+            int p75 = (int) (allLatencies.get((int) (totalOps * 0.75)) / unitTransfer);
             int p90 = (int) (allLatencies.get((int) (totalOps * 0.9)) / unitTransfer);
             int p95 = (int) (allLatencies.get((int) (totalOps * 0.95)) / unitTransfer);
             int p99 = (int) (allLatencies.get((int) (totalOps * 0.99)) / unitTransfer);
@@ -597,8 +599,8 @@ public class App {
             LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
                     totalTime / 1000000000.0f, config.CLIENT_NUMBER,
                     1000000000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
-            LOGGER.info("Total Operations {}; Latency(ms): Avg {}, MiddleAvg {}, Min {}, Max {}, p1 {}, p5 {}, p50 {}, p90 {}, p95 {}, p99 {}, p99.9 {}, p99.99 {}",
-                    totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p50, p90, p95, p99, p999, p9999);
+            LOGGER.info("Total Operations {}; Latency(ms): Avg {}, MiddleAvg {}, Min {}, Max {}, p1 {}, p5 {}, p25 {}, p50 {}, p75 {}, p90 {}, p95 {}, p99 {}, p99.9 {}, p99.99 {}",
+                    totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p25, p50, p75, p90, p95, p99, p999, p9999);
             LOGGER.info("Total error num is {}, create schema cost {} second. Total elapse time: {} second", totalErrorPoint, createSchemaTime, insertElapseTime);
 
             mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
