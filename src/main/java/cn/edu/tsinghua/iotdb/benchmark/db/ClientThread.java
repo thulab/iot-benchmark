@@ -109,9 +109,10 @@ public class ClientThread implements Runnable{
 					before.add(beforeIndex);
 				}
 			}
-			for (int m = 0; m < clientDevicesNum; m++) {
-				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
-			}
+//			for (int m = 0; m < clientDevicesNum; m++) {
+//				deviceCodes.add(config.DEVICE_CODES.get(index * clientDevicesNum + m));
+//			}
+			deviceCodes.add("d_0");
 			while(i < config.LOOP) {
 				long oldTotalTime = totalTime.get();
 				if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH)) {
