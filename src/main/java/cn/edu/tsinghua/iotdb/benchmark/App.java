@@ -740,7 +740,9 @@ public class App {
         int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
         int p1 = (int) (allLatencies.get((int) (totalOps * 0.01)) / unitTransfer);
         int p5 = (int) (allLatencies.get((int) (totalOps * 0.05)) / unitTransfer);
+        int p25 = (int) (allLatencies.get((int) (totalOps * 0.25)) / unitTransfer);
         int p50 = (int) (allLatencies.get((int) (totalOps * 0.5)) / unitTransfer);
+        int p75 = (int) (allLatencies.get((int) (totalOps * 0.75)) / unitTransfer);
         int p90 = (int) (allLatencies.get((int) (totalOps * 0.9)) / unitTransfer);
         int p95 = (int) (allLatencies.get((int) (totalOps * 0.95)) / unitTransfer);
         int p99 = (int) (allLatencies.get((int) (totalOps * 0.99)) / unitTransfer);
@@ -752,11 +754,12 @@ public class App {
         }
         float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
-        LOGGER.info("{}: execute ,{}, query in ,{}, seconds, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
-                getQueryName(config), config.CLIENT_NUMBER * config.LOOP, (totalTime / 1000.0f) / 1000000.0, totalResultPoint,
+        LOGGER.info("{}: execute ,{}, query in ,{}, seconds, QPS ,{}, get ,{}, result points with ,{}, workers (mean rate ,{}, points/s)",
+                getQueryName(config), config.CLIENT_NUMBER * config.LOOP, (totalTime / 1000.0f) / 1000000.0,
+                config.CLIENT_NUMBER * config.LOOP/((totalTime / 1000.0f) / 1000000.0), totalResultPoint,
                 config.CLIENT_NUMBER, (1000.0f * totalResultPoint) / ((float) totalTime / 1000000.0f));
-        LOGGER.info("Total Operations {}; Latency(ms): Avg {}, MiddleAvg {}, Min {}, Max {}, p1 {}, p5 {}, p50 {}, p90 {}, p95 {}, p99 {}, p99.9 {}, p99.99 {}",
-                totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p50, p90, p95, p99, p999, p9999);
+        LOGGER.info("Total Operations {}; Latency(ms): Avg {}, MiddleAvg {}, Min {}, Max {}, p1 {}, p5 {}, p25 {}, p50 {}, p75 {}, p90 {}, p95 {}, p99 {}, p99.9 {}, p99.99 {}",
+                totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p25, p50, p75, p90, p95, p99, p999, p9999);
 
         long totalErrorPoint = getSumOfList(totalQueryErrorNums);
         LOGGER.info("total error num is {}", totalErrorPoint);
