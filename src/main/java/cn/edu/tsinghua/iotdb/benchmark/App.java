@@ -577,7 +577,7 @@ public class App {
             }
             float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
-            long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+            long totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
             if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
                 totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
             }
