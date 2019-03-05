@@ -137,22 +137,22 @@ public class ClientThread implements Runnable{
 					}
 				} else if (config.OVERFLOW_MODE == 1) {
 					try {
-						for (int m = 0; m < clientDevicesNum; m++) {
-							maxIndex = database.insertOverflowOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m),
+//						for (int m = 0; m < clientDevicesNum; m++) {
+							maxIndex = database.insertOverflowOneBatch("d_0",
 									i,
 									totalTime,
 									errorCount,
 									before,
 									maxIndex,
 									random, latencies);
-						}
+//						}
 					} catch (SQLException e) {
 						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
 				} else if (config.OVERFLOW_MODE == 2) {
 					try {
 						for (int m = 0; m < clientDevicesNum; m++) {
-							currMaxIndexOfDist = database.insertOverflowOneBatchDist(config.DEVICE_CODES.get(index * clientDevicesNum + m),
+							currMaxIndexOfDist = database.insertOverflowOneBatchDist("d_0",
 									i,
 									totalTime,
 									errorCount,
