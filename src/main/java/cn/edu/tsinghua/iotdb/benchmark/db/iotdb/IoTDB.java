@@ -881,6 +881,9 @@ public class IoTDB implements IDatebase {
         if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
             currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
+        int length = Thread.currentThread().getName().split("-").length;
+        long id = Long.parseLong(Thread.currentThread().getName().split("-")[length - 1]);
+        currentTime += id;
         builder.append(currentTime);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
