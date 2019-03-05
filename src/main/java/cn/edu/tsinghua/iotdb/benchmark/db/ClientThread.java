@@ -129,9 +129,9 @@ public class ClientThread implements Runnable{
 					}
 				} else if (!config.IS_OVERFLOW) {
 					try {
-						for (int m = 0; m < clientDevicesNum; m++) {
-							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount, latencies);
-						}
+//						for (int m = 0; m < clientDevicesNum; m++) {
+							database.insertOneBatch("d_0", i, totalTime, errorCount, latencies);
+//						}
 					} catch (SQLException e) {
 						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
 					}
