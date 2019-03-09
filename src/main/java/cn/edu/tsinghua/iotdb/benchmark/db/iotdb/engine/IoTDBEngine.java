@@ -178,9 +178,6 @@ public class IoTDBEngine implements IDatebase {
       FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
       values.add(Function.getValueByFuntionidAndParam(param, currentTime).toString());
     }
-    LOGGER.info("插入设备路径为：" + device);
-    LOGGER.info("插入传感器为：" + sensors);
-    LOGGER.info("插入values为：" + values);
     try {
       engine.write(device, currentTime, sensors, values);
     } catch (IOException e) {
