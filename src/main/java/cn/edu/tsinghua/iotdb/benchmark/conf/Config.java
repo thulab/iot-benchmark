@@ -28,7 +28,7 @@ public class Config {
 	public String port="6667";
 
 	/** 设备数量 */
-	public int DEVICE_NUMBER = 2;
+	public int DEVICE_NUMBER = 1;
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
 	/** 每个设备的传感器数量 */
@@ -83,7 +83,7 @@ public class Config {
 	/**时序数据取值范围*/
 	public String TIMESERIES_VALUE_SCOPE ;
 	/**样例数据生成路径及文件名*/
-	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
+	public String GEN_DATA_FILE_PATH = "/Users/liukun/Documents/iotdb-benchmark/testdb";
 	/**上一次结果的日志路径*/
 	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
 	/**存放SQL语句文件的完整路径*/
@@ -101,7 +101,7 @@ public class Config {
 
 	public int STORE_MODE = 1;
 
-	public long LOOP = 10000;
+	public long LOOP = 10;
 
 	/** 数据采集丢失率 */
 	public double POINT_LOSE_RATIO = 0.01;
@@ -191,10 +191,10 @@ public class Config {
 	public String DB_NAME = "test";
 	
 	// 使用的数据库
-	public String DB_SWITCH = "IoTDB";
+	public String DB_SWITCH = "IoTEngine";
 
 	//benchmark 运行模式
-	public String BENCHMARK_WORK_MODE="";
+	public String BENCHMARK_WORK_MODE="insertTestWithDefaultPath";
 	//the file path of import data
 	public String IMPORT_DATA_FILE_PATH = "";
 	//import csv数据文件时的BATCH

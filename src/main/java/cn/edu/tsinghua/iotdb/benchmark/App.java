@@ -40,10 +40,10 @@ public class App {
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
-        CommandCli cli = new CommandCli();
-        if (!cli.init(args)) {
-            return;
-        }
+//        CommandCli cli = new CommandCli();
+//        if (!cli.init(args)) {
+//            return;
+//        }
         Config config = ConfigDescriptor.getInstance().getConfig();
         switch (config.BENCHMARK_WORK_MODE.trim()) {
             case Constants.MODE_SERVER_MODE:
