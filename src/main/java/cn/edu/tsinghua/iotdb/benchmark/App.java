@@ -699,8 +699,7 @@ public class App {
      * @throws ClassNotFoundException
      */
     private static void queryTest(Config config) throws SQLException, ClassNotFoundException {
-        IDBFactory idbFactory = null;
-        idbFactory = getDBFactory(config);
+        IDBFactory idbFactory = getDBFactory(config);
         ArrayList<ArrayList> latenciesOfClients = new ArrayList<>();
         MySqlLog mySql = new MySqlLog();
         mySql.initMysql(System.currentTimeMillis());
@@ -716,9 +715,9 @@ public class App {
             executorService.submit(new QueryClientThread(idbFactory.buildDB(mySql.getLabID()), i, downLatch, totalTimes,
                     totalPoints, totalQueryErrorNums, latenciesOfClients));
         }
-        executorService.shutdown();
         try {
             downLatch.await();
+            executorService.shutdown();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
