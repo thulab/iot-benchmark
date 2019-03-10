@@ -122,10 +122,10 @@ public class IoTDBEngine implements IDatebase {
       ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
     long errorNum = 0;
     ITSEngine engine = db.getEngine();
-    long startTime = System.nanoTime();
+    long costTime = 0;
     if (!config.IS_OVERFLOW) {
       for (int i = 0; i < config.CACHE_NUM; i++) {
-        errorNum += insertOneRow(engine, batchIndex, i, device);
+        costTime += insertOneRow(engine, batchIndex, i, device);
       }
     } else {
       //随机重排，无法准确控制overflow比例
@@ -140,15 +140,12 @@ public class IoTDBEngine implements IDatebase {
       shuffleSequence[0] = tmp;
 
       for (int i = 0; i < shuffleSize; i++) {
-        errorNum += insertOneRow(engine, batchIndex, i, device);
+        costTime += insertOneRow(engine, batchIndex, i, device);
       }
       for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
-        errorNum += insertOneRow(engine, batchIndex, i, device);
+        costTime += insertOneRow(engine, batchIndex, i, device);
       }
     }
-
-    long endTime = System.nanoTime();
-    long costTime = endTime - startTime;
     latencies.add(costTime);
     if (errorNum > 0) {
       LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
@@ -161,12 +158,12 @@ public class IoTDBEngine implements IDatebase {
     }
     errorCount.set(errorCount.get() + errorNum);
 
-    mySql.saveInsertProcess(batchIndex, (endTime - startTime) / unitTransfer,
+    mySql.saveInsertProcess(batchIndex, costTime / unitTransfer,
         totalTime.get() / unitTransfer, errorNum,
         config.REMARK);
   }
 
-  public int insertOneRow(ITSEngine engine, int batch, int index, String device) {
+  public long insertOneRow(ITSEngine engine, int batch, int index, String device) {
     String path = getGroupDevicePath(device);
     device = Constants.ROOT_SERIES_NAME + "." + path;
     long currentTime =
@@ -179,12 +176,14 @@ public class IoTDBEngine implements IDatebase {
       values.add(Function.getValueByFuntionidAndParam(param, currentTime).toString());
     }
     try {
+      long startTime = System.nanoTime();
       engine.write(device, currentTime, sensors, values);
+      long endTime = System.nanoTime();
+      return endTime - startTime;
     } catch (IOException e) {
       e.printStackTrace();
       return 1;
     }
-    return 0;
   }
 
   private String getGroupDevicePath(String device) {
