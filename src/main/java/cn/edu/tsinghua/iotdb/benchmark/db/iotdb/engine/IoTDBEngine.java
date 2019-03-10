@@ -227,6 +227,7 @@ public class IoTDBEngine implements IDatebase {
     List<String> sensorList = new ArrayList<String>();
     String timesries = null;
     QueryDataSet queryDataSet = null;
+    long endTime = Long.MAX_VALUE;
     switch (config.QUERY_CHOICE) {
       case 4:// 范围查询
         List<String> list = new ArrayList<String>();
@@ -237,7 +238,8 @@ public class IoTDBEngine implements IDatebase {
         timesries = getFullGroupDevicePathByID(devices.get(0)).toString();
         timesries = timesries + "." + list.get(0);
         try {
-          queryDataSet = engine.query(timesries, startTime, startTime + config.QUERY_INTERVAL);
+          startTime = 0;
+          queryDataSet = engine.query(timesries, startTime, endTime);
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -248,8 +250,7 @@ public class IoTDBEngine implements IDatebase {
     }
     int line = 0;
     LOGGER.info("{} execute {} loop,提交执行的sql：{}, startTime: {}, endTime: {}.",
-        Thread.currentThread().getName(), index, timesries, startTime,
-        startTime + config.QUERY_INTERVAL);
+        Thread.currentThread().getName(), index, timesries, startTime, endTime);
     try {
       while (queryDataSet.hasNext()) {
         queryDataSet.next();
