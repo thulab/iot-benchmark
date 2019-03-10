@@ -50,6 +50,7 @@ public class App {
                 serverMode(config);
                 break;
             case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
+                System.out.println("insert");
                 insertTest(config);
                 break;
             case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
@@ -70,7 +71,7 @@ public class App {
             default:
                 throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
         }
-
+        System.out.println("exist");
     }// main
 
     /**
@@ -441,8 +442,7 @@ public class App {
         mysql.saveTestModel("Double", config.ENCODING);
         mysql.savaTestConfig();
 
-        IDBFactory idbFactory = null;
-        idbFactory = getDBFactory(config);
+        IDBFactory idbFactory = getDBFactory(config);
 
         IDatebase datebase;
         long createSchemaStartTime = 0;
@@ -477,6 +477,7 @@ public class App {
                 executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i, storage, downLatch,
                         totalTimes, totalInsertErrorNums, latenciesOfClients));
             }
+            System.out.println("bug...........");
             executorService.shutdown();
             // wait for all threads complete
             try {
@@ -528,6 +529,7 @@ public class App {
                     totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p50, p90, p95, p99, p999, p9999);
 
         } else {
+            // READ_FROM_FILE=FALSE
             CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
             ArrayList<Long> totalTimes = new ArrayList<>();
             ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
@@ -535,9 +537,10 @@ public class App {
                 executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i, downLatch, totalTimes,
                         totalInsertErrorNums, latenciesOfClients));
             }
-            executorService.shutdown();
+
             try {
                 downLatch.await();
+                executorService.shutdown();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -622,9 +625,8 @@ public class App {
             mysql.saveResult("p999", "" + p999);
             mysql.saveResult("p9999", "" + p9999);
             mysql.closeMysql();
-
-        } // else--
-
+        }
+        System.out.println("bug...........fdsfdsfd");
     }
 
     private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase)

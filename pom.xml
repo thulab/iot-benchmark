@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>org.apache.iotdb</groupId>
 			<artifactId>iotdb</artifactId>
-			<version>0.8.0-SNAPSHOT</version>
+			<version>0.9.0-SNAPSHOT</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/joda-time/joda-time -->

@@ -205,6 +205,7 @@ public class IoTDBEngine implements IDatebase {
   @Override
   public void close() throws SQLException {
     // this.db.closeInstance();
+    System.out.println("engine close the db");
   }
 
   @Override
