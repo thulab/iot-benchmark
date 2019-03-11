@@ -708,6 +708,7 @@ public class App {
         ArrayList<Long> totalQueryErrorNums = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            System.out.println("query......");
             executorService.submit(new QueryClientThread(idbFactory.buildDB(mySql.getLabID()), i, downLatch, totalTimes,
                     totalPoints, totalQueryErrorNums, latenciesOfClients));
         }

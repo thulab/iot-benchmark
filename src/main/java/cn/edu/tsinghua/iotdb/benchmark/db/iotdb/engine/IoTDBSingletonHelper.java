@@ -31,6 +31,7 @@ public class IoTDBSingletonHelper {
     // 可以负责多线程并发open
     if (helper == null) {
       isClosed = false;
+      System.out.println("Open and create db");
       File file = new File(config.GEN_DATA_FILE_PATH);
       IoTDBOptions options = new IoTDBOptions();
       ITSEngine engine = new IoTDBEngine(file, options);

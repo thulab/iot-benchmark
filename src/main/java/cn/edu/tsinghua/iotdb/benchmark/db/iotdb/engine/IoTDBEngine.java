@@ -49,6 +49,7 @@ public class IoTDBEngine implements IDatebase {
     sensorRandom = new Random(1 + config.QUERY_SEED);
     timestampRandom = new Random(2 + config.QUERY_SEED);
     probTool = new ProbTool();
+    System.out.println("new IoTDBEngine");
     db = IoTDBSingletonHelper.getInstance();
     mySql.initMysql(labID);
   }
