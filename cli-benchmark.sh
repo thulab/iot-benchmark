@@ -32,7 +32,7 @@ BENCHMARK_WORK_MODE=$(grep "BENCHMARK_WORK_MODE" $BENCHMARK_HOME/conf/config.pro
 DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 
 echo Testing ${DB#*=} ...
-
+rm -rf lib
 mvn clean package -Dmaven.test.skip=true
 
 #prepare for client system info recording benchmark
