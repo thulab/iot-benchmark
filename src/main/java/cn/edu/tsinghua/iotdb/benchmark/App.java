@@ -50,7 +50,6 @@ public class App {
                 serverMode(config);
                 break;
             case Constants.MODE_INSERT_TEST_WITH_DEFAULT_PATH:
-                System.out.println("insert");
                 insertTest(config);
                 break;
             case Constants.MODE_INSERT_TEST_WITH_USERDEFINED_PATH:
@@ -71,8 +70,7 @@ public class App {
             default:
                 throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
         }
-        System.out.println("exist");
-    }// main
+    }
 
     /**
      * 将数据从CSV文件导入IOTDB
@@ -477,7 +475,6 @@ public class App {
                 executorService.submit(new ClientThread(idbFactory.buildDB(mysql.getLabID()), i, storage, downLatch,
                         totalTimes, totalInsertErrorNums, latenciesOfClients));
             }
-            System.out.println("bug...........");
             executorService.shutdown();
             // wait for all threads complete
             try {
@@ -626,7 +623,6 @@ public class App {
             mysql.saveResult("p9999", "" + p9999);
             mysql.closeMysql();
         }
-        System.out.println("bug...........fdsfdsfd");
     }
 
     private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase)
