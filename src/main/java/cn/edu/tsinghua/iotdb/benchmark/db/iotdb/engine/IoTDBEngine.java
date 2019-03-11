@@ -310,6 +310,7 @@ public class IoTDBEngine implements IDatebase {
   public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime,
       ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex,
       Random random, ArrayList<Long> latencies) throws SQLException {
+    System.out.println("not support");
     throw new RuntimeException("not support");
   }
 
@@ -318,6 +319,7 @@ public class IoTDBEngine implements IDatebase {
       Long> totalTime,
       ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random,
       ArrayList<Long> latencies) throws SQLException {
+    System.out.println("not support");
     throw new RuntimeException("not support");
   }
 }
