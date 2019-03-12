@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
 import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
@@ -164,7 +165,7 @@ public class IoTDBEngine implements IDatebase {
         config.REMARK);
   }
 
-  public long insertOneRow(ITSEngine engine, int batch, int index, String device) {
+  private long insertOneRow(ITSEngine engine, int batch, int index, String device) {
     String path = getGroupDevicePath(device);
     device = Constants.ROOT_SERIES_NAME + "." + path;
     long currentTime =
@@ -316,12 +317,69 @@ public class IoTDBEngine implements IDatebase {
     throw new RuntimeException("not support");
   }
 
+  private long insertOverflowRow(ITSEngine engine, String device, long timestampIndex)
+      throws IOException {
+    String path = getGroupDevicePath(device);
+    String fulldevice = Constants.ROOT_SERIES_NAME + "." + path;
+    long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
+    if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+      currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+    }
+    int length = Thread.currentThread().getName().split("-").length;
+    long id = Long.parseLong(Thread.currentThread().getName().split("-")[length - 1]);
+    currentTime += id;
+    List<String> sensor = new ArrayList<>();
+    List<String> values = new ArrayList<>();
+    for (String s : config.SENSOR_CODES) {
+      FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+      values.add(Function.getValueByFuntionidAndParam(param, currentTime).toString());
+    }
+    long statTime = System.nanoTime();
+    engine.write(fulldevice, currentTime, sensor, values);
+    return System.nanoTime() - statTime;
+  }
+
   @Override
   public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<
       Long> totalTime,
       ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random,
       ArrayList<Long> latencies) throws SQLException {
-    System.out.println("not support");
-    throw new RuntimeException("not support");
+    long errorNum = 0;
+    int timestampIndex;
+    PossionDistribution possionDistribution = new PossionDistribution(random);
+    int nextDelta;
+    long costTime = 0;
+    for (int i = 0; i < config.CACHE_NUM; i++) {
+      if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
+        nextDelta = possionDistribution.getNextPossionDelta();
+        timestampIndex = maxTimestampIndex - nextDelta;
+      } else {
+        maxTimestampIndex++;
+        timestampIndex = maxTimestampIndex;
+      }
+      try {
+        costTime += insertOverflowRow(db.getEngine(), device, timestampIndex);
+      } catch (IOException e) {
+        e.printStackTrace();
+        throw new SQLException(e);
+      }
+    }
+    latencies.add(costTime);
+    if (errorNum > 0) {
+      LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+    } else {
+      LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+          Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+          (totalTime.get() + costTime) / unitTransfer,
+          (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+      totalTime.set(totalTime.get() + costTime);
+    }
+    errorCount.set(errorCount.get() + errorNum);
+
+    mySql.saveInsertProcess(loopIndex, costTime / unitTransfer,
+        totalTime.get() / unitTransfer, errorNum,
+        config.REMARK);
+
+    return maxTimestampIndex;
   }
 }
