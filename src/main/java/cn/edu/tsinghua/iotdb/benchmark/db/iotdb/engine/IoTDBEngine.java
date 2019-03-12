@@ -328,14 +328,14 @@ public class IoTDBEngine implements IDatebase {
     int length = Thread.currentThread().getName().split("-").length;
     long id = Long.parseLong(Thread.currentThread().getName().split("-")[length - 1]);
     currentTime += id;
-    List<String> sensor = new ArrayList<>();
+    List<String> sensors = config.SENSOR_CODES;
     List<String> values = new ArrayList<>();
-    for (String s : config.SENSOR_CODES) {
+    for (String sensor : sensors) {
       FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
       values.add(Function.getValueByFuntionidAndParam(param, currentTime).toString());
     }
     long statTime = System.nanoTime();
-    engine.write(fulldevice, currentTime, sensor, values);
+    engine.write(fulldevice, currentTime, sensors, values);
     return System.nanoTime() - statTime;
   }
 
@@ -344,42 +344,47 @@ public class IoTDBEngine implements IDatebase {
       Long> totalTime,
       ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random,
       ArrayList<Long> latencies) throws SQLException {
-    long errorNum = 0;
-    int timestampIndex;
-    PossionDistribution possionDistribution = new PossionDistribution(random);
-    int nextDelta;
-    long costTime = 0;
-    for (int i = 0; i < config.CACHE_NUM; i++) {
-      if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
-        nextDelta = possionDistribution.getNextPossionDelta();
-        timestampIndex = maxTimestampIndex - nextDelta;
+    System.out.println("overflow batch dist");
+    try {
+      long errorNum = 0;
+      int timestampIndex;
+      PossionDistribution possionDistribution = new PossionDistribution(random);
+      int nextDelta;
+      long costTime = 0;
+      for (int i = 0; i < config.CACHE_NUM; i++) {
+        if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
+          nextDelta = possionDistribution.getNextPossionDelta();
+          timestampIndex = maxTimestampIndex - nextDelta;
+        } else {
+          maxTimestampIndex++;
+          timestampIndex = maxTimestampIndex;
+        }
+        try {
+          costTime += insertOverflowRow(db.getEngine(), device, timestampIndex);
+        } catch (IOException e) {
+          e.printStackTrace();
+          throw new SQLException(e);
+        }
+      }
+      latencies.add(costTime);
+      if (errorNum > 0) {
+        LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
       } else {
-        maxTimestampIndex++;
-        timestampIndex = maxTimestampIndex;
+        LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+            Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+            (totalTime.get() + costTime) / unitTransfer,
+            (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+        totalTime.set(totalTime.get() + costTime);
       }
-      try {
-        costTime += insertOverflowRow(db.getEngine(), device, timestampIndex);
-      } catch (IOException e) {
-        e.printStackTrace();
-        throw new SQLException(e);
-      }
-    }
-    latencies.add(costTime);
-    if (errorNum > 0) {
-      LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-    } else {
-      LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-          Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
-          (totalTime.get() + costTime) / unitTransfer,
-          (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
-      totalTime.set(totalTime.get() + costTime);
-    }
-    errorCount.set(errorCount.get() + errorNum);
+      errorCount.set(errorCount.get() + errorNum);
 
-    mySql.saveInsertProcess(loopIndex, costTime / unitTransfer,
-        totalTime.get() / unitTransfer, errorNum,
-        config.REMARK);
+      mySql.saveInsertProcess(loopIndex, costTime / unitTransfer,
+          totalTime.get() / unitTransfer, errorNum,
+          config.REMARK);
 
+    }catch (Exception e){
+      e.printStackTrace();
+    }
     return maxTimestampIndex;
   }
 }
