@@ -11,6 +11,7 @@ import cn.edu.tsinghua.iotdb.benchmark.db.ctsdb.CTSDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.influxdb.InfluxDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.engine.IoTDBEngineFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.engine.IoTDBSingletonHelper;
 import cn.edu.tsinghua.iotdb.benchmark.db.kairosdb.KairosDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.opentsdb.OpenTSDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.timescaledb.TimescaleDBFactory;
@@ -622,6 +623,8 @@ public class App {
             mysql.saveResult("p999", "" + p999);
             mysql.saveResult("p9999", "" + p9999);
             mysql.closeMysql();
+            System.out.println("close instance");
+            IoTDBSingletonHelper.closeInstance();
         }
     }
 

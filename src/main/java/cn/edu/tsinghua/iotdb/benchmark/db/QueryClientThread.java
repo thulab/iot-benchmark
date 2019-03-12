@@ -54,35 +54,41 @@ public class QueryClientThread implements Runnable {
 
   @Override
   public void run() {
-    int i = 0;
-    long startTimeInterval = config.CACHE_NUM * config.POINT_STEP;
-    List<Integer> clientDevicesIndex = new ArrayList<Integer>();
-    List<Integer> queryDevicesIndex = new ArrayList<Integer>();
-
-    for (int m = 0; m < config.DEVICE_NUMBER; m++) {
-      clientDevicesIndex.add(m);
-    }
-    while (i < config.LOOP) {
-      Collections.shuffle(clientDevicesIndex, deviceRandom);
-      for (int m = 0; m < config.QUERY_DEVICE_NUM; m++) {
-        queryDevicesIndex.add(clientDevicesIndex.get(m));
-      }
-      database.executeOneQuery(queryDevicesIndex,
-          i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount, latencies);
-      i++;
-      queryDevicesIndex.clear();
-    }
-
     try {
-      database.close();
-    } catch (SQLException e) {
+      int i = 0;
+      long startTimeInterval = config.CACHE_NUM * config.POINT_STEP;
+      List<Integer> clientDevicesIndex = new ArrayList<Integer>();
+      List<Integer> queryDevicesIndex = new ArrayList<Integer>();
+
+      for (int m = 0; m < config.DEVICE_NUMBER; m++) {
+        clientDevicesIndex.add(m);
+      }
+      while (i < config.LOOP) {
+        System.out.println(Thread.currentThread().getId());
+        Collections.shuffle(clientDevicesIndex, deviceRandom);
+        for (int m = 0; m < config.QUERY_DEVICE_NUM; m++) {
+          queryDevicesIndex.add(clientDevicesIndex.get(m));
+        }
+        database.executeOneQuery(queryDevicesIndex,
+            i, startTimeInterval * i + Constants.START_TIMESTAMP, this, errorCount, latencies);
+        i++;
+        queryDevicesIndex.clear();
+      }
+
+      try {
+        database.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+      this.totalTimes.add(totalTime);
+      this.totalPoints.add(totalPoint);
+      this.totalQueryErrorNums.add(errorCount.get());
+      this.latenciesOfClients.add(latencies);
+    } catch (Exception e) {
       e.printStackTrace();
+    } finally {
+      this.downLatch.countDown();
     }
-    this.totalTimes.add(totalTime);
-    this.totalPoints.add(totalPoint);
-    this.totalQueryErrorNums.add(errorCount.get());
-    this.latenciesOfClients.add(latencies);
-    this.downLatch.countDown();
   }
 
   public Long getTotalTime() {

@@ -246,6 +246,7 @@ public class IoTDBEngine implements IDatebase {
         }
         break;
       default:
+        System.out.println("not support the query");
         throw new RuntimeException("not support");
 
     }

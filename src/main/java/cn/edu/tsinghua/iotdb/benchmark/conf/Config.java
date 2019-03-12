@@ -160,7 +160,7 @@ public class Config {
 	//iotDB查询测试相关参数
 	public int QUERY_SENSOR_NUM = 1;
 	public int QUERY_DEVICE_NUM = 1;
-	public int QUERY_CHOICE = 1;
+	public int QUERY_CHOICE = 4;
 	public String QUERY_AGGREGATE_FUN = "";
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
