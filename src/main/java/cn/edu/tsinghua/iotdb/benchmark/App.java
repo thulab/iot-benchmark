@@ -45,6 +45,9 @@ public class App {
         }
         Config config = ConfigDescriptor.getInstance().getConfig();
         switch (config.BENCHMARK_WORK_MODE.trim()) {
+            case Constants.MODE_TEST_WITH_DEFAULT_PATH:
+                testWithDefaultPath(config);
+                break;
             case Constants.MODE_SERVER_MODE:
                 serverMode(config);
                 break;
@@ -71,6 +74,13 @@ public class App {
         }
 
     }// main
+
+    /**
+     * 按比例选择workload执行的测试
+     */
+    private static void testWithDefaultPath(Config config) {
+
+    }
 
     /**
      * 将数据从CSV文件导入IOTDB

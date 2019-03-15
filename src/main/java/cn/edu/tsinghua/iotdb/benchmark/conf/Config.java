@@ -44,7 +44,7 @@ public class Config {
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
 	/** 数据压缩方式 */
-	public String COMPRESSOR = "UNCOMPRESSOR";
+	public String COMPRESSOR = "UNCOMPRESSED";
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
 	/**数据库初始化等待时间ms*/
@@ -67,6 +67,10 @@ public class Config {
 	public boolean USE_OPS = false;
 
 	public double CLIENT_MAX_WRT_RATE = 10000000.0;
+
+	public int LIMIT_CLAUSE_MODE = 0;
+
+	public String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
 
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
