@@ -88,7 +88,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
     public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies)
             throws SQLException {
         LinkedList<String> keys = new LinkedList<>();
-        for (int i = 0; i < config.CACHE_NUM; i++) {
+        for (int i = 0; i < config.BATCH_SIZE; i++) {
             String key = UUID.randomUUID().toString();
             dataMap.put(key, createDataModel(batchIndex, i, device));
             keys.add(key);
@@ -144,7 +144,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             long currentTime = Constants.START_TIMESTAMP
-                    + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+                    + config.POINT_STEP * (batchIndex * config.BATCH_SIZE + dataIndex);
             if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
                 currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
             }
@@ -444,7 +444,7 @@ public class OpenTSDB extends TSDB implements IDatebase {
         PossionDistribution possionDistribution = new PossionDistribution(random);
         int nextDelta;
         LinkedList<String> keys = new LinkedList<>();
-        for (int i = 0; i < config.CACHE_NUM; i++) {
+        for (int i = 0; i < config.BATCH_SIZE; i++) {
             if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
                 nextDelta = possionDistribution.getNextPossionDelta();
                 timestampIndex = maxTimestampIndex - nextDelta;

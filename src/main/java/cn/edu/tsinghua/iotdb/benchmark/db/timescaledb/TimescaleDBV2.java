@@ -211,7 +211,8 @@ public class TimescaleDBV2 implements IDatebase {
             builder.append(", ").append(sensor);
         }
         builder.append(") ").append("VALUES (");
-        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.BATCH_SIZE
+            + index);
         if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
             currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
@@ -234,12 +235,12 @@ public class TimescaleDBV2 implements IDatebase {
         try {
             statement = connection.createStatement();
             if (!config.IS_OVERFLOW) {
-                for (int i = 0; i < config.CACHE_NUM; i++) {
+                for (int i = 0; i < config.BATCH_SIZE; i++) {
                     String sql = createSQLStatment(loopIndex, i, device);
                     statement.addBatch(sql);
                 }
             } else {
-//                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+//                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.BATCH_SIZE);
 //                int[] shuffleSequence = new int[shuffleSize];
 //                for (int i = 0; i < shuffleSize; i++) {
 //                    shuffleSequence[i] = i;
@@ -253,7 +254,7 @@ public class TimescaleDBV2 implements IDatebase {
 //                    String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
 //                    statement.addBatch(sql);
 //                }
-//                for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+//                for (int i = shuffleSize; i < config.BATCH_SIZE; i++) {
 //                    String sql = createSQLStatment(loopIndex, i, device);
 //                    statement.addBatch(sql);
 //                }
@@ -272,7 +273,7 @@ public class TimescaleDBV2 implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -527,7 +528,7 @@ public class TimescaleDBV2 implements IDatebase {
         try {
             statement = connection.createStatement();
             String sql;
-            for (int i = 0; i < config.CACHE_NUM; i++) {
+            for (int i = 0; i < config.BATCH_SIZE; i++) {
                 if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
                     nextDelta = possionDistribution.getNextPossionDelta();
                     timestampIndex = maxTimestampIndex - nextDelta;
@@ -551,7 +552,7 @@ public class TimescaleDBV2 implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -572,7 +573,7 @@ public class TimescaleDBV2 implements IDatebase {
             statement.executeBatch();
         } catch (BatchUpdateException e) {
             LOGGER.error("Batch insert failed because: {}", e.getMessage());
-            errorNum = config.CACHE_NUM * config.SENSOR_NUMBER;
+            errorNum = config.BATCH_SIZE * config.SENSOR_NUMBER;
             e.printStackTrace();
         }
         return errorNum;

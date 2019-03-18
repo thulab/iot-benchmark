@@ -19,7 +19,7 @@ public interface IDatabase {
 
   void close();
 
-  void createSchema(Measurement measurement);
+  void registerSchema(Measurement measurement);
 
   void insertOneBatch(Batch batch, Measurement measurement);
 

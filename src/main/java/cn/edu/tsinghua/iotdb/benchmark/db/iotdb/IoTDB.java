@@ -201,7 +201,7 @@ public class IoTDB implements IDatebase {
         long errorNum = 0;
         try {
             statement = connection.createStatement();
-            int timeStep = config.CACHE_NUM / deviceCodes.size();
+            int timeStep = config.BATCH_SIZE / deviceCodes.size();
             if (!config.IS_OVERFLOW) {
                 for (int i = 0; i < timeStep; i++) {
                     for (String device : deviceCodes) {
@@ -231,7 +231,7 @@ public class IoTDB implements IDatebase {
 						statement.addBatch(sql);
 					}
 				}
-				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+				for (int i = shuffleSize; i < config.BATCH_SIZE; i++) {
 					for (String device : deviceCodes) {
 						String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
 						statement.addBatch(sql);
@@ -254,7 +254,7 @@ public class IoTDB implements IDatebase {
                         statement.addBatch(sql);
                     }
                 }
-                for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+                for (int i = shuffleSize; i < config.BATCH_SIZE; i++) {
                     for (String device : deviceCodes) {
                         String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
                         statement.addBatch(sql);
@@ -263,8 +263,8 @@ public class IoTDB implements IDatebase {
 
             }
 
-            // 注意config.CACHE_NUM/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
-            for (int i = 0; i < (config.CACHE_NUM / deviceCodes.size()); i++) {
+            // 注意config.BATCH_SIZE/(config.DEVICE_NUMBER/config.CLIENT_NUMBER)=整数,即批导入大小和客户端数的乘积可以被设备数整除
+            for (int i = 0; i < (config.BATCH_SIZE / deviceCodes.size()); i++) {
                 for (String device : deviceCodes) {
                     String sql = createSQLStatmentOfMulDevice(loopIndex, i, device);
                     statement.addBatch(sql);
@@ -293,7 +293,7 @@ public class IoTDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -312,14 +312,14 @@ public class IoTDB implements IDatebase {
         try {
             statement = connection.createStatement();
             if (!config.IS_OVERFLOW) {
-                for (int i = 0; i < config.CACHE_NUM; i++) {
+                for (int i = 0; i < config.BATCH_SIZE; i++) {
                     String sql = createSQLStatment(loopIndex, i, device);
                     statement.addBatch(sql);
                 }
             } else {
                 //随机重排，无法准确控制overflow比例
 				/*
-				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.BATCH_SIZE);
 				int[] shuffleSequence = new int[shuffleSize];
 				for(int i = 0; i < shuffleSize; i++){
 					shuffleSequence[i] = i;
@@ -335,12 +335,12 @@ public class IoTDB implements IDatebase {
 					String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
 					statement.addBatch(sql);
 				}
-				for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+				for (int i = shuffleSize; i < config.BATCH_SIZE; i++) {
 					String sql = createSQLStatment(loopIndex, i, device);
 					statement.addBatch(sql);
 				}
 				*/
-                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.CACHE_NUM);
+                int shuffleSize = (int) (config.OVERFLOW_RATIO * config.BATCH_SIZE);
                 int[] shuffleSequence = new int[shuffleSize];
                 for (int i = 0; i < shuffleSize; i++) {
                     shuffleSequence[i] = i;
@@ -354,7 +354,7 @@ public class IoTDB implements IDatebase {
                     String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
                     statement.addBatch(sql);
                 }
-                for (int i = shuffleSize; i < config.CACHE_NUM; i++) {
+                for (int i = shuffleSize; i < config.BATCH_SIZE; i++) {
                     String sql = createSQLStatment(loopIndex, i, device);
                     statement.addBatch(sql);
                 }
@@ -384,7 +384,7 @@ public class IoTDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -414,7 +414,7 @@ public class IoTDB implements IDatebase {
             if (loopIndex == 0) {
                 String sql = createSQLStatment(device, maxTimestampIndex);
                 statement.addBatch(sql);
-                for (int i = 1; i < config.CACHE_NUM; i++) {
+                for (int i = 1; i < config.BATCH_SIZE; i++) {
                     if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
                         maxTimestampIndex++;
                         timestampIndex = maxTimestampIndex;
@@ -428,8 +428,8 @@ public class IoTDB implements IDatebase {
                 }
             } else {
                 String sql;
-                for (int i = 0; i < config.CACHE_NUM; i++) {
-                    if (maxTimestampIndex < (config.CACHE_NUM * config.LOOP - 1) && before.size() > 0) {
+                for (int i = 0; i < config.BATCH_SIZE; i++) {
+                    if (maxTimestampIndex < (config.BATCH_SIZE * config.LOOP - 1) && before.size() > 0) {
                         if (probTool.returnTrueByProb(1.0 - config.OVERFLOW_RATIO, random)) {
                             maxTimestampIndex++;
                             timestampIndex = maxTimestampIndex;
@@ -467,7 +467,7 @@ public class IoTDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -499,7 +499,7 @@ public class IoTDB implements IDatebase {
         try {
             statement = connection.createStatement();
             String sql;
-            for (int i = 0; i < config.CACHE_NUM; i++) {
+            for (int i = 0; i < config.BATCH_SIZE; i++) {
                 if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
                     nextDelta = possionDistribution.getNextPossionDelta();
                     timestampIndex = maxTimestampIndex - nextDelta;
@@ -523,7 +523,7 @@ public class IoTDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -852,7 +852,8 @@ public class IoTDB implements IDatebase {
             builder.append(",").append(sensor);
         }
         builder.append(") values(");
-        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.BATCH_SIZE
+            + index);
         if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
             currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
@@ -901,7 +902,8 @@ public class IoTDB implements IDatebase {
         builder.append("(timestamp");
         builder.append(",").append(spl[spl.length - 1]);
         builder.append(") values(");
-        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.BATCH_SIZE
+            + index);
         builder.append(currentTime);
         try {
             builder.append(",").append(getDataByTypeAndScope(currentTime, config));
@@ -976,7 +978,8 @@ public class IoTDB implements IDatebase {
             builder.append(",").append(sensor);
         }
         builder.append(") values(");
-        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (loopIndex * config.CACHE_NUM / (config.DEVICE_NUMBER / config.CLIENT_NUMBER) + i);
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (loopIndex * config.BATCH_SIZE
+            / (config.DEVICE_NUMBER / config.CLIENT_NUMBER) + i);
         builder.append(currentTime);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -1266,7 +1269,7 @@ public class IoTDB implements IDatebase {
         long errorNum = 0;
         try {
             statement = connection.createStatement();
-            for (int i = 0; i < config.CACHE_NUM; i++) {
+            for (int i = 0; i < config.BATCH_SIZE; i++) {
                 String sql = createGenDataSQLStatment(loopIndex, i, device);
                 writeSQLIntoFile(sql, config.GEN_DATA_FILE_PATH);
                 statement.addBatch(sql);
@@ -1294,7 +1297,7 @@ public class IoTDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);

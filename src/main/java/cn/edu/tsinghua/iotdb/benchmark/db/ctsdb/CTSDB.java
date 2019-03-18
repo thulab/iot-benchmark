@@ -148,7 +148,7 @@ public class CTSDB extends TSDB implements IDatebase {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"device\":\"").append(device).append("\",");
         long currentTime = Constants.START_TIMESTAMP
-                + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+                + config.POINT_STEP * (batchIndex * config.BATCH_SIZE + dataIndex);
         for (String sensor : config.SENSOR_CODES) {
             sb.append("\"").append(sensor).append("\":");
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -166,13 +166,13 @@ public class CTSDB extends TSDB implements IDatebase {
         StringBuilder body = new StringBuilder();
         long startTime = 0, endTime = 0;
         String response;
-        for (int i = 0; i < config.CACHE_NUM; i++) {
+        for (int i = 0; i < config.BATCH_SIZE; i++) {
             body.append(getMetaJSON(device)).append("\n");
             body.append(getDataJSON(device, batchIndex, i)).append("\n");
         }
         LOGGER.debug(body.toString());
         writeUrl = Url + "/" + getMetricName(device) + "/doc/_bulk";
-        int batch_point_num = config.CACHE_NUM * config.SENSOR_NUMBER;
+        int batch_point_num = config.BATCH_SIZE * config.SENSOR_NUMBER;
         long costTime = 0;
         try {
             startTime = System.nanoTime();

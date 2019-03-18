@@ -4,7 +4,10 @@ import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
+import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +17,7 @@ public class Client implements Runnable {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private DBWrapper dbWrapper;
   private OperationController operationController;
+  private Measurement measurement;
 
   public int getClientThreadId() {
     return clientThreadId;
@@ -25,8 +29,11 @@ public class Client implements Runnable {
 
   private int clientThreadId;
 
+  private Workload workload;
+
   public Client(int id) {
     clientThreadId = id;
+    workload = new Workload(id);
     operationController = new OperationController(id);
   }
 
@@ -48,31 +55,35 @@ public class Client implements Runnable {
       Operation operation = operationController.getNextOperationType();
       switch (operation) {
         case INGESTION:
-          dbWrapper.insertOneBatch();
+          try {
+            dbWrapper.insertOneBatch(workload.getOneBatch(), measurement);
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to insert one batch data, please check workload parameters.", e);
+          }
           break;
         case PRECISE_QUERY:
-          dbWrapper.preciseQuery();
+          dbWrapper.preciseQuery(workload.getPreciseQuery(), measurement);
           break;
         case RANGE_QUERY:
-          dbWrapper.rangeQuery();
+          dbWrapper.rangeQuery(workload.getRangeQuery(), measurement);
           break;
         case VALUE_RANGE_QUERY:
-          dbWrapper.valueRangeQuery();
+          dbWrapper.valueRangeQuery(workload.getValueRangeQuery(), measurement);
           break;
         case AGG_RANGE_QUERY:
-          dbWrapper.aggRangeQuery();
+          dbWrapper.aggRangeQuery(workload.getAggRangeQuery(), measurement);
           break;
         case AGG_VALUE_QUERY:
-          dbWrapper.aggValueQuery();
+          dbWrapper.aggValueQuery(workload.getAggValueQuery(), measurement);
           break;
         case AGG_RANGE_VALUE_QUERY:
-          dbWrapper.aggRangeValueQuery();
+          dbWrapper.aggRangeValueQuery(workload.getAggRangeValueQuery(), measurement);
           break;
         case GROUP_BY_QUERY:
-          dbWrapper.groupByQuery();
+          dbWrapper.groupByQuery(workload.getGroupByQuery(), measurement);
           break;
         case LATEST_POINT_QUERY:
-          dbWrapper.latestPointQuery();
+          dbWrapper.latestPointQuery(workload.getLatestPointQuery(), measurement);
           break;
         default:
           LOGGER.error("Unsupported operation type {}", operation);

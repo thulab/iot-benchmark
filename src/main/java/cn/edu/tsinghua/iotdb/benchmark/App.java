@@ -95,8 +95,8 @@ public class App {
 
         mysql.savaTestConfig();
         Measurement measurement = new Measurement();
-        DBWrapper dbWrapper = new DBWrapper(measurement);
-        dbWrapper.createSchema();
+        DBWrapper dbWrapper = new DBWrapper();
+        dbWrapper.registerSchema(measurement);
 
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 
@@ -111,93 +111,6 @@ public class App {
         }
         executorService.shutdown();
 
-
-
-        long totalTime = 0;
-        for (long c : totalTimes) {
-            if (c > totalTime) {
-                totalTime = c;
-            }
-        }
-
-        ArrayList<Long> allLatencies = new ArrayList<>();
-        int totalOps;
-        for (ArrayList<Long> oneClientLatencies : latenciesOfClients) {
-            allLatencies.addAll(oneClientLatencies);
-        }
-        totalOps = allLatencies.size();
-        double totalLatency = 0;
-        for (long latency : allLatencies) {
-            totalLatency += latency;
-        }
-        float avgLatency = (float) (totalLatency / totalOps / unitTransfer);
-        allLatencies.sort(new LongComparator());
-        int min = (int) (allLatencies.get(0) / unitTransfer);
-        int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
-        int p1 = (int) (allLatencies.get((int) (totalOps * 0.01)) / unitTransfer);
-        int p5 = (int) (allLatencies.get((int) (totalOps * 0.05)) / unitTransfer);
-        int p50 = (int) (allLatencies.get((int) (totalOps * 0.5)) / unitTransfer);
-        int p90 = (int) (allLatencies.get((int) (totalOps * 0.9)) / unitTransfer);
-        int p95 = (int) (allLatencies.get((int) (totalOps * 0.95)) / unitTransfer);
-        int p99 = (int) (allLatencies.get((int) (totalOps * 0.99)) / unitTransfer);
-        int p999 = (int) (allLatencies.get((int) (totalOps * 0.999)) / unitTransfer);
-        int p9999 = (int) (allLatencies.get((int) (totalOps * 0.9999)) / unitTransfer);
-        double midSum = 0;
-        for (int i = (int) (totalOps * 0.05); i < (int) (totalOps * 0.95); i++) {
-            midSum += allLatencies.get(i);
-        }
-        float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
-
-        long totalPoints =
-            config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
-        if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
-            totalPoints =
-                config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
-        }
-        long insertEndTime = System.nanoTime();
-        float insertElapseTime = (insertEndTime - insertStartTime) / 1000000000.0f;
-        totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
-        LOGGER.info(
-            "Config: \n " +
-                "GROUP_NUMBER = ,{}, \n" +
-                "DEVICE_NUMBER = ,{}, \n" +
-                "SENSOR_NUMBER = ,{}, \n" +
-                "CACHE_NUM = ,{}, \n" +
-                "POINT_STEP = ,{}, \n" +
-                "LOOP = ,{}, \n" +
-                "MUL_DEV_BATCH = ,{} \n",
-            config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM,
-            config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
-
-        LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
-            totalPoints,
-            totalTime / 1000000000.0f, config.CLIENT_NUMBER,
-            1000000000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
-        LOGGER.info(
-            "Total Operations {}; Latency(ms): Avg {}, MiddleAvg {}, Min {}, Max {}, p1 {}, p5 {}, p50 {}, p90 {}, p95 {}, p99 {}, p99.9 {}, p99.99 {}",
-            totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p50, p90, p95, p99, p999, p9999);
-        LOGGER.info(
-            "Total error num is {}, create schema cost {} second. Total elapse time: {} second",
-            totalErrorPoint, createSchemaTime, insertElapseTime);
-
-        mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
-        mysql.saveResult("totalPoints", "" + totalPoints);
-        mysql.saveResult("totalInsertionTime(s)", "" + totalTime / 1000000000.0f);
-        mysql.saveResult("totalElapseTime(s)", "" + insertElapseTime);
-        mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
-        mysql.saveResult("avg", "" + avgLatency);
-        mysql.saveResult("middleAvg", "" + midAvgLatency);
-        mysql.saveResult("min", "" + min);
-        mysql.saveResult("max", "" + max);
-        mysql.saveResult("p1", "" + p1);
-        mysql.saveResult("p5", "" + p5);
-        mysql.saveResult("p50", "" + p50);
-        mysql.saveResult("p90", "" + p90);
-        mysql.saveResult("p95", "" + p95);
-        mysql.saveResult("p99", "" + p99);
-        mysql.saveResult("p999", "" + p999);
-        mysql.saveResult("p9999", "" + p9999);
-        mysql.closeMysql();
 
 
     }
@@ -503,15 +416,15 @@ public class App {
         }
         float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
-        long totalPoints = config.LOOP * config.CACHE_NUM;
+        long totalPoints = config.LOOP * config.BATCH_SIZE;
         if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
-            totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
+            totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.BATCH_SIZE;
         }
 
         totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
         LOGGER.info(
-                "GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
-                config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM, config.POINT_STEP,
+                "GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, BATCH_SIZE = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
+                config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.BATCH_SIZE, config.POINT_STEP,
                 config.LOOP, config.MUL_DEV_BATCH);
 
         LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
@@ -707,9 +620,9 @@ public class App {
             }
             float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
-            long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+            long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.BATCH_SIZE;
             if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
-                totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
+                totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.BATCH_SIZE;
             }
             long insertEndTime = System.nanoTime();
             float insertElapseTime = (insertEndTime - insertStartTime) / 1000000000.0f;
@@ -719,11 +632,11 @@ public class App {
                             "GROUP_NUMBER = ,{}, \n" +
                             "DEVICE_NUMBER = ,{}, \n" +
                             "SENSOR_NUMBER = ,{}, \n" +
-                            "CACHE_NUM = ,{}, \n" +
+                            "BATCH_SIZE = ,{}, \n" +
                             "POINT_STEP = ,{}, \n" +
                             "LOOP = ,{}, \n" +
                             "MUL_DEV_BATCH = ,{} \n",
-                    config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM,
+                    config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.BATCH_SIZE,
                     config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
 
             LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
@@ -809,7 +722,7 @@ public class App {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM - insertedPointNum;
+        return config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.BATCH_SIZE - insertedPointNum;
     }
 
     private static long getErrorNumIoT(ArrayList<Long> totalInsertErrorNums) {

@@ -36,7 +36,7 @@ public class Config {
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
 	/** 数据发送缓存条数 */
-	public int CACHE_NUM = 10;
+	public int BATCH_SIZE = 10;
 	/** 存储组数量 */
 	public int GROUP_NUMBER = 1;
 	/** 数据类型 */

@@ -5,26 +5,39 @@ import java.util.List;
 
 public class Batch {
 
-  private List<TimeValuePair> timeValuePairsList;
+  private List<DataPoint> dataPointsList;
 
-  Batch(){
-    timeValuePairsList = new ArrayList<>();
+  public Batch() {
+    dataPointsList = new ArrayList<>();
   }
 
-  Batch(List<TimeValuePair> list){
-    this.timeValuePairsList = list;
+  Batch(List<DataPoint> list) {
+    this.dataPointsList = list;
   }
 
-  public List<TimeValuePair> getTimeValuePairsList() {
-    return timeValuePairsList;
+  public List<DataPoint> getDataPointsList() {
+    return dataPointsList;
   }
 
-  public void setTimeValuePairsList(
-      List<TimeValuePair> timeValuePairsList) {
-    this.timeValuePairsList = timeValuePairsList;
+  public void setDataPointsList(
+      List<DataPoint> dataPointsList) {
+    this.dataPointsList = dataPointsList;
   }
 
-  public void add(TimeValuePair pair){
-    timeValuePairsList.add(pair);
+  public void add(DataPoint dataPoint) {
+    dataPointsList.add(dataPoint);
+  }
+
+  @Override
+  public String toString() {
+    String result = "";
+    long count = 0;
+    for (DataPoint dataPoint : dataPointsList) {
+      result = result.concat(dataPoint.toString());
+      result = result.concat("\n");
+      count++;
+    }
+    result = result.concat("data point count: " + count);
+    return result;
   }
 }

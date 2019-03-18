@@ -103,7 +103,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public void createSchema(Measurement measurement) {
+  public void registerSchema(Measurement measurement) {
     double createSchemaTimeInSecond = 0;
     long en = 0;
     long st = 0;
@@ -111,7 +111,7 @@ public class DBWrapper implements IDatabase {
     try {
       if (config.CREATE_SCHEMA) {
         st = System.nanoTime();
-        db.createSchema(measurement);
+        db.registerSchema(measurement);
         en = System.nanoTime();
       }
       db.close();
