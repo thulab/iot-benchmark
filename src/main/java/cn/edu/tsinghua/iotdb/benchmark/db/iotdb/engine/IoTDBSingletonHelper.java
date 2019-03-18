@@ -34,6 +34,14 @@ public class IoTDBSingletonHelper {
       System.out.println("Open and create db");
       File file = new File(config.GEN_DATA_FILE_PATH);
       IoTDBOptions options = new IoTDBOptions();
+      // set  wal
+      options.setWalPath("/data2/iotdb");
+      // set flush time interval or  period: 3 minute
+      options.setPeriodTimeForFlush(60*3);
+      // set merge time interval or period: 5 minute
+      options.setPeriodTimeForMerge(60*5);
+      // the minimum threshold for triggering merge: 20MB
+      options.setOverflowFileSizeThreshold(50<<20);
       ITSEngine engine = new IoTDBEngine(file, options);
       try {
         engine.openOrCreate();
