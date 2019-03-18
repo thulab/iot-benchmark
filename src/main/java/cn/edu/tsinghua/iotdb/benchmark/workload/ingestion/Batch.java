@@ -1,18 +1,42 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Batch {
 
+  private DeviceSchema deviceSchema;
   private List<DataPoint> dataPointsList;
+  private Map<Long, List<String>> records;
 
   public Batch() {
     dataPointsList = new ArrayList<>();
+    records = new HashMap<>();
   }
 
-  Batch(List<DataPoint> list) {
+  public Batch(DeviceSchema deviceSchema, List<DataPoint> list, Map<Long, List<String>> records) {
+    this.deviceSchema = deviceSchema;
     this.dataPointsList = list;
+    this.records = records;
+  }
+
+  public DeviceSchema getDeviceSchema() {
+    return deviceSchema;
+  }
+
+  public void setDeviceSchema(DeviceSchema deviceSchema) {
+    this.deviceSchema = deviceSchema;
+  }
+
+  public Map<Long, List<String>> getRecords() {
+    return records;
+  }
+
+  public void setRecords(Map<Long, List<String>> records) {
+    this.records = records;
   }
 
   public List<DataPoint> getDataPointsList() {
@@ -26,6 +50,10 @@ public class Batch {
 
   public void add(DataPoint dataPoint) {
     dataPointsList.add(dataPoint);
+  }
+
+  public void add(long timestamp, List<String> values){
+    records.put(timestamp, values);
   }
 
   @Override

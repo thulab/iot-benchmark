@@ -3,6 +3,8 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.function.Function;
+import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -110,8 +112,40 @@ public class IoTDB implements IDatabase {
 
   }
 
+  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp, List<String> values) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("insert into ")
+        .append(Constants.ROOT_SERIES_NAME)
+        .append(".").append(deviceSchema.getGroup())
+        .append(".").append(deviceSchema.getDevice())
+        .append("(timestamp");
+    for (String sensor: deviceSchema.getSensors()) {
+      builder.append(",").append(sensor);
+    }
+    builder.append(") values(");
+    builder.append(timestamp);
+    for (String value : values) {
+      builder.append(",").append(value);
+    }
+    builder.append(")");
+    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    return builder.toString();
+  }
+
   @Override
   public void insertOneBatch(Batch batch, Measurement measurement) {
+    try(Statement statement = connection.createStatement()){
+      for(Entry<Long, List<String>> entry: batch.getRecords().entrySet()){
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), entry.getKey(), entry.getValue());
+        statement.addBatch(sql);
+      }
+      statement.executeBatch();
+      statement.clearBatch();
+    } catch (SQLException e) {
+      LOGGER.error("Failed to insert one batch");
+      e.printStackTrace();
+    }
+
 
   }
 

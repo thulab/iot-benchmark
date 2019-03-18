@@ -40,19 +40,14 @@ public class Workload {
     clientDeviceSchemaList = DataSchema.getInstance().getClientBindSchema().get(clientId);
   }
 
-  private Batch getOrderedBatch() {
+  private Batch getOrderedBatchInList() {
     DeviceSchema curDeviceSchema = clientDeviceSchemaList.get(curDeviceOffset);
     long currentTimestamp;
     Batch batch = new Batch();
     String group = curDeviceSchema.getGroup();
     String device = curDeviceSchema.getDevice();
     for (int i = 0; i < config.BATCH_SIZE; i++) {
-      curTimestamp += config.POINT_STEP;
-      if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-        currentTimestamp = curTimestamp + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-      } else {
-        currentTimestamp = curTimestamp;
-      }
+      currentTimestamp = getCurrentTimestamp();
       for(String sensor: curDeviceSchema.getSensors()){
         FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
         String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
@@ -60,6 +55,39 @@ public class Workload {
         batch.add(dataPoint);
       }
     }
+    curDeviceOffset ++;
+    if(curDeviceOffset == clientDeviceSchemaList.size()){
+      curDeviceOffset = 0;
+    }
+    return batch;
+  }
+
+  private long getCurrentTimestamp() {
+    long currentTimestamp;
+    curTimestamp += config.POINT_STEP;
+    if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+      currentTimestamp = curTimestamp + (long) (config.POINT_STEP * timestampRandom.nextDouble());
+    } else {
+      currentTimestamp = curTimestamp;
+    }
+    return currentTimestamp;
+  }
+
+  private Batch getOrderedBatch() {
+    DeviceSchema curDeviceSchema = clientDeviceSchemaList.get(curDeviceOffset);
+    List<String> values = new ArrayList<>();
+    long currentTimestamp;
+    Batch batch = new Batch();
+    for (int i = 0; i < config.BATCH_SIZE; i++) {
+      currentTimestamp = getCurrentTimestamp();
+      for(String sensor: curDeviceSchema.getSensors()){
+        FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+        String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
+        values.add(value);
+      }
+      batch.add(currentTimestamp, values);
+    }
+    batch.setDeviceSchema(curDeviceSchema);
     curDeviceOffset ++;
     if(curDeviceOffset == clientDeviceSchemaList.size()){
       curDeviceOffset = 0;
