@@ -229,7 +229,6 @@ public class IoTDBEngine implements IDatebase {
     List<String> sensorList = new ArrayList<String>();
     String timesries = null;
     QueryDataSet queryDataSet = null;
-    long endTime = Long.MAX_VALUE;
     switch (config.QUERY_CHOICE) {
       case 4:// 范围查询
         List<String> list = new ArrayList<String>();
@@ -240,7 +239,7 @@ public class IoTDBEngine implements IDatebase {
         timesries = getFullGroupDevicePathByID(devices.get(0)).toString();
         timesries = timesries + "." + list.get(0);
         try {
-          startTime = 0;
+          long endTime = startTime + config.QUERY_INTERVAL;
           queryDataSet = engine.query(timesries, startTime, endTime);
         } catch (IOException e) {
           e.printStackTrace();
@@ -382,7 +381,7 @@ public class IoTDBEngine implements IDatebase {
           totalTime.get() / unitTransfer, errorNum,
           config.REMARK);
 
-    }catch (Exception e){
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return maxTimestampIndex;
