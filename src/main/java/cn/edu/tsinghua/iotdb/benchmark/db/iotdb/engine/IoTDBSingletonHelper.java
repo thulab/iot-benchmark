@@ -34,7 +34,7 @@ public class IoTDBSingletonHelper {
       System.out.println("Open and create db");
       File file = new File(config.GEN_DATA_FILE_PATH);
       IoTDBOptions options = new IoTDBOptions();
-      // set  wal
+      // wal
       options.setWalPath("/data2/iotdb");
       // set flush time interval or  period: 3 minute
       options.setPeriodTimeForFlush(60*3);

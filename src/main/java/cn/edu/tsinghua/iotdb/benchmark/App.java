@@ -625,6 +625,7 @@ public class App {
             mysql.closeMysql();
             System.out.println("close instance");
             IoTDBSingletonHelper.closeInstance();
+            System.exit(0);
         }
     }
 
