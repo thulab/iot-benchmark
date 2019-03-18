@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -15,14 +16,21 @@ import cn.edu.tsinghua.iotdb.benchmark.db.opentsdb.OpenTSDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.timescaledb.TimescaleDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.NetUsage;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
 import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,6 +39,8 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class App {
 
@@ -79,6 +89,116 @@ public class App {
      * 按比例选择workload执行的测试
      */
     private static void testWithDefaultPath(Config config) {
+        MySqlLog mysql = new MySqlLog();
+        mysql.initMysql(System.currentTimeMillis());
+        ArrayList<ArrayList> latenciesOfClients = new ArrayList<>();
+
+        mysql.savaTestConfig();
+        Measurement measurement = new Measurement();
+        DBWrapper dbWrapper = new DBWrapper(measurement);
+        dbWrapper.createSchema();
+
+        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            executorService.submit(new Client(i));
+        }
+        try {
+            downLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        executorService.shutdown();
+
+
+
+        long totalTime = 0;
+        for (long c : totalTimes) {
+            if (c > totalTime) {
+                totalTime = c;
+            }
+        }
+
+        ArrayList<Long> allLatencies = new ArrayList<>();
+        int totalOps;
+        for (ArrayList<Long> oneClientLatencies : latenciesOfClients) {
+            allLatencies.addAll(oneClientLatencies);
+        }
+        totalOps = allLatencies.size();
+        double totalLatency = 0;
+        for (long latency : allLatencies) {
+            totalLatency += latency;
+        }
+        float avgLatency = (float) (totalLatency / totalOps / unitTransfer);
+        allLatencies.sort(new LongComparator());
+        int min = (int) (allLatencies.get(0) / unitTransfer);
+        int max = (int) (allLatencies.get(totalOps - 1) / unitTransfer);
+        int p1 = (int) (allLatencies.get((int) (totalOps * 0.01)) / unitTransfer);
+        int p5 = (int) (allLatencies.get((int) (totalOps * 0.05)) / unitTransfer);
+        int p50 = (int) (allLatencies.get((int) (totalOps * 0.5)) / unitTransfer);
+        int p90 = (int) (allLatencies.get((int) (totalOps * 0.9)) / unitTransfer);
+        int p95 = (int) (allLatencies.get((int) (totalOps * 0.95)) / unitTransfer);
+        int p99 = (int) (allLatencies.get((int) (totalOps * 0.99)) / unitTransfer);
+        int p999 = (int) (allLatencies.get((int) (totalOps * 0.999)) / unitTransfer);
+        int p9999 = (int) (allLatencies.get((int) (totalOps * 0.9999)) / unitTransfer);
+        double midSum = 0;
+        for (int i = (int) (totalOps * 0.05); i < (int) (totalOps * 0.95); i++) {
+            midSum += allLatencies.get(i);
+        }
+        float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
+
+        long totalPoints =
+            config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+        if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
+            totalPoints =
+                config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
+        }
+        long insertEndTime = System.nanoTime();
+        float insertElapseTime = (insertEndTime - insertStartTime) / 1000000000.0f;
+        totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
+        LOGGER.info(
+            "Config: \n " +
+                "GROUP_NUMBER = ,{}, \n" +
+                "DEVICE_NUMBER = ,{}, \n" +
+                "SENSOR_NUMBER = ,{}, \n" +
+                "CACHE_NUM = ,{}, \n" +
+                "POINT_STEP = ,{}, \n" +
+                "LOOP = ,{}, \n" +
+                "MUL_DEV_BATCH = ,{} \n",
+            config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM,
+            config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
+
+        LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)",
+            totalPoints,
+            totalTime / 1000000000.0f, config.CLIENT_NUMBER,
+            1000000000.0f * (totalPoints - totalErrorPoint) / (float) totalTime);
+        LOGGER.info(
+            "Total Operations {}; Latency(ms): Avg {}, MiddleAvg {}, Min {}, Max {}, p1 {}, p5 {}, p50 {}, p90 {}, p95 {}, p99 {}, p99.9 {}, p99.99 {}",
+            totalOps, avgLatency, midAvgLatency, min, max, p1, p5, p50, p90, p95, p99, p999, p9999);
+        LOGGER.info(
+            "Total error num is {}, create schema cost {} second. Total elapse time: {} second",
+            totalErrorPoint, createSchemaTime, insertElapseTime);
+
+        mysql.saveResult("createSchemaTime(s)", "" + createSchemaTime);
+        mysql.saveResult("totalPoints", "" + totalPoints);
+        mysql.saveResult("totalInsertionTime(s)", "" + totalTime / 1000000000.0f);
+        mysql.saveResult("totalElapseTime(s)", "" + insertElapseTime);
+        mysql.saveResult("totalErrorPoint", "" + totalErrorPoint);
+        mysql.saveResult("avg", "" + avgLatency);
+        mysql.saveResult("middleAvg", "" + midAvgLatency);
+        mysql.saveResult("min", "" + min);
+        mysql.saveResult("max", "" + max);
+        mysql.saveResult("p1", "" + p1);
+        mysql.saveResult("p5", "" + p5);
+        mysql.saveResult("p50", "" + p50);
+        mysql.saveResult("p90", "" + p90);
+        mysql.saveResult("p95", "" + p95);
+        mysql.saveResult("p99", "" + p99);
+        mysql.saveResult("p999", "" + p999);
+        mysql.saveResult("p9999", "" + p9999);
+        mysql.closeMysql();
+
 
     }
 
@@ -490,9 +610,11 @@ public class App {
             // wait for all threads complete
             try {
                 downLatch.await();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
             int totalItem = storage.getStoragedProductNum();
             long totalTime = 0;
             for (long c : totalTimes) {
