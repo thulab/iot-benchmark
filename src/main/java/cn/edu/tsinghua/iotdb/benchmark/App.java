@@ -91,7 +91,6 @@ public class App {
     private static void testWithDefaultPath(Config config) {
         MySqlLog mysql = new MySqlLog();
         mysql.initMysql(System.currentTimeMillis());
-        ArrayList<ArrayList> latenciesOfClients = new ArrayList<>();
 
         mysql.savaTestConfig();
         Measurement measurement = new Measurement();
@@ -102,15 +101,18 @@ public class App {
 
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            executorService.submit(new Client(i));
+            executorService.submit(new Client(i, downLatch));
         }
+
         try {
             downLatch.await();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+            Thread.currentThread().interrupt();
         }
-        executorService.shutdown();
 
+        executorService.shutdown();
+        LOGGER.info("All clients finished.");
 
 
     }

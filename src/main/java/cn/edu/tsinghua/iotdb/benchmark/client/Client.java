@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
+import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ public class Client implements Runnable {
   private DBWrapper dbWrapper;
   private OperationController operationController;
   private Measurement measurement;
+  private CountDownLatch countDownLatch;
 
   public int getClientThreadId() {
     return clientThreadId;
@@ -31,22 +33,28 @@ public class Client implements Runnable {
 
   private Workload workload;
 
-  public Client(int id) {
+  public Client(int id, CountDownLatch countDownLatch) {
+    this.countDownLatch = countDownLatch;
     clientThreadId = id;
+    dbWrapper = new DBWrapper();
     workload = new Workload(id);
     operationController = new OperationController(id);
   }
 
   @Override
   public void run() {
-    switch (config.BENCHMARK_WORK_MODE) {
-      case Constants.MODE_TEST_WITH_DEFAULT_PATH:
-        doTestWithDefaultPath();
-        break;
-      case Constants.MODE_UNBIND_WITH_DEFAULT_PATH:
-        doUnbindTestWithDefaultPath();
-      default:
-
+    try {
+      switch (config.BENCHMARK_WORK_MODE) {
+        case Constants.MODE_TEST_WITH_DEFAULT_PATH:
+          doTestWithDefaultPath();
+          break;
+        case Constants.MODE_UNBIND_WITH_DEFAULT_PATH:
+          doUnbindTestWithDefaultPath();
+        default:
+      }
+      dbWrapper.close();
+    } finally {
+      countDownLatch.countDown();
     }
   }
 

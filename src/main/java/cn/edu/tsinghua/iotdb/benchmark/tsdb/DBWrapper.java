@@ -44,7 +44,6 @@ public class DBWrapper implements IDatabase {
     en = System.nanoTime();
     timeInMillis = (en - st ) / NANO_TO_MILLIS;
     measurement.addOperationLatency(Operation.INGESTION, timeInMillis);
-
   }
 
   @Override

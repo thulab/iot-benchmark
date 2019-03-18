@@ -1,10 +1,9 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.function.Function;
-import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -35,6 +34,7 @@ public class IoTDB implements IDatabase {
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
+  private static final double NANO_TO_MILLIS = 1000000.0d;
   private Connection connection;
 
   public IoTDB() {
@@ -60,7 +60,13 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() {
-
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (SQLException e) {
+        LOGGER.error("Failed to close connection because ", e);
+      }
+    }
   }
 
   @Override
@@ -112,14 +118,15 @@ public class IoTDB implements IDatabase {
 
   }
 
-  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp, List<String> values) {
+  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+      List<String> values) {
     StringBuilder builder = new StringBuilder();
     builder.append("insert into ")
         .append(Constants.ROOT_SERIES_NAME)
         .append(".").append(deviceSchema.getGroup())
         .append(".").append(deviceSchema.getDevice())
         .append("(timestamp");
-    for (String sensor: deviceSchema.getSensors()) {
+    for (String sensor : deviceSchema.getSensors()) {
       builder.append(",").append(sensor);
     }
     builder.append(") values(");
@@ -134,19 +141,24 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void insertOneBatch(Batch batch, Measurement measurement) {
-    try(Statement statement = connection.createStatement()){
-      for(Entry<Long, List<String>> entry: batch.getRecords().entrySet()){
-        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), entry.getKey(), entry.getValue());
+    long st;
+    long en;
+    double timeInMillis;
+    try (Statement statement = connection.createStatement()) {
+      for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), entry.getKey(),
+            entry.getValue());
         statement.addBatch(sql);
       }
+      st = System.nanoTime();
       statement.executeBatch();
-      statement.clearBatch();
+      en = System.nanoTime();
+      timeInMillis = (en - st) / NANO_TO_MILLIS;
+      measurement.addOperationLatency(Operation.INGESTION, timeInMillis);
+      LOGGER.info("Insert one batch latency ,{}, ms", timeInMillis);
     } catch (SQLException e) {
-      LOGGER.error("Failed to insert one batch");
-      e.printStackTrace();
+      LOGGER.error("Failed to insert one batch", e);
     }
-
-
   }
 
   @Override
