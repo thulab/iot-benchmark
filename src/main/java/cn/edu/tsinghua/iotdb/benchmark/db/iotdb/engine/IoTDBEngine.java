@@ -170,6 +170,9 @@ public class IoTDBEngine implements IDatebase {
     device = Constants.ROOT_SERIES_NAME + "." + path;
     long currentTime =
         Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+    int length = Thread.currentThread().getName().split("-").length;
+    long id = Long.parseLong(Thread.currentThread().getName().split("-")[length - 1]);
+    currentTime += id;
     List<String> sensors = config.SENSOR_CODES;
 
     List<String> values = new ArrayList<>();
