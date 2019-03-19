@@ -624,9 +624,9 @@ public class App {
             mysql.saveResult("p9999", "" + p9999);
             mysql.closeMysql();
             System.out.println("close instance");
-            IoTDBSingletonHelper.closeInstance();
-            System.exit(0);
         }
+        IoTDBSingletonHelper.closeInstance();
+        System.exit(0);
     }
 
     private static long getErrorNum(Config config, ArrayList<Long> totalInsertErrorNums, IDatebase datebase)
