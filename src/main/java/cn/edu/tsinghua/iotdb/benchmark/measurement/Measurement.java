@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
 
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,9 @@ public class Measurement {
 
   public Measurement() {
     operationLatencies = new EnumMap<>(Operation.class);
+    for(Operation operation: Operation.values()){
+      operationLatencies.put(operation, new ArrayList<>());
+    }
   }
 
   public Map<Operation, List<Double>> getOperationLatencies() {
@@ -52,7 +56,10 @@ public class Measurement {
   }
 
   public void updateMetrics(){
+    for(Operation operation: Operation.values()){
+      List<Double> latencyList = operationLatencies.get(operation);
 
+    }
   }
 
   public enum Metric {

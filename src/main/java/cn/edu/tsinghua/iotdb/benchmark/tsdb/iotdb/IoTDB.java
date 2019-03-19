@@ -144,6 +144,7 @@ public class IoTDB implements IDatabase {
     long st;
     long en;
     double timeInMillis;
+
     try (Statement statement = connection.createStatement()) {
       for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), entry.getKey(),
@@ -155,7 +156,9 @@ public class IoTDB implements IDatabase {
       en = System.nanoTime();
       timeInMillis = (en - st) / NANO_TO_MILLIS;
       measurement.addOperationLatency(Operation.INGESTION, timeInMillis);
-      LOGGER.info("Insert one batch latency ,{}, ms", timeInMillis);
+      String formatTimeInMillis = String.format("%.2f", timeInMillis);
+      String currentThread = Thread.currentThread().getName();
+      LOGGER.info("{} insert one batch latency ,{}, ms", currentThread, formatTimeInMillis);
     } catch (SQLException e) {
       LOGGER.error("Failed to insert one batch", e);
     }

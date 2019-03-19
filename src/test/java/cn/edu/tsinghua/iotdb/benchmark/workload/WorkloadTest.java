@@ -110,7 +110,7 @@ public class WorkloadTest {
     Workload workload = new Workload(1);
     for (int i = 0; i < 3; i++) {
       Batch batch = workload.getOneBatch();
-      System.out.println(batch.getDataPointsList().toString());
+      System.out.println(batch.getRecords().toString());
     }
 
   }

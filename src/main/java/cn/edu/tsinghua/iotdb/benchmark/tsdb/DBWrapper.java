@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
@@ -36,14 +35,7 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public void insertOneBatch(Batch batch, Measurement measurement) {
-    long st;
-    long en;
-    double timeInMillis;
-    st = System.nanoTime();
     db.insertOneBatch(batch, measurement);
-    en = System.nanoTime();
-    timeInMillis = (en - st ) / NANO_TO_MILLIS;
-    measurement.addOperationLatency(Operation.INGESTION, timeInMillis);
   }
 
   @Override

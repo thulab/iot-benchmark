@@ -40,58 +40,29 @@ public class Workload {
     clientDeviceSchemaList = DataSchema.getInstance().getClientBindSchema().get(clientId);
   }
 
-  private Batch getOrderedBatchInList() {
-    DeviceSchema curDeviceSchema = clientDeviceSchemaList.get(curDeviceOffset);
-    long currentTimestamp;
-    Batch batch = new Batch();
-    String group = curDeviceSchema.getGroup();
-    String device = curDeviceSchema.getDevice();
-    for (int i = 0; i < config.BATCH_SIZE; i++) {
-      currentTimestamp = getCurrentTimestamp();
-      for(String sensor: curDeviceSchema.getSensors()){
-        FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-        String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
-        DataPoint dataPoint = new DataPoint(group, device, sensor, currentTimestamp, value);
-        batch.add(dataPoint);
-      }
-    }
-    curDeviceOffset ++;
-    if(curDeviceOffset == clientDeviceSchemaList.size()){
-      curDeviceOffset = 0;
-    }
-    return batch;
-  }
-
-  private long getCurrentTimestamp() {
-    long currentTimestamp;
-    curTimestamp += config.POINT_STEP;
+  private long getCurrentTimestamp(long loopIndex, long batchOffset) {
+    long timeStampOffset = config.POINT_STEP * (loopIndex * config.BATCH_SIZE + batchOffset);
+    long currentTimestamp = Constants.START_TIMESTAMP + timeStampOffset;
     if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-      currentTimestamp = curTimestamp + (long) (config.POINT_STEP * timestampRandom.nextDouble());
-    } else {
-      currentTimestamp = curTimestamp;
+      currentTimestamp += (long) (config.POINT_STEP * timestampRandom.nextDouble());
     }
     return currentTimestamp;
   }
 
-  private Batch getOrderedBatch() {
-    DeviceSchema curDeviceSchema = clientDeviceSchemaList.get(curDeviceOffset);
-    List<String> values = new ArrayList<>();
+  private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
     long currentTimestamp;
     Batch batch = new Batch();
-    for (int i = 0; i < config.BATCH_SIZE; i++) {
-      currentTimestamp = getCurrentTimestamp();
-      for(String sensor: curDeviceSchema.getSensors()){
+    for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
+      List<String> values = new ArrayList<>();
+      currentTimestamp = getCurrentTimestamp(loopIndex, batchOffset);
+      for(String sensor: deviceSchema.getSensors()){
         FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
         String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
         values.add(value);
       }
       batch.add(currentTimestamp, values);
     }
-    batch.setDeviceSchema(curDeviceSchema);
-    curDeviceOffset ++;
-    if(curDeviceOffset == clientDeviceSchemaList.size()){
-      curDeviceOffset = 0;
-    }
+    batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
@@ -107,9 +78,9 @@ public class Workload {
     return null;
   }
 
-  public Batch getOneBatch() throws WorkloadException {
+  public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
     if (!config.IS_OVERFLOW) {
-      return getOrderedBatch();
+      return getOrderedBatch(deviceSchema, loopIndex);
     } else {
       switch (config.OVERFLOW_MODE) {
         case 0:

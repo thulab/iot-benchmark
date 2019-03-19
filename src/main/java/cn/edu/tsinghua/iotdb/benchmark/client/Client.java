@@ -7,7 +7,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,17 +21,7 @@ public class Client implements Runnable {
   private OperationController operationController;
   private Measurement measurement;
   private CountDownLatch countDownLatch;
-
-  public int getClientThreadId() {
-    return clientThreadId;
-  }
-
-  public void setClientThreadId(int clientThreadId) {
-    this.clientThreadId = clientThreadId;
-  }
-
   private int clientThreadId;
-
   private Workload workload;
 
   public Client(int id, CountDownLatch countDownLatch) {
@@ -39,6 +30,11 @@ public class Client implements Runnable {
     dbWrapper = new DBWrapper();
     workload = new Workload(id);
     operationController = new OperationController(id);
+    measurement = new Measurement();
+  }
+
+  public Measurement getMeasurement() {
+    return measurement;
   }
 
   @Override
@@ -64,8 +60,11 @@ public class Client implements Runnable {
       switch (operation) {
         case INGESTION:
           try {
-            dbWrapper.insertOneBatch(workload.getOneBatch(), measurement);
-          } catch (WorkloadException e) {
+            for (DeviceSchema deviceSchema : DataSchema.getInstance().getClientBindSchema()
+                .get(clientThreadId)) {
+              dbWrapper.insertOneBatch(workload.getOneBatch(deviceSchema, loopIndex), measurement);
+            }
+          } catch (Exception e) {
             LOGGER.error("Failed to insert one batch data, please check workload parameters.", e);
           }
           break;

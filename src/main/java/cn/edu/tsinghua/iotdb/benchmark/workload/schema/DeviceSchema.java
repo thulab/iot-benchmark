@@ -35,6 +35,9 @@ public class DeviceSchema {
       throw new WorkloadException("DEVICE_NUMBER must less than or equal to GROUP_NUMBER.");
     int eachGroupDeviceNum = config.DEVICE_NUMBER / config.GROUP_NUMBER;
     int thisDeviceGroupIndex = deviceId / eachGroupDeviceNum;
+    if(deviceId >= eachGroupDeviceNum * config.GROUP_NUMBER){
+      thisDeviceGroupIndex = config.GROUP_NUMBER - 1;
+    }
     if(thisDeviceGroupIndex < 0)
       throw new WorkloadException("DEVICE_NUMBER and GROUP_NUMBER must be positive.");
     group = GROUP_NAME_PREFIX + thisDeviceGroupIndex;

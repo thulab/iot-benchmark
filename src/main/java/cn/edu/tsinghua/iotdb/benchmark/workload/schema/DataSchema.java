@@ -34,11 +34,6 @@ public class DataSchema {
 
   private void createClientBindSchema() {
     int eachClientDeviceNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
-    int deviceRemainNum = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
-    if (deviceRemainNum != 0) {
-      eachClientDeviceNum++;
-    }
-
     for (int clientId = 0; clientId < config.CLIENT_NUMBER - 1; clientId++) {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int i = clientId * eachClientDeviceNum; i < (clientId + 1) * eachClientDeviceNum; i++) {
