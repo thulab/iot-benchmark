@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -109,7 +110,7 @@ public class WorkloadTest {
     config.IS_RANDOM_TIMESTAMP_INTERVAL = false;
     Workload workload = new Workload(1);
     for (int i = 0; i < 3; i++) {
-      Batch batch = workload.getOneBatch();
+      Batch batch = workload.getOneBatch(new DeviceSchema(1), 1);
       System.out.println(batch.getRecords().toString());
     }
 
