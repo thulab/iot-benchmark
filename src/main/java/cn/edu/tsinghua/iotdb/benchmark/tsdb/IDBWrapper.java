@@ -1,7 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -11,9 +10,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
-import java.sql.SQLException;
 
-public interface IDatabase {
+public interface IDBWrapper {
 
   void init();
 
@@ -23,22 +21,21 @@ public interface IDatabase {
 
   void registerSchema(Measurement measurement);
 
-  Status insertOneBatch(Batch batch);
+  void insertOneBatch(Batch batch);
 
-  Status preciseQuery(PreciseQuery preciseQuery);
+  void preciseQuery(PreciseQuery preciseQuery);
 
-  Status rangeQuery(RangeQuery rangeQuery);
+  void rangeQuery(RangeQuery rangeQuery);
 
-  Status valueRangeQuery(ValueRangeQuery valueRangeQuery);
+  void valueRangeQuery(ValueRangeQuery valueRangeQuery);
 
-  Status aggRangeQuery(AggRangeQuery aggRangeQuery);
+  void aggRangeQuery(AggRangeQuery aggRangeQuery);
 
-  Status aggValueQuery(AggValueQuery aggValueQuery);
+  void aggValueQuery(AggValueQuery aggValueQuery);
 
-  Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery);
+  void aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery);
 
-  Status groupByQuery(GroupByQuery groupByQuery);
+  void groupByQuery(GroupByQuery groupByQuery);
 
-  Status latestPointQuery(LatestPointQuery latestPointQuery);
-
+  void latestPointQuery(LatestPointQuery latestPointQuery);
 }

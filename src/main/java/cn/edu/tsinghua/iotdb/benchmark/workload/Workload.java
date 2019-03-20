@@ -6,7 +6,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.DataPoint;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -28,7 +27,6 @@ public class Workload {
   private static final Logger LOGGER = LoggerFactory.getLogger(Workload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private int clientId;
-  private long insertLoopIndex;
   private static Random timestampRandom = new Random(config.DATA_SEED);
   private int curDeviceOffset = 0;
   private List<DeviceSchema> clientDeviceSchemaList;
@@ -36,7 +34,6 @@ public class Workload {
 
   public Workload(int clientId) {
     this.clientId = clientId;
-    this.insertLoopIndex = 0;
     clientDeviceSchemaList = DataSchema.getInstance().getClientBindSchema().get(clientId);
   }
 
@@ -55,7 +52,7 @@ public class Workload {
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       List<String> values = new ArrayList<>();
       currentTimestamp = getCurrentTimestamp(loopIndex, batchOffset);
-      for(String sensor: deviceSchema.getSensors()){
+      for (String sensor : deviceSchema.getSensors()) {
         FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
         String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
         values.add(value);

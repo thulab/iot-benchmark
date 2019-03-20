@@ -52,8 +52,20 @@ public class Batch {
     dataPointsList.add(dataPoint);
   }
 
-  public void add(long timestamp, List<String> values){
+  public void add(long timestamp, List<String> values) {
     records.put(timestamp, values);
+  }
+
+  /**
+   * use the row protocol which means data are organized in List[timestamp, List[value]]
+   * @return data point number in this batch
+   */
+  public int pointNum() {
+    int pointNum = 0;
+    for (List<String> list : records.values()) {
+      pointNum += list.size();
+    }
+    return pointNum;
   }
 
   @Override

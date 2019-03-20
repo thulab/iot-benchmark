@@ -13,12 +13,11 @@ public class DataSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSchema.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
 
   public Map<Integer, List<DeviceSchema>> getClientBindSchema() {
     return CLIENT_BIND_SCHEMA;
   }
-
-  private static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
 
   private DataSchema(){
     createClientBindSchema();
@@ -33,7 +32,13 @@ public class DataSchema {
   }
 
   private void createClientBindSchema() {
-    int eachClientDeviceNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
+    int eachClientDeviceNum = 0;
+    if(config.CLIENT_NUMBER!=0) {
+      eachClientDeviceNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
+    } else {
+      LOGGER.error("CLIENT_NUMBER can not be zero.");
+      return;
+    }
     for (int clientId = 0; clientId < config.CLIENT_NUMBER - 1; clientId++) {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int i = clientId * eachClientDeviceNum; i < (clientId + 1) * eachClientDeviceNum; i++) {
@@ -48,5 +53,4 @@ public class DataSchema {
     }
     CLIENT_BIND_SCHEMA.put(config.CLIENT_NUMBER - 1, lastDeviceSchemaList);
   }
-
 }

@@ -1,10 +1,10 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
@@ -140,11 +140,9 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public void insertOneBatch(Batch batch, Measurement measurement) {
+  public Status insertOneBatch(Batch batch) {
     long st;
     long en;
-    double timeInMillis;
-
     try (Statement statement = connection.createStatement()) {
       for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), entry.getKey(),
@@ -154,53 +152,49 @@ public class IoTDB implements IDatabase {
       st = System.nanoTime();
       statement.executeBatch();
       en = System.nanoTime();
-      timeInMillis = (en - st) / NANO_TO_MILLIS;
-      measurement.addOperationLatency(Operation.INGESTION, timeInMillis);
-      String formatTimeInMillis = String.format("%.2f", timeInMillis);
-      String currentThread = Thread.currentThread().getName();
-      LOGGER.info("{} insert one batch latency ,{}, ms", currentThread, formatTimeInMillis);
-    } catch (SQLException e) {
-      LOGGER.error("Failed to insert one batch", e);
+      return new Status(true, en - st, null, null);
+    } catch (Exception e){
+      return new Status(false, 0, e, e.toString());
     }
   }
 
   @Override
-  public void preciseQuery(PreciseQuery preciseQuery, Measurement measurement) {
-
+  public Status preciseQuery(PreciseQuery preciseQuery) {
+    return null;
   }
 
   @Override
-  public void rangeQuery(RangeQuery rangeQuery, Measurement measurement) {
-
+  public Status rangeQuery(RangeQuery rangeQuery) {
+    return null;
   }
 
   @Override
-  public void valueRangeQuery(ValueRangeQuery valueRangeQuery, Measurement measurement) {
-
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+    return null;
   }
 
   @Override
-  public void aggRangeQuery(AggRangeQuery aggRangeQuery, Measurement measurement) {
-
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+    return null;
   }
 
   @Override
-  public void aggValueQuery(AggValueQuery aggValueQuery, Measurement measurement) {
-
+  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+    return null;
   }
 
   @Override
-  public void aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery, Measurement measurement) {
-
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+    return null;
   }
 
   @Override
-  public void groupByQuery(GroupByQuery groupByQuery, Measurement measurement) {
-
+  public Status groupByQuery(GroupByQuery groupByQuery) {
+    return null;
   }
 
   @Override
-  public void latestPointQuery(LatestPointQuery latestPointQuery, Measurement measurement) {
-
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+    return null;
   }
 }

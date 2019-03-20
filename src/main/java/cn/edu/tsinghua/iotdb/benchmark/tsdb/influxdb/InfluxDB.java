@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
@@ -35,47 +36,47 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public void insertOneBatch(Batch batch, Measurement measurement) {
-
+  public Status insertOneBatch(Batch batch) {
+    return null;
   }
 
   @Override
-  public void preciseQuery(PreciseQuery preciseQuery, Measurement measurement) {
-
+  public Status preciseQuery(PreciseQuery preciseQuery) {
+    return null;
   }
 
   @Override
-  public void rangeQuery(RangeQuery rangeQuery, Measurement measurement) {
-
+  public Status rangeQuery(RangeQuery rangeQuery) {
+    return null;
   }
 
   @Override
-  public void valueRangeQuery(ValueRangeQuery valueRangeQuery, Measurement measurement) {
-
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+    return null;
   }
 
   @Override
-  public void aggRangeQuery(AggRangeQuery aggRangeQuery, Measurement measurement) {
-
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+    return null;
   }
 
   @Override
-  public void aggValueQuery(AggValueQuery aggValueQuery, Measurement measurement) {
-
+  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+    return null;
   }
 
   @Override
-  public void aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery, Measurement measurement) {
-
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+    return null;
   }
 
   @Override
-  public void groupByQuery(GroupByQuery groupByQuery, Measurement measurement) {
-
+  public Status groupByQuery(GroupByQuery groupByQuery) {
+    return null;
   }
 
   @Override
-  public void latestPointQuery(LatestPointQuery latestPointQuery, Measurement measurement) {
-
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+    return null;
   }
 }

@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -94,25 +95,34 @@ public class App {
 
         mysql.savaTestConfig();
         Measurement measurement = new Measurement();
-        DBWrapper dbWrapper = new DBWrapper();
+        DBWrapper dbWrapper = new DBWrapper(measurement);
         dbWrapper.registerSchema(measurement);
-
+        List<Measurement> threadsMeasurements = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
 
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            executorService.submit(new Client(i, downLatch));
+            Client client = new Client(i, downLatch);
+            clients.add(client);
+            executorService.submit(client);
         }
-
+        executorService.shutdown();
         try {
             downLatch.await();
         } catch (InterruptedException e) {
             LOGGER.error("Exception occurred during waiting for all threads finish.", e);
             Thread.currentThread().interrupt();
         }
-
-        executorService.shutdown();
         LOGGER.info("All clients finished.");
+        for (Client client : clients) {
+            threadsMeasurements.add(client.getMeasurement());
+        }
+        for (Measurement m : threadsMeasurements) {
+            measurement.mergeMeasurement(m);
+        }
+        // must call calculateMetrics() before using the Metrics
+        measurement.calculateMetrics();
 
 
     }
