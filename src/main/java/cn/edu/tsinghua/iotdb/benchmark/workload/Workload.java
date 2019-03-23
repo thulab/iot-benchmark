@@ -3,6 +3,8 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -31,14 +33,20 @@ public class Workload {
   private int curDeviceOffset = 0;
   private List<DeviceSchema> clientDeviceSchemaList;
   private long curTimestamp = Constants.START_TIMESTAMP;
+  private ProbTool probTool;
+  private long maxTimestampIndex;
+  private Random poissonRandom;
 
   public Workload(int clientId) {
+    probTool = new ProbTool();
     this.clientId = clientId;
     clientDeviceSchemaList = DataSchema.getInstance().getClientBindSchema().get(clientId);
+    maxTimestampIndex = 0;
+    poissonRandom = new Random(config.DATA_SEED);
   }
 
-  private long getCurrentTimestamp(long loopIndex, long batchOffset) {
-    long timeStampOffset = config.POINT_STEP * (loopIndex * config.BATCH_SIZE + batchOffset);
+  private long getCurrentTimestamp(long stepOffset) {
+    long timeStampOffset = config.POINT_STEP * stepOffset;
     long currentTimestamp = Constants.START_TIMESTAMP + timeStampOffset;
     if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
       currentTimestamp += (long) (config.POINT_STEP * timestampRandom.nextDouble());
@@ -47,24 +55,48 @@ public class Workload {
   }
 
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
-    long currentTimestamp;
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       List<String> values = new ArrayList<>();
-      currentTimestamp = getCurrentTimestamp(loopIndex, batchOffset);
-      for (String sensor : deviceSchema.getSensors()) {
-        FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-        String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
-        values.add(value);
-      }
-      batch.add(currentTimestamp, values);
+      long stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+      generateBatch(deviceSchema, batch, stepOffset, values);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
-  private Batch getDistOutOfOrderBatch() {
-    return null;
+  private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
+    Batch batch = new Batch();
+    PossionDistribution possionDistribution = new PossionDistribution(poissonRandom);
+    int nextDelta;
+    long stepOffset;
+    for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
+      if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
+        // generate overflow timestamp
+        nextDelta = possionDistribution.getNextPossionDelta();
+        stepOffset = maxTimestampIndex - nextDelta;
+      } else {
+        // generate normal increasing timestamp
+        maxTimestampIndex++;
+        stepOffset = maxTimestampIndex;
+      }
+      List<String> values = new ArrayList<>();
+      generateBatch(deviceSchema, batch, stepOffset, values);
+    }
+    batch.setDeviceSchema(deviceSchema);
+    return batch;
+  }
+
+  private void generateBatch(DeviceSchema deviceSchema, Batch batch, long stepOffset,
+      List<String> values) {
+    long currentTimestamp;
+    currentTimestamp = getCurrentTimestamp(stepOffset);
+    for (String sensor : deviceSchema.getSensors()) {
+      FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+      String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
+      values.add(value);
+    }
+    batch.add(currentTimestamp, values);
   }
 
   private Batch getLocalOutOfOrderBatch() {
@@ -85,7 +117,7 @@ public class Workload {
         case 1:
           return getGlobalOutOfOrderBatch();
         case 2:
-          return getDistOutOfOrderBatch();
+          return getDistOutOfOrderBatch(deviceSchema);
         default:
           throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
       }

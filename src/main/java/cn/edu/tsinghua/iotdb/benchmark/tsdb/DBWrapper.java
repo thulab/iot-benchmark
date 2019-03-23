@@ -129,7 +129,7 @@ public class DBWrapper implements IDBWrapper {
         en = System.nanoTime();
       }
       db.close();
-      createSchemaTimeInSecond = (st - en) / NANO_TO_SECOND;
+      createSchemaTimeInSecond = (en - st) / NANO_TO_SECOND;
       measurement.setCreateSchemaTime(createSchemaTimeInSecond);
     } catch (Exception e) {
       LOGGER.error("Fail to create schema because {}", e);

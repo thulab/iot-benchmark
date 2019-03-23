@@ -47,6 +47,7 @@ public class App {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     private static final double unitTransfer = 1000000.0;
+    private static final double NANO_TO_SECOND = 1000000000.0d;
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
@@ -100,7 +101,9 @@ public class App {
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
-
+        long st;
+        long en;
+        st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
             Client client = new Client(i, downLatch);
@@ -114,6 +117,8 @@ public class App {
             LOGGER.error("Exception occurred during waiting for all threads finish.", e);
             Thread.currentThread().interrupt();
         }
+        en = System.nanoTime();
+        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
         LOGGER.info("All clients finished.");
         for (Client client : clients) {
             threadsMeasurements.add(client.getMeasurement());
@@ -123,7 +128,8 @@ public class App {
         }
         // must call calculateMetrics() before using the Metrics
         measurement.calculateMetrics();
-
+        measurement.showMeasurements();
+        measurement.showMetrics();
 
     }
 
