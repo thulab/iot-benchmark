@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class Batch {
 
   public Batch() {
     dataPointsList = new ArrayList<>();
-    records = new HashMap<>();
+    records = new LinkedHashMap<>();
   }
 
   public Batch(DeviceSchema deviceSchema, List<DataPoint> list, Map<Long, List<String>> records) {
