@@ -20,8 +20,11 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
@@ -31,10 +34,10 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  private static final double NANO_TO_MILLIS = 1000000.0d;
   private Connection connection;
 
   public IoTDB() {
@@ -73,7 +76,7 @@ public class IoTDB implements IDatabase {
   public void registerSchema(Measurement measurement) {
     DataSchema dataSchema = DataSchema.getInstance();
     int count = 0;
-
+    // set storage group
     try {
       try (Statement statement = connection.createStatement()) {
         for (int i = 0; i < config.GROUP_NUMBER; i++) {
@@ -87,7 +90,7 @@ public class IoTDB implements IDatabase {
     } catch (SQLException e) {
       LOGGER.error("");
     }
-
+    // create time series
     try (Statement statement = connection.createStatement()) {
       for (Entry<Integer, List<DeviceSchema>> entry : dataSchema.getClientBindSchema().entrySet()) {
         List<DeviceSchema> deviceSchemaList = entry.getValue();
@@ -139,6 +142,62 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
+  /**
+   * generate simple query header.
+   *
+   * @param devices schema list of query devices
+   * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0.d_1, root.group_1.d_2
+   */
+  private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT ");
+    List<String> querySensors = devices.get(0).getSensors();
+
+    builder.append(querySensors.get(0));
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder.append(", ").append(querySensors.get(i));
+    }
+    builder.append(" FROM ").append(devices.get(0).getDevicePath());
+    for (int i = 1; i < devices.size(); i++) {
+      builder.append(", ").append(devices.get(i).getDevicePath());
+    }
+
+    return builder.toString();
+  }
+
+  private String getPreciseQuerySql(PreciseQuery preciseQuery) {
+    String strTime = sdf.format(new Date(preciseQuery.getTimestamp()));
+    return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
+  }
+
+  private Status executeQueryAndGetStatus(String sql) {
+    LOGGER.debug("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
+    long st;
+    long en;
+    int line = 0;
+    int queryResultPointNum = 0;
+    try (Statement statement = connection.createStatement()) {
+      st = System.nanoTime();
+      try (ResultSet resultSet = statement.executeQuery(sql)) {
+        while (resultSet.next()) {
+          line++;
+        }
+      }
+      en = System.nanoTime();
+      queryResultPointNum = line * config.QUERY_SENSOR_NUM;
+      return new Status(true, en - st, queryResultPointNum);
+    } catch (Exception e) {
+      return new Status(false, 0, queryResultPointNum, e, sql);
+    }
+  }
+
+  private String getRangeQuerySql(RangeQuery rangeQuery) {
+    String startTime = sdf.format(new Date(rangeQuery.getStartTimestamp()));
+    String endTime = sdf.format(new Date(rangeQuery.getEndTimestamp()));
+    return getSimpleQuerySqlHead(rangeQuery.getDeviceSchema()) + " WHERE time >= " + startTime
+        + " AND time <= " + endTime;
+  }
+
   @Override
   public Status insertOneBatch(Batch batch) {
     long st;
@@ -152,20 +211,22 @@ public class IoTDB implements IDatabase {
       st = System.nanoTime();
       statement.executeBatch();
       en = System.nanoTime();
-      return new Status(true, en - st, null, null);
-    } catch (Exception e){
+      return new Status(true, en - st);
+    } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
   }
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    return null;
+    String sql = getPreciseQuerySql(preciseQuery);
+    return executeQueryAndGetStatus(sql);
   }
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    return null;
+    String sql = getRangeQuerySql(rangeQuery);
+    return executeQueryAndGetStatus(sql);
   }
 
   @Override
@@ -197,4 +258,5 @@ public class IoTDB implements IDatabase {
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     return null;
   }
+
 }

@@ -1441,7 +1441,26 @@ public class IoTDB implements IDatebase {
         // sql = ioTDB.createQuerySQLStatment(devices, 3, "max_value", sensorList);
         // 带value条件带聚合查询
         //sql = ioTDB.createQuerySQLStatment(devices, 3, "max_value", 0.1, sensorList);
+
+        try {
+            ioTDB = new IoTDB(1L);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        ioTDB.test();
+
         System.out.println(sql);
     }
+
+    public void test(){
+        try(Statement statement = connection.createStatement()){
+            statement.execute("insert into root.vehicle.d0(timestamp,s0) values(1,101);");
+        } catch (Exception e){
+            LOGGER.error("Error occur: {}, full message:", e.getMessage(), e);
+        }
+    }
+
 
 }

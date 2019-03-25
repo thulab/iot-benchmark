@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
@@ -61,6 +62,8 @@ public class Client implements Runnable {
   private void doTestWithDefaultPath() {
     for (long loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
+      String percent = String.format("%.2f", loopIndex * 100.0D / config.LOOP);
+      LOGGER.info("{} {}% workload is done.", Thread.currentThread().getName(), percent);
       switch (operation) {
         case INGESTION:
           try {
@@ -69,15 +72,23 @@ public class Client implements Runnable {
               dbWrapper.insertOneBatch(workload.getOneBatch(deviceSchema, insertLoopIndex));
             }
           } catch (Exception e) {
-            LOGGER.error("Failed to insert one batch data, please check workload parameters.", e);
+            LOGGER.error("Failed to insert one batch data because ", e);
           }
           insertLoopIndex++;
           break;
         case PRECISE_QUERY:
-          dbWrapper.preciseQuery(workload.getPreciseQuery());
+          try {
+            dbWrapper.preciseQuery(workload.getPreciseQuery());
+          } catch (Exception e) {
+            LOGGER.error("Failed to do precise query because ", e);
+          }
           break;
         case RANGE_QUERY:
-          dbWrapper.rangeQuery(workload.getRangeQuery());
+          try {
+            dbWrapper.rangeQuery(workload.getRangeQuery());
+          } catch (Exception e) {
+            LOGGER.error("Failed to do range query because ", e);
+          }
           break;
         case VALUE_RANGE_QUERY:
           dbWrapper.valueRangeQuery(workload.getValueRangeQuery());

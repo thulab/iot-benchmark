@@ -190,11 +190,8 @@ public class Measurement {
 
   public void showMeasurements() {
     System.out.println(Thread.currentThread().getName() + " measurements:");
-
-    System.out.println("createSchemaTime in second:");
-    System.out.println(String.format("%.2f", createSchemaTime));
-    System.out.println("elapseTime in second:");
-    System.out.println(String.format("%.2f", elapseTime));
+    System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
+    System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
 
 //    for (Operation operation : Operation.values()) {
 //      System.out.println("Operation:" + operation);
@@ -206,21 +203,22 @@ public class Measurement {
 //      System.out.println("getOperationLatencySumsList:");
 //      System.out.println(getOperationLatencySumsList.get(operation));
 //    }
-
+    System.out.println("-------------------------------Result Matrix Part 1-------------------------------");
     String intervalString = "\t\t";
-    System.out.println("Operation\t\tokOperation\tfailOperation\tokPoint\t\tfailPoint");
+    System.out.println("Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint");
     for (Operation operation : Operation.values()) {
       System.out.print(operation.getName() + intervalString);
       System.out.print(okOperationNumMap.get(operation) + intervalString);
-      System.out.print(failOperationNumMap.get(operation) + intervalString);
       System.out.print(okPointNumMap.get(operation) + intervalString);
+      System.out.print(failOperationNumMap.get(operation) + intervalString);
       System.out.println(failPointNumMap.get(operation) + intervalString);
     }
-
+    System.out.println("----------------------------------------------------------------------------------");
   }
 
   public void showMetrics() {
-    String intervalString = "\t\t";
+    System.out.println("-----------------------------------Result Matrix Part 2-----------------------------------");
+    String intervalString = "\t";
     System.out.print("Operation" + intervalString);
     for (Metric metric : Metric.values()) {
       System.out.print(metric.name + intervalString);
@@ -234,6 +232,7 @@ public class Measurement {
       }
       System.out.println();
     }
+    System.out.println("------------------------------------------------------------------------------------------");
   }
 
   class DoubleComparator implements Comparator<Double> {

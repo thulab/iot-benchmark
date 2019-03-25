@@ -40,35 +40,78 @@ public class DBWrapper implements IDBWrapper {
   @Override
   public void insertOneBatch(Batch batch) {
     Status status;
+    Operation operation = Operation.INGESTION;
     try {
       status = db.insertOneBatch(batch);
       if (status.isOk()) {
         double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
-        measurement.addOperationLatency(Operation.INGESTION, timeInMillis);
-        measurement.addOkOperationNum(Operation.INGESTION);
-        measurement.addOkPointNum(Operation.INGESTION, batch.pointNum());
+        measureOperation(status, operation, batch.pointNum());
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
         LOGGER.info("{} insert one batch latency ,{}, ms", currentThread, formatTimeInMillis);
       } else {
-        measurement.addFailOperationNum(Operation.INGESTION);
-        measurement.addFailPointNum(Operation.INGESTION, batch.pointNum());
+        measurement.addFailOperationNum(operation);
+        measurement.addFailPointNum(operation, batch.pointNum());
       }
     } catch (Exception e) {
-      measurement.addFailOperationNum(Operation.INGESTION);
-      measurement.addFailPointNum(Operation.INGESTION, batch.pointNum());
-      LOGGER.error("Unknown Exception occurred Failed to insert one batch because ", e);
+      measurement.addFailOperationNum(operation);
+      measurement.addFailPointNum(operation, batch.pointNum());
+      LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
   }
 
   @Override
   public void preciseQuery(PreciseQuery preciseQuery) {
-
+    Status status;
+    Operation operation = Operation.PRECISE_QUERY;
+    try {
+      status = db.preciseQuery(preciseQuery);
+      if(status.isOk()){
+        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+        measureOperation(status, operation, status.getQueryResultPointNum());
+        String formatTimeInMillis = String.format("%.2f", timeInMillis);
+        String currentThread = Thread.currentThread().getName();
+        LOGGER.info("{} complete precise query with latency ,{}, ms", currentThread, formatTimeInMillis);
+      } else {
+        measurement.addFailOperationNum(operation);
+        // currently we do not have expected result point number
+        measurement.addOkPointNum(operation, status.getQueryResultPointNum());
+      }
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error("Failed to do precise query because unexpected exception: ", e);
+    }
   }
 
   @Override
   public void rangeQuery(RangeQuery rangeQuery) {
+    Status status;
+    Operation operation = Operation.RANGE_QUERY;
+    try {
+      status = db.rangeQuery(rangeQuery);
+      if(status.isOk()){
+        measureOperation(status, operation, status.getQueryResultPointNum());
+        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+        String formatTimeInMillis = String.format("%.2f", timeInMillis);
+        String currentThread = Thread.currentThread().getName();
+        LOGGER.info("{} complete range query with latency ,{}, ms", currentThread, formatTimeInMillis);
+      } else {
+        measurement.addFailOperationNum(operation);
+        // currently we do not have expected result point number
+        measurement.addOkPointNum(operation, status.getQueryResultPointNum());
+      }
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error("Failed to do range query because unexpected exception: ", e);
+    }
+  }
 
+  private void measureOperation(Status status, Operation operation, int okPointNum){
+    measurement.addOperationLatency(operation, status.getCostTime() / NANO_TO_MILLIS);
+    measurement.addOkOperationNum(operation);
+    measurement.addOkPointNum(operation, okPointNum);
   }
 
   @Override
@@ -122,6 +165,7 @@ public class DBWrapper implements IDBWrapper {
     long en = 0;
     long st = 0;
     db.init();
+    LOGGER.info("Registering schema...");
     try {
       if (config.CREATE_SCHEMA) {
         st = System.nanoTime();

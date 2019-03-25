@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -19,7 +20,10 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +36,11 @@ public class Workload {
   private static Random timestampRandom = new Random(config.DATA_SEED);
   private int curDeviceOffset = 0;
   private List<DeviceSchema> clientDeviceSchemaList;
-  private long curTimestamp = Constants.START_TIMESTAMP;
   private ProbTool probTool;
   private long maxTimestampIndex;
   private Random poissonRandom;
+  private Random queryDeviceRandom;
+  private Map<Operation, Long> operationLoops;
 
   public Workload(int clientId) {
     probTool = new ProbTool();
@@ -43,6 +48,11 @@ public class Workload {
     clientDeviceSchemaList = DataSchema.getInstance().getClientBindSchema().get(clientId);
     maxTimestampIndex = 0;
     poissonRandom = new Random(config.DATA_SEED);
+    queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
+    operationLoops = new EnumMap<>(Operation.class);
+    for (Operation operation : Operation.values()) {
+      operationLoops.put(operation, 0L);
+    }
   }
 
   private long getCurrentTimestamp(long stepOffset) {
@@ -124,12 +134,55 @@ public class Workload {
     }
   }
 
-  public PreciseQuery getPreciseQuery() {
-    return null;
+  private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {
+    checkQuerySchemaParams();
+    List<DeviceSchema> queryDevices = new ArrayList<>();
+    List<Integer> clientDevicesIndex = new ArrayList<>();
+    for (int m = 0; m < config.DEVICE_NUMBER; m++) {
+      clientDevicesIndex.add(m);
+    }
+    Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
+    for (int m = 0; m < config.QUERY_DEVICE_NUM; m++) {
+      DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
+      List<String> sensors = deviceSchema.getSensors();
+      Collections.shuffle(sensors, queryDeviceRandom);
+      List<String> querySensors = new ArrayList<>();
+      for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
+        querySensors.add(sensors.get(i));
+      }
+      deviceSchema.setSensors(querySensors);
+      queryDevices.add(deviceSchema);
+    }
+    return queryDevices;
   }
 
-  public RangeQuery getRangeQuery() {
-    return null;
+  private void checkQuerySchemaParams() throws WorkloadException {
+    if(!(config.QUERY_DEVICE_NUM > 0 && config.QUERY_DEVICE_NUM <= config.DEVICE_NUMBER)){
+      throw new WorkloadException("QUERY_DEVICE_NUM is not correct, please check.");
+    }
+    if(!(config.QUERY_SENSOR_NUM > 0 && config.QUERY_SENSOR_NUM <= config.SENSOR_NUMBER)){
+      throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
+    }
+  }
+
+  private long getQueryStartTimestamp(){
+    long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY) ;
+    long timestampOffset = currentQueryLoop * config.POINT_STEP;
+    operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
+    return Constants.START_TIMESTAMP + timestampOffset;
+  }
+
+  public PreciseQuery getPreciseQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long timestamp = getQueryStartTimestamp();
+    return new PreciseQuery(queryDevices, timestamp);
+  }
+
+  public RangeQuery getRangeQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long startTimestamp = getQueryStartTimestamp();
+    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
   }
 
   public ValueRangeQuery getValueRangeQuery() {
