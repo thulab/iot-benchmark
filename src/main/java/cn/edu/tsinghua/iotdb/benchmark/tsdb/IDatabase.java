@@ -11,6 +11,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import java.io.IOException;
 import java.sql.SQLException;
 
 public interface IDatabase {
@@ -21,7 +22,7 @@ public interface IDatabase {
 
   void close();
 
-  void closeSingleDBInstance();
+  void closeSingleDBInstance() throws IOException;
 
   void registerSchema(Measurement measurement);
 

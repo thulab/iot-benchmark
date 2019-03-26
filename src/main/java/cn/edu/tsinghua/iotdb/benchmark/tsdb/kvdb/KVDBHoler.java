@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb.kvdb;
 
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -9,27 +8,20 @@ import edu.tsinghua.k1.leveldb.LevelTimeSeriesDBFactory;
 import edu.tsinghua.k1.rocksdb.RocksDBTimeSeriesDBFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.locks.ReentrantLock;
 import org.iq80.leveldb.Options;
 
 public class KVDBHoler {
 
   private static TimeSeriesKVDB instance = null;
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static ReentrantLock lock = new ReentrantLock();
 
-  public static TimeSeriesKVDB getInstance() throws IOException {
-    if (instance != null) {
+  public synchronized static TimeSeriesKVDB getInstance() throws IOException {
+    if (instance != null && !instance.isClosed()) {
       return instance;
     } else {
-      lock.lock();
-      try {
-        instance = createKVDB();
-      } finally {
-        lock.unlock();
-      }
+      instance = createKVDB();
+      return instance;
     }
-    return instance;
   }
 
   private static TimeSeriesKVDB createKVDB() throws IOException {

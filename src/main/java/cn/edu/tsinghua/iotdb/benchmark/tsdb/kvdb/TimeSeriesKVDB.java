@@ -17,6 +17,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import edu.tsinghua.k1.api.ITimeSeriesDB;
 import edu.tsinghua.k1.api.ITimeSeriesWriteBatch;
 import edu.tsinghua.k1.api.TimeSeriesDBIterator;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,11 +29,19 @@ public class TimeSeriesKVDB implements IDatabase {
 
 
   private ITimeSeriesDB timeSeriesDB;
+  // indicate whether the db is closed
+  // true means the db is closed
+  // false means the db is not closed
+  private volatile boolean isClosed;
 
   public TimeSeriesKVDB(ITimeSeriesDB timeSeriesDB) {
     this.timeSeriesDB = timeSeriesDB;
+    this.isClosed = false;
   }
 
+  public boolean isClosed(){
+    return this.isClosed;
+  }
 
   @Override
   public void init() {
@@ -47,6 +56,14 @@ public class TimeSeriesKVDB implements IDatabase {
   @Override
   public void close() {
     // Not need to implement
+  }
+
+  @Override
+  public void closeSingleDBInstance() throws IOException {
+    if(this.isClosed==false){
+      this.isClosed = true;
+      this.timeSeriesDB.close();
+    }
   }
 
   @Override

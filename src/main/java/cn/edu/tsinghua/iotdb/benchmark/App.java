@@ -127,6 +127,11 @@ public class App {
             measurement.mergeMeasurement(m);
         }
         // must call calculateMetrics() before using the Metrics
+        try {
+            dbWrapper.closeSingleDBInstance();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         measurement.calculateMetrics();
         measurement.showMeasurements();
         measurement.showMetrics();
