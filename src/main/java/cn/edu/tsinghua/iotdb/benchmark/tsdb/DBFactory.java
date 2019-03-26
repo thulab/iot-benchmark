@@ -15,7 +15,7 @@ public class DBFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(DBFactory.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
-  public IDatabase getDatabase() throws ClassNotFoundException, SQLException {
+  public IDatabase getDatabase() throws SQLException {
 
     switch (config.DB_SWITCH) {
       case Constants.DB_IOT:

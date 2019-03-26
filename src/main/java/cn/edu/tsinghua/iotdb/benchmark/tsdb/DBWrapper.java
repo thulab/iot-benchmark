@@ -17,7 +17,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DBWrapper implements IDBWrapper {
+public class DBWrapper implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IDatabase.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -38,8 +38,8 @@ public class DBWrapper implements IDBWrapper {
   }
 
   @Override
-  public void insertOneBatch(Batch batch) {
-    Status status;
+  public Status insertOneBatch(Batch batch) {
+    Status status = null;
     Operation operation = Operation.INGESTION;
     try {
       status = db.insertOneBatch(batch);
@@ -58,20 +58,22 @@ public class DBWrapper implements IDBWrapper {
       measurement.addFailPointNum(operation, batch.pointNum());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
+    return status;
   }
 
   @Override
-  public void preciseQuery(PreciseQuery preciseQuery) {
-    Status status;
+  public Status preciseQuery(PreciseQuery preciseQuery) {
+    Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
     try {
       status = db.preciseQuery(preciseQuery);
-      if(status.isOk()){
+      if (status.isOk()) {
         double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
         measureOperation(status, operation, status.getQueryResultPointNum());
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
-        LOGGER.info("{} complete precise query with latency ,{}, ms", currentThread, formatTimeInMillis);
+        LOGGER.info("{} complete precise query with latency ,{}, ms", currentThread,
+            formatTimeInMillis);
       } else {
         measurement.addFailOperationNum(operation);
         // currently we do not have expected result point number
@@ -82,20 +84,22 @@ public class DBWrapper implements IDBWrapper {
       // currently we do not have expected result point number
       LOGGER.error("Failed to do precise query because unexpected exception: ", e);
     }
+    return status;
   }
 
   @Override
-  public void rangeQuery(RangeQuery rangeQuery) {
-    Status status;
+  public Status rangeQuery(RangeQuery rangeQuery) {
+    Status status = null;
     Operation operation = Operation.RANGE_QUERY;
     try {
       status = db.rangeQuery(rangeQuery);
-      if(status.isOk()){
+      if (status.isOk()) {
         measureOperation(status, operation, status.getQueryResultPointNum());
         double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
-        LOGGER.info("{} complete range query with latency ,{}, ms", currentThread, formatTimeInMillis);
+        LOGGER.info("{} complete range query with latency ,{}, ms", currentThread,
+            formatTimeInMillis);
       } else {
         measurement.addFailOperationNum(operation);
         // currently we do not have expected result point number
@@ -106,42 +110,43 @@ public class DBWrapper implements IDBWrapper {
       // currently we do not have expected result point number
       LOGGER.error("Failed to do range query because unexpected exception: ", e);
     }
+    return status;
   }
 
-  private void measureOperation(Status status, Operation operation, int okPointNum){
+  private void measureOperation(Status status, Operation operation, int okPointNum) {
     measurement.addOperationLatency(operation, status.getCostTime() / NANO_TO_MILLIS);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
   }
 
   @Override
-  public void valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+    return null;
   }
 
   @Override
-  public void aggRangeQuery(AggRangeQuery aggRangeQuery) {
-
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+    return null;
   }
 
   @Override
-  public void aggValueQuery(AggValueQuery aggValueQuery) {
-
+  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+    return null;
   }
 
   @Override
-  public void aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+    return null;
   }
 
   @Override
-  public void groupByQuery(GroupByQuery groupByQuery) {
-
+  public Status groupByQuery(GroupByQuery groupByQuery) {
+    return null;
   }
 
   @Override
-  public void latestPointQuery(LatestPointQuery latestPointQuery) {
-
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+    return null;
   }
 
   @Override
