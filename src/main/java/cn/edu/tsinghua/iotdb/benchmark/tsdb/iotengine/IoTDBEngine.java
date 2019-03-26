@@ -40,6 +40,12 @@ public class IoTDBEngine implements IDatabase {
   private static ITSEngine engine;
 
   public IoTDBEngine() {
+
+  }
+
+
+  @Override
+  public void init() {
     synchronized (IoTDBEngine.class) {
       if (engine == null) {
         File file = new File(config.GEN_DATA_FILE_PATH);
@@ -62,12 +68,6 @@ public class IoTDBEngine implements IDatabase {
       }
       reference++;
     }
-  }
-
-
-  @Override
-  public void init() {
-
   }
 
   @Override
