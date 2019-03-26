@@ -29,12 +29,16 @@ public class Config {
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
+	/** 设备和客户端是否绑定 */
+	public boolean IS_CLIENT_BIND = true;
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
+	/** 查询时间戳变化增加步长 */
+	public int STEP_SIZE = 1;
 	/** 数据发送缓存条数 */
 	public int BATCH_SIZE = 10;
 	/** 存储组数量 */

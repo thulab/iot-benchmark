@@ -19,6 +19,8 @@ public interface IDBWrapper {
 
   void close();
 
+  void closeSingleDBInstance();
+
   void registerSchema(Measurement measurement);
 
   void insertOneBatch(Batch batch);

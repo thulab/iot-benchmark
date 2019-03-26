@@ -73,6 +73,11 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
+  public void closeSingleDBInstance() {
+
+  }
+
+  @Override
   public void registerSchema(Measurement measurement) {
     DataSchema dataSchema = DataSchema.getInstance();
     int count = 0;
