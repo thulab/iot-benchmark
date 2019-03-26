@@ -14,6 +14,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +146,7 @@ public class DBWrapper implements IDBWrapper {
   }
 
   @Override
-  public void init() {
+  public void init() throws SQLException {
     db.init();
   }
 
@@ -160,7 +161,7 @@ public class DBWrapper implements IDBWrapper {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) {
+  public void registerSchema(Measurement measurement) throws SQLException {
     double createSchemaTimeInSecond = 0;
     long en = 0;
     long st = 0;

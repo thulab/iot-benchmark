@@ -15,7 +15,7 @@ import java.sql.SQLException;
 
 public interface IDatabase {
 
-  void init();
+  void init() throws SQLException;
 
   void cleanup();
 

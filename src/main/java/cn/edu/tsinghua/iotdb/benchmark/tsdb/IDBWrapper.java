@@ -10,16 +10,17 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import java.sql.SQLException;
 
 public interface IDBWrapper {
 
-  void init();
+  void init() throws SQLException;
 
   void cleanup();
 
   void close();
 
-  void registerSchema(Measurement measurement);
+  void registerSchema(Measurement measurement) throws SQLException;
 
   void insertOneBatch(Batch batch);
 

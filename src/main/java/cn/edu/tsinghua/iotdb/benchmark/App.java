@@ -90,7 +90,7 @@ public class App {
     /**
      * 按比例选择workload执行的测试
      */
-    private static void testWithDefaultPath(Config config) {
+    private static void testWithDefaultPath(Config config) throws SQLException {
         MySqlLog mysql = new MySqlLog();
         mysql.initMysql(System.currentTimeMillis());
 
