@@ -118,8 +118,10 @@ public class App {
             Thread.currentThread().interrupt();
         }
         en = System.nanoTime();
-        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
+        dbWrapper.closeSingleDBInstance();
         LOGGER.info("All clients finished.");
+
+        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
         for (Client client : clients) {
             threadsMeasurements.add(client.getMeasurement());
         }

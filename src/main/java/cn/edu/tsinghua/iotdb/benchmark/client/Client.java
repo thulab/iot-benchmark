@@ -3,12 +3,10 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
@@ -50,7 +48,7 @@ public class Client implements Runnable {
     try {
       try {
         doTestWithDefaultPath();
-      } catch (Exception e){
+      } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       }
       dbWrapper.close();
@@ -64,7 +62,7 @@ public class Client implements Runnable {
       Operation operation = operationController.getNextOperationType();
       switch (operation) {
         case INGESTION:
-          if(config.IS_CLIENT_BIND) {
+          if (config.IS_CLIENT_BIND) {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
@@ -76,9 +74,7 @@ public class Client implements Runnable {
             insertLoopIndex++;
           } else {
             try {
-
               dbWrapper.insertOneBatch(singletonWorkload.getOneBatch());
-
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }

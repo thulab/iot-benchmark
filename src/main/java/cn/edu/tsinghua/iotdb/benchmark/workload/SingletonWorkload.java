@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,6 @@ public class SingletonWorkload {
   private ProbTool probTool;
   private Random poissonRandom;
   private AtomicLong insertLoop;
-  private AtomicInteger deviceIndex;
   private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
 
 
@@ -37,7 +35,6 @@ public class SingletonWorkload {
 
   private SingletonWorkload() {
     insertLoop = new AtomicLong(0);
-    deviceIndex = new AtomicInteger(0);
     deviceMaxTimeIndexMap = new ConcurrentHashMap<>();
     for (int i = 0; i < config.DEVICE_NUMBER; i++) {
       deviceMaxTimeIndexMap.put(i, new AtomicLong(0));
@@ -51,16 +48,17 @@ public class SingletonWorkload {
     DeviceSchema deviceSchema = new DeviceSchema((int) (curLoop % config.DEVICE_NUMBER));
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
-      List<String> values = new ArrayList<>();
       long stepOffset = (curLoop / config.DEVICE_NUMBER) * config.BATCH_SIZE + batchOffset;
-      Workload.generateBatch(deviceSchema, batch, stepOffset, values);
+      Workload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
   private Batch getDistOutOfOrderBatch() {
-    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex.get());
+    long curLoop = insertLoop.getAndIncrement();
+    int deviceIndex = (int) (curLoop % config.DEVICE_NUMBER);
+    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex);
     Batch batch = new Batch();
     PossionDistribution possionDistribution = new PossionDistribution(poissonRandom);
     int nextDelta;
@@ -69,18 +67,14 @@ public class SingletonWorkload {
       if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
         // generate overflow timestamp
         nextDelta = possionDistribution.getNextPossionDelta();
-        stepOffset = deviceMaxTimeIndexMap.get(deviceIndex.get()).get() - nextDelta;
+        stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).get() - nextDelta;
       } else {
         // generate normal increasing timestamp
-        stepOffset = deviceMaxTimeIndexMap.get(deviceIndex.get()).incrementAndGet();
+        stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).getAndIncrement();
       }
-      List<String> values = new ArrayList<>();
-      Workload.generateBatch(deviceSchema, batch, stepOffset, values);
+      Workload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
-    if (deviceIndex.incrementAndGet() == config.DEVICE_NUMBER) {
-      deviceIndex.set(0);
-    }
     return batch;
   }
 

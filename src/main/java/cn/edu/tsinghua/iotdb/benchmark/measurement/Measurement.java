@@ -217,7 +217,7 @@ public class Measurement {
   }
 
   public void showMetrics() {
-    System.out.println("-----------------------------------Result Matrix Part 2-----------------------------------");
+    System.out.println("--------------------------------------Result Matrix Part 2--------------------------------------");
     String intervalString = "\t";
     System.out.print("Operation" + intervalString);
     for (Metric metric : Metric.values()) {
@@ -232,7 +232,7 @@ public class Measurement {
       }
       System.out.println();
     }
-    System.out.println("------------------------------------------------------------------------------------------");
+    System.out.println("------------------------------------------------------------------------------------------------");
   }
 
   class DoubleComparator implements Comparator<Double> {
@@ -266,16 +266,16 @@ public class Measurement {
   }
 
   public enum Metric {
-    MAX_THREAD_LATENCY_SUM("MAX_SUM"),
     AVG_LATENCY("AVG"),
     MID_AVG_LATENCY("MID_AVG"),
     MIN_LATENCY("MIN"),
     P10_LATENCY("P10"),
     P25_LATENCY("P25"),
-    P75_LATENCY("P75"),
     MEDIAN_LATENCY("MEDIAN"),
+    P75_LATENCY("P75"),
     P90_LATENCY("P90"),
-    MAX_LATENCY("MAX");
+    MAX_LATENCY("MAX"),
+    MAX_THREAD_LATENCY_SUM("MAX_SUM");
 
     public Map<Operation, Double> getTypeValueMap() {
       return typeValueMap;

@@ -67,9 +67,8 @@ public class Workload {
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
-      List<String> values = new ArrayList<>();
       long stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-      generateBatch(deviceSchema, batch, stepOffset, values);
+      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -90,15 +89,14 @@ public class Workload {
         maxTimestampIndex++;
         stepOffset = maxTimestampIndex;
       }
-      List<String> values = new ArrayList<>();
-      generateBatch(deviceSchema, batch, stepOffset, values);
+      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
-  static void generateBatch(DeviceSchema deviceSchema, Batch batch, long stepOffset,
-      List<String> values) {
+  static void addOneRowIntoBatch(DeviceSchema deviceSchema, Batch batch, long stepOffset) {
+    List<String> values = new ArrayList<>();
     long currentTimestamp;
     currentTimestamp = getCurrentTimestamp(stepOffset);
     for (String sensor : deviceSchema.getSensors()) {
