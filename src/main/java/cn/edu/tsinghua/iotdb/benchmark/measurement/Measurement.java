@@ -192,17 +192,8 @@ public class Measurement {
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
+    System.out.println("Ingestion throughput (okPoint*1000/MAX_SUM) =  " + String.format("%.2f", okPointNumMap.get(Operation.INGESTION)/Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(Operation.INGESTION)) + " points/s");
 
-//    for (Operation operation : Operation.values()) {
-//      System.out.println("Operation:" + operation);
-//      System.out.println("operationLatencies:");
-//      System.out.println(
-//          operationLatencies.get(operation) + ", size=" + operationLatencies.get(operation).size());
-//      System.out.println("operationLatencySums:");
-//      System.out.println(operationLatencySums.get(operation));
-//      System.out.println("getOperationLatencySumsList:");
-//      System.out.println(getOperationLatencySumsList.get(operation));
-//    }
     System.out.println("-------------------------------Result Matrix Part 1-------------------------------");
     String intervalString = "\t\t";
     System.out.println("Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint");

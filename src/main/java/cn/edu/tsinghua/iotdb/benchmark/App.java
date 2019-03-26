@@ -97,6 +97,9 @@ public class App {
         mysql.savaTestConfig();
         Measurement measurement = new Measurement();
         DBWrapper dbWrapper = new DBWrapper(measurement);
+        if(config.IS_DELETE_DATA){
+            dbWrapper.cleanup();
+        }
         dbWrapper.registerSchema(measurement);
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();

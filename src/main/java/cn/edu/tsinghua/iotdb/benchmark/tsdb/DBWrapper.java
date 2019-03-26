@@ -48,7 +48,9 @@ public class DBWrapper implements IDatabase {
         measureOperation(status, operation, batch.pointNum());
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
-        LOGGER.info("{} insert one batch latency ,{}, ms", currentThread, formatTimeInMillis);
+        double throughput = batch.pointNum() * 1000 / timeInMillis;
+        LOGGER.info("{} insert one batch latency ,{}, ms, throughput ,{}, points/s", currentThread,
+            formatTimeInMillis, throughput);
       } else {
         measurement.addFailOperationNum(operation);
         measurement.addFailPointNum(operation, batch.pointNum());
@@ -174,7 +176,6 @@ public class DBWrapper implements IDatabase {
     double createSchemaTimeInSecond = 0;
     long en = 0;
     long st = 0;
-    db.init();
     LOGGER.info("Registering schema...");
     try {
       if (config.CREATE_SCHEMA) {

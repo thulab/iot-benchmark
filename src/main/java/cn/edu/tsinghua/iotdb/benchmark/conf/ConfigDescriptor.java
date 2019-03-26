@@ -135,7 +135,7 @@ public class ConfigDescriptor {
 				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));
 				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
 				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
-
+				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
