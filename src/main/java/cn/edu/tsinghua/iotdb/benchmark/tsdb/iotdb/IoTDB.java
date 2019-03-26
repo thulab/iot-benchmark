@@ -122,8 +122,6 @@ public class IoTDB implements IDatabase {
     } catch (SQLException e) {
       LOGGER.error("Register IoTDB schema failed because ", e);
     }
-
-
   }
 
   private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
