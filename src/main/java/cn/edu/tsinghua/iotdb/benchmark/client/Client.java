@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
+import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
@@ -25,6 +26,7 @@ public class Client implements Runnable {
   private CountDownLatch countDownLatch;
   private int clientThreadId;
   private Workload workload;
+  private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
   private DataSchema dataSchema = DataSchema.getInstance();
 
@@ -32,6 +34,7 @@ public class Client implements Runnable {
     this.countDownLatch = countDownLatch;
     clientThreadId = id;
     workload = new Workload(id);
+    singletonWorkload = SingletonWorkload.getInstance();
     operationController = new OperationController(id);
     measurement = new Measurement();
     dbWrapper = new DBWrapper(measurement);
@@ -45,13 +48,10 @@ public class Client implements Runnable {
   @Override
   public void run() {
     try {
-      switch (config.BENCHMARK_WORK_MODE) {
-        case Constants.MODE_TEST_WITH_DEFAULT_PATH:
-          doTestWithDefaultPath();
-          break;
-        case Constants.MODE_UNBIND_WITH_DEFAULT_PATH:
-          doUnbindTestWithDefaultPath();
-        default:
+      try {
+        doTestWithDefaultPath();
+      } catch (Exception e){
+        LOGGER.error("Unexpected error: ", e);
       }
       dbWrapper.close();
     } finally {
@@ -62,19 +62,27 @@ public class Client implements Runnable {
   private void doTestWithDefaultPath() {
     for (long loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
-      String percent = String.format("%.2f", loopIndex * 100.0D / config.LOOP);
-      LOGGER.info("{} {}% workload is done.", Thread.currentThread().getName(), percent);
       switch (operation) {
         case INGESTION:
-          try {
-            List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
-            for (DeviceSchema deviceSchema: schema) {
-              dbWrapper.insertOneBatch(workload.getOneBatch(deviceSchema, insertLoopIndex));
+          if(config.IS_CLIENT_BIND) {
+            try {
+              List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
+              for (DeviceSchema deviceSchema : schema) {
+                dbWrapper.insertOneBatch(workload.getOneBatch(deviceSchema, insertLoopIndex));
+              }
+            } catch (Exception e) {
+              LOGGER.error("Failed to insert one batch data because ", e);
             }
-          } catch (Exception e) {
-            LOGGER.error("Failed to insert one batch data because ", e);
+            insertLoopIndex++;
+          } else {
+            try {
+
+              dbWrapper.insertOneBatch(singletonWorkload.getOneBatch());
+
+            } catch (Exception e) {
+              LOGGER.error("Failed to insert one batch data because ", e);
+            }
           }
-          insertLoopIndex++;
           break;
         case PRECISE_QUERY:
           try {
@@ -111,10 +119,9 @@ public class Client implements Runnable {
         default:
           LOGGER.error("Unsupported operation type {}", operation);
       }
+      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
+      LOGGER.info("{} {}% workload is done.", Thread.currentThread().getName(), percent);
     }
   }
 
-  private void doUnbindTestWithDefaultPath() {
-
-  }
 }

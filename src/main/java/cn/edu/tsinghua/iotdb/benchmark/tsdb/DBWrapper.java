@@ -160,6 +160,11 @@ public class DBWrapper implements IDBWrapper {
   }
 
   @Override
+  public void closeSingleDBInstance() {
+    db.closeSingleDBInstance();
+  }
+
+  @Override
   public void registerSchema(Measurement measurement) {
     double createSchemaTimeInSecond = 0;
     long en = 0;
@@ -172,11 +177,12 @@ public class DBWrapper implements IDBWrapper {
         db.registerSchema(measurement);
         en = System.nanoTime();
       }
-      db.close();
       createSchemaTimeInSecond = (en - st) / NANO_TO_SECOND;
       measurement.setCreateSchemaTime(createSchemaTimeInSecond);
     } catch (Exception e) {
       LOGGER.error("Fail to create schema because {}", e);
+    } finally {
+      db.close();
     }
     measurement.setCreateSchemaTime(createSchemaTimeInSecond);
   }

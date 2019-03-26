@@ -31,6 +31,11 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
+  public void closeSingleDBInstance() {
+
+  }
+
+  @Override
   public void registerSchema(Measurement measurement) {
 
   }

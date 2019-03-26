@@ -133,6 +133,9 @@ public class ConfigDescriptor {
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
 				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));
+				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
+				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

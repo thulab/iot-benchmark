@@ -21,6 +21,8 @@ public interface IDatabase {
 
   void close();
 
+  void closeSingleDBInstance();
+
   void registerSchema(Measurement measurement);
 
   Status insertOneBatch(Batch batch);

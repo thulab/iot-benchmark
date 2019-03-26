@@ -53,7 +53,6 @@ public class Constants {
     public static final String MODE_QUERY_TEST_WITH_DEFAULT_PATH = "queryTestWithDefaultPath";
     public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
     public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
-    public static final String MODE_UNBIND_WITH_DEFAULT_PATH = "clientUnbindDefaultPath";
     public static final String MODE_SERVER_MODE = "serverMODE";
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
     public static final String MODE_INSERT_TEST_WITH_USERDEFINED_PATH = "insertTestWithUserDefinedPath";
