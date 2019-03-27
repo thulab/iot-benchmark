@@ -22,6 +22,8 @@ public class DBFactory {
         return new IoTDB();
       case Constants.DB_INFLUX:
         return new InfluxDB();
+      case Constants.DB_IOTDB_ENGINE:
+        return new cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdbengine.IoTDBEngine();
       default:
         LOGGER.error("unsupported database {}", config.DB_SWITCH);
         throw new SQLException("unsupported database " + config.DB_SWITCH);
