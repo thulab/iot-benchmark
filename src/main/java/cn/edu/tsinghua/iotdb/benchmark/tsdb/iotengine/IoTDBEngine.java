@@ -40,12 +40,6 @@ public class IoTDBEngine implements IDatabase {
   private static ITSEngine engine;
 
   public IoTDBEngine() {
-
-  }
-
-
-  @Override
-  public void init() {
     synchronized (IoTDBEngine.class) {
       if (engine == null) {
         File file = new File(config.GEN_DATA_FILE_PATH);
@@ -70,9 +64,15 @@ public class IoTDBEngine implements IDatabase {
     }
   }
 
+
+  @Override
+  public void init() {
+    // No need to implement
+  }
+
   @Override
   public void cleanup() {
-
+    // No need to implement
   }
 
   @Override
@@ -81,6 +81,7 @@ public class IoTDBEngine implements IDatabase {
       if (reference == 1) {
         try {
           engine.close();
+          engine = null;
         } catch (IOException e) {
           // wrapper the exception as one exception
           e.printStackTrace();
@@ -92,7 +93,7 @@ public class IoTDBEngine implements IDatabase {
 
   @Override
   public void closeSingleDBInstance() {
-
+    // No need to implement
   }
 
   @Override
@@ -108,7 +109,7 @@ public class IoTDBEngine implements IDatabase {
         e.printStackTrace();
       }
     }
-    // timeseries
+    // time series
     for (Entry<Integer, List<DeviceSchema>> entry : dataSchema.getClientBindSchema().entrySet()) {
       List<DeviceSchema> deviceSchemaList = entry.getValue();
       for (DeviceSchema deviceSchema : deviceSchemaList) {
@@ -218,31 +219,31 @@ public class IoTDBEngine implements IDatabase {
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return null;
+    throw new RuntimeException("No need to implement");
   }
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return null;
+    throw new RuntimeException("No need to implement");
   }
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return null;
+    throw new RuntimeException("No need to implement");
   }
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return null;
+    throw new RuntimeException("No need to implement");
   }
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    return null;
+    throw new RuntimeException("No need to implement");
   }
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return null;
+    throw new RuntimeException("No need to implement");
   }
 }
