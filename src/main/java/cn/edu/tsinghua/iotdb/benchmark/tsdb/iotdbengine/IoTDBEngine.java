@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -40,6 +41,11 @@ public class IoTDBEngine implements IDatabase {
   private static ITSEngine engine;
 
   public IoTDBEngine() {
+
+  }
+
+  @Override
+  public void init() throws TsdbException {
     synchronized (IoTDBEngine.class) {
       if (engine == null) {
         File file = new File(config.GEN_DATA_FILE_PATH);
@@ -56,35 +62,28 @@ public class IoTDBEngine implements IDatabase {
         try {
           engine.openOrCreate();
         } catch (IoTDBEngineException e) {
-          // TODO should add this function to init??
-          e.printStackTrace();
+          throw new TsdbException(e);
         }
+
       }
       reference++;
     }
   }
 
-
   @Override
-  public void init() {
+  public void cleanup() throws TsdbException {
     // No need to implement
   }
 
   @Override
-  public void cleanup() {
-    // No need to implement
-  }
-
-  @Override
-  public void close() {
+  public void close() throws TsdbException {
     synchronized (IoTDBEngine.class) {
       if (reference == 1) {
         try {
           engine.close();
           engine = null;
         } catch (IOException e) {
-          // wrapper the exception as one exception
-          e.printStackTrace();
+          throw new TsdbException(e);
         }
       }
       reference--;
@@ -92,7 +91,7 @@ public class IoTDBEngine implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) {
+  public void registerSchema(Measurement measurement) throws TsdbException {
     DataSchema dataSchema = DataSchema.getInstance();
     // storage group
     for (int i = 0; i < config.GROUP_NUMBER; i++) {
@@ -100,8 +99,7 @@ public class IoTDBEngine implements IDatabase {
       try {
         setStorgeGroup(sg);
       } catch (IOException e) {
-        //TODO throws common exception
-        e.printStackTrace();
+        throw new TsdbException(e);
       }
     }
     // time series
@@ -115,8 +113,7 @@ public class IoTDBEngine implements IDatabase {
           try {
             createTimeseriesBatch(path, sensor);
           } catch (IOException e) {
-            //TODO throws common exception
-            e.printStackTrace();
+            throw new TsdbException(e);
           }
         }
       }
