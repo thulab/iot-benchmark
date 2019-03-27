@@ -192,18 +192,12 @@ public class Measurement {
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
+    double time = Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(Operation.INGESTION) / 1000;
+    String rate = String.format("%.2f", okPointNumMap.get(Operation.INGESTION) / time);
+    System.out.println("Ingestion throughput (okPoint*1000/MAX_SUM) =  " + rate + " points/s");
 
-//    for (Operation operation : Operation.values()) {
-//      System.out.println("Operation:" + operation);
-//      System.out.println("operationLatencies:");
-//      System.out.println(
-//          operationLatencies.get(operation) + ", size=" + operationLatencies.get(operation).size());
-//      System.out.println("operationLatencySums:");
-//      System.out.println(operationLatencySums.get(operation));
-//      System.out.println("getOperationLatencySumsList:");
-//      System.out.println(getOperationLatencySumsList.get(operation));
-//    }
-    System.out.println("-------------------------------Result Matrix Part 1-------------------------------");
+    System.out.println(
+        "----------------------------------Status Matrix----------------------------------");
     String intervalString = "\t\t";
     System.out.println("Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint");
     for (Operation operation : Operation.values()) {
@@ -213,11 +207,13 @@ public class Measurement {
       System.out.print(failOperationNumMap.get(operation) + intervalString);
       System.out.println(failPointNumMap.get(operation) + intervalString);
     }
-    System.out.println("----------------------------------------------------------------------------------");
+    System.out.println(
+        "---------------------------------------------------------------------------------");
   }
 
   public void showMetrics() {
-    System.out.println("-----------------------------------Result Matrix Part 2-----------------------------------");
+    System.out.println(
+        "--------------------------------------Latency (ms) Matrix--------------------------------------");
     String intervalString = "\t";
     System.out.print("Operation" + intervalString);
     for (Metric metric : Metric.values()) {
@@ -232,7 +228,8 @@ public class Measurement {
       }
       System.out.println();
     }
-    System.out.println("------------------------------------------------------------------------------------------");
+    System.out.println(
+        "-----------------------------------------------------------------------------------------------");
   }
 
   class DoubleComparator implements Comparator<Double> {
@@ -266,16 +263,16 @@ public class Measurement {
   }
 
   public enum Metric {
-    MAX_THREAD_LATENCY_SUM("MAX_SUM"),
     AVG_LATENCY("AVG"),
     MID_AVG_LATENCY("MID_AVG"),
     MIN_LATENCY("MIN"),
     P10_LATENCY("P10"),
     P25_LATENCY("P25"),
-    P75_LATENCY("P75"),
     MEDIAN_LATENCY("MEDIAN"),
+    P75_LATENCY("P75"),
     P90_LATENCY("P90"),
-    MAX_LATENCY("MAX");
+    MAX_LATENCY("MAX"),
+    MAX_THREAD_LATENCY_SUM("MAX_SUM");
 
     public Map<Operation, Double> getTypeValueMap() {
       return typeValueMap;

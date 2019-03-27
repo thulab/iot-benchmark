@@ -1,5 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -105,12 +108,18 @@ public class WorkloadTest {
    */
   @Test
   public void testGetOrderedBatch() throws Exception {
-    config.BATCH_SIZE = 1;
+    config.BATCH_SIZE = 5;
     config.POINT_STEP = 5000;
     config.IS_RANDOM_TIMESTAMP_INTERVAL = false;
     Workload workload = new Workload(1);
     for (int i = 0; i < 3; i++) {
-      Batch batch = workload.getOneBatch(new DeviceSchema(1), 1);
+      Batch batch = workload.getOneBatch(new DeviceSchema(1), i);
+      long old = 0;
+      for(long t: batch.getRecords().keySet()){
+        // 检查map里timestamp获取到的是否是按序的
+        assertTrue(t > old);
+        old = t;
+      }
       System.out.println(batch.getRecords().toString());
     }
 

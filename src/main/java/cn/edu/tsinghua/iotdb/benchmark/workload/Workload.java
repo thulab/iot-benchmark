@@ -55,7 +55,7 @@ public class Workload {
     }
   }
 
-  private long getCurrentTimestamp(long stepOffset) {
+  private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.POINT_STEP * stepOffset;
     long currentTimestamp = Constants.START_TIMESTAMP + timeStampOffset;
     if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
@@ -67,9 +67,8 @@ public class Workload {
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
-      List<String> values = new ArrayList<>();
       long stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-      generateBatch(deviceSchema, batch, stepOffset, values);
+      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -90,15 +89,14 @@ public class Workload {
         maxTimestampIndex++;
         stepOffset = maxTimestampIndex;
       }
-      List<String> values = new ArrayList<>();
-      generateBatch(deviceSchema, batch, stepOffset, values);
+      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
-  private void generateBatch(DeviceSchema deviceSchema, Batch batch, long stepOffset,
-      List<String> values) {
+  static void addOneRowIntoBatch(DeviceSchema deviceSchema, Batch batch, long stepOffset) {
+    List<String> values = new ArrayList<>();
     long currentTimestamp;
     currentTimestamp = getCurrentTimestamp(stepOffset);
     for (String sensor : deviceSchema.getSensors()) {
@@ -157,17 +155,17 @@ public class Workload {
   }
 
   private void checkQuerySchemaParams() throws WorkloadException {
-    if(!(config.QUERY_DEVICE_NUM > 0 && config.QUERY_DEVICE_NUM <= config.DEVICE_NUMBER)){
+    if (!(config.QUERY_DEVICE_NUM > 0 && config.QUERY_DEVICE_NUM <= config.DEVICE_NUMBER)) {
       throw new WorkloadException("QUERY_DEVICE_NUM is not correct, please check.");
     }
-    if(!(config.QUERY_SENSOR_NUM > 0 && config.QUERY_SENSOR_NUM <= config.SENSOR_NUMBER)){
+    if (!(config.QUERY_SENSOR_NUM > 0 && config.QUERY_SENSOR_NUM <= config.SENSOR_NUMBER)) {
       throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
     }
   }
 
-  private long getQueryStartTimestamp(){
-    long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY) ;
-    long timestampOffset = currentQueryLoop * config.POINT_STEP;
+  private long getQueryStartTimestamp() {
+    long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
+    long timestampOffset = currentQueryLoop * config.STEP_SIZE * config.POINT_STEP;
     operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
     return Constants.START_TIMESTAMP + timestampOffset;
   }

@@ -11,22 +11,56 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
-import java.sql.SQLException;
 
 public interface IDatabase {
 
-  void init() throws SQLException;
+  /**
+   * Initialize any state for this DB.
+   * Called once per DB instance; there is one DB instance per client thread.
+   */
+  void init() throws TsdbException;
 
-  void cleanup();
+  /**
+   * Cleanup any state for this DB, including the old data deletion.
+   * Called once before each test if IS_DELETE_DATA=true.
+   */
+  void cleanup() throws TsdbException;
 
-  void close();
+  /**
+   * Close the DB instance connections.
+   * Called once per DB instance.
+   */
+  void close() throws TsdbException;
 
-  void registerSchema(Measurement measurement);
+  /**
+   * Called once before each test if CREATE_SCHEMA=true.
+   * @param measurement measure the time cost.
+   */
+  void registerSchema(Measurement measurement) throws TsdbException;
 
+  /**
+   * Insert one batch into the database, the DB implementation needs to resolve the data in batch
+   * which contains device schema and Map[Long, List[String]] records. The key of records is a
+   * timestamp and the value is a list of sensor value data.
+   * @param batch universal insertion data structure
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status insertOneBatch(Batch batch);
 
+  /**
+   * Query data of one or multiple sensors at a precise timestamp.
+   * e.g. select v1... from data where time = ? and device in ?
+   * @param preciseQuery universal precise query condition parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status preciseQuery(PreciseQuery preciseQuery);
 
+  /**
+   * Query data of one or multiple sensors in a time range.
+   * e.g. select v1... from data where time > ? and time < ? and device in ?
+   * @param rangeQuery universal range query condition parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status rangeQuery(RangeQuery rangeQuery);
 
   Status valueRangeQuery(ValueRangeQuery valueRangeQuery);

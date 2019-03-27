@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -17,7 +18,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -50,53 +50,59 @@ public class InfluxDB implements IDatabase {
     influxUrl = config.DB_URL;
     influxDbName = config.DB_NAME;
     dataType = config.DATA_TYPE.toLowerCase();
-    influxDbInstance = org.influxdb.InfluxDBFactory.connect(influxUrl);
   }
 
   @Override
-  public void init() throws SQLException {
-    //delete old data
-    if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
-      if (!influxDbInstance.databaseExists(influxDbName)) {
-        throw new SQLException("要查询的数据库" + influxDbName + "不存在！");
-      }
-    } else {
+  public void init() throws TsdbException {
+    try {
+      influxDbInstance = org.influxdb.InfluxDBFactory.connect(influxUrl);
+    } catch (Exception e) {
+      LOGGER.error("Initialize InfluxDB failed because ", e);
+      throw new TsdbException(e);
+    }
+  }
+
+
+  @Override
+  public void cleanup() throws TsdbException {
+    if (!config.IS_DELETE_DATA) {
+      return;
+    }
+    try {
       if (influxDbInstance.databaseExists(influxDbName)) {
         influxDbInstance.deleteDatabase(influxDbName);
       }
-      createDatabase(influxDbName);
-    }
-    // wait for deletion complete
-    try {
-      LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-      Thread.sleep(config.INIT_WAIT_TIME);
-    } catch (InterruptedException e) {
-      throw new SQLException(e);
-    }
-  }
 
-  @Override
-  public void cleanup() {
-    if (influxDbInstance.databaseExists(influxDbName)) {
-      influxDbInstance.deleteDatabase(influxDbName);
-    }
-    // wait for deletion complete
-    try {
+      // wait for deletion complete
       LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
       Thread.sleep(config.INIT_WAIT_TIME);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      LOGGER.error("Cleanup InfluxDB failed because ", e);
+      throw new TsdbException(e);
     }
   }
 
   @Override
   public void close() {
-    influxDbInstance.close();
+    if (influxDbInstance != null) {
+      influxDbInstance.close();
+    }
   }
 
   @Override
-  public void registerSchema(Measurement measurement) {
-    // no need for InfluxDB
+  public void registerSchema(Measurement measurement) throws TsdbException {
+    try {
+      if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
+        if (!influxDbInstance.databaseExists(influxDbName)) {
+          throw new TsdbException("要查询的数据库" + influxDbName + "不存在！");
+        }
+      } else {
+        createDatabase(influxDbName);
+      }
+    } catch (Exception e) {
+      LOGGER.error("RegisterSchema InfluxDB failed because ", e);
+      throw new TsdbException(e);
+    }
   }
 
   @Override
@@ -248,7 +254,7 @@ public class InfluxDB implements IDatabase {
    *
    * @param devices schema list of query devices
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
-   *      WHERE(device='d_0' OR device='d_1')
+   *        WHERE(device='d_0' OR device='d_1')
    */
   private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
