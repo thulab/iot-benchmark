@@ -2,7 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
@@ -65,9 +64,6 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public void cleanup() throws TsdbException {
-    if (!config.IS_DELETE_DATA) {
-      return;
-    }
     try {
       if (influxDbInstance.databaseExists(influxDbName)) {
         influxDbInstance.deleteDatabase(influxDbName);
@@ -92,13 +88,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public void registerSchema(Measurement measurement) throws TsdbException {
     try {
-      if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_QUERY_TEST_WITH_DEFAULT_PATH)) {
-        if (!influxDbInstance.databaseExists(influxDbName)) {
-          throw new TsdbException("要查询的数据库" + influxDbName + "不存在！");
-        }
-      } else {
-        createDatabase(influxDbName);
-      }
+      influxDbInstance.createDatabase(influxDbName);
     } catch (Exception e) {
       LOGGER.error("RegisterSchema InfluxDB failed because ", e);
       throw new TsdbException(e);
@@ -107,7 +97,7 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    BatchPoints batchPoints = BatchPoints.database(influxDbName).tag("async", "true")
+    BatchPoints batchPoints = BatchPoints.database(influxDbName)
         .retentionPolicy(defaultRp)
         .consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
 
@@ -169,23 +159,11 @@ public class InfluxDB implements IDatabase {
     return null;
   }
 
-  /**
-   * create database.
-   *
-   * @param databaseName database name
-   */
-  private void createDatabase(String databaseName) {
-    influxDbInstance.createDatabase(databaseName);
-  }
-
   private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
       List<String> valueList)
       throws Exception {
     InfluxDataModel model = new InfluxDataModel();
-    int deviceNum = deviceSchema.getDeviceId();
-    int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-    int groupNum = deviceNum / groupSize;
-    model.measurement = "group_" + groupNum;
+    model.measurement = deviceSchema.getGroup();
     model.tagSet.put("device", deviceSchema.getDevice());
     model.timestamp = time;
     List<String> sensors = deviceSchema.getSensors();
@@ -234,6 +212,7 @@ public class InfluxDB implements IDatabase {
       }
     }
     long endTimeStamp = System.nanoTime();
+    LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), cnt);
     return new Status(true, endTimeStamp - startTimeStamp, cnt);
   }
 
@@ -266,16 +245,16 @@ public class InfluxDB implements IDatabase {
       builder.append(", ").append(querySensors.get(i));
     }
 
-    Set<Integer> groups = new HashSet<>();
+    Set<String> groups = new HashSet<>();
     for (DeviceSchema d : devices) {
-      groups.add(d.getDeviceId() / (config.DEVICE_NUMBER / config.GROUP_NUMBER));
+      groups.add(d.getGroup());
     }
     builder.append(" FROM ");
-    for (int g : groups) {
-      builder.append(" group_" + g).append(" , ");
+    for (String g : groups) {
+      builder.append(g).append(" , ");
     }
     builder.deleteCharAt(builder.lastIndexOf(","));
-    builder.append(" WHERE (");
+    builder.append("WHERE (");
     for (DeviceSchema d : devices) {
       builder.append(" device = 'd_" + d.getDeviceId() + "' OR");
     }
