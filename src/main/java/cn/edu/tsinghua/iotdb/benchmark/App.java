@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
 import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -93,14 +94,35 @@ public class App {
     private static void testWithDefaultPath(Config config) {
         MySqlLog mysql = new MySqlLog();
         mysql.initMysql(System.currentTimeMillis());
-
         mysql.savaTestConfig();
+
         Measurement measurement = new Measurement();
         DBWrapper dbWrapper = new DBWrapper(measurement);
-        if(config.IS_DELETE_DATA){
-            dbWrapper.cleanup();
+        // register schema if needed
+        try {
+            dbWrapper.init();
+            if(config.IS_DELETE_DATA){
+                try {
+                    dbWrapper.cleanup();
+                } catch (TsdbException e) {
+                    LOGGER.error("Cleanup {} failed because ", config.DB_SWITCH, e);
+                }
+            }
+            try {
+                dbWrapper.registerSchema(measurement);
+            } catch (TsdbException e) {
+                LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
+            }
+        } catch (TsdbException e) {
+            LOGGER.error("Initialize {} failed because ", config.DB_SWITCH, e);
+        } finally {
+            try {
+                dbWrapper.close();
+            } catch (TsdbException e) {
+                LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
+            }
         }
-        dbWrapper.registerSchema(measurement);
+        // create CLIENT_NUMBER client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
@@ -121,9 +143,8 @@ public class App {
             Thread.currentThread().interrupt();
         }
         en = System.nanoTime();
-        dbWrapper.closeSingleDBInstance();
         LOGGER.info("All clients finished.");
-
+        // sum up all the measurements and calculate statistics
         measurement.setElapseTime((en - st) / NANO_TO_SECOND);
         for (Client client : clients) {
             threadsMeasurements.add(client.getMeasurement());
@@ -133,6 +154,7 @@ public class App {
         }
         // must call calculateMetrics() before using the Metrics
         measurement.calculateMetrics();
+        // output results
         measurement.showMeasurements();
         measurement.showMetrics();
 

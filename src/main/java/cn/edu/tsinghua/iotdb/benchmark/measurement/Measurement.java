@@ -192,9 +192,12 @@ public class Measurement {
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
-    System.out.println("Ingestion throughput (okPoint*1000/MAX_SUM) =  " + String.format("%.2f", okPointNumMap.get(Operation.INGESTION)/Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(Operation.INGESTION)) + " points/s");
+    double time = Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(Operation.INGESTION) / 1000;
+    String rate = String.format("%.2f", okPointNumMap.get(Operation.INGESTION) / time);
+    System.out.println("Ingestion throughput (okPoint*1000/MAX_SUM) =  " + rate + " points/s");
 
-    System.out.println("-------------------------------Result Matrix Part 1-------------------------------");
+    System.out.println(
+        "----------------------------------Status Matrix----------------------------------");
     String intervalString = "\t\t";
     System.out.println("Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint");
     for (Operation operation : Operation.values()) {
@@ -204,11 +207,13 @@ public class Measurement {
       System.out.print(failOperationNumMap.get(operation) + intervalString);
       System.out.println(failPointNumMap.get(operation) + intervalString);
     }
-    System.out.println("----------------------------------------------------------------------------------");
+    System.out.println(
+        "---------------------------------------------------------------------------------");
   }
 
   public void showMetrics() {
-    System.out.println("--------------------------------------Result Matrix Part 2--------------------------------------");
+    System.out.println(
+        "--------------------------------------Latency (ms) Matrix--------------------------------------");
     String intervalString = "\t";
     System.out.print("Operation" + intervalString);
     for (Metric metric : Metric.values()) {
@@ -223,7 +228,8 @@ public class Measurement {
       }
       System.out.println();
     }
-    System.out.println("------------------------------------------------------------------------------------------------");
+    System.out.println(
+        "-----------------------------------------------------------------------------------------------");
   }
 
   class DoubleComparator implements Comparator<Double> {

@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -16,27 +17,22 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 public class InfluxDB implements IDatabase {
 
   @Override
-  public void init() {
+  public void init() throws TsdbException {
 
   }
 
   @Override
-  public void cleanup() {
+  public void cleanup() throws TsdbException{
 
   }
 
   @Override
-  public void close() {
+  public void close() throws TsdbException{
 
   }
 
   @Override
-  public void closeSingleDBInstance() {
-
-  }
-
-  @Override
-  public void registerSchema(Measurement measurement) {
+  public void registerSchema(Measurement measurement) throws TsdbException{
 
   }
 

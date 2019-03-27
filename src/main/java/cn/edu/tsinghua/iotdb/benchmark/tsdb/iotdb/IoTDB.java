@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -34,13 +35,18 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  private SimpleDateFormat sdf;
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private Connection connection;
 
   public IoTDB() {
+    sdf =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  }
+
+  @Override
+  public void init() throws TsdbException{
     try {
       Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
       connection = DriverManager
@@ -48,37 +54,29 @@ public class IoTDB implements IDatabase {
               Constants.PASSWD);
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
+      throw new TsdbException(e);
     }
   }
 
   @Override
-  public void init() {
-
+  public void cleanup() throws TsdbException{
+    // currently no implementation
   }
 
   @Override
-  public void cleanup() {
-
-  }
-
-  @Override
-  public void close() {
+  public void close() throws TsdbException{
     if (connection != null) {
       try {
         connection.close();
       } catch (SQLException e) {
-        LOGGER.error("Failed to close connection because ", e);
+        LOGGER.error("Failed to close IoTDB connection because ", e);
+        throw new TsdbException(e);
       }
     }
   }
 
   @Override
-  public void closeSingleDBInstance() {
-
-  }
-
-  @Override
-  public void registerSchema(Measurement measurement) {
+  public void registerSchema(Measurement measurement) throws TsdbException{
     DataSchema dataSchema = DataSchema.getInstance();
     int count = 0;
     // set storage group
@@ -93,7 +91,8 @@ public class IoTDB implements IDatabase {
         statement.clearBatch();
       }
     } catch (SQLException e) {
-      LOGGER.error("");
+      LOGGER.error("Set storage group failed because ", e);
+      throw new TsdbException(e);
     }
     // create time series
     try (Statement statement = connection.createStatement()) {
@@ -121,8 +120,8 @@ public class IoTDB implements IDatabase {
       statement.clearBatch();
     } catch (SQLException e) {
       LOGGER.error("Register IoTDB schema failed because ", e);
+      throw new TsdbException(e);
     }
-
 
   }
 
@@ -176,7 +175,7 @@ public class IoTDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.debug("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
+    LOGGER.info("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
     long st;
     long en;
     int line = 0;

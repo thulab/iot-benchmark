@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.Workload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
@@ -47,11 +48,17 @@ public class Client implements Runnable {
   public void run() {
     try {
       try {
+        dbWrapper.init();
         doTestWithDefaultPath();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
+      } finally {
+        try {
+          dbWrapper.close();
+        } catch (TsdbException e) {
+          LOGGER.error("Close {} error: ", config.DB_SWITCH, e);
+        }
       }
-      dbWrapper.close();
     } finally {
       countDownLatch.countDown();
     }

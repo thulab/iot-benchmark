@@ -74,9 +74,11 @@ public class DBWrapper implements IDatabase {
         measureOperation(status, operation, status.getQueryResultPointNum());
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
-        LOGGER.info("{} complete precise query with latency ,{}, ms", currentThread,
-            formatTimeInMillis);
+        LOGGER
+            .info("{} complete range query with latency ,{}, ms ,{}, result points", currentThread,
+                formatTimeInMillis, status.getQueryResultPointNum());
       } else {
+        LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
         measurement.addFailOperationNum(operation);
         // currently we do not have expected result point number
         measurement.addOkPointNum(operation, status.getQueryResultPointNum());
@@ -100,9 +102,11 @@ public class DBWrapper implements IDatabase {
         double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
-        LOGGER.info("{} complete range query with latency ,{}, ms", currentThread,
-            formatTimeInMillis);
+        LOGGER
+            .info("{} complete range query with latency ,{}, ms ,{}, result points", currentThread,
+                formatTimeInMillis, status.getQueryResultPointNum());
       } else {
+        LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
         measurement.addFailOperationNum(operation);
         // currently we do not have expected result point number
         measurement.addOkPointNum(operation, status.getQueryResultPointNum());
@@ -152,28 +156,23 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public void init() {
+  public void init() throws TsdbException {
     db.init();
   }
 
   @Override
-  public void cleanup() {
+  public void cleanup() throws TsdbException {
     db.cleanup();
   }
 
   @Override
-  public void close() {
+  public void close() throws TsdbException {
     db.close();
   }
 
   @Override
-  public void closeSingleDBInstance() {
-    db.closeSingleDBInstance();
-  }
-
-  @Override
-  public void registerSchema(Measurement measurement) {
-    double createSchemaTimeInSecond = 0;
+  public void registerSchema(Measurement measurement) throws TsdbException {
+    double createSchemaTimeInSecond;
     long en = 0;
     long st = 0;
     LOGGER.info("Registering schema...");
@@ -186,12 +185,9 @@ public class DBWrapper implements IDatabase {
       createSchemaTimeInSecond = (en - st) / NANO_TO_SECOND;
       measurement.setCreateSchemaTime(createSchemaTimeInSecond);
     } catch (Exception e) {
-      LOGGER.error("Fail to create schema because {}", e);
-    } finally {
-      db.close();
+      measurement.setCreateSchemaTime(0);
+      throw new TsdbException(e);
     }
-    measurement.setCreateSchemaTime(createSchemaTimeInSecond);
   }
-
 
 }

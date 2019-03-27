@@ -18,31 +18,25 @@ public interface IDatabase {
    * Initialize any state for this DB.
    * Called once per DB instance; there is one DB instance per client thread.
    */
-  void init();
+  void init() throws TsdbException;
 
   /**
    * Cleanup any state for this DB, including the old data deletion.
    * Called once before each test if IS_DELETE_DATA=true.
    */
-  void cleanup();
+  void cleanup() throws TsdbException;
 
   /**
    * Close the DB instance connections.
    * Called once per DB instance.
    */
-  void close();
-
-  /**
-   * Close the DB singleton instance connections.
-   * Called when all test finishes.
-   */
-  void closeSingleDBInstance();
+  void close() throws TsdbException;
 
   /**
    * Called once before each test if CREATE_SCHEMA=true.
    * @param measurement measure the time cost.
    */
-  void registerSchema(Measurement measurement);
+  void registerSchema(Measurement measurement) throws TsdbException;
 
   /**
    * Insert one batch into the database, the DB implementation needs to resolve the data in batch
