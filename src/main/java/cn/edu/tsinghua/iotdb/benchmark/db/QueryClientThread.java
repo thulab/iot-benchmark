@@ -3,7 +3,6 @@ package cn.edu.tsinghua.iotdb.benchmark.db;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 
 public class QueryClientThread implements Runnable {
 	private IDatebase database;
@@ -59,7 +57,7 @@ public class QueryClientThread implements Runnable {
 	public void run() {
 		int i = 0;
 
-		long startTimeInterval = config.CACHE_NUM * config.POINT_STEP;
+		long startTimeInterval = config.BATCH_SIZE * config.POINT_STEP;
 //		try {
 //			startTimeInterval = database.getTotalTimeInterval() / config.LOOP;
 //		} catch (SQLException e1) {

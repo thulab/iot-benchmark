@@ -97,12 +97,12 @@ public class ClientThread implements Runnable{
 			int clientDevicesNum = config.DEVICE_NUMBER/config.CLIENT_NUMBER;
 			LinkedList<String> deviceCodes = new LinkedList<>();
 			//may not correct in multiple device per batch mode
-			long pointsOneLoop = config.DEVICE_NUMBER / config.CLIENT_NUMBER * config.SENSOR_NUMBER * config.CACHE_NUM;
+			long pointsOneLoop = config.DEVICE_NUMBER / config.CLIENT_NUMBER * config.SENSOR_NUMBER * config.BATCH_SIZE;
 			double actualLoopSecond = (double) pointsOneLoop / config.CLIENT_MAX_WRT_RATE;
 			//overflow mode 2 related variables initial
 			Random random = new Random(config.QUERY_SEED);
 			ArrayList<Integer> before = new ArrayList<>();
-			int maxIndex = (int) (config.CACHE_NUM * config.LOOP * config.OVERFLOW_RATIO);
+			int maxIndex = (int) (config.BATCH_SIZE * config.LOOP * config.OVERFLOW_RATIO);
 			int currMaxIndexOfDist = config.START_TIMESTAMP_INDEX;
 			if(config.IS_OVERFLOW && config.OVERFLOW_MODE==1) {
 				for (int beforeIndex = 0; beforeIndex < maxIndex; beforeIndex++) {

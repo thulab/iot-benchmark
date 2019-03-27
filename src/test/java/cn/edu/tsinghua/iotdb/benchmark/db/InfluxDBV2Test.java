@@ -33,7 +33,7 @@ public void testInit() throws Exception {
 
 /** 
 * 
-* Method: createSchema() 
+* Method: registerSchema()
 * 
 */ 
 @Test

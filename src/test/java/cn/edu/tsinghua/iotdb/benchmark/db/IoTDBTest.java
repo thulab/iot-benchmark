@@ -48,7 +48,7 @@ private void printSQL(){
 
 /** 
 * 
-* Method: createSchema() 
+* Method: registerSchema()
 * 
 */ 
 @Test

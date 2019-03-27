@@ -68,7 +68,7 @@ public class InfluxDB implements IDatebase {
         long exeTime = 0;
         long startTime, endTime;
         LinkedList<String> dataStrs = new LinkedList<>();
-        for (int i = 0; i < config.CACHE_NUM; i++) {
+        for (int i = 0; i < config.BATCH_SIZE; i++) {
             InfluxDataModel model = createDataModel(batchIndex, i, device);
             dataStrs.add(model.toString());
         }
@@ -157,7 +157,8 @@ public class InfluxDB implements IDatebase {
         int groupNum = deviceNum / groupSize;
         model.measurement = "group_" + groupNum;
         model.tagSet.put("device", device);
-        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.BATCH_SIZE
+            + dataIndex);
         model.timestamp = currentTime;
         for(String sensor: config.SENSOR_CODES){
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);

@@ -104,7 +104,7 @@ public class InfluxDBV2 implements IDatebase {
 		LinkedList<String> dataStrs = new LinkedList<>();
 		BatchPoints batchPoints = BatchPoints.database(InfluxDBName).tag("async", "true").retentionPolicy(DEFAULT_RP)
 				.consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
-		for (int i = 0; i < config.CACHE_NUM; i++) {
+		for (int i = 0; i < config.BATCH_SIZE; i++) {
 			InfluxDataModel model = createDataModel(batchIndex, i, device);
 			batchPoints.point(model.toInfluxPoint());
 		}
@@ -215,7 +215,8 @@ public class InfluxDBV2 implements IDatebase {
 		int groupNum = deviceNum / groupSize;
 		model.measurement = "group_" + groupNum;
 		model.tagSet.put("device", device);
-		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.CACHE_NUM + dataIndex);
+		long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batchIndex * config.BATCH_SIZE
+        + dataIndex);
 		if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
 			currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
 		}
@@ -691,7 +692,7 @@ public class InfluxDBV2 implements IDatebase {
 				.consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
 
 		InfluxDataModel model;
-		for (int i = 0; i < config.CACHE_NUM; i++) {
+		for (int i = 0; i < config.BATCH_SIZE; i++) {
 			if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
 				nextDelta = possionDistribution.getNextPossionDelta();
 				timestampIndex = maxTimestampIndex - nextDelta;

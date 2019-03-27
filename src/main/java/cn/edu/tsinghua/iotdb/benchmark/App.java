@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -15,27 +16,39 @@ import cn.edu.tsinghua.iotdb.benchmark.db.opentsdb.OpenTSDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.timescaledb.TimescaleDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.NetUsage;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
 import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class App {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     private static final double unitTransfer = 1000000.0;
+    private static final double NANO_TO_SECOND = 1000000000.0d;
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
@@ -45,6 +58,9 @@ public class App {
         }
         Config config = ConfigDescriptor.getInstance().getConfig();
         switch (config.BENCHMARK_WORK_MODE.trim()) {
+            case Constants.MODE_TEST_WITH_DEFAULT_PATH:
+                testWithDefaultPath(config);
+                break;
             case Constants.MODE_SERVER_MODE:
                 serverMode(config);
                 break;
@@ -71,6 +87,78 @@ public class App {
         }
 
     }// main
+
+    /**
+     * 按比例选择workload执行的测试
+     */
+    private static void testWithDefaultPath(Config config) {
+        MySqlLog mysql = new MySqlLog();
+        mysql.initMysql(System.currentTimeMillis());
+        mysql.savaTestConfig();
+
+        Measurement measurement = new Measurement();
+        DBWrapper dbWrapper = new DBWrapper(measurement);
+        // register schema if needed
+        try {
+            dbWrapper.init();
+            if(config.IS_DELETE_DATA){
+                try {
+                    dbWrapper.cleanup();
+                } catch (TsdbException e) {
+                    LOGGER.error("Cleanup {} failed because ", config.DB_SWITCH, e);
+                }
+            }
+            try {
+                dbWrapper.registerSchema(measurement);
+            } catch (TsdbException e) {
+                LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
+            }
+        } catch (TsdbException e) {
+            LOGGER.error("Initialize {} failed because ", config.DB_SWITCH, e);
+        } finally {
+            try {
+                dbWrapper.close();
+            } catch (TsdbException e) {
+                LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
+            }
+        }
+        // create CLIENT_NUMBER client threads to do the workloads
+        List<Measurement> threadsMeasurements = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
+        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        long st;
+        long en;
+        st = System.nanoTime();
+        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            Client client = new Client(i, downLatch);
+            clients.add(client);
+            executorService.submit(client);
+        }
+        executorService.shutdown();
+        try {
+            downLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+            Thread.currentThread().interrupt();
+        }
+        en = System.nanoTime();
+        LOGGER.info("All clients finished.");
+        // sum up all the measurements and calculate statistics
+        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
+        for (Client client : clients) {
+            threadsMeasurements.add(client.getMeasurement());
+        }
+        for (Measurement m : threadsMeasurements) {
+            measurement.mergeMeasurement(m);
+        }
+        // must call calculateMetrics() before using the Metrics
+        measurement.calculateMetrics();
+        // output results
+        measurement.showMeasurements();
+        measurement.showMetrics();
+
+    }
 
     /**
      * 将数据从CSV文件导入IOTDB
@@ -373,15 +461,15 @@ public class App {
         }
         float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
-        long totalPoints = config.LOOP * config.CACHE_NUM;
+        long totalPoints = config.LOOP * config.BATCH_SIZE;
         if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
-            totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
+            totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.BATCH_SIZE;
         }
 
         totalErrorPoint = getErrorNum(config, totalInsertErrorNums, datebase);
         LOGGER.info(
-                "GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, CACHE_NUM = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
-                config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM, config.POINT_STEP,
+                "GROUP_NUMBER = ,{}, DEVICE_NUMBER = ,{}, SENSOR_NUMBER = ,{}, BATCH_SIZE = ,{}, POINT_STEP = ,{}, LOOP = ,{}, MUL_DEV_BATCH = ,{}",
+                config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.BATCH_SIZE, config.POINT_STEP,
                 config.LOOP, config.MUL_DEV_BATCH);
 
         LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
@@ -480,9 +568,11 @@ public class App {
             // wait for all threads complete
             try {
                 downLatch.await();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
             int totalItem = storage.getStoragedProductNum();
             long totalTime = 0;
             for (long c : totalTimes) {
@@ -575,9 +665,9 @@ public class App {
             }
             float midAvgLatency = (float) (midSum / (int) (totalOps * 0.9) / unitTransfer);
 
-            long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM;
+            long totalPoints = config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.BATCH_SIZE;
             if (config.DB_SWITCH.equals(Constants.DB_IOT) && config.MUL_DEV_BATCH) {
-                totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.CACHE_NUM;
+                totalPoints = config.SENSOR_NUMBER * config.CLIENT_NUMBER * config.LOOP * config.BATCH_SIZE;
             }
             long insertEndTime = System.nanoTime();
             float insertElapseTime = (insertEndTime - insertStartTime) / 1000000000.0f;
@@ -587,11 +677,11 @@ public class App {
                             "GROUP_NUMBER = ,{}, \n" +
                             "DEVICE_NUMBER = ,{}, \n" +
                             "SENSOR_NUMBER = ,{}, \n" +
-                            "CACHE_NUM = ,{}, \n" +
+                            "BATCH_SIZE = ,{}, \n" +
                             "POINT_STEP = ,{}, \n" +
                             "LOOP = ,{}, \n" +
                             "MUL_DEV_BATCH = ,{} \n",
-                    config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.CACHE_NUM,
+                    config.GROUP_NUMBER, config.DEVICE_NUMBER, config.SENSOR_NUMBER, config.BATCH_SIZE,
                     config.POINT_STEP, config.LOOP, config.MUL_DEV_BATCH);
 
             LOGGER.info("Loaded ,{}, points in ,{},s with ,{}, workers (mean rate ,{}, points/s)", totalPoints,
@@ -677,7 +767,7 @@ public class App {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.CACHE_NUM - insertedPointNum;
+        return config.SENSOR_NUMBER * config.DEVICE_NUMBER * config.LOOP * config.BATCH_SIZE - insertedPointNum;
     }
 
     private static long getErrorNumIoT(ArrayList<Long> totalInsertErrorNums) {

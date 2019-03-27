@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 
 public class ConfigDescriptor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
-	
+
 	private Config config;
-	
+
 	private static class ConfigDescriptorHolder {
 		private static final ConfigDescriptor INSTANCE = new ConfigDescriptor();
 	}
@@ -31,7 +31,7 @@ public class ConfigDescriptor {
 	public static final ConfigDescriptor getInstance() {
 		return ConfigDescriptorHolder.INSTANCE;
 	}
-	
+
 	public Config getConfig(){
 		return config;
 	}
@@ -55,7 +55,7 @@ public class ConfigDescriptor {
 				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
 
 				config.POINT_STEP = Long.parseLong(properties.getProperty("POINT_STEP", config.POINT_STEP+""));
-				config.CACHE_NUM = Integer.parseInt(properties.getProperty("CACHE_NUM", config.CACHE_NUM+""));
+				config.BATCH_SIZE = Integer.parseInt(properties.getProperty("BATCH_SIZE", config.BATCH_SIZE +""));
 				config.LOOP = Long.parseLong(properties.getProperty("LOOP", config.LOOP+""));
 				config.LINE_RATIO = Double.parseDouble(properties.getProperty("LINE_RATIO", config.LINE_RATIO+""));
 				config.SIN_RATIO = Double.parseDouble(properties.getProperty("SIN_RATIO", config.SIN_RATIO+""));
@@ -74,7 +74,7 @@ public class ConfigDescriptor {
 
 				config.DB_URL = properties.getProperty("DB_URL", "localhost");
 				config.DB_NAME = properties.getProperty("DB_NAME", "test");
-				
+
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
@@ -100,7 +100,7 @@ public class ConfigDescriptor {
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
 				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
-				
+
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
 				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);
 				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);
@@ -129,8 +129,13 @@ public class ConfigDescriptor {
 				config.CREATE_SCHEMA = Boolean.parseBoolean(properties.getProperty("CREATE_SCHEMA", config.CREATE_SCHEMA+""));
 				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
+				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
+				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));
+				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
+				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
+				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

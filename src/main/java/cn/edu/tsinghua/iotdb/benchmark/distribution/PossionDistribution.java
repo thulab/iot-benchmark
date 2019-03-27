@@ -108,10 +108,7 @@ public class PossionDistribution {
     }
 
     private static boolean isBetween(double a, double b, double c) {
-        if (a > b && a < c) {
-            return true;
-        }
-        return false;
+        return a > b && a < c;
     }
 
 }

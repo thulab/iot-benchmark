@@ -128,7 +128,7 @@ b.configuration_value,d.configuration_value,e.configuration_value ,f.configurati
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'GROUP_NUMBER') d ON a.projectID = d.projectID JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'DEVICE_NUMBER') e ON a.projectID = e.projectID JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'SENSOR_NUMBER') f ON a.projectID = f.projectID JOIN
-(SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'CACHE_NUM') g ON a.projectID = g.projectID JOIN
+(SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'BATCH_SIZE') g ON a.projectID = g.projectID JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'POINT_STEP') h ON a.projectID = h.projectID LEFT JOIN
 (SELECT projectID, configuration_value FROM CONFIG WHERE configuration_item = 'ENCODING') i ON a.projectID = i.projectID
 );

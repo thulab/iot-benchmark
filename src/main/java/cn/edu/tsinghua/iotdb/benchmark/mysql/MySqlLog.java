@@ -151,7 +151,7 @@ public class MySqlLog {
     public void saveInsertProcess(int index, double costTime, double totalTime,
                                   long errorPoint, String remark) {
         if (config.IS_USE_MYSQL) {
-            double rate = (config.CACHE_NUM * config.SENSOR_NUMBER / costTime);
+            double rate = (config.BATCH_SIZE * config.SENSOR_NUMBER / costTime);
             if(Double.isInfinite(rate)) {
                 rate = 0;
             }
@@ -528,7 +528,7 @@ public class MySqlLog {
                         "'ENCODING'", "'" + config.ENCODING + "'");
                 stat.addBatch(sql);
                 sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-                        "'CACHE_NUM'", "'" + config.CACHE_NUM + "'");
+                        "'BATCH_SIZE'", "'" + config.BATCH_SIZE + "'");
                 stat.addBatch(sql);
                 sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
                         "'POINT_STEP'", "'" + config.POINT_STEP + "'");
@@ -634,7 +634,7 @@ public class MySqlLog {
                         "'SENSOR_NUMBER'", "'" + config.SENSOR_NUMBER + "'");
                 stat.addBatch(sql);
                 sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-                        "'CACHE_NUM'", "'" + config.CACHE_NUM + "'");
+                        "'BATCH_SIZE'", "'" + config.BATCH_SIZE + "'");
                 stat.addBatch(sql);
                 sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
                         "'POINT_STEP'", "'" + config.POINT_STEP + "'");

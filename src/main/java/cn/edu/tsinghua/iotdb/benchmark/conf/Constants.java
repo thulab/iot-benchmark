@@ -11,7 +11,7 @@ public class Constants {
     public static final String URL = "jdbc:tsfile://%s:%s/";
     public static final String USER = "root";
     public static final String PASSWD = "root";
-    public static final String ROOT_SERIES_NAME = "root.perform";
+    public static final String ROOT_SERIES_NAME = "root";
     public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
     public static final String BENCHMARK_CONF = "benchmark-conf";
     public static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
@@ -50,6 +50,7 @@ public class Constants {
     public static final String MODE_IMPORT_DATA_FROM_CSV = "importDataFromCSV";
     public static final String MODE_QUERY_TEST_WITH_DEFAULT_PATH = "queryTestWithDefaultPath";
     public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
+    public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
     public static final String MODE_SERVER_MODE = "serverMODE";
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
     public static final String MODE_INSERT_TEST_WITH_USERDEFINED_PATH = "insertTestWithUserDefinedPath";

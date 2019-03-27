@@ -29,14 +29,18 @@ public class Config {
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
+	/** 设备和客户端是否绑定 */
+	public boolean IS_CLIENT_BIND = true;
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
+	/** 查询时间戳变化增加步长 */
+	public int STEP_SIZE = 1;
 	/** 数据发送缓存条数 */
-	public int CACHE_NUM = 10;
+	public int BATCH_SIZE = 10;
 	/** 存储组数量 */
 	public int GROUP_NUMBER = 1;
 	/** 数据类型 */
@@ -44,7 +48,7 @@ public class Config {
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
 	/** 数据压缩方式 */
-	public String COMPRESSOR = "UNCOMPRESSOR";
+	public String COMPRESSOR = "UNCOMPRESSED";
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
 	/**数据库初始化等待时间ms*/
@@ -67,6 +71,10 @@ public class Config {
 	public boolean USE_OPS = false;
 
 	public double CLIENT_MAX_WRT_RATE = 10000000.0;
+
+	public int LIMIT_CLAUSE_MODE = 0;
+
+	public String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
 
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;

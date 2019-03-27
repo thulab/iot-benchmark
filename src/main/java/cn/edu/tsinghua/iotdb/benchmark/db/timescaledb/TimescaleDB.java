@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
 
 public class TimescaleDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
@@ -199,7 +198,8 @@ public class TimescaleDB implements IDatebase {
             builder.append(", ").append(sensor);
         }
         builder.append(") ").append("VALUES (");
-        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.CACHE_NUM + index);
+        long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.BATCH_SIZE
+            + index);
         if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
             currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
         }
@@ -223,7 +223,7 @@ public class TimescaleDB implements IDatebase {
         try {
             statement = connection.createStatement();
             if (!config.IS_OVERFLOW) {
-                for (int i = 0; i < config.CACHE_NUM; i++) {
+                for (int i = 0; i < config.BATCH_SIZE; i++) {
                     String sql = createSQLStatment(loopIndex, i, device);
                     statement.addBatch(sql);
                 }
@@ -242,7 +242,7 @@ public class TimescaleDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -612,7 +612,7 @@ public class TimescaleDB implements IDatebase {
         try {
             statement = connection.createStatement();
             String sql;
-            for (int i = 0; i < config.CACHE_NUM; i++) {
+            for (int i = 0; i < config.BATCH_SIZE; i++) {
                 if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, random)) {
                     nextDelta = possionDistribution.getNextPossionDelta();
                     timestampIndex = maxTimestampIndex - nextDelta;
@@ -636,7 +636,7 @@ public class TimescaleDB implements IDatebase {
                 LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
                         Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
-                        (config.CACHE_NUM * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -657,7 +657,7 @@ public class TimescaleDB implements IDatebase {
             statement.executeBatch();
         } catch (BatchUpdateException e) {
             LOGGER.error("Batch insert failed because: {}", e.getMessage());
-            errorNum = config.CACHE_NUM * config.SENSOR_NUMBER;
+            errorNum = config.BATCH_SIZE * config.SENSOR_NUMBER;
             e.printStackTrace();
         }
         return errorNum;
