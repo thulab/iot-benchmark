@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -66,15 +67,14 @@ public class TimeSeriesKVDB implements IDatabase {
   }
 
   @Override
-  public void init() {
+  public void init() throws TsdbException {
     // Not need to implement
     synchronized (TimeSeriesKVDB.class) {
       if (this.timeSeriesDB == null) {
         try {
           this.timeSeriesDB = createKVDB();
         } catch (IOException e) {
-          // TODO throws exception
-          e.printStackTrace();
+          throw new TsdbException(e);
         }
       }
       reference++;
@@ -82,12 +82,12 @@ public class TimeSeriesKVDB implements IDatabase {
   }
 
   @Override
-  public void cleanup() {
+  public void cleanup() throws TsdbException {
     // Not need to implement
   }
 
   @Override
-  public void close() {
+  public void close() throws TsdbException {
     // Not need to implement
     synchronized (TimeSeriesKVDB.class) {
       if (reference == 1) {
@@ -95,8 +95,7 @@ public class TimeSeriesKVDB implements IDatabase {
           this.timeSeriesDB.close();
           this.timeSeriesDB = null;
         } catch (IOException e) {
-          // TODO throws exception
-          e.printStackTrace();
+          throw new TsdbException(e);
         }
       }
       reference--;
@@ -104,7 +103,7 @@ public class TimeSeriesKVDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) {
+  public void registerSchema(Measurement measurement) throws TsdbException {
     // No need to implement
   }
 
@@ -113,11 +112,11 @@ public class TimeSeriesKVDB implements IDatabase {
     try {
       ITimeSeriesWriteBatch timeSeriesWriteBatch = timeSeriesDB.createBatch();
       for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
+        long time = entry.getKey();
         for (int i = 0; i < entry.getValue().size(); i++) {
           String timeseries =
               batch.getDeviceSchema().getDevicePath() + "." + batch.getDeviceSchema().getSensors()
                   .get(i);
-          long time = entry.getKey();
           byte[] value = double2Bytes(Double.valueOf(entry.getValue().get(i)));
           timeSeriesWriteBatch.write(timeseries, time, value);
         }
