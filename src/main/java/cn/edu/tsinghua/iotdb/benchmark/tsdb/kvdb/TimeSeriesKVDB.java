@@ -1,6 +1,9 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb.kvdb;
 
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -17,10 +20,14 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import edu.tsinghua.k1.api.ITimeSeriesDB;
 import edu.tsinghua.k1.api.ITimeSeriesWriteBatch;
 import edu.tsinghua.k1.api.TimeSeriesDBIterator;
+import edu.tsinghua.k1.leveldb.LevelTimeSeriesDBFactory;
+import edu.tsinghua.k1.rocksdb.RocksDBTimeSeriesDBFactory;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.iq80.leveldb.Options;
 
 /**
  * 基于key-value数据库实现的TimeSeriesDB
@@ -28,24 +35,50 @@ import java.util.Map.Entry;
 public class TimeSeriesKVDB implements IDatabase {
 
 
-  private ITimeSeriesDB timeSeriesDB;
-  // indicate whether the db is closed
-  // true means the db is closed
-  // false means the db is not closed
-  private volatile boolean isClosed;
+  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static ITimeSeriesDB timeSeriesDB;
+  private static volatile int reference = 0;
 
-  public TimeSeriesKVDB(ITimeSeriesDB timeSeriesDB) {
-    this.timeSeriesDB = timeSeriesDB;
-    this.isClosed = false;
+
+  public TimeSeriesKVDB() {
+
   }
 
-  public boolean isClosed(){
-    return this.isClosed;
+  private ITimeSeriesDB createKVDB() throws IOException {
+    File file = new File(config.GEN_DATA_FILE_PATH);
+    ITimeSeriesDB iTimeSeriesDB;
+    System.out.println("create db " + config.DB_SWITCH);
+    switch (config.DB_SWITCH) {
+      case Constants.DB_LEVELDB:
+        // create leveldb
+        Options optionsLevel = new Options();
+        optionsLevel.createIfMissing(true);
+        iTimeSeriesDB = LevelTimeSeriesDBFactory.getInstance().openOrCreate(file, optionsLevel);
+        break;
+      default:
+        // create rocksdb
+        org.rocksdb.Options optionsRocks = new org.rocksdb.Options();
+        optionsRocks.setCreateIfMissing(true);
+        iTimeSeriesDB = RocksDBTimeSeriesDBFactory.getInstance().openOrCreate(file, optionsRocks);
+        break;
+    }
+    return iTimeSeriesDB;
   }
 
   @Override
   public void init() {
     // Not need to implement
+    synchronized (TimeSeriesKVDB.class) {
+      if (this.timeSeriesDB == null) {
+        try {
+          this.timeSeriesDB = createKVDB();
+        } catch (IOException e) {
+          // TODO throws exception
+          e.printStackTrace();
+        }
+      }
+      reference++;
+    }
   }
 
   @Override
@@ -56,24 +89,34 @@ public class TimeSeriesKVDB implements IDatabase {
   @Override
   public void close() {
     // Not need to implement
-  }
-
-  @Override
-  public void closeSingleDBInstance() throws IOException {
-    if(this.isClosed==false){
-      this.isClosed = true;
-      this.timeSeriesDB.close();
+    synchronized (TimeSeriesKVDB.class) {
+      if (reference == 1) {
+        try {
+          this.timeSeriesDB.close();
+          this.timeSeriesDB = null;
+        } catch (IOException e) {
+          // TODO throws exception
+          e.printStackTrace();
+        }
+      }
+      reference--;
     }
   }
 
   @Override
+  public void closeSingleDBInstance() throws IOException {
+    // No need to implement
+  }
+
+  @Override
   public void registerSchema(Measurement measurement) {
-    // Not need to implement
+    // No need to implement
   }
 
   @Override
   public Status insertOneBatch(Batch batch) {
     try {
+      System.out.println("insert " + batch);
       ITimeSeriesWriteBatch timeSeriesWriteBatch = timeSeriesDB.createBatch();
       for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
         for (int i = 0; i < entry.getValue().size(); i++) {
