@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.kvdb.TimeSeriesKVDB;
 import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,10 @@ public class DBFactory {
         return new IoTDB();
       case Constants.DB_INFLUX:
         return new InfluxDB();
+      case Constants.DB_LEVELDB:
+        return new TimeSeriesKVDB();
+      case Constants.DB_ROCKSDB:
+        return new TimeSeriesKVDB();
       default:
         LOGGER.error("unsupported database {}", config.DB_SWITCH);
         throw new SQLException("unsupported database " + config.DB_SWITCH);

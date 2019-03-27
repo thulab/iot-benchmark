@@ -25,6 +25,8 @@ public class Constants {
     public static final String DB_CTS = "CTSDB";
     public static final String DB_KAIROS = "KairosDB";
     public static final String DB_TIMESCALE = "TimescaleDB";
+    public static final String DB_LEVELDB ="LevelDB";
+    public static final String DB_ROCKSDB = "RocksDB";
     //special DB_SWITCH
     public static final String BENCHMARK_IOTDB = "App";
 
