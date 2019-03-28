@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 public class Measurement {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Measurement.class);
+  private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static final double[] MID_AVG_RANGE = {0.1, 0.9};
   private Map<Operation, List<Double>> operationLatencies;
   private Map<Operation, List<Double>> getOperationLatencySumsList;
@@ -169,6 +172,10 @@ public class Measurement {
             .put(operation, latencyList.get((int) (totalOps * 0.75)));
         Metric.P90_LATENCY.getTypeValueMap()
             .put(operation, latencyList.get((int) (totalOps * 0.90)));
+        Metric.P95_LATENCY.getTypeValueMap()
+            .put(operation, latencyList.get((int) (totalOps * 0.95)));
+        Metric.P99_LATENCY.getTypeValueMap()
+            .put(operation, latencyList.get((int) (totalOps * 0.99)));
         double midAvgLatency = 0;
         double midSum = 0;
         int midCount = 0;
@@ -211,9 +218,23 @@ public class Measurement {
         "---------------------------------------------------------------------------------");
   }
 
+  public void showConfigs() {
+    System.out.println("----------------------Test Configurations----------------------");
+    System.out.println("GEN_DATA_FILE_PATH: " + config.GEN_DATA_FILE_PATH);
+    System.out.println("OPERATION_PROPORTION: " + config.OPERATION_PROPORTION);
+    System.out.println("IS_CLIENT_BIND: " + config.IS_CLIENT_BIND);
+    System.out.println("CLIENT_NUMBER: " + config.CLIENT_NUMBER);
+    System.out.println("GROUP_NUMBER: " + config.GROUP_NUMBER);
+    System.out.println("DEVICE_NUMBER: " + config.DEVICE_NUMBER);
+    System.out.println("SENSOR_NUMBER: " + config.SENSOR_NUMBER);
+    System.out.println("BATCH_SIZE: " + config.BATCH_SIZE);
+    System.out.println("LOOP: " + config.LOOP);
+    System.out.println("---------------------------------------------------------------");
+  }
+
   public void showMetrics() {
     System.out.println(
-        "--------------------------------------Latency (ms) Matrix--------------------------------------");
+        "-----------------------------------------------Latency (ms) Matrix-----------------------------------------------");
     String intervalString = "\t";
     System.out.print("Operation" + intervalString);
     for (Metric metric : Metric.values()) {
@@ -229,7 +250,7 @@ public class Measurement {
       System.out.println();
     }
     System.out.println(
-        "-----------------------------------------------------------------------------------------------");
+        "-----------------------------------------------------------------------------------------------------------------");
   }
 
   class DoubleComparator implements Comparator<Double> {
@@ -271,6 +292,8 @@ public class Measurement {
     MEDIAN_LATENCY("MEDIAN"),
     P75_LATENCY("P75"),
     P90_LATENCY("P90"),
+    P95_LATENCY("P95"),
+    P99_LATENCY("P99"),
     MAX_LATENCY("MAX"),
     MAX_THREAD_LATENCY_SUM("MAX_SUM");
 

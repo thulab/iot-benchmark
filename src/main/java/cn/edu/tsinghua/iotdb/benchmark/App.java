@@ -155,6 +155,7 @@ public class App {
         // must call calculateMetrics() before using the Metrics
         measurement.calculateMetrics();
         // output results
+        measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
 
