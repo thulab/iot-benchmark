@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -207,9 +208,9 @@ public class IoTDB implements IDatabase {
     long st;
     long en;
     try (Statement statement = connection.createStatement()) {
-      for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
-        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), entry.getKey(),
-            entry.getValue());
+      for (Record record: batch.getRecords()) {
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
+            record.getRecordDataValue());
         statement.addBatch(sql);
       }
       st = System.nanoTime();
