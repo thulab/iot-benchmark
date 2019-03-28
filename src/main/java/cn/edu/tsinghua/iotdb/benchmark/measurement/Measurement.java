@@ -199,27 +199,36 @@ public class Measurement {
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
-    double time = Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(Operation.INGESTION) / 1000;
-    String rate = String.format("%.2f", okPointNumMap.get(Operation.INGESTION) / time);
-    System.out.println("Ingestion throughput (okPoint*1000/MAX_SUM) =  " + rate + " points/s");
 
     System.out.println(
-        "----------------------------------Status Matrix----------------------------------");
+        "--------------------------------------------------Result Matrix--------------------------------------------------");
     String intervalString = "\t\t";
-    System.out.println("Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint");
+    System.out.println(
+        "Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint\telapseRate\taccRate");
     for (Operation operation : Operation.values()) {
       System.out.print(operation.getName() + intervalString);
       System.out.print(okOperationNumMap.get(operation) + intervalString);
       System.out.print(okPointNumMap.get(operation) + intervalString);
       System.out.print(failOperationNumMap.get(operation) + intervalString);
-      System.out.println(failPointNumMap.get(operation) + intervalString);
+      System.out.print(failPointNumMap.get(operation) + intervalString);
+      double accTime = Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(operation) / 1000;
+      String elapseRate = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+      double accRate = 0;
+      if (accTime != 0) {
+        accRate = okPointNumMap.get(operation) / accTime;
+      }
+      String rate = String.format("%.2f", accRate);
+      System.out.print(elapseRate + intervalString);
+      System.out.println(rate + intervalString);
+
     }
     System.out.println(
-        "---------------------------------------------------------------------------------");
+        "-----------------------------------------------------------------------------------------------------------------");
   }
 
   public void showConfigs() {
     System.out.println("----------------------Test Configurations----------------------");
+    System.out.println("DB_SWITCH: " + config.DB_SWITCH);
     System.out.println("GEN_DATA_FILE_PATH: " + config.GEN_DATA_FILE_PATH);
     System.out.println("OPERATION_PROPORTION: " + config.OPERATION_PROPORTION);
     System.out.println("IS_CLIENT_BIND: " + config.IS_CLIENT_BIND);
