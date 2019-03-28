@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -25,9 +26,7 @@ import edu.tsinghua.k1.leveldb.LevelTimeSeriesDBFactory;
 import edu.tsinghua.k1.rocksdb.RocksDBTimeSeriesDBFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import org.iq80.leveldb.Options;
 
 /**
@@ -111,13 +110,13 @@ public class TimeSeriesKVDB implements IDatabase {
   public Status insertOneBatch(Batch batch) {
     try {
       ITimeSeriesWriteBatch timeSeriesWriteBatch = timeSeriesDB.createBatch();
-      for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
-        long time = entry.getKey();
-        for (int i = 0; i < entry.getValue().size(); i++) {
+      for (Record record : batch.getRecords()) {
+        long time = record.getTimestamp();
+        for (int i = 0; i < record.size(); i++) {
           String timeseries =
               batch.getDeviceSchema().getDevicePath() + "." + batch.getDeviceSchema().getSensors()
                   .get(i);
-          byte[] value = double2Bytes(Double.valueOf(entry.getValue().get(i)));
+          byte[] value = double2Bytes(Double.valueOf(record.getRecordDataValue().get(i)));
           timeSeriesWriteBatch.write(timeseries, time, value);
         }
       }
