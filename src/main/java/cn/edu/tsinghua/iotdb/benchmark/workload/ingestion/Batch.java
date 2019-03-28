@@ -1,17 +1,16 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Batch {
 
   private DeviceSchema deviceSchema;
-  private Map<Long, List<String>> records;
+  private List<Record> records;
 
   public Batch() {
-    records = new LinkedHashMap<>();
+    records = new ArrayList<>();
   }
 
   public DeviceSchema getDeviceSchema() {
@@ -22,12 +21,12 @@ public class Batch {
     this.deviceSchema = deviceSchema;
   }
 
-  public Map<Long, List<String>> getRecords() {
+  public List<Record> getRecords() {
     return records;
   }
 
   public void add(long timestamp, List<String> values) {
-    records.put(timestamp, values);
+    records.add(new Record(timestamp, values));
   }
 
   /**
@@ -37,8 +36,8 @@ public class Batch {
    */
   public int pointNum() {
     int pointNum = 0;
-    for (List<String> list : records.values()) {
-      pointNum += list.size();
+    for (Record record : records) {
+      pointNum += record.size();
     }
     return pointNum;
   }
