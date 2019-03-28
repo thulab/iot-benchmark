@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -22,7 +23,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.iotdb.db.api.ITSEngine;
 import org.apache.iotdb.db.api.IoTDBEngineException;
@@ -135,14 +135,13 @@ public class IoTDBEngine implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     // insert one batch
-    Map<Long, List<String>> records = batch.getRecords();
     String devicePath = batch.getDeviceSchema().getDevicePath();
     List<String> sensors = batch.getDeviceSchema().getSensors();
     long cost = 0;
-    for (Entry<Long, List<String>> record : records.entrySet()) {
+    for (Record record : batch.getRecords()) {
       try {
         long st = System.nanoTime();
-        engine.write(devicePath, record.getKey(), sensors, record.getValue());
+        engine.write(devicePath, record.getTimestamp(), sensors, record.getRecordDataValue());
         long et = System.nanoTime();
         cost += (et - st);
       } catch (IOException e) {
