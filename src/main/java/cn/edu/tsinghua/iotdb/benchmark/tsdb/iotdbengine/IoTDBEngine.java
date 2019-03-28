@@ -175,6 +175,8 @@ public class IoTDBEngine implements IDatabase {
         } catch (IOException e) {
           e.printStackTrace();
           return new Status(false, cost, 0, e, e.getMessage());
+        }finally {
+            engine.endQuery();
         }
       }
     }
