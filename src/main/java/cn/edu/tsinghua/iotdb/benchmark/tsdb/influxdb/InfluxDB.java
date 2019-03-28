@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -19,7 +20,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
@@ -103,8 +103,9 @@ public class InfluxDB implements IDatabase {
 
     try {
       InfluxDataModel model;
-      for (Entry<Long, List<String>> entry : batch.getRecords().entrySet()) {
-        model = createDataModel(batch.getDeviceSchema(), entry.getKey(), entry.getValue());
+      for (Record record : batch.getRecords()) {
+        model = createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
+            record.getRecordDataValue());
         batchPoints.point(model.toInfluxPoint());
       }
       long startTime = System.nanoTime();
@@ -233,7 +234,7 @@ public class InfluxDB implements IDatabase {
    *
    * @param devices schema list of query devices
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
-   *        WHERE(device='d_0' OR device='d_1')
+   * WHERE(device='d_0' OR device='d_1')
    */
   private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
