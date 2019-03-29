@@ -38,6 +38,7 @@ public class TimeSeriesKVDB implements IDatabase {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static ITimeSeriesDB timeSeriesDB;
   private static volatile int reference = 0;
+  private StringBuilder builder = new StringBuilder();
 
 
   public TimeSeriesKVDB() {
@@ -113,11 +114,12 @@ public class TimeSeriesKVDB implements IDatabase {
       for (Record record : batch.getRecords()) {
         long time = record.getTimestamp();
         for (int i = 0; i < record.size(); i++) {
-          String timeseries =
-              batch.getDeviceSchema().getDevicePath() + "." + batch.getDeviceSchema().getSensors()
-                  .get(i);
+          builder.append(batch.getDeviceSchema().getDevicePath());
+          builder.append(".");
+          builder.append(batch.getDeviceSchema().getSensors().get(i));
           byte[] value = double2Bytes(Double.valueOf(record.getRecordDataValue().get(i)));
-          timeSeriesWriteBatch.write(timeseries, time, value);
+          timeSeriesWriteBatch.write(builder.toString(), time, value);
+          builder.setLength(0);
         }
       }
       long st = System.nanoTime();
