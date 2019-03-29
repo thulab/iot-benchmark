@@ -6,7 +6,6 @@ IS_BASELINE=$3
 DATABASE=$4
 MYSQL_HOST=$5
 
-git pull
 echo "begin testing the performance..."
 cp ./archive/$ROUTINE  ./routine
 ./rep-benchmark.sh $IOTDB_CONF $IS_BASELINE

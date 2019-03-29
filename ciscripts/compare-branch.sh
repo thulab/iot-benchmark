@@ -35,7 +35,7 @@ BENCHMARK_WORK_MODE=$(grep "BENCHMARK_WORK_MODE" $BENCHMARK_HOME/conf/config.pro
 DB=$(grep "DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 
 echo Testing ${DB#*=} ...
-git pull
+
 rm -rf ./lib
 if [ $IS_TEST_BASELINE = "true" ]; then
     cp $BENCHMARK_HOME/archive/pom/baseline_pom.xml  $BENCHMARK_HOME/pom.xml
