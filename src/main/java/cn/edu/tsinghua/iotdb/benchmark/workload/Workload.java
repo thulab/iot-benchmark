@@ -41,6 +41,7 @@ public class Workload {
   private Random poissonRandom;
   private Random queryDeviceRandom;
   private Map<Operation, Long> operationLoops;
+  private static Random random = new Random();
 
   public Workload(int clientId) {
     probTool = new ProbTool();
@@ -57,6 +58,9 @@ public class Workload {
 
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.POINT_STEP * stepOffset;
+    if (config.IS_OVERFLOW) {
+      timeStampOffset += random.nextDouble() * config.POINT_STEP;
+    }
     long currentTimestamp = Constants.START_TIMESTAMP + timeStampOffset;
     if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
       currentTimestamp += (long) (config.POINT_STEP * timestampRandom.nextDouble());

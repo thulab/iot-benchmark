@@ -238,6 +238,11 @@ public class Measurement {
     System.out.println("SENSOR_NUMBER: " + config.SENSOR_NUMBER);
     System.out.println("BATCH_SIZE: " + config.BATCH_SIZE);
     System.out.println("LOOP: " + config.LOOP);
+    System.out.println("POINT_STEP: "+ config.POINT_STEP);
+    System.out.println("QUERY_INTERVAL: " + config.QUERY_INTERVAL);
+    System.out.println("IS_OVERFLOW: " + config.IS_OVERFLOW);
+    System.out.println("OVERFLOW_MODE: " + config.OVERFLOW_MODE);
+    System.out.println("OVERFLOW_RATIO: " + config.OVERFLOW_RATIO);
     System.out.println("---------------------------------------------------------------");
   }
 
