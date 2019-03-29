@@ -59,7 +59,7 @@ public class Workload {
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.POINT_STEP * stepOffset;
     if (config.IS_OVERFLOW) {
-      timeStampOffset += random.nextLong() % config.POINT_STEP;
+      timeStampOffset += random.nextDouble() * config.POINT_STEP;
     }
     long currentTimestamp = Constants.START_TIMESTAMP + timeStampOffset;
     if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {

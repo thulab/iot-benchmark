@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.junit.After;
 import org.junit.Before;
@@ -115,10 +116,10 @@ public class WorkloadTest {
     for (int i = 0; i < 3; i++) {
       Batch batch = workload.getOneBatch(new DeviceSchema(1), i);
       long old = 0;
-      for(long t: batch.getRecords().keySet()){
+      for(Record record: batch.getRecords()){
         // 检查map里timestamp获取到的是否是按序的
-        assertTrue(t > old);
-        old = t;
+        assertTrue(record.getTimestamp() > old);
+        old = record.getTimestamp();
       }
       System.out.println(batch.getRecords().toString());
     }
