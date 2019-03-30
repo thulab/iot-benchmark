@@ -19,7 +19,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -49,7 +48,7 @@ public class IoTDB implements IDatabase {
   @Override
   public void init() throws TsdbException{
     try {
-      Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
+      Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection = DriverManager
           .getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
               Constants.PASSWD);
