@@ -135,21 +135,21 @@ public class IoTDBEngine implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     // insert one batch
+    long st = System.nanoTime();
     String devicePath = batch.getDeviceSchema().getDevicePath();
     List<String> sensors = batch.getDeviceSchema().getSensors();
     long cost = 0;
     for (Record record : batch.getRecords()) {
       try {
-        long st = System.nanoTime();
         engine.write(devicePath, record.getTimestamp(), sensors, record.getRecordDataValue());
-        long et = System.nanoTime();
-        cost += (et - st);
       } catch (IOException e) {
         // No need to throw an exception
         e.printStackTrace();
         return new Status(false, cost, e, e.getMessage());
       }
     }
+    long et = System.nanoTime();
+    cost += (et - st);
     return new Status(true, cost);
   }
 
@@ -189,18 +189,16 @@ public class IoTDBEngine implements IDatabase {
     int line = 0;
     long startTime = rangeQuery.getStartTimestamp();
     long endTime = rangeQuery.getEndTimestamp();
+    long st = System.nanoTime();
     for (DeviceSchema deviceSchema : rangeQuery.getDeviceSchema()) {
       for (String sensor : deviceSchema.getSensors()) {
         String timeseries = deviceSchema.getDevicePath() + "." + sensor;
         try {
-          long st = System.nanoTime();
           QueryDataSet queryDataSet = engine.query(timeseries, startTime, endTime);
           while (queryDataSet.hasNext()) {
             queryDataSet.next();
             line++;
           }
-          long et = System.nanoTime();
-          cost += (et - st);
         } catch (IOException e) {
           e.printStackTrace();
           return new Status(false, cost, 0, e, e.getMessage());
@@ -209,6 +207,8 @@ public class IoTDBEngine implements IDatabase {
         }
       }
     }
+    long et = System.nanoTime();
+    cost += (et - st);
     return new Status(true, cost, line);
   }
 
