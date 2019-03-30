@@ -14,8 +14,8 @@ import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
 import com.alibaba.fastjson.JSON;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,8 +199,8 @@ public class OpenTSDBV2 extends TSDB implements IDatebase {
         try {
             String str = HttpRequest.sendPost(queryUrl + "/last", JSON.toJSONString(queryMap));
             LOGGER.debug(str);
-            JSONArray jsonArray = new JSONArray(str);
-            if (jsonArray.length() > 0) {
+            JSONArray jsonArray =  JSON.parseArray(str);
+            if (jsonArray.size() > 0) {
                 endTime = ((JSONObject) jsonArray.get(0)).getLong("timestamp");
                 LOGGER.debug("endTime = {}", endTime);
             }
@@ -327,14 +327,14 @@ public class OpenTSDBV2 extends TSDB implements IDatebase {
     private int getOneQueryPointNum(String str) {
         int pointNum = 0;
         if (config.QUERY_CHOICE != 6) {
-            JSONArray jsonArray = new JSONArray(str);
-            for (int i = 0; i < jsonArray.length(); i++) {
+            JSONArray jsonArray = JSON.parseArray(str);
+            for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject json = (JSONObject) jsonArray.get(i);
-                pointNum += json.getJSONObject("dps").length();
+                pointNum += json.getJSONObject("dps").size();
             }
         } else {
-            JSONArray jsonArray = new JSONArray(str);
-            pointNum += jsonArray.length();
+            JSONArray jsonArray = JSON.parseArray(str);
+            pointNum += jsonArray.size();
         }
         return pointNum;
     }
