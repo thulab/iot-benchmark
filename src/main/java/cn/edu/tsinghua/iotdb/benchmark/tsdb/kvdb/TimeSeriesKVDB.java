@@ -109,6 +109,7 @@ public class TimeSeriesKVDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
+    long st = System.nanoTime();
     try {
       ITimeSeriesWriteBatch timeSeriesWriteBatch = timeSeriesDB.createBatch();
       for (Record record : batch.getRecords()) {
@@ -122,7 +123,6 @@ public class TimeSeriesKVDB implements IDatabase {
           builder.setLength(0);
         }
       }
-      long st = System.nanoTime();
       timeSeriesDB.write(timeSeriesWriteBatch);
       long en = System.nanoTime();
       return new Status(true, en - st);
@@ -149,6 +149,7 @@ public class TimeSeriesKVDB implements IDatabase {
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     // query multi path
+    long st = System.nanoTime();
     long cost = 0;
     int line = 0;
     for (DeviceSchema deviceSchema : rangeQuery.getDeviceSchema()) {
@@ -159,7 +160,7 @@ public class TimeSeriesKVDB implements IDatabase {
         dbIterator = timeSeriesDB
             .iterator(timeseries, rangeQuery.getStartTimestamp(), rangeQuery.getEndTimestamp());
         try {
-          long st = System.nanoTime();
+
           while (dbIterator.hasNext()) {
             line++;
             Map.Entry<byte[], byte[]> entry = dbIterator.next();
@@ -170,8 +171,6 @@ public class TimeSeriesKVDB implements IDatabase {
             }
             bytes2Long(timeBytes);
           }
-          long et = System.nanoTime();
-          cost += (et - st);
         } catch (Exception e) {
           return new Status(false, 0, e, e.toString());
         } finally {
@@ -181,6 +180,8 @@ public class TimeSeriesKVDB implements IDatabase {
         }
       }
     }
+    long et = System.nanoTime();
+    cost += (et - st);
     return new Status(true, cost, line);
   }
 
