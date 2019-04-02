@@ -11,18 +11,10 @@ from sqlalchemy import create_engine
 from scipy import stats
 import argparse
 
-
-parser = argparse.ArgumentParser(description='Generate analysis result of ingestion test.')
-parser.add_argument('--mysql_host', '-a', default='166.111.141.168', help='mysql server address')
-parser.add_argument('--mysql_database', '-d', default='auto_test', help='mysql database')
-args = parser.parse_args()
-host = args.mysql_host
-database = args.mysql_database
-
 result_file = 'LatestIngestionTestAnalysis.csv'
 # db = pymysql.connect(host='166.111.141.168', user='root', passwd='Ise_Nel_2017', port=3306, charset='utf8')
 p_threshold=0.05
-port=3306
+port=33306
 user='root'
 passwd='Ise_Nel_2017'
 charset='utf8'
@@ -30,6 +22,13 @@ test_group_size=1
 t_test_field='costTime'
 result_table_name='insertResult'
 insert_info_table_name='configInsertInfo'
+
+parser = argparse.ArgumentParser(description='Generate analysis result of ingestion test.')
+parser.add_argument('--mysql_host', '-a', default='166.111.7.145', help='mysql server address')
+parser.add_argument('--mysql_database', '-d', default='auto_test', help='mysql database')
+args = parser.parse_args()
+host = args.mysql_host
+database = args.mysql_database
 
 
 def convert_date(latency_df, field, scale=1000):
