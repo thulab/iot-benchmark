@@ -28,14 +28,11 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Workload {
+public class SyntheticWorkload implements IWorkload{
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Workload.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private int clientId;
   private static Random timestampRandom = new Random(config.DATA_SEED);
-  private int curDeviceOffset = 0;
-  private List<DeviceSchema> clientDeviceSchemaList;
   private ProbTool probTool;
   private long maxTimestampIndex;
   private Random poissonRandom;
@@ -43,10 +40,8 @@ public class Workload {
   private Map<Operation, Long> operationLoops;
   private static Random random = new Random();
 
-  public Workload(int clientId) {
+  public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
-    this.clientId = clientId;
-    clientDeviceSchemaList = DataSchema.getInstance().getClientBindSchema().get(clientId);
     maxTimestampIndex = 0;
     poissonRandom = new Random(config.DATA_SEED);
     queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
@@ -134,6 +129,11 @@ public class Workload {
           throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
       }
     }
+  }
+
+  @Override
+  public Batch getOneBatch() {
+    return null;
   }
 
   private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {

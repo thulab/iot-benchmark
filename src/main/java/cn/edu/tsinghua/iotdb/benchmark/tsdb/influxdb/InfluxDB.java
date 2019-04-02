@@ -257,7 +257,7 @@ public class InfluxDB implements IDatabase {
     builder.deleteCharAt(builder.lastIndexOf(","));
     builder.append("WHERE (");
     for (DeviceSchema d : devices) {
-      builder.append(" device = 'd_" + d.getDeviceId() + "' OR");
+      builder.append(" device = '" + d.getDevice() + "' OR");
     }
     builder.delete(builder.lastIndexOf("OR"), builder.length());
     builder.append(")");

@@ -48,6 +48,7 @@ public class Constants {
     public static final String SAMPLE_DATA_FILE_NAME = "sampleData.txt";
     //different running mode
     public static final String MODE_IMPORT_DATA_FROM_CSV = "importDataFromCSV";
+    public static final String MODE_WRITE_REAL_DATASET = "writeRealDataSet";
     public static final String MODE_QUERY_TEST_WITH_DEFAULT_PATH = "queryTestWithDefaultPath";
     public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
     public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";

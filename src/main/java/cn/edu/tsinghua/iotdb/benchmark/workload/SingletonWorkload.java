@@ -6,15 +6,13 @@ import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SingletonWorkload {
+public class SingletonWorkload{
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SingletonWorkload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -49,7 +47,7 @@ public class SingletonWorkload {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       long stepOffset = (curLoop / config.DEVICE_NUMBER) * config.BATCH_SIZE + batchOffset;
-      Workload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      SyntheticWorkload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -72,7 +70,7 @@ public class SingletonWorkload {
         // generate normal increasing timestamp
         stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).getAndIncrement();
       }
-      Workload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      SyntheticWorkload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;

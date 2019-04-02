@@ -161,12 +161,18 @@ public class IoTDB implements IDatabase {
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i));
     }
-    builder.append(" FROM ").append(devices.get(0).getDevicePath());
+    builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
-      builder.append(", ").append(devices.get(i).getDevicePath());
+      builder.append(", ").append(getDevicePath(devices.get(i)));
     }
 
     return builder.toString();
+  }
+
+
+  // convert deviceSchema to the format: root.group_1.d_1
+  private String getDevicePath(DeviceSchema deviceSchema) {
+    return Constants.ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
