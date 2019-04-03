@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +18,7 @@ public class ReddReader extends BasicReader {
 
   @Override
   public void init() {
-    String[] items = currentFile.split("/");
-    currentDeviceId = items[items.length - 1];
+    currentDeviceId = new File(currentFile).getName();
     deviceSchema = new DeviceSchema(group, currentDeviceId, config.FIELDS);
   }
 
