@@ -11,7 +11,6 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
-import cn.edu.tsinghua.iotdb.jdbc.TsfileJDBCConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,7 @@ public class IoTDB implements IDatebase {
     private final double unitTransfer = 1000000000.0;
 
     public IoTDB(long labID) throws ClassNotFoundException, SQLException {
-        Class.forName(TsfileJDBCConfig.JDBC_DRIVER_NAME);
+        Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         config = ConfigDescriptor.getInstance().getConfig();
         points = new ArrayList<>();
         mp = new HashMap<>();
