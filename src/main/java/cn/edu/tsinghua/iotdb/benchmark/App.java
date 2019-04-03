@@ -59,8 +59,6 @@ public class App {
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
 
-        args = new String[]{"-cf", "conf/config.properties"};
-
         CommandCli cli = new CommandCli();
         if (!cli.init(args)) {
             return;
