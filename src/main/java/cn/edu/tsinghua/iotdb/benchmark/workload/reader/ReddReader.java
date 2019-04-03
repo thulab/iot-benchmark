@@ -10,18 +10,16 @@ import java.util.List;
 public class ReddReader extends BasicReader {
 
   private DeviceSchema deviceSchema;
-  private List<String> sensors = new ArrayList<>();
 
   public ReddReader(Config config, List<String> files) {
     super(config, files);
-    sensors.add("value");
   }
 
   @Override
   public void init() {
     String[] items = currentFile.split("/");
     currentDeviceId = items[items.length - 1];
-    deviceSchema = new DeviceSchema(group, currentDeviceId, sensors);
+    deviceSchema = new DeviceSchema(group, currentDeviceId, config.FIELDS);
   }
 
   @Override

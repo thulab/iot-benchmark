@@ -29,6 +29,8 @@ import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.ReddReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedWriter;
@@ -184,23 +186,41 @@ public class App {
         mysql.initMysql(System.currentTimeMillis());
         mysql.savaTestConfig();
 
+        // BATCH_SIZE is points number in this mode
+        config.BATCH_SIZE = config.BATCH_SIZE / config.FIELDS.size();
+
+        File dirFile = new File(config.FILE_PATH);
+        if (!dirFile.exists()) {
+            LOGGER.error(config.FILE_PATH + " do not exit");
+            return;
+        }
+
+        List<String> files = new ArrayList<>();
+        getAllFiles(config.FILE_PATH, files);
+        LOGGER.info("total files: {}", files.size());
+
+        Collections.sort(files);
+
+        List<DeviceSchema> deviceSchemaList = BasicReader.getDeviceSchemaList(files, config);
+
         Measurement measurement = new Measurement();
         DBWrapper dbWrapper = new DBWrapper(measurement);
         // register schema if needed
         try {
+            LOGGER.info("start to init database {}", config.DB_SWITCH);
             dbWrapper.init();
             if(config.IS_DELETE_DATA){
                 try {
+                    LOGGER.info("start to clean old data");
                     dbWrapper.cleanup();
                 } catch (TsdbException e) {
                     LOGGER.error("Cleanup {} failed because ", config.DB_SWITCH, e);
                 }
             }
             try {
-
-                //TODO traverse all data file, extract device schema and register
-                dbWrapper.registerSchema(null);
-
+                // register device schema
+                LOGGER.info("start to register schema");
+                dbWrapper.registerSchema(deviceSchemaList);
             } catch (TsdbException e) {
                 LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
             }
@@ -214,17 +234,6 @@ public class App {
             }
         }
 
-        File dirFile = new File(config.FILE_PATH);
-        if (!dirFile.exists()) {
-            LOGGER.error(config.FILE_PATH + " do not exit");
-            return;
-        }
-
-        List<String> files = new ArrayList<>();
-        getAllFiles(config.FILE_PATH, files);
-        LOGGER.info("total files: {}", files.size());
-
-        Collections.sort(files);
 
         List<List<String>> thread_files = new ArrayList<>();
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {

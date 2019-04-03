@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +101,10 @@ public class Config {
 	public String FILE_PATH;
 	/** 数据集的名字 */
 	public String DATA_SET;
+	/** 数据集的传感器 */
+	public List<String> FIELDS;
+	/** 数据集的传感器的精度 */
+	public int[] PRECISION;
 	/** 是否从文件读取数据*/
 	public boolean READ_FROM_FILE = false;
 	/** 一次插入到数据库的条数 */
@@ -352,6 +357,24 @@ public class Config {
 		Random r = new Random(QUERY_SEED);
 		return sensors.get(r.nextInt(size));
 	}
+
+
+	public void initRealDataSetSchema() {
+		switch (DATA_SET) {
+			case "TDRIVE":
+				FIELDS = Arrays.asList("longitude", "latitude");
+				PRECISION = new int[]{5, 5};
+				break;
+			case "REDD":
+				FIELDS = Arrays.asList("value");
+				PRECISION = new int[]{2};
+				break;
+			default:
+				throw new RuntimeException(DATA_SET + " is not support");
+		}
+		LOGGER.info("use dataset: {}", DATA_SET);
+	}
+
 
 	public String getDeviceCodeByRandom() {
 		List<String> devices = DEVICE_CODES;

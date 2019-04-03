@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public abstract class BasicReader {
   private List<String> files;
   private BufferedReader reader;
   protected List<String> cachedLines;
-  protected String group = "default";
+  protected static String group = "default";
   private boolean hasInit = false;
 
   private int currentFileIndex = 0;
@@ -113,5 +114,21 @@ public abstract class BasicReader {
    * tagValue(deviceId) from file name
    */
   public abstract void init() throws Exception;
+
+
+  /**
+   * get device schema from file name and data set type
+   * @param files absolute file paths to read
+   * @return device schema list to register
+   */
+  public static List<DeviceSchema> getDeviceSchemaList(List<String> files, Config config) {
+    List<DeviceSchema> deviceSchemaList = new ArrayList<>();
+    for(String currentFile: files) {
+      String[] items = currentFile.split("/");
+      String deviceId = items[items.length - 1];
+      deviceSchemaList.add(new DeviceSchema(group, deviceId, config.FIELDS));
+    }
+    return deviceSchemaList;
+  }
 
 }
