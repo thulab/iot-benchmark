@@ -1,11 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
@@ -18,12 +13,8 @@ import org.slf4j.LoggerFactory;
 public class SyntheticClient extends Client implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticClient.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private DBWrapper dbWrapper;
+
   private OperationController operationController;
-  private Measurement measurement;
-  private CountDownLatch countDownLatch;
-  private int clientThreadId;
   private SyntheticWorkload syntheticWorkload;
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
@@ -31,43 +22,14 @@ public class SyntheticClient extends Client implements Runnable {
 
 
   public SyntheticClient(int id, CountDownLatch countDownLatch) {
-    this.countDownLatch = countDownLatch;
-    clientThreadId = id;
+    super(id, countDownLatch);
     syntheticWorkload = new SyntheticWorkload(id);
     singletonWorkload = SingletonWorkload.getInstance();
     operationController = new OperationController(id);
-    measurement = new Measurement();
-    dbWrapper = new DBWrapper(measurement);
     insertLoopIndex = 0;
   }
 
-  @Override
-  public Measurement getMeasurement() {
-    return measurement;
-  }
-
-  @Override
-  public void run() {
-    try {
-      try {
-        dbWrapper.init();
-        doTestWithDefaultPath();
-      } catch (Exception e) {
-        LOGGER.error("Unexpected error: ", e);
-      } finally {
-        try {
-          dbWrapper.close();
-        } catch (TsdbException e) {
-          LOGGER.error("Close {} error: ", config.DB_SWITCH, e);
-        }
-      }
-    } finally {
-      countDownLatch.countDown();
-    }
-  }
-
-
-  private void doTestWithDefaultPath() {
+  void doTest() {
     for (long loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
       switch (operation) {

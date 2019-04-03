@@ -54,6 +54,9 @@ public class ConfigDescriptor {
 				config.DEVICE_NUMBER = Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.DEVICE_NUMBER+""));
 				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
 
+				config.FILE_PATH = properties.getProperty("FILE_PATH", "no file");
+				config.DATA_SET = properties.getProperty("DATA_SET", "REDD");
+
 				config.POINT_STEP = Long.parseLong(properties.getProperty("POINT_STEP", config.POINT_STEP+""));
 				config.BATCH_SIZE = Integer.parseInt(properties.getProperty("BATCH_SIZE", config.BATCH_SIZE +""));
 				config.LOOP = Long.parseLong(properties.getProperty("LOOP", config.LOOP+""));
@@ -64,7 +67,6 @@ public class ConfigDescriptor {
 				config.CONSTANT_RATIO = Double.parseDouble(properties.getProperty("CONSTANT_RATIO", config.CONSTANT_RATIO+""));
 
 				config.READ_FROM_FILE = Boolean.parseBoolean(properties.getProperty("READ_FROM_FILE", config.READ_FROM_FILE+""));
-				config.FILE_PATH = properties.getProperty("FILE_PATH", "no file");
 				config.BATCH_OP_NUM = Integer.parseInt(properties.getProperty("BATCH_OP_NUM", config.BATCH_OP_NUM+""));
 				config.TAG_PATH = Boolean.parseBoolean(properties.getProperty("TAG_PATH", config.TAG_PATH+""));
 				config.STORE_MODE = Integer.parseInt(properties.getProperty("STORE_MODE", config.STORE_MODE+""));
@@ -74,7 +76,6 @@ public class ConfigDescriptor {
 
 				config.DB_URL = properties.getProperty("DB_URL", "localhost");
 				config.DB_NAME = properties.getProperty("DB_NAME", "test");
-
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 
 				config.QUERY_CHOICE = Integer.parseInt(properties.getProperty("QUERY_CHOICE", config.QUERY_CHOICE+""));
@@ -86,7 +87,6 @@ public class ConfigDescriptor {
 				config.QUERY_SEED = Long.parseLong(properties.getProperty("QUERY_SEED", config.QUERY_SEED+""));
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
-				config.REMARK = properties.getProperty("DATA_SET", "REDD");
 
 				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
 						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");

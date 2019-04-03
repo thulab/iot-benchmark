@@ -11,6 +11,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import java.util.List;
 
 public interface IDatabase {
 
@@ -34,9 +36,9 @@ public interface IDatabase {
 
   /**
    * Called once before each test if CREATE_SCHEMA=true.
-   * @param measurement measure the time cost.
+   * @param schemaList schema of devices to register
    */
-  void registerSchema(Measurement measurement) throws TsdbException;
+  void registerSchema(List<DeviceSchema> schemaList) throws TsdbException;
 
   /**
    * Insert one batch into the database, the DB implementation needs to resolve the data in batch

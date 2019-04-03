@@ -9,10 +9,12 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 
+//TODO not used yet
 interface IWorkload {
 
-  Batch getOneBatch();
+  Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException;
 
   PreciseQuery getPreciseQuery() throws WorkloadException;
 

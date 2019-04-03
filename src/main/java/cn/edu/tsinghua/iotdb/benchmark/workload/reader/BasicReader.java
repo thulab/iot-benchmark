@@ -17,27 +17,36 @@ public abstract class BasicReader {
   private BufferedReader reader;
   protected List<String> cachedLines;
   protected String group = "default";
+  private boolean hasInit = false;
 
-  protected int currentFileIndex = 0;
+  private int currentFileIndex = 0;
   protected String currentFile;
   protected String currentDeviceId;
 
   public BasicReader(Config config, List<String> files) {
     this.config = config;
     this.files = files;
-    try {
-      reader = new BufferedReader(new FileReader(files.get(currentFileIndex)));
-      currentFile = files.get(currentFileIndex);
-      logger.info("start to read {}-th file {}", currentFileIndex, currentFile);
-      init();
-    } catch (Exception e) {
-      logger.error("meet exception when init file: {}", currentFile);
-      e.printStackTrace();
-    }
     cachedLines = new ArrayList<>();
   }
 
   public boolean hasNextBatch() {
+
+    if (files == null || files.isEmpty()) {
+      return false;
+    }
+
+    if (!hasInit) {
+      try {
+        reader = new BufferedReader(new FileReader(files.get(currentFileIndex)));
+        currentFile = files.get(currentFileIndex);
+        logger.info("start to read {}-th file {}", currentFileIndex, currentFile);
+        init();
+        hasInit = true;
+      } catch (Exception e) {
+        e.printStackTrace();
+        logger.error("meet exception when init file: {}", currentFile);
+      }
+    }
 
     cachedLines.clear();
 
@@ -45,17 +54,17 @@ public abstract class BasicReader {
       String line;
       while (true) {
 
-        if(reader == null) {
+        if (reader == null) {
           return false;
         }
 
         line = reader.readLine();
 
         // current file end
-        if(line == null) {
+        if (line == null) {
 
           // current file has been resolved, read next file
-          if(cachedLines.isEmpty()) {
+          if (cachedLines.isEmpty()) {
             if (currentFileIndex < files.size() - 1) {
               currentFile = files.get(currentFileIndex++);
               logger.info("start to read {}-th file {}", currentFileIndex, currentFile);
@@ -73,7 +82,7 @@ public abstract class BasicReader {
             // resolve current file
             return true;
           }
-        } else if (line.isEmpty()){
+        } else if (line.isEmpty()) {
           continue;
         }
 
@@ -100,9 +109,8 @@ public abstract class BasicReader {
 
 
   /**
-   * initialize when start reading a file
-   * maybe skip the first lines
-   * maybe init the tagValue(deviceId) from file name
+   * initialize when start reading a file maybe skip the first lines maybe init the
+   * tagValue(deviceId) from file name
    */
   public abstract void init() throws Exception;
 

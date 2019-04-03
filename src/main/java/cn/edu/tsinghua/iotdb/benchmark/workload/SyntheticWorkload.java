@@ -28,7 +28,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SyntheticWorkload implements IWorkload{
+public class SyntheticWorkload {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -129,11 +129,6 @@ public class SyntheticWorkload implements IWorkload{
           throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
       }
     }
-  }
-
-  @Override
-  public Batch getOneBatch() {
-    return null;
   }
 
   private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {

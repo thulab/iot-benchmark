@@ -15,7 +15,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.reader.ReddReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.TDriveReader;
 import java.util.List;
 
-public class RealDatasetWorkLoad implements IWorkload{
+public class RealDatasetWorkLoad{
 
   private BasicReader reader;
 
@@ -32,7 +32,6 @@ public class RealDatasetWorkLoad implements IWorkload{
     }
   }
 
-  @Override
   public Batch getOneBatch() {
     if(reader.hasNextBatch()) {
       return reader.nextBatch();
@@ -41,42 +40,34 @@ public class RealDatasetWorkLoad implements IWorkload{
     }
   }
 
-  @Override
   public PreciseQuery getPreciseQuery() throws WorkloadException {
     return null;
   }
 
-  @Override
   public RangeQuery getRangeQuery() throws WorkloadException {
     return null;
   }
 
-  @Override
   public ValueRangeQuery getValueRangeQuery() {
     return null;
   }
 
-  @Override
   public AggRangeQuery getAggRangeQuery() {
     return null;
   }
 
-  @Override
   public AggValueQuery getAggValueQuery() {
     return null;
   }
 
-  @Override
   public AggRangeValueQuery getAggRangeValueQuery() {
     return null;
   }
 
-  @Override
   public GroupByQuery getGroupByQuery() {
     return null;
   }
 
-  @Override
   public LatestPointQuery getLatestPointQuery() {
     return null;
   }

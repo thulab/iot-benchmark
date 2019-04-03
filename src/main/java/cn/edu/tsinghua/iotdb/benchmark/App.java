@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -27,6 +29,8 @@ import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,6 +56,8 @@ public class App {
     private static final double NANO_TO_SECOND = 1000000000.0d;
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
+
+        args = new String[]{"-cf", "conf/config.properties"};
 
         CommandCli cli = new CommandCli();
         if (!cli.init(args)) {
@@ -113,7 +119,10 @@ public class App {
                 }
             }
             try {
-                dbWrapper.registerSchema(measurement);
+                DataSchema dataSchema = DataSchema.getInstance();
+                for(List<DeviceSchema> schemaList: dataSchema.getClientBindSchema().values()) {
+                    dbWrapper.registerSchema(schemaList);
+                }
             } catch (TsdbException e) {
                 LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
             }
@@ -128,7 +137,7 @@ public class App {
         }
         // create CLIENT_NUMBER client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
-        List<SyntheticClient> clients = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
         long st;
         long en;
@@ -150,7 +159,7 @@ public class App {
         LOGGER.info("All clients finished.");
         // sum up all the measurements and calculate statistics
         measurement.setElapseTime((en - st) / NANO_TO_SECOND);
-        for (SyntheticClient client : clients) {
+        for (Client client : clients) {
             threadsMeasurements.add(client.getMeasurement());
         }
         for (Measurement m : threadsMeasurements) {
@@ -188,7 +197,10 @@ public class App {
                 }
             }
             try {
-                dbWrapper.registerSchema(measurement);
+
+                //TODO traverse all data file, extract device schema and register
+                dbWrapper.registerSchema(null);
+
             } catch (TsdbException e) {
                 LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
             }
@@ -227,12 +239,12 @@ public class App {
 
         // create CLIENT_NUMBER client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
-        List<SyntheticClient> clients = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
         long st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            SyntheticClient client = new SyntheticClient(i, downLatch);
+            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i));
             clients.add(client);
             executorService.submit(client);
         }
@@ -247,7 +259,7 @@ public class App {
         LOGGER.info("All clients finished.");
         // sum up all the measurements and calculate statistics
         measurement.setElapseTime((en - st) / NANO_TO_SECOND);
-        for (SyntheticClient client : clients) {
+        for (Client client : clients) {
             threadsMeasurements.add(client.getMeasurement());
         }
         for (Measurement m : threadsMeasurements) {

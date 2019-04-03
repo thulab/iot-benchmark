@@ -97,9 +97,9 @@ public class Config {
 	/**存放SQL语句文件的完整路径*/
 	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
 	/** 文件的名字 */
-	public String FILE_PATH ;
+	public String FILE_PATH;
 	/** 数据集的名字 */
-	public String DATA_SET ;
+	public String DATA_SET;
 	/** 是否从文件读取数据*/
 	public boolean READ_FROM_FILE = false;
 	/** 一次插入到数据库的条数 */

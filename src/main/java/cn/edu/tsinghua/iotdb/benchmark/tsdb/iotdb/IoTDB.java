@@ -26,8 +26,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,16 +78,20 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException{
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException{
     DataSchema dataSchema = DataSchema.getInstance();
     int count = 0;
-    // set storage group
+
     try {
+      // get all storage groups
+      Set<String> groups = new HashSet<>();
+      for(DeviceSchema schema: schemaList) {
+        groups.add(schema.getGroup());
+      }
+      // register storage groups
       try (Statement statement = connection.createStatement()) {
-        for (int i = 0; i < config.GROUP_NUMBER; i++) {
-          statement.addBatch(
-              String.format(SET_STORAGE_GROUP_SQL,
-                  Constants.ROOT_SERIES_NAME + "." + DeviceSchema.GROUP_NAME_PREFIX + i));
+        for(String group: groups) {
+          statement.addBatch(String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
         }
         statement.executeBatch();
         statement.clearBatch();
@@ -96,9 +102,9 @@ public class IoTDB implements IDatabase {
     }
     // create time series
     try (Statement statement = connection.createStatement()) {
-      for (Entry<Integer, List<DeviceSchema>> entry : dataSchema.getClientBindSchema().entrySet()) {
-        List<DeviceSchema> deviceSchemaList = entry.getValue();
-        for (DeviceSchema deviceSchema : deviceSchemaList) {
+//      for (Entry<Integer, List<DeviceSchema>> entry : dataSchema.getClientBindSchema().entrySet()) {
+//        List<DeviceSchema> deviceSchemaList = entry.getValue();
+        for (DeviceSchema deviceSchema : schemaList) {
           for (String sensor : deviceSchema.getSensors()) {
             String createSeriesSql = String.format(CREATE_SERIES_SQL,
                 Constants.ROOT_SERIES_NAME
@@ -115,7 +121,7 @@ public class IoTDB implements IDatabase {
           }
 
         }
-      }
+//      }
       statement.executeBatch();
       statement.clearBatch();
     } catch (SQLException e) {

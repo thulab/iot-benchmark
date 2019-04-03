@@ -86,7 +86,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException {
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       influxDbInstance.createDatabase(influxDbName);
     } catch (Exception e) {
@@ -114,6 +114,7 @@ public class InfluxDB implements IDatabase {
       long latency = endTime - startTime;
       return new Status(true, latency);
     } catch (Exception e) {
+      LOGGER.warn(e.getMessage());
       return new Status(false, 0, e, e.toString());
     }
   }
