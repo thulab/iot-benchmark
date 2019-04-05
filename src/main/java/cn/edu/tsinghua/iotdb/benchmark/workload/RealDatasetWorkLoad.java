@@ -11,6 +11,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.GeolifeReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.ReddReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.TDriveReader;
 import java.util.List;
@@ -26,6 +27,9 @@ public class RealDatasetWorkLoad{
         break;
       case "REDD":
         reader = new ReddReader(config, files);
+        break;
+      case "GEOLIFE":
+        reader = new GeolifeReader(config, files);
         break;
       default:
         throw new RuntimeException(config.DATA_SET + " not supported");

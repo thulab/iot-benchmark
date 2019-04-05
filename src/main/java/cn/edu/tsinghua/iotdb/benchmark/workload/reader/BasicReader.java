@@ -15,7 +15,7 @@ public abstract class BasicReader {
   private static Logger logger = LoggerFactory.getLogger(BasicReader.class);
   protected Config config;
   private List<String> files;
-  private BufferedReader reader;
+  protected BufferedReader reader;
   protected List<String> cachedLines;
   protected static String group = "default";
   private boolean hasInit = false;

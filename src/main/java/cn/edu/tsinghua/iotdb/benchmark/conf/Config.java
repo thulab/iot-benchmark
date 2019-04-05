@@ -369,6 +369,10 @@ public class Config {
 				FIELDS = Arrays.asList("value");
 				PRECISION = new int[]{2};
 				break;
+			case "GEOLIFE":
+				FIELDS = Arrays.asList("Latitude", "Longitude", "Zero", "Altitude");
+				PRECISION = new int[]{6, 6, 0, 12};
+				break;
 			default:
 				throw new RuntimeException(DATA_SET + " is not support");
 		}
