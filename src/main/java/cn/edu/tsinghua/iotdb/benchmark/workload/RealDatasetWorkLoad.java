@@ -22,13 +22,13 @@ public class RealDatasetWorkLoad{
 
   public RealDatasetWorkLoad(List<String> files, Config config) {
     switch (config.DATA_SET) {
-      case "TDRIVE":
+      case TDRIVE:
         reader = new TDriveReader(config, files);
         break;
-      case "REDD":
+      case REDD:
         reader = new ReddReader(config, files);
         break;
-      case "GEOLIFE":
+      case GEOLIFE:
         reader = new GeolifeReader(config, files);
         break;
       default:

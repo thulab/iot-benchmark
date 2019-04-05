@@ -6,7 +6,9 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,16 +119,37 @@ public abstract class BasicReader {
 
 
   /**
-   * get device schema from file name and data set type
+   * get device schema based on file name and data set type
+   *
    * @param files absolute file paths to read
    * @return device schema list to register
    */
   public static List<DeviceSchema> getDeviceSchemaList(List<String> files, Config config) {
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-    for(String currentFile: files) {
-      String[] items = currentFile.split("/");
-      String deviceId = items[items.length - 1];
-      deviceSchemaList.add(new DeviceSchema(group, deviceId, config.FIELDS));
+
+    // remove duplicated devices
+    Set<String> devices = new HashSet<>();
+    switch (config.DATA_SET) {
+      case REDD:
+      case TDRIVE:
+        for (String currentFile : files) {
+          String[] items = currentFile.split("/");
+          String deviceId = items[items.length - 1];
+          if(!devices.contains(deviceId)) {
+            devices.add(deviceId);
+            deviceSchemaList.add(new DeviceSchema(group, deviceId, config.FIELDS));
+          }
+        }
+        break;
+      case GEOLIFE:
+        for (String currentFile: files) {
+          String deviceId = currentFile.split(config.FILE_PATH)[1].
+              split("/Trajectory")[0].replace("/", "");
+          if(!devices.contains(deviceId)) {
+            devices.add(deviceId);
+            deviceSchemaList.add(new DeviceSchema(group, deviceId, config.FIELDS));
+          }
+        }
     }
     return deviceSchemaList;
   }

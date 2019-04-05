@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -56,7 +57,14 @@ public class ConfigDescriptor {
 				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
 
 				config.FILE_PATH = properties.getProperty("FILE_PATH", "no file");
-				config.DATA_SET = properties.getProperty("DATA_SET", "REDD");
+
+				String dataset = properties.getProperty("DATA_SET", "NULL");
+				switch (properties.getProperty("DATA_SET", "REDD")) {
+					case "GEOLIFE": config.DATA_SET = DataSet.GEOLIFE; break;
+					case "REDD": config.DATA_SET = DataSet.REDD; break;
+					case "TDRIVE": config.DATA_SET = DataSet.TDRIVE; break;
+					default: throw new RuntimeException("not support dataset: " + dataset);
+				}
 
 				config.POINT_STEP = Long.parseLong(properties.getProperty("POINT_STEP", config.POINT_STEP+""));
 				config.BATCH_SIZE = Integer.parseInt(properties.getProperty("BATCH_SIZE", config.BATCH_SIZE +""));

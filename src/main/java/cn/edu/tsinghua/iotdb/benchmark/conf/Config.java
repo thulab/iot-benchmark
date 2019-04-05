@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,7 +101,7 @@ public class Config {
 	/** 文件的名字 */
 	public String FILE_PATH;
 	/** 数据集的名字 */
-	public String DATA_SET;
+	public DataSet DATA_SET;
 	/** 数据集的传感器 */
 	public List<String> FIELDS;
 	/** 数据集的传感器的精度 */
@@ -361,15 +362,15 @@ public class Config {
 
 	public void initRealDataSetSchema() {
 		switch (DATA_SET) {
-			case "TDRIVE":
+			case TDRIVE:
 				FIELDS = Arrays.asList("longitude", "latitude");
 				PRECISION = new int[]{5, 5};
 				break;
-			case "REDD":
+			case REDD:
 				FIELDS = Arrays.asList("value");
 				PRECISION = new int[]{2};
 				break;
-			case "GEOLIFE":
+			case GEOLIFE:
 				FIELDS = Arrays.asList("Latitude", "Longitude", "Zero", "Altitude");
 				PRECISION = new int[]{6, 6, 0, 12};
 				break;
