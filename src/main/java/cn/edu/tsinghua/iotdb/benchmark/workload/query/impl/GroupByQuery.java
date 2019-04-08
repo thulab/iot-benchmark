@@ -8,13 +8,13 @@ import java.util.List;
 public class GroupByQuery extends Query {
 
   private List<DeviceSchema> deviceSchema;
-  private AggFunction aggFun;
+  private String aggFun;
   // also used to be the segment start time
   private long startTimestamp;
   private long endTimestamp;
   private long interval;
 
-  public GroupByQuery(List<DeviceSchema> deviceSchema, AggFunction aggFun, long startTimestamp, long endTimestamp, long interval) {
+  public GroupByQuery(List<DeviceSchema> deviceSchema, String aggFun, long interval, long startTimestamp, long endTimestamp) {
     this.deviceSchema = deviceSchema;
     this.aggFun = aggFun;
     this.startTimestamp = startTimestamp;
@@ -22,7 +22,11 @@ public class GroupByQuery extends Query {
     this.interval = interval;
   }
 
-  public AggFunction getAggFun() {
+  public long getInterval() {
+    return interval;
+  }
+
+  public String getAggFun() {
     return aggFun;
   }
 

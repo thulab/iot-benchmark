@@ -7,18 +7,18 @@ import java.util.List;
 public class AggRangeQuery extends Query {
 
   private List<DeviceSchema> deviceSchema;
-  private AggFunction aggFun;
+  private String aggFun;
   private long startTimestamp;
   private long endTimestamp;
 
-  public AggRangeQuery(List<DeviceSchema> deviceSchema, AggFunction aggFun, long startTimestamp, long endTimestamp) {
+  public AggRangeQuery(List<DeviceSchema> deviceSchema, String aggFun, long startTimestamp, long endTimestamp) {
     this.deviceSchema = deviceSchema;
     this.aggFun = aggFun;
     this.startTimestamp = startTimestamp;
     this.endTimestamp = endTimestamp;
   }
 
-  public AggFunction getAggFun() {
+  public String getAggFun() {
     return aggFun;
   }
 
