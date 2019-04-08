@@ -30,7 +30,6 @@ import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
-import cn.edu.tsinghua.iotdb.benchmark.workload.reader.ReddReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedWriter;
@@ -68,8 +67,8 @@ public class App {
             case Constants.MODE_TEST_WITH_DEFAULT_PATH:
                 testWithDefaultPath(config);
                 break;
-            case Constants.MODE_WRITE_REAL_DATASET:
-                writeRealDataSet(config);
+            case Constants.MODE_TEST_WITH_REAL_DATASET:
+                testWithRealDataSet(config);
                 break;
             case Constants.MODE_SERVER_MODE:
                 serverMode(config);
@@ -176,10 +175,10 @@ public class App {
 
 
     /**
-     * 读取真实数据集进行写入测试
+     * 测试真实数据集
      * @param config
      */
-    private static void writeRealDataSet(Config config) {
+    private static void testWithRealDataSet(Config config) {
         MySqlLog mysql = new MySqlLog();
         mysql.initMysql(System.currentTimeMillis());
         mysql.savaTestConfig();
@@ -189,7 +188,7 @@ public class App {
 
         File dirFile = new File(config.FILE_PATH);
         if (!dirFile.exists()) {
-            LOGGER.error(config.FILE_PATH + " do not exit");
+            LOGGER.error(config.FILE_PATH + " does not exit");
             return;
         }
 
