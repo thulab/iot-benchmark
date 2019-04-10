@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
+
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;

@@ -27,6 +27,7 @@ public class DBWrapper implements IDatabase {
   private static final double NANO_TO_SECOND = 1000000000.0d;
   private static final double NANO_TO_MILLIS = 1000000.0d;
   private Measurement measurement;
+  private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
 
 
   public DBWrapper(Measurement measurement) {
@@ -71,27 +72,17 @@ public class DBWrapper implements IDatabase {
     Operation operation = Operation.PRECISE_QUERY;
     try {
       status = db.preciseQuery(preciseQuery);
-      if (status.isOk()) {
-        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
-        measureOperation(status, operation, status.getQueryResultPointNum());
-        String formatTimeInMillis = String.format("%.2f", timeInMillis);
-        String currentThread = Thread.currentThread().getName();
-        LOGGER
-            .info("{} complete range query with latency ,{}, ms ,{}, result points", currentThread,
-                formatTimeInMillis, status.getQueryResultPointNum());
-      } else {
-        LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
-        measurement.addFailOperationNum(operation);
-        // currently we do not have expected result point number
-        measurement.addOkPointNum(operation, status.getQueryResultPointNum());
-      }
+      handleQueryOperation(status, operation);
+
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number
-      LOGGER.error("Failed to do precise query because unexpected exception: ", e);
+      LOGGER.error(ERROR_LOG, operation, e);
     }
     return status;
   }
+
+
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
@@ -99,62 +90,105 @@ public class DBWrapper implements IDatabase {
     Operation operation = Operation.RANGE_QUERY;
     try {
       status = db.rangeQuery(rangeQuery);
-      if (status.isOk()) {
-        measureOperation(status, operation, status.getQueryResultPointNum());
-        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
-        String formatTimeInMillis = String.format("%.2f", timeInMillis);
-        String currentThread = Thread.currentThread().getName();
-        LOGGER
-            .info("{} complete range query with latency ,{}, ms ,{}, result points", currentThread,
-                formatTimeInMillis, status.getQueryResultPointNum());
-      } else {
-        LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
-        measurement.addFailOperationNum(operation);
-        // currently we do not have expected result point number
-        measurement.addOkPointNum(operation, status.getQueryResultPointNum());
-      }
+      handleQueryOperation(status, operation);
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number
-      LOGGER.error("Failed to do range query because unexpected exception: ", e);
+      LOGGER.error(ERROR_LOG, operation, e);
     }
     return status;
   }
 
-  private void measureOperation(Status status, Operation operation, int okPointNum) {
-    measurement.addOperationLatency(operation, status.getCostTime() / NANO_TO_MILLIS);
-    measurement.addOkOperationNum(operation);
-    measurement.addOkPointNum(operation, okPointNum);
-  }
+
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return null;
+    Status status = null;
+    Operation operation = Operation.VALUE_RANGE_QUERY;
+    try {
+      status = db.valueRangeQuery(valueRangeQuery);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error(ERROR_LOG, operation, e);
+    }
+    return status;
   }
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return null;
+    Status status = null;
+    Operation operation = Operation.AGG_RANGE_QUERY;
+    try {
+      status = db.aggRangeQuery(aggRangeQuery);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error(ERROR_LOG, operation, e);
+    }
+    return status;
   }
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return null;
+    Status status = null;
+    Operation operation = Operation.AGG_VALUE_QUERY;
+    try {
+      status = db.aggValueQuery(aggValueQuery);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error(ERROR_LOG, operation, e);
+    }
+    return status;
   }
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return null;
+    Status status = null;
+    Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
+    try {
+      status = db.aggRangeValueQuery(aggRangeValueQuery);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error(ERROR_LOG, operation, e);
+    }
+    return status;
   }
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    return null;
+    Status status = null;
+    Operation operation = Operation.GROUP_BY_QUERY;
+    try {
+      status = db.groupByQuery(groupByQuery);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error(ERROR_LOG, operation, e);
+    }
+    return status;
   }
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return null;
+    Status status = null;
+    Operation operation = Operation.LATEST_POINT_QUERY;
+    try {
+      status = db.latestPointQuery(latestPointQuery);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      LOGGER.error(ERROR_LOG, operation, e);
+    }
+    return status;
   }
 
   @Override
@@ -189,6 +223,29 @@ public class DBWrapper implements IDatabase {
     } catch (Exception e) {
       measurement.setCreateSchemaTime(0);
       throw new TsdbException(e);
+    }
+  }
+
+  private void measureOperation(Status status, Operation operation, int okPointNum) {
+    measurement.addOperationLatency(operation, status.getCostTime() / NANO_TO_MILLIS);
+    measurement.addOkOperationNum(operation);
+    measurement.addOkPointNum(operation, okPointNum);
+  }
+
+  private void handleQueryOperation(Status status, Operation operation){
+    if (status.isOk()) {
+      measureOperation(status, operation, status.getQueryResultPointNum());
+      double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+      String formatTimeInMillis = String.format("%.2f", timeInMillis);
+      String currentThread = Thread.currentThread().getName();
+      LOGGER
+          .info("{} complete {} with latency ,{}, ms ,{}, result points", currentThread, operation,
+              formatTimeInMillis, status.getQueryResultPointNum());
+    } else {
+      LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
+      measurement.addFailOperationNum(operation);
+      // currently we do not have expected result point number
+      measurement.addOkPointNum(operation, status.getQueryResultPointNum());
     }
   }
 
