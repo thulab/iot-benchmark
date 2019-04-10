@@ -2,7 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +15,17 @@ public class DeviceSchema {
   public static final String GROUP_NAME_PREFIX = "group_";
   private static final String DEVICE_NAME_PREFIX = "d_";
 
-  private int deviceId;
+  // each device belongs to one group, i.e., database
   private String group;
+
+  // deviceId
   private String device;
-  private String devicePath;
+
+  // sensorIds
   private List<String> sensors;
 
+  // only for synthetic data set
+  private int deviceId;
 
   public DeviceSchema(int deviceId) {
     this.deviceId = deviceId;
@@ -29,11 +33,17 @@ public class DeviceSchema {
     sensors = new ArrayList<>();
     try {
       createEvenlyAllocDeviceSchema();
-      devicePath = Constants.ROOT_SERIES_NAME + "." + group + "." + device;
     } catch (WorkloadException e) {
       LOGGER.error("Create device schema failed.", e);
     }
   }
+
+  public DeviceSchema(String group, String device, List<String> sensors) {
+    this.group = GROUP_NAME_PREFIX + group;
+    this.device = DEVICE_NAME_PREFIX + device;
+    this.sensors = sensors;
+  }
+
 
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
     if (config.GROUP_NUMBER > config.DEVICE_NUMBER) {
@@ -51,17 +61,6 @@ public class DeviceSchema {
     sensors.addAll(config.SENSOR_CODES);
   }
 
-  public String getDevicePath() {
-    return devicePath;
-  }
-
-  public int getDeviceId() {
-    return deviceId;
-  }
-
-  public void setDeviceId(int deviceId) {
-    this.deviceId = deviceId;
-  }
 
   public String getDevice() {
     return device;

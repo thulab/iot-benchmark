@@ -14,6 +14,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,7 +173,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException {
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     double createSchemaTimeInSecond;
     long en = 0;
     long st = 0;
@@ -179,7 +181,7 @@ public class DBWrapper implements IDatabase {
     try {
       if (config.CREATE_SCHEMA) {
         st = System.nanoTime();
-        db.registerSchema(measurement);
+        db.registerSchema(schemaList);
         en = System.nanoTime();
       }
       createSchemaTimeInSecond = (en - st) / NANO_TO_SECOND;

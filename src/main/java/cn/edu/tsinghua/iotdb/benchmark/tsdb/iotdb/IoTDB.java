@@ -26,8 +26,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +44,11 @@ public class IoTDB implements IDatabase {
   private Connection connection;
 
   public IoTDB() {
-    sdf =  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   }
 
   @Override
-  public void init() throws TsdbException{
+  public void init() throws TsdbException {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection = DriverManager
@@ -59,12 +61,12 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public void cleanup() throws TsdbException{
+  public void cleanup() throws TsdbException {
     // currently no implementation
   }
 
   @Override
-  public void close() throws TsdbException{
+  public void close() throws TsdbException {
     if (connection != null) {
       try {
         connection.close();
@@ -76,16 +78,20 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException{
-    DataSchema dataSchema = DataSchema.getInstance();
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     int count = 0;
-    // set storage group
+
     try {
+      // get all storage groups
+      Set<String> groups = new HashSet<>();
+      for (DeviceSchema schema : schemaList) {
+        groups.add(schema.getGroup());
+      }
+      // register storage groups
       try (Statement statement = connection.createStatement()) {
-        for (int i = 0; i < config.GROUP_NUMBER; i++) {
+        for (String group : groups) {
           statement.addBatch(
-              String.format(SET_STORAGE_GROUP_SQL,
-                  Constants.ROOT_SERIES_NAME + "." + DeviceSchema.GROUP_NAME_PREFIX + i));
+              String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
         }
         statement.executeBatch();
         statement.clearBatch();
@@ -96,25 +102,22 @@ public class IoTDB implements IDatabase {
     }
     // create time series
     try (Statement statement = connection.createStatement()) {
-      for (Entry<Integer, List<DeviceSchema>> entry : dataSchema.getClientBindSchema().entrySet()) {
-        List<DeviceSchema> deviceSchemaList = entry.getValue();
-        for (DeviceSchema deviceSchema : deviceSchemaList) {
-          for (String sensor : deviceSchema.getSensors()) {
-            String createSeriesSql = String.format(CREATE_SERIES_SQL,
-                Constants.ROOT_SERIES_NAME
-                    + "." + deviceSchema.getGroup()
-                    + "." + deviceSchema.getDevice()
-                    + "." + sensor,
-                config.DATA_TYPE, config.ENCODING, config.COMPRESSOR);
-            statement.addBatch(createSeriesSql);
-            count++;
-            if (count % 5000 == 0) {
-              statement.executeBatch();
-              statement.clearBatch();
-            }
+      for (DeviceSchema deviceSchema : schemaList) {
+        for (String sensor : deviceSchema.getSensors()) {
+          String createSeriesSql = String.format(CREATE_SERIES_SQL,
+              Constants.ROOT_SERIES_NAME
+                  + "." + deviceSchema.getGroup()
+                  + "." + deviceSchema.getDevice()
+                  + "." + sensor,
+              config.DATA_TYPE, config.ENCODING, config.COMPRESSOR);
+          statement.addBatch(createSeriesSql);
+          count++;
+          if (count % 5000 == 0) {
+            statement.executeBatch();
+            statement.clearBatch();
           }
-
         }
+
       }
       statement.executeBatch();
       statement.clearBatch();
@@ -161,12 +164,19 @@ public class IoTDB implements IDatabase {
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i));
     }
-    builder.append(" FROM ").append(devices.get(0).getDevicePath());
+    builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
-      builder.append(", ").append(devices.get(i).getDevicePath());
+      builder.append(", ").append(getDevicePath(devices.get(i)));
     }
 
     return builder.toString();
+  }
+
+
+  // convert deviceSchema to the format: root.group_1.d_1
+  private String getDevicePath(DeviceSchema deviceSchema) {
+    return Constants.ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema
+        .getDevice();
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
@@ -207,7 +217,7 @@ public class IoTDB implements IDatabase {
     long st;
     long en;
     try (Statement statement = connection.createStatement()) {
-      for (Record record: batch.getRecords()) {
+      for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
         statement.addBatch(sql);

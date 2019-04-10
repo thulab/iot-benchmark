@@ -13,13 +13,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Workload Tester.
+ * SyntheticWorkload Tester.
  *
  * @author <Authors name>
  * @version 1.0
  * @since <pre>Mar 18, 2019</pre>
  */
-public class WorkloadTest {
+public class SyntheticWorkloadTest {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
@@ -112,9 +112,9 @@ public class WorkloadTest {
     config.BATCH_SIZE = 5;
     config.POINT_STEP = 5000;
     config.IS_RANDOM_TIMESTAMP_INTERVAL = false;
-    Workload workload = new Workload(1);
+    SyntheticWorkload syntheticWorkload = new SyntheticWorkload(1);
     for (int i = 0; i < 3; i++) {
-      Batch batch = workload.getOneBatch(new DeviceSchema(1), i);
+      Batch batch = syntheticWorkload.getOneBatch(new DeviceSchema(1), i);
       long old = 0;
       for(Record record: batch.getRecords()){
         // 检查map里timestamp获取到的是否是按序的
@@ -134,7 +134,7 @@ public class WorkloadTest {
 //TODO: Test goes here... 
 /* 
 try { 
-   Method method = Workload.getClass().getMethod("getDistOutOfOrderBatch"); 
+   Method method = SyntheticWorkload.getClass().getMethod("getDistOutOfOrderBatch");
    method.setAccessible(true); 
    method.invoke(<Object>, <Parameters>); 
 } catch(NoSuchMethodException e) { 
@@ -152,7 +152,7 @@ try {
 //TODO: Test goes here... 
 /* 
 try { 
-   Method method = Workload.getClass().getMethod("getLocalOutOfOrderBatch"); 
+   Method method = SyntheticWorkload.getClass().getMethod("getLocalOutOfOrderBatch");
    method.setAccessible(true); 
    method.invoke(<Object>, <Parameters>); 
 } catch(NoSuchMethodException e) { 
@@ -170,7 +170,7 @@ try {
 //TODO: Test goes here... 
 /* 
 try { 
-   Method method = Workload.getClass().getMethod("getGlobalOutOfOrderBatch"); 
+   Method method = SyntheticWorkload.getClass().getMethod("getGlobalOutOfOrderBatch");
    method.setAccessible(true); 
    method.invoke(<Object>, <Parameters>); 
 } catch(NoSuchMethodException e) { 

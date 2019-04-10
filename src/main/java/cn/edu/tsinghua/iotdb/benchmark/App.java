@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -27,6 +29,9 @@ import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
 import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +39,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +66,9 @@ public class App {
         switch (config.BENCHMARK_WORK_MODE.trim()) {
             case Constants.MODE_TEST_WITH_DEFAULT_PATH:
                 testWithDefaultPath(config);
+                break;
+            case Constants.MODE_TEST_WITH_REAL_DATASET:
+                testWithRealDataSet(config);
                 break;
             case Constants.MODE_SERVER_MODE:
                 serverMode(config);
@@ -109,7 +118,10 @@ public class App {
                 }
             }
             try {
-                dbWrapper.registerSchema(measurement);
+                DataSchema dataSchema = DataSchema.getInstance();
+                for(List<DeviceSchema> schemaList: dataSchema.getClientBindSchema().values()) {
+                    dbWrapper.registerSchema(schemaList);
+                }
             } catch (TsdbException e) {
                 LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
             }
@@ -131,7 +143,7 @@ public class App {
         st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            Client client = new Client(i, downLatch);
+            SyntheticClient client = new SyntheticClient(i, downLatch);
             clients.add(client);
             executorService.submit(client);
         }
@@ -159,6 +171,125 @@ public class App {
         measurement.showMeasurements();
         measurement.showMetrics();
 
+    }
+
+
+    /**
+     * 测试真实数据集
+     * @param config
+     */
+    private static void testWithRealDataSet(Config config) {
+        MySqlLog mysql = new MySqlLog();
+        mysql.initMysql(System.currentTimeMillis());
+        mysql.savaTestConfig();
+
+        // BATCH_SIZE is points number in this mode
+        config.BATCH_SIZE = config.BATCH_SIZE / config.FIELDS.size();
+
+        File dirFile = new File(config.FILE_PATH);
+        if (!dirFile.exists()) {
+            LOGGER.error(config.FILE_PATH + " does not exit");
+            return;
+        }
+
+        List<String> files = new ArrayList<>();
+        getAllFiles(config.FILE_PATH, files);
+        LOGGER.info("total files: {}", files.size());
+
+        Collections.sort(files);
+
+        List<DeviceSchema> deviceSchemaList = BasicReader.getDeviceSchemaList(files, config);
+
+        Measurement measurement = new Measurement();
+        DBWrapper dbWrapper = new DBWrapper(measurement);
+        // register schema if needed
+        try {
+            LOGGER.info("start to init database {}", config.DB_SWITCH);
+            dbWrapper.init();
+            if(config.IS_DELETE_DATA){
+                try {
+                    LOGGER.info("start to clean old data");
+                    dbWrapper.cleanup();
+                } catch (TsdbException e) {
+                    LOGGER.error("Cleanup {} failed because ", config.DB_SWITCH, e);
+                }
+            }
+            try {
+                // register device schema
+                LOGGER.info("start to register schema");
+                dbWrapper.registerSchema(deviceSchemaList);
+            } catch (TsdbException e) {
+                LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
+            }
+        } catch (TsdbException e) {
+            LOGGER.error("Initialize {} failed because ", config.DB_SWITCH, e);
+        } finally {
+            try {
+                dbWrapper.close();
+            } catch (TsdbException e) {
+                LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
+            }
+        }
+
+
+        List<List<String>> thread_files = new ArrayList<>();
+        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            thread_files.add(new ArrayList<>());
+        }
+
+        for (int i = 0; i < files.size(); i++) {
+            String filePath = files.get(i);
+            int thread = i % config.CLIENT_NUMBER;
+            thread_files.get(thread).add(filePath);
+        }
+
+        // create CLIENT_NUMBER client threads to do the workloads
+        List<Measurement> threadsMeasurements = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
+        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        long st = System.nanoTime();
+        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i));
+            clients.add(client);
+            executorService.submit(client);
+        }
+        executorService.shutdown();
+        try {
+            downLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+            Thread.currentThread().interrupt();
+        }
+        long en = System.nanoTime();
+        LOGGER.info("All clients finished.");
+        // sum up all the measurements and calculate statistics
+        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
+        for (Client client : clients) {
+            threadsMeasurements.add(client.getMeasurement());
+        }
+        for (Measurement m : threadsMeasurements) {
+            measurement.mergeMeasurement(m);
+        }
+        // must call calculateMetrics() before using the Metrics
+        measurement.calculateMetrics();
+        // output results
+        measurement.showConfigs();
+        measurement.showMeasurements();
+        measurement.showMetrics();
+    }
+
+    private static void getAllFiles(String strPath, List<String> files) {
+        File f = new File(strPath);
+        if (f.isDirectory()) {
+            File[] fs = f.listFiles();
+            for (File f1 : fs) {
+                String fsPath = f1.getAbsolutePath();
+                getAllFiles(fsPath, files);
+            }
+        } else if (f.isFile()) {
+            files.add(f.getAbsolutePath());
+        }
     }
 
     /**
