@@ -9,18 +9,14 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class SingletonWorkload{
+public class SingletonWorkload {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SingletonWorkload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private ProbTool probTool;
   private Random poissonRandom;
   private AtomicLong insertLoop;
   private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
-
 
   private static class SingletonWorkloadHolder {
 
