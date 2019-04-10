@@ -263,8 +263,10 @@ public class IoTDB implements IDatabase {
     return null;
   }
 
-  @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  /**
+   * select aggFun(sensor) from device group by(interval, startTimestamp, [startTimestamp, endTimestamp])
+   */
+  @Override public Status groupByQuery(GroupByQuery groupByQuery) {
     return null;
   }
 
