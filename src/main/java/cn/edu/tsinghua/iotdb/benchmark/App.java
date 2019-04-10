@@ -194,6 +194,8 @@ public class App {
             return;
         }
 
+        LOGGER.info("use dataset: {}", config.DATA_SET);
+
         List<String> files = new ArrayList<>();
         getAllFiles(config.FILE_PATH, files);
         LOGGER.info("total files: {}", files.size());

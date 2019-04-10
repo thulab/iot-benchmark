@@ -377,7 +377,6 @@ public class Config {
 			default:
 				throw new RuntimeException(DATA_SET + " is not support");
 		}
-		LOGGER.info("use dataset: {}", DATA_SET);
 	}
 
 
