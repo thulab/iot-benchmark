@@ -119,9 +119,11 @@ public class App {
             }
             try {
                 DataSchema dataSchema = DataSchema.getInstance();
-                for(List<DeviceSchema> schemaList: dataSchema.getClientBindSchema().values()) {
-                    dbWrapper.registerSchema(schemaList);
+                List<DeviceSchema> schemaList = new ArrayList<>();
+                for(List<DeviceSchema> schemas: dataSchema.getClientBindSchema().values()) {
+                    schemaList.addAll(schemas);
                 }
+                dbWrapper.registerSchema(schemaList);
             } catch (TsdbException e) {
                 LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
             }
