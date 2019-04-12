@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
@@ -67,22 +68,46 @@ public class SyntheticClient extends Client implements Runnable {
           }
           break;
         case VALUE_RANGE_QUERY:
-          dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
+          try {
+            dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to do range query with value filter because ", e);
+          }
           break;
         case AGG_RANGE_QUERY:
-          dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
+          try {
+            dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to do aggregation range query because ", e);
+          }
           break;
         case AGG_VALUE_QUERY:
-          dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
+          try {
+            dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to do aggregation query with value filter because ", e);
+          }
           break;
         case AGG_RANGE_VALUE_QUERY:
-          dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
+          try {
+            dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to do aggregation range query with value filter because ", e);
+          }
           break;
         case GROUP_BY_QUERY:
-          dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
+          try {
+            dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to do group by query because ", e);
+          }
           break;
         case LATEST_POINT_QUERY:
-          dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
+          try {
+            dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
+          } catch (WorkloadException e) {
+            LOGGER.error("Failed to do latest point query because ", e);
+          }
           break;
         default:
           LOGGER.error("Unsupported operation type {}", operation);

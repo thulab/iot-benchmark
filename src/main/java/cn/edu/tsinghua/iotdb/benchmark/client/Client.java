@@ -14,9 +14,9 @@ public abstract class Client implements Runnable{
   private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected Measurement measurement;
-  protected CountDownLatch countDownLatch;
-  protected int clientThreadId;
-  protected DBWrapper dbWrapper;
+  private CountDownLatch countDownLatch;
+  int clientThreadId;
+  DBWrapper dbWrapper;
 
   public Client(int id, CountDownLatch countDownLatch) {
     this.countDownLatch = countDownLatch;

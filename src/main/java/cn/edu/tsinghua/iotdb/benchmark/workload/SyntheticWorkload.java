@@ -17,7 +17,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,12 +24,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SyntheticWorkload {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static Random timestampRandom = new Random(config.DATA_SEED);
   private ProbTool probTool;
@@ -182,28 +178,49 @@ public class SyntheticWorkload {
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
   }
 
-  public ValueRangeQuery getValueRangeQuery() {
-    return null;
+  public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long startTimestamp = getQueryStartTimestamp();
+    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    return new ValueRangeQuery(queryDevices, startTimestamp, endTimestamp,
+        config.QUERY_LOWER_LIMIT);
   }
 
-  public AggRangeQuery getAggRangeQuery() {
-    return null;
+  public AggRangeQuery getAggRangeQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long startTimestamp = getQueryStartTimestamp();
+    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    return new AggRangeQuery(queryDevices, startTimestamp, endTimestamp,
+        config.QUERY_AGGREGATE_FUN);
   }
 
-  public AggValueQuery getAggValueQuery() {
-    return null;
+  public AggValueQuery getAggValueQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    return new AggValueQuery(queryDevices, config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT);
   }
 
-  public AggRangeValueQuery getAggRangeValueQuery() {
-    return null;
+  public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long startTimestamp = getQueryStartTimestamp();
+    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    return new AggRangeValueQuery(queryDevices, startTimestamp, endTimestamp,
+        config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT);
   }
 
-  public GroupByQuery getGroupByQuery() {
-    return null;
+  public GroupByQuery getGroupByQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long startTimestamp = getQueryStartTimestamp();
+    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    return new GroupByQuery(queryDevices, startTimestamp, endTimestamp, config.QUERY_AGGREGATE_FUN,
+        config.TIME_UNIT);
   }
 
-  public LatestPointQuery getLatestPointQuery() {
-    return null;
+  public LatestPointQuery getLatestPointQuery() throws WorkloadException {
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    long startTimestamp = getQueryStartTimestamp();
+    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    return new LatestPointQuery(queryDevices, startTimestamp, endTimestamp,
+        config.QUERY_AGGREGATE_FUN);
   }
 
 

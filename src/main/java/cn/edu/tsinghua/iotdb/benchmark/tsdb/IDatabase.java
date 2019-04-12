@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
+
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
@@ -59,22 +59,63 @@ public interface IDatabase {
 
   /**
    * Query data of one or multiple sensors in a time range.
-   * e.g. select v1... from data where time > ? and time < ? and device in ?
+   * e.g. select v1... from data where time >= ? and time <= ? and device in ?
    * @param rangeQuery universal range query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
   Status rangeQuery(RangeQuery rangeQuery);
 
+  /**
+   * Query data of one or multiple sensors in a time range with a value filter.
+   * e.g. select v1... from data where time >= ? and time <= ? and v1 > ? and device in ?
+   * @param valueRangeQuery contains universal range query with value filter parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status valueRangeQuery(ValueRangeQuery valueRangeQuery);
 
+  /**
+   * Query aggregated data of one or multiple sensors in a time range using aggregation function.
+   * e.g. select func(v1)... from data where device in ? and time >= ? and time <= ?
+   * @param aggRangeQuery contains universal aggregation query with time filter parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status aggRangeQuery(AggRangeQuery aggRangeQuery);
 
+  /**
+   * Query aggregated data of one or multiple sensors in the whole time range.
+   * e.g. select func(v1)... from data where device in ? and value > ?
+   * @param aggValueQuery contains universal aggregation query with value filter parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status aggValueQuery(AggValueQuery aggValueQuery);
 
+  /**
+   * Query aggregated data of one or multiple sensors with both time and value filters.
+   * e.g. select func(v1)... from data where device in ? and time >= ? and time <= ? and value > ?
+   * @param aggRangeValueQuery contains universal aggregation query with time and value filters parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery);
 
+  /**
+   * Query aggregated group-by-time data of one or multiple sensors within a time range.
+   * e.g.
+   * SELECT max(s_0), max(s_1)
+   * FROM group_0, group_1
+   * WHERE ( device = ’d_3’ OR device = ’d_8’)
+   * AND time >= 2010-01-01 12:00:00 AND time <= 2010-01-01 12:10:00
+   * GROUP BY time(60000ms)
+   * @param groupByQuery contains universal group by query condition parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status groupByQuery(GroupByQuery groupByQuery);
 
+  /**
+   * Query the latest(max-timestamp) data of one or multiple sensors.
+   * e.g. select time, v1... where device = ? and time = max(time)
+   * @param latestPointQuery contains universal latest point query condition parameters
+   * @return status which contains successfully executed flag, error message and so on.
+   */
   Status latestPointQuery(LatestPointQuery latestPointQuery);
 
 }
