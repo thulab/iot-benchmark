@@ -86,7 +86,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException {
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       influxDbInstance.createDatabase(influxDbName);
     } catch (Exception e) {
@@ -114,6 +114,7 @@ public class InfluxDB implements IDatabase {
       long latency = endTime - startTime;
       return new Status(true, latency);
     } catch (Exception e) {
+      LOGGER.warn(e.getMessage());
       return new Status(false, 0, e, e.toString());
     }
   }
@@ -257,7 +258,7 @@ public class InfluxDB implements IDatabase {
     builder.deleteCharAt(builder.lastIndexOf(","));
     builder.append("WHERE (");
     for (DeviceSchema d : devices) {
-      builder.append(" device = 'd_" + d.getDeviceId() + "' OR");
+      builder.append(" device = '" + d.getDevice() + "' OR");
     }
     builder.delete(builder.lastIndexOf("OR"), builder.length());
     builder.append(")");

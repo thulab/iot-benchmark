@@ -13,6 +13,11 @@ public class Batch {
     records = new ArrayList<>();
   }
 
+  public Batch(DeviceSchema deviceSchema, List<Record> records) {
+    this.deviceSchema = deviceSchema;
+    this.records = records;
+  }
+
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
   }
