@@ -169,11 +169,11 @@ public class IoTDB implements IDatebase {
             }
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         } catch (NumberFormatException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         } catch (IOException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         } finally {
             if (reader != null) {
                 try {
@@ -298,7 +298,7 @@ public class IoTDB implements IDatebase {
             errorCount.set(errorCount.get() + errorNum);
             mySql.saveInsertProcess(loopIndex, costTime / unitTransfer, totalTime.get() / unitTransfer, errorNum, config.REMARK);
         } catch (SQLException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         }
     }
 
@@ -392,7 +392,7 @@ public class IoTDB implements IDatebase {
                     config.REMARK);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         }
     }
 
@@ -475,7 +475,7 @@ public class IoTDB implements IDatebase {
                     config.REMARK);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         }
 
         return maxTimestampIndex;
@@ -531,7 +531,7 @@ public class IoTDB implements IDatebase {
                     config.REMARK);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         }
 
         return maxTimestampIndex;
@@ -593,7 +593,7 @@ public class IoTDB implements IDatebase {
             }
             errorCount.set(errorCount.get() + errorNum);
         } catch (SQLException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         }
     }
 
@@ -716,16 +716,15 @@ public class IoTDB implements IDatebase {
                     (latency / 1000.0f) / 1000000.0, config.REMARK);
         } catch (SQLException e) {
             errorCount.set(errorCount.get() + 1);
-            LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage());
+            LOGGER.error("{} execute query failed! Error：{}", Thread.currentThread().getName(), e.getMessage(), e);
             LOGGER.error("执行失败的查询语句：{}", sql);
             mySql.saveQueryProcess(index, 0, -1, "query fail!" + sql);
-            e.printStackTrace();
         } finally {
             try {
                 if (statement != null)
                     statement.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOGGER.error("close statement failed because ", e);
             }
         }
     }
@@ -818,13 +817,12 @@ public class IoTDB implements IDatebase {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("set storage group failed because ", e);
         }
         try {
             statement.close();
         } catch (SQLException e) {
-            e.printStackTrace();
-            LOGGER.warn("Can`t close statement when setting storage group because: {}", e.getMessage());
+            LOGGER.warn("Can`t close statement when setting storage group because: {}", e.getMessage(), e);
         }
     }
 
@@ -874,9 +872,9 @@ public class IoTDB implements IDatebase {
         }
         builder.append(") values(");
         long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * timestampIndex;
-        if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-            currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
-        }
+        //if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+        currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+        //}
         builder.append(currentTime);
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
@@ -905,7 +903,7 @@ public class IoTDB implements IDatebase {
         try {
             builder.append(",").append(getDataByTypeAndScope(currentTime, config));
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("Create SQL failed because ", e);
         }
         builder.append(")");
         LOGGER.debug("createGenDataSQLStatment:  {}", builder.toString());
@@ -1302,7 +1300,7 @@ public class IoTDB implements IDatebase {
                     config.REMARK);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("insert data failed because ", e);
         }
     }
 
@@ -1377,13 +1375,13 @@ public class IoTDB implements IDatebase {
                     //mySql.saveInsertProcess(loopIndex, (endTime - startTime) / 1000.0, totalTime.get() / 1000.0, errorNum,config.REMARK);
 
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Execute SQL failed because ", e);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Error: ", e);
                 }
 
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                LOGGER.error("File not found", e);
             }
 
 
@@ -1403,12 +1401,12 @@ public class IoTDB implements IDatebase {
                 out.write(sql);
                 out.newLine();
             } catch (Exception e) {
-                e.printStackTrace();
+                 LOGGER.error("Error ocurred: ", e);
             } finally {
                 try {
                     out.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                     LOGGER.error("Error ocurred: ", e);
                 }
             }
         }
@@ -1426,7 +1424,7 @@ public class IoTDB implements IDatebase {
         try {
             ioTDB = new IoTDB(a);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+             LOGGER.error("Error ocurred: ", e);
         }
         String sql;
         //sql = ioTDB.createQuerySQLStatment(devices, config.QUERY_SENSOR_NUM, "max_time", sensorList);
