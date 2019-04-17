@@ -118,31 +118,31 @@ public class InfluxDB implements IDatabase {
     }
   }
 
-  @Override
   /**
    * eg. SELECT s_0 FROM group_2  WHERE ( device = 'd_8' ) AND time = 1535558405000000000.
    */
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String sql = getPreciseQuerySql(preciseQuery);
     return executeQueryAndGetStatus(sql);
   }
 
-  @Override
   /**
-   * eg. SELECT s_0 FROM group_2  WHERE ( device = 'd_8' ) AND time >= 1535558405000000000
-   * AND time <= 153555800000.
+   * eg. SELECT s_0 FROM group_2  WHERE ( device = 'd_8' ) AND time >= 1535558405000000000 AND time
+   * <= 153555800000.
    */
+  @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
     return executeQueryAndGetStatus(sql);
   }
 
-  @Override
   /**
-   * eg. SELECT s_3 FROM group_0  WHERE ( device = 'd_3' ) AND time >= 1535558420000000000
-   * AND time <= 153555800000 AND s_3 > -5.0.
+   * eg. SELECT s_3 FROM group_0  WHERE ( device = 'd_3' ) AND time >= 1535558420000000000 AND time
+   * <= 153555800000 AND s_3 > -5.0.
    */
+  @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
@@ -151,11 +151,11 @@ public class InfluxDB implements IDatabase {
     return executeQueryAndGetStatus(sqlWithValueFilter);
   }
 
-  @Override
   /**
    * eg. SELECT count(s_3) FROM group_4  WHERE ( device = 'd_16' ) AND time >= 1535558410000000000
    * AND time <=8660000000000.
    */
+  @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(),
         aggRangeQuery.getAggFun());
@@ -163,10 +163,10 @@ public class InfluxDB implements IDatabase {
     return executeQueryAndGetStatus(sql);
   }
 
-  @Override
   /**
    * eg. SELECT count(s_3) FROM group_3  WHERE ( device = 'd_12' ) AND s_3 > -5.0.
    */
+  @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
@@ -175,11 +175,11 @@ public class InfluxDB implements IDatabase {
     return executeQueryAndGetStatus(sql);
   }
 
-  @Override
   /**
    * eg. SELECT count(s_1) FROM group_2  WHERE ( device = 'd_8' ) AND time >= 1535558400000000000
    * AND time <= 650000000000 AND s_1 > -5.0.
    */
+  @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     String rangeQueryHead = getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(),
         aggRangeValueQuery.getAggFun());
@@ -189,11 +189,11 @@ public class InfluxDB implements IDatabase {
     return executeQueryAndGetStatus(sqlWithValueFilter);
   }
 
-  @Override
   /**
    * eg. SELECT count(s_3) FROM group_4  WHERE ( device = 'd_16' ) AND time >= 1535558430000000000
    * AND time <=8680000000000 GROUP BY time(20000ms).
    */
+  @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
@@ -201,10 +201,10 @@ public class InfluxDB implements IDatabase {
     return executeQueryAndGetStatus(sqlWithGroupBy);
   }
 
-  @Override
   /**
    * eg. SELECT last(s_2) FROM group_2  WHERE ( device = 'd_8' ).
    */
+  @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
     return executeQueryAndGetStatus(sql);
@@ -212,7 +212,7 @@ public class InfluxDB implements IDatabase {
 
   private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
       List<String> valueList)
-      throws Exception {
+      throws TsdbException {
     InfluxDataModel model = new InfluxDataModel();
     model.measurement = deviceSchema.getGroup();
     model.tagSet.put("device", deviceSchema.getDevice());
@@ -225,7 +225,7 @@ public class InfluxDB implements IDatabase {
     return model;
   }
 
-  private Number parseNumber(String value) throws Exception {
+  private Number parseNumber(String value) throws TsdbException {
     switch (dataType) {
       case "float":
         return Float.parseFloat(value);
@@ -239,7 +239,7 @@ public class InfluxDB implements IDatabase {
       case "long":
         return Long.parseLong(value);
       default:
-        throw new Exception("unsuport datatype " + dataType);
+        throw new TsdbException("unsuport datatype " + dataType);
 
     }
   }
