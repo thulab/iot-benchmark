@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +23,8 @@ public class SyntheticClient extends Client implements Runnable {
   private DataSchema dataSchema = DataSchema.getInstance();
 
 
-  public SyntheticClient(int id, CountDownLatch countDownLatch, CountDownLatch startLatch) {
-    super(id, countDownLatch, startLatch);
+  public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
     syntheticWorkload = new SyntheticWorkload(id);
     singletonWorkload = SingletonWorkload.getInstance();
     operationController = new OperationController(id);

@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
@@ -140,16 +141,16 @@ public class App {
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
-        CountDownLatch startLatch = new CountDownLatch(1);
+        CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
         long st;
         st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            SyntheticClient client = new SyntheticClient(i, downLatch, startLatch);
+            SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
             clients.add(client);
             executorService.submit(client);
         }
-        finalMeasure(executorService, downLatch, startLatch, measurement, threadsMeasurements, st, clients);
+        finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
     }
 
     /**
@@ -210,7 +211,7 @@ public class App {
                 LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
             }
         }
-        CountDownLatch startLatch = new CountDownLatch(1);
+        CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
 
         List<List<String>> thread_files = new ArrayList<>();
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
@@ -230,19 +231,18 @@ public class App {
         long st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i), startLatch);
+            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i), barrier);
             clients.add(client);
             executorService.submit(client);
         }
-        finalMeasure(executorService, downLatch, startLatch, measurement, threadsMeasurements, st, clients);
+        finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
     }
 
     private static void finalMeasure(ExecutorService executorService, CountDownLatch downLatch,
-        CountDownLatch startLatch, Measurement measurement, List<Measurement> threadsMeasurements,
+        Measurement measurement, List<Measurement> threadsMeasurements,
         long st, List<Client> clients) {
         executorService.shutdown();
-        //  all clients start to do test simultaneously
-        startLatch.countDown();
+
         try {
             // wait for all clients finish test
             downLatch.await();
