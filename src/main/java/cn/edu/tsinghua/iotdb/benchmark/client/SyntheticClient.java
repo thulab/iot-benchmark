@@ -22,8 +22,8 @@ public class SyntheticClient extends Client implements Runnable {
   private DataSchema dataSchema = DataSchema.getInstance();
 
 
-  public SyntheticClient(int id, CountDownLatch countDownLatch) {
-    super(id, countDownLatch);
+  public SyntheticClient(int id, CountDownLatch countDownLatch, CountDownLatch startLatch) {
+    super(id, countDownLatch, startLatch);
     syntheticWorkload = new SyntheticWorkload(id);
     singletonWorkload = SingletonWorkload.getInstance();
     operationController = new OperationController(id);

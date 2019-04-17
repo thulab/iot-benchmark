@@ -140,41 +140,17 @@ public class App {
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        CountDownLatch startLatch = new CountDownLatch(1);
         long st;
-        long en;
         st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            SyntheticClient client = new SyntheticClient(i, downLatch);
+            SyntheticClient client = new SyntheticClient(i, downLatch, startLatch);
             clients.add(client);
             executorService.submit(client);
         }
-        executorService.shutdown();
-        try {
-            downLatch.await();
-        } catch (InterruptedException e) {
-            LOGGER.error("Exception occurred during waiting for all threads finish.", e);
-            Thread.currentThread().interrupt();
-        }
-        en = System.nanoTime();
-        LOGGER.info("All clients finished.");
-        // sum up all the measurements and calculate statistics
-        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
-        for (Client client : clients) {
-            threadsMeasurements.add(client.getMeasurement());
-        }
-        for (Measurement m : threadsMeasurements) {
-            measurement.mergeMeasurement(m);
-        }
-        // must call calculateMetrics() before using the Metrics
-        measurement.calculateMetrics();
-        // output results
-        measurement.showConfigs();
-        measurement.showMeasurements();
-        measurement.showMetrics();
-
+        finalMeasure(executorService, downLatch, startLatch, measurement, threadsMeasurements, st, clients);
     }
-
 
     /**
      * 测试真实数据集
@@ -234,7 +210,7 @@ public class App {
                 LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
             }
         }
-
+        CountDownLatch startLatch = new CountDownLatch(1);
 
         List<List<String>> thread_files = new ArrayList<>();
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
@@ -254,12 +230,21 @@ public class App {
         long st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i));
+            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i), startLatch);
             clients.add(client);
             executorService.submit(client);
         }
+        finalMeasure(executorService, downLatch, startLatch, measurement, threadsMeasurements, st, clients);
+    }
+
+    private static void finalMeasure(ExecutorService executorService, CountDownLatch downLatch,
+        CountDownLatch startLatch, Measurement measurement, List<Measurement> threadsMeasurements,
+        long st, List<Client> clients) {
         executorService.shutdown();
+        //  all clients start to do test simultaneously
+        startLatch.countDown();
         try {
+            // wait for all clients finish test
             downLatch.await();
         } catch (InterruptedException e) {
             LOGGER.error("Exception occurred during waiting for all threads finish.", e);

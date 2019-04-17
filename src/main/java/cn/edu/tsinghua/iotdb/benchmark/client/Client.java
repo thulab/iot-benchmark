@@ -15,11 +15,13 @@ public abstract class Client implements Runnable{
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected Measurement measurement;
   private CountDownLatch countDownLatch;
+  private CountDownLatch startLatch;
   int clientThreadId;
   DBWrapper dbWrapper;
 
-  public Client(int id, CountDownLatch countDownLatch) {
+  public Client(int id, CountDownLatch countDownLatch, CountDownLatch startLatch) {
     this.countDownLatch = countDownLatch;
+    this.startLatch = startLatch;
     clientThreadId = id;
     measurement = new Measurement();
     dbWrapper = new DBWrapper(measurement);
@@ -34,6 +36,7 @@ public abstract class Client implements Runnable{
     try {
       try {
         dbWrapper.init();
+        startLatch.await(); // wait for that all clients start test simultaneously
         doTest();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
