@@ -40,7 +40,8 @@ public class SyntheticClient extends Client implements Runnable {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
-                dbWrapper.insertOneBatch(syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex));
+                dbWrapper
+                    .insertOneBatch(syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex));
               }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);

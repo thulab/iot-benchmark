@@ -10,7 +10,7 @@ import java.util.concurrent.CyclicBarrier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Client implements Runnable{
+public abstract class Client implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
   protected static Config config = ConfigDescriptor.getInstance().getConfig();

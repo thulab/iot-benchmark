@@ -19,7 +19,6 @@ public class OperationController {
   }
 
   /**
-   *
    * @return Operation the next operation for client to execute
    */
   Operation getNextOperationType() {
@@ -66,7 +65,7 @@ public class OperationController {
   List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
     String[] split = config.OPERATION_PROPORTION.split(":");
-    if(split.length!=Operation.values().length){
+    if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }
     double[] proportions = new double[Operation.values().length];
@@ -103,7 +102,7 @@ public class OperationController {
 
     String name;
 
-    Operation(String name){
+    Operation(String name) {
       this.name = name;
     }
   }
