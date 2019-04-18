@@ -159,10 +159,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT s_39 FROM root.group_2.d_29
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
-   * AND root.group_2.d_29.s_39 > 0.0
+   * SELECT s_39 FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01
+   * 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
@@ -171,9 +169,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_76) FROM root.group_3.d_31
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
+   * SELECT max_value(s_76) FROM root.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
@@ -185,8 +182,7 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29
-   * WHERE root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
@@ -198,8 +194,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND
-   * time <= 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
@@ -214,9 +210,8 @@ public class IoTDB implements IDatabase {
 
   /**
    * select aggFun(sensor) from device group by(interval, startTimestamp, [startTimestamp,
-   * endTimestamp])
-   * example: SELECT max_value(s_81) FROM root.group_9.d_92
-   * GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
+   * endTimestamp]) example: SELECT max_value(s_81) FROM root.group_9.d_92 GROUP BY(600000ms,
+   * 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
@@ -342,6 +337,8 @@ public class IoTDB implements IDatabase {
       return new Status(true, en - st, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, 0, queryResultPointNum, e, sql);
+    } catch (Throwable t) {
+      return new Status(false, 0, queryResultPointNum, new Exception(t), sql);
     }
   }
 
