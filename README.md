@@ -339,3 +339,9 @@ MYSQL_URL=jdbc:mysql://[DB_HOST]:3306/[DBName]?user=[UserName]&password=[PassWor
 ```
 
 If you do not need this function, just set 'IS_USE_MYSQL=false' will be fine.
+
+#### Related Article
+Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
+
+Arxiv: https://arxiv.org/abs/1901.08304
+
