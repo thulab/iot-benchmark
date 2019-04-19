@@ -373,7 +373,7 @@ public class Config {
 				PRECISION = new int[]{5, 5};
 				break;
 			case REDD:
-				FIELDS = Arrays.asList("value");
+				FIELDS = Arrays.asList("v");
 				PRECISION = new int[]{2};
 				break;
 			case GEOLIFE:
