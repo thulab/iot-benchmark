@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import java.util.concurrent.ThreadLocalRandom;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
@@ -28,6 +29,11 @@ public class Config {
 
 	public String host="127.0.0.1";
 	public String port="6667";
+	public String[] hosts = {"127.0.0.1:6667"};
+
+	public String getHost(){
+	  return hosts[ThreadLocalRandom.current().nextInt(hosts.length)];
+  }
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
