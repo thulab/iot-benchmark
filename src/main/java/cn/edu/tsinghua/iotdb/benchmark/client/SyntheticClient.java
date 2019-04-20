@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +23,8 @@ public class SyntheticClient extends Client implements Runnable {
   private DataSchema dataSchema = DataSchema.getInstance();
 
 
-  public SyntheticClient(int id, CountDownLatch countDownLatch) {
-    super(id, countDownLatch);
+  public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
     syntheticWorkload = new SyntheticWorkload(id);
     singletonWorkload = SingletonWorkload.getInstance();
     operationController = new OperationController(id);
@@ -39,7 +40,8 @@ public class SyntheticClient extends Client implements Runnable {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
-                dbWrapper.insertOneBatch(syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex));
+                dbWrapper
+                    .insertOneBatch(syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex));
               }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);

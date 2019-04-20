@@ -6,20 +6,23 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Client implements Runnable{
+public abstract class Client implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected Measurement measurement;
   private CountDownLatch countDownLatch;
+  private CyclicBarrier barrier;
   int clientThreadId;
   DBWrapper dbWrapper;
 
-  public Client(int id, CountDownLatch countDownLatch) {
+  public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
+    this.barrier = barrier;
     clientThreadId = id;
     measurement = new Measurement();
     dbWrapper = new DBWrapper(measurement);
@@ -34,6 +37,7 @@ public abstract class Client implements Runnable{
     try {
       try {
         dbWrapper.init();
+        barrier.await(); // wait for that all clients start test simultaneously
         doTest();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);

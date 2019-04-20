@@ -5,14 +5,18 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.RealDatasetWorkLoad;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RealDatasetClient extends Client implements Runnable {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(RealDatasetClient.class);
   private RealDatasetWorkLoad workload;
 
   public RealDatasetClient(int id, CountDownLatch countDownLatch, Config config,
-      List<String> files) {
-    super(id, countDownLatch);
+      List<String> files, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
     workload = new RealDatasetWorkLoad(files, config);
   }
 
@@ -26,7 +30,7 @@ public class RealDatasetClient extends Client implements Runnable {
         dbWrapper.insertOneBatch(batch);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("RealDatasetClient do test failed because ", e);
     }
   }
 
