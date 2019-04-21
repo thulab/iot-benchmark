@@ -8,14 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import java.util.concurrent.ThreadLocalRandom;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
@@ -30,9 +26,11 @@ public class Config {
 	public String host="127.0.0.1";
 	public String port="6667";
 	public String[] hosts = {"127.0.0.1:6667"};
+	public int idx = 0;
 
-	public String getHost(){
-	  return hosts[ThreadLocalRandom.current().nextInt(hosts.length)];
+	public synchronized  String getHost(){
+		idx++;
+		return hosts[idx % hosts.length];
   }
 
 	/** 设备数量 */
