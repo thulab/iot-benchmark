@@ -49,6 +49,7 @@ public class IoTDB implements IDatabase {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       String[] host = config.getHost().split(":");
+      LOGGER.info("Connect to {}:{}", host[0], host[1]);
       connection = DriverManager
           .getConnection(String.format(Constants.URL, host[0], host[1]), Constants.USER,
               Constants.PASSWD);
