@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
+import hash.PhysicalNode;
+import hash.Router;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,11 +28,14 @@ public class Config {
 	public String host="127.0.0.1";
 	public String port="6667";
 	public String[] hosts = {"127.0.0.1:6667"};
-	public int idx = 0;
+	public int idx = -1;
 
 	public synchronized  String getHost(){
+		Router router = Router.getInstance();
+		String sg = "root.group_" + idx;
+		PhysicalNode node = router.routeGroup(sg)[0];
 		idx++;
-		return hosts[idx % hosts.length];
+		return node.toString();
   }
 
 	/** 设备数量 */
