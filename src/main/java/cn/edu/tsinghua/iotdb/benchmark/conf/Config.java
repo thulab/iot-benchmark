@@ -32,12 +32,12 @@ public class Config {
 	public int idx = -1;
 
 	public synchronized  String getHost(){
-//		return hosts[ThreadLocalRandom.current().nextInt(hosts.length)].split(":")[0]+":"+port;
-		Router router = Router.getInstance();
-		String sg = "root.group_" + idx;
-		PhysicalNode node = router.routeGroup(sg)[0];
-		idx++;
-		return node.getIp()+":"+port;
+		return hosts[ThreadLocalRandom.current().nextInt(hosts.length)].split(":")[0]+":"+port;
+//		Router router = Router.getInstance();
+//		String sg = "root.group_" + idx;
+//		PhysicalNode node = router.routeGroup(sg)[0];
+//		idx++;
+//		return node.getIp()+":"+port;
   }
 
 	/** 设备数量 */
