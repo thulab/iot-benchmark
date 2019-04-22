@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public class Config {
 	public int idx = -1;
 
 	public synchronized  String getHost(){
+//		return hosts[ThreadLocalRandom.current().nextInt(hosts.length)].split(":")[0]+":"+port;
 		Router router = Router.getInstance();
 		String sg = "root.group_" + idx;
 		PhysicalNode node = router.routeGroup(sg)[0];

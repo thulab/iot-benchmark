@@ -17,6 +17,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import hash.PhysicalNode;
+import hash.Router;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -86,6 +88,13 @@ public class IoTDB implements IDatabase {
       for (DeviceSchema schema : schemaList) {
         groups.add(schema.getGroup());
       }
+      connection.close();
+      String sg = schemaList.get(0).getGroup();
+      Router router = Router.getInstance();
+      PhysicalNode node = router.routeGroup(sg)[0];
+      connection = DriverManager
+          .getConnection(String.format(Constants.URL, node.getIp(), "6667"), Constants.USER,
+              Constants.PASSWD);
       // register storage groups
       try (Statement statement = connection.createStatement()) {
         for (String group : groups) {
