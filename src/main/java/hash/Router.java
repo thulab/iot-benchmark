@@ -18,6 +18,8 @@
  */
 package hash;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -83,12 +85,10 @@ public class Router {
    */
   public void init() {
     reset();
-//    String[] hosts = "192.168.130.9:8888,192.168.130.12:8888,192.168.130.13:8888,192.168.130.14:8888,192.168.130.15:8888,192.168.130.16:8888,192.168.130.18:8888".split(",");
-    String[] hosts = "192.168.130.12:8888,192.168.130.13:8888,192.168.130.14:8888,192.168.130.16:8888,192.168.130.18:8888".split(",");
-//    String[] hosts = "192.168.130.14:8888,192.168.130.16:8888,192.168.130.18:8888".split(",");
+    Config config = ConfigDescriptor.getInstance().getConfig();
     int replicator = 1;
     int numOfVirtualNodes = 2;
-    createHashRing(hosts, numOfVirtualNodes);
+    createHashRing(config.hosts, numOfVirtualNodes);
     PhysicalNode[] nodes = physicalRing.values().toArray(new PhysicalNode[0]);
     int len = nodes.length;
     for (int i = 0; i < len; i++) {

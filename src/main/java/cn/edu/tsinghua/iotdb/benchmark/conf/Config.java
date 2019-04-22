@@ -27,7 +27,7 @@ public class Config {
 
 	public String host="127.0.0.1";
 	public String port="6667";
-	public String[] hosts = {"127.0.0.1:6667"};
+	public String[] hosts = {"127.0.0.1:8888"};
 	public int idx = -1;
 
 	public synchronized  String getHost(){
