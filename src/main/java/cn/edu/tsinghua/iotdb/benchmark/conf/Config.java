@@ -35,7 +35,7 @@ public class Config {
 		String sg = "root.group_" + idx;
 		PhysicalNode node = router.routeGroup(sg)[0];
 		idx++;
-		return node.toString();
+		return node.getIp()+":"+port;
   }
 
 	/** 设备数量 */
