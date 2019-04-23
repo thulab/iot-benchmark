@@ -24,8 +24,8 @@ public class RealDatasetWorkLoad implements IWorkload {
 
   private Config config;
   private List<DeviceSchema> deviceSchemaList;
-  private long st;
-  private long et;
+  private long startTime;
+  private long endTime;
 
   /**
    * write test.
@@ -73,8 +73,8 @@ public class RealDatasetWorkLoad implements IWorkload {
     }
 
     //init startTime, endTime
-    st = config.REAL_QUERY_START_TIME;
-    et = config.REAL_QUERY_STOP_TIME;
+    startTime = config.REAL_QUERY_START_TIME;
+    endTime = config.REAL_QUERY_STOP_TIME;
 
   }
 
@@ -93,22 +93,22 @@ public class RealDatasetWorkLoad implements IWorkload {
 
   @Override
   public PreciseQuery getPreciseQuery() {
-    return new PreciseQuery(deviceSchemaList, st);
+    return new PreciseQuery(deviceSchemaList, startTime);
   }
 
   @Override
   public RangeQuery getRangeQuery() {
-    return new RangeQuery(deviceSchemaList, st, et);
+    return new RangeQuery(deviceSchemaList, startTime, endTime);
   }
 
   @Override
   public ValueRangeQuery getValueRangeQuery() {
-    return new ValueRangeQuery(deviceSchemaList, st, et, config.QUERY_LOWER_LIMIT);
+    return new ValueRangeQuery(deviceSchemaList, startTime, endTime, config.QUERY_LOWER_LIMIT);
   }
 
   @Override
   public AggRangeQuery getAggRangeQuery() {
-    return new AggRangeQuery(deviceSchemaList, st, et, config.QUERY_AGGREGATE_FUN);
+    return new AggRangeQuery(deviceSchemaList, startTime, endTime, config.QUERY_AGGREGATE_FUN);
   }
 
   @Override
@@ -119,19 +119,19 @@ public class RealDatasetWorkLoad implements IWorkload {
 
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() {
-    return new AggRangeValueQuery(deviceSchemaList, st, et, config.QUERY_AGGREGATE_FUN,
+    return new AggRangeValueQuery(deviceSchemaList, startTime, endTime, config.QUERY_AGGREGATE_FUN,
         config.QUERY_LOWER_LIMIT);
   }
 
   @Override
   public GroupByQuery getGroupByQuery() {
-    return new GroupByQuery(deviceSchemaList, st, et, config.QUERY_AGGREGATE_FUN,
+    return new GroupByQuery(deviceSchemaList, startTime, endTime, config.QUERY_AGGREGATE_FUN,
         config.QUERY_INTERVAL);
   }
 
   @Override
   public LatestPointQuery getLatestPointQuery() {
-    return new LatestPointQuery(deviceSchemaList, st, et, "last");
+    return new LatestPointQuery(deviceSchemaList, startTime, endTime, "last");
   }
 
   static String calGroupIdStr(String deviceId, int groupNum) {

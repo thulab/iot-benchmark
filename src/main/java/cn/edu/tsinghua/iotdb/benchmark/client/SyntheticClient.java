@@ -5,7 +5,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import org.slf4j.LoggerFactory;
 
-public class SyntheticClient extends SyntheticBaseClient {
+public class SyntheticClient extends BaseClient {
 
   public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier, new SyntheticWorkload(id));

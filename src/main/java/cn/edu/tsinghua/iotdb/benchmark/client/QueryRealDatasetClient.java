@@ -6,7 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import org.slf4j.LoggerFactory;
 
-public class QueryRealDatasetClient extends SyntheticBaseClient {
+public class QueryRealDatasetClient extends BaseClient {
 
   public QueryRealDatasetClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier,
       Config config) {

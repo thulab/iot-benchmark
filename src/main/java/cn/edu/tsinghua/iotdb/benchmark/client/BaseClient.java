@@ -11,7 +11,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import org.slf4j.Logger;
 
-public abstract class SyntheticBaseClient extends Client implements Runnable {
+/**
+ * 负责人造数据的写入、查询，真实数据的查询。
+ * 根据OPERATION_PROPORTION的比例执行写入和查询, 具体的查询和写入数据由workload确定。
+ */
+public abstract class BaseClient extends Client implements Runnable {
 
   protected static Logger LOGGER;
 
@@ -22,7 +26,7 @@ public abstract class SyntheticBaseClient extends Client implements Runnable {
   private DataSchema dataSchema = DataSchema.getInstance();
 
 
-  public SyntheticBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier,
+  public BaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier,
       IWorkload workload) {
     super(id, countDownLatch, barrier);
     syntheticWorkload = workload;

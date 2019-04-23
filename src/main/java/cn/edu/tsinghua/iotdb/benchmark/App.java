@@ -70,7 +70,7 @@ public class App {
             case Constants.MODE_TEST_WITH_DEFAULT_PATH:
                 testWithDefaultPath(config);
                 break;
-            case Constants.MODE_TEST_WITH_REAL_DATASET:
+            case Constants.MODE_WRITE_WITH_REAL_DATASET:
                 testWithRealDataSet(config);
                 break;
             case Constants.MODE_QUERY_WITH_REAL_DATASET:
