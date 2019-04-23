@@ -11,8 +11,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 
-//TODO not used yet
-interface IWorkload {
+public interface IWorkload {
 
   Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException;
 
@@ -20,16 +19,16 @@ interface IWorkload {
 
   RangeQuery getRangeQuery() throws WorkloadException;
 
-  ValueRangeQuery getValueRangeQuery();
+  ValueRangeQuery getValueRangeQuery() throws WorkloadException;
 
-  AggRangeQuery getAggRangeQuery();
+  AggRangeQuery getAggRangeQuery() throws WorkloadException;
 
-  AggValueQuery getAggValueQuery();
+  AggValueQuery getAggValueQuery() throws WorkloadException;
 
-  AggRangeValueQuery getAggRangeValueQuery();
+  AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException;
 
-  GroupByQuery getGroupByQuery();
+  GroupByQuery getGroupByQuery() throws WorkloadException;
 
-  LatestPointQuery getLatestPointQuery();
+  LatestPointQuery getLatestPointQuery() throws WorkloadException;
 
 }
