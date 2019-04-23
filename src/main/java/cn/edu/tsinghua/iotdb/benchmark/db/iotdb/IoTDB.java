@@ -36,6 +36,7 @@ public class IoTDB implements IDatebase {
     private Random timestampRandom;
     private ProbTool probTool;
     private final double unitTransfer = 1000000000.0;
+    private String ip;
 
     public IoTDB(long labID) throws ClassNotFoundException, SQLException {
         Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
@@ -48,7 +49,8 @@ public class IoTDB implements IDatebase {
         timestampRandom = new Random(2 + config.QUERY_SEED);
         probTool = new ProbTool();
         String[] host = config.getHost().split(":");
-        System.out.println(String.format("Connect to: %s:%s", host[0], host[1]));
+        this.ip = host[0];
+        System.out.println(String.format("Connect to: %s:%s", this.ip, host[1]));
         connection = DriverManager.getConnection(String.format(Constants.URL, host[0], host[1]), Constants.USER,
                 Constants.PASSWD);
         mySql.initMysql(labID);
@@ -382,8 +384,8 @@ public class IoTDB implements IDatebase {
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
-                LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+                LOGGER.info("{} execute {} loop to {}, it costs {}s, totalTime {}s, throughput {} points/s",
+                        Thread.currentThread().getName(), loopIndex, this.ip ,costTime / unitTransfer,
                         (totalTime.get() + costTime) / unitTransfer,
                         (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
