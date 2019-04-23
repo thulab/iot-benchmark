@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.QueryRealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
@@ -69,6 +71,9 @@ public class App {
                 break;
             case Constants.MODE_TEST_WITH_REAL_DATASET:
                 testWithRealDataSet(config);
+                break;
+            case Constants.MODE_QUERY_WITH_REAL_DATASET:
+                queryWithRealDataSet(config);
                 break;
             case Constants.MODE_SERVER_MODE:
                 serverMode(config);
@@ -281,6 +286,76 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
+    }
+
+    /**
+     * 测试真实数据集
+     * @param config
+     */
+    private static void queryWithRealDataSet(Config config) {
+        MySqlLog mysql = new MySqlLog();
+        mysql.initMysql(System.currentTimeMillis());
+        mysql.savaTestConfig();
+        LOGGER.info("use dataset: {}", config.DATA_SET);
+        //check whether the parameters are legitimate
+        if(!checkParamForQueryRealDataSet(config)){
+            return;
+        }
+        Measurement measurement = new Measurement();
+
+        // create CLIENT_NUMBER client threads to do the workloads
+        List<Measurement> threadsMeasurements = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
+        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        long st = System.nanoTime();
+        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            Client client = new QueryRealDatasetClient(i, downLatch, config);
+            clients.add(client);
+            executorService.submit(client);
+        }
+        executorService.shutdown();
+        try {
+            downLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+            Thread.currentThread().interrupt();
+        }
+        long en = System.nanoTime();
+        LOGGER.info("All clients finished.");
+        // sum up all the measurements and calculate statistics
+        measurement.setElapseTime((en - st) / NANO_TO_SECOND);
+        for (Client client : clients) {
+            threadsMeasurements.add(client.getMeasurement());
+        }
+        for (Measurement m : threadsMeasurements) {
+            measurement.mergeMeasurement(m);
+        }
+        // must call calculateMetrics() before using the Metrics
+        measurement.calculateMetrics();
+        // output results
+        measurement.showConfigs();
+        measurement.showMeasurements();
+        measurement.showMetrics();
+    }
+
+    private static boolean checkParamForQueryRealDataSet(Config config) {
+        if(config.QUERY_SENSOR_NUM > config.FIELDS.size()){
+          LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
+              config.QUERY_SENSOR_NUM, config.FIELDS);
+          return false;
+        }
+        String[] split = config.OPERATION_PROPORTION.split(":");
+        if(split.length!=Operation.values().length){
+          LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
+          return false;
+        }
+        if(!split[0].trim().equals("0")){
+          LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
+              config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
+          return false;
+        }
+        return true;
     }
 
     private static void getAllFiles(String strPath, List<String> files) {

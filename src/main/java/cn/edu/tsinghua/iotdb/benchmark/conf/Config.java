@@ -188,6 +188,8 @@ public class Config {
 	public int QUERY_SLIMIT_N = 1;
 	public int QUERY_SLIMIT_OFFSET = 0;
 	public boolean CREATE_SCHEMA = true;
+	public long REAL_QUERY_START_TIME = 0;
+	public long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
 
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码

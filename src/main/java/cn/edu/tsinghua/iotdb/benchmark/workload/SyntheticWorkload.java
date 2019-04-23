@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class SyntheticWorkload {
+public class SyntheticWorkload implements IWorkload {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static Random timestampRandom = new Random(config.DATA_SEED);
