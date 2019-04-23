@@ -19,7 +19,6 @@ public abstract class BasicReader {
   private List<String> files;
   protected BufferedReader reader;
   protected List<String> cachedLines;
-  protected static String group = "default";
   private boolean hasInit = false;
 
   private int currentFileIndex = 0;
@@ -129,29 +128,35 @@ public abstract class BasicReader {
 
     // remove duplicated devices
     Set<String> devices = new HashSet<>();
+    int groupNum = config.GROUP_NUMBER;
     switch (config.DATA_SET) {
       case REDD:
       case TDRIVE:
         for (String currentFile : files) {
           String[] items = currentFile.split("/");
           String deviceId = items[items.length - 1];
-          if(!devices.contains(deviceId)) {
+          if (!devices.contains(deviceId)) {
             devices.add(deviceId);
-            deviceSchemaList.add(new DeviceSchema(group, deviceId, config.FIELDS));
+            deviceSchemaList
+                .add(new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.FIELDS));
           }
         }
         break;
       case GEOLIFE:
-        for (String currentFile: files) {
+        for (String currentFile : files) {
           String deviceId = currentFile.split(config.FILE_PATH)[1].
               split("/Trajectory")[0].replace("/", "");
-          if(!devices.contains(deviceId)) {
+          if (!devices.contains(deviceId)) {
             devices.add(deviceId);
-            deviceSchemaList.add(new DeviceSchema(group, deviceId, config.FIELDS));
+            deviceSchemaList.add(
+                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.FIELDS));
           }
         }
     }
     return deviceSchemaList;
   }
 
+  protected static String calGroupIdStr(String deviceId, int groupNum) {
+    return String.valueOf(deviceId.hashCode() % groupNum);
+  }
 }
