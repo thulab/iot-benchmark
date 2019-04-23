@@ -48,6 +48,7 @@ public class IoTDB implements IDatebase {
         timestampRandom = new Random(2 + config.QUERY_SEED);
         probTool = new ProbTool();
         String[] host = config.getHost().split(":");
+        System.out.println(String.format("Connect to: %s:%s", host[0], host[1]));
         connection = DriverManager.getConnection(String.format(Constants.URL, host[0], host[1]), Constants.USER,
                 Constants.PASSWD);
         mySql.initMysql(labID);
