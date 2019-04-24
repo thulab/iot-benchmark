@@ -26,6 +26,7 @@ import edu.tsinghua.k1.leveldb.LevelTimeSeriesDBFactory;
 import edu.tsinghua.k1.rocksdb.RocksDBTimeSeriesDBFactory;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import org.iq80.leveldb.Options;
 
@@ -103,9 +104,10 @@ public class TimeSeriesKVDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException {
-    // No need to implement
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+
   }
+
 
   @Override
   public Status insertOneBatch(Batch batch) {
@@ -115,7 +117,8 @@ public class TimeSeriesKVDB implements IDatabase {
       for (Record record : batch.getRecords()) {
         long time = record.getTimestamp();
         for (int i = 0; i < record.size(); i++) {
-          builder.append(batch.getDeviceSchema().getDevicePath());
+
+          builder.append(batch.getDeviceSchema().getDevice());
           builder.append(".");
           builder.append(batch.getDeviceSchema().getSensors().get(i));
           byte[] value = double2Bytes(Double.valueOf(record.getRecordDataValue().get(i)));
@@ -154,7 +157,7 @@ public class TimeSeriesKVDB implements IDatabase {
     int line = 0;
     for (DeviceSchema deviceSchema : rangeQuery.getDeviceSchema()) {
       for (String sensor : deviceSchema.getSensors()) {
-        String timeseries = deviceSchema.getDevicePath() + "." + sensor;
+        String timeseries = deviceSchema.getDevice() + "." + sensor;
 
         TimeSeriesDBIterator dbIterator;
         dbIterator = timeSeriesDB
