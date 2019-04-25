@@ -52,7 +52,7 @@ public class IoTDBEngine implements IDatabase {
       if (engine == null) {
         File file = new File(config.GEN_DATA_FILE_PATH);
         // wal
-//        options.setWalPath("/data2/liukun-data/iotdbwal");
+        options.setWalPath("/data2/liukun-data/iotdbwal");
         // set flush time interval or  period: 3 minute
         options.setPeriodTimeForFlush(60 * 3);
         // set merge time interval or period: 5 minute
