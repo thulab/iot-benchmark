@@ -32,7 +32,7 @@ public class TimescaleDB implements IDatabase {
   private static String tableName;
   private static Config config;
   private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
-  private static final String convertToHypertable =
+  private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 86400000);";
   private static final String dropTable = "DROP TABLE %s;";
 
@@ -50,9 +50,8 @@ public class TimescaleDB implements IDatabase {
           Constants.POSTGRESQL_USER,
           Constants.POSTGRESQL_PASSWD
       );
-    } catch (ClassNotFoundException | SQLException e) {
-      e.printStackTrace();
-      LOGGER.error("Initialize InfluxDB failed because ", e);
+    } catch (Exception e) {
+      LOGGER.error("Initialize TimescaleDB failed because ", e);
       throw new TsdbException(e);
     }
   }
@@ -60,26 +59,15 @@ public class TimescaleDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     //delete old data
-    Statement statement = null;
-    try {
-      statement = connection.createStatement();
-      assert statement != null;
+    try (Statement statement = connection.createStatement()){
       statement.execute(String.format(dropTable, tableName));
       // wait for deletion complete
       LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
       Thread.sleep(config.INIT_WAIT_TIME);
-    } catch (SQLException | InterruptedException e) {
+    } catch (Exception e) {
       LOGGER.warn("delete old data table {} failed, because: {}", tableName, e.getMessage());
       if (!e.getMessage().contains("does not exist")) {
-        e.printStackTrace();
         throw new TsdbException(e);
-      }
-    } finally {
-      try {
-        assert statement != null;
-        statement.close();
-      } catch (SQLException e) {
-        e.printStackTrace();
       }
     }
   }
@@ -91,7 +79,7 @@ public class TimescaleDB implements IDatabase {
     }
     try {
       connection.close();
-    } catch (SQLException e) {
+    } catch (Exception e) {
       LOGGER.error("Failed to close TimeScaleDB connection because: {}", e.getMessage());
       throw new TsdbException(e);
     }
@@ -116,27 +104,16 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    Statement statement = null;
-    try {
-      statement = connection.createStatement();
+    try (Statement statement = connection.createStatement()){
       String pgsql = getCreateTableSql(tableName);
       statement.execute(pgsql);
       LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
-      statement.execute(String.format(convertToHypertable, tableName));
-      LOGGER.debug("convertToHypertable Statement:  {}",
-          String.format(convertToHypertable, tableName));
+      statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
+      LOGGER.debug("CONVERT_TO_HYPERTABLE Statement:  {}",
+          String.format(CONVERT_TO_HYPERTABLE, tableName));
     } catch (SQLException e) {
       LOGGER.error("Can't create PG table because: {}", e.getMessage());
       throw new TsdbException(e);
-    } finally {
-      try {
-        if (statement != null) {
-          statement.close();
-        }
-      } catch (SQLException e) {
-        LOGGER.warn("Can't close statement when setting storage group because: {}", e.getMessage());
-        throw new TsdbException(e);
-      }
     }
   }
 
@@ -144,9 +121,7 @@ public class TimescaleDB implements IDatabase {
   public Status insertOneBatch(Batch batch) {
     long st;
     long en;
-    Statement statement = null;
-    try {
-      statement = connection.createStatement();
+    try (Statement statement = connection.createStatement()){
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
@@ -158,15 +133,6 @@ public class TimescaleDB implements IDatabase {
       return new Status(true, en - st);
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
-    } finally {
-      if (statement != null) {
-        try {
-          statement.clearBatch();
-          statement.close();
-        } catch (SQLException e) {
-          LOGGER.error("Can't close statement when insert one batch because: {}", e.getMessage());
-        }
-      }
     }
   }
 
@@ -177,9 +143,10 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
+    int sensorNum = preciseQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(preciseQuery.getDeviceSchema());
     builder.append(" AND time = ").append(preciseQuery.getTimestamp());
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -190,9 +157,10 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
+    int sensorNum = rangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, rangeQuery);
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -202,10 +170,11 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+    int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     addWhereValueClause(valueRangeQuery.getDeviceSchema(), builder,
         valueRangeQuery.getValueThreshold());
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -216,11 +185,12 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+    int sensorNum = aggRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(),
         aggRangeQuery.getAggFun());
     addWhereTimeClause(builder, aggRangeQuery);
     builder.append("GROUP BY device");
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -230,12 +200,13 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
+    int sensorNum = aggValueQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
     addWhereValueClause(aggValueQuery.getDeviceSchema(), builder,
         aggValueQuery.getValueThreshold());
     builder.append(" GROUP BY device");
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -247,13 +218,14 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+    int sensorNum = aggRangeValueQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(),
         aggRangeValueQuery.getAggFun());
     addWhereTimeClause(builder, aggRangeValueQuery);
     addWhereValueClause(aggRangeValueQuery.getDeviceSchema(), builder,
         aggRangeValueQuery.getValueThreshold());
     builder.append("GROUP BY device");
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -264,11 +236,12 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
+    int sensorNum = groupByQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getGroupByQuerySqlHead(groupByQuery.getDeviceSchema(),
         groupByQuery.getAggFun(), groupByQuery.getGranularity());
     addWhereTimeClause(builder, groupByQuery);
     builder.append(" GROUP BY time, device");
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   /**
@@ -282,20 +255,19 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+    int sensorNum = latestPointQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(latestPointQuery.getDeviceSchema());
     builder.append("ORDER BY time DESC LIMIT 1");
-    return executeQueryAndGetStatus(builder.toString());
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
-  private Status executeQueryAndGetStatus(String sql) {
+  private Status executeQueryAndGetStatus(String sql, int sensorNum) {
     LOGGER.info("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
     long st;
     long en;
     int line = 0;
     int queryResultPointNum = 0;
-    Statement statement = null;
-    try {
-      statement = connection.createStatement();
+    try (Statement statement = connection.createStatement()){
       st = System.nanoTime();
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
@@ -303,18 +275,10 @@ public class TimescaleDB implements IDatabase {
         }
       }
       en = System.nanoTime();
-      queryResultPointNum = line * config.QUERY_SENSOR_NUM;
+      queryResultPointNum = line * sensorNum;
       return new Status(true, en - st, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, 0, queryResultPointNum, e, sql);
-    } finally {
-      if (statement != null) {
-        try {
-          statement.close();
-        } catch (SQLException e) {
-          LOGGER.error("Can't close statement when execute one query because: {}", e.getMessage());
-        }
-      }
     }
   }
 
@@ -375,7 +339,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   private void addDeviceCondition(StringBuilder builder, List<DeviceSchema> devices) {
-    builder = builder.append(" WHERE (");
+    builder.append(" WHERE (");
     for (DeviceSchema deviceSchema : devices) {
       builder.append("device='").append(deviceSchema.getDevice()).append("'").append(" OR ");
     }
@@ -400,7 +364,6 @@ public class TimescaleDB implements IDatabase {
    * @param devices query device schema
    * @param builder sql header
    * @param valueThreshold lower bound of query value filter
-   * @return sql with value filter
    */
   private static void addWhereValueClause(List<DeviceSchema> devices, StringBuilder builder,
       double valueThreshold) {
@@ -417,23 +380,10 @@ public class TimescaleDB implements IDatabase {
   }
 
   /**
-   * add group by clause for query.
-   *
-   * @param sqlHeader sql header
-   * @param timeGranularity time granularity of group by
-   */
-  private static String addGroupByClause(String sqlHeader, long timeGranularity) {
-    StringBuilder builder = new StringBuilder(sqlHeader);
-    builder.append(" GROUP BY time(").append(timeGranularity).append("ms)");
-    return builder.toString();
-  }
-
-  /**
    * -- Creating a regular SQL table example.
    * <p>
-   * CREATE TABLE group_0 ( time       BIGINT              NOT NULL, sGroup     TEXT
-   * NOT NULL, device     TEXT                NOT NULL, s_0        DOUBLE PRECISION    NULL, s_1
-   * DOUBLE PRECISION    NULL );
+   * CREATE TABLE group_0 (time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL,
+   * s_0 DOUBLE PRECISION NULL, s_1 DOUBLE PRECISION NULL);
    * </p>
    * @return create table SQL String
    */
