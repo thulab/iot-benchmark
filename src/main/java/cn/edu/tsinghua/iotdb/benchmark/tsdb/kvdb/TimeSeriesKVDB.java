@@ -4,7 +4,6 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb.kvdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -160,6 +159,8 @@ public class TimeSeriesKVDB implements IDatabase {
         String timeseries = deviceSchema.getDevice() + "." + sensor;
 
         TimeSeriesDBIterator dbIterator;
+        System.out.println(
+            "interval is: " + (rangeQuery.getEndTimestamp() - rangeQuery.getStartTimestamp()));
         dbIterator = timeSeriesDB
             .iterator(timeseries, rangeQuery.getStartTimestamp(), rangeQuery.getEndTimestamp());
         try {
