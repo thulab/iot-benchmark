@@ -54,9 +54,9 @@ public class IoTDBEngine implements IDatabase {
         // wal
         options.setWalPath("/data2/liukun-data/iotdbwal");
         // set flush time interval or  period: 3 minute
-//        options.setPeriodTimeForFlush(60 * 3);
+        options.setPeriodTimeForFlush(60 * 3);
         // set merge time interval or period: 5 minute
-//        options.setPeriodTimeForMerge(60 * 5);
+        options.setPeriodTimeForMerge(60 * 5);
         // the minimum threshold for triggering merge: 20MB
         options.setOverflowFileSizeThreshold(50 << 20);
         LOGGER.info("Create the IoTDB engine, {}", options);
