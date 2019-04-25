@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,9 @@ public class DeviceSchema {
 
   // deviceId
   private String device;
+
+  // full device path
+  private String fulldevicepath;
 
   // sensorIds
   private List<String> sensors;
@@ -41,6 +45,7 @@ public class DeviceSchema {
   public DeviceSchema(String group, String device, List<String> sensors) {
     this.group = GROUP_NAME_PREFIX + group;
     this.device = DEVICE_NAME_PREFIX + device;
+    this.fulldevicepath = Constants.ROOT_SERIES_NAME + "." + group + "." + device;
     this.sensors = sensors;
   }
 
@@ -64,6 +69,10 @@ public class DeviceSchema {
 
   public String getDevice() {
     return device;
+  }
+
+  public String getDeviceFullPath() {
+    return Constants.ROOT_SERIES_NAME + "." + group + "." + device;
   }
 
   public void setDevice(String device) {

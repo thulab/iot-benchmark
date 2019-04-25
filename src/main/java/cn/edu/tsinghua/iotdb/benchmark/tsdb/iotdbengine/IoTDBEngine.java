@@ -22,8 +22,10 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.apache.iotdb.db.api.ITSEngine;
 import org.apache.iotdb.db.api.IoTDBEngineException;
 import org.apache.iotdb.db.api.IoTDBOptions;
@@ -50,7 +52,7 @@ public class IoTDBEngine implements IDatabase {
       if (engine == null) {
         File file = new File(config.GEN_DATA_FILE_PATH);
         // wal
-        options.setWalPath("/data2/liukun-data/iotdbwal");
+//        options.setWalPath("/data2/liukun-data/iotdbwal");
         // set flush time interval or  period: 3 minute
         options.setPeriodTimeForFlush(60 * 3);
         // set merge time interval or period: 5 minute
@@ -91,11 +93,12 @@ public class IoTDBEngine implements IDatabase {
   }
 
   @Override
-  public void registerSchema(Measurement measurement) throws TsdbException {
+  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     DataSchema dataSchema = DataSchema.getInstance();
     // storage group
     for (int i = 0; i < config.GROUP_NUMBER; i++) {
       String sg = Constants.ROOT_SERIES_NAME + "." + DeviceSchema.GROUP_NAME_PREFIX + i;
+      System.out.println("======sg+ "+sg);
       try {
         setStorgeGroup(sg);
       } catch (IOException e) {
@@ -120,6 +123,36 @@ public class IoTDBEngine implements IDatabase {
     }
   }
 
+//  @Override
+//  public void registerSchema(Measurement measurement) throws TsdbException {
+//    DataSchema dataSchema = DataSchema.getInstance();
+//    // storage group
+//    for (int i = 0; i < config.GROUP_NUMBER; i++) {
+//      String sg = Constants.ROOT_SERIES_NAME + "." + DeviceSchema.GROUP_NAME_PREFIX + i;
+//      try {
+//        setStorgeGroup(sg);
+//      } catch (IOException e) {
+//        throw new TsdbException(e);
+//      }
+//    }
+//    // time series
+//    for (Entry<Integer, List<DeviceSchema>> entry : dataSchema.getClientBindSchema().entrySet()) {
+//      List<DeviceSchema> deviceSchemaList = entry.getValue();
+//      for (DeviceSchema deviceSchema : deviceSchemaList) {
+//        String path = Constants.ROOT_SERIES_NAME
+//            + "." + deviceSchema.getGroup()
+//            + "." + deviceSchema.getDevice();
+//        for (String sensor : deviceSchema.getSensors()) {
+//          try {
+//            createTimeseriesBatch(path, sensor);
+//          } catch (IOException e) {
+//            throw new TsdbException(e);
+//          }
+//        }
+//      }
+//    }
+//  }
+
   private void createTimeseriesBatch(String path, String sensor) throws IOException {
     String timeseries = path + "." + sensor;
     System.out.println("time series: " + timeseries);
@@ -136,7 +169,7 @@ public class IoTDBEngine implements IDatabase {
   public Status insertOneBatch(Batch batch) {
     // insert one batch
     long st = System.nanoTime();
-    String devicePath = batch.getDeviceSchema().getDevicePath();
+    String devicePath = batch.getDeviceSchema().getDeviceFullPath();
     List<String> sensors = batch.getDeviceSchema().getSensors();
     long cost = 0;
     for (Record record : batch.getRecords()) {
@@ -162,7 +195,7 @@ public class IoTDBEngine implements IDatabase {
     int line = 0;
     for (DeviceSchema deviceSchema : preciseQuery.getDeviceSchema()) {
       for (String sensor : deviceSchema.getSensors()) {
-        String timeseres = deviceSchema.getDevicePath() + "." + sensor;
+        String timeseres = deviceSchema.getDeviceFullPath() + "." + sensor;
         try {
           long st = System.nanoTime();
           QueryDataSet queryDataSet = engine.query(timeseres, startTime, endTime);
@@ -175,8 +208,8 @@ public class IoTDBEngine implements IDatabase {
         } catch (IOException e) {
           e.printStackTrace();
           return new Status(false, cost, 0, e, e.getMessage());
-        }finally {
-            engine.endQuery();
+        } finally {
+          engine.endQuery();
         }
       }
     }
@@ -192,7 +225,7 @@ public class IoTDBEngine implements IDatabase {
     long st = System.nanoTime();
     for (DeviceSchema deviceSchema : rangeQuery.getDeviceSchema()) {
       for (String sensor : deviceSchema.getSensors()) {
-        String timeseries = deviceSchema.getDevicePath() + "." + sensor;
+        String timeseries = deviceSchema.getDeviceFullPath() + "." + sensor;
         try {
           QueryDataSet queryDataSet = engine.query(timeseries, startTime, endTime);
           while (queryDataSet.hasNext()) {
@@ -202,7 +235,7 @@ public class IoTDBEngine implements IDatabase {
         } catch (IOException e) {
           e.printStackTrace();
           return new Status(false, cost, 0, e, e.getMessage());
-        }finally {
+        } finally {
           engine.endQuery();
         }
       }
