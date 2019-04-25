@@ -159,8 +159,6 @@ public class TimeSeriesKVDB implements IDatabase {
         String timeseries = deviceSchema.getDevice() + "." + sensor;
 
         TimeSeriesDBIterator dbIterator;
-        System.out.println(
-            "interval is: " + (rangeQuery.getEndTimestamp() - rangeQuery.getStartTimestamp()));
         dbIterator = timeSeriesDB
             .iterator(timeseries, rangeQuery.getStartTimestamp(), rangeQuery.getEndTimestamp());
         try {
