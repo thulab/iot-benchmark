@@ -51,6 +51,7 @@ public class ConfigDescriptor {
 			Properties properties = new Properties();
 			try {
 				properties.load(inputStream);
+				System.out.println(properties);
 				config.host = properties.getProperty("HOST", "no host");
 				config.port = properties.getProperty("PORT", "no port");
 				config.DEVICE_NUMBER = Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.DEVICE_NUMBER+""));
