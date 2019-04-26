@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.QueryRealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
@@ -68,8 +70,11 @@ public class App {
             case Constants.MODE_TEST_WITH_DEFAULT_PATH:
                 testWithDefaultPath(config);
                 break;
-            case Constants.MODE_TEST_WITH_REAL_DATASET:
+            case Constants.MODE_WRITE_WITH_REAL_DATASET:
                 testWithRealDataSet(config);
+                break;
+            case Constants.MODE_QUERY_WITH_REAL_DATASET:
+                queryWithRealDataSet(config);
                 break;
             case Constants.MODE_SERVER_MODE:
                 serverMode(config);
@@ -266,6 +271,56 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
+    }
+
+    /**
+     * 测试真实数据集
+     * @param config
+     */
+    private static void queryWithRealDataSet(Config config) {
+        MySqlLog mysql = new MySqlLog();
+        mysql.initMysql(System.currentTimeMillis());
+        mysql.savaTestConfig();
+        LOGGER.info("use dataset: {}", config.DATA_SET);
+        //check whether the parameters are legitimate
+        if(!checkParamForQueryRealDataSet(config)){
+            return;
+        }
+
+        Measurement measurement = new Measurement();
+        CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
+
+        // create CLIENT_NUMBER client threads to do the workloads
+        List<Measurement> threadsMeasurements = new ArrayList<>();
+        List<Client> clients = new ArrayList<>();
+        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        long st = System.nanoTime();
+        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+            Client client = new QueryRealDatasetClient(i, downLatch, barrier, config);
+            clients.add(client);
+            executorService.submit(client);
+        }
+        finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+    }
+
+    private static boolean checkParamForQueryRealDataSet(Config config) {
+        if(config.QUERY_SENSOR_NUM > config.FIELDS.size()){
+          LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
+              config.QUERY_SENSOR_NUM, config.FIELDS);
+          return false;
+        }
+        String[] split = config.OPERATION_PROPORTION.split(":");
+        if(split.length!=Operation.values().length){
+          LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
+          return false;
+        }
+        if(!split[0].trim().equals("0")){
+          LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
+              config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
+          return false;
+        }
+        return true;
     }
 
     private static void getAllFiles(String strPath, List<String> files) {

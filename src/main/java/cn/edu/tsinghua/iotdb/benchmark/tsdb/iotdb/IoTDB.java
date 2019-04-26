@@ -342,6 +342,8 @@ public class IoTDB implements IDatabase {
       return new Status(true, en - st, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, 0, queryResultPointNum, e, sql);
+    } catch (Throwable t) {
+      return new Status(false, 0, queryResultPointNum, new Exception(t), sql);
     }
   }
 
