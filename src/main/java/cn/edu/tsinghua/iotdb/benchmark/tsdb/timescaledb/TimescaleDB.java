@@ -32,8 +32,9 @@ public class TimescaleDB implements IDatabase {
   private static String tableName;
   private static Config config;
   private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
+  //chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
-      "SELECT create_hypertable('%s', 'time', chunk_time_interval => 86400000);";
+      "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
 
   public TimescaleDB() {
