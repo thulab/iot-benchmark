@@ -19,17 +19,23 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.alibaba.fastjson.JSON;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.kairosdb.client.HttpClient;
+import org.kairosdb.client.builder.Aggregator;
+import org.kairosdb.client.builder.AggregatorFactory;
+import org.kairosdb.client.builder.AggregatorFactory.FilterOperation;
 import org.kairosdb.client.builder.QueryBuilder;
-import org.kairosdb.client.response.Queries;
+import org.kairosdb.client.builder.TimeUnit;
+import org.kairosdb.client.builder.aggregator.SamplingAggregator;
 import org.kairosdb.client.response.QueryResponse;
-import org.kairosdb.client.response.Results;
+import org.kairosdb.client.response.QueryResult;
+import org.kairosdb.client.response.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,33 +43,33 @@ public class KairosDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(cn.edu.tsinghua.iotdb.benchmark.db.kairosdb.KairosDB.class);
-  private String Url;
-  private String queryUrl;
   private String writeUrl;
-  private String deleteUrl;
-  private String dataType = "double";
+  private HttpClient client;
   private Config config;
 
-  private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-  private SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
+  private static final String GROUP_STR = "group";
+  private static final String DEVICE_STR = "device";
 
   public KairosDB() {
     config = ConfigDescriptor.getInstance().getConfig();
-    Url = config.DB_URL;
-    queryUrl = Url + "/api/v1/datapoints/query";
-    writeUrl = Url + "/api/v1/datapoints";
-    deleteUrl = Url + "/api/v1/metric/%s";
+    writeUrl = config.DB_URL + "/api/v1/datapoints";
+
   }
 
   @Override
   public void init() throws TsdbException {
-    //no need for KairosDB
+    try {
+      client = new HttpClient(config.DB_URL);
+    } catch (MalformedURLException e) {
+      throw new TsdbException(
+          "Init KairosDB client failed, the url is " + config.DB_URL + ". Message is " + e
+              .getMessage());
+    }
   }
 
   @Override
-  public void cleanup() throws TsdbException {
+  public void cleanup() {
     try {
-      HttpClient client = new HttpClient(config.DB_URL);
       for (String sensor : config.SENSOR_CODES) {
         client.deleteMetric(sensor);
       }
@@ -74,11 +80,15 @@ public class KairosDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    //no need for KairosDB
+    try {
+      client.close();
+    } catch (IOException e) {
+      throw new TsdbException("Close KairosDB client failed, because " + e.getMessage());
+    }
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public void registerSchema(List<DeviceSchema> schemaList) {
     //no need for KairosDB
   }
 
@@ -92,7 +102,7 @@ public class KairosDB implements IDatabase {
       KairosDataModel model = new KairosDataModel();
       model.setName(sensor);
       // KairosDB do not support float as data type
-      if (!config.DATA_TYPE.equals("FLOAT")) {
+      if (config.DATA_TYPE.equalsIgnoreCase("FLOAT")) {
         model.setType("double");
       } else {
         model.setType(config.DATA_TYPE.toLowerCase());
@@ -100,8 +110,8 @@ public class KairosDB implements IDatabase {
       model.setTimestamp(timestamp);
       model.setValue(recordValues.get(i));
       Map<String, String> tags = new HashMap<>();
-      tags.put("group", groupId);
-      tags.put("device", deviceSchema.getDevice());
+      tags.put(GROUP_STR, groupId);
+      tags.put(DEVICE_STR, deviceSchema.getDevice());
       model.setTags(tags);
       models.addLast(model);
       i++;
@@ -133,67 +143,129 @@ public class KairosDB implements IDatabase {
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    return null;
+    long time = preciseQuery.getTimestamp();
+    QueryBuilder builder = constructBuilder(time, time, preciseQuery.getDeviceSchema());
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    QueryBuilder builder = QueryBuilder.getInstance();
-    long st;
-    long en;
-    int queryResultPointNum = 0;
-    try {
-      HttpClient client = new HttpClient(config.DB_URL);
-      builder.setStart(new Date(rangeQuery.getStartTimestamp()))
-          .setEnd(new Date(rangeQuery.getEndTimestamp()));
-      for (DeviceSchema deviceSchema : rangeQuery.getDeviceSchema()) {
-        for (String sensor : deviceSchema.getSensors()) {
-          builder.addMetric(sensor)
-              .addTag("device", deviceSchema.getDevice())
-              .addTag("group", deviceSchema.getGroup());
-        }
-      }
-      st = System.nanoTime();
-      QueryResponse response = client.query(builder);
-      en = System.nanoTime();
-      for (Queries query : response.getQueries()) {
-        for (Results results : query.getResults()) {
-          queryResultPointNum += results.getDataPoints().size();
-        }
-      }
-      return new Status(true, en - st, queryResultPointNum);
-    } catch (Exception e) {
-      return new Status(false, 0, queryResultPointNum, e, builder.toString());
-    }
+    long startTime = rangeQuery.getStartTimestamp();
+    long endTime = rangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, rangeQuery.getDeviceSchema());
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return null;
+    long startTime = valueRangeQuery.getStartTimestamp();
+    long endTime = valueRangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, valueRangeQuery.getDeviceSchema());
+    Aggregator filterAggre = AggregatorFactory
+        .createFilterAggregator(FilterOperation.LTE, valueRangeQuery.getValueThreshold());
+    addAggreForQuery(builder, filterAggre);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return null;
+    long startTime = aggRangeQuery.getStartTimestamp();
+    long endTime = aggRangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, aggRangeQuery.getDeviceSchema());
+    // convert to second
+    int timeInterval = (int) (endTime - startTime) + 1;
+    Aggregator aggregator = new SamplingAggregator(aggRangeQuery.getAggFun(), timeInterval,
+        TimeUnit.MILLISECONDS);
+    addAggreForQuery(builder, aggregator);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return null;
+    long startTime = aggValueQuery.getStartTimestamp();
+    long endTime = aggValueQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, aggValueQuery.getDeviceSchema());
+    Aggregator funAggre = new SamplingAggregator(aggValueQuery.getAggFun(), 5000, TimeUnit.YEARS);
+    Aggregator filterAggre = AggregatorFactory
+        .createFilterAggregator(FilterOperation.LTE, aggValueQuery.getValueThreshold());
+    addAggreForQuery(builder, filterAggre, funAggre);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return null;
+    long startTime = aggRangeValueQuery.getStartTimestamp();
+    long endTime = aggRangeValueQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime,
+        aggRangeValueQuery.getDeviceSchema());
+    int timeInterval = (int) (endTime - startTime) + 1;
+    Aggregator funAggre = new SamplingAggregator(aggRangeValueQuery.getAggFun(), timeInterval,
+        TimeUnit.SECONDS);
+    Aggregator filterAggre = AggregatorFactory
+        .createFilterAggregator(FilterOperation.LTE, aggRangeValueQuery.getValueThreshold());
+    addAggreForQuery(builder, filterAggre, funAggre);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    return null;
+    long startTime = groupByQuery.getStartTimestamp();
+    long endTime = groupByQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, groupByQuery.getDeviceSchema());
+    Aggregator funAggre = new SamplingAggregator(groupByQuery.getAggFun(),
+        (int) groupByQuery.getGranularity(), TimeUnit.MILLISECONDS);
+    addAggreForQuery(builder, funAggre);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return null;
+    //latestPointQuery
+    long startTime = latestPointQuery.getStartTimestamp();
+    long endTime = latestPointQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, latestPointQuery.getDeviceSchema());
+    Aggregator aggregator = AggregatorFactory.createLastAggregator(5000, TimeUnit.YEARS);
+    addAggreForQuery(builder, aggregator);
+    return executeOneQuery(builder);
+  }
+
+  private Status executeOneQuery(QueryBuilder builder) {
+    LOGGER.info("[JSON] {}", builder.build());
+    int queryResultPointNum = 0;
+    try {
+      long st = System.nanoTime();
+      QueryResponse response = client.query(builder);
+      long en = System.nanoTime();
+      for (QueryResult query : response.getQueries()) {
+        for (Result result : query.getResults()) {
+          queryResultPointNum += result.getDataPoints().size();
+        }
+      }
+      return new Status(true, en - st, queryResultPointNum);
+    } catch (Exception e) {
+      return new Status(false, 0, 0, e, builder.toString());
+    }
+  }
+
+  private QueryBuilder constructBuilder(long st, long et, List<DeviceSchema> deviceSchemaList) {
+    QueryBuilder builder = QueryBuilder.getInstance();
+    builder.setStart(new Date(st))
+        .setEnd(new Date(et));
+    for (DeviceSchema deviceSchema : deviceSchemaList) {
+      for (String sensor : deviceSchema.getSensors()) {
+        builder.addMetric(sensor)
+            .addTag(DEVICE_STR, deviceSchema.getDevice())
+            .addTag(GROUP_STR, deviceSchema.getGroup());
+      }
+    }
+    return builder;
+  }
+
+  private void addAggreForQuery(QueryBuilder builder, Aggregator... aggregatorArray) {
+    builder.getMetrics().forEach(queryMetric -> {
+      for (Aggregator aggregator : aggregatorArray) {
+        queryMetric.addAggregator(aggregator);
+      }
+    });
   }
 }

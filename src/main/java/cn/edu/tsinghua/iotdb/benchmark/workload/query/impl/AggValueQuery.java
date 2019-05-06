@@ -21,6 +21,12 @@ public class AggValueQuery extends AggRangeQuery {
     this.valueThreshold = valueThreshold;
   }
 
+  public AggValueQuery(long startTime, long endTime, List<DeviceSchema> deviceSchema, String aggFun,
+      double valueThreshold) {
+    super(deviceSchema, startTime, endTime, aggFun);
+    this.valueThreshold = valueThreshold;
+  }
+
   public double getValueThreshold() {
     return valueThreshold;
   }
