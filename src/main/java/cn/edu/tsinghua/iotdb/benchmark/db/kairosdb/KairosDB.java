@@ -65,20 +65,22 @@ public class KairosDB extends TSDB implements IDatebase {
     @Override
     public void init() {
         //delete old data
-        for (String sensor : config.SENSOR_CODES) {
+        if(config.IS_DELETE_DATA) {
+            for (String sensor : config.SENSOR_CODES) {
+                try {
+                    HttpRequest.sendDelete(String.format(deleteUrl, sensor), "");
+                } catch (IOException e) {
+                    LOGGER.error("Delete metric {} failed when initializing KairosDB.", sensor);
+                    e.printStackTrace();
+                }
+            }
+            // wait for deletion complete
             try {
-                HttpRequest.sendDelete(String.format(deleteUrl, sensor), "");
-            } catch (IOException e) {
-                LOGGER.error("Delete metric {} failed when initializing KairosDB.", sensor);
+                LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+                Thread.sleep(config.INIT_WAIT_TIME);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-        // wait for deletion complete
-        try {
-            LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-            Thread.sleep(config.INIT_WAIT_TIME);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
