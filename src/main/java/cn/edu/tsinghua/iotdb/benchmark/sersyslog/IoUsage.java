@@ -57,7 +57,7 @@ public class IoUsage {
             while((line=in.readLine()) != null) {
                 String[] temp = line.split("\\s+");
                 if (++count >= BEGIN_LINE) {
-                    if(temp.length > 1 && temp[0].startsWith("s")) {
+                    if(temp.length > 1 && (temp[0].startsWith("s") || temp[0].startsWith("v"))) {
                         //返回设备中最大的
                         for(IOStatistics iostat : IOStatistics.values()) {
                             float t = Float.parseFloat(temp[iostat.pos]);
@@ -105,7 +105,7 @@ public class IoUsage {
                         cpuUsage = Float.parseFloat(temp[temp.length - 1]);
                         cpuUsage = 1 - cpuUsage/100.0f;
                         flag = 1;
-                    } else if(temp.length > 1 && temp[0].startsWith("s")) {
+                    } else if(temp.length > 1 && (temp[0].startsWith("s") || temp[0].startsWith("v"))) {
                         float util = Float.parseFloat(temp[temp.length - 1]);
                         //返回设备中利用率最大的
                         ioUsage = (ioUsage > util) ? ioUsage : util;
