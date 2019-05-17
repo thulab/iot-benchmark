@@ -380,10 +380,10 @@ public class IoTDB implements IDatebase {
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
-                LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
-                        (totalTime.get() + costTime) / unitTransfer,
-                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+//                LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+//                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+//                        (totalTime.get() + costTime) / unitTransfer,
+//                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);

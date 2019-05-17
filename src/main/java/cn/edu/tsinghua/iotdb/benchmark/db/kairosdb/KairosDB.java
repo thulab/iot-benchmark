@@ -166,10 +166,10 @@ public class KairosDB extends TSDB implements IDatebase {
             latency = endTime - startTime;
             latencies.add(latency);
             LOGGER.debug("response: " + response);
-            LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
-                    Thread.currentThread().getName(), batchIndex, latency / 1000000000.0,
-                    ((totalTime.get() + latency) / 1000000000.0),
-                    (models.size() / (double) latency) * 1000000000);
+//            LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
+//                    Thread.currentThread().getName(), batchIndex, latency / 1000000000.0,
+//                    ((totalTime.get() + latency) / 1000000000.0),
+//                    (models.size() / (double) latency) * 1000000000);
             totalTime.set(totalTime.get() + latency);
             mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, 0,
                     config.REMARK);
