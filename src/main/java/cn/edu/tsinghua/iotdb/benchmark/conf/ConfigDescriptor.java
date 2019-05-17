@@ -147,6 +147,7 @@ public class ConfigDescriptor {
 				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
         config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
+				config.FIRST_DEVICE_INDEX = Integer.parseInt(properties.getProperty("FIRST_DEVICE_INDEX", config.FIRST_DEVICE_INDEX+""));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

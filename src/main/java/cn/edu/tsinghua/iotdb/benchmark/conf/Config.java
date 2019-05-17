@@ -115,6 +115,8 @@ public class Config {
 
 	public String LOG_STOP_FLAG_PATH;
 
+	public int FIRST_DEVICE_INDEX = 0;
+
 	public int STORE_MODE = 1;
 
 	public long LOOP = 10000;
@@ -347,7 +349,7 @@ public class Config {
 	 * @return
 	 */
 	public List<String> initDeviceCodes() {
-		for (int i = 0; i < DEVICE_NUMBER; i++) {
+		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
 			String deviceCode = "d_" + i;
 			DEVICE_CODES.add(deviceCode);
 		}
