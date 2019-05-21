@@ -106,7 +106,7 @@ public class TimescaleDB implements IDatabase {
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try (Statement statement = connection.createStatement()){
-      String pgsql = getCreateTableSql(tableName);
+      String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
       statement.execute(pgsql);
       LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
       statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
@@ -388,10 +388,10 @@ public class TimescaleDB implements IDatabase {
    * </p>
    * @return create table SQL String
    */
-  private String getCreateTableSql(String tableName) {
+  private String getCreateTableSql(String tableName, List<String> sensors) {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
     sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
-    for (String sensor : config.SENSOR_CODES) {
+    for (String sensor : sensors) {
       sqlBuilder.append(", ").append(sensor).append(" ").append(config.DATA_TYPE)
           .append(" PRECISION NULL");
     }
