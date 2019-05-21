@@ -49,6 +49,8 @@ public class Config {
 	public String DATA_TYPE = "FLOAT";
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
+	/** 生成数据的小数保留位数 */
+	public int NUMBER_OF_DECIMAL_DIGIT = 2;
 	/** 数据压缩方式 */
 	public String COMPRESSOR = "UNCOMPRESSED";
 	/**是否为多设备批插入模式*/

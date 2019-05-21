@@ -18,6 +18,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -35,10 +37,18 @@ public class SyntheticWorkload implements IWorkload {
   private Random queryDeviceRandom;
   private Map<Operation, Long> operationLoops;
   private static Random random = new Random();
+  private static NumberFormat nf = NumberFormat.getNumberInstance();
+
+
+
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
     maxTimestampIndex = 0;
+    int numOfDecimalDigit = config.NUMBER_OF_DECIMAL_DIGIT;
+    nf.setRoundingMode(RoundingMode.HALF_UP); // 四舍五入
+    nf.setMaximumFractionDigits(numOfDecimalDigit);
+    nf.setMinimumFractionDigits(numOfDecimalDigit);
     poissonRandom = new Random(config.DATA_SEED);
     queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
     operationLoops = new EnumMap<>(Operation.class);
@@ -96,7 +106,7 @@ public class SyntheticWorkload implements IWorkload {
     currentTimestamp = getCurrentTimestamp(stepOffset);
     for (String sensor : deviceSchema.getSensors()) {
       FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-      String value = Function.getValueByFuntionidAndParam(param, currentTimestamp) + "";
+      String value = nf.format(Function.getValueByFuntionidAndParam(param, currentTimestamp));
       values.add(value);
     }
     batch.add(currentTimestamp, values);
