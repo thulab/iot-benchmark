@@ -106,6 +106,7 @@ public class ConfigDescriptor {
 
 				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
+				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
 				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");

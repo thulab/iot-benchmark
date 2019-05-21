@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.function;
 
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.Random;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
@@ -27,6 +29,8 @@ public class Function {
 //	}
 	private static Config config = ConfigDescriptor.getInstance().getConfig();
 	private static Random r = new Random(config.DATA_SEED);
+
+
 
 	/**
 	 * 获取单调函数浮点值
