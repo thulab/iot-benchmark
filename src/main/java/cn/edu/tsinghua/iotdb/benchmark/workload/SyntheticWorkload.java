@@ -49,6 +49,7 @@ public class SyntheticWorkload implements IWorkload {
     nf.setRoundingMode(RoundingMode.HALF_UP); // 四舍五入
     nf.setMaximumFractionDigits(numOfDecimalDigit);
     nf.setMinimumFractionDigits(numOfDecimalDigit);
+    nf.setGroupingUsed(false);
     poissonRandom = new Random(config.DATA_SEED);
     queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
     operationLoops = new EnumMap<>(Operation.class);
