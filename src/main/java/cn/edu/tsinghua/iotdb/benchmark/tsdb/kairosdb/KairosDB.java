@@ -70,9 +70,16 @@ public class KairosDB implements IDatabase {
   @Override
   public void cleanup() {
     try {
-      for (String sensor : config.SENSOR_CODES) {
-        client.deleteMetric(sensor);
+      for (String metric : client.getMetricNames()) {
+        // skip kairosdb internal info metrics
+        if(metric.contains("kairosdb.")){
+          continue;
+        }
+        client.deleteMetric(metric);
       }
+      // wait for deletion complete
+      LOGGER.info("[KAIROSDB]:Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+      Thread.sleep(config.INIT_WAIT_TIME);
     } catch (Exception e) {
       LOGGER.error("Delete old data failed because ", e);
     }
