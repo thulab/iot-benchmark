@@ -370,7 +370,7 @@ public class KairosDB extends TSDB implements IDatebase {
                 groupByTimeMap.put("range_size", rangeSizeMap);
                 groupByList.add(groupByTimeMap);
             }
-            subQuery.put("group_by", groupByList);
+            //subQuery.put("group_by", groupByList);
 
             list.add(subQuery);
         }
