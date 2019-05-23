@@ -1,7 +1,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import static org.junit.Assert.assertEquals;
+
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import org.junit.Test;
+import org.junit.Before; 
+import org.junit.After; 
 
 /** 
 * DeviceSchema Tester. 
@@ -11,24 +16,109 @@ import org.junit.Test;
 * @version 1.0 
 */ 
 public class DeviceSchemaTest {
+  private static Config config = ConfigDescriptor.getInstance().getConfig();
+
+@Before
+public void before() throws Exception { 
+} 
+
+@After
+public void after() throws Exception { 
+} 
+
 /** 
 * 
-* Method: CalGroupId()
+* Method: getDeviceId() 
 * 
 */ 
 @Test
-public void testCalGroupId() throws Exception {
-  int g1 = DeviceSchema.calGroupId(4, 10, 3);
-  assertEquals(1,g1 );
-  int g2 = DeviceSchema.calGroupId(3, 10, 3);
-  assertEquals(0, g2);
+public void testGetDeviceId() throws Exception { 
+//TODO: Test goes here... 
+} 
 
-  int g3 = DeviceSchema.calGroupId(30, 100, 30);
-  assertEquals(7, g3);
-  int g4 = DeviceSchema.calGroupId(40, 100, 30);
-  assertEquals(10, g4);
-  int g5 = DeviceSchema.calGroupId(0, 1, 3);
-  assertEquals(0, g5);
+/** 
+* 
+* Method: setDeviceId(int deviceId) 
+* 
+*/ 
+@Test
+public void testSetDeviceId() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+/** 
+* 
+* Method: getDevice() 
+* 
+*/ 
+@Test
+public void testGetDevice() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+/** 
+* 
+* Method: setDevice(String device) 
+* 
+*/ 
+@Test
+public void testSetDevice() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+/** 
+* 
+* Method: getGroup() 
+* 
+*/ 
+@Test
+public void testGetGroup() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+/** 
+* 
+* Method: setGroup(String group) 
+* 
+*/ 
+@Test
+public void testSetGroup() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+/** 
+* 
+* Method: getSensors() 
+* 
+*/ 
+@Test
+public void testGetSensors() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+/** 
+* 
+* Method: setSensors(List<String> sensors) 
+* 
+*/ 
+@Test
+public void testSetSensors() throws Exception { 
+//TODO: Test goes here... 
+} 
+
+
+/** 
+* 
+* Method: createEvenlyAllocDeviceSchema() 
+* 
+*/ 
+@Test
+public void testCreateEvenlyAllocDeviceSchema() throws Exception { 
+  config.DEVICE_NUMBER = 10;
+  config.GROUP_NUMBER = 3;
+  DeviceSchema deviceSchema = new DeviceSchema(4);
+  assertEquals("group_1", deviceSchema.getGroup());
+  assertEquals("d_4", deviceSchema.getDevice());
 } 
 
 } 
