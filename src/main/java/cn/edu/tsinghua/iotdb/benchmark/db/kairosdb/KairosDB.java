@@ -123,12 +123,13 @@ public class KairosDB extends TSDB implements IDatebase {
                 currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
             }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            float v = Float.parseFloat(String.format("%.2f", value.floatValue()));
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
             // KairosDB do not support float as data type
             model.setType(config.DATA_TYPE.toLowerCase());
             model.setTimestamp(currentTime);
-            model.setValue(value);
+            model.setValue(v);
             Map<String, String> tags = new HashMap<>();
             tags.put("group", groupId);
             tags.put("device", device);
@@ -578,12 +579,13 @@ public class KairosDB extends TSDB implements IDatebase {
                 currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
             }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            float v = Float.parseFloat(String.format("%.2f", value.floatValue()));
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
             // KairosDB do not support float as data type
             model.setType(config.DATA_TYPE.toLowerCase());
             model.setTimestamp(currentTime);
-            model.setValue(value);
+            model.setValue(v);
             Map<String, String> tags = new HashMap<>();
             tags.put("group", groupId);
             tags.put("device", device);
