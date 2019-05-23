@@ -7,5 +7,4 @@ fi
 #git pull
 rm -rf lib
 mvn clean package -Dmaven.test.skip=true
-cd bin
-$BENCHMARK_HOME/bin/startup.sh -cf ../conf/config.properties
+$BENCHMARK_HOME/bin/startup.sh -cf $BENCHMARK_HOME/conf/config.properties
