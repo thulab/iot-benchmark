@@ -42,7 +42,7 @@ public class DataSchema {
 
     int deviceId = 0;
     int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
-    for (int clientId = 0; clientId < config.CLIENT_NUMBER - 1; clientId++) {
+    for (int clientId = 0; clientId < config.CLIENT_NUMBER; clientId++) {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int j = 0; j < eachClientDeviceNum; j++) {
         deviceSchemaList.add(new DeviceSchema(deviceId++));
