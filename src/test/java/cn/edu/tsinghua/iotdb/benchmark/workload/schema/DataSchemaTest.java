@@ -10,6 +10,7 @@ import org.junit.Test;
 
 public class DataSchemaTest {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+
   @Test
   public void test(){
     testBalanceSplit(100, 30);
@@ -17,6 +18,8 @@ public class DataSchemaTest {
   }
 
   void testBalanceSplit(int deviceNum, int clientNum){
+    int preDeviceNum = config.DEVICE_NUMBER;
+    int preClientNum = config.CLIENT_NUMBER;
     config.DEVICE_NUMBER = deviceNum;
     config.CLIENT_NUMBER = clientNum;
     int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
@@ -32,6 +35,8 @@ public class DataSchemaTest {
         Assert.assertEquals(deviceNumEachClient,deviceNumInClient);
       }
     }
+    config.DEVICE_NUMBER = preDeviceNum;
+    config.CLIENT_NUMBER = preClientNum;
   }
 
 
