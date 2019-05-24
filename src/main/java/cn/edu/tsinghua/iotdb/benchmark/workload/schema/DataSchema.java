@@ -33,24 +33,24 @@ public class DataSchema {
 
   private void createClientBindSchema() {
     int eachClientDeviceNum = 0;
-    if(config.CLIENT_NUMBER!=0) {
+    if (config.CLIENT_NUMBER != 0) {
       eachClientDeviceNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
     } else {
       LOGGER.error("CLIENT_NUMBER can not be zero.");
       return;
     }
-    for (int clientId = 0; clientId < config.CLIENT_NUMBER - 1; clientId++) {
+
+    int deviceId = 0;
+    int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
+    for (int clientId = 0; clientId < config.CLIENT_NUMBER; clientId++) {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-      for (int i = clientId * eachClientDeviceNum; i < (clientId + 1) * eachClientDeviceNum; i++) {
-        deviceSchemaList.add(new DeviceSchema(i));
+      for (int j = 0; j < eachClientDeviceNum; j++) {
+        deviceSchemaList.add(new DeviceSchema(deviceId++));
+      }
+      if (clientId < mod) {
+        deviceSchemaList.add(new DeviceSchema(deviceId++));
       }
       CLIENT_BIND_SCHEMA.put(clientId, deviceSchemaList);
     }
-    // get the schema of the last client
-    List<DeviceSchema> lastDeviceSchemaList = new ArrayList<>();
-    for (int i = (config.CLIENT_NUMBER - 1) * eachClientDeviceNum; i < config.DEVICE_NUMBER; i++) {
-      lastDeviceSchemaList.add(new DeviceSchema(i));
-    }
-    CLIENT_BIND_SCHEMA.put(config.CLIENT_NUMBER - 1, lastDeviceSchemaList);
   }
 }

@@ -113,7 +113,7 @@ public class RealDatasetWorkLoad implements IWorkload {
 
   @Override
   public AggValueQuery getAggValueQuery() {
-    return new AggValueQuery(deviceSchemaList, config.QUERY_AGGREGATE_FUN,
+    return new AggValueQuery(startTime, endTime, deviceSchemaList, config.QUERY_AGGREGATE_FUN,
         config.QUERY_LOWER_LIMIT);
   }
 

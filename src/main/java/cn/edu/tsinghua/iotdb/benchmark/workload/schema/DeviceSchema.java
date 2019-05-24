@@ -46,21 +46,27 @@ public class DeviceSchema {
 
 
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
-    if (config.GROUP_NUMBER > config.DEVICE_NUMBER) {
-      throw new WorkloadException("DEVICE_NUMBER must less than or equal to GROUP_NUMBER.");
-    }
-    int eachGroupDeviceNum = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-    int thisDeviceGroupIndex = deviceId / eachGroupDeviceNum;
-    if (deviceId >= eachGroupDeviceNum * config.GROUP_NUMBER) {
-      thisDeviceGroupIndex = config.GROUP_NUMBER - 1;
-    }
-    if (thisDeviceGroupIndex < 0) {
-      throw new WorkloadException("DEVICE_NUMBER and GROUP_NUMBER must be positive.");
-    }
+    int thisDeviceGroupIndex = calGroupId(deviceId, config.DEVICE_NUMBER, config.GROUP_NUMBER);
+
     group = GROUP_NAME_PREFIX + thisDeviceGroupIndex;
     sensors.addAll(config.SENSOR_CODES);
   }
 
+  static int calGroupId(int deviceId, int deviceNum, int groupNum) throws WorkloadException {
+    int eachGroupDeviceNum = deviceNum / groupNum;
+    int mod = deviceNum % groupNum;
+    int thisDeviceGroupIndex;
+    if (deviceId < (eachGroupDeviceNum + 1) * mod) {
+      thisDeviceGroupIndex = deviceId / (eachGroupDeviceNum + 1);
+    } else {
+      thisDeviceGroupIndex = (deviceId - mod) / eachGroupDeviceNum;
+    }
+
+    if (thisDeviceGroupIndex < 0) {
+      throw new WorkloadException("DEVICE_NUMBER and GROUP_NUMBER must be positive.");
+    }
+    return thisDeviceGroupIndex;
+  }
 
   public String getDevice() {
     return device;
