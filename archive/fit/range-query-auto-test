@@ -1,8 +1,8 @@
-HOST=192.168.130.20
+HOST=192.168.130.18
 PORT=6667
 DB_SWITCH=IoTDB
 BENCHMARK_WORK_MODE=queryTestWithDefaultPath
-MYSQL_URL=jdbc:mysql:\/\/166.111.7.145:33306\/auto_test?user=root\&password=Ise_Nel_2017\&useUnicode=true\&characterEncoding=UTF8\&useSSL=false
+MYSQL_URL=jdbc:mysql:\/\/166.111.7.145:33306\/weekly_test?user=root\&password=Ise_Nel_2017\&useUnicode=true\&characterEncoding=UTF8\&useSSL=false
 IS_USE_MYSQL=true
 REMARK=range
 CLIENT_NUMBER=1
@@ -24,7 +24,7 @@ QUERY_SLIMIT_OFFSET=5
 GROUP_NUMBER=20
 DEVICE_NUMBER=2000
 SENSOR_NUMBER=100
-LOG_STOP_FLAG_PATH=\/datab\/weekly_test_iotdb
+LOG_STOP_FLAG_PATH=\/data\/weekly_test_iotdb
 TEST
 TEST
 TEST
