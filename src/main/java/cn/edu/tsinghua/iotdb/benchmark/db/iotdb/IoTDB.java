@@ -111,7 +111,7 @@ public class IoTDB implements IDatebase {
                     groupIndex++;
                     count = 0;
                 }
-                path = group.get(groupIndex) + "." + device;
+                path = getGroupDevicePath(device);
                 for (String sensor : config.SENSOR_CODES) {
                     // createTimeseries(path, sensor);
                     timeseriesCount++;
@@ -1229,17 +1229,14 @@ public class IoTDB implements IDatebase {
     }
 
     private String getGroupDevicePath(String device) {
-        String[] spl = device.split("_");
-        int deviceIndex = Integer.parseInt(spl[1]);
-        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        int groupIndex = deviceIndex / groupSize;
-        return "group_" + groupIndex + "." + device;
+        int hashCode = device.hashCode();
+        return "group_" + (Math.abs(hashCode) % config.GROUP_NUMBER) + "." + device;
     }
 
     private String getFullGroupDevicePathByID(int id) {
-        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        int groupIndex = id / groupSize;
-        return Constants.ROOT_SERIES_NAME + ".group_" + groupIndex + "." + config.DEVICE_CODES.get(id);
+        String device = config.DEVICE_CODES.get(id);
+        int hashCode = device.hashCode();
+        return Constants.ROOT_SERIES_NAME + ".group_" + (Math.abs(hashCode) % config.GROUP_NUMBER) + "." + device;
     }
 
     private String getTypeByField(String name) {
