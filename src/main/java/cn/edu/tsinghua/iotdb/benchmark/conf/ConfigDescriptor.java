@@ -139,6 +139,7 @@ public class ConfigDescriptor {
 				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
 				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
+				config.START_TIME = properties.getProperty("START_TIME", config.START_TIME);
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
 				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));

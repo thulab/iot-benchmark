@@ -78,6 +78,8 @@ public class Config {
 
 	public String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
 
+	public String START_TIME = "2018-8-30T00:00:00+08:00";
+
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
  	/**系统性能检测网卡设备名*/
