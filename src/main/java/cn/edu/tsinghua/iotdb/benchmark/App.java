@@ -445,14 +445,32 @@ public class App {
                 // 检测所需的时间在目前代码的参数下至少为2秒
                 LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
                 while (true) {
+                    long start = System.currentTimeMillis();
                     ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+                    LOGGER.info("IoUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     ArrayList<Float> netUsageList = NetUsage.getInstance().get();
+                    LOGGER.info("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                    LOGGER.info("OpenFileNumber.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     fileSizeStatistics = FileSize.getInstance().getFileSize();
+                    LOGGER.info("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     ioStatistics = IoUsage.getInstance().getIOStatistics();
+                    LOGGER.info("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
+
+
+                    start = System.currentTimeMillis();
+                    double memRate = MemUsage.getInstance().get();
+                    LOGGER.info("MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
+                    double proMem = MemUsage.getInstance().getProcessMemUsage();
+                    LOGGER.info("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
+                    LOGGER.info("内存使用大小GB,{}", proMem);
+                    LOGGER.info("内存使用率,{}", memRate);
                     LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
-                    LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-                    LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
                     LOGGER.info("磁盘IO使用率,{},TPS,{},读速率MB/s,{},写速率MB/s,{}",
                             ioUsageList.get(1),
                             ioStatistics.get(IoUsage.IOStatistics.TPS),
