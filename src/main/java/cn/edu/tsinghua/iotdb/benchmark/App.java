@@ -452,7 +452,11 @@ public class App {
                     ArrayList<Float> netUsageList = NetUsage.getInstance().get();
                     LOGGER.info("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
                     start = System.currentTimeMillis();
-                    ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                    //ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                    ArrayList<Integer> openFileList = new ArrayList<>();
+                    for(int i=0;i<9;i++){
+                        openFileList.add(-1);
+                    }
                     LOGGER.info("OpenFileNumber.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
                     start = System.currentTimeMillis();
                     fileSizeStatistics = FileSize.getInstance().getFileSize();
