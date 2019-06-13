@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -28,7 +29,7 @@ public class DBWrapper implements IDatabase {
   private static final double NANO_TO_MILLIS = 1000000.0d;
   private Measurement measurement;
   private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
-
+  private MySqlRecorder mySqlRecorder;
 
   public DBWrapper(Measurement measurement) {
     DBFactory dbFactory = new DBFactory();
@@ -38,6 +39,7 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Failed to get database because", e);
     }
     this.measurement = measurement;
+    mySqlRecorder = new MySqlRecorder();
   }
 
   @Override
@@ -48,7 +50,7 @@ public class DBWrapper implements IDatabase {
       status = db.insertOneBatch(batch);
       if (status.isOk()) {
         double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
-        measureOperation(status, operation, batch.pointNum());
+        measureOkOperation(status, operation, batch.pointNum());
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
         double throughput = batch.pointNum() * 1000 / timeInMillis;
@@ -57,10 +59,13 @@ public class DBWrapper implements IDatabase {
       } else {
         measurement.addFailOperationNum(operation);
         measurement.addFailPointNum(operation, batch.pointNum());
+        mySqlRecorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
+            status.getException().toString());
       }
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
+      mySqlRecorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0, e.toString());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
@@ -73,15 +78,11 @@ public class DBWrapper implements IDatabase {
     try {
       status = db.preciseQuery(preciseQuery);
       handleQueryOperation(status, operation);
-
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
-
 
 
   @Override
@@ -92,13 +93,10 @@ public class DBWrapper implements IDatabase {
       status = db.rangeQuery(rangeQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
-
 
 
   @Override
@@ -109,9 +107,7 @@ public class DBWrapper implements IDatabase {
       status = db.valueRangeQuery(valueRangeQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
@@ -124,9 +120,7 @@ public class DBWrapper implements IDatabase {
       status = db.aggRangeQuery(aggRangeQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
@@ -139,9 +133,7 @@ public class DBWrapper implements IDatabase {
       status = db.aggValueQuery(aggValueQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
@@ -154,9 +146,7 @@ public class DBWrapper implements IDatabase {
       status = db.aggRangeValueQuery(aggRangeValueQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
@@ -169,9 +159,7 @@ public class DBWrapper implements IDatabase {
       status = db.groupByQuery(groupByQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
@@ -184,9 +172,7 @@ public class DBWrapper implements IDatabase {
       status = db.latestPointQuery(latestPointQuery);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      LOGGER.error(ERROR_LOG, operation, e);
+      handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
@@ -204,6 +190,9 @@ public class DBWrapper implements IDatabase {
   @Override
   public void close() throws TsdbException {
     db.close();
+    if (mySqlRecorder != null) {
+      mySqlRecorder.closeMysql();
+    }
   }
 
   @Override
@@ -226,15 +215,24 @@ public class DBWrapper implements IDatabase {
     }
   }
 
-  private void measureOperation(Status status, Operation operation, int okPointNum) {
-    measurement.addOperationLatency(operation, status.getCostTime() / NANO_TO_MILLIS);
-    measurement.addOkOperationNum(operation);
-    measurement.addOkPointNum(operation, okPointNum);
+  private void handleUnexpectedQueryException(Operation operation, Exception e) {
+    measurement.addFailOperationNum(operation);
+    // currently we do not have expected result point number for query
+    LOGGER.error(ERROR_LOG, operation, e);
+    mySqlRecorder.saveOperationResult(operation.getName(), 0, 0, 0, e.toString());
   }
 
-  private void handleQueryOperation(Status status, Operation operation){
+  private void measureOkOperation(Status status, Operation operation, int okPointNum) {
+    double latencyInMillis = status.getCostTime() / NANO_TO_MILLIS;
+    measurement.addOperationLatency(operation, latencyInMillis);
+    measurement.addOkOperationNum(operation);
+    measurement.addOkPointNum(operation, okPointNum);
+    mySqlRecorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, null);
+  }
+
+  private void handleQueryOperation(Status status, Operation operation) {
     if (status.isOk()) {
-      measureOperation(status, operation, status.getQueryResultPointNum());
+      measureOkOperation(status, operation, status.getQueryResultPointNum());
       double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
       String formatTimeInMillis = String.format("%.2f", timeInMillis);
       String currentThread = Thread.currentThread().getName();
@@ -244,8 +242,9 @@ public class DBWrapper implements IDatabase {
     } else {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number
-      measurement.addOkPointNum(operation, status.getQueryResultPointNum());
+      // currently we do not have expected result point number for query
+      mySqlRecorder
+          .saveOperationResult(operation.getName(), 0, 0, 0, status.getException().toString());
     }
   }
 

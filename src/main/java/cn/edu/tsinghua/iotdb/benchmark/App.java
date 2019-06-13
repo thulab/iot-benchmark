@@ -22,6 +22,7 @@ import cn.edu.tsinghua.iotdb.benchmark.loadData.Resolve;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Storage;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
@@ -107,9 +108,8 @@ public class App {
      * 按比例选择workload执行的测试
      */
     private static void testWithDefaultPath(Config config) {
-        MySqlLog mysql = new MySqlLog();
-        mysql.initMysql(System.currentTimeMillis());
-        mysql.savaTestConfig();
+        MySqlRecorder mySqlRecorder = new MySqlRecorder();
+        mySqlRecorder.saveTestConfig();
 
         Measurement measurement = new Measurement();
         DBWrapper dbWrapper = new DBWrapper(measurement);
