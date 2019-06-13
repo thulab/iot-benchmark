@@ -1,4 +1,23 @@
-#!/bin/sh
+#!/bin/bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
 
 calculate_heap_sizes()
 {
@@ -88,6 +107,22 @@ if [ "$JVM_VERSION" \< "1.8" ] && [ "$JVM_PATCH_VERSION" -lt 40 ] ; then
     exit 1;
 fi
 
+version_arr=(${JVM_VERSION//./ })
+
+if [ "${version_arr[0]}" = "1" ] ; then
+  MAJOR_VERSION=${version_arr[1]}
+  IOTDB_JMX_OPTS="$IOTDB_JMX_OPTS -Xloggc:${IOTDB_HOME}/gc.log -XX:+PrintGCDateStamps -XX:+PrintGCDetails"
+else
+  MAJOR_VERSION=${version_arr[0]}
+  IOTDB_JMX_OPTS="$IOTDB_JMX_OPTS -Xloggc:${IOTDB_HOME}/gc.log"
+fi
+
+if [ "$MAJOR_VERSION" -ne "8" ] && [ "$MAJOR_VERSION" -ne "11" ] ; then
+  echo "IoTDB only supports jdk8 or jdk11, please check your java version."
+  exit 1;
+fi
+
+
 calculate_heap_sizes
 
 # Maximum heap size
@@ -107,9 +142,9 @@ else
 	IOTDB_JMX_OPTS="$IOTDB_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT "
 fi
 
-IOTDB_DERBY_OPTS="-Dderby.stream.error.field=cn.edu.tsinghua.iotdb.auth.dao.DerbyUtil.DEV_NULL"
-
-IOTDB_JMX_OPTS="$IOTDB_JMX_OPTS -Xloggc:${IOTDB_HOME}/gc.log -XX:+PrintGCDateStamps -XX:+PrintGCDetails"
 
 IOTDB_JMX_OPTS="$IOTDB_JMX_OPTS -Xms${HEAP_NEWSIZE}"
 IOTDB_JMX_OPTS="$IOTDB_JMX_OPTS -Xmx${MAX_HEAP_SIZE}"
+
+echo "Maximum memory allocation pool = ${MAX_HEAP_SIZE}B, initial memory allocation pool = ${HEAP_NEWSIZE}B"
+echo "If you want to change this configuration, please check conf/iotdb-env.sh(Unix or OS X, if you use Windows, check conf/iotdb-env.bat)."
