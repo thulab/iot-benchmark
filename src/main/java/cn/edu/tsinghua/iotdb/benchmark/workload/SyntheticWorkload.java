@@ -35,6 +35,7 @@ public class SyntheticWorkload implements IWorkload {
   private Random queryDeviceRandom;
   private Map<Operation, Long> operationLoops;
   private static Random random = new Random();
+  private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
@@ -96,8 +97,7 @@ public class SyntheticWorkload implements IWorkload {
     currentTimestamp = getCurrentTimestamp(stepOffset);
     for (String sensor : deviceSchema.getSensors()) {
       FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-      String formatString = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
-      String value = String.format(formatString,
+      String value = String.format(DECIMAL_FORMAT,
           Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
       values.add(value);
     }
