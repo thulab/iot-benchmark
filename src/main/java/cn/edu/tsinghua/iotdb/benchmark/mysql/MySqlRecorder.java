@@ -22,13 +22,10 @@ public class MySqlRecorder {
       .getLogger(MySqlRecorder.class);
   private static final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
   private static final String SAVE_RESULT = "insert into FINAL_RESULT values(NULL, '%s', '%s', '%s', '%s')";
-  private static final String CREATE_DATABASE = "CREATE DATABASE IF NOT EXISTS %s default charset utf8 COLLATE utf8_general_ci";
   private Connection mysqlConnection = null;
   private Config config = ConfigDescriptor.getInstance().getConfig();
-  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss_SSS");
   private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-  private String localName = "";
-  private String labID;
+  private String localName;
   private String day;
   private String projectID;
   private static final long EXP_TIME = System.currentTimeMillis();
@@ -39,12 +36,13 @@ public class MySqlRecorder {
         InetAddress localhost = InetAddress.getLocalHost();
         localName = localhost.getHostName();
       } catch (UnknownHostException e) {
+        localName = "localName";
         LOGGER.error("获取本机主机名称失败;UnknownHostException：{}", e.getMessage(), e);
       }
       localName = localName.replace("-", "_");
       localName = localName.replace(".", "_");
-
-      labID = sdf.format(new java.util.Date(EXP_TIME));
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
+      String labID = sdf.format(new java.util.Date(EXP_TIME));
       projectID =
           config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + "_" + labID;
       Date date = new Date(EXP_TIME);
@@ -59,20 +57,7 @@ public class MySqlRecorder {
       } catch (ClassNotFoundException e) {
         LOGGER.error("mysql 连接初始化失败，原因是", e);
       }
-      if (mysqlConnection != null) {
-        try (Statement statement = mysqlConnection.createStatement()) {
-          statement.executeUpdate(String.format(CREATE_DATABASE, getMySQLUrlDatabase()));
-        } catch (SQLException e) {
-          LOGGER.error("mysql创建数据库失败", e);
-        }
-      }
     }
-  }
-
-  private String getMySQLUrlDatabase() {
-    String[] split1 = config.MYSQL_URL.split("[?]");
-    String[] split2 = split1[0].split("/");
-    return split2[split2.length - 1];
   }
 
   // 检查记录本次实验的表格是否已经创建，没有则创建
@@ -140,18 +125,24 @@ public class MySqlRecorder {
       }
       String time = df.format(new java.util.Date(System.currentTimeMillis()));
       String mysqlSql = String
-          .format("insert into " + projectID + " values('%s','%s','%s',%d,%d,%f,%f,'%s')",
+          .format("insert into " + projectID + " values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')",
               time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
               remark);
       try (Statement stat = mysqlConnection.createStatement()) {
         stat.executeUpdate(mysqlSql);
       } catch (Exception e) {
-        LOGGER.info("Try to reconnect to MySQL");
         try {
-          Class.forName(Constants.MYSQL_DRIVENAME);
-          mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
-        } catch (Exception ex) {
-          LOGGER.error("Reconnect to MySQL failed because", ex);
+          if (!mysqlConnection.isValid(100)) {
+            LOGGER.info("Try to reconnect to MySQL");
+            try {
+              Class.forName(Constants.MYSQL_DRIVENAME);
+              mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+            } catch (Exception ex) {
+              LOGGER.error("Reconnect to MySQL failed because", ex);
+            }
+          }
+        } catch (SQLException ex) {
+          LOGGER.error("Test if MySQL connection is valid failed", ex);
         }
         LOGGER.error(
             "{} save saveInsertProcess info into mysql failed! Error：{}",

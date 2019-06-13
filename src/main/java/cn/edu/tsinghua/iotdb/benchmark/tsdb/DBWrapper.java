@@ -227,7 +227,7 @@ public class DBWrapper implements IDatabase {
     measurement.addOperationLatency(operation, latencyInMillis);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
-    mySqlRecorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, null);
+    mySqlRecorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, "");
   }
 
   private void handleQueryOperation(Status status, Operation operation) {
