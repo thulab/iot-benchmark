@@ -236,6 +236,19 @@ public class MySqlLog {
                 stat.executeUpdate(mysqlSql);
                 stat.close();
             } catch (Exception e) {
+                try {
+                    if (!mysqlConnection.isValid(100)) {
+                        LOGGER.info("Try to reconnect to MySQL");
+                        try {
+                            Class.forName(Constants.MYSQL_DRIVENAME);
+                            mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+                        } catch (Exception ex) {
+                            LOGGER.error("Reconnect to MySQL failed because", ex);
+                        }
+                    }
+                } catch (SQLException ex) {
+                    LOGGER.error("Test if MySQL connection is valid failed", ex);
+                }
                 LOGGER.error(
                         "{} save saveInsertProcess info into mysql table '{}' failed! Error：{}",
                         Thread.currentThread().getName(), LATEST_INSERT_BATCH_TABLE_NAME, e.getMessage());
@@ -262,6 +275,19 @@ public class MySqlLog {
                 stat.executeUpdate(mysqlSql);
                 stat.close();
             } catch (Exception e) {
+                try {
+                    if (!mysqlConnection.isValid(100)) {
+                        LOGGER.info("Try to reconnect to MySQL");
+                        try {
+                            Class.forName(Constants.MYSQL_DRIVENAME);
+                            mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+                        } catch (Exception ex) {
+                            LOGGER.error("Reconnect to MySQL failed because", ex);
+                        }
+                    }
+                } catch (SQLException ex) {
+                    LOGGER.error("Test if MySQL connection is valid failed", ex);
+                }
                 LOGGER.error(
                         "{} save saveInsertProcessLoop info into mysql failed! Error：{}",
                         Thread.currentThread().getName(), e.getMessage());
