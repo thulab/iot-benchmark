@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement;
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -196,9 +197,12 @@ public class Measurement {
   }
 
   public void showMeasurements() {
+    MySqlRecorder mysql = new MySqlRecorder();
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
+    mysql.saveResult("createSchemaTime(s)", "createSchemaTime(s)", "" + createSchemaTime);
+    mysql.saveResult("elapseTime(s)", "elapseTime(s)", "" + elapseTime);
 
     System.out.println(
         "--------------------------------------------------Result Matrix--------------------------------------------------");
@@ -221,9 +225,19 @@ public class Measurement {
       System.out.print(elapseRate + intervalString);
       System.out.println(rate + intervalString);
 
+
+      mysql.saveResult(operation.getName(), "okOperationNum", "" + okOperationNumMap.get(operation));
+      mysql.saveResult(operation.getName(),"okPointNum", "" + okPointNumMap.get(operation));
+      mysql.saveResult(operation.getName(),"failOperationNum", "" + failOperationNumMap.get(operation));
+      mysql.saveResult(operation.getName(),"failPointNum", "" + failPointNumMap.get(operation));
+      mysql.saveResult(operation.getName(),"elapseRate", elapseRate);
+      mysql.saveResult(operation.getName(),"accRate", rate);
+
     }
     System.out.println(
         "-----------------------------------------------------------------------------------------------------------------");
+
+    mysql.closeMysql();
   }
 
   public void showConfigs() {
@@ -247,6 +261,7 @@ public class Measurement {
   }
 
   public void showMetrics() {
+    MySqlRecorder mysql = new MySqlRecorder();
     System.out.println(
         "-----------------------------------------------Latency (ms) Matrix-----------------------------------------------");
     String intervalString = "\t";
@@ -258,13 +273,15 @@ public class Measurement {
     for (Operation operation : Operation.values()) {
       System.out.print(operation.getName() + intervalString);
       for (Metric metric : Metric.values()) {
-        System.out
-            .print(String.format("%.2f", metric.typeValueMap.get(operation)) + intervalString);
+        String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
+        System.out.print(metricResult + intervalString);
+        mysql.saveResult(operation.getName(), metric.name, metricResult);
       }
       System.out.println();
     }
     System.out.println(
         "-----------------------------------------------------------------------------------------------------------------");
+    mysql.closeMysql();
   }
 
   class DoubleComparator implements Comparator<Double> {
