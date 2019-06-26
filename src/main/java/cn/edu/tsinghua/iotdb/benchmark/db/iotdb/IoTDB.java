@@ -324,7 +324,7 @@ public class IoTDB implements IDatebase {
         }
     }
 
-    private void executePreparedStatement(int loopIndex, int batchIndex, String device)
+    private long executePreparedStatement(int loopIndex, int batchIndex, String device)
         throws SQLException {
         IoTDBPreparedInsertionStatement preparedInsertionStatement = statementMap.get(device);
         if (preparedInsertionStatement == null) {
@@ -348,14 +348,17 @@ public class IoTDB implements IDatebase {
 
         preparedInsertionStatement.setTimestamp(currentTime);
 
+        long start = System.nanoTime();
         for (String sensor : config.SENSOR_CODES) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
             valueList.add(String.format("%.2f", value.floatValue()));
         }
+        long cost = System.nanoTime() - start;
 
         preparedInsertionStatement.setValues(valueList);
         preparedInsertionStatement.execute();
+        return cost;
     }
 
     @Override
@@ -368,17 +371,18 @@ public class IoTDB implements IDatebase {
             statement = connection.createStatement();
             if (!config.IS_OVERFLOW) {
                 if(config.USE_PREPARE_STATEMENT) {
+                    long genTime = 0;
                     long startTime = System.nanoTime();
                     for (int i = 0; i < config.BATCH_SIZE; i++) {
                         try {
-                            executePreparedStatement(loopIndex, i, device);
+                            genTime += executePreparedStatement(loopIndex, i, device);
                         } catch (Exception e) {
                             LOGGER.error("Execute Prepared Statement failed", e);
                             errorNum ++;
                         }
                     }
                     long endTime = System.nanoTime();
-                    long costTime = endTime - startTime;
+                    long costTime = endTime - startTime - genTime;
                     latencies.add(costTime);
                     if (errorNum > 0) {
                         LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
