@@ -146,6 +146,7 @@ public class ConfigDescriptor {
 				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
 				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
 				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
+				config.USE_PREPARE_STATEMENT = Boolean.parseBoolean(properties.getProperty("USE_PREPARE_STATEMENT", config.USE_PREPARE_STATEMENT+""));
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
         config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
 				//config.FIRST_DEVICE_INDEX = Integer.parseInt(properties.getProperty("FIRST_DEVICE_INDEX", config.FIRST_DEVICE_INDEX+""));

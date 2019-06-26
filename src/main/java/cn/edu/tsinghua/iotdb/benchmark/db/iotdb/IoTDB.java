@@ -11,14 +11,35 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.loadData.Point;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.sql.BatchUpdateException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.StringTokenizer;
+import org.apache.iotdb.jdbc.IoTDBPreparedInsertionStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.sql.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Date;
 
 public class IoTDB implements IDatebase {
     private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
@@ -35,6 +56,7 @@ public class IoTDB implements IDatebase {
     private Random sensorRandom;
     private Random timestampRandom;
     private ProbTool probTool;
+    private Map<String, IoTDBPreparedInsertionStatement> statementMap = new HashMap<>();
     private final double unitTransfer = 1000000000.0;
 
     public IoTDB(long labID) throws ClassNotFoundException, SQLException {
@@ -302,6 +324,40 @@ public class IoTDB implements IDatebase {
         }
     }
 
+    private void executePreparedStatement(int loopIndex, int batchIndex, String device)
+        throws SQLException {
+        IoTDBPreparedInsertionStatement preparedInsertionStatement = statementMap.get(device);
+        if (preparedInsertionStatement == null) {
+            StringBuilder builder = new StringBuilder();
+            preparedInsertionStatement = (IoTDBPreparedInsertionStatement) connection
+                .prepareStatement("INSERT");
+            String path = getGroupDevicePath(device);
+            builder.append(Constants.ROOT_SERIES_NAME).append(".").append(path);
+            preparedInsertionStatement.setDeviceId(builder.toString());
+            preparedInsertionStatement.setMeasurements(config.SENSOR_CODES);
+            statementMap.put(device, preparedInsertionStatement);
+        }
+        List<String> valueList = new ArrayList<>();
+
+        long currentTime =
+            Constants.START_TIMESTAMP + config.POINT_STEP * (loopIndex * config.BATCH_SIZE
+                + batchIndex);
+        if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+            currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+        }
+
+        preparedInsertionStatement.setTimestamp(currentTime);
+
+        for (String sensor : config.SENSOR_CODES) {
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            valueList.add(String.format("%.2f", value.floatValue()));
+        }
+
+        preparedInsertionStatement.setValues(valueList);
+        preparedInsertionStatement.execute();
+    }
+
     @Override
     public void insertOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime,
                                ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
@@ -311,44 +367,44 @@ public class IoTDB implements IDatebase {
         try {
             statement = connection.createStatement();
             if (!config.IS_OVERFLOW) {
-                for (int i = 0; i < config.BATCH_SIZE; i++) {
-                    String sql = createSQLStatment(loopIndex, i, device);
-                    statement.addBatch(sql);
+                if(config.USE_PREPARE_STATEMENT) {
+                    long startTime = System.nanoTime();
+                    for (int i = 0; i < config.BATCH_SIZE; i++) {
+                        try {
+                            executePreparedStatement(loopIndex, i, device);
+                        } catch (Exception e) {
+                            LOGGER.error("Execute Prepared Statement failed", e);
+                            errorNum ++;
+                        }
+                    }
+                    long endTime = System.nanoTime();
+                    long costTime = endTime - startTime;
+                    latencies.add(costTime);
+                    if (errorNum > 0) {
+                        LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+                    } else {
+                        totalTime.set(totalTime.get() + costTime);
+                    }
+                    errorCount.set(errorCount.get() + errorNum);
+
+                    mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
+                        config.REMARK);
+                    return;
+                } else {
+                    for (int i = 0; i < config.BATCH_SIZE; i++) {
+                        String sql = createSQLStatment(loopIndex, i, device);
+                        statement.addBatch(sql);
+                    }
                 }
             } else {
-                //随机重排，无法准确控制overflow比例
-				/*
-				int shuffleSize = (int) (config.OVERFLOW_RATIO * config.BATCH_SIZE);
-				int[] shuffleSequence = new int[shuffleSize];
-				for(int i = 0; i < shuffleSize; i++){
-					shuffleSequence[i] = i;
-				}
-				Random random = new Random(loopIndex);
-				for(int i = 0; i < shuffleSize; i++){
-					int p = random.nextInt(shuffleSize);
-					int tmp = shuffleSequence[i];
-					shuffleSequence[i] = shuffleSequence[p];
-					shuffleSequence[p] = tmp;
-				}
-				for (int i = 0; i < shuffleSize; i++) {
-					String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
-					statement.addBatch(sql);
-				}
-				for (int i = shuffleSize; i < config.BATCH_SIZE; i++) {
-					String sql = createSQLStatment(loopIndex, i, device);
-					statement.addBatch(sql);
-				}
-				*/
                 int shuffleSize = (int) (config.OVERFLOW_RATIO * config.BATCH_SIZE);
                 int[] shuffleSequence = new int[shuffleSize];
                 for (int i = 0; i < shuffleSize; i++) {
                     shuffleSequence[i] = i;
                 }
-
                 int tmp = shuffleSequence[shuffleSize - 1];
                 shuffleSequence[shuffleSize - 1] = shuffleSequence[0];
                 shuffleSequence[0] = tmp;
-
                 for (int i = 0; i < shuffleSize; i++) {
                     String sql = createSQLStatment(loopIndex, shuffleSequence[i], device);
                     statement.addBatch(sql);
@@ -357,10 +413,7 @@ public class IoTDB implements IDatebase {
                     String sql = createSQLStatment(loopIndex, i, device);
                     statement.addBatch(sql);
                 }
-
-
             }
-
             long startTime = System.nanoTime();
             try {
                 result = statement.executeBatch();
@@ -380,10 +433,6 @@ public class IoTDB implements IDatebase {
             if (errorNum > 0) {
                 LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
             } else {
-//                LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
-//                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
-//                        (totalTime.get() + costTime) / unitTransfer,
-//                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
                 totalTime.set(totalTime.get() + costTime);
             }
             errorCount.set(errorCount.get() + errorNum);
@@ -840,6 +889,9 @@ public class IoTDB implements IDatebase {
         }
         if (mySql != null) {
             mySql.closeMysql();
+        }
+        for(IoTDBPreparedInsertionStatement statement: statementMap.values()){
+            statement.close();
         }
     }
 

@@ -127,7 +127,6 @@ public class Function {
 
 	public static Number getValueByFuntionidAndParam(FunctionType functionType, double max, double min, long cycle,
 			long currentTime) {
-		currentTime = currentTime - Constants.START_TIMESTAMP;
 		switch (functionType) {
 			case FLOAT_MONO:
 				return (float) getMonoValue(max, min, cycle, currentTime);
