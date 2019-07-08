@@ -115,7 +115,7 @@ else
             sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
             scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/incubator-iotdb/iotdb/iotdb/conf
             scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/incubator-iotdb/iotdb/iotdb/conf
-            ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/incubator-iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
+            ssh $SERVER_HOST "bash $LOG_STOP_FLAG_PATH/incubator-iotdb/iotdb/iotdb/bin/start-server.sh > /dev/null 2>&1 &"
         fi
         echo 'wait a few seconds for lauching IoTDB...'
         sleep 40
