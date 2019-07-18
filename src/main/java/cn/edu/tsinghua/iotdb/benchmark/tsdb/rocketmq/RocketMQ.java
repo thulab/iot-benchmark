@@ -50,6 +50,11 @@ public class RocketMQ implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
+    try {
+      Thread.sleep(config.INIT_WAIT_TIME);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
     producer.shutdown();
   }
 
