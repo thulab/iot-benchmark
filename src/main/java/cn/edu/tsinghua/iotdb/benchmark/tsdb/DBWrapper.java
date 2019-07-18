@@ -61,6 +61,7 @@ public class DBWrapper implements IDatabase {
         measurement.addFailPointNum(operation, batch.pointNum());
         mySqlRecorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
             status.getException().toString());
+        LOGGER.error("Insert batch failed because", status.getException());
       }
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
