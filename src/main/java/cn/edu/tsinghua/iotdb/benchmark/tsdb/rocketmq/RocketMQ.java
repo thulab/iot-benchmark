@@ -35,6 +35,7 @@ public class RocketMQ implements IDatabase {
   @Override
   public void init() throws TsdbException {
     producer = new DefaultMQProducer("ProducerGroupName", true);
+    producer.setNamesrvAddr(config.HOST + ":" + config.PORT);
     try {
       producer.start();
     } catch (MQClientException e) {
@@ -61,7 +62,6 @@ public class RocketMQ implements IDatabase {
   public Status insertOneBatch(Batch batch) {
     long st;
     long en;
-    producer.setNamesrvAddr(config.HOST);
     String storageGroup = batch.getDeviceSchema().getGroup();
     String device = batch.getDeviceSchema().getDevice();
     try {
