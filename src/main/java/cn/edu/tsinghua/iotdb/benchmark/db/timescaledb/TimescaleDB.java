@@ -46,7 +46,7 @@ public class TimescaleDB implements IDatebase {
         timestampRandom = new Random(2 + config.QUERY_SEED);
         probTool = new ProbTool();
         connection = DriverManager.getConnection(
-                String.format(Constants.POSTGRESQL_URL, config.host, config.port, config.DB_NAME),
+                String.format(Constants.POSTGRESQL_URL, config.HOST, config.PORT, config.DB_NAME),
                 Constants.POSTGRESQL_USER,
                 Constants.POSTGRESQL_PASSWD
         );

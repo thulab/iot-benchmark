@@ -17,10 +17,10 @@ public class CommandCli {
 	private final String CONFIG_NAME = "config file";
 	
 //	private final String HOST_ARGS = "h";
-//	private final String HOST_NAME = "host";
+//	private final String HOST_NAME = "HOST";
 	
 //	private final String PORT_ARGS = "p";
-//	private final String PORT_NAME = "port";
+//	private final String PORT_NAME = "PORT";
 //	
 //	private final String MODE_ARGS = "m";
 //	private final String MODE_NAME = "mode";
@@ -38,11 +38,11 @@ public class CommandCli {
 		help.setRequired(false);
 		options.addOption(help);
 
-//		Option host = Option.builder(HOST_ARGS).argName(HOST_NAME).hasArg().desc("Host Name (required)").build();
-//		options.addOption(host);
+//		Option HOST = Option.builder(HOST_ARGS).argName(HOST_NAME).hasArg().desc("Host Name (required)").build();
+//		options.addOption(HOST);
 //
-//		Option port = Option.builder(PORT_ARGS).argName(PORT_NAME).hasArg().desc("Port (required)").build();
-//		options.addOption(port);
+//		Option PORT = Option.builder(PORT_ARGS).argName(PORT_NAME).hasArg().desc("Port (required)").build();
+//		options.addOption(PORT);
 //		
 //		Option mode = Option.builder(MODE_ARGS).argName(MODE_NAME).hasArg().desc("Mode (required)").build();
 //		options.addOption(mode);

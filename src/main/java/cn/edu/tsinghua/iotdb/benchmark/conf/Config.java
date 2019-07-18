@@ -26,8 +26,8 @@ public class Config {
 	public Config(){
 	}
 
-	public String host="127.0.0.1";
-	public String port="6667";
+	public String HOST ="127.0.0.1";
+	public String PORT ="6667";
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;

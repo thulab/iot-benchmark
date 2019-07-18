@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.rocketmq.RocketMQ;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.timescaledb.TimescaleDB;
 import java.sql.SQLException;
 import org.slf4j.Logger;
@@ -28,6 +29,8 @@ public class DBFactory {
         return new KairosDB();
       case Constants.DB_TIMESCALE:
         return new TimescaleDB();
+      case Constants.MQ_ROCKET:
+        return new RocketMQ();
       default:
         LOGGER.error("unsupported database {}", config.DB_SWITCH);
         throw new SQLException("unsupported database " + config.DB_SWITCH);

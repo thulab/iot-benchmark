@@ -51,8 +51,8 @@ public class ConfigDescriptor {
 			Properties properties = new Properties();
 			try {
 				properties.load(inputStream);
-				config.host = properties.getProperty("HOST", "no host");
-				config.port = properties.getProperty("PORT", "no port");
+				config.HOST = properties.getProperty("HOST", "no HOST");
+				config.PORT = properties.getProperty("PORT", "no PORT");
 				config.DEVICE_NUMBER = Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.DEVICE_NUMBER+""));
 				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
 

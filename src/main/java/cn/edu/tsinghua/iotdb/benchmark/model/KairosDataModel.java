@@ -11,14 +11,14 @@ import java.util.Map;
  *     "timestamp": 1349109376,
  *     "type": "long",
  *     "value": 123,
- *     "tags":{"host":"test"}
+ *     "tags":{"HOST":"test"}
  * },
  * {
  *     "name": "archive.file.search",
  *     "timestamp": 999,
  *     "type": "double",
  *     "value": 32.1,
- *     "tags":{"host":"test"}
+ *     "tags":{"HOST":"test"}
  * }]
  */
 

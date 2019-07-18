@@ -484,7 +484,7 @@ public class MySqlLog {
                 case Constants.DB_IOT:
                 case Constants.DB_TIMESCALE:
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-                            "'ServerIP'", "'" + config.host + "'");
+                            "'ServerIP'", "'" + config.HOST + "'");
                     stat.addBatch(sql);
                     break;
                 case Constants.DB_INFLUX:

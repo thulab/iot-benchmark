@@ -21,7 +21,7 @@ public class InfluxDataModel {
 
     @Override
     /**
-     *  e.g. cpu,host=server03,region=useast load=15.4 1434055562000000000
+     *  e.g. cpu,HOST=server03,region=useast load=15.4 1434055562000000000
      */
     public String toString() {
         StringBuilder builder = new StringBuilder(measurement);

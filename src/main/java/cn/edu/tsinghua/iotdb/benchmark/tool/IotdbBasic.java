@@ -32,7 +32,7 @@ public class IotdbBasic {
 	}
 	
 	public void init() throws SQLException {
-		connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
+		connection = DriverManager.getConnection(String.format(Constants.URL, config.HOST, config.PORT), Constants.USER,
 				Constants.PASSWD);
 		databaseMetaData = null;
 	}

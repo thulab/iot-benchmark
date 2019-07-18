@@ -55,7 +55,7 @@ public class InfluxDB implements IDatebase {
 
     /**
      *  Create a batch of data specified by "device" and "batchIndex", and send them to InfluxDB's REST API.
-     *  E.g. send "cpu,host=server02,region=uswest load=78 1434055562000000000" as post body to
+     *  E.g. send "cpu,HOST=server02,region=uswest load=78 1434055562000000000" as post body to
      *   "http://localhost:8086/write?db=mydb".
      * @param device   a string like "d_100", which will be used in a tag "device=d_100", and its measurement will be "group_x",
      *               while x = 100 / groupSize
@@ -77,7 +77,7 @@ public class InfluxDB implements IDatebase {
 
     /**
      * Send given data "cons" to InfluxDB's REST API.
-     *  E.g. send "cpu,host=server02,region=uswest load=78 1434055562000000000" as post body to
+     *  E.g. send "cpu,HOST=server02,region=uswest load=78 1434055562000000000" as post body to
      *   "http://localhost:8086/write?db=mydb".
      * @param cons  each of its element represent a data record
      * @param batchIndex  a test mission is divided to multiple batches, this indicates which batch is being processed
@@ -141,7 +141,7 @@ public class InfluxDB implements IDatebase {
     }
 
     /**
-     * Create a data record, e.g. cpu,host=server02,region=uswest load=78 1434055562000000000.
+     * Create a data record, e.g. cpu,HOST=server02,region=uswest load=78 1434055562000000000.
      * The measurement is the device. No tags are used currently. The timestamp is calculated from batchIndex and dataIndex.
      * Every sensor will be regarded as a field.
      * @param batchIndex a test mission is divided to multiple batches, this indicates which batch is being processed

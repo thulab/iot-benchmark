@@ -136,7 +136,7 @@ public class InfluxDBV2 implements IDatebase {
 
 	/**
 	 * Send given data "cons" to InfluxDB's REST API. E.g. send
-	 * "cpu,host=server02,region=uswest load=78 1434055562000000000" as post body to
+	 * "cpu,HOST=server02,region=uswest load=78 1434055562000000000" as post body to
 	 * "http://localhost:8086/write?db=mydb".
 	 * 
 	 * @param cons
@@ -193,7 +193,7 @@ public class InfluxDBV2 implements IDatebase {
 	}
 
 	/**
-	 * Create a data record, e.g. cpu,host=server02,region=uswest load=78
+	 * Create a data record, e.g. cpu,HOST=server02,region=uswest load=78
 	 * 1434055562000000000. The measurement is the device. No tags are used
 	 * currently. The timestamp is calculated from batchIndex and dataIndex. Every
 	 * sensor will be regarded as a field.
