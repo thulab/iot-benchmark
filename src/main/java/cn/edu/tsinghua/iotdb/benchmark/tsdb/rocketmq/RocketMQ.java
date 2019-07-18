@@ -35,7 +35,7 @@ public class RocketMQ implements IDatabase {
   @Override
   public void init() throws TsdbException {
     producer = new DefaultMQProducer("ProducerGroupName", true);
-    producer.setNamesrvAddr(config.HOST + ":" + config.PORT);
+    producer.setNamesrvAddr(config.HOST);
     try {
       producer.start();
     } catch (MQClientException e) {
