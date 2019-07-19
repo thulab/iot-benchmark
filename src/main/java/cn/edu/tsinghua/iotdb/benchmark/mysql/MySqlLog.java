@@ -484,6 +484,7 @@ public class MySqlLog {
             }
             switch (config.DB_SWITCH.trim()) {
                 case Constants.DB_IOT:
+                case Constants.DB_TAOS:
                 case Constants.DB_TIMESCALE:
                     sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
                             "'ServerIP'", "'" + config.host + "'");
