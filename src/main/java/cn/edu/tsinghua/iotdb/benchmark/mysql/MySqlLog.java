@@ -39,6 +39,8 @@ public class MySqlLog {
 
     public void initMysql(long labIndex) {
         labID = labIndex;
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        String sd = sdf.format(new Date(labID)); // 时间戳转换日期
         projectID = config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + labID;
         if (config.IS_USE_MYSQL) {
             Date date = new Date(labID);
