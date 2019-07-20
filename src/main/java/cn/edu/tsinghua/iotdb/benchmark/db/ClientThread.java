@@ -184,7 +184,7 @@ public class ClientThread implements Runnable {
 
         long loopDeltaTime = totalTime.get() - oldTotalTime;
 
-        LOGGER.info("执行一个batch的总时间为{}", loopDeltaTime);
+//        LOGGER.info("执行一个batch的总时间为{}", loopDeltaTime);
 
         double loopSecond = loopDeltaTime * 0.000000001d;
 
@@ -219,7 +219,7 @@ public class ClientThread implements Runnable {
     this.totalInsertErrorNums.add(errorCount.get());
     this.latenciesOfClients.add(latencies);
     this.downLatch.countDown();
-    LOGGER.info("总耗时{},总延迟{}", totalTimes, latenciesOfClients.size());
+//    LOGGER.info("总耗时{},总延迟{}", totalTimes, latenciesOfClients.size());
   }
 
 }
