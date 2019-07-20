@@ -99,6 +99,7 @@ public class TaosDB implements IDatebase {
     long errorNum = 0;
     try {
       statement = connection.createStatement();
+      statement.execute(String.format(USE_DB, TEST_DB));
       if (!config.IS_OVERFLOW) {
         for (int i = 0; i < config.BATCH_SIZE; i++) {
           String sql = createSQLStatment(loopIndex, i, device);
