@@ -108,6 +108,37 @@ public class TaosDB implements IDatebase {
         LOGGER.error("TAOS数据库不支持乱序插入");
         throw new RuntimeException();
       }
+      long startTime = System.nanoTime();
+      try {
+        statement.executeBatch();
+      } catch (BatchUpdateException e) {
+        long[] arr = e.getLargeUpdateCounts();
+        for (long i : arr) {
+          if (i == -3) {
+            errorNum++;
+          }
+        }
+      }
+      statement.clearBatch();
+      statement.close();
+      long endTime = System.nanoTime();
+      long costTime = endTime - startTime;
+      latencies.add(costTime);
+      if (errorNum > 0) {
+        LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+      } else {
+//                LOGGER.info("{} execute {} loop, it costs {}s, totalTime {}s, throughput {} points/s",
+//                        Thread.currentThread().getName(), loopIndex, costTime / unitTransfer,
+//                        (totalTime.get() + costTime) / unitTransfer,
+//                        (config.BATCH_SIZE * config.SENSOR_NUMBER / (double) costTime) * unitTransfer);
+        totalTime.set(totalTime.get() + costTime);
+      }
+      errorCount.set(errorCount.get() + errorNum);
+
+      mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer,
+          totalTime.get() / unitTransfer, errorNum,
+          config.REMARK);
+
     } catch (SQLException e) {
       e.printStackTrace();
     }
