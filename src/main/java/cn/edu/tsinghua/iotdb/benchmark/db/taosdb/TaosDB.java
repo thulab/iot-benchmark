@@ -38,7 +38,7 @@ public class TaosDB implements IDatebase {
   private static final String TEST_DB = "ZC";
   private static final String USE_DB = "use %s";
   private static final String CREATE_STABLE = "create table if not exists %s (ts timestamp, value float) tags(device binary(20),sensor binary(20))";
-  private static final String CREATE_TABLE = "create table if not exists %s%s using %s tags(%s,%s)";
+  private static final String CREATE_TABLE = "create table if not exists %s%s using %s tags('%s','%s')";
   private static final String INSERT_STAT = "%s%s values(%s,%s) ";
   private Connection connection;
   private static Config config;
