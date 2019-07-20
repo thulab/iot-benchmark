@@ -137,7 +137,7 @@ public class ClientThread implements Runnable {
         } else if (!config.IS_OVERFLOW) {
           try {
             for (int m = 0; m < clientDevicesNum; m++) {
-              LOGGER.info("进入数据顺序插入模式");
+//              LOGGER.info("进入数据顺序插入模式");
               database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i,
                   totalTime, errorCount, latencies);
             }
