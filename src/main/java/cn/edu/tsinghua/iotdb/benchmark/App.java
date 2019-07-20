@@ -747,7 +747,7 @@ public class App {
             createSchemaEndTime = System.nanoTime();
             createSchemaTime = (createSchemaEndTime - createSchemaStartTime) / 1000000000.0f;
         } catch (SQLException e) {
-            LOGGER.error("Fail to init database becasue {}", e.getMessage());
+            LOGGER.error("Fail to init database becasue {}", e);
             return;
         }
 
