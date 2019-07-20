@@ -925,6 +925,7 @@ public class App {
             case Constants.DB_CTS:
             case Constants.DB_KAIROS:
             case Constants.DB_TIMESCALE:
+            case Constants.DB_TAOS:
                 totalErrorPoint = getErrorNumIoT(totalInsertErrorNums);
                 break;
             default:
