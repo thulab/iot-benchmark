@@ -17,7 +17,9 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -30,16 +32,24 @@ public class RocketMQ implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RocketMQ.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private DefaultMQProducer producer;
+  private List<DefaultMQProducer> producers;
+  private List<DefaultMQPushConsumer> pushConsumers;
 
   @Override
   public void init() throws TsdbException {
-    producer = new DefaultMQProducer("ProducerGroupName", true);
-    producer.setNamesrvAddr(config.HOST);
-    try {
-      producer.start();
-    } catch (MQClientException e) {
-      throw new TsdbException("start producer failed ", e);
+    producers = new ArrayList<>();
+    for(int i =0;i < config.OVERFLOW_MODE;i++){
+      DefaultMQProducer producer = new DefaultMQProducer("ProducerGroupName", true);
+      producer.setNamesrvAddr(config.HOST);
+      producers.add(producer);
+    }
+
+    for(int i =0;i < config.OVERFLOW_MODE;i++) {
+      try {
+        producers.get(i).start();
+      } catch (MQClientException e) {
+        throw new TsdbException("start producer failed ", e);
+      }
     }
   }
 
@@ -55,7 +65,9 @@ public class RocketMQ implements IDatabase {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    producer.shutdown();
+    for(int i =0;i < config.OVERFLOW_MODE;i++) {
+      producers.get(i).shutdown();
+    }
   }
 
   @Override
@@ -77,8 +89,10 @@ public class RocketMQ implements IDatabase {
         try {
           msg = new Message(storageGroup, tag,
               (record.toString()).getBytes(RemotingHelper.DEFAULT_CHARSET));
-          SendResult sendResult = producer.send(msg);
-          LOGGER.debug("Send result: {}", sendResult);
+          for(DefaultMQProducer producer: producers){
+            SendResult sendResult = producer.send(msg);
+            LOGGER.debug("Send result: {}", sendResult);
+          }
         } catch (UnsupportedEncodingException e) {
           LOGGER.error("Message getBytes failed", e);
         }
