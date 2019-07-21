@@ -102,9 +102,9 @@ public class TaosDB implements IDatebase {
       statement.execute(String.format(USE_DB, TEST_DB));
       if (!config.IS_OVERFLOW) {
         for (int i = 0; i < config.BATCH_SIZE; i++) {
-          String sql = createSQLStatment(loopIndex, i, device);
-          LOGGER.info("添加语句{}", sql);
-          statement.addBatch(sql);
+          createSQLStatment(loopIndex, i, device, statement);
+//          LOGGER.info("添加语句{}", sql);
+//          statement.addBatch(sql);
         }
       } else {
         LOGGER.error("TAOS数据库不支持乱序插入");
@@ -217,21 +217,34 @@ public class TaosDB implements IDatebase {
     return 0;
   }
 
-  public String createSQLStatment(int batch, int index, String device) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("insert into ");
-    long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.BATCH_SIZE
-        + index);
-    if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-      currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+  public void createSQLStatment(int batch, int index, String device, Statement statement)
+      throws SQLException {
+    //由于taosDB的数据库SQL不能过长，一次插入1000行
+    int column_num = 1000;
+    int column_loop = config.SENSOR_CODES.size() / column_num;
+    for (int i = 0; i <= column_loop; i++) {
+      List<String> sensors = new ArrayList<>();
+      if (i == column_loop) {
+        sensors = config.SENSOR_CODES
+            .subList(i * column_num, config.SENSOR_CODES.size());
+      } else {
+        sensors = config.SENSOR_CODES.subList(i * column_num, (i + 1) * column_num);
+      }
+      StringBuilder builder = new StringBuilder();
+      builder.append("insert into ");
+      long currentTime = Constants.START_TIMESTAMP + config.POINT_STEP * (batch * config.BATCH_SIZE
+          + index);
+      if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+        currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+      }
+      for (String sensor : sensors) {
+        FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+        Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+        float v = Float.parseFloat(String.format("%.2f", value.floatValue()));
+        builder.append(String.format(INSERT_STAT, device, sensor, currentTime, v));
+      }
+      statement.addBatch(builder.toString());
+      LOGGER.debug("createSQLStatment:  {}", builder.toString());
     }
-    for (String sensor : config.SENSOR_CODES) {
-      FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-      Number value = Function.getValueByFuntionidAndParam(param, currentTime);
-      float v = Float.parseFloat(String.format("%.2f", value.floatValue()));
-      builder.append(String.format(INSERT_STAT, device, sensor, currentTime, v));
-    }
-    LOGGER.debug("createSQLStatment:  {}", builder.toString());
-    return builder.toString();
   }
 }
