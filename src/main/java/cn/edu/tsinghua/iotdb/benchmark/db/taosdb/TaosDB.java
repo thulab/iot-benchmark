@@ -103,7 +103,7 @@ public class TaosDB implements IDatebase {
       if (!config.IS_OVERFLOW) {
         for (int i = 0; i < config.BATCH_SIZE; i++) {
           String sql = createSQLStatment(loopIndex, i, device);
-//          LOGGER.info("添加语句{}", sql);
+          LOGGER.info("添加语句{}", sql);
           statement.addBatch(sql);
         }
       } else {
