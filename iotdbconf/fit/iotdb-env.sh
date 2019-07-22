@@ -126,7 +126,7 @@ fi
 calculate_heap_sizes
 
 # Maximum heap size
-#MAX_HEAP_SIZE="2G"
+MAX_HEAP_SIZE="20G"
 # Minimum heap size
 #HEAP_NEWSIZE="2G"
 

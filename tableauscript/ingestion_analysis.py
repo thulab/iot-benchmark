@@ -25,7 +25,7 @@ insert_info_table_name='configInsertInfo'
 
 parser = argparse.ArgumentParser(description='Generate analysis result of ingestion test.')
 parser.add_argument('--mysql_host', '-a', default='166.111.7.145', help='mysql server address')
-parser.add_argument('--mysql_database', '-d', default='auto_test', help='mysql database')
+parser.add_argument('--mysql_database', '-d', default='weekly_test', help='mysql database')
 args = parser.parse_args()
 host = args.mysql_host
 database = args.mysql_database
