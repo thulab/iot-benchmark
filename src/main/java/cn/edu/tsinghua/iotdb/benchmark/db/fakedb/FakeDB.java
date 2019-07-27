@@ -58,15 +58,15 @@ public class FakeDB  implements IDatebase {
   @Override
   public void insertOneBatch(String device, int batchIndex, ThreadLocal<Long> totalTime,
       ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
-    totalTime.set(totalTime.get() + 1);
-    latencies.add(1L);
+    totalTime.set(totalTime.get() + 1000000L);
+    latencies.add(1000000L);
   }
 
   @Override
   public void insertOneBatch(LinkedList<String> cons, int batchIndex, ThreadLocal<Long> totalTime,
       ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
-    totalTime.set(totalTime.get() + 1);
-    latencies.add(1L);
+    totalTime.set(totalTime.get() + 1000000L);
+    latencies.add(1000000L);
   }
 
   @Override
@@ -82,17 +82,17 @@ public class FakeDB  implements IDatebase {
   @Override
   public void executeOneQuery(List<Integer> devices, int index, long startTime,
       QueryClientThread client, ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
-    client.setTotalPoint(client.getTotalPoint() + 1);
-    client.setTotalTime(client.getTotalTime() + 1);
-    latencies.add(1L);
+    client.setTotalPoint(client.getTotalPoint() + 1000000L);
+    client.setTotalTime(client.getTotalTime() + 1000000L);
+    latencies.add(1000000L);
   }
 
   @Override
   public void insertOneBatchMulDevice(LinkedList<String> deviceCodes, int batchIndex,
       ThreadLocal<Long> totalTime, ThreadLocal<Long> errorCount, ArrayList<Long> latencies)
       throws SQLException {
-    totalTime.set(totalTime.get() + 1);
-    latencies.add(1L);
+    totalTime.set(totalTime.get() + 1000000L);
+    latencies.add(1000000L);
   }
 
   @Override
@@ -108,8 +108,8 @@ public class FakeDB  implements IDatebase {
   @Override
   public void insertGenDataOneBatch(String device, int i, ThreadLocal<Long> totalTime,
       ThreadLocal<Long> errorCount, ArrayList<Long> latencies) throws SQLException {
-    totalTime.set(totalTime.get() + 1);
-    latencies.add(1L);
+    totalTime.set(totalTime.get() + 1000000L);
+    latencies.add(1000000L);
   }
 
   @Override
@@ -121,8 +121,8 @@ public class FakeDB  implements IDatebase {
   public int insertOverflowOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime,
       ThreadLocal<Long> errorCount, ArrayList<Integer> before, Integer maxTimestampIndex,
       Random random, ArrayList<Long> latencies) throws SQLException {
-    totalTime.set(totalTime.get() + 1);
-    latencies.add(1L);
+    totalTime.set(totalTime.get() + 1000000L);
+    latencies.add(1000000L);
     return 1;
   }
 
@@ -130,8 +130,8 @@ public class FakeDB  implements IDatebase {
   public int insertOverflowOneBatchDist(String device, int loopIndex, ThreadLocal<Long> totalTime,
       ThreadLocal<Long> errorCount, Integer maxTimestampIndex, Random random,
       ArrayList<Long> latencies) throws SQLException {
-    totalTime.set(totalTime.get() + 1);
-    latencies.add(1L);
+    totalTime.set(totalTime.get() + 1000000L);
+    latencies.add(1000000L);
     return 1;
   }
 }

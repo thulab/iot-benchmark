@@ -58,46 +58,46 @@ public class FakeDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    return new Status(true, 1);
+    return new Status(true, 1000000L);
   }
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return new Status(true, 1, 0);
+    return new Status(true, 1000000L, 0);
   }
 }
