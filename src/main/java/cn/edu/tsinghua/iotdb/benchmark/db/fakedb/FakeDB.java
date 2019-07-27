@@ -33,6 +33,9 @@ public class FakeDB  implements IDatebase {
   long labID;
   AtomicLong count = new AtomicLong(0);
 
+  public FakeDB() {
+    this.labID = 1;
+  }
   public FakeDB(long labID) {
     this.labID = labID;
   }

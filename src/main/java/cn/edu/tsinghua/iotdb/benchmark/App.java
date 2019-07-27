@@ -13,6 +13,7 @@ import cn.edu.tsinghua.iotdb.benchmark.db.IDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.IDatebase;
 import cn.edu.tsinghua.iotdb.benchmark.db.QueryClientThread;
 import cn.edu.tsinghua.iotdb.benchmark.db.ctsdb.CTSDBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.db.fakedb.FakeDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.influxdb.InfluxDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.db.kairosdb.KairosDBFactory;
@@ -924,6 +925,8 @@ public class App {
                 return new KairosDBFactory();
             case Constants.DB_TIMESCALE:
                 return new TimescaleDBFactory();
+            case Constants.DB_FAKE:
+                return new FakeDBFactory();
             default:
                 throw new SQLException("unsupported database " + config.DB_SWITCH);
         }
