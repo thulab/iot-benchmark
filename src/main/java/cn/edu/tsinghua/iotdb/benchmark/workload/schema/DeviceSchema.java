@@ -53,19 +53,7 @@ public class DeviceSchema {
   }
 
   static int calGroupId(int deviceId, int deviceNum, int groupNum) throws WorkloadException {
-    int eachGroupDeviceNum = deviceNum / groupNum;
-    int mod = deviceNum % groupNum;
-    int thisDeviceGroupIndex;
-    if (deviceId < (eachGroupDeviceNum + 1) * mod) {
-      thisDeviceGroupIndex = deviceId / (eachGroupDeviceNum + 1);
-    } else {
-      thisDeviceGroupIndex = (deviceId - mod) / eachGroupDeviceNum;
-    }
-
-    if (thisDeviceGroupIndex < 0) {
-      throw new WorkloadException("DEVICE_NUMBER and GROUP_NUMBER must be positive.");
-    }
-    return thisDeviceGroupIndex;
+    return deviceId%groupNum;
   }
 
   public String getDevice() {
