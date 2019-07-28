@@ -52,8 +52,9 @@ public class DBWrapper implements IDatabase {
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
         double throughput = batch.pointNum() * 1000 / timeInMillis;
-        LOGGER.info("{} insert one batch latency ,{}, ms, throughput ,{}, points/s", currentThread,
-            formatTimeInMillis, throughput);
+        LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
+            currentThread, batch.getDeviceSchema().getDevice(),
+            batch.getDeviceSchema().getGroup(), formatTimeInMillis, throughput);
       } else {
         measurement.addFailOperationNum(operation);
         measurement.addFailPointNum(operation, batch.pointNum());
