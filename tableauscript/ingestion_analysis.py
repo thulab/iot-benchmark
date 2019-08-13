@@ -14,7 +14,7 @@ import argparse
 result_file = 'LatestIngestionTestAnalysis.csv'
 # db = pymysql.connect(host='166.111.141.168', user='root', passwd='Ise_Nel_2017', port=3306, charset='utf8')
 p_threshold=0.05
-port=33306
+port=3306
 user='root'
 passwd='Ise_Nel_2017'
 charset='utf8'
@@ -24,7 +24,7 @@ result_table_name='insertResult'
 insert_info_table_name='configInsertInfo'
 
 parser = argparse.ArgumentParser(description='Generate analysis result of ingestion test.')
-parser.add_argument('--mysql_host', '-a', default='166.111.7.145', help='mysql server address')
+parser.add_argument('--mysql_host', '-a', default='192.168.130.19', help='mysql server address')
 parser.add_argument('--mysql_database', '-d', default='weekly_test', help='mysql database')
 args = parser.parse_args()
 host = args.mysql_host
