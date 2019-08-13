@@ -131,7 +131,7 @@ else
             COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb;git tag -l | tail -n 1")"_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb;git rev-parse HEAD")
             sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
             echo "Setting IoTDB configuration including iotdb-engine.properties and iotdb-env.sh"
-            scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb/server/iotdb/conf
+            #scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb/server/iotdb/conf
             scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb/server/iotdb/conf
             echo "Start IoTDB service on remote server"
             ssh $SERVER_HOST "bash $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb/server/iotdb/sbin/start-server.sh > /dev/null 2>&1 &"

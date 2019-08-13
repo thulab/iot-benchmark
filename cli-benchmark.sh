@@ -113,7 +113,7 @@ else
             ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
             COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/incubator-iotdb;git tag -l | tail -n 1")"_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/incubator-iotdb;git rev-parse HEAD")
             sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
-            scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/incubator-iotdb/server/target/iotdb-server-0.9.0-SNAPSHOT/conf
+            #scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/incubator-iotdb/server/target/iotdb-server-0.9.0-SNAPSHOT/conf
             scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-env.sh $SERVER_HOST:$LOG_STOP_FLAG_PATH/incubator-iotdb/server/target/iotdb-server-0.9.0-SNAPSHOT/conf
             ssh $SERVER_HOST "bash $LOG_STOP_FLAG_PATH/incubator-iotdb/server/target/iotdb-server-0.9.0-SNAPSHOT/sbin/start-server.sh > /dev/null 2>&1 &"
         fi
