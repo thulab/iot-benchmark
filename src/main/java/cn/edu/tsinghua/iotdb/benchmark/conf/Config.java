@@ -63,6 +63,10 @@ public class Config {
 	public int OVERFLOW_MODE = 0;
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
+	/**使用集群模式**/
+	public boolean USE_CLUSTER = false;
+	/**集群模式下device的FIRST_INDEX**/
+  public int FIRST_INDEX = 0;
 
 	public double LAMBDA = 3;
 
@@ -213,7 +217,7 @@ public class Config {
 	public String DB_URL = "http://localhost:8086";
 	// 使用的数据库名
 	public String DB_NAME = "test";
-	
+
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
 
