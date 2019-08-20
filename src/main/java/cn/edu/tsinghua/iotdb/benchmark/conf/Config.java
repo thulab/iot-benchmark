@@ -66,7 +66,7 @@ public class Config {
 	/**使用集群模式**/
 	public boolean USE_CLUSTER = false;
 	/**集群模式下device的FIRST_INDEX**/
-  public int FIRST_INDEX = 0;
+	public int FIRST_INDEX = 0;
 
 	public double LAMBDA = 3;
 
@@ -122,6 +122,16 @@ public class Config {
 	public boolean TAG_PATH = true;
 
 	public String LOG_STOP_FLAG_PATH;
+
+	public ArrayList<String> IOTDB_DATA_DIR = new ArrayList<>();
+
+	public ArrayList<String> IOTDB_WAL_DIR = new ArrayList<>();
+
+	public ArrayList<String> IOTDB_SYSTEM_DIR = new ArrayList<>();
+
+	public ArrayList<String> SEQUENCE_DIR = new ArrayList<>();
+
+	public ArrayList<String> UNSEQUENCE_DIR = new ArrayList<>();
 
 	public int FIRST_DEVICE_INDEX = 0;
 
