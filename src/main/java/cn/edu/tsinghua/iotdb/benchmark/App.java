@@ -34,6 +34,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,6 +51,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +118,7 @@ public class App {
         // register schema if needed
         try {
             dbWrapper.init();
-            if(config.IS_DELETE_DATA){
+            if (config.IS_DELETE_DATA) {
                 try {
                     dbWrapper.cleanup();
                 } catch (TsdbException e) {
@@ -126,7 +128,7 @@ public class App {
             try {
                 DataSchema dataSchema = DataSchema.getInstance();
                 List<DeviceSchema> schemaList = new ArrayList<>();
-                for(List<DeviceSchema> schemas: dataSchema.getClientBindSchema().values()) {
+                for (List<DeviceSchema> schemas : dataSchema.getClientBindSchema().values()) {
                     schemaList.addAll(schemas);
                 }
                 dbWrapper.registerSchema(schemaList);
@@ -160,6 +162,7 @@ public class App {
 
     /**
      * 测试真实数据集
+     *
      * @param config
      */
     private static void testWithRealDataSet(Config config) {
@@ -192,7 +195,7 @@ public class App {
         try {
             LOGGER.info("start to init database {}", config.DB_SWITCH);
             dbWrapper.init();
-            if(config.IS_DELETE_DATA){
+            if (config.IS_DELETE_DATA) {
                 try {
                     LOGGER.info("start to clean old data");
                     dbWrapper.cleanup();
@@ -244,8 +247,8 @@ public class App {
     }
 
     private static void finalMeasure(ExecutorService executorService, CountDownLatch downLatch,
-        Measurement measurement, List<Measurement> threadsMeasurements,
-        long st, List<Client> clients) {
+                                     Measurement measurement, List<Measurement> threadsMeasurements,
+                                     long st, List<Client> clients) {
         executorService.shutdown();
 
         try {
@@ -275,6 +278,7 @@ public class App {
 
     /**
      * 测试真实数据集
+     *
      * @param config
      */
     private static void queryWithRealDataSet(Config config) {
@@ -283,7 +287,7 @@ public class App {
         mysql.savaTestConfig();
         LOGGER.info("use dataset: {}", config.DATA_SET);
         //check whether the parameters are legitimate
-        if(!checkParamForQueryRealDataSet(config)){
+        if (!checkParamForQueryRealDataSet(config)) {
             return;
         }
 
@@ -305,20 +309,20 @@ public class App {
     }
 
     private static boolean checkParamForQueryRealDataSet(Config config) {
-        if(config.QUERY_SENSOR_NUM > config.FIELDS.size()){
-          LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
-              config.QUERY_SENSOR_NUM, config.FIELDS);
-          return false;
+        if (config.QUERY_SENSOR_NUM > config.FIELDS.size()) {
+            LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
+                    config.QUERY_SENSOR_NUM, config.FIELDS);
+            return false;
         }
         String[] split = config.OPERATION_PROPORTION.split(":");
-        if(split.length!=Operation.values().length){
-          LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
-          return false;
+        if (split.length != Operation.values().length) {
+            LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
+            return false;
         }
-        if(!split[0].trim().equals("0")){
-          LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
-              config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
-          return false;
+        if (!split[0].trim().equals("0")) {
+            LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
+                    config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
+            return false;
         }
         return true;
     }
@@ -382,7 +386,6 @@ public class App {
                         netUsageList.get(0),
                         netUsageList.get(1),
                         MemUsage.getInstance().getProcessMemUsage(),
-                        abnormalValue,
                         abnormalValue,
                         abnormalValue,
                         abnormalValue,
@@ -483,12 +486,11 @@ public class App {
                     LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
                     LOGGER.info("PID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
                             openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                    LOGGER.info("文件大小GB,data,{},info,{},metadata,{},overflow,{},delta,{},wal,{}",
+                    LOGGER.info("文件大小GB,data,{},system,{},sequence,{},overflow,{},wal,{}",
                             fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.INFO),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.STSTEM),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
                     mySql.insertSERVER_MODE(
                             ioUsageList.get(0),
@@ -498,10 +500,9 @@ public class App {
                             netUsageList.get(1),
                             MemUsage.getInstance().getProcessMemUsage(),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.INFO),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.STSTEM),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.WAL),
                             ioStatistics.get(IoUsage.IOStatistics.TPS),
                             ioStatistics.get(IoUsage.IOStatistics.MB_READ),

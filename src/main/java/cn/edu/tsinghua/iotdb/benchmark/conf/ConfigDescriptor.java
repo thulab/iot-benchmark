@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -105,6 +107,16 @@ public class ConfigDescriptor {
 				config.VERSION = properties.getProperty("VERSION", "");
 
 				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
+				String data_dir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
+				Collections.addAll(config.IOTDB_DATA_DIR, data_dir.split(","));
+				String wal_dir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
+				Collections.addAll(config.IOTDB_WAL_DIR, wal_dir.split(","));
+				String system_dir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
+				Collections.addAll(config.IOTDB_SYSTEM_DIR, system_dir.split(","));
+				for (String data_ : config.IOTDB_DATA_DIR) {
+					config.SEQUENCE_DIR.add(data_ + "/sequence");
+					config.UNSEQUENCE_DIR.add(data_ + "/unsequence");
+				}
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
@@ -148,7 +160,7 @@ public class ConfigDescriptor {
 				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
 				config.USE_PREPARE_STATEMENT = Boolean.parseBoolean(properties.getProperty("USE_PREPARE_STATEMENT", config.USE_PREPARE_STATEMENT+""));
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
-        config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
+				config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
 				//config.FIRST_DEVICE_INDEX = Integer.parseInt(properties.getProperty("FIRST_DEVICE_INDEX", config.FIRST_DEVICE_INDEX+""));
 //				String[] split = config.DB_URL.split("\\.");
 //				config.FIRST_DEVICE_INDEX = Integer.parseInt(split[split.length-1].split(":")[0]) * config.DEVICE_NUMBER;
