@@ -38,6 +38,13 @@ import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 import org.apache.iotdb.jdbc.IoTDBPreparedInsertionStatement;
+import org.apache.iotdb.session.IoTDBSessionException;
+import org.apache.iotdb.session.Session;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.iotdb.tsfile.write.record.RowBatch;
+import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
+import org.apache.iotdb.tsfile.write.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +54,7 @@ public class IoTDB implements IDatebase {
     private static final String createSeriesSQLWithCompressor = "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
     private static final String setStorageLevelSQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
+    private Session session;
     private static Config config;
     private List<Point> points;
     private Map<String, String> mp;
@@ -71,6 +79,7 @@ public class IoTDB implements IDatebase {
         probTool = new ProbTool();
         connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
                 Constants.PASSWD);
+        session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
         mySql.initMysql(labID);
     }
 
@@ -361,6 +370,48 @@ public class IoTDB implements IDatebase {
         return cost;
     }
 
+    private long insertBatchUseSession(int loopIndex, String device) throws IoTDBSessionException {
+        session.open();
+        Schema schema = new Schema();
+        for (String sensor : config.SENSOR_CODES) {
+            schema.registerMeasurement(
+                new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
+                    Enum.valueOf(TSEncoding.class, config.ENCODING)));
+        }
+        String path = getGroupDevicePath(device);
+        RowBatch rowBatch = schema.createRowBatch(Constants.ROOT_SERIES_NAME + "." + path,
+            config.BATCH_SIZE);
+        long[] timestamps = rowBatch.timestamps;
+        Object[] values = rowBatch.values;
+
+        for (int i = 0; i < config.BATCH_SIZE; i++) {
+            int row = rowBatch.batchSize++;
+            long currentTime =
+                Constants.START_TIMESTAMP + config.POINT_STEP * (loopIndex * config.BATCH_SIZE
+                    + i);
+            if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
+                currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+            }
+            timestamps[row] = currentTime;
+            int columnNum = 0;
+            for (String sensor : config.SENSOR_CODES) {
+                FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+                Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+                double v = Double.parseDouble(String.format("%.2f", value.doubleValue()));
+                double[] sensors = (double[]) values[columnNum];
+                sensors[row] = v;
+                columnNum++;
+            }
+        }
+        long startTime = System.nanoTime();
+        session.insertBatch(rowBatch);
+        rowBatch.reset();
+        long endTime = System.nanoTime();
+        long costTime = endTime - startTime;
+        session.close();
+        return costTime;
+    }
+
     @Override
     public void insertOneBatch(String device, int loopIndex, ThreadLocal<Long> totalTime,
                                ThreadLocal<Long> errorCount, ArrayList<Long> latencies) {
@@ -392,6 +443,25 @@ public class IoTDB implements IDatebase {
                     errorCount.set(errorCount.get() + errorNum);
 
                     mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
+                        config.REMARK);
+                    return;
+                } else if (config.USE_SESSION){
+                    long costTime = 0;
+                    try {
+                        costTime = insertBatchUseSession(loopIndex, device);
+                    }catch (IoTDBSessionException e) {
+                        LOGGER.error("Execute Session Insert failed", e);
+                        errorNum ++;
+                    }
+                    latencies.add(costTime);
+                    if (errorNum > 0) {
+                        LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
+                    } else {
+                        totalTime.set(totalTime.get() + costTime);
+                    }
+                    errorCount.set(errorCount.get() + errorNum);
+
+                    mySql.saveInsertProcess(loopIndex, (costTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
                         config.REMARK);
                     return;
                 } else {

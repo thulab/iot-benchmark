@@ -55,6 +55,8 @@ public class Config {
 	public boolean MUL_DEV_BATCH = false;
 	/**是否使用prepareStatement*/
 	public boolean USE_PREPARE_STATEMENT = false;
+	/**是否使用iotdb-session插入*/
+	public boolean USE_SESSION = false;
 	/**数据库初始化等待时间ms*/
 	public long INIT_WAIT_TIME=5000;
 	/**是否为批插入乱序模式*/
