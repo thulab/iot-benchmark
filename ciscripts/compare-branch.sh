@@ -128,7 +128,7 @@ else
             echo "Existing IoTDB service on remote server stopped"
             echo "Start server system information recording"
             ssh $SERVER_HOST "sh $LOG_STOP_FLAG_PATH/iotdb-benchmark/ser-benchmark.sh > /dev/null 2>&1 &"
-            COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb;git tag -l | tail -n 1")"_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb;git rev-parse HEAD")
+            COMMIT_ID="commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb;git rev-parse HEAD")
             sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
             echo "Setting IoTDB configuration including iotdb-engine.properties and iotdb-env.sh"
             #scp $BENCHMARK_HOME/$IOTDB_CONF/iotdb-engine.properties $SERVER_HOST:$LOG_STOP_FLAG_PATH/iotdb-$BRANCH/incubator-iotdb/server/iotdb/conf

@@ -15,11 +15,11 @@ IS_TEST_BASELINE=$1
 git pull
 if [ $IS_TEST_BASELINE = "true" ]; then
     cp ./archive/pom/baseline_pom.xml  ./pom.xml
-    COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb;git tag -l | tail -n 1")"BASELINE_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb;git rev-parse HEAD")
+    COMMIT_ID="BASELINE_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb;git rev-parse HEAD")
     sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
 else
     cp ./archive/pom/pom.xml  ./pom.xml
-    COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/incubator-iotdb;git tag -l | tail -n 1")" commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/incubator-iotdb;git rev-parse HEAD")
+    COMMIT_ID="commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/incubator-iotdb;git rev-parse HEAD")
     sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
 fi
 rm -rf ./lib
