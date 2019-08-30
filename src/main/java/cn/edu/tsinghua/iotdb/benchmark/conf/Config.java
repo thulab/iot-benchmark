@@ -55,6 +55,10 @@ public class Config {
 	public String COMPRESSOR = "UNCOMPRESSED";
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
+	/**是否使用prepareStatement*/
+	public boolean USE_PREPARE_STATEMENT = false;
+	/**是否使用iotdb-session插入*/
+	public boolean USE_SESSION = false;
 	/**数据库初始化等待时间ms*/
 	public long INIT_WAIT_TIME=5000;
 	/**是否为批插入乱序模式*/
@@ -63,6 +67,10 @@ public class Config {
 	public int OVERFLOW_MODE = 0;
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
+	/**使用集群模式**/
+	public boolean USE_CLUSTER = false;
+	/**集群模式下device的FIRST_INDEX**/
+	public int FIRST_INDEX = 0;
 
 	public double LAMBDA = 3;
 
@@ -79,6 +87,8 @@ public class Config {
 	public int LIMIT_CLAUSE_MODE = 0;
 
 	public String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
+
+	public String START_TIME = "2018-8-30T00:00:00+08:00";
 
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
@@ -116,6 +126,18 @@ public class Config {
 	public boolean TAG_PATH = true;
 
 	public String LOG_STOP_FLAG_PATH;
+
+	public ArrayList<String> IOTDB_DATA_DIR = new ArrayList<>();
+
+	public ArrayList<String> IOTDB_WAL_DIR = new ArrayList<>();
+
+	public ArrayList<String> IOTDB_SYSTEM_DIR = new ArrayList<>();
+
+	public ArrayList<String> SEQUENCE_DIR = new ArrayList<>();
+
+	public ArrayList<String> UNSEQUENCE_DIR = new ArrayList<>();
+
+	public int FIRST_DEVICE_INDEX = 0;
 
 	public int STORE_MODE = 1;
 
@@ -209,7 +231,7 @@ public class Config {
 	public String DB_URL = "http://localhost:8086";
 	// 使用的数据库名
 	public String DB_NAME = "test";
-	
+
 	// 使用的数据库
 	public String DB_SWITCH = "IoTDB";
 
@@ -349,7 +371,7 @@ public class Config {
 	 * @return
 	 */
 	public List<String> initDeviceCodes() {
-		for (int i = 0; i < DEVICE_NUMBER; i++) {
+		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
 			String deviceCode = "d_" + i;
 			DEVICE_CODES.add(deviceCode);
 		}

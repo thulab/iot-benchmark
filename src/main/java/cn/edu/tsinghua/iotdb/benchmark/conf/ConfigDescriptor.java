@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -105,6 +107,16 @@ public class ConfigDescriptor {
 				config.VERSION = properties.getProperty("VERSION", "");
 
 				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
+				String data_dir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
+				Collections.addAll(config.IOTDB_DATA_DIR, data_dir.split(","));
+				String wal_dir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
+				Collections.addAll(config.IOTDB_WAL_DIR, wal_dir.split(","));
+				String system_dir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
+				Collections.addAll(config.IOTDB_SYSTEM_DIR, system_dir.split(","));
+				for (String data_ : config.IOTDB_DATA_DIR) {
+					config.SEQUENCE_DIR.add(data_ + "/sequence");
+					config.UNSEQUENCE_DIR.add(data_ + "/unsequence");
+				}
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
@@ -140,14 +152,28 @@ public class ConfigDescriptor {
 				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
 				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
+				config.START_TIME = properties.getProperty("START_TIME", config.START_TIME);
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
 				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));
 				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
 				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
 				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
+				config.USE_PREPARE_STATEMENT = Boolean.parseBoolean(properties.getProperty("USE_PREPARE_STATEMENT", config.USE_PREPARE_STATEMENT+""));
+				config.USE_SESSION = Boolean.parseBoolean(properties.getProperty("USE_SESSION", config.USE_SESSION+""));
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
-        config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
+				config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
+				//config.FIRST_DEVICE_INDEX = Integer.parseInt(properties.getProperty("FIRST_DEVICE_INDEX", config.FIRST_DEVICE_INDEX+""));
+//				String[] split = config.DB_URL.split("\\.");
+//				config.FIRST_DEVICE_INDEX = Integer.parseInt(split[split.length-1].split(":")[0]) * config.DEVICE_NUMBER;
+				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER+""));
+				if (config.USE_CLUSTER){
+					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX+""));
+					config.FIRST_DEVICE_INDEX = config.FIRST_INDEX * config.DEVICE_NUMBER;
+				}
+				else {
+					config.FIRST_DEVICE_INDEX = 0;
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

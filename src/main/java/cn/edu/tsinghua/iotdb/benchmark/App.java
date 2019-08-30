@@ -35,6 +35,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -51,6 +52,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +119,7 @@ public class App {
         // register schema if needed
         try {
             dbWrapper.init();
-            if(config.IS_DELETE_DATA){
+            if (config.IS_DELETE_DATA) {
                 try {
                     dbWrapper.cleanup();
                 } catch (TsdbException e) {
@@ -127,7 +129,7 @@ public class App {
             try {
                 DataSchema dataSchema = DataSchema.getInstance();
                 List<DeviceSchema> schemaList = new ArrayList<>();
-                for(List<DeviceSchema> schemas: dataSchema.getClientBindSchema().values()) {
+                for (List<DeviceSchema> schemas : dataSchema.getClientBindSchema().values()) {
                     schemaList.addAll(schemas);
                 }
                 dbWrapper.registerSchema(schemaList);
@@ -161,6 +163,7 @@ public class App {
 
     /**
      * 测试真实数据集
+     *
      * @param config
      */
     private static void testWithRealDataSet(Config config) {
@@ -193,7 +196,7 @@ public class App {
         try {
             LOGGER.info("start to init database {}", config.DB_SWITCH);
             dbWrapper.init();
-            if(config.IS_DELETE_DATA){
+            if (config.IS_DELETE_DATA) {
                 try {
                     LOGGER.info("start to clean old data");
                     dbWrapper.cleanup();
@@ -245,8 +248,8 @@ public class App {
     }
 
     private static void finalMeasure(ExecutorService executorService, CountDownLatch downLatch,
-        Measurement measurement, List<Measurement> threadsMeasurements,
-        long st, List<Client> clients) {
+                                     Measurement measurement, List<Measurement> threadsMeasurements,
+                                     long st, List<Client> clients) {
         executorService.shutdown();
 
         try {
@@ -276,6 +279,7 @@ public class App {
 
     /**
      * 测试真实数据集
+     *
      * @param config
      */
     private static void queryWithRealDataSet(Config config) {
@@ -284,7 +288,7 @@ public class App {
         mysql.savaTestConfig();
         LOGGER.info("use dataset: {}", config.DATA_SET);
         //check whether the parameters are legitimate
-        if(!checkParamForQueryRealDataSet(config)){
+        if (!checkParamForQueryRealDataSet(config)) {
             return;
         }
 
@@ -306,20 +310,20 @@ public class App {
     }
 
     private static boolean checkParamForQueryRealDataSet(Config config) {
-        if(config.QUERY_SENSOR_NUM > config.FIELDS.size()){
-          LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
-              config.QUERY_SENSOR_NUM, config.FIELDS);
-          return false;
+        if (config.QUERY_SENSOR_NUM > config.FIELDS.size()) {
+            LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
+                    config.QUERY_SENSOR_NUM, config.FIELDS);
+            return false;
         }
         String[] split = config.OPERATION_PROPORTION.split(":");
-        if(split.length!=Operation.values().length){
-          LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
-          return false;
+        if (split.length != Operation.values().length) {
+            LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
+            return false;
         }
-        if(!split[0].trim().equals("0")){
-          LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
-              config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
-          return false;
+        if (!split[0].trim().equals("0")) {
+            LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
+                    config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
+            return false;
         }
         return true;
     }
@@ -388,7 +392,6 @@ public class App {
                         abnormalValue,
                         abnormalValue,
                         abnormalValue,
-                        abnormalValue,
                         ioStatistics.get(IoUsage.IOStatistics.TPS),
                         ioStatistics.get(IoUsage.IOStatistics.MB_READ),
                         ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
@@ -446,14 +449,36 @@ public class App {
                 // 检测所需的时间在目前代码的参数下至少为2秒
                 LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
                 while (true) {
+                    long start = System.currentTimeMillis();
                     ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+                    LOGGER.info("IoUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     ArrayList<Float> netUsageList = NetUsage.getInstance().get();
-                    ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                    LOGGER.info("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
+//                    ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
+                    ArrayList<Integer> openFileList = new ArrayList<>();
+                    for (int i = 0; i < 9; i++) {
+                        openFileList.add(-1);
+                    }
+                    LOGGER.info("OpenFileNumber.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     fileSizeStatistics = FileSize.getInstance().getFileSize();
+                    LOGGER.info("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
                     ioStatistics = IoUsage.getInstance().getIOStatistics();
+                    LOGGER.info("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
+
+
+                    start = System.currentTimeMillis();
+                    double memRate = MemUsage.getInstance().get();
+                    LOGGER.info("MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                    start = System.currentTimeMillis();
+                    double proMem = MemUsage.getInstance().getProcessMemUsage();
+                    LOGGER.info("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
+                    LOGGER.info("内存使用大小GB,{}", proMem);
+                    LOGGER.info("内存使用率,{}", memRate);
                     LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
-                    LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-                    LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
                     LOGGER.info("磁盘IO使用率,{},TPS,{},读速率MB/s,{},写速率MB/s,{}",
                             ioUsageList.get(1),
                             ioStatistics.get(IoUsage.IOStatistics.TPS),
@@ -462,12 +487,11 @@ public class App {
                     LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
                     LOGGER.info("PID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
                             openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                    LOGGER.info("文件大小GB,data,{},info,{},metadata,{},overflow,{},delta,{},wal,{}",
+                    LOGGER.info("文件大小GB,data,{},system,{},sequence,{},overflow,{},wal,{}",
                             fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.INFO),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.STSTEM),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
                     mySql.insertSERVER_MODE(
                             ioUsageList.get(0),
@@ -477,10 +501,9 @@ public class App {
                             netUsageList.get(1),
                             MemUsage.getInstance().getProcessMemUsage(),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.INFO),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.METADATA),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.STSTEM),
+                            fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.DELTA),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.WAL),
                             ioStatistics.get(IoUsage.IOStatistics.TPS),
                             ioStatistics.get(IoUsage.IOStatistics.MB_READ),

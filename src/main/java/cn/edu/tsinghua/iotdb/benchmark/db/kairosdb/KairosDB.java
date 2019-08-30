@@ -65,20 +65,22 @@ public class KairosDB extends TSDB implements IDatebase {
     @Override
     public void init() {
         //delete old data
-        for (String sensor : config.SENSOR_CODES) {
+        if(config.IS_DELETE_DATA) {
+            for (String sensor : config.SENSOR_CODES) {
+                try {
+                    HttpRequest.sendDelete(String.format(deleteUrl, sensor), "");
+                } catch (IOException e) {
+                    LOGGER.error("Delete metric {} failed when initializing KairosDB.", sensor);
+                    e.printStackTrace();
+                }
+            }
+            // wait for deletion complete
             try {
-                HttpRequest.sendDelete(String.format(deleteUrl, sensor), "");
-            } catch (IOException e) {
-                LOGGER.error("Delete metric {} failed when initializing KairosDB.", sensor);
+                LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
+                Thread.sleep(config.INIT_WAIT_TIME);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-        // wait for deletion complete
-        try {
-            LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-            Thread.sleep(config.INIT_WAIT_TIME);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -104,10 +106,8 @@ public class KairosDB extends TSDB implements IDatebase {
     }
 
     private String getGroup(String device) {
-        int deviceNum = getDeviceNum(device);
-        int groupSize = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        int groupNum = deviceNum / groupSize;
-        return "group_" + groupNum;
+        int hashCode = device.hashCode();
+        return "group_" + (Math.abs(hashCode) % config.GROUP_NUMBER);
     }
 
     private LinkedList<KairosDataModel> createDataModel(int batchIndex, int dataIndex, String device) {
@@ -121,14 +121,15 @@ public class KairosDB extends TSDB implements IDatebase {
                 currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
             }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            float v = Float.parseFloat(String.format("%.2f", value.floatValue()));
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
             // KairosDB do not support float as data type
             model.setType(config.DATA_TYPE.toLowerCase());
             model.setTimestamp(currentTime);
-            model.setValue(value);
+            model.setValue(v);
             Map<String, String> tags = new HashMap<>();
-            tags.put("group", groupId);
+//            tags.put("group", groupId);
             tags.put("device", device);
             model.setTags(tags);
             models.addLast(model);
@@ -164,10 +165,10 @@ public class KairosDB extends TSDB implements IDatebase {
             latency = endTime - startTime;
             latencies.add(latency);
             LOGGER.debug("response: " + response);
-            LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
-                    Thread.currentThread().getName(), batchIndex, latency / 1000000000.0,
-                    ((totalTime.get() + latency) / 1000000000.0),
-                    (models.size() / (double) latency) * 1000000000);
+//            LOGGER.info("{} execute ,{}, batch, it costs ,{},s, totalTime ,{},s, throughput ,{}, point/s",
+//                    Thread.currentThread().getName(), batchIndex, latency / 1000000000.0,
+//                    ((totalTime.get() + latency) / 1000000000.0),
+//                    (models.size() / (double) latency) * 1000000000);
             totalTime.set(totalTime.get() + latency);
             mySql.saveInsertProcess(batchIndex, latency / 1000000000.0, totalTime.get() / 1000000000.0, 0,
                     config.REMARK);
@@ -339,7 +340,7 @@ public class KairosDB extends TSDB implements IDatebase {
                 groupList.add(getGroup(d));
             }
             List<String> uniqueGroupList = new ArrayList<>(new TreeSet<>(groupList));
-            tags.put("group", uniqueGroupList);
+//            tags.put("group", uniqueGroupList);
             tags.put("device", deviceList);
             subQuery.put("tags", tags);
             if (isAggregate && !config.QUERY_AGGREGATE_FUN.equals("")) {
@@ -368,7 +369,7 @@ public class KairosDB extends TSDB implements IDatebase {
                 groupByTimeMap.put("range_size", rangeSizeMap);
                 groupByList.add(groupByTimeMap);
             }
-            subQuery.put("group_by", groupByList);
+            //subQuery.put("group_by", groupByList);
 
             list.add(subQuery);
         }
@@ -576,12 +577,13 @@ public class KairosDB extends TSDB implements IDatebase {
                 currentTime += (long) (config.POINT_STEP * timestampRandom.nextDouble());
             }
             Number value = Function.getValueByFuntionidAndParam(param, currentTime);
+            float v = Float.parseFloat(String.format("%.2f", value.floatValue()));
             KairosDataModel model = new KairosDataModel();
             model.setName(sensor);
             // KairosDB do not support float as data type
             model.setType(config.DATA_TYPE.toLowerCase());
             model.setTimestamp(currentTime);
-            model.setValue(value);
+            model.setValue(v);
             Map<String, String> tags = new HashMap<>();
             tags.put("group", groupId);
             tags.put("device", device);
