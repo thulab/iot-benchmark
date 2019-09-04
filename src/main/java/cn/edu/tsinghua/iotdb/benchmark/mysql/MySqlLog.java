@@ -190,11 +190,25 @@ public class MySqlLog {
                 stat.executeUpdate(mysqlSql);
                 stat.close();
             } catch (Exception e) {
-                LOGGER.error(
+                try{
+                    Class.forName(Constants.MYSQL_DRIVENAME);
+                    mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+                    stat = mysqlConnection.createStatement();
+                    stat.executeUpdate(mysqlSql);
+                    stat.close();
+                } catch (ClassNotFoundException e1) {
+                    LOGGER.error(
                         "{} save saveInsertProcessLoop info into mysql failed! Error：{}",
                         Thread.currentThread().getName(), e.getMessage());
-                LOGGER.error("{}", mysqlSql);
-                e.printStackTrace();
+                    LOGGER.error("{}", mysqlSql);
+                    e1.printStackTrace();
+                } catch (SQLException e1) {
+                    LOGGER.error(
+                        "{} save saveInsertProcessLoop info into mysql failed! Error：{}",
+                        Thread.currentThread().getName(), e.getMessage());
+                    LOGGER.error("{}", mysqlSql);
+                    e1.printStackTrace();
+                }
             }
         }
     }

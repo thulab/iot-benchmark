@@ -80,6 +80,11 @@ public class IoTDB implements IDatebase {
         connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
                 Constants.PASSWD);
         session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
+        try {
+            session.open();
+        } catch (IoTDBSessionException e) {
+            e.printStackTrace();
+        }
         mySql.initMysql(labID);
     }
 
@@ -371,7 +376,7 @@ public class IoTDB implements IDatebase {
     }
 
     private long insertBatchUseSession(int loopIndex, String device) throws IoTDBSessionException {
-        session.open();
+//        session.open();
         Schema schema = new Schema();
         for (String sensor : config.SENSOR_CODES) {
             schema.registerMeasurement(
@@ -408,7 +413,7 @@ public class IoTDB implements IDatebase {
         rowBatch.reset();
         long endTime = System.nanoTime();
         long costTime = endTime - startTime;
-        session.close();
+//        session.close();
         return costTime;
     }
 
