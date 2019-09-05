@@ -41,6 +41,8 @@ public class Config {
 	public long POINT_STEP = 7000;
 	/** 查询时间戳变化增加步长 */
 	public int STEP_SIZE = 1;
+	/** 存储组分配策略*/
+	public String SG_STRATEGY="hash";
 	/** 数据发送缓存条数 */
 	public int BATCH_SIZE = 10;
 	/** 存储组数量 */
