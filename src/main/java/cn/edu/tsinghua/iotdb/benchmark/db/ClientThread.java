@@ -40,6 +40,7 @@ public class ClientThread implements Runnable{
 	private ArrayList<Long> totalInsertErrorNums;
 	private ArrayList<Long> latencies;
 	private ArrayList<ArrayList> latenciesOfClients;
+	private Session session;
 
 	public ClientThread(IDatebase datebase, int index, CountDownLatch downLatch,
 			ArrayList<Long> totalTimes, ArrayList<Long> totalInsertErrorNums, ArrayList<ArrayList> latenciesOfClients) {
@@ -53,6 +54,15 @@ public class ClientThread implements Runnable{
 		this.latenciesOfClients = latenciesOfClients;
 		mySql = new MySqlLog();
 		mySql.initMysql(datebase.getLabID());
+		if (config.DB_SWITCH.equals("IoTDB") && !config.USE_PREPARE_STATEMENT
+				&& config.USE_SESSION) {
+			session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
+		}
+		try {
+			session.open();
+		} catch (IoTDBSessionException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public ClientThread(IDatebase datebase, int index , Storage storage, CountDownLatch downLatch,
@@ -134,20 +144,9 @@ public class ClientThread implements Runnable{
 						for (int m = 0; m < clientDevicesNum; m++) {
 							if (config.DB_SWITCH.equals("IoTDB") && !config.USE_PREPARE_STATEMENT
 									&& config.USE_SESSION) {
-								Session session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
-								try {
-									session.open();
-								} catch (IoTDBSessionException e) {
-									e.printStackTrace();
-								}
 								((IoTDB) database)
 										.insertBatchUseSession(config.DEVICE_CODES.get(index * clientDevicesNum + m), i,
 												totalTime, errorCount, latencies, session);
-								try {
-									session.close();
-								} catch (IoTDBSessionException e) {
-									e.printStackTrace();
-								}
 							}
 							else {
 								database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i,
