@@ -38,6 +38,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
 import org.apache.iotdb.jdbc.IoTDBPreparedInsertionStatement;
+import org.apache.iotdb.service.rpc.thrift.TSExecuteBatchStatementResp;
 import org.apache.iotdb.session.IoTDBSessionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -375,7 +376,7 @@ public class IoTDB implements IDatebase {
         return cost;
     }
 
-    private long insertBatchUseSession(int loopIndex, String device) throws IoTDBSessionException {
+    private long insertBatchUseSession(int loopIndex, String device,ThreadLocal<Long> errorCount) throws IoTDBSessionException {
 //        session.open();
         Schema schema = new Schema();
         for (String sensor : config.SENSOR_CODES) {
@@ -409,7 +410,12 @@ public class IoTDB implements IDatebase {
             }
         }
         long startTime = System.nanoTime();
-        session.insertBatch(rowBatch);
+        TSExecuteBatchStatementResp tsExecuteBatchStatementResp = session.insertBatch(rowBatch);
+        for (Integer status : tsExecuteBatchStatementResp.result) {
+            if (status != 200) {
+                errorCount.set(errorCount.get() + 1);
+            }
+        }
         rowBatch.reset();
         long endTime = System.nanoTime();
         long costTime = endTime - startTime;
@@ -452,21 +458,24 @@ public class IoTDB implements IDatebase {
                     return;
                 } else if (config.USE_SESSION){
                     long costTime = 0;
+                    long errorPre = errorCount.get();
                     try {
-                        costTime = insertBatchUseSession(loopIndex, device);
-                    }catch (IoTDBSessionException e) {
+                        costTime = insertBatchUseSession(loopIndex, device, errorCount);
+                    } catch (IoTDBSessionException e) {
                         LOGGER.error("Execute Session Insert failed", e);
-                        errorNum ++;
+//                        errorNum ++;
                     }
+                    long errorAft = errorCount.get();
                     latencies.add(costTime);
-                    if (errorNum > 0) {
+                    if ((errorAft - errorPre) > 0) {
                         LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
                     } else {
                         totalTime.set(totalTime.get() + costTime);
                     }
-                    errorCount.set(errorCount.get() + errorNum);
+//                    errorCount.set(errorCount.get() + errorNum);
 
-                    mySql.saveInsertProcess(loopIndex, (costTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
+                    mySql.saveInsertProcess(loopIndex, (costTime) / unitTransfer,
+                        totalTime.get() / unitTransfer, errorAft - errorPre,
                         config.REMARK);
                     return;
                 } else {
