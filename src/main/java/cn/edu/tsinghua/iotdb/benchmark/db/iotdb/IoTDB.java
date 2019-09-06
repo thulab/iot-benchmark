@@ -55,7 +55,7 @@ public class IoTDB implements IDatebase {
     private static final String createSeriesSQLWithCompressor = "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
     private static final String setStorageLevelSQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
-    private Session session;
+//    private Session session;
     private static Config config;
     private List<Point> points;
     private Map<String, String> mp;
@@ -80,12 +80,12 @@ public class IoTDB implements IDatebase {
         probTool = new ProbTool();
         connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
                 Constants.PASSWD);
-        session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
-        try {
-            session.open();
-        } catch (IoTDBSessionException e) {
-            e.printStackTrace();
-        }
+//        session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
+//        try {
+//            session.open();
+//        } catch (IoTDBSessionException e) {
+//            e.printStackTrace();
+//        }
         mySql.initMysql(labID);
     }
 
@@ -376,9 +376,12 @@ public class IoTDB implements IDatebase {
         return cost;
     }
 
-    private long insertBatchUseSession(int loopIndex, String device,ThreadLocal<Long> errorCount) throws IoTDBSessionException {
+//    public long insertBatchUseSession(int loopIndex, String device,ThreadLocal<Long> errorCount) throws IoTDBSessionException {
+    public void insertBatchUseSession(String device, int loopIndex, ThreadLocal<Long> totalTime,
+            ThreadLocal<Long> errorCount, ArrayList<Long> latencies,Session session) throws IoTDBSessionException {
 //        session.open();
         Schema schema = new Schema();
+        long errorPre = errorCount.get();
         for (String sensor : config.SENSOR_CODES) {
             schema.registerMeasurement(
                 new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
@@ -419,8 +422,19 @@ public class IoTDB implements IDatebase {
         rowBatch.reset();
         long endTime = System.nanoTime();
         long costTime = endTime - startTime;
+
+        long errorAft = errorCount.get();
 //        session.close();
-        return costTime;
+        if ((errorAft - errorPre) > 0) {
+            LOGGER.info("Batch insert failed, the failed number is {}! ", (errorAft - errorPre));
+        } else {
+            totalTime.set(totalTime.get() + costTime);
+        }
+        latencies.add(costTime);
+
+        mySql.saveInsertProcess(loopIndex, (costTime) / unitTransfer,
+            totalTime.get() / unitTransfer, errorAft - errorPre,
+            config.REMARK);
     }
 
     @Override
@@ -454,28 +468,6 @@ public class IoTDB implements IDatebase {
                     errorCount.set(errorCount.get() + errorNum);
 
                     mySql.saveInsertProcess(loopIndex, (endTime - startTime) / unitTransfer, totalTime.get() / unitTransfer, errorNum,
-                        config.REMARK);
-                    return;
-                } else if (config.USE_SESSION){
-                    long costTime = 0;
-                    long errorPre = errorCount.get();
-                    try {
-                        costTime = insertBatchUseSession(loopIndex, device, errorCount);
-                    } catch (IoTDBSessionException e) {
-                        LOGGER.error("Execute Session Insert failed", e);
-//                        errorNum ++;
-                    }
-                    long errorAft = errorCount.get();
-                    latencies.add(costTime);
-                    if ((errorAft - errorPre) > 0) {
-                        LOGGER.info("Batch insert failed, the failed number is {}! ", errorNum);
-                    } else {
-                        totalTime.set(totalTime.get() + costTime);
-                    }
-//                    errorCount.set(errorCount.get() + errorNum);
-
-                    mySql.saveInsertProcess(loopIndex, (costTime) / unitTransfer,
-                        totalTime.get() / unitTransfer, errorAft - errorPre,
                         config.REMARK);
                     return;
                 } else {

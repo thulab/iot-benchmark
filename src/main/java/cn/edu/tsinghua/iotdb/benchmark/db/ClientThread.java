@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.db;
 
+import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -8,6 +9,8 @@ import java.util.concurrent.CountDownLatch;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlLog;
+import org.apache.iotdb.session.IoTDBSessionException;
+import org.apache.iotdb.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,10 +132,33 @@ public class ClientThread implements Runnable{
 				} else if (!config.IS_OVERFLOW) {
 					try {
 						for (int m = 0; m < clientDevicesNum; m++) {
-							database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i, totalTime, errorCount, latencies);
+							if (config.DB_SWITCH.equals("IoTDB") && !config.USE_PREPARE_STATEMENT
+									&& config.USE_SESSION) {
+								Session session = new Session(config.host, config.port, Constants.USER, Constants.PASSWD);
+								try {
+									session.open();
+								} catch (IoTDBSessionException e) {
+									e.printStackTrace();
+								}
+								((IoTDB) database)
+										.insertBatchUseSession(config.DEVICE_CODES.get(index * clientDevicesNum + m), i,
+												totalTime, errorCount, latencies, session);
+								try {
+									session.close();
+								} catch (IoTDBSessionException e) {
+									e.printStackTrace();
+								}
+							}
+							else {
+								database.insertOneBatch(config.DEVICE_CODES.get(index * clientDevicesNum + m), i,
+										totalTime, errorCount, latencies);
+							}
 						}
 					} catch (SQLException e) {
 						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+					} catch (IoTDBSessionException e) {
+						LOGGER.error("{} Fail to insert one batch into database becasue {}", Thread.currentThread().getName(), e.getMessage());
+//						e.printStackTrace();
 					}
 				} else if (config.OVERFLOW_MODE == 1) {
 					try {
