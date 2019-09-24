@@ -25,7 +25,7 @@ port=3306
 user='root'
 passwd='Ise_Nel_2017'
 charset='utf8'
-test_group_size=18
+test_group_size=24
 insert_info_table_name='configInsertInfo'
 
 
@@ -121,7 +121,7 @@ def gen_query_analysis_csv_png():
     df, project_df, version_df = get_query_results()
     latest_version = str(version_df.iloc[-1, 0])
     latest_version.replace(' ', '_')
-    project_baseline=project_df[0:test_group_size]
+    project_baseline=project_df[-48:-test_group_size]
     project_new=project_df[-test_group_size:].reset_index(drop=True)
     t_test_results = []
     std_diffs = []
@@ -151,7 +151,7 @@ def gen_query_analysis_csv_png():
 
 def main():
     gen_query_analysis_csv_png()
-    # viz_query('query_IoTDB_latest_2018_12_01_02_40_52_849','query_IoTDB_latest_2018_12_01_04_34_47_267', 'latest')
+    #viz_query('query_IoTDB_latest_2018_12_01_02_40_52_849','query_IoTDB_latest_2018_12_01_04_34_47_267', 'latest')
 
 
 if __name__ == '__main__':

@@ -171,7 +171,7 @@ def gen_ingestion_analysis_csv_png():
     df, project_df, version_df = get_query_results()
     latest_version = str(version_df.iloc[-1, 0])
     latest_version.replace(' ', '_')
-    project_baseline=project_df[0:test_group_size]
+    project_baseline=project_df[-2:-test_group_size]
     project_new=project_df[-test_group_size:].reset_index(drop=True)
     t_test_results = []
     std_diffs = []
