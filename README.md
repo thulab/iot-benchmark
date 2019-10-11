@@ -172,7 +172,7 @@ Till now, we have already complete the writing test case without server informat
 Edit the corresponding parameters in the ```conf/config.properties``` file as following:
 
 ```
-### Main Data Ingestion Related Parameters
+### Main Data Ingestion and Query Shared Parameters
 HOST=127.0.0.1
 PORT=6667
 DB_SWITCH=IoTDB
@@ -184,6 +184,7 @@ SENSOR_NUMBER=300
 CLIENT_NUMBER=20
 BATCH_SIZE=1
 POINT_STEP=5000
+# the operation number executed by each client thread
 LOOP=1000
 
 ### Main Query Related Parameters
@@ -197,7 +198,7 @@ QUERY_AGGREGATE_FUN=count
 STEP_SIZE=1
 # the time range interval of time range query condition
 QUERY_INTERVAL=250000
-# The aggregation gra
+# the aggregation granularity of group-by (down-sampling) query
 TIME_UNIT=20000
 ```
 
