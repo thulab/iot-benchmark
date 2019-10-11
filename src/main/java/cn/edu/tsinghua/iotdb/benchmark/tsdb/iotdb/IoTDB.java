@@ -325,7 +325,7 @@ public class IoTDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.info("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
+    LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     long st;
     long en;
     int line = 0;

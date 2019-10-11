@@ -263,7 +263,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
-    LOGGER.info("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
+    LOGGER.info("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     long st;
     long en;
     int line = 0;
