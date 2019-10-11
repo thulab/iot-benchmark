@@ -80,6 +80,10 @@ public class SyntheticWorkload implements IWorkload {
     return batch;
   }
 
+  private Batch getLocalOutOfOrderBatch() {
+    return null;
+  }
+
   private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
     Batch batch = new Batch();
     PossionDistribution possionDistribution = new PossionDistribution(poissonRandom);
@@ -113,25 +117,15 @@ public class SyntheticWorkload implements IWorkload {
     batch.add(currentTimestamp, values);
   }
 
-  private Batch getLocalOutOfOrderBatch() {
-    return null;
-  }
-
-  private Batch getGlobalOutOfOrderBatch() {
-    return null;
-  }
-
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
     if (!config.IS_OVERFLOW) {
       return getOrderedBatch(deviceSchema, loopIndex);
     } else {
       switch (config.OVERFLOW_MODE) {
         case 0:
-          return getLocalOutOfOrderBatch();
-        case 1:
-          return getGlobalOutOfOrderBatch();
-        case 2:
           return getDistOutOfOrderBatch(deviceSchema);
+        case 1:
+          return getLocalOutOfOrderBatch();
         default:
           throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
       }
