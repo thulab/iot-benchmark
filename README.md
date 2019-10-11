@@ -334,7 +334,7 @@ DB_NAME=test
 > NOTE:
 The benchmark can automatically initial database(if ```IS_DELETE_DATA=true```), then there is no need for executing SQL like ```drop database test```.
 
-### Start (With Server System Information Recording)
+### Start 
 
 After configuring the first-time test environment, you can just launch the test by startup script:
 
