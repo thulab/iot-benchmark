@@ -45,9 +45,6 @@ This short guide will walk you through the basic process of using IoTDB-benchmar
 
 ## Data Ingestion Test
 
-> NOTE:
-In current version we re-build the project in every lauching process due to debug requirements so this command is in the launching-test scripts like 'cli-benchmark.sh'. You can just directly start the script. We will delete that when the functions are stable.
-
 ### Configure
 
 Before starting any new test case, you need to config the configuration files 'config.properties' first which is in 'iotdb-benchmark/conf'. For your convenience, we have already set the default config for the following demonstration.
