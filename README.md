@@ -55,7 +55,7 @@ Suppose you are going to test data ingestion performance of IoTDB. You have inst
 +--------------------------+------------+--------------+-------------+------------+-------------------+------+
 | Measurement/StorageGroup | tag/device | field/sensor | concurrency | batch size | point interval(s) | loop |
 +--------------------------+------------+--------------+-------------+------------+-------------------+------+
-|            20            |    20     |      300     |     20      |      1     |         5         | 1000 |
+|            20            |    20      |      300     |     20      |      1     |         5         | 1000 |
 +--------------------------+------------+--------------+-------------+------------+-------------------+------+
 ```
 
@@ -123,7 +123,7 @@ Test elapse time: 11.07 second
 Create schema cost 0.78 second
 --------------------------------------------------Result Matrix--------------------------------------------------
 Operation               okOperation     okPoint         failOperation   failPoint       elapseRate      accRate
-INGESTION               20000           6000000         0               0               542183.26               2830622.39              
+INGESTION               20000           6000000         0               0               542183.26       2830622.39              
 PRECISE_POINT           0               0               0               0               0.00            0.00            
 TIME_RANGE              0               0               0               0               0.00            0.00            
 VALUE_RANGE             0               0               0               0               0.00            0.00            
