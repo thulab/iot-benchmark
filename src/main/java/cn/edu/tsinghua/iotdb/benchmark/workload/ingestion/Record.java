@@ -15,7 +15,6 @@ public class Record {
     return recordDataValue.size();
   }
 
-
   public long getTimestamp() {
     return timestamp;
   }

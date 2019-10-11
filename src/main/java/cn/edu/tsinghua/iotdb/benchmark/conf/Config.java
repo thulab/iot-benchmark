@@ -26,8 +26,8 @@ public class Config {
 	public Config(){
 	}
 
-	public String host="127.0.0.1";
-	public String port="6667";
+	public String HOST ="127.0.0.1";
+	public String PORT ="6667";
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
@@ -59,8 +59,6 @@ public class Config {
 	public boolean MUL_DEV_BATCH = false;
 	/**是否使用prepareStatement*/
 	public boolean USE_PREPARE_STATEMENT = false;
-	/**是否使用iotdb-session插入*/
-	public boolean USE_SESSION = false;
 	/**数据库初始化等待时间ms*/
 	public long INIT_WAIT_TIME=5000;
 	/**是否为批插入乱序模式*/
@@ -106,8 +104,6 @@ public class Config {
  	public String TIMESERIES_TYPE ;
 	/**时序数据取值范围*/
 	public String TIMESERIES_VALUE_SCOPE ;
-	/**样例数据生成路径及文件名*/
-	public String GEN_DATA_FILE_PATH = "/home/liurui/sampleData";
 	/**上一次结果的日志路径*/
 	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
 	/**存放SQL语句文件的完整路径*/
@@ -122,10 +118,6 @@ public class Config {
 	public int[] PRECISION;
 	/** 是否从文件读取数据*/
 	public boolean READ_FROM_FILE = false;
-	/** 一次插入到数据库的条数 */
-	public int BATCH_OP_NUM = 100;
-
-	public boolean TAG_PATH = true;
 
 	public String LOG_STOP_FLAG_PATH;
 
@@ -140,8 +132,6 @@ public class Config {
 	public ArrayList<String> UNSEQUENCE_DIR = new ArrayList<>();
 
 	public int FIRST_DEVICE_INDEX = 0;
-
-	public int STORE_MODE = 1;
 
 	public long LOOP = 10000;
 
@@ -202,7 +192,6 @@ public class Config {
 	//iotDB查询测试相关参数
 	public int QUERY_SENSOR_NUM = 1;
 	public int QUERY_DEVICE_NUM = 1;
-	public int QUERY_CHOICE = 1;
 	public String QUERY_AGGREGATE_FUN = "";
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
 	public double QUERY_LOWER_LIMIT = 0;
@@ -223,7 +212,6 @@ public class Config {
 			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 	//是否将结果写入mysql
 	public boolean IS_USE_MYSQL = false;
-	public boolean IS_SAVE_DATAMODEL = false;
 
 	public String REMARK = "";
 	public String VERSION = "";

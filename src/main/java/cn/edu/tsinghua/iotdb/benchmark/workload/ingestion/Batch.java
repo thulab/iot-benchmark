@@ -1,7 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Batch {
@@ -10,7 +10,7 @@ public class Batch {
   private List<Record> records;
 
   public Batch() {
-    records = new ArrayList<>();
+    records = new LinkedList<>();
   }
 
   public Batch(DeviceSchema deviceSchema, List<Record> records) {

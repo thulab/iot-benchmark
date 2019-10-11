@@ -49,7 +49,7 @@ public class IoTDB implements IDatabase {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection = DriverManager
-          .getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
+          .getConnection(String.format(Constants.URL, config.HOST, config.PORT), Constants.USER,
               Constants.PASSWD);
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);

@@ -31,34 +31,12 @@ public class Constants {
 
     public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 
-    public static final String[] QUERY_CHOICE_NAME = {
-            " ",
-            "Precise",
-            "Fuzzy",
-            "Aggregation",
-            "Range",
-            "Criteria",
-            "Nearest Point",
-            "Group By",
-            "SLimit",
-            "Limit Criteria",
-            "Aggregation Without Filter",
-            "Aggregation With Value Filter"
-    };
-
-    public static final String SAMPLE_DATA_FILE_NAME = "sampleData.txt";
     //different running mode
     public static final String MODE_IMPORT_DATA_FROM_CSV = "importDataFromCSV";
     public static final String MODE_WRITE_WITH_REAL_DATASET = "writeWithRealDataSet";
     public static final String MODE_QUERY_WITH_REAL_DATASET = "queryWithRealDataSet";
-    public static final String MODE_QUERY_TEST_WITH_DEFAULT_PATH = "queryTestWithDefaultPath";
-    public static final String MODE_INSERT_TEST_WITH_DEFAULT_PATH = "insertTestWithDefaultPath";
     public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
     public static final String MODE_SERVER_MODE = "serverMODE";
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
-    public static final String MODE_INSERT_TEST_WITH_USERDEFINED_PATH = "insertTestWithUserDefinedPath";
-    public static final String MODE_EXECUTE_SQL_FROM_FILE = "executeSQLFromFile";
-
-    public static final String EXE_SQL_FROM_FILE_MODE = "1";
 
 }

@@ -10,17 +10,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
 
 public class MetaDateBuilder {
 	private Set<String> storageGroups;
 	private Map<String, Integer> colInfo;
 	private IotdbBasic iotdb;
-	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MetaDateBuilder.class);
 
 	private static final String PATH = "path";
 	private static final String STORAGE_GROUP = "storageGroup";

@@ -2,21 +2,22 @@ package cn.edu.tsinghua.iotdb.benchmark.sersyslog;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-
-import java.io.*;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class FileSize {
     private static Logger log = LoggerFactory.getLogger(FileSize.class);
-    private static Config config;
-    private final String LINUX_FILE_SIZE_CMD = "du -sm %s";
-    private final double MB2GB = 1024.0;
-    private final double ABNORMALVALUE = -1;
+    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final String LINUX_FILE_SIZE_CMD = "du -sm %s";
+    private static final double MB2GB = 1024.0;
+    private static final double ABNORMALVALUE = -1;
     public enum FileSizeKinds {
         DATA(config.IOTDB_DATA_DIR),
         STSTEM(config.IOTDB_SYSTEM_DIR),
@@ -24,32 +25,24 @@ public class FileSize {
         SEQUENCE(config.SEQUENCE_DIR),
         OVERFLOW(config.UNSEQUENCE_DIR);
 
-        public ArrayList<String> path;
+        ArrayList<String> path;
 
         FileSizeKinds(ArrayList<String> path){
             this.path = path;
         }
-    };
+    }
 
     private static class FileSizeHolder {
         private static final FileSize INSTANCE = new FileSize();
     }
 
     private FileSize(){
-        config = ConfigDescriptor.getInstance().getConfig();
-
         switch (config.DB_SWITCH){
             case Constants.DB_IOT:
-
-                break;
-//            case Constants.DB_INFLUX:
-//                FileSizeKinds.DATA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.DB_NAME;
-//                FileSizeKinds.DELTA.path = config.LOG_STOP_FLAG_PATH + "/data/" + config.DB_NAME + "/autogen";
-//                break;
             case Constants.BENCHMARK_IOTDB:
                 break;
             default:
-                log.error("unsupported db name :" + config.DB_SWITCH);
+                log.error("unsupported db name: {}", config.DB_SWITCH);
         }
     }
 
@@ -57,8 +50,8 @@ public class FileSize {
         return FileSizeHolder.INSTANCE;
     }
 
-    public HashMap<FileSizeKinds, Double> getFileSize() {
-        HashMap<FileSizeKinds, Double> fileSize = new HashMap<>();
+    public Map<FileSizeKinds, Double> getFileSize() {
+        Map<FileSizeKinds, Double> fileSize = new EnumMap<>(FileSizeKinds.class);
         BufferedReader in;
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
@@ -79,7 +72,7 @@ public class FileSize {
                     }
                     in.close();
                 } catch (IOException e) {
-                    log.info("Execute command failed: " + command);
+                    log.info("Execute command failed: {}", command);
                 }
             }
             fileSize.put(kinds, fileSizeGB);
