@@ -47,7 +47,7 @@ This short guide will walk you through the basic process of using IoTDB-benchmar
 
 ### Configure
 
-Before starting any new test case, you need to config the configuration files 'config.properties' first which is in 'iotdb-benchmark/conf'. For your convenience, we have already set the default config for the following demonstration.
+Before starting any new test case, you need to config the configuration files ```config.properties``` first which is in ```iotdb-benchmark/conf```. For your convenience, we have already set the default config for the following demonstration.
 
 Suppose you are going to test data ingestion performance of IoTDB. You have installed IoTDB dependencies and launched a IoTDB server with default settings. The IP of the server is 127.0.0.1. Suppose the workload parameters are:
 
@@ -167,7 +167,7 @@ Till now, we have already complete the writing test case without server informat
 
 ## Query Test
 
-###Configure
+### Configure
 
 Edit the corresponding parameters in the ```conf/config.properties``` file as following:
 
