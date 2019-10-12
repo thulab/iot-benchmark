@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
@@ -89,13 +89,13 @@ public class SyntheticWorkload implements IWorkload {
 
   private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
     Batch batch = new Batch();
-    PossionDistribution possionDistribution = new PossionDistribution(poissonRandom);
+    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
         // generate overflow timestamp
-        nextDelta = possionDistribution.getNextPossionDelta();
+        nextDelta = poissonDistribution.getNextPossionDelta();
         stepOffset = maxTimestampIndex - nextDelta;
       } else {
         // generate normal increasing timestamp

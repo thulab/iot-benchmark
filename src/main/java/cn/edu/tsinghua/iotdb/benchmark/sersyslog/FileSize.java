@@ -6,8 +6,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +25,9 @@ public class FileSize {
         SEQUENCE(config.SEQUENCE_DIR),
         OVERFLOW(config.UNSEQUENCE_DIR);
 
-        ArrayList<String> path;
+        List<String> path;
 
-        FileSizeKinds(ArrayList<String> path){
+        FileSizeKinds(List<String> path){
             this.path = path;
         }
     }

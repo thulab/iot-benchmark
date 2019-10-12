@@ -3,9 +3,6 @@ package cn.edu.tsinghua.iotdb.benchmark.utils;
 import org.joda.time.DateTime;
 
 public class TimeUtils {
-	public static long generateTimestamp(long startTime, long interval, long index){
-		return startTime + interval * index;
-	}
 	
 	public static long convertDateStrToTimestamp(String dateStr){
 		DateTime dateTime = new DateTime(dateStr);

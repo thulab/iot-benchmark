@@ -5,9 +5,6 @@ import org.influxdb.dto.Point;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by Administrator on 2017/11/16 0016.
- */
 public class InfluxDataModel {
     public String measurement;
     public HashMap<String, String> tagSet;

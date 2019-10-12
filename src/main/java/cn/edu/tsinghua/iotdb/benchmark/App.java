@@ -30,11 +30,9 @@ import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -190,15 +188,15 @@ public class App {
         }
         CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
 
-        List<List<String>> thread_files = new ArrayList<>();
+        List<List<String>> threadFiles = new ArrayList<>();
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            thread_files.add(new ArrayList<>());
+            threadFiles.add(new ArrayList<>());
         }
 
         for (int i = 0; i < files.size(); i++) {
             String filePath = files.get(i);
             int thread = i % config.CLIENT_NUMBER;
-            thread_files.get(thread).add(filePath);
+            threadFiles.get(thread).add(filePath);
         }
 
         // create CLIENT_NUMBER client threads to do the workloads
@@ -208,7 +206,7 @@ public class App {
         long st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-            Client client = new RealDatasetClient(i, downLatch, config, thread_files.get(i), barrier);
+            Client client = new RealDatasetClient(i, downLatch, config, threadFiles.get(i), barrier);
             clients.add(client);
             executorService.submit(client);
         }
@@ -248,7 +246,7 @@ public class App {
     /**
      * 测试真实数据集
      *
-     * @param config
+     * @param config configurations
      */
     private static void queryWithRealDataSet(Config config) {
         LOGGER.info("use dataset: {}", config.DATA_SET);
@@ -297,6 +295,7 @@ public class App {
         File f = new File(strPath);
         if (f.isDirectory()) {
             File[] fs = f.listFiles();
+            assert fs != null;
             for (File f1 : fs) {
                 String fsPath = f1.getAbsolutePath();
                 getAllFiles(fsPath, files);
@@ -308,8 +307,6 @@ public class App {
 
     /**
      * 将数据从CSV文件导入IOTDB
-     *
-     * @throws SQLException
      */
     private static void importDataFromCSV(Config config) throws SQLException {
         MetaDateBuilder builder = new MetaDateBuilder();
@@ -362,7 +359,7 @@ public class App {
                         openFileList, "");
 
                 try {
-                    Thread.sleep(interval * 1000);
+                    Thread.sleep(interval * 1000L);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -416,7 +413,6 @@ public class App {
                     ArrayList<Float> netUsageList = NetUsage.getInstance().get();
                     LOGGER.info("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
                     start = System.currentTimeMillis();
-//                    ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
                     ArrayList<Integer> openFileList = new ArrayList<>();
                     for (int i = 0; i < 9; i++) {
                         openFileList.add(-1);
@@ -480,7 +476,7 @@ public class App {
                                 openFileList.get(7), openFileList.get(8)));
                     }
                     try {
-                        Thread.sleep(interval * 1000);
+                        Thread.sleep(interval * 1000L);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -507,30 +503,6 @@ public class App {
             }
         }
 
-    }
-
-    static class LongComparator implements Comparator<Long> {
-        @Override
-        public int compare(Long p1, Long p2) {
-            if (p1 < p2) {
-                return -1;
-            } else if (Objects.equals(p1, p2)) {
-                return 0;
-            } else {
-                return 1;
-            }
-        }
-    }
-
-    /**
-     * 计算list中所有元素的和
-     */
-    private static long getSumOfList(ArrayList<Long> list) {
-        long total = 0;
-        for (long c : list) {
-            total += c;
-        }
-        return total;
     }
 
 }

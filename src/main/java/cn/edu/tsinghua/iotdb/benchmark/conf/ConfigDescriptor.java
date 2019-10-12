@@ -94,19 +94,18 @@ public class ConfigDescriptor {
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
 
-				config.MYSQL_URL = properties.getProperty("MYSQL_URL", "jdbc:mysql://166.111.141.168:3306/benchmark?"
-						+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false");
+				config.MYSQL_URL = properties.getProperty("MYSQL_URL", config.MYSQL_URL);
 				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
 				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
-				String data_dir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
-				Collections.addAll(config.IOTDB_DATA_DIR, data_dir.split(","));
-				String wal_dir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
-				Collections.addAll(config.IOTDB_WAL_DIR, wal_dir.split(","));
-				String system_dir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
-				Collections.addAll(config.IOTDB_SYSTEM_DIR, system_dir.split(","));
+				String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
+				Collections.addAll(config.IOTDB_DATA_DIR, dataDir.split(","));
+				String walDir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
+				Collections.addAll(config.IOTDB_WAL_DIR, walDir.split(","));
+				String systemDir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
+				Collections.addAll(config.IOTDB_SYSTEM_DIR, systemDir.split(","));
 				for (String data_ : config.IOTDB_DATA_DIR) {
 					config.SEQUENCE_DIR.add(data_ + "/sequence");
 					config.UNSEQUENCE_DIR.add(data_ + "/unsequence");
@@ -158,9 +157,9 @@ public class ConfigDescriptor {
 				//config.FIRST_DEVICE_INDEX = Integer.parseInt(properties.getProperty("FIRST_DEVICE_INDEX", config.FIRST_DEVICE_INDEX+""));
 //				String[] split = config.DB_URL.split("\\.");
 //				config.FIRST_DEVICE_INDEX = Integer.parseInt(split[split.length-1].split(":")[0]) * config.DEVICE_NUMBER;
-				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER+""));
+				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER + ""));
 				if (config.USE_CLUSTER){
-					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX+""));
+					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX + ""));
 					config.FIRST_DEVICE_INDEX = config.FIRST_INDEX * config.DEVICE_NUMBER;
 				}
 				else {
@@ -179,13 +178,6 @@ public class ConfigDescriptor {
 		} else {
 			LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);
 		}
-	}
-
-
-
-	public static void main(String[] args) {
-
-
 	}
 
 }

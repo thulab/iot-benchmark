@@ -2,20 +2,15 @@ package cn.edu.tsinghua.iotdb.benchmark.distribution;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
 import java.util.Random;
 
-public class PossionDistribution {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PossionDistribution.class);
+public class PoissonDistribution {
     private Config config ;
     private double lambda;
     private Random random;
     private int deltaKinds;
-    private final double basicModelLambda = 10;
-    private final int basicModelMaxK = 25;
+    private static final double BASIC_MODEL_LAMBDA = 10;
+    private static final int BASIC_MODEL_MAX_K = 25;
 
 
     public void setLambda(double lambda) {
@@ -26,7 +21,7 @@ public class PossionDistribution {
         this.deltaKinds = deltaKinds;
     }
 
-    public PossionDistribution(Random ran) {
+    public PoissonDistribution(Random ran) {
         this.config = ConfigDescriptor.getInstance().getConfig();
         this.random = ran;
         this.lambda = config.LAMBDA;
@@ -34,25 +29,13 @@ public class PossionDistribution {
     }
 
     private double getPossionProbability(int k, double la) {
-        double c = Math.exp(-la), sum = 1;
+        double c = Math.exp(-la);
+        double sum = 1;
         for (int i = 1; i <= k; i++) {
             sum *= la / i;
         }
         return sum * c;
     }
-
-    /*
-    public int getPossionVariable() {
-        int x = 0;
-        double y = random.nextDouble();
-        double cdf = getPossionProbability(x);
-        while (cdf < y) {
-            x++;
-            cdf += getPossionProbability(x);
-        }
-        return x;
-    }
-    */
 
     public int getNextPossionDelta() {
         int nextDelta = 0;
@@ -78,31 +61,31 @@ public class PossionDistribution {
             }
         }else{
             double rand = random.nextDouble();
-            double[] p = new double[basicModelMaxK];
+            double[] p = new double[BASIC_MODEL_MAX_K];
             double sum = 0;
-            for (int i = 0; i < basicModelMaxK - 1; i++) {
-                p[i] = getPossionProbability(i,basicModelLambda);
+            for (int i = 0; i < BASIC_MODEL_MAX_K - 1; i++) {
+                p[i] = getPossionProbability(i, BASIC_MODEL_LAMBDA);
                 sum += p[i];
             }
-            p[basicModelMaxK - 1] = 1 - sum;
-            double[] range = new double[basicModelMaxK + 1];
+            p[BASIC_MODEL_MAX_K - 1] = 1 - sum;
+            double[] range = new double[BASIC_MODEL_MAX_K + 1];
             range[0] = 0;
-            for (int i = 0; i < basicModelMaxK; i++) {
+            for (int i = 0; i < BASIC_MODEL_MAX_K; i++) {
                 range[i + 1] = range[i] + p[i];
             }
-            for (int i = 0; i < basicModelMaxK; i++) {
+            for (int i = 0; i < BASIC_MODEL_MAX_K; i++) {
                 nextDelta++;
                 if (isBetween(rand, range[i], range[i + 1])) {
                     break;
                 }
             }
             double step;
-            if(nextDelta <= basicModelLambda){
-                step = lambda /basicModelLambda  ;
+            if(nextDelta <= BASIC_MODEL_LAMBDA){
+                step = lambda / BASIC_MODEL_LAMBDA;
             }else{
-                step =  (deltaKinds - lambda) / (basicModelMaxK - basicModelLambda) ;
+                step =  (deltaKinds - lambda) / (BASIC_MODEL_MAX_K - BASIC_MODEL_LAMBDA) ;
             }
-            nextDelta = (int)(lambda + ((nextDelta - basicModelLambda) * step)) ;
+            nextDelta = (int)(lambda + ((nextDelta - BASIC_MODEL_LAMBDA) * step)) ;
         }
         return nextDelta;
     }
