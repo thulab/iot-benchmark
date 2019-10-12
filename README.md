@@ -1,3 +1,39 @@
+# IoTDB-Benchmark
+![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux-yellow.svg)
+![](https://img.shields.io/badge/java--language-1.8-blue.svg)
+
+# Table of Contents
+
+<!-- MarkdownTOC autolink="true" -->
+
+- [Overview](#overview)
+- [Main Features](#main-features)
+- [Prerequisites](#prerequisites)
+- [Build](#build)
+- [Quick Start](#quick-start)
+	- [Data Ingestion Test](#data-ingestion-test)
+		- [Configure](#configure)
+		- [Start \(Without Server System Information Recording\)](#start-without-server-system-information-recording)
+		- [Execute](#execute)
+- [Other Cases](#other-cases)
+	- [Query Test](#query-test)
+		- [Configure](#configure-1)
+		- [Start \(Without Server System Information Recording\)](#start-without-server-system-information-recording-1)
+		- [Execute](#execute-1)
+	- [Test IoTDB With Server System Information Recording](#test-iotdb-with-server-system-information-recording)
+		- [Configure](#configure-2)
+		- [Start \(With Server System Information Recording\)](#start-with-server-system-information-recording)
+	- [Test InfluxDB](#test-influxdb)
+		- [Configure](#configure-3)
+		- [Start](#start)
+	- [Perform Multiple Tests Automatically](#perform-multiple-tests-automatically)
+		- [Configure](#configure-4)
+		- [Start](#start-1)
+	- [MySQL Integration](#mysql-integration)
+- [Related Article](#related-article)
+
+<!-- /MarkdownTOC -->
+
 # Overview
 
 IoTDB-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
