@@ -318,9 +318,9 @@ public class App {
     private static void clientSystemInfo(Config config) {
         double abnormalValue = -1;
         MySqlRecorder mySql = new MySqlRecorder();
-        File dir = new File(config.LOG_STOP_FLAG_PATH);
+        File dir = new File(config.DB_DATA_PATH);
         if (dir.exists() && dir.isDirectory()) {
-            File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
+            File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
             int interval = config.INTERVAL;
             HashMap<IoUsage.IOStatistics, Float> ioStatistics;
             // 检测所需的时间在目前代码的参数下至少为2秒
@@ -372,7 +372,7 @@ public class App {
                 }
             }
         } else {
-            LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
+            LOGGER.error("DB_DATA_PATH not exist!");
         }
 
         mySql.closeMysql();
@@ -383,7 +383,7 @@ public class App {
      */
     private static void serverMode(Config config) {
         MySqlRecorder mySql = new MySqlRecorder();
-        File dir = new File(config.LOG_STOP_FLAG_PATH);
+        File dir = new File(config.DB_DATA_PATH);
 
         boolean write2File = false;
         BufferedWriter out = null;
@@ -399,7 +399,7 @@ public class App {
             }
 
             if (dir.exists() && dir.isDirectory()) {
-                File file = new File(config.LOG_STOP_FLAG_PATH + "/log_stop_flag");
+                File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
                 Map<FileSize.FileSizeKinds, Double> fileSizeStatistics;
                 HashMap<IoUsage.IOStatistics, Float> ioStatistics;
                 int interval = config.INTERVAL;
@@ -489,7 +489,7 @@ public class App {
                     }
                 }
             } else {
-                LOGGER.error("LOG_STOP_FLAG_PATH not exist!");
+                LOGGER.error("DB_DATA_PATH not exist!");
             }
         } catch (IOException e) {
             e.printStackTrace();

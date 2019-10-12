@@ -47,8 +47,6 @@ public class Config {
 	public String COMPRESSOR = "UNCOMPRESSED";
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
-	/**是否使用prepareStatement*/
-	public boolean USE_PREPARE_STATEMENT = false;
 	/**数据库初始化等待时间ms*/
 	public long INIT_WAIT_TIME=5000;
 	/**是否为批插入乱序模式*/
@@ -94,10 +92,6 @@ public class Config {
  	public String TIMESERIES_TYPE ;
 	/**时序数据取值范围*/
 	public String TIMESERIES_VALUE_SCOPE ;
-	/**上一次结果的日志路径*/
-	public String LAST_RESULT_PATH = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/logs";
-	/**存放SQL语句文件的完整路径*/
-	public String SQL_FILE = "/var/lib/jenkins/workspace/IoTDBWeeklyTest/iotdb-benchmark/SQLFile";
 	/** 文件的名字 */
 	public String FILE_PATH;
 	/** 数据集的名字 */
@@ -106,10 +100,8 @@ public class Config {
 	public List<String> FIELDS;
 	/** 数据集的传感器的精度 */
 	public int[] PRECISION;
-	/** 是否从文件读取数据*/
-	public boolean READ_FROM_FILE = false;
 
-	public String LOG_STOP_FLAG_PATH;
+	public String DB_DATA_PATH;
 
 	public List<String> IOTDB_DATA_DIR = new ArrayList<>();
 

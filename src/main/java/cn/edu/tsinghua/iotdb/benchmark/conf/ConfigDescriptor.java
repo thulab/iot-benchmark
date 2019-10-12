@@ -76,7 +76,6 @@ public class ConfigDescriptor {
 				config.RANDOM_RATIO = Double.parseDouble(properties.getProperty("RANDOM_RATIO", config.RANDOM_RATIO+""));
 				config.CONSTANT_RATIO = Double.parseDouble(properties.getProperty("CONSTANT_RATIO", config.CONSTANT_RATIO+""));
 
-				config.READ_FROM_FILE = Boolean.parseBoolean(properties.getProperty("READ_FROM_FILE", config.READ_FROM_FILE+""));
 				config.INTERVAL = Integer.parseInt(properties.getProperty("INTERVAL", config.INTERVAL+""));
 				config.CLIENT_NUMBER = Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.CLIENT_NUMBER+""));
 				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
@@ -99,7 +98,7 @@ public class ConfigDescriptor {
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
-				config.LOG_STOP_FLAG_PATH = properties.getProperty("LOG_STOP_FLAG_PATH", "/home/liurui");
+				config.DB_DATA_PATH = properties.getProperty("DB_DATA_PATH", "/home/liurui");
 				String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
 				Collections.addAll(config.IOTDB_DATA_DIR, dataDir.split(","));
 				String walDir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
@@ -122,8 +121,6 @@ public class ConfigDescriptor {
 				config.TIMESERIES_VALUE_SCOPE = properties.getProperty("TIMESERIES_VALUE_SCOPE", config.TIMESERIES_VALUE_SCOPE);
 				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
 				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
-				config.LAST_RESULT_PATH = properties.getProperty("LAST_RESULT_PATH", config.LAST_RESULT_PATH);
-				config.SQL_FILE = properties.getProperty("SQL_FILE", config.SQL_FILE);
 
 				config.BENCHMARK_WORK_MODE = properties.getProperty("BENCHMARK_WORK_MODE", "");
 				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
@@ -151,12 +148,8 @@ public class ConfigDescriptor {
 				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
 				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
 				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
-				config.USE_PREPARE_STATEMENT = Boolean.parseBoolean(properties.getProperty("USE_PREPARE_STATEMENT", config.USE_PREPARE_STATEMENT+""));
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
 				config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
-				//config.FIRST_DEVICE_INDEX = Integer.parseInt(properties.getProperty("FIRST_DEVICE_INDEX", config.FIRST_DEVICE_INDEX+""));
-//				String[] split = config.DB_URL.split("\\.");
-//				config.FIRST_DEVICE_INDEX = Integer.parseInt(split[split.length-1].split(":")[0]) * config.DEVICE_NUMBER;
 				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER + ""));
 				if (config.USE_CLUSTER){
 					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX + ""));

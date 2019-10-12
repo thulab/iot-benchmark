@@ -18,11 +18,11 @@ SSH_PORT=2222
 
 #extract parameters from config.properties
 IP=$(grep "HOST" $BENCHMARK_HOME/conf/config.properties)
-FLAG_AND_DATA_PATH=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/config.properties)
+FLAG_AND_DATA_PATH=$(grep "DB_DATA_PATH" $BENCHMARK_HOME/conf/config.properties)
 SERVER_HOST=$HOST_NAME@${IP#*=}
-LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
-CLIENT_LOG_STOP_FLAG_PATH_LINE=$(grep "LOG_STOP_FLAG_PATH" $BENCHMARK_HOME/conf/clientSystemInfo.properties)
-CLIENT_LOG_STOP_FLAG_PATH=${CLIENT_LOG_STOP_FLAG_PATH_LINE#*=}
+DB_DATA_PATH=${FLAG_AND_DATA_PATH#*=}
+CLIENT_DB_DATA_PATH_LINE=$(grep "DB_DATA_PATH" $BENCHMARK_HOME/conf/clientSystemInfo.properties)
+CLIENT_DB_DATA_PATH=${CLIENT_DB_DATA_PATH_LINE#*=}
 
 
 
@@ -36,18 +36,18 @@ rm -rf lib
 mvn clean package -Dmaven.test.skip=true
 
 #prepare for client system info recording benchmark
-if [ -d $CLIENT_LOG_STOP_FLAG_PATH ]; then
+if [ -d $CLIENT_DB_DATA_PATH ]; then
 #    MYSQL_URL_LINE=$(grep "MYSQL_URL" $BENCHMARK_HOME/conf/config.properties)
 #    MYSQL_URL_VALUE=${MYSQL_URL_LINE#*=}
 #    IS_USE_MYSQL_LINE=$(grep "IS_USE_MYSQL" $BENCHMARK_HOME/conf/config.properties)
 #    IS_USE_MYSQL_VALUE=${IS_USE_MYSQL_LINE#*=}
-#    sed -i "s/^MYSQL_URL.*$/MYSQL_URL=${MYSQL_URL_VALUE}/g" $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
-#    sed -i "s/^IS_USE_MYSQL.*$/MYSQL_URL=${IS_USE_MYSQL_VALUE}/g" $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
+#    sed -i "s/^MYSQL_URL.*$/MYSQL_URL=${MYSQL_URL_VALUE}/g" $CLIENT_DB_DATA_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
+#    sed -i "s/^IS_USE_MYSQL.*$/MYSQL_URL=${IS_USE_MYSQL_VALUE}/g" $CLIENT_DB_DATA_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
 #
-    ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
+    ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_DB_DATA_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
     else
-    ssh $HOST_NAME@127.0.0.1 "mkdir $CLIENT_LOG_STOP_FLAG_PATH;cp -r ${BENCHMARK_HOME} $CLIENT_LOG_STOP_FLAG_PATH"
-    ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_LOG_STOP_FLAG_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
+    ssh $HOST_NAME@127.0.0.1 "mkdir $CLIENT_DB_DATA_PATH;cp -r ${BENCHMARK_HOME} $CLIENT_DB_DATA_PATH"
+    ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_DB_DATA_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
 fi
 
 #synchronize config server benchmark
@@ -57,11 +57,11 @@ if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
     ssh -p $SSH_PORT $SERVER_HOST "sh $REMOTE_BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &"
 
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
-        COMMIT_ID=$(ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;git rev-parse HEAD")
+        COMMIT_ID=$(ssh -p $SSH_PORT $SERVER_HOST "cd $DB_DATA_PATH;git rev-parse HEAD")
         sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
         echo "initial database in server..."
-        ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
-        ssh -p $SSH_PORT $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
+        ssh -p $SSH_PORT $SERVER_HOST "cd $DB_DATA_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
+        ssh -p $SSH_PORT $SERVER_HOST "cd $DB_DATA_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
         echo 'wait a few seconds for lauching IoTDB...'
         sleep 20
     fi
@@ -71,7 +71,7 @@ if [ "${IS_SSH_CHANGE_PORT#*=}" = "true" ]; then
     sh startup.sh -cf ../conf/config.properties
     wait
     #stop server system information recording
-    ssh -p $SSH_PORT $SERVER_HOST "touch $LOG_STOP_FLAG_PATH/log_stop_flag"
+    ssh -p $SSH_PORT $SERVER_HOST "touch $DB_DATA_PATH/log_stop_flag"
 else
     #If IP is localhost not trigger off server mode
     if [ "${IP#*=}" != "127.0.0.1" ]; then
@@ -82,11 +82,11 @@ else
     fi
 
     if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
-      COMMIT_ID=$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;git rev-parse HEAD")
+      COMMIT_ID=$(ssh $SERVER_HOST "cd $DB_DATA_PATH;git rev-parse HEAD")
       sed -i "s/^VERSION.*$/VERSION=${COMMIT_ID}/g" $BENCHMARK_HOME/conf/config.properties
       echo "initial database in server..."
-      ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
-      ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
+      ssh $SERVER_HOST "cd $DB_DATA_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
+      ssh $SERVER_HOST "cd $DB_DATA_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 &"
       echo 'wait a few seconds for lauching IoTDB...'
       sleep 20
     fi
@@ -97,18 +97,18 @@ else
     wait
     if [ "${IP#*=}" != "127.0.0.1" ]; then
         #stop server system information recording
-        ssh $SERVER_HOST "touch $LOG_STOP_FLAG_PATH/log_stop_flag"
+        ssh $SERVER_HOST "touch $DB_DATA_PATH/log_stop_flag"
     fi
 fi
 
-#ssh $SERVER_HOST "grep Statistic $LOG_STOP_FLAG_PATH/logs/log_info.log | tail -n 1 " >> $BENCHMARK_HOME/logs/MemoryMonitor.log
+#ssh $SERVER_HOST "grep Statistic $DB_DATA_PATH/logs/log_info.log | tail -n 1 " >> $BENCHMARK_HOME/logs/MemoryMonitor.log
 
 #if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "insertTestWithDefaultPath" ]; then
     #ssh $SERVER_HOST "tail -n 2 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_info.log
     #ssh $SERVER_HOST "tail -n 1 $REMOTE_BENCHMARK_HOME/logs/log_info.log" >> $BENCHMARK_HOME/logs/log_result_info.txt
 #fi
 ##stop system info recording on client machine
-touch $CLIENT_LOG_STOP_FLAG_PATH/log_stop_flag
+touch $CLIENT_DB_DATA_PATH/log_stop_flag
 
 echo '------Client Test Complete Time------'
 date
