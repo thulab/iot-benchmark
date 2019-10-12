@@ -251,7 +251,7 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.debug("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
+    LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     long startTimeStamp = System.nanoTime();
     QueryResult results = influxDbInstance.query(new Query(sql, influxDbName));
     int cnt = 0;

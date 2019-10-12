@@ -2,7 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -54,13 +54,13 @@ public class SingletonWorkload {
     int deviceIndex = (int) (curLoop % config.DEVICE_NUMBER);
     DeviceSchema deviceSchema = new DeviceSchema(deviceIndex);
     Batch batch = new Batch();
-    PossionDistribution possionDistribution = new PossionDistribution(poissonRandom);
+    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
         // generate overflow timestamp
-        nextDelta = possionDistribution.getNextPossionDelta();
+        nextDelta = poissonDistribution.getNextPossionDelta();
         stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).get() - nextDelta;
       } else {
         // generate normal increasing timestamp

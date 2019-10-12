@@ -47,7 +47,7 @@ public class TimescaleDB implements IDatabase {
     try {
       Class.forName(Constants.POSTGRESQL_JDBC_NAME);
       connection = DriverManager.getConnection(
-          String.format(Constants.POSTGRESQL_URL, config.host, config.port, config.DB_NAME),
+          String.format(Constants.POSTGRESQL_URL, config.HOST, config.PORT, config.DB_NAME),
           Constants.POSTGRESQL_USER,
           Constants.POSTGRESQL_PASSWD
       );
@@ -263,7 +263,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
-    LOGGER.info("{} 提交执行的查询SQL: {}", Thread.currentThread().getName(), sql);
+    LOGGER.info("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     long st;
     long en;
     int line = 0;

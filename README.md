@@ -6,10 +6,8 @@ Databases currently supported:
 
 + IoTDB
 + InfluxDB
-+ OpenTSDB
 + KairosDB
 + TimescaleDB
-+ CTSDB
 
 # Main Features
 
@@ -24,21 +22,14 @@ IoTDB-benchmark's features are as following:
 
 To use IoTDB-benchmark, you need to have:
 
-1. Java >= 1.8
-2. Maven >= 3.0 (If you want to compile and install IoTDB from source code)
-3. TsFile >= 0.7.1 (TsFile Github page: [https://github.com/thulab/tsfile](https://github.com/thulab/tsfile))
-4. IoTDB-JDBC >= 0.7.1 (IoTDB-JDBC Github page: [https://github.com/thulab/iotdb-jdbc](https://github.com/thulab/iotdb-jdbc))
-5. IoTDB >= 0.7.1 (IoTDB Github page: [https://github.com/thulab/iotdb](https://github.com/thulab/iotdb))
-6. InfluxDB >= 1.3.7
-7. influxdb-comparisons (If you want to use the load-data-from-file mode)
-8. sysstat (If you want to record system information of DB-server during test)
-9. other database system under test
+1. Java 8
+2. Maven (If you want to compile and install IoTDB from source code)
+3. Apache IoTDB v0.8.0 ([https://github.com/apache/incubator-iotdb](https://github.com/apache/incubator-iotdb))
+4. InfluxDB >= 1.3.7
+5. other database system under test
+6. sysstat (If you want to record system information of DB-server during test)
 
-# Quick Start
-
-This short guide will walk you through the basic process of using IoTDB-benchmark.
-
-## Build
+# Build
 
 You can build IoTDB-benchmark using Maven:
 
@@ -46,34 +37,40 @@ You can build IoTDB-benchmark using Maven:
 mvn clean package -Dmaven.test.skip=true
 ```
 
-> NOTE:
-In current version we re-build the project in every lauching process due to debug requirements so this command is in the launching-test scripts like 'cli-benchmark.sh'. You can just directly start the script. We will delete that when the functions are stable.
+> This step is not necessary since the ```benchmark.sh``` script will build the project every time. You can comment the corresponding command to save time.
 
-## Configure
+# Quick Start
 
-Before starting any new test case, you need to config the configuration files 'config.properties' first which is in 'iotdb-benchmark/conf'. For your convenience, we have already set the default config for the following demonstration.
+This short guide will walk you through the basic process of using IoTDB-benchmark.
 
-Suppose you are going to test writing performance of IoTDB and you do not care about the system information of the IoTDB server. You have installed IoTDB in a IoTDB server with default settings and the IP of this server is 192.168.130.9. You want to test it under the parameter setting as following:
+## Data Ingestion Test
+
+### Configure
+
+Before starting any new test case, you need to config the configuration files ```config.properties``` first which is in ```iotdb-benchmark/conf```. For your convenience, we have already set the default config for the following demonstration.
+
+Suppose you are going to test data ingestion performance of IoTDB. You have installed IoTDB dependencies and launched a IoTDB server with default settings. The IP of the server is 127.0.0.1. Suppose the workload parameters are:
 
 ```
 +--------------------------+------------+--------------+-------------+------------+-------------------+------+
 | Measurement/StorageGroup | tag/device | field/sensor | concurrency | batch size | point interval(s) | loop |
 +--------------------------+------------+--------------+-------------+------------+-------------------+------+
-|            10            |    100     |      100     |     10      |      1     |         5         | 1000 |
+|            20            |    20      |      300     |     20      |      1     |         5         | 1000 |
 +--------------------------+------------+--------------+-------------+------------+-------------------+------+
 ```
 
-Then you are supposed to edit the 'config.properties' file as following:
+edit the corresponding parameters in the ```conf/config.properties``` file as following:
 
 ```
-HOST=192.168.130.9
+HOST=127.0.0.1
 PORT=6667
 DB_SWITCH=IoTDB
-BENCHMARK_WORK_MODE=insertTestWithDefaultPath
-GROUP_NUMBER=10
-DEVICE_NUMBER=100
-SENSOR_NUMBER=100
-CLIENT_NUMBER=10
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OPERATION_PROPORTION=2:0:0:0:0:0:0:0:0
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
 BATCH_SIZE=1
 POINT_STEP=5000
 LOOP=1000
@@ -82,7 +79,7 @@ LOOP=1000
 > NOTE:
 Other irrelevant parameters are omitted. You can just set as default. We will cover them later in other cases.
 
-## Start (Without Server System Information Recording)
+### Start (Without Server System Information Recording)
 
 Running the startup script, currently we only support Unix/OS X system: 
 
@@ -90,44 +87,193 @@ Running the startup script, currently we only support Unix/OS X system:
 > ./benchmark.sh
 ```
 
-## Execute 
+### Execute 
 
 Now after launching the test, you will see testing information rolling like following: 
 
 ```
 ···
-2017-11-16 17:38:46,115 INFO  cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB:196 - pool-1-thread-2 execute 0 loop, it costs 0.032s, totalTime1.976, throughput 468750.0 points/s 
-2017-11-16 17:38:46,118 INFO  cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB:196 - pool-1-thread-1 execute 0 loop, it costs 0.032s, totalTime1.836, throughput 468750.0 points/s 
+2019-10-11 21:55:25,657 INFO  cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper:57 - pool-1-thread-16 insert one batch latency (device: d_8, sg: group_8) ,2.51, ms, throughput ,119593.23947390135, points/s 
+2019-10-11 21:55:25,657 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:123 - pool-1-thread-16 99.90% syntheticWorkload is done. 
 ···
 ```
-
-Each line contains information about every batch test, including:
-+ client thread index 
-+ loop index
-+ batch test time cost
-+ corresponding client thread current total time cost
-+ throughput during this batch
 
 When test is done, the last two lines of testing information will be like following: 
 
 ```
-2017-11-18 16:04:19,997 INFO  cn.edu.tsinghua.iotdb.benchmark.App:142 - loaded ,1000000000, points in ,2201.669,s with ,10, workers (mean rate ,454200.88, points/s) 
-2017-11-18 16:04:19,998 INFO  cn.edu.tsinghua.iotdb.benchmark.App:150 - total error num is ,0, create schema cost ,6.643,s
+2019-10-11 21:55:25,679 INFO  cn.edu.tsinghua.iotdb.benchmark.App:231 - All clients finished. 
+----------------------Test Configurations----------------------
+DB_SWITCH: IoTDB
+OPERATION_PROPORTION: 2:0:0:0:0:0:0:0:0
+IS_CLIENT_BIND: false
+CLIENT_NUMBER: 20
+GROUP_NUMBER: 20
+DEVICE_NUMBER: 20
+SENSOR_NUMBER: 300
+BATCH_SIZE: 1
+LOOP: 1000
+POINT_STEP: 5000
+QUERY_INTERVAL: 250000
+IS_OVERFLOW: false
+OVERFLOW_MODE: 0
+OVERFLOW_RATIO: 0.5
+---------------------------------------------------------------
+main measurements:
+Test elapse time: 11.07 second
+Create schema cost 0.78 second
+--------------------------------------------------Result Matrix--------------------------------------------------
+Operation               okOperation     okPoint         failOperation   failPoint       elapseRate      accRate
+INGESTION               20000           6000000         0               0               542183.26       2830622.39              
+PRECISE_POINT           0               0               0               0               0.00            0.00            
+TIME_RANGE              0               0               0               0               0.00            0.00            
+VALUE_RANGE             0               0               0               0               0.00            0.00            
+AGG_RANGE               0               0               0               0               0.00            0.00            
+AGG_VALUE               0               0               0               0               0.00            0.00            
+AGG_RANGE_VALUE         0               0               0               0               0.00            0.00            
+GROUP_BY                0               0               0               0               0.00            0.00            
+LATEST_POINT            0               0               0               0               0.00            0.00            
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------Latency (ms) Matrix-----------------------------------------------
+Operation       AVG     MID_AVG MIN     P10     P25     MEDIAN  P75     P90     P95     P99     MAX     MAX_SUM 
+INGESTION       1.99    1.19    0.55    0.86    0.92    1.06    1.47    2.23    3.03    13.76   299.26  2119.68 
+PRECISE_POINT   0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+TIME_RANGE      0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+VALUE_RANGE     0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+AGG_RANGE       0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+AGG_VALUE       0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+AGG_RANGE_VALUE 0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+GROUP_BY        0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+LATEST_POINT    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+-----------------------------------------------------------------------------------------------------------------
 ```
 
-These two lines contain overall information of this test case, including:
-+ total points inserted
-+ insertion excuting time cost
-+ client thread number
-+ mean throughput
-+ total error number
-+ creating schema time cost
+The output contains overall information of the test including:
++ Main configurations
++ Total elapse time during the test
++ Time cost of schema creation
++ okOperation: successfully executed request/SQL number for different operations
++ okPoint: successfully ingested data point number or successfully returned query result point number
++ failOperation: the request/SQL number failed to execute for different operations
++ failPoint: the data point number failed to ingest (for query operations currently this field is always zero)
++ elapseRate: equals to ```okPoint / Test elapse time```
++ accRate(accurate/accumulative rate): equals to ```okPoint / MAX_SUM * 1000```, where ```MAX_SUM``` is the max accumulative operation(database API) time-cost of among the client threads
++ The latency statistics of different operations in millisecond
 
 All these information will be logged in 'iotdb-benchmark/logs' directory on client server.
 
 Till now, we have already complete the writing test case without server information recording. For more advanced usage of IoTDB-benchmark, please follow the 'Other Case' instruction.
 
 # Other Cases
+
+## Query Test
+
+### Configure
+
+Edit the corresponding parameters in the ```conf/config.properties``` file as following:
+
+```
+### Main Data Ingestion and Query Shared Parameters
+HOST=127.0.0.1
+PORT=6667
+DB_SWITCH=IoTDB
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OPERATION_PROPORTION=0:1:2:1:1:1:1:1:1
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
+BATCH_SIZE=1
+POINT_STEP=5000
+# the operation number executed by each client thread
+LOOP=1000
+
+### Main Query Related Parameters
+# the number of sensor involved in each query request or SQL 
+QUERY_SENSOR_NUM=1
+# the number of device involved in each query request or SQL 
+QUERY_DEVICE_NUM=1
+# the aggregation function for aggregate query
+QUERY_AGGREGATE_FUN=count
+# the variation step of time range query condition for different operation epoch
+STEP_SIZE=1
+# the time range interval of time range query condition
+QUERY_INTERVAL=250000
+# the aggregation granularity of group-by (down-sampling) query
+TIME_UNIT=20000
+```
+
+> NOTE:
+Usually the query test is performed after the data ingestion test. Of course you can add ingestion operation at the same time by setting ```OPERATION_PROPORTION=INGEST:1:2:1:1:1:1:1:1``` as long as ```INGEST``` is not zero, since the parameter ```OPERATION_PROPORTION``` is to control the proportion of different operations including ingestion and query operations.
+
+
+### Start (Without Server System Information Recording)
+
+Running the startup script: 
+
+```
+> ./benchmark.sh
+```
+
+### Execute 
+
+Now after launching the test, you will see testing information rolling like following: 
+
+```
+···
+2019-10-11 23:17:59,314 INFO  cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper:242 - pool-1-thread-7 complete RANGE_QUERY with latency ,9.11, ms ,51, result points 
+2019-10-11 23:17:59,314 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:123 - pool-1-thread-7 40.00% syntheticWorkload is done. 
+2019-10-11 23:17:59,315 INFO  cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB:328 - pool-1-thread-7 query SQL: SELECT s_161 FROM root.group_12.d_12 WHERE time >= 2018-09-20 00:00:15 AND time <= 2018-09-20 00:04:25 AND root.group_12.d_12.s_161 > -5.0 
+···
+```
+
+When test is done, the last two lines of testing information will be like following: 
+
+```
+2019-10-11 23:17:59,472 INFO  cn.edu.tsinghua.iotdb.benchmark.App:231 - All clients finished. 
+----------------------Test Configurations----------------------
+DB_SWITCH: IoTDB
+OPERATION_PROPORTION: 0:1:2:1:1:1:1:1:1
+IS_CLIENT_BIND: false
+CLIENT_NUMBER: 20
+GROUP_NUMBER: 20
+DEVICE_NUMBER: 20
+SENSOR_NUMBER: 300
+BATCH_SIZE: 1
+LOOP: 10
+POINT_STEP: 5000
+QUERY_INTERVAL: 250000
+IS_OVERFLOW: false
+OVERFLOW_MODE: 0
+OVERFLOW_RATIO: 0.5
+---------------------------------------------------------------
+main measurements:
+Test elapse time: 0.43 second
+Create schema cost 0.00 second
+--------------------------------------------------Result Matrix--------------------------------------------------
+Operation               okOperation     okPoint         failOperation   failPoint       elapseRate      accRate
+INGESTION               0               0               0               0               0.00            0.00            
+PRECISE_POINT           26              26              0               0               61.04           413.49          
+TIME_RANGE              27              1377            0               0               3232.57         16822.62                
+VALUE_RANGE             18              918             0               0               2155.05         17844.87                
+AGG_RANGE               16              16              0               0               37.56           314.56          
+AGG_VALUE               16              16              0               0               37.56           267.43          
+AGG_RANGE_VALUE         46              46              0               0               107.99          416.17          
+GROUP_BY                15              195             0               0               457.77          9267.95         
+LATEST_POINT            36              36              0               0               84.51           482.57          
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------Latency (ms) Matrix-----------------------------------------------
+Operation       AVG     MID_AVG MIN     P10     P25     MEDIAN  P75     P90     P95     P99     MAX     MAX_SUM 
+INGESTION       0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
+PRECISE_POINT   12.97   11.51   1.74    4.33    7.56    10.90   17.01   26.82   27.79   35.16   35.16   62.88   
+TIME_RANGE      16.89   15.19   7.15    7.92    9.26    16.09   21.25   31.88   36.90   38.50   38.50   81.85   
+VALUE_RANGE     13.95   12.38   2.35    2.48    7.83    13.19   20.24   31.32   31.75   31.75   31.75   51.44   
+AGG_RANGE       14.27   11.60   4.44    4.64    8.18    11.98   15.37   34.29   38.88   38.88   38.88   50.86   
+AGG_VALUE       13.58   11.05   5.67    7.02    7.91    11.01   16.72   31.99   35.99   35.99   35.99   59.83   
+AGG_RANGE_VALUE 37.24   36.29   6.01    7.62    9.96    21.68   67.31   68.00   68.28   68.66   68.66   110.53  
+GROUP_BY        10.79   10.50   1.66    7.61    7.68    9.88    14.23   16.28   17.82   17.82   17.82   21.04   
+LATEST_POINT    14.32   12.93   2.58    4.72    9.25    13.51   17.69   28.86   34.92   35.32   35.32   74.60   
+-----------------------------------------------------------------------------------------------------------------
+```
 
 ## Test IoTDB With Server System Information Recording
 
@@ -138,15 +284,15 @@ Suppose your IoTDB server IP is 192.168.130.9 and your test client server which 
 Current version of information recording is dependent on iostat. Please make sure iostat is installed in IoTDB server.
 
 Configure 'config.properties'
-Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are INTERVAL and LOG_STOP_FLAG_PATH like:
+Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are INTERVAL and DB_DATA_PATH like:
 
 ```
 INTERVAL=0
-LOG_STOP_FLAG_PATH=/home/liurui
+DB_DATA_PATH=/home/liurui
 ```
 
 INTERVAL=0 means the server information recording with the minimal interval 2 seconds. If you set INTERVAL=n then the interval will be n+2 seconds since the recording process require least 2 seconds. You may want to set the INTERVAL longer when conducting long testing.
-LOG_STOP_FLAG_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. It is also the data directory of IoTDB.
+DB_DATA_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. It is also the data directory of IoTDB.
 
 Configure 'cli-benchmark.sh'
 
@@ -186,19 +332,19 @@ DB_NAME=test
 ```
 
 > NOTE:
-The benchmark will automatically initial database, there is no need for executing SQL like "drop database test".
+The benchmark can automatically initial database(if ```IS_DELETE_DATA=true```), then there is no need for executing SQL like ```drop database test```.
 
-### Start (With Server System Information Recording)
+### Start 
 
 After configuring the first-time test environment, you can just launch the test by startup script:
 
 ```
-> ./cli-benchmark.sh
+> ./benchmark.sh
 ```
 
 Then one test process is on going.
 
-## Multiple Tests Comparisons
+## Perform Multiple Tests Automatically
 
 Usually a single test is meaningless unless it is compared with other test results. Therefore we provide a interface to execute multiple tests by one launch.
 
@@ -243,90 +389,6 @@ In this case, if you want to know what is going on, you can check the log inform
 > cd ./logs
 > tail -f log_info.log
 ```
-
-## Sample Data Generation
-
-If you want to generate and insert customized sample timeseries data into IoTDB(we may support other database later). And write the corresponding insertion SQL into a file at the same time. Please follow instructions of this section. We will show you an example.
-
-Suppose you want generate a sample dataset as following:
-
-```
-+-------------------------------+-----------+-----------+---------------+---------------+
-|          timeseries           |    type   |   encode  |     scope     | storage group | 
-+-------------------------------+-----------+-----------+---------------+---------------+
-|    root.ln.wf01.wt01.status   |  BOOLEAN  |   PLAIN   |   true,false  |    root.ln    | 
-+-------------------------------+-----------+-----------+---------------+---------------+
-| root.ln.wf01.wt01.temperature |   INT32   |    RLE    |     13,16     |    root.ln    |    
-+-------------------------------+-----------+-----------+---------------+---------------+
-|     root.ln.wf01.wt01.time    |   FLOAT   |    RLE    | 5600.0,6200.0 |    root.ln    | 
-+-------------------------------+-----------+-----------+---------------+---------------+
-|   root.ln.wf02.wt02.hardware  |   TEXT    |   PLAIN   |     v1,v2     |    root.ln    |  
-+-------------------------------+-----------+-----------+---------------+---------------+
-```
-
-data point frequency: 1 minite 
-time range of data point: 2017/11/1T00:00:00 - 2017/11/7T24:00:00
-
-### Configure
-
-Configure 'config.properties'
-The other writing related parameters are the same way in previous cases, the parameters related are:
-
-```
-HOST=127.0.0.1
-PORT=6667
-DB_SWITCH=IoTDB
-CLIENT_NUMBER=1
-BATCH_SIZE=10
-LOOP=1008
-POINT_STEP=60000
-IS_GEN_DATA=true
-GEN_DATA_FILE_PATH=/home/parallels/sampleData
-```
-
-Configure 'routine'
-For the case above, you need to configure the 'routine' file as:
-
-```
-IS_GEN_DATA=true
-STORAGE_GROUP_NAME=root.ln
-TIMESERIES_NAME=wf01.wt01.status
-TIMESERIES_TYPE=BOOLEAN
-ENCODING=PLAIN
-TIMESERIES_VALUE_SCOPE=true,false
-TEST
-TIMESERIES_NAME=wf01.wt01.temperature
-TIMESERIES_TYPE=INT32
-ENCODING=RLE
-TIMESERIES_VALUE_SCOPE=13,16
-TEST
-TIMESERIES_NAME=wf01.wt01.weight
-TIMESERIES_TYPE=FLOAT
-ENCODING=RLE
-TIMESERIES_VALUE_SCOPE=5600.0,6200.0
-TEST
-TIMESERIES_NAME=wf02.wt02.hardware
-TIMESERIES_TYPE=TEXT
-ENCODING=PLAIN
-TIMESERIES_VALUE_SCOPE=v1,v2
-TEST
-```
-
-> NOTE:
-If 'TIMESERIES_TYPE' is 'BOOLEAN', the parameter 'TIMESERIES_VALUE_SCOPE' is optional. 
-If 'TIMESERIES_TYPE' is 'INT32' or 'FLOAT', the parameter 'TIMESERIES_VALUE_SCOPE' can contain only one range. 
-If 'TIMESERIES_TYPE' is 'TEXT', the parameter 'TIMESERIES_VALUE_SCOPE' can contain several different enum values devided by ',' like 'TIMESERIES_VALUE_SCOPE=apple,egg,orange,cake'. 
-
-### Start 
-
-After configuring the file 'routine', you can launch the sample data generation task by startup script:
-
-```
-> ./rep-benchmark.sh
-```
-
-Then the sample timeseries will be generated one by one in order of the sequence in routine. 
-
 
 ## MySQL Integration
 

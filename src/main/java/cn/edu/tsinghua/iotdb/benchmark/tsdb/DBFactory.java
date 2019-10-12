@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;

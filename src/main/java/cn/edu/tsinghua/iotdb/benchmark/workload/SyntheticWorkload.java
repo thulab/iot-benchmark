@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
@@ -18,8 +18,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -37,19 +35,11 @@ public class SyntheticWorkload implements IWorkload {
   private Random queryDeviceRandom;
   private Map<Operation, Long> operationLoops;
   private static Random random = new Random();
-  private static NumberFormat nf = NumberFormat.getNumberInstance();
-
-
-
+  private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
     maxTimestampIndex = 0;
-    int numOfDecimalDigit = config.NUMBER_OF_DECIMAL_DIGIT;
-    nf.setRoundingMode(RoundingMode.HALF_UP); // 四舍五入
-    nf.setMaximumFractionDigits(numOfDecimalDigit);
-    nf.setMinimumFractionDigits(numOfDecimalDigit);
-    nf.setGroupingUsed(false);
     poissonRandom = new Random(config.DATA_SEED);
     queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
     operationLoops = new EnumMap<>(Operation.class);
@@ -80,15 +70,32 @@ public class SyntheticWorkload implements IWorkload {
     return batch;
   }
 
+  private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
+      Batch batch = new Batch();
+      long barrier = (long) (config.BATCH_SIZE * config.OVERFLOW_RATIO);
+      long stepOffset = loopIndex * config.BATCH_SIZE + barrier;
+      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
+          stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+          addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      }
+      for (long batchOffset = barrier + 1; batchOffset < config.BATCH_SIZE; batchOffset++) {
+          stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+          addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      }
+      batch.setDeviceSchema(deviceSchema);
+      return batch;
+  }
+
   private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
     Batch batch = new Batch();
-    PossionDistribution possionDistribution = new PossionDistribution(poissonRandom);
+    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
         // generate overflow timestamp
-        nextDelta = possionDistribution.getNextPossionDelta();
+        nextDelta = poissonDistribution.getNextPossionDelta();
         stepOffset = maxTimestampIndex - nextDelta;
       } else {
         // generate normal increasing timestamp
@@ -107,18 +114,11 @@ public class SyntheticWorkload implements IWorkload {
     currentTimestamp = getCurrentTimestamp(stepOffset);
     for (String sensor : deviceSchema.getSensors()) {
       FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-      String value = nf.format(Function.getValueByFuntionidAndParam(param, currentTimestamp));
+      String value = String.format(DECIMAL_FORMAT,
+          Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
       values.add(value);
     }
     batch.add(currentTimestamp, values);
-  }
-
-  private Batch getLocalOutOfOrderBatch() {
-    return null;
-  }
-
-  private Batch getGlobalOutOfOrderBatch() {
-    return null;
   }
 
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
@@ -127,11 +127,9 @@ public class SyntheticWorkload implements IWorkload {
     } else {
       switch (config.OVERFLOW_MODE) {
         case 0:
-          return getLocalOutOfOrderBatch();
-        case 1:
-          return getGlobalOutOfOrderBatch();
-        case 2:
           return getDistOutOfOrderBatch(deviceSchema);
+        case 1:
+          return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
         default:
           throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
       }

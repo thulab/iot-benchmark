@@ -1,28 +1,24 @@
 package cn.edu.tsinghua.iotdb.benchmark.tool;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IotdbBasic {
 	private Config config;
 	private Connection connection;
 	private DatabaseMetaData databaseMetaData;
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(IotdbBasic.class);
 	private static final String createTimeseriesSQL = "create timeseries %s with datatype=%s,encoding=%s";
 	private static final String setStorageLevelSQL = "set storage group to %s";
 	
@@ -32,7 +28,7 @@ public class IotdbBasic {
 	}
 	
 	public void init() throws SQLException {
-		connection = DriverManager.getConnection(String.format(Constants.URL, config.host, config.port), Constants.USER,
+		connection = DriverManager.getConnection(String.format(Constants.URL, config.HOST, config.PORT), Constants.USER,
 				Constants.PASSWD);
 		databaseMetaData = null;
 	}

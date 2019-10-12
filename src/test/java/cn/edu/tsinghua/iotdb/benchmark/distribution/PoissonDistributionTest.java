@@ -2,7 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.distribution;
 
 import static org.junit.Assert.assertEquals;
 
-import cn.edu.tsinghua.iotdb.benchmark.distribution.PossionDistribution;
 import java.util.ArrayList;
 import java.util.Random;
 import org.junit.After;
@@ -10,13 +9,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * PossionDistribution Tester.
+ * PoissonDistribution Tester.
  *
  * @author <Authors name>
  * @version 1.0
  * @since <pre>五月 11, 2018</pre>
  */
-public class PossionDistributionTest {
+public class PoissonDistributionTest {
 
   @Before
   public void before() throws Exception {
@@ -48,11 +47,11 @@ public class PossionDistributionTest {
   @Test
   public void testGetNextPossionDelta() throws Exception {
     ArrayList<Integer> list = new ArrayList<>();
-    PossionDistribution possionDistribution = new PossionDistribution(new Random(100));
-    possionDistribution.setDeltaKinds(10);
-    possionDistribution.setLambda(5.0);
+    PoissonDistribution poissonDistribution = new PoissonDistribution(new Random(100));
+    poissonDistribution.setDeltaKinds(10);
+    poissonDistribution.setLambda(5.0);
     for (int i = 0; i < 1000; i++) {
-      list.add(possionDistribution.getNextPossionDelta());
+      list.add(poissonDistribution.getNextPossionDelta());
     }
     /*
     for(int a : list){
@@ -90,7 +89,7 @@ public class PossionDistributionTest {
 //TODO: Test goes here...
 /*
 try {
-   Method method = PossionDistribution.getClass().getMethod("getPossionProbability", int.class, double.class);
+   Method method = PoissonDistribution.getClass().getMethod("getPossionProbability", int.class, double.class);
    method.setAccessible(true);
    method.invoke(<Object>, <Parameters>);
 } catch(NoSuchMethodException e) {
@@ -108,7 +107,7 @@ try {
 //TODO: Test goes here...
 /*
 try {
-   Method method = PossionDistribution.getClass().getMethod("isBetween", double.class, double.class, double.class);
+   Method method = PoissonDistribution.getClass().getMethod("isBetween", double.class, double.class, double.class);
    method.setAccessible(true);
    method.invoke(<Object>, <Parameters>);
 } catch(NoSuchMethodException e) {

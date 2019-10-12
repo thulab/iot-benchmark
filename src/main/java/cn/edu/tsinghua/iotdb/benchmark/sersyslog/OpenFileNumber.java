@@ -207,7 +207,7 @@ public class OpenFileNumber {
      * 1ist[8]表示该进程打开wals文件的数目
      */
     public ArrayList<Integer> get() {
-        //System.out.println("port :"+port + " ; pid :"+pid);
+        //System.out.println("PORT :"+PORT + " ; pid :"+pid);
 
         ArrayList<Integer> list = null;
         //如果port和pid不合理，再次尝试获取

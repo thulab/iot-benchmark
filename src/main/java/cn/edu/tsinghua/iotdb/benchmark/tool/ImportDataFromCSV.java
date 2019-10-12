@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.tool;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,18 +12,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.db.iotdb.IoTDB;
 
 public class ImportDataFromCSV {
 	private Config config;
 	private IotdbBasic iotdb;
-	private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ImportDataFromCSV.class);
 	// storage csv table head info
 	private List<String> headInfo = new ArrayList<>();
 	// storage csv device sensor info, corresponding csv table head

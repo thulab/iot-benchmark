@@ -41,8 +41,7 @@ import org.slf4j.LoggerFactory;
 
 public class KairosDB implements IDatabase {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(cn.edu.tsinghua.iotdb.benchmark.db.kairosdb.KairosDB.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(KairosDB.class);
   private String writeUrl;
   private HttpClient client;
   private Config config;
