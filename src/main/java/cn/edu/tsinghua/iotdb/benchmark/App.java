@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Diagnosis;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
@@ -241,6 +242,8 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
+
+        Diagnosis.getInstance().show();
     }
 
     /**
