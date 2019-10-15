@@ -1,8 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Diagnosis;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.DiagnosisItem;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
@@ -12,6 +10,9 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,8 @@ public abstract class BaseClient extends Client implements Runnable {
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
   private DataSchema dataSchema = DataSchema.getInstance();
+  private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+  private long loopIndex;
 
   public BaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier,
       IWorkload workload) {
@@ -39,22 +42,21 @@ public abstract class BaseClient extends Client implements Runnable {
   }
 
   void doTest() {
-    for (long loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
-      long st = System.nanoTime();
+    String currentThread = Thread.currentThread().getName();
+    service.scheduleAtFixedRate(() -> {
+      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
+      LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
+    }, 1, config.LOG_PRINT_INTERVAL, TimeUnit.SECONDS);
+    for (loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
-      Diagnosis.getInstance().add(DiagnosisItem.getNextOperationType, System.nanoTime() - st);
       switch (operation) {
         case INGESTION:
           if (config.IS_CLIENT_BIND) {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
-                st = System.nanoTime();
                 Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-                Diagnosis.getInstance().add(DiagnosisItem.getBatch, System.nanoTime() - st);
-                st = System.nanoTime();
                 dbWrapper.insertOneBatch(batch);
-                Diagnosis.getInstance().add(DiagnosisItem.insertOneBatch, System.nanoTime() - st);
               }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
@@ -62,12 +64,8 @@ public abstract class BaseClient extends Client implements Runnable {
             insertLoopIndex++;
           } else {
             try {
-              st = System.nanoTime();
               Batch batch = singletonWorkload.getOneBatch();
-              Diagnosis.getInstance().add(DiagnosisItem.getBatch, System.nanoTime() - st);
-              st = System.nanoTime();
               dbWrapper.insertOneBatch(batch);
-              Diagnosis.getInstance().add(DiagnosisItem.insertOneBatch, System.nanoTime() - st);
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
@@ -132,9 +130,8 @@ public abstract class BaseClient extends Client implements Runnable {
         default:
           LOGGER.error("Unsupported operation type {}", operation);
       }
-      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
-      LOGGER.info("{} {}% syntheticWorkload is done.", Thread.currentThread().getName(), percent);
     }
+    service.shutdown();
   }
 
 }

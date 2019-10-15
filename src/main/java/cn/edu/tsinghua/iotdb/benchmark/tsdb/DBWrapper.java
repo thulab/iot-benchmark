@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class DBWrapper implements IDatabase {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IDatabase.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private IDatabase db;
   private static final double NANO_TO_SECOND = 1000000000.0d;
@@ -47,16 +47,20 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
+      long st = System.nanoTime();
       status = db.insertOneBatch(batch);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       if (status.isOk()) {
-        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
         measureOkOperation(status, operation, batch.pointNum());
-        String formatTimeInMillis = String.format("%.2f", timeInMillis);
-        String currentThread = Thread.currentThread().getName();
-        double throughput = batch.pointNum() * 1000 / timeInMillis;
-        LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
-            currentThread, batch.getDeviceSchema().getDevice(),
-            batch.getDeviceSchema().getGroup(), formatTimeInMillis, throughput);
+        if (!config.IS_QUIET_MODE) {
+          double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+          String formatTimeInMillis = String.format("%.2f", timeInMillis);
+          double throughput = batch.pointNum() * 1000 / timeInMillis;
+          LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
+              Thread.currentThread().getName(), batch.getDeviceSchema().getDevice(),
+              batch.getDeviceSchema().getGroup(), formatTimeInMillis, throughput);
+        }
       } else {
         measurement.addFailOperationNum(operation);
         measurement.addFailPointNum(operation, batch.pointNum());
@@ -78,7 +82,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.preciseQuery(preciseQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -92,7 +99,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.RANGE_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.rangeQuery(rangeQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -106,7 +116,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.valueRangeQuery(valueRangeQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -119,7 +132,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.aggRangeQuery(aggRangeQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -132,7 +148,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.AGG_VALUE_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.aggValueQuery(aggValueQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -145,7 +164,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.aggRangeValueQuery(aggRangeValueQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -158,7 +180,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.GROUP_BY_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.groupByQuery(groupByQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -171,7 +196,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;
     try {
+      long st = System.nanoTime();
       status = db.latestPointQuery(latestPointQuery);
+      long en = System.nanoTime();
+      status.setCostTime(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -235,12 +263,14 @@ public class DBWrapper implements IDatabase {
   private void handleQueryOperation(Status status, Operation operation) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum());
-      double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
-      String formatTimeInMillis = String.format("%.2f", timeInMillis);
-      String currentThread = Thread.currentThread().getName();
-      LOGGER
-          .info("{} complete {} with latency ,{}, ms ,{}, result points", currentThread, operation,
-              formatTimeInMillis, status.getQueryResultPointNum());
+      if(!config.IS_QUIET_MODE) {
+        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+        String formatTimeInMillis = String.format("%.2f", timeInMillis);
+        String currentThread = Thread.currentThread().getName();
+        LOGGER
+            .info("{} complete {} with latency ,{}, ms ,{}, result points", currentThread, operation,
+                formatTimeInMillis, status.getQueryResultPointNum());
+      }
     } else {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       measurement.addFailOperationNum(operation);

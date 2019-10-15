@@ -127,8 +127,6 @@ public class KairosDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    long st;
-    long en;
     LinkedList<KairosDataModel> models = new LinkedList<>();
     for (Record record : batch.getRecords()) {
       models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
@@ -137,11 +135,11 @@ public class KairosDB implements IDatabase {
     String body = JSON.toJSONString(models);
     LOGGER.debug("body: {}", body);
     try {
-      st = System.nanoTime();
+
       String response = HttpRequest.sendPost(writeUrl, body);
-      en = System.nanoTime();
+
       LOGGER.debug("response: {}", response);
-      return new Status(true, en - st);
+      return new Status(true);
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
@@ -236,20 +234,20 @@ public class KairosDB implements IDatabase {
   }
 
   private Status executeOneQuery(QueryBuilder builder) {
-    LOGGER.info("[JSON] {}", builder.build());
+    LOGGER.info("[JSON] {}", builder);
     int queryResultPointNum = 0;
     try {
-      long st = System.nanoTime();
+
       QueryResponse response = client.query(builder);
-      long en = System.nanoTime();
+
       for (QueryResult query : response.getQueries()) {
         for (Result result : query.getResults()) {
           queryResultPointNum += result.getDataPoints().size();
         }
       }
-      return new Status(true, en - st, queryResultPointNum);
+      return new Status(true, queryResultPointNum);
     } catch (Exception e) {
-      return new Status(false, 0, 0, e, builder.toString());
+      return new Status(false, 0, e, builder.toString());
     }
   }
 

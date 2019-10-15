@@ -105,7 +105,6 @@ public class InfluxDB implements IDatabase {
     BatchPoints batchPoints = BatchPoints.database(influxDbName)
         .retentionPolicy(defaultRp)
         .consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
-
     try {
       InfluxDataModel model;
       for (Record record : batch.getRecords()) {
@@ -113,11 +112,10 @@ public class InfluxDB implements IDatabase {
             record.getRecordDataValue());
         batchPoints.point(model.toInfluxPoint());
       }
-      long startTime = System.nanoTime();
+
       influxDbInstance.write(batchPoints);
-      long endTime = System.nanoTime();
-      long latency = endTime - startTime;
-      return new Status(true, latency);
+
+      return new Status(true);
     } catch (Exception e) {
       LOGGER.warn(e.getMessage());
       return new Status(false, 0, e, e.toString());
@@ -252,7 +250,7 @@ public class InfluxDB implements IDatabase {
 
   private Status executeQueryAndGetStatus(String sql) {
     LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
-    long startTimeStamp = System.nanoTime();
+
     QueryResult results = influxDbInstance.query(new Query(sql, influxDbName));
     int cnt = 0;
     for (Result result : results.getResults()) {
@@ -261,16 +259,16 @@ public class InfluxDB implements IDatabase {
         continue;
       }
       if (result.getError() != null) {
-        return new Status(false, 0, cnt, new Exception(result.getError()), sql);
+        return new Status(false, cnt, new Exception(result.getError()), sql);
       }
       for (Series serie : series) {
         List<List<Object>> values = serie.getValues();
         cnt += values.size() * (serie.getColumns().size() - 1);
       }
     }
-    long endTimeStamp = System.nanoTime();
+
     LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), cnt);
-    return new Status(true, endTimeStamp - startTimeStamp, cnt);
+    return new Status(true, cnt);
   }
 
   private static String getPreciseQuerySql(PreciseQuery preciseQuery) {
@@ -316,9 +314,7 @@ public class InfluxDB implements IDatabase {
    * @param timeGranularity time granularity of group by
    */
   private static String addGroupByClause(String sqlHeader, long timeGranularity) {
-    StringBuilder builder = new StringBuilder(sqlHeader);
-    builder.append(" GROUP BY time(").append(timeGranularity).append("ms)");
-    return builder.toString();
+    return sqlHeader + " GROUP BY time(" + timeGranularity + "ms)";
   }
 
   /**
@@ -382,7 +378,7 @@ public class InfluxDB implements IDatabase {
     builder.deleteCharAt(builder.lastIndexOf(","));
     builder.append("WHERE (");
     for (DeviceSchema d : devices) {
-      builder.append(" device = '" + d.getDevice() + "' OR");
+      builder.append(" device = '").append(d.getDevice()).append("' OR");
     }
     builder.delete(builder.lastIndexOf("OR"), builder.length());
     builder.append(")");

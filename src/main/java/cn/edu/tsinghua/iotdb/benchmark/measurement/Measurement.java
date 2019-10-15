@@ -27,6 +27,8 @@ public class Measurement {
   private Map<Operation, Long> failOperationNumMap;
   private Map<Operation, Long> okPointNumMap;
   private Map<Operation, Long> failPointNumMap;
+  private static final String RESULT_ITEM = "%-20s";
+  private static final String LATENCY_ITEM = "%-12s";
 
 
   public Measurement() {
@@ -205,43 +207,32 @@ public class Measurement {
     mysql.saveResult("elapseTime(s)", "elapseTime(s)", "" + elapseTime);
 
     System.out.println(
-        "--------------------------------------------------Result Matrix--------------------------------------------------");
-    String intervalString = "\t\t";
-    System.out.println(
-        "Operation\t\tokOperation\tokPoint\t\tfailOperation\tfailPoint\telapseRate\taccRate");
+        "----------------------------------------------------------Result Matrix----------------------------------------------------------");
+    StringBuilder format = new StringBuilder();
+    for (int i = 0; i < 6; i++) {
+      format.append(RESULT_ITEM);
+    }
+    format.append("\n");
+    System.out.printf(format.toString(), "Operation", "okOperation", "okPoint", "failOperation", "failPoint", "elapseRate(point/s)");
     for (Operation operation : Operation.values()) {
-      System.out.print(operation.getName() + intervalString);
-      System.out.print(okOperationNumMap.get(operation) + intervalString);
-      System.out.print(okPointNumMap.get(operation) + intervalString);
-      System.out.print(failOperationNumMap.get(operation) + intervalString);
-      System.out.print(failPointNumMap.get(operation) + intervalString);
-      double accTime = Metric.MAX_THREAD_LATENCY_SUM.typeValueMap.get(operation) / 1000;
       String elapseRate = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
-      double accRate = 0;
-      if (accTime != 0) {
-        accRate = okPointNumMap.get(operation) / accTime;
-      }
-      String rate = String.format("%.2f", accRate);
-      System.out.print(elapseRate + intervalString);
-      System.out.println(rate + intervalString);
-
+      System.out.printf(format.toString(), operation.getName(), okOperationNumMap.get(operation), okPointNumMap.get(operation),
+          failOperationNumMap.get(operation), failPointNumMap.get(operation), elapseRate);
 
       mysql.saveResult(operation.getName(), "okOperationNum", "" + okOperationNumMap.get(operation));
       mysql.saveResult(operation.getName(),"okPointNum", "" + okPointNumMap.get(operation));
       mysql.saveResult(operation.getName(),"failOperationNum", "" + failOperationNumMap.get(operation));
       mysql.saveResult(operation.getName(),"failPointNum", "" + failPointNumMap.get(operation));
       mysql.saveResult(operation.getName(),"elapseRate", elapseRate);
-      mysql.saveResult(operation.getName(),"accRate", rate);
-
     }
     System.out.println(
-        "-----------------------------------------------------------------------------------------------------------------");
+        "---------------------------------------------------------------------------------------------------------------------------------");
 
     mysql.closeMysql();
   }
 
   public void showConfigs() {
-    System.out.println("----------------------Test Configurations----------------------");
+    System.out.println("----------------------Main Configurations----------------------");
     System.out.println("DB_SWITCH: " + config.DB_SWITCH);
     System.out.println("OPERATION_PROPORTION: " + config.OPERATION_PROPORTION);
     System.out.println("IS_CLIENT_BIND: " + config.IS_CLIENT_BIND);
@@ -262,24 +253,23 @@ public class Measurement {
   public void showMetrics() {
     MySqlRecorder mysql = new MySqlRecorder();
     System.out.println(
-        "-----------------------------------------------Latency (ms) Matrix-----------------------------------------------");
-    String intervalString = "\t";
-    System.out.print("Operation" + intervalString);
+        "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
+    System.out.printf(RESULT_ITEM, "Operation");
     for (Metric metric : Metric.values()) {
-      System.out.print(metric.name + intervalString);
+      System.out.printf(LATENCY_ITEM, metric.name);
     }
     System.out.println();
     for (Operation operation : Operation.values()) {
-      System.out.print(operation.getName() + intervalString);
+      System.out.printf(RESULT_ITEM, operation.getName());
       for (Metric metric : Metric.values()) {
         String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
-        System.out.print(metricResult + intervalString);
+        System.out.printf(LATENCY_ITEM, metricResult);
         mysql.saveResult(operation.getName(), metric.name, metricResult);
       }
       System.out.println();
     }
     System.out.println(
-        "-----------------------------------------------------------------------------------------------------------------");
+        "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     mysql.closeMysql();
   }
 

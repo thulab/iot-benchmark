@@ -60,13 +60,17 @@ public class Config {
 	/**集群模式下device的FIRST_INDEX**/
 	public int FIRST_INDEX = 0;
 
+	public boolean IS_QUIET_MODE = true;
+
+	public int LOG_PRINT_INTERVAL = 5;
+
+	public int WORKLOAD_BUFFER_SIZE = 100;
+
 	public double LAMBDA = 3;
 
 	public int MAX_K = 10;
 
 	public boolean IS_RANDOM_TIMESTAMP_INTERVAL = false ;
-
-	public int START_TIMESTAMP_INDEX = 20;
 
 	public boolean USE_OPS = false;
 

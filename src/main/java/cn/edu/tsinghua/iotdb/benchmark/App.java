@@ -8,7 +8,6 @@ import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Diagnosis;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
@@ -121,12 +120,13 @@ public class App {
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
         CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
-        long st;
-        st = System.nanoTime();
+        long st = 0;
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        LOGGER.info("Generating workload buffer...");
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
             SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
             clients.add(client);
+            st = System.nanoTime();
             executorService.submit(client);
         }
         finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
@@ -242,8 +242,6 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
-
-        Diagnosis.getInstance().show();
     }
 
     /**

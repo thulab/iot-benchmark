@@ -129,24 +129,24 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ···
-2019-10-11 21:55:25,657 INFO  cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper:57 - pool-1-thread-16 insert one batch latency (device: d_8, sg: group_8) ,2.51, ms, throughput ,119593.23947390135, points/s 
-2019-10-11 21:55:25,657 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:123 - pool-1-thread-16 99.90% syntheticWorkload is done. 
+2019-10-15 19:36:36,405 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-2 89.00% syntheticWorkload is done. 
+2019-10-15 19:36:36,405 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-7 86.00% syntheticWorkload is done. 
 ···
 ```
 
-When test is done, the last two lines of testing information will be like following: 
+When test is done, the last output of the test information will be like following: 
 
 ```
-2019-10-11 21:55:25,679 INFO  cn.edu.tsinghua.iotdb.benchmark.App:231 - All clients finished. 
-----------------------Test Configurations----------------------
+2019-10-15 21:18:03,148 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
+----------------------Main Configurations----------------------
 DB_SWITCH: IoTDB
 OPERATION_PROPORTION: 2:0:0:0:0:0:0:0:0
-IS_CLIENT_BIND: false
+IS_CLIENT_BIND: true
 CLIENT_NUMBER: 20
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 20
 SENSOR_NUMBER: 300
-BATCH_SIZE: 1
+BATCH_SIZE: 10
 LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
@@ -155,32 +155,32 @@ OVERFLOW_MODE: 0
 OVERFLOW_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
-Test elapse time: 11.07 second
-Create schema cost 0.78 second
---------------------------------------------------Result Matrix--------------------------------------------------
-Operation               okOperation     okPoint         failOperation   failPoint       elapseRate      accRate
-INGESTION               20000           6000000         0               0               542183.26       2830622.39              
-PRECISE_POINT           0               0               0               0               0.00            0.00            
-TIME_RANGE              0               0               0               0               0.00            0.00            
-VALUE_RANGE             0               0               0               0               0.00            0.00            
-AGG_RANGE               0               0               0               0               0.00            0.00            
-AGG_VALUE               0               0               0               0               0.00            0.00            
-AGG_RANGE_VALUE         0               0               0               0               0.00            0.00            
-GROUP_BY                0               0               0               0               0.00            0.00            
-LATEST_POINT            0               0               0               0               0.00            0.00            
------------------------------------------------------------------------------------------------------------------
------------------------------------------------Latency (ms) Matrix-----------------------------------------------
-Operation       AVG     MID_AVG MIN     P10     P25     MEDIAN  P75     P90     P95     P99     MAX     MAX_SUM 
-INGESTION       1.99    1.19    0.55    0.86    0.92    1.06    1.47    2.23    3.03    13.76   299.26  2119.68 
-PRECISE_POINT   0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-TIME_RANGE      0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-VALUE_RANGE     0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-AGG_RANGE       0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-AGG_VALUE       0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-AGG_RANGE_VALUE 0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-GROUP_BY        0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-LATEST_POINT    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
------------------------------------------------------------------------------------------------------------------
+Test elapse time: 36.10 second
+Create schema cost 0.00 second
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           elapseRate(point/s) 
+INGESTION           20000               60000000            0                   0                   1662182.15          
+PRECISE_POINT       0                   0                   0                   0                   0.00                
+TIME_RANGE          0                   0                   0                   0                   0.00                
+VALUE_RANGE         0                   0                   0                   0                   0.00                
+AGG_RANGE           0                   0                   0                   0                   0.00                
+AGG_VALUE           0                   0                   0                   0                   0.00                
+AGG_RANGE_VALUE     0                   0                   0                   0                   0.00                
+GROUP_BY            0                   0                   0                   0                   0.00                
+LATEST_POINT        0                   0                   0                   0                   0.00                
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         MAX_SUM     
+INGESTION           33.45       14.61       5.24        8.58        9.05        10.07       15.14       98.55       157.05      265.06      5805.33     35222.02    
+PRECISE_POINT       0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+TIME_RANGE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+VALUE_RANGE         0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+AGG_RANGE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+AGG_VALUE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+AGG_RANGE_VALUE     0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+GROUP_BY            0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+LATEST_POINT        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 The output contains overall information of the test including:
@@ -192,12 +192,12 @@ The output contains overall information of the test including:
 + failOperation: the request/SQL number failed to execute for different operations
 + failPoint: the data point number failed to ingest (for query operations currently this field is always zero)
 + elapseRate: equals to ```okPoint / Test elapse time```
-+ accRate(accurate/accumulative rate): equals to ```okPoint / MAX_SUM * 1000```, where ```MAX_SUM``` is the max accumulative operation(database API) time-cost of among the client threads
-+ The latency statistics of different operations in millisecond
++ The latency statistics of different operations in millisecond 
++ ```MAX_SUM``` is the max accumulative operation(database API) time-cost among the client threads
 
-All these information will be logged in 'iotdb-benchmark/logs' directory on client server.
+All these information will be logged in ```iotdb-benchmark/logs``` directory on client server.
 
-Till now, we have already complete the writing test case without server information recording. For more advanced usage of IoTDB-benchmark, please follow the 'Other Case' instruction.
+Till now, we have already complete the writing test case without server information recording. For more advanced usage of IoTDB-benchmark, please follow the ```Other Case``` instruction.
 
 # Other Cases
 
@@ -256,26 +256,25 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ···
-2019-10-11 23:17:59,314 INFO  cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper:242 - pool-1-thread-7 complete RANGE_QUERY with latency ,9.11, ms ,51, result points 
-2019-10-11 23:17:59,314 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:123 - pool-1-thread-7 40.00% syntheticWorkload is done. 
-2019-10-11 23:17:59,315 INFO  cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB:328 - pool-1-thread-7 query SQL: SELECT s_161 FROM root.group_12.d_12 WHERE time >= 2018-09-20 00:00:15 AND time <= 2018-09-20 00:04:25 AND root.group_12.d_12.s_161 > -5.0 
+2019-10-15 20:02:16,141 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-19 97.40% syntheticWorkload is done. 
+2019-10-15 20:02:16,141 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-2 97.10% syntheticWorkload is done. 
 ···
 ```
 
-When test is done, the last two lines of testing information will be like following: 
+When test is done, the last testing information will be like the following: 
 
 ```
-2019-10-11 23:17:59,472 INFO  cn.edu.tsinghua.iotdb.benchmark.App:231 - All clients finished. 
-----------------------Test Configurations----------------------
+2019-10-15 21:22:04,751 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
+----------------------Main Configurations----------------------
 DB_SWITCH: IoTDB
 OPERATION_PROPORTION: 0:1:2:1:1:1:1:1:1
-IS_CLIENT_BIND: false
+IS_CLIENT_BIND: true
 CLIENT_NUMBER: 20
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 20
 SENSOR_NUMBER: 300
-BATCH_SIZE: 1
-LOOP: 10
+BATCH_SIZE: 10
+LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OVERFLOW: false
@@ -283,32 +282,32 @@ OVERFLOW_MODE: 0
 OVERFLOW_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
-Test elapse time: 0.43 second
+Test elapse time: 112.87 second
 Create schema cost 0.00 second
---------------------------------------------------Result Matrix--------------------------------------------------
-Operation               okOperation     okPoint         failOperation   failPoint       elapseRate      accRate
-INGESTION               0               0               0               0               0.00            0.00            
-PRECISE_POINT           26              26              0               0               61.04           413.49          
-TIME_RANGE              27              1377            0               0               3232.57         16822.62                
-VALUE_RANGE             18              918             0               0               2155.05         17844.87                
-AGG_RANGE               16              16              0               0               37.56           314.56          
-AGG_VALUE               16              16              0               0               37.56           267.43          
-AGG_RANGE_VALUE         46              46              0               0               107.99          416.17          
-GROUP_BY                15              195             0               0               457.77          9267.95         
-LATEST_POINT            36              36              0               0               84.51           482.57          
------------------------------------------------------------------------------------------------------------------
------------------------------------------------Latency (ms) Matrix-----------------------------------------------
-Operation       AVG     MID_AVG MIN     P10     P25     MEDIAN  P75     P90     P95     P99     MAX     MAX_SUM 
-INGESTION       0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    
-PRECISE_POINT   12.97   11.51   1.74    4.33    7.56    10.90   17.01   26.82   27.79   35.16   35.16   62.88   
-TIME_RANGE      16.89   15.19   7.15    7.92    9.26    16.09   21.25   31.88   36.90   38.50   38.50   81.85   
-VALUE_RANGE     13.95   12.38   2.35    2.48    7.83    13.19   20.24   31.32   31.75   31.75   31.75   51.44   
-AGG_RANGE       14.27   11.60   4.44    4.64    8.18    11.98   15.37   34.29   38.88   38.88   38.88   50.86   
-AGG_VALUE       13.58   11.05   5.67    7.02    7.91    11.01   16.72   31.99   35.99   35.99   35.99   59.83   
-AGG_RANGE_VALUE 37.24   36.29   6.01    7.62    9.96    21.68   67.31   68.00   68.28   68.66   68.66   110.53  
-GROUP_BY        10.79   10.50   1.66    7.61    7.68    9.88    14.23   16.28   17.82   17.82   17.82   21.04   
-LATEST_POINT    14.32   12.93   2.58    4.72    9.25    13.51   17.69   28.86   34.92   35.32   35.32   74.60   
------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           elapseRate(point/s) 
+INGESTION           0                   0                   0                   0                   0.00                
+PRECISE_POINT       2237                2237                0                   0                   19.82               
+TIME_RANGE          4452                227052              0                   0                   2011.63             
+VALUE_RANGE         2138                109037              0                   0                   966.04              
+AGG_RANGE           2184                2184                0                   0                   19.35               
+AGG_VALUE           2173                2173                0                   0                   19.25               
+AGG_RANGE_VALUE     2327                2327                0                   0                   20.62               
+GROUP_BY            2283                29679               0                   0                   262.95              
+LATEST_POINT        2206                2206                0                   0                   19.54               
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         MAX_SUM     
+INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+PRECISE_POINT       67.98       67.36       6.07        37.51       49.49       56.64       96.85       100.43      112.30      149.98      197.27      8466.59     
+TIME_RANGE          69.00       68.81       7.10        37.64       49.71       58.47       97.36       100.84      110.94      150.15      216.05      16514.83    
+VALUE_RANGE         102.39      100.44      21.54       51.13       84.52       99.55       126.55      149.79      159.25      200.23      292.96      13785.02    
+AGG_RANGE           69.54       68.90       7.21        38.28       49.69       59.69       96.83       100.82      112.80      152.29      215.73      8658.98     
+AGG_VALUE           105.70      103.11      17.79       52.16       85.99       99.95       137.50      150.50      185.90      235.07      296.95      14625.04    
+AGG_RANGE_VALUE     104.19      102.30      15.60       52.21       86.05       99.82       134.94      150.11      162.78      203.62      292.38      13979.48    
+GROUP_BY            67.85       67.60       7.19        34.90       49.43       57.08       96.59       100.73      109.12      150.79      229.81      8979.77     
+LATEST_POINT        88.29       85.56       14.57       49.20       55.31       94.88       100.59      142.03      149.59      196.11      286.50      11234.28    
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ## Test IoTDB With Server System Information Recording
@@ -435,9 +434,9 @@ IS_USE_MYSQL=true
 MYSQL_URL=jdbc:mysql://[DB_HOST]:3306/[DBName]?user=[UserName]&password=[PassWord]&useUnicode=true&characterEncoding=UTF8&useSSL=false
 ```
 
-If you do not need this function, just set 'IS_USE_MYSQL=false' will be fine.
+If you do not need this function, just set ```IS_USE_MYSQL=false``` will be fine.
 
-#### Related Article
+# Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304
