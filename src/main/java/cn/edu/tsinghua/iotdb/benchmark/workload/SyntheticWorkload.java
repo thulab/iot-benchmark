@@ -49,7 +49,7 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 
-  private static String[][] initWorkloadValues () {
+  private static String[][] initWorkloadValues() {
     String[][] workloadValues = null;
     if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       workloadValues = new String[config.SENSOR_NUMBER][config.BATCH_EXECUTE_COUNT];

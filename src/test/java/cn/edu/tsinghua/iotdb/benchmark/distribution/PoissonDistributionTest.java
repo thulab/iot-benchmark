@@ -42,31 +42,23 @@ public class PoissonDistributionTest {
   }
 
   /**
-   * Method: getNextPossionDelta()
+   * Method: getNextPoissonDelta()
    */
   @Test
-  public void testGetNextPossionDelta() throws Exception {
+  public void testGetNextPoissonDelta() {
     ArrayList<Integer> list = new ArrayList<>();
     PoissonDistribution poissonDistribution = new PoissonDistribution(new Random(100));
     poissonDistribution.setDeltaKinds(10);
     poissonDistribution.setLambda(5.0);
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10; i++) {
       list.add(poissonDistribution.getNextPossionDelta());
     }
-    /*
-    for(int a : list){
-        System.out.println(a);
-    }
-    */
+
     int[] count = new int[11];
     for (int a : list) {
       count[a]++;
     }
-    /*
-    for(int a: count){
-        System.out.println(a);
-    }
-    */
+
     assertEquals(0, count[0]);
     assertEquals(47, count[1]);
     assertEquals(152, count[2]);
@@ -82,10 +74,10 @@ public class PoissonDistributionTest {
 
 
   /**
-   * Method: getPossionProbability(int k, double la)
+   * Method: getPoissonProbability(int k, double la)
    */
   @Test
-  public void testGetPossionProbability() throws Exception {
+  public void testGetPoissonProbability() throws Exception {
 //TODO: Test goes here...
 /*
 try {

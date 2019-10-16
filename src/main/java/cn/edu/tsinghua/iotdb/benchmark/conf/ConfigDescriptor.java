@@ -23,7 +23,7 @@ public class ConfigDescriptor {
 	private ConfigDescriptor() {
 		config = new Config();
 		loadProps();
-		config.initInnerFucntion();
+		config.initInnerFunction();
 		config.initDeviceCodes();
 		config.initSensorCodes();
 		config.initSensorFunction();
@@ -39,9 +39,9 @@ public class ConfigDescriptor {
 	}
 
 	private void loadProps() {
-		String url = System.getProperty(Constants.BENCHMARK_CONF, null);
+		String url = System.getProperty(Constants.BENCHMARK_CONF, "conf/config.properties");
 		if (url != null) {
-			InputStream inputStream = null;
+			InputStream inputStream;
 			try {
 				inputStream = new FileInputStream(new File(url));
 			} catch (FileNotFoundException e) {

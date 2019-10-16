@@ -43,10 +43,13 @@ public abstract class BaseClient extends Client implements Runnable {
 
   void doTest() {
     String currentThread = Thread.currentThread().getName();
+
+    // print current progress periodically
     service.scheduleAtFixedRate(() -> {
       String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
       LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
     }, 1, config.LOG_PRINT_INTERVAL, TimeUnit.SECONDS);
+
     for (loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
       switch (operation) {

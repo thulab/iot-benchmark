@@ -21,42 +21,61 @@ public class Config {
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
+
 	/** 设备和客户端是否绑定 */
 	public boolean IS_CLIENT_BIND = true;
+
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
+
 	/** 每个设备的传感器数量 */
 	public int SENSOR_NUMBER = 5;
+
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
+
 	/** 查询时间戳变化增加步长 */
 	public int STEP_SIZE = 1;
+
 	/** 存储组分配策略*/
 	public String SG_STRATEGY="hash";
+
 	/** 数据发送缓存条数 */
-	public int BATCH_SIZE = 10;
+	public int BATCH_SIZE = 1000;
+
 	/** 存储组数量 */
 	public int GROUP_NUMBER = 1;
+
 	/** 数据类型 */
 	public String DATA_TYPE = "FLOAT";
+
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
+
 	/** 生成数据的小数保留位数 */
 	public int NUMBER_OF_DECIMAL_DIGIT = 2;
+
 	/** 数据压缩方式 */
 	public String COMPRESSOR = "UNCOMPRESSED";
+
 	/**是否为多设备批插入模式*/
 	public boolean MUL_DEV_BATCH = false;
+
 	/**数据库初始化等待时间ms*/
 	public long INIT_WAIT_TIME=5000;
+
 	/**是否为批插入乱序模式*/
 	public boolean IS_OVERFLOW = false;
+
 	/**乱序模式*/
 	public int OVERFLOW_MODE = 0;
+
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
+
 	/**使用集群模式**/
 	public boolean USE_CLUSTER = false;
+
 	/**集群模式下device的FIRST_INDEX**/
 	public int FIRST_INDEX = 0;
 
@@ -84,24 +103,34 @@ public class Config {
 
 	/**系统性能检测时间间隔-2秒*/
  	public int INTERVAL = 0;
+
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
+
  	/**存储系统性能信息的文件路径*/
  	public String SERVER_MODE_INFO_FILE = "";
-	/**一个样例数据的存储组名称*/
+
+ 	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
-	/**一个样例数据的时序名称*/
+
+ 	/**一个样例数据的时序名称*/
  	public String TIMESERIES_NAME ;
-	/**一个时序的数据类型*/
+
+ 	/**一个时序的数据类型*/
  	public String TIMESERIES_TYPE ;
-	/**时序数据取值范围*/
+
+ 	/**时序数据取值范围*/
 	public String TIMESERIES_VALUE_SCOPE ;
+
 	/** 文件的名字 */
 	public String FILE_PATH;
+
 	/** 数据集的名字 */
 	public DataSet DATA_SET;
+
 	/** 数据集的传感器 */
 	public List<String> FIELDS;
+
 	/** 数据集的传感器的精度 */
 	public int[] PRECISION;
 
@@ -123,28 +152,35 @@ public class Config {
 
 	/** 线性 默认 9个 0.054 */
 	public double LINE_RATIO = 0.054;
+
 	/** 傅里叶函数 6个 0.036 */
-	public double SIN_RATIO = 0.036;// 0.036
+	public double SIN_RATIO = 0.036;
+
 	/** 方波 9个 0.054 */
 	public double SQUARE_RATIO = 0.054;
+
 	/** 随机数 默认 86个 0.512 */
 	public double RANDOM_RATIO = 0.512;
+
 	/** 常数 默认 58个 0.352 */
-	// public static double CONSTANT_RATIO= 0.002;//0.352
-	public double CONSTANT_RATIO = 0.352;// 0.352
+	public double CONSTANT_RATIO = 0.352;
 
 	// ============各函数比例end============
 	public long DATA_SEED = 666L;
+
 	/** 内置函数参数 */
 	public List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
 	public List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
 	public List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
 	public List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
 	public List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
+
 	/** 设备编号 */
 	public List<String> DEVICE_CODES = new ArrayList<String>();
+
 	/** 传感器编号 */
 	public List<String> SENSOR_CODES = new ArrayList<String>();
+
 	/** 传感器对应的函数 */
 	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<String, FunctionParam>();
 
@@ -196,7 +232,7 @@ public class Config {
 	//mataData文件路径
 	public String METADATA_FILE_PATH = "";
 
-	public void initInnerFucntion() {
+	public void initInnerFunction() {
 		FunctionXml xml = null;
 		try {
 			InputStream input = Function.class.getResourceAsStream("function.xml");

@@ -37,11 +37,11 @@ public class Status {
     return queryResultPointNum;
   }
 
-  public long getCostTime() {
+  public long getTimeCost() {
     return costTime;
   }
 
-  public void setCostTime(long costTime) {
+  public void setTimeCost(long costTime) {
     this.costTime = costTime;
   }
 

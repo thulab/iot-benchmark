@@ -47,14 +47,16 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
+
       long st = System.nanoTime();
       status = db.insertOneBatch(batch);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
+
       if (status.isOk()) {
         measureOkOperation(status, operation, batch.pointNum());
         if (!config.IS_QUIET_MODE) {
-          double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+          double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
           String formatTimeInMillis = String.format("%.2f", timeInMillis);
           double throughput = batch.pointNum() * 1000 / timeInMillis;
           LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
@@ -85,7 +87,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.preciseQuery(preciseQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -102,7 +104,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.rangeQuery(rangeQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -119,7 +121,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.valueRangeQuery(valueRangeQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -135,7 +137,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.aggRangeQuery(aggRangeQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -151,7 +153,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.aggValueQuery(aggValueQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -167,7 +169,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.aggRangeValueQuery(aggRangeValueQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -183,7 +185,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.groupByQuery(groupByQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -199,7 +201,7 @@ public class DBWrapper implements IDatabase {
       long st = System.nanoTime();
       status = db.latestPointQuery(latestPointQuery);
       long en = System.nanoTime();
-      status.setCostTime(en - st);
+      status.setTimeCost(en - st);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -253,7 +255,7 @@ public class DBWrapper implements IDatabase {
   }
 
   private void measureOkOperation(Status status, Operation operation, int okPointNum) {
-    double latencyInMillis = status.getCostTime() / NANO_TO_MILLIS;
+    double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
     measurement.addOperationLatency(operation, latencyInMillis);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
@@ -264,7 +266,7 @@ public class DBWrapper implements IDatabase {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum());
       if(!config.IS_QUIET_MODE) {
-        double timeInMillis = status.getCostTime() / NANO_TO_MILLIS;
+        double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
         LOGGER
