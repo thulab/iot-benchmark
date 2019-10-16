@@ -52,10 +52,10 @@ public class SyntheticWorkload implements IWorkload {
   private static String[][] initWorkloadValues() {
     String[][] workloadValues = null;
     if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
-      workloadValues = new String[config.SENSOR_NUMBER][config.BATCH_EXECUTE_COUNT];
+      workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
       for (int j = 0; j < config.SENSOR_NUMBER; j++) {
         String sensor = config.SENSOR_CODES.get(j);
-        for (int i = 0; i < config.BATCH_EXECUTE_COUNT; i++) {
+        for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
           long currentTimestamp = getCurrentTimestamp(i);
           FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
           String value = String.format(DECIMAL_FORMAT,
@@ -131,7 +131,7 @@ public class SyntheticWorkload implements IWorkload {
     List<String> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     for(int i = 0;i < config.SENSOR_NUMBER;i++) {
-      values.add(workloadValues[i][(int)(stepOffset % config.BATCH_EXECUTE_COUNT)]);
+      values.add(workloadValues[i][(int)(stepOffset % config.WORKLOAD_BUFFER_SIZE)]);
     }
     batch.add(currentTimestamp, values);
   }
