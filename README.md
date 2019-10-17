@@ -155,10 +155,10 @@ OVERFLOW_MODE: 0
 OVERFLOW_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
-Test elapse time: 36.10 second
 Create schema cost 0.00 second
+Test elapsed time (not include schema creation): 36.10 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
-Operation           okOperation         okPoint             failOperation       failPoint           elapseRate(point/s) 
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
 INGESTION           20000               60000000            0                   0                   1662182.15          
 PRECISE_POINT       0                   0                   0                   0                   0.00                
 TIME_RANGE          0                   0                   0                   0                   0.00                
@@ -170,7 +170,7 @@ GROUP_BY            0                   0                   0                   
 LATEST_POINT        0                   0                   0                   0                   0.00                
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
-Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         MAX_SUM     
+Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         SLOWEST_THREAD     
 INGESTION           33.45       14.61       5.24        8.58        9.05        10.07       15.14       98.55       157.05      265.06      5805.33     35222.02    
 PRECISE_POINT       0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 TIME_RANGE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
@@ -191,9 +191,9 @@ The output contains overall information of the test including:
 + okPoint: successfully ingested data point number or successfully returned query result point number
 + failOperation: the request/SQL number failed to execute for different operations
 + failPoint: the data point number failed to ingest (for query operations currently this field is always zero)
-+ elapseRate: equals to ```okPoint / Test elapse time```
++ throughput: equals to ```okPoint / Test elapsed time```
 + The latency statistics of different operations in millisecond 
-+ ```MAX_SUM``` is the max accumulative operation(database API) time-cost among the client threads
++ ```SLOWEST_THREAD``` is the max accumulative operation time-cost among the client threads
 
 All these information will be logged in ```iotdb-benchmark/logs``` directory on client server.
 
@@ -282,10 +282,10 @@ OVERFLOW_MODE: 0
 OVERFLOW_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
-Test elapse time: 112.87 second
 Create schema cost 0.00 second
+Test elapsed time (not include schema creation): 112.87 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
-Operation           okOperation         okPoint             failOperation       failPoint           elapseRate(point/s) 
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
 INGESTION           0                   0                   0                   0                   0.00                
 PRECISE_POINT       2237                2237                0                   0                   19.82               
 TIME_RANGE          4452                227052              0                   0                   2011.63             
@@ -297,7 +297,7 @@ GROUP_BY            2283                29679               0                   
 LATEST_POINT        2206                2206                0                   0                   19.54               
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
-Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         MAX_SUM     
+Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         SLOWEST_THREAD     
 INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 PRECISE_POINT       67.98       67.36       6.07        37.51       49.49       56.64       96.85       100.43      112.30      149.98      197.27      8466.59     
 TIME_RANGE          69.00       68.81       7.10        37.64       49.71       58.47       97.36       100.84      110.94      150.15      216.05      16514.83    

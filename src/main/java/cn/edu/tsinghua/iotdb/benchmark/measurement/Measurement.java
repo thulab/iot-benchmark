@@ -201,8 +201,8 @@ public class Measurement {
   public void showMeasurements() {
     MySqlRecorder mysql = new MySqlRecorder();
     System.out.println(Thread.currentThread().getName() + " measurements:");
-    System.out.println("Test elapse time: " + String.format("%.2f", elapseTime) + " second");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
+    System.out.println("Test elapsed time (not include schema creation): " + String.format("%.2f", elapseTime) + " second");
     mysql.saveResult("createSchemaTime(s)", "createSchemaTime(s)", "" + createSchemaTime);
     mysql.saveResult("elapseTime(s)", "elapseTime(s)", "" + elapseTime);
 
@@ -213,17 +213,17 @@ public class Measurement {
       format.append(RESULT_ITEM);
     }
     format.append("\n");
-    System.out.printf(format.toString(), "Operation", "okOperation", "okPoint", "failOperation", "failPoint", "elapseRate(point/s)");
+    System.out.printf(format.toString(), "Operation", "okOperation", "okPoint", "failOperation", "failPoint", "throughput(point/s)");
     for (Operation operation : Operation.values()) {
-      String elapseRate = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+      String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
       System.out.printf(format.toString(), operation.getName(), okOperationNumMap.get(operation), okPointNumMap.get(operation),
-          failOperationNumMap.get(operation), failPointNumMap.get(operation), elapseRate);
+          failOperationNumMap.get(operation), failPointNumMap.get(operation), throughput);
 
       mysql.saveResult(operation.getName(), "okOperationNum", "" + okOperationNumMap.get(operation));
       mysql.saveResult(operation.getName(),"okPointNum", "" + okPointNumMap.get(operation));
       mysql.saveResult(operation.getName(),"failOperationNum", "" + failOperationNumMap.get(operation));
       mysql.saveResult(operation.getName(),"failPointNum", "" + failPointNumMap.get(operation));
-      mysql.saveResult(operation.getName(),"elapseRate", elapseRate);
+      mysql.saveResult(operation.getName(),"throughput", throughput);
     }
     System.out.println(
         "---------------------------------------------------------------------------------------------------------------------------------");
@@ -315,7 +315,7 @@ public class Measurement {
     P95_LATENCY("P95"),
     P99_LATENCY("P99"),
     MAX_LATENCY("MAX"),
-    MAX_THREAD_LATENCY_SUM("MAX_SUM");
+    MAX_THREAD_LATENCY_SUM("SLOWEST_THREAD");
 
     public Map<Operation, Double> getTypeValueMap() {
       return typeValueMap;

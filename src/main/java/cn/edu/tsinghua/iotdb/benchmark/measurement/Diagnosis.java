@@ -29,7 +29,7 @@ public class Diagnosis {
             for (DiagnosisItem diagnosisItem : DiagnosisItem.values()) {
                 double p = (double) timeCost.get(diagnosisItem) / (double) total;
                 double d = (double) timeCost.get(diagnosisItem) / count.get(diagnosisItem) / 1000000D;
-                System.out.println(diagnosisItem + " cost " + String.format("%.2f", p * 100) + "% of test elapse time. Average cost " + d + " ms. count:" + count.get(diagnosisItem));
+                System.out.println(diagnosisItem + " cost " + String.format("%.2f", p * 100) + "% of test elapsed time. Average cost " + d + " ms. count:" + count.get(diagnosisItem));
             }
             System.out.println("Total diagnosisItem time: " + (total / 1000000D) + " ms");
         }
