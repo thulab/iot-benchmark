@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
@@ -132,14 +131,14 @@ public class SyntheticWorkloadTest {
   @Test
   public void testGetDistOutOfOrderBatch() throws Exception {
 //TODO: Test goes here... 
-/* 
-try { 
+/*
+try {
    Method method = SyntheticWorkload.getClass().getMethod("getDistOutOfOrderBatch");
    method.setAccessible(true); 
    method.invoke(<Object>, <Parameters>); 
 } catch(NoSuchMethodException e) { 
 } catch(IllegalAccessException e) { 
-} catch(InvocationTargetException e) { 
+} catch(InvocationTargetException e) {
 } 
 */
   }

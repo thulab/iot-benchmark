@@ -10,28 +10,24 @@ public class Status {
   // it can be the error SQL or anything.
   private String errorMessage;
 
-  public Status(boolean isOk, long costTime, Exception exception, String errorMessage) {
+  public Status(boolean isOk, Exception exception, String errorMessage) {
     this.isOk = isOk;
-    this.costTime = costTime;
     this.exception = exception;
     this.errorMessage = errorMessage;
   }
 
-  public Status(boolean isOk, long costTime) {
+  public Status(boolean isOk) {
     this.isOk = isOk;
-    this.costTime = costTime;
   }
 
-  public Status(boolean isOk, long costTime, int queryResultPointNum) {
+  public Status(boolean isOk, int queryResultPointNum) {
     this.isOk = isOk;
-    this.costTime = costTime;
     this.queryResultPointNum = queryResultPointNum;
   }
 
-  public Status(boolean isOk, long costTime, int queryResultPointNum, Exception exception,
+  public Status(boolean isOk, int queryResultPointNum, Exception exception,
       String errorMessage) {
     this.isOk = isOk;
-    this.costTime = costTime;
     this.exception = exception;
     this.errorMessage = errorMessage;
     this.queryResultPointNum = queryResultPointNum;
@@ -41,8 +37,12 @@ public class Status {
     return queryResultPointNum;
   }
 
-  public long getCostTime() {
+  public long getTimeCost() {
     return costTime;
+  }
+
+  public void setTimeCost(long costTime) {
+    this.costTime = costTime;
   }
 
   public Exception getException() {

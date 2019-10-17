@@ -18,16 +18,15 @@ public class DeviceSchemaTest {
 */ 
 @Test
 public void testCalGroupId() throws Exception {
-  int g1 = DeviceSchema.calGroupId(4, 10, 3);
+  int g1 = DeviceSchema.calGroupId(4, 3);
   assertEquals(1,g1 );
-  int g2 = DeviceSchema.calGroupId(3, 10, 3);
+  int g2 = DeviceSchema.calGroupId(3, 3);
   assertEquals(0, g2);
-
-  int g3 = DeviceSchema.calGroupId(30, 100, 30);
-  assertEquals(7, g3);
-  int g4 = DeviceSchema.calGroupId(40, 100, 30);
+  int g3 = DeviceSchema.calGroupId(30, 30);
+  assertEquals(0, g3);
+  int g4 = DeviceSchema.calGroupId(40, 30);
   assertEquals(10, g4);
-  int g5 = DeviceSchema.calGroupId(0, 1, 3);
+  int g5 = DeviceSchema.calGroupId(0, 3);
   assertEquals(0, g5);
 } 
 

@@ -4,12 +4,17 @@ import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 负责人造数据的写入、查询，真实数据的查询。
@@ -17,14 +22,15 @@ import org.slf4j.Logger;
  */
 public abstract class BaseClient extends Client implements Runnable {
 
-  protected static Logger LOGGER;
+  protected static final Logger LOGGER = LoggerFactory.getLogger(BaseClient.class);
 
   private OperationController operationController;
   private IWorkload syntheticWorkload;
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
   private DataSchema dataSchema = DataSchema.getInstance();
-
+  private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+  private long loopIndex;
 
   public BaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier,
       IWorkload workload) {
@@ -33,11 +39,18 @@ public abstract class BaseClient extends Client implements Runnable {
     singletonWorkload = SingletonWorkload.getInstance();
     operationController = new OperationController(id);
     insertLoopIndex = 0;
-    initLogger();
   }
 
   void doTest() {
-    for (long loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
+    String currentThread = Thread.currentThread().getName();
+
+    // print current progress periodically
+    service.scheduleAtFixedRate(() -> {
+      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
+      LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
+    }, 1, config.LOG_PRINT_INTERVAL, TimeUnit.SECONDS);
+
+    for (loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
       switch (operation) {
         case INGESTION:
@@ -45,8 +58,8 @@ public abstract class BaseClient extends Client implements Runnable {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
-                dbWrapper
-                    .insertOneBatch(syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex));
+                Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+                dbWrapper.insertOneBatch(batch);
               }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
@@ -54,7 +67,8 @@ public abstract class BaseClient extends Client implements Runnable {
             insertLoopIndex++;
           } else {
             try {
-              dbWrapper.insertOneBatch(singletonWorkload.getOneBatch());
+              Batch batch = singletonWorkload.getOneBatch();
+              dbWrapper.insertOneBatch(batch);
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
@@ -119,12 +133,9 @@ public abstract class BaseClient extends Client implements Runnable {
         default:
           LOGGER.error("Unsupported operation type {}", operation);
       }
-      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
-      LOGGER.info("{} {}% syntheticWorkload is done.", Thread.currentThread().getName(), percent);
     }
+    service.shutdown();
   }
-
-  abstract void initLogger();
 
 }
 

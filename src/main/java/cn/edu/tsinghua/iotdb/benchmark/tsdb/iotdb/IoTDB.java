@@ -128,18 +128,14 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    long st;
-    long en;
     try (Statement statement = connection.createStatement()) {
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
         statement.addBatch(sql);
       }
-      st = System.nanoTime();
       statement.executeBatch();
-      en = System.nanoTime();
-      return new Status(true, en - st);
+      return new Status(true);
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
@@ -325,25 +321,23 @@ public class IoTDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
-    long st;
-    long en;
+    if (!config.IS_QUIET_MODE) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
-      st = System.nanoTime();
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
         }
       }
-      en = System.nanoTime();
       queryResultPointNum = line * config.QUERY_SENSOR_NUM;
-      return new Status(true, en - st, queryResultPointNum);
+      return new Status(true, queryResultPointNum);
     } catch (Exception e) {
-      return new Status(false, 0, queryResultPointNum, e, sql);
+      return new Status(false, queryResultPointNum, e, sql);
     } catch (Throwable t) {
-      return new Status(false, 0, queryResultPointNum, new Exception(t), sql);
+      return new Status(false, queryResultPointNum, new Exception(t), sql);
     }
   }
 

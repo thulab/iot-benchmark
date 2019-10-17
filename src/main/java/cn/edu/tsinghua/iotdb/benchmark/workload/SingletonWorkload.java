@@ -43,7 +43,7 @@ public class SingletonWorkload {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       long stepOffset = (curLoop / config.DEVICE_NUMBER) * config.BATCH_SIZE + batchOffset;
-      SyntheticWorkload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -66,7 +66,7 @@ public class SingletonWorkload {
         // generate normal increasing timestamp
         stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).getAndIncrement();
       }
-      SyntheticWorkload.addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;

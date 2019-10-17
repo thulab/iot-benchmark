@@ -36,6 +36,7 @@ public class SyntheticWorkload implements IWorkload {
   private Map<Operation, Long> operationLoops;
   private static Random random = new Random();
   private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
+  private static String[][] workloadValues = initWorkloadValues();
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
@@ -46,6 +47,24 @@ public class SyntheticWorkload implements IWorkload {
     for (Operation operation : Operation.values()) {
       operationLoops.put(operation, 0L);
     }
+  }
+
+  private static String[][] initWorkloadValues() {
+    String[][] workloadValues = null;
+    if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
+      workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
+      for (int j = 0; j < config.SENSOR_NUMBER; j++) {
+        String sensor = config.SENSOR_CODES.get(j);
+        for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
+          long currentTimestamp = getCurrentTimestamp(i);
+          FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+          String value = String.format(DECIMAL_FORMAT,
+              Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
+          workloadValues[j][i] = value;
+        }
+      }
+    }
+    return workloadValues;
   }
 
   private static long getCurrentTimestamp(long stepOffset) {
@@ -64,7 +83,7 @@ public class SyntheticWorkload implements IWorkload {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       long stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -74,14 +93,14 @@ public class SyntheticWorkload implements IWorkload {
       Batch batch = new Batch();
       long barrier = (long) (config.BATCH_SIZE * config.OVERFLOW_RATIO);
       long stepOffset = loopIndex * config.BATCH_SIZE + barrier;
-      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      addOneRowIntoBatch(batch, stepOffset);
       for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
           stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-          addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+          addOneRowIntoBatch(batch, stepOffset);
       }
       for (long batchOffset = barrier + 1; batchOffset < config.BATCH_SIZE; batchOffset++) {
           stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-          addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+          addOneRowIntoBatch(batch, stepOffset);
       }
       batch.setDeviceSchema(deviceSchema);
       return batch;
@@ -102,21 +121,17 @@ public class SyntheticWorkload implements IWorkload {
         maxTimestampIndex++;
         stepOffset = maxTimestampIndex;
       }
-      addOneRowIntoBatch(deviceSchema, batch, stepOffset);
+      addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
-  static void addOneRowIntoBatch(DeviceSchema deviceSchema, Batch batch, long stepOffset) {
+  static void addOneRowIntoBatch(Batch batch, long stepOffset) {
     List<String> values = new ArrayList<>();
-    long currentTimestamp;
-    currentTimestamp = getCurrentTimestamp(stepOffset);
-    for (String sensor : deviceSchema.getSensors()) {
-      FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-      String value = String.format(DECIMAL_FORMAT,
-          Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
-      values.add(value);
+    long currentTimestamp = getCurrentTimestamp(stepOffset);
+    for(int i = 0;i < config.SENSOR_NUMBER;i++) {
+      values.add(workloadValues[i][(int)(stepOffset % config.WORKLOAD_BUFFER_SIZE)]);
     }
     batch.add(currentTimestamp, values);
   }

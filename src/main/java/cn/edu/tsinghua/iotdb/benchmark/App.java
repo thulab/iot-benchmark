@@ -120,12 +120,13 @@ public class App {
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
         CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
-        long st;
-        st = System.nanoTime();
+        long st = 0;
         ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        LOGGER.info("Generating workload buffer...");
         for (int i = 0; i < config.CLIENT_NUMBER; i++) {
             SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
             clients.add(client);
+            st = System.nanoTime();
             executorService.submit(client);
         }
         finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);

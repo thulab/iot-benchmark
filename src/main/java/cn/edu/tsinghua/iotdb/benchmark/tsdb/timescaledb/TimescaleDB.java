@@ -120,18 +120,16 @@ public class TimescaleDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    long st;
-    long en;
     try (Statement statement = connection.createStatement()){
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
         statement.addBatch(sql);
       }
-      st = System.nanoTime();
+
       statement.executeBatch();
-      en = System.nanoTime();
-      return new Status(true, en - st);
+
+      return new Status(true);
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
@@ -264,22 +262,20 @@ public class TimescaleDB implements IDatabase {
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
     LOGGER.info("{} the query SQL: {}", Thread.currentThread().getName(), sql);
-    long st;
-    long en;
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()){
-      st = System.nanoTime();
+
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
         }
       }
-      en = System.nanoTime();
+
       queryResultPointNum = line * sensorNum;
-      return new Status(true, en - st, queryResultPointNum);
+      return new Status(true, queryResultPointNum);
     } catch (Exception e) {
-      return new Status(false, 0, queryResultPointNum, e, sql);
+      return new Status(false, queryResultPointNum, e, sql);
     }
   }
 
@@ -291,7 +287,6 @@ public class TimescaleDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT device");
     addFunSensor(aggFun, builder, devices.get(0).getSensors());
-
     builder.append(" FROM ").append(tableName);
     addDeviceCondition(builder, devices);
     return builder;
