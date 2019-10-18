@@ -39,4 +39,9 @@ public class Constants {
     public static final String MODE_SERVER_MODE = "serverMODE";
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
 
+    // support test data persistence:
+    public static final String TDP_NONE = "None";
+    public static final String TDP_IoTDB = "IoTDB";
+    public static final String TDP_MySQL = "MySQL";
+
 }

@@ -1,8 +1,9 @@
-package cn.edu.tsinghua.iotdb.benchmark.mysql;
+package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.mysql;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
@@ -16,7 +17,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MySqlRecorder {
+public class MySqlRecorder implements ITestDataPersistence {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MySqlRecorder.class);
@@ -78,7 +79,7 @@ public class MySqlRecorder {
               + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
               + "totalFileNum INT, dataFileNum INT, socketNum INT, settledNum INT, infoNum INT,"
               + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
-              + "remark varchar(6000), primary key(id))");
+              + "primary key(id))");
           LOGGER.info("Table SERVER_MODE create success!");
         }
         return;
@@ -115,32 +116,32 @@ public class MySqlRecorder {
     }
   }
 
-  public void insertSERVER_MODE(double cpu, double mem, double io, double net_recv, double net_send, double pro_mem_size,
+  @Override
+  public void insertSystemMetrics(double cpu, double mem, double io, double networkReceive, double networkSend, double processMemSize,
       double dataSize, double systemSize, double sequenceSize, double overflowSize, double walSize,
-      float tps, float io_read, float io_wrtn,
-      List<Integer> openFileList, String remark) {
+      float tps, float ioRead, float ioWrite, List<Integer> openFileList) {
     if (config.IS_USE_MYSQL) {
       Statement stat = null;
       String sql = "";
       try {
         stat = mysqlConnection.createStatement();
         sql = String.format("insert into SERVER_MODE_" + localName
-                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
+                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d)",
             System.currentTimeMillis(),
             cpu,
             mem,
             io,
-            net_recv,
-            net_send,
-            pro_mem_size,
+            networkReceive,
+            networkSend,
+            processMemSize,
             dataSize,
             systemSize,
             sequenceSize,
             overflowSize,
             walSize,
             tps,
-            io_read,
-            io_wrtn,
+            ioRead,
+            ioWrite,
             openFileList.get(0),
             openFileList.get(1),
             openFileList.get(2),
@@ -149,19 +150,16 @@ public class MySqlRecorder {
             openFileList.get(5),
             openFileList.get(6),
             openFileList.get(7),
-            openFileList.get(8),
-            "'" + remark + "'");
+            openFileList.get(8));
         stat.executeUpdate(sql);
       } catch (SQLException e) {
-        LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql,
-            e.getMessage());
-        e.printStackTrace();
+        LOGGER.error("{} insert into mysql failed", sql, e);
       } finally {
         if (stat != null) {
           try {
             stat.close();
           } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.error("close statement failed", e);
           }
         }
       }

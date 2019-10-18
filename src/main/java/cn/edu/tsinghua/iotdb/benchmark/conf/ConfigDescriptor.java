@@ -110,6 +110,7 @@ public class ConfigDescriptor {
 					config.UNSEQUENCE_DIR.add(data_ + "/unsequence");
 				}
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
+				config.TEST_DATA_PERSISTENCE = properties.getProperty("TEST_DATA_PERSISTENCE", "None");
 				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
 				config.LOG_PRINT_INTERVAL = Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.LOG_PRINT_INTERVAL+""));
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));

@@ -3,7 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement;
 import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.mysql.MySqlRecorder;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
