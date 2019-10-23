@@ -207,10 +207,13 @@ public class Config {
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
 	public String TEST_DATA_PERSISTENCE = "None";
-	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
-			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
 
 	public String REMARK = "";
+	public String TEST_DATA_STORE_IP = "";
+	public String TEST_DATA_STORE_PORT = "";
+	public String TEST_DATA_STORE_DB = "";
+	public String TEST_DATA_STORE_USER = "";
+	public String TEST_DATA_STORE_PW = "";
 	public String VERSION = "";
 
 	// DB参数

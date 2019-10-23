@@ -19,8 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class MySqlRecorder implements ITestDataPersistence {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(MySqlRecorder.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MySqlRecorder.class);
   private static final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
   private static final String SAVE_RESULT = "insert into FINAL_RESULT values(NULL, '%s', '%s', '%s', '%s')";
   private Connection mysqlConnection = null;
@@ -32,6 +31,9 @@ public class MySqlRecorder implements ITestDataPersistence {
   private static final long EXP_TIME = System.currentTimeMillis();
   private String projectID = String.format("%s_%s_%s_%s",config.BENCHMARK_WORK_MODE, config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
   private Statement statement;
+  private static final String URL_TEMPLATE = "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
+  private String url = String.format(URL_TEMPLATE, config.TEST_DATA_STORE_IP,
+      config.TEST_DATA_STORE_PORT, config.TEST_DATA_STORE_DB, config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
   private long count = 0;
 
   public MySqlRecorder() {
@@ -49,7 +51,7 @@ public class MySqlRecorder implements ITestDataPersistence {
     day = dateFormat.format(date);
     try {
       Class.forName(Constants.MYSQL_DRIVENAME);
-      mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+      mysqlConnection = DriverManager.getConnection(url);
       initTable();
       statement = mysqlConnection.createStatement();
     } catch (SQLException e) {
@@ -193,7 +195,7 @@ public class MySqlRecorder implements ITestDataPersistence {
           LOGGER.info("Try to reconnect to MySQL");
           try {
             Class.forName(Constants.MYSQL_DRIVENAME);
-            mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
+            mysqlConnection = DriverManager.getConnection(url);
           } catch (Exception ex) {
             LOGGER.error("Reconnect to MySQL failed because", ex);
           }
@@ -359,7 +361,6 @@ public class MySqlRecorder implements ITestDataPersistence {
     if (mysqlConnection != null) {
       try {
         statement.executeBatch();
-        LOGGER.info("execute preparedStatement, count = {}", count);
         statement.close();
         mysqlConnection.close();
       } catch (SQLException e) {

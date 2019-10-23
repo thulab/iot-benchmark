@@ -93,7 +93,11 @@ public class ConfigDescriptor {
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
 
-				config.MYSQL_URL = properties.getProperty("MYSQL_URL", config.MYSQL_URL);
+				config.TEST_DATA_STORE_PORT = properties.getProperty("TEST_DATA_STORE_PORT", config.TEST_DATA_STORE_PORT);
+				config.TEST_DATA_STORE_DB = properties.getProperty("TEST_DATA_STORE_DB", config.TEST_DATA_STORE_DB);
+				config.TEST_DATA_STORE_IP = properties.getProperty("TEST_DATA_STORE_IP", config.TEST_DATA_STORE_IP);
+				config.TEST_DATA_STORE_USER = properties.getProperty("TEST_DATA_STORE_USER", config.TEST_DATA_STORE_USER);
+				config.TEST_DATA_STORE_PW = properties.getProperty("TEST_DATA_STORE_PW", config.TEST_DATA_STORE_PW);
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
