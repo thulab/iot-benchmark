@@ -10,7 +10,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.mysql.MySqlRecorder;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
@@ -82,8 +82,9 @@ public class App {
      * 按比例选择workload执行的测试
      */
     private static void testWithDefaultPath(Config config) {
-        MySqlRecorder mySqlRecorder = new MySqlRecorder();
-        mySqlRecorder.saveTestConfig();
+        PersistenceFactory persistenceFactory = new PersistenceFactory();
+        ITestDataPersistence recorder = persistenceFactory.getPersistence();
+        recorder.saveTestConfig();
 
         Measurement measurement = new Measurement();
         DBWrapper dbWrapper = new DBWrapper(measurement);
@@ -317,11 +318,10 @@ public class App {
         importTool.importData(config.IMPORT_DATA_FILE_PATH);
     }
 
-    private
-
     private static void clientSystemInfo(Config config) {
         double abnormalValue = -1;
-        ITestDataPersistence mySql = new MySqlRecorder();
+        PersistenceFactory persistenceFactory = new PersistenceFactory();
+        ITestDataPersistence recorder = persistenceFactory.getPersistence();
         File dir = new File(config.DB_DATA_PATH);
         if (dir.exists() && dir.isDirectory()) {
             File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
@@ -345,7 +345,7 @@ public class App {
                 LOGGER.info("网口接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
                 LOGGER.info("进程号,{},打开文件总数,{},打开benchmark目录下文件数,{},打开socket数,{}", OpenFileNumber.getInstance().getPid(),
                         openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                mySql.insertSystemMetrics(
+                recorder.insertSystemMetrics(
                         ioUsageList.get(0),
                         MemUsage.getInstance().get(),
                         ioUsageList.get(1),
@@ -379,14 +379,15 @@ public class App {
             LOGGER.error("DB_DATA_PATH not exist!");
         }
 
-        mySql.closeMysql();
+        recorder.close();
     }
 
     /**
      * 服务器端模式，监测系统内存等性能指标，获得插入的数据文件大小
      */
     private static void serverMode(Config config) {
-        MySqlRecorder mySql = new MySqlRecorder();
+        PersistenceFactory persistenceFactory = new PersistenceFactory();
+        ITestDataPersistence recorder = persistenceFactory.getPersistence();
         File dir = new File(config.DB_DATA_PATH);
 
         boolean write2File = false;
@@ -453,7 +454,7 @@ public class App {
                             fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
                             fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
-                    mySql.insertSystemMetrics(
+                    recorder.insertSystemMetrics(
                             ioUsageList.get(0),
                             MemUsage.getInstance().get(),
                             ioUsageList.get(1),
@@ -498,7 +499,7 @@ public class App {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            mySql.closeMysql();
+            recorder.close();
             try {
                 if (out != null)
                     out.close();

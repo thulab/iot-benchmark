@@ -209,8 +209,6 @@ public class Config {
 	public String TEST_DATA_PERSISTENCE = "None";
 	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
 			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
-	//是否将结果写入mysql
-	public boolean IS_USE_MYSQL = false;
 
 	public String REMARK = "";
 	public String VERSION = "";

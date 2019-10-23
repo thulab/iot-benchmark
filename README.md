@@ -427,14 +427,14 @@ In this case, if you want to know what is going on, you can check the log inform
 
 ## MySQL Integration
 
-IoTDB-benchmark can automatically store test information into MySQL for further analysis. To enable MySQL Integration, please configure 'config.properties':
+IoTDB-benchmark can automatically store test information into MySQL for further analysis. To enable MySQL Integration, please configure ```config.properties```:
 
 ```
-IS_USE_MYSQL=true
-MYSQL_URL=jdbc:mysql://[DB_HOST]:3306/[DBName]?user=[UserName]&password=[PassWord]&useUnicode=true&characterEncoding=UTF8&useSSL=false
+TEST_DATA_PERSISTENCE=MySQL
+MYSQL_URL=jdbc:mysql://[DB_HOST]:3306/[DBName]?user=[UserName]&password=[PassWord]&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true
 ```
 
-If you do not need this function, just set ```IS_USE_MYSQL=false``` will be fine.
+If you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```.
 
 # Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios

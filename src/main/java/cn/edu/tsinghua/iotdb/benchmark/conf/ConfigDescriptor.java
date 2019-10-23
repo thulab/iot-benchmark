@@ -94,7 +94,6 @@ public class ConfigDescriptor {
 				config.REMARK = properties.getProperty("REMARK", "-");
 
 				config.MYSQL_URL = properties.getProperty("MYSQL_URL", config.MYSQL_URL);
-				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
