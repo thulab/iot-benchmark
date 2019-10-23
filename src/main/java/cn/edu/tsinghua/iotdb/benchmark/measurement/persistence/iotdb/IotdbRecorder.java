@@ -5,6 +5,10 @@ import java.util.List;
 
 public class IotdbRecorder implements ITestDataPersistence {
 
+    IotdbRecorder() {
+
+    }
+
     @Override
     public void insertSystemMetrics(double cpu, double mem, double io, double networkReceive, double networkSend,
         double processMemSize, double dataSize, double systemSize, double sequenceSize, double overflowSize,
