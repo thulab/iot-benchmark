@@ -131,7 +131,7 @@ public class SyntheticWorkload implements IWorkload {
     List<String> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     for(int i = 0;i < config.SENSOR_NUMBER;i++) {
-      values.add(workloadValues[i][(int)(stepOffset % config.WORKLOAD_BUFFER_SIZE)]);
+      values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.WORKLOAD_BUFFER_SIZE)]);
     }
     batch.add(currentTimestamp, values);
   }

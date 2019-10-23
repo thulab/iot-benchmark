@@ -12,4 +12,4 @@ rm -rf lib
 mvn clean package -Dmaven.test.skip=true
 $BENCHMARK_HOME/bin/startup.sh -cf $BENCHMARK_HOME/conf/config.properties
 
-touch $CLIENT_DB_DATA_PATH/log_stop_flag
+#touch $CLIENT_DB_DATA_PATH/log_stop_flag
