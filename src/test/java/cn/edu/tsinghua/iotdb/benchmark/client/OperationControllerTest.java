@@ -2,7 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import static org.junit.Assert.assertEquals;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.List;

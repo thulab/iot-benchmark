@@ -1,7 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.QueryRealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;

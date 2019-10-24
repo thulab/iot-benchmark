@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
@@ -205,8 +205,8 @@ public class Measurement {
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
     System.out.println("Test elapsed time (not include schema creation): " + String.format("%.2f", elapseTime) + " second");
-    recorder.saveResult("createSchemaTime(s)", "createSchemaTime(s)", "" + createSchemaTime);
-    recorder.saveResult("elapseTime(s)", "elapseTime(s)", "" + elapseTime);
+    recorder.saveResult("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
+    recorder.saveResult("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
     System.out.println(
         "----------------------------------------------------------Result Matrix----------------------------------------------------------");
@@ -221,11 +221,11 @@ public class Measurement {
       System.out.printf(format.toString(), operation.getName(), okOperationNumMap.get(operation), okPointNumMap.get(operation),
           failOperationNumMap.get(operation), failPointNumMap.get(operation), throughput);
 
-      recorder.saveResult(operation.getName(), "okOperationNum", "" + okOperationNumMap.get(operation));
-      recorder.saveResult(operation.getName(),"okPointNum", "" + okPointNumMap.get(operation));
-      recorder.saveResult(operation.getName(),"failOperationNum", "" + failOperationNumMap.get(operation));
-      recorder.saveResult(operation.getName(),"failPointNum", "" + failPointNumMap.get(operation));
-      recorder.saveResult(operation.getName(),"throughput", throughput);
+      recorder.saveResult(operation.toString(), TotalOperationResult.OK_OPERATION_NUM.getName(), "" + okOperationNumMap.get(operation));
+      recorder.saveResult(operation.toString(), TotalOperationResult.OK_POINT_NUM.getName(), "" + okPointNumMap.get(operation));
+      recorder.saveResult(operation.toString(), TotalOperationResult.FAIL_OPERATION_NUM.getName(), "" + failOperationNumMap.get(operation));
+      recorder.saveResult(operation.toString(), TotalOperationResult.FAIL_POINT_NUM.getName(), "" + failPointNumMap.get(operation));
+      recorder.saveResult(operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
     }
     System.out.println(
         "---------------------------------------------------------------------------------------------------------------------------------");
@@ -267,7 +267,7 @@ public class Measurement {
       for (Metric metric : Metric.values()) {
         String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
         System.out.printf(LATENCY_ITEM, metricResult);
-        recorder.saveResult(operation.getName(), metric.name, metricResult);
+        recorder.saveResult(operation.toString(), metric.name, metricResult);
       }
       System.out.println();
     }
@@ -304,42 +304,6 @@ public class Measurement {
       max = Math.max(max, item);
     }
     return max;
-  }
-
-  public enum Metric {
-    AVG_LATENCY("AVG"),
-    MID_AVG_LATENCY("MID_AVG"),
-    MIN_LATENCY("MIN"),
-    P10_LATENCY("P10"),
-    P25_LATENCY("P25"),
-    MEDIAN_LATENCY("MEDIAN"),
-    P75_LATENCY("P75"),
-    P90_LATENCY("P90"),
-    P95_LATENCY("P95"),
-    P99_LATENCY("P99"),
-    MAX_LATENCY("MAX"),
-    MAX_THREAD_LATENCY_SUM("SLOWEST_THREAD");
-
-    public Map<Operation, Double> getTypeValueMap() {
-      return typeValueMap;
-    }
-
-    Map<Operation, Double> typeValueMap;
-
-    public String getName() {
-      return name;
-    }
-
-    String name;
-
-    Metric(String name) {
-      this.name = name;
-      typeValueMap = new EnumMap<>(Operation.class);
-      for (Operation operation : Operation.values()) {
-        typeValueMap.put(operation, 0D);
-      }
-    }
-
   }
 
 }
