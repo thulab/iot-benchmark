@@ -16,14 +16,14 @@ public class FileSize {
     private static Logger log = LoggerFactory.getLogger(FileSize.class);
     private static Config config = ConfigDescriptor.getInstance().getConfig();
     private static final String LINUX_FILE_SIZE_CMD = "du -sm %s";
-    private static final double MB2GB = 1024.0;
-    private static final double ABNORMALVALUE = -1;
+    private static final float MB2GB = 1024;
+    private static final float ABNORMAL_VALUE = -1;
     public enum FileSizeKinds {
         DATA(config.IOTDB_DATA_DIR),
-        STSTEM(config.IOTDB_SYSTEM_DIR),
+        SYSTEM(config.IOTDB_SYSTEM_DIR),
         WAL(config.IOTDB_WAL_DIR),
         SEQUENCE(config.SEQUENCE_DIR),
-        OVERFLOW(config.UNSEQUENCE_DIR);
+        UN_SEQUENCE(config.UNSEQUENCE_DIR);
 
         List<String> path;
 
@@ -46,17 +46,17 @@ public class FileSize {
         }
     }
 
-    public static final FileSize getInstance(){
+    public static FileSize getInstance(){
         return FileSizeHolder.INSTANCE;
     }
 
-    public Map<FileSizeKinds, Double> getFileSize() {
-        Map<FileSizeKinds, Double> fileSize = new EnumMap<>(FileSizeKinds.class);
+    public Map<FileSizeKinds, Float> getFileSize() {
+        Map<FileSizeKinds, Float> fileSize = new EnumMap<>(FileSizeKinds.class);
         BufferedReader in;
         Process pro = null;
         Runtime runtime = Runtime.getRuntime();
         for (FileSizeKinds kinds : FileSizeKinds.values()) {
-            double fileSizeGB = ABNORMALVALUE;
+            float fileSizeGB = ABNORMAL_VALUE;
             for (String path_ : kinds.path) {
                 String command = String.format(LINUX_FILE_SIZE_CMD, path_);
                 try {
@@ -65,10 +65,10 @@ public class FileSize {
                     String line;
                     while ((line = in.readLine()) != null) {
                         String size = line.split("\\s+")[0];
-                        if (fileSizeGB == ABNORMALVALUE) {
+                        if (fileSizeGB == ABNORMAL_VALUE) {
                             fileSizeGB = 0;
                         }
-                        fileSizeGB += Long.parseLong(size) / MB2GB;
+                        fileSizeGB += Float.parseFloat(size) / MB2GB;
                     }
                     in.close();
                 } catch (IOException e) {

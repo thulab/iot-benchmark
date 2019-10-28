@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
@@ -23,14 +24,13 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,13 +64,11 @@ public class App {
                 queryWithRealDataSet(config);
                 break;
             case Constants.MODE_SERVER_MODE:
+            case Constants.MODE_CLIENT_SYSTEM_INFO:
                 serverMode(config);
                 break;
             case Constants.MODE_IMPORT_DATA_FROM_CSV:
                 importDataFromCSV(config);
-                break;
-            case Constants.MODE_CLIENT_SYSTEM_INFO:
-                clientSystemInfo(config);
                 break;
             default:
                 throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
@@ -136,8 +134,6 @@ public class App {
 
     /**
      * 测试真实数据集
-     *
-     * @param config
      */
     private static void testWithRealDataSet(Config config) {
         // BATCH_SIZE is points number in this mode
@@ -145,7 +141,7 @@ public class App {
 
         File dirFile = new File(config.FILE_PATH);
         if (!dirFile.exists()) {
-            LOGGER.error(config.FILE_PATH + " does not exit");
+            LOGGER.error("{} does not exit", config.FILE_PATH);
             return;
         }
 
@@ -217,8 +213,8 @@ public class App {
     }
 
     private static void finalMeasure(ExecutorService executorService, CountDownLatch downLatch,
-                                     Measurement measurement, List<Measurement> threadsMeasurements,
-                                     long st, List<Client> clients) {
+        Measurement measurement, List<Measurement> threadsMeasurements,
+        long st, List<Client> clients) {
         executorService.shutdown();
 
         try {
@@ -278,7 +274,7 @@ public class App {
     private static boolean checkParamForQueryRealDataSet(Config config) {
         if (config.QUERY_SENSOR_NUM > config.FIELDS.size()) {
             LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
-                    config.QUERY_SENSOR_NUM, config.FIELDS);
+                config.QUERY_SENSOR_NUM, config.FIELDS);
             return false;
         }
         String[] split = config.OPERATION_PROPORTION.split(":");
@@ -288,7 +284,7 @@ public class App {
         }
         if (!split[0].trim().equals("0")) {
             LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
-                    config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
+                config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
             return false;
         }
         return true;
@@ -318,70 +314,6 @@ public class App {
         importTool.importData(config.IMPORT_DATA_FILE_PATH);
     }
 
-    private static void clientSystemInfo(Config config) {
-        double abnormalValue = -1;
-        PersistenceFactory persistenceFactory = new PersistenceFactory();
-        ITestDataPersistence recorder = persistenceFactory.getPersistence();
-        File dir = new File(config.DB_DATA_PATH);
-        if (dir.exists() && dir.isDirectory()) {
-            File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
-            int interval = config.INTERVAL;
-            HashMap<IoUsage.IOStatistics, Float> ioStatistics;
-            // 检测所需的时间在目前代码的参数下至少为2秒
-            LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
-            while (true) {
-                ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
-                ArrayList<Float> netUsageList = NetUsage.getInstance().get();
-                ArrayList<Integer> openFileList = OpenFileNumber.getInstance().get();
-                ioStatistics = IoUsage.getInstance().getIOStatistics();
-                LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
-                LOGGER.info("内存使用率,{}", MemUsage.getInstance().get());
-                LOGGER.info("内存使用大小GB,{}", MemUsage.getInstance().getProcessMemUsage());
-                LOGGER.info("磁盘IO使用率,{},TPS,{},读速率MB/s,{},写速率MB/s,{}",
-                        ioUsageList.get(1),
-                        ioStatistics.get(IoUsage.IOStatistics.TPS),
-                        ioStatistics.get(IoUsage.IOStatistics.MB_READ),
-                        ioStatistics.get(IoUsage.IOStatistics.MB_WRTN));
-                LOGGER.info("网口接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-                LOGGER.info("进程号,{},打开文件总数,{},打开benchmark目录下文件数,{},打开socket数,{}", OpenFileNumber.getInstance().getPid(),
-                        openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                recorder.insertSystemMetrics(
-                        ioUsageList.get(0),
-                        MemUsage.getInstance().get(),
-                        ioUsageList.get(1),
-                        netUsageList.get(0),
-                        netUsageList.get(1),
-                        MemUsage.getInstance().getProcessMemUsage(),
-                        abnormalValue,
-                        abnormalValue,
-                        abnormalValue,
-                        abnormalValue,
-                        abnormalValue,
-                        ioStatistics.get(IoUsage.IOStatistics.TPS),
-                        ioStatistics.get(IoUsage.IOStatistics.MB_READ),
-                        ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
-                        openFileList);
-
-                try {
-                    Thread.sleep(interval * 1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (file.exists()) {
-                    boolean f = file.delete();
-                    if (!f) {
-                        LOGGER.error("log_stop_flag 文件删除失败");
-                    }
-                    break;
-                }
-            }
-        } else {
-            LOGGER.error("DB_DATA_PATH not exist!");
-        }
-
-        recorder.close();
-    }
-
     /**
      * 服务器端模式，监测系统内存等性能指标，获得插入的数据文件大小
      */
@@ -390,124 +322,98 @@ public class App {
         ITestDataPersistence recorder = persistenceFactory.getPersistence();
         File dir = new File(config.DB_DATA_PATH);
 
-        boolean write2File = false;
-        BufferedWriter out = null;
-        char space = ' ';
-        try {
-            if (config.SERVER_MODE_INFO_FILE.length() > 0) {
-                write2File = true;
-                // if the file doesn't exits, then create the file, else append.
-                out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(config.SERVER_MODE_INFO_FILE, true)));
-                out.write(String.format("时间%15cCPU使用率%7c内存使用率%5c磁盘IO使用率%5ceth0接收速率%5ceth0发送速率%5cTotalFiles%5cDataAndWalFiles%5cSockets"
-                                + "%5cdeltaFileNum%5cderbyFileNum%5cdigestFileNum%5cmetadataFileNum%5coverflowFileNum%5cwalsFileNum\r\n",
-                        space, space, space, space, space, space, space, space));
+        if (dir.exists() && dir.isDirectory()) {
+            float abnormalValue = -1;
+            File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
+            Map<FileSize.FileSizeKinds, Float> fileSizeStatistics = new EnumMap<>(FileSize.FileSizeKinds.class);
+            boolean isClientMonitor = config.BENCHMARK_WORK_MODE.equals(Constants.MODE_CLIENT_SYSTEM_INFO);
+            if (isClientMonitor) {
+                for (FileSize.FileSizeKinds kinds : FileSize.FileSizeKinds.values()) {
+                    fileSizeStatistics.put(kinds, abnormalValue);
+                }
             }
-
-            if (dir.exists() && dir.isDirectory()) {
-                File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
-                Map<FileSize.FileSizeKinds, Double> fileSizeStatistics;
-                HashMap<IoUsage.IOStatistics, Float> ioStatistics;
-                int interval = config.INTERVAL;
-                // 检测所需的时间在目前代码的参数下至少为2秒
-                LOGGER.info("----------New Test Begin with interval about {} s----------", interval + 2);
-                while (true) {
-                    long start = System.currentTimeMillis();
-                    ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
-                    LOGGER.info("IoUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-                    start = System.currentTimeMillis();
-                    ArrayList<Float> netUsageList = NetUsage.getInstance().get();
-                    LOGGER.info("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-                    start = System.currentTimeMillis();
-                    ArrayList<Integer> openFileList = new ArrayList<>();
-                    for (int i = 0; i < 9; i++) {
-                        openFileList.add(-1);
-                    }
-                    LOGGER.info("OpenFileNumber.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+            HashMap<IoUsage.IOStatistics, Float> ioStatistics;
+            int interval = config.INTERVAL;
+            boolean headerPrinted = false;
+            // 测量间隔至少为2秒
+            while (true) {
+                long start = System.currentTimeMillis();
+                ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+                LOGGER.debug("IoUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                start = System.currentTimeMillis();
+                ArrayList<Float> netUsageList = NetUsage.getInstance().get();
+                LOGGER.debug("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                if (!isClientMonitor) {
                     start = System.currentTimeMillis();
                     fileSizeStatistics = FileSize.getInstance().getFileSize();
-                    LOGGER.info("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
-                    start = System.currentTimeMillis();
-                    ioStatistics = IoUsage.getInstance().getIOStatistics();
-                    LOGGER.info("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
-
-
-                    start = System.currentTimeMillis();
-                    double memRate = MemUsage.getInstance().get();
-                    LOGGER.info("MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-                    start = System.currentTimeMillis();
-                    double proMem = MemUsage.getInstance().getProcessMemUsage();
-                    LOGGER.info("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
-                    LOGGER.info("内存使用大小GB,{}", proMem);
-                    LOGGER.info("内存使用率,{}", memRate);
-                    LOGGER.info("CPU使用率,{}", ioUsageList.get(0));
-                    LOGGER.info("磁盘IO使用率,{},TPS,{},读速率MB/s,{},写速率MB/s,{}",
-                            ioUsageList.get(1),
-                            ioStatistics.get(IoUsage.IOStatistics.TPS),
-                            ioStatistics.get(IoUsage.IOStatistics.MB_READ),
-                            ioStatistics.get(IoUsage.IOStatistics.MB_WRTN));
-                    LOGGER.info("eth0接收和发送速率,{},{},KB/s", netUsageList.get(0), netUsageList.get(1));
-                    LOGGER.info("PID={},打开文件总数{},打开data目录下文件数{},打开socket数{}", OpenFileNumber.getInstance().getPid(),
-                            openFileList.get(0), openFileList.get(1), openFileList.get(2));
-                    LOGGER.info("文件大小GB,data,{},system,{},sequence,{},overflow,{},wal,{}",
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.STSTEM),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
-                    recorder.insertSystemMetrics(
-                            ioUsageList.get(0),
-                            MemUsage.getInstance().get(),
-                            ioUsageList.get(1),
-                            netUsageList.get(0),
-                            netUsageList.get(1),
-                            MemUsage.getInstance().getProcessMemUsage(),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.STSTEM),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.OVERFLOW),
-                            fileSizeStatistics.get(FileSize.FileSizeKinds.WAL),
-                            ioStatistics.get(IoUsage.IOStatistics.TPS),
-                            ioStatistics.get(IoUsage.IOStatistics.MB_READ),
-                            ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
-                            openFileList);
-                    if (write2File) {
-                        out.write(String.format("%d%14f%14f%15f", System.currentTimeMillis(),
-                                ioUsageList.get(0), MemUsage.getInstance().get(), ioUsageList.get(1)));
-                        out.write(String.format("%16f%16f%12d%8s%8d%10s%5d", netUsageList.get(0),
-                                netUsageList.get(1), openFileList.get(0), space, openFileList.get(1),
-                                space, openFileList.get(2)));
-                        out.write(String.format("%16d%16d%16d%16d%16d%16d\n", openFileList.get(3),
-                                openFileList.get(4), openFileList.get(5), space, openFileList.get(6),
-                                openFileList.get(7), openFileList.get(8)));
-                    }
-                    try {
-                        Thread.sleep(interval * 1000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if (file.exists()) {
-                        boolean f = file.delete();
-                        if (!f) {
-                            LOGGER.error("log_stop_flag 文件删除失败");
-                        }
-                        break;
-                    }
+                    LOGGER.debug("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
                 }
-            } else {
-                LOGGER.error("DB_DATA_PATH not exist!");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            recorder.close();
-            try {
-                if (out != null)
-                    out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+                start = System.currentTimeMillis();
+                ioStatistics = IoUsage.getInstance().getIOStatistics();
+                LOGGER.debug("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
+                start = System.currentTimeMillis();
+                double memRate = MemUsage.getInstance().get();
+                LOGGER.debug("MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+                start = System.currentTimeMillis();
+                double proMem = MemUsage.getInstance().getProcessMemUsage();
+                LOGGER.debug("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
 
+                if (!headerPrinted) {
+                    LOGGER.info(",PID,内存使用大小GB,内存使用率,CPU使用率,磁盘IO使用率,磁盘TPS,读速率MB/s,写速率MB/s,网卡接收速率KB/s,网卡发送速率KB/s,data文件大小GB,system文件大小GB,sequence文件大小GB,unsequence文件大小GB,wal文件大小GB");
+                    headerPrinted = true;
+                }
+                LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", OpenFileNumber.getInstance().getPid(),
+                    proMem,
+                    memRate,
+                    ioUsageList.get(0),
+                    ioUsageList.get(1),
+                    ioStatistics.get(IoUsage.IOStatistics.TPS),
+                    ioStatistics.get(IoUsage.IOStatistics.MB_READ),
+                    ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
+                    netUsageList.get(0),
+                    netUsageList.get(1),
+                    fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
+                    fileSizeStatistics.get(FileSize.FileSizeKinds.SYSTEM),
+                    fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
+                    fileSizeStatistics.get(FileSize.FileSizeKinds.UN_SEQUENCE),
+                    fileSizeStatistics.get(FileSize.FileSizeKinds.WAL)
+                );
+
+                Map<SystemMetrics, Float> systemMetricsMap = new EnumMap<>(SystemMetrics.class);
+                systemMetricsMap.put(SystemMetrics.CPU_USAGE, ioUsageList.get(0));
+                systemMetricsMap.put(SystemMetrics.MEM_USAGE, MemUsage.getInstance().get());
+                systemMetricsMap.put(SystemMetrics.DISK_IO_USAGE, ioUsageList.get(1));
+                systemMetricsMap.put(SystemMetrics.NETWORK_R_RATE, netUsageList.get(0));
+                systemMetricsMap.put(SystemMetrics.NETWORK_S_RATE, netUsageList.get(1));
+                systemMetricsMap.put(SystemMetrics.PROCESS_MEM_SIZE, MemUsage.getInstance().getProcessMemUsage());
+                systemMetricsMap.put(SystemMetrics.DATA_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.DATA));
+                systemMetricsMap.put(SystemMetrics.SYSTEM_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.SYSTEM));
+                systemMetricsMap.put(SystemMetrics.SEQUENCE_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE));
+                systemMetricsMap.put(SystemMetrics.UN_SEQUENCE_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.UN_SEQUENCE));
+                systemMetricsMap.put(SystemMetrics.WAL_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
+                systemMetricsMap.put(SystemMetrics.DISK_TPS, ioStatistics.get(IoUsage.IOStatistics.TPS));
+                systemMetricsMap.put(SystemMetrics.DISK_READ_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_READ));
+                systemMetricsMap.put(SystemMetrics.DISK_WRITE_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_WRTN));
+                recorder.insertSystemMetrics(systemMetricsMap);
+
+                try {
+                    Thread.sleep(interval * 1000L);
+                } catch (Exception e) {
+                    LOGGER.error("sleep failed", e);
+                }
+                if (file.exists()) {
+                    try {
+                        Files.delete(file.toPath());
+                    } catch (IOException e) {
+                        LOGGER.error("log_stop_flag file delete failed");
+                    }
+                    break;
+                }
+            }
+        } else {
+            LOGGER.error("DB_DATA_PATH not exist!");
+        }
+        recorder.close();
     }
 
 }

@@ -41,7 +41,7 @@ public class Constants {
 
     // support test data persistence:
     public static final String TDP_NONE = "None";
-    public static final String TDP_IoTDB = "IoTDB";
-    public static final String TDP_MySQL = "MySQL";
+    public static final String TDP_IOTDB = "IoTDB";
+    public static final String TDP_MYSQL = "MySQL";
 
 }

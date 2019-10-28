@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.measurement;
+package cn.edu.tsinghua.iotdb.benchmark.measurement.enums;
 
 public enum TotalOperationResult {
     OK_OPERATION_NUM("okOperationNum"),

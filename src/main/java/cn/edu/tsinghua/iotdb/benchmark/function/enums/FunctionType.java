@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.enums;
+package cn.edu.tsinghua.iotdb.benchmark.function.enums;
 
 public enum FunctionType {
 	FLOAT_SIN,

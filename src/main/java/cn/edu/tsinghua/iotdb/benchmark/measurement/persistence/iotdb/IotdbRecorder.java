@@ -4,17 +4,20 @@ import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Metric;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.TotalOperationResult;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.TotalResult;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.Metric;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SingleTestMetrics;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalOperationResult;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalResult;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.SingleTestMetrics;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +34,29 @@ public class IotdbRecorder implements ITestDataPersistence {
     private String projectID = String.format("%s_%s_%s", config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
     private Statement globalStatement;
     private static final String THREAD_PREFIX = "pool-1-thread-";
-    private String resultPrefix = "insert into " + PATH_PREFIX;
-    private String operationResultPrefix = resultPrefix + "." + projectID + ".";
+    private String insertSqlPrefix = "insert into " + PATH_PREFIX;
+    private String operationResultPrefix = insertSqlPrefix + "." + projectID + ".";
     private long count = 0;
     private static final String ENCODING = "PLAIN";
     private static final String COMPRESS = "UNCOMPRESSED";
-    private static final String TOTAL_RESULT_TYPE = "DOUBLE";
+    private static final String DOUBLE_TYPE = "DOUBLE";
+    private static final String ALREADY_KEYWORD = "already exist";
+    private static final String CRETE_SCHEMA_ERROR_HINT = "create schema error";
+    private static final int SEND_TO_IOTDB_BATCH_SIZE = 1000;
+    private String localName;
+    private static final String INSERT_SQL_STR1 = ") values(";
+    private static final String INSERT_SQL_STR2 = "(timestamp";
 
     public IotdbRecorder() {
+        try {
+            InetAddress localhost = InetAddress.getLocalHost();
+            localName = localhost.getHostName();
+        } catch (UnknownHostException e) {
+            localName = "localName";
+            LOGGER.error("Get localhost failed because: {}", e.getMessage(), e);
+        }
+        localName = localName.replace("-", "_");
+        localName = localName.replace(".", "_");
         try {
             Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
             connection = DriverManager
@@ -63,6 +81,33 @@ public class IotdbRecorder implements ITestDataPersistence {
         // create time series
         initSingleTestMetrics();
         initResultMetrics();
+        if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)) {
+            initSystemMetrics();
+        }
+    }
+
+    /**
+     * System metrics include:
+     * root.test.localName.
+     */
+    private void initSystemMetrics() {
+        try (Statement statement = connection.createStatement()) {
+            for(SystemMetrics systemMetric: SystemMetrics.values()){
+                String createSeriesSql = String.format(CREATE_SERIES_SQL,
+                    PATH_PREFIX
+                        + "." + localName
+                        + "." + systemMetric,
+                    DOUBLE_TYPE, ENCODING, COMPRESS);
+                statement.addBatch(createSeriesSql);
+            }
+            statement.executeBatch();
+            statement.clearBatch();
+        } catch (SQLException e) {
+            // ignore if already has the time series
+            if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+                LOGGER.error(CRETE_SCHEMA_ERROR_HINT, e);
+            }
+        }
     }
 
     private void initResultMetrics() {
@@ -73,7 +118,7 @@ public class IotdbRecorder implements ITestDataPersistence {
                         PATH_PREFIX
                             + "." + op
                             + "." + metric.getName(),
-                        TOTAL_RESULT_TYPE, ENCODING, COMPRESS);
+                        DOUBLE_TYPE, ENCODING, COMPRESS);
                     statement.addBatch(createSeriesSql);
                 }
                 for(TotalOperationResult totalOperationResult : TotalOperationResult.values()){
@@ -81,7 +126,7 @@ public class IotdbRecorder implements ITestDataPersistence {
                         PATH_PREFIX
                             + "." + op
                             + "." + totalOperationResult.getName(),
-                        TOTAL_RESULT_TYPE, ENCODING, COMPRESS);
+                        DOUBLE_TYPE, ENCODING, COMPRESS);
                     statement.addBatch(createSeriesSql);
                 }
             }
@@ -90,15 +135,15 @@ public class IotdbRecorder implements ITestDataPersistence {
                     PATH_PREFIX
                         + ".total"
                         + "." + totalResult.getName(),
-                    TOTAL_RESULT_TYPE, ENCODING, COMPRESS);
+                    DOUBLE_TYPE, ENCODING, COMPRESS);
                 statement.addBatch(createSeriesSql);
             }
             statement.executeBatch();
             statement.clearBatch();
         } catch (SQLException e) {
             // ignore if already has the time series
-            if(!e.getMessage().contains("already exist")) {
-                LOGGER.error("create schema error :", e);
+            if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+                LOGGER.error(CRETE_SCHEMA_ERROR_HINT, e);
             }
         }
     }
@@ -124,42 +169,10 @@ public class IotdbRecorder implements ITestDataPersistence {
             statement.clearBatch();
         } catch (SQLException e) {
             // ignore if already has the time series
+            if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+                LOGGER.error(CRETE_SCHEMA_ERROR_HINT, e);
+            }
         }
-    }
-
-    @Override
-    public void insertSystemMetrics(double cpu, double mem, double io, double networkReceive, double networkSend,
-        double processMemSize, double dataSize, double systemSize, double sequenceSize, double overflowSize,
-        double walSize, float tps, float ioRead, float ioWrite, List<Integer> openFileList) {
-
-    }
-
-    @Override
-    public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
-        StringBuilder builder = new StringBuilder(operationResultPrefix).append(Thread.currentThread().getName());
-        long currTime = System.currentTimeMillis();
-        builder.append(".").append(operation)
-            .append("(timestamp");
-        for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
-            builder.append(",").append(metrics.getName());
-        }
-        builder.append(") values(");
-        builder.append(currTime);
-        builder.append(",").append(okPoint);
-        builder.append(",").append(failPoint);
-        builder.append(",").append(latency);
-        builder.append(",'").append(remark).append("'");
-        addBatch(builder);
-    }
-
-    @Override public void saveResult(String operation, String k, String v) {
-        StringBuilder builder = new StringBuilder(resultPrefix);
-        builder.append(".").append(operation).append("(timestamp");
-        builder.append(",").append(k);
-        builder.append(") values(");
-        builder.append(EXP_TIME);
-        builder.append(",").append(v);
-        addBatch(builder);
     }
 
     private void addBatch(StringBuilder builder) {
@@ -167,7 +180,7 @@ public class IotdbRecorder implements ITestDataPersistence {
         try {
             globalStatement.addBatch(builder.toString());
             count ++;
-            if(count % 5000 == 0) {
+            if(count % SEND_TO_IOTDB_BATCH_SIZE == 0) {
                 globalStatement.executeBatch();
                 globalStatement.clearBatch();
             }
@@ -176,8 +189,58 @@ public class IotdbRecorder implements ITestDataPersistence {
         }
     }
 
-    @Override public void saveTestConfig() {
+    @Override
+    public void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap) {
+        try (Statement statement = connection.createStatement()) {
+            long currTime = System.currentTimeMillis();
+            StringBuilder builder = new StringBuilder(insertSqlPrefix).append(".").append(localName).append(INSERT_SQL_STR2);
+            StringBuilder valueBuilder = new StringBuilder(INSERT_SQL_STR1).append(currTime);
+            for(Map.Entry entry: systemMetricsMap.entrySet()) {
+                builder.append(",").append(entry.getKey());
+                if (entry.getValue() == null) {
+                    valueBuilder.append(",").append(0);
+                } else {
+                    valueBuilder.append(",").append(entry.getValue());
+                }
+            }
+            builder.append(valueBuilder).append(")");
+            statement.execute(builder.toString());
+        } catch (SQLException e) {
+            LOGGER.error("insert system metric data failed ", e);
+        }
+    }
 
+    @Override
+    public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
+        StringBuilder builder = new StringBuilder(operationResultPrefix).append(Thread.currentThread().getName());
+        long currTime = System.currentTimeMillis();
+        builder.append(".").append(operation)
+            .append(INSERT_SQL_STR2);
+        for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
+            builder.append(",").append(metrics.getName());
+        }
+        builder.append(INSERT_SQL_STR1);
+        builder.append(currTime);
+        builder.append(",").append(okPoint);
+        builder.append(",").append(failPoint);
+        builder.append(",").append(latency);
+        builder.append(",'").append(remark).append("'");
+        addBatch(builder);
+    }
+
+    @Override
+    public void saveResult(String operation, String k, String v) {
+        StringBuilder builder = new StringBuilder(insertSqlPrefix);
+        builder.append(".").append(operation).append(INSERT_SQL_STR2);
+        builder.append(",").append(k);
+        builder.append(INSERT_SQL_STR1);
+        builder.append(EXP_TIME);
+        builder.append(",").append(v);
+        addBatch(builder);
+    }
+
+    @Override public void saveTestConfig() {
+        // TO do
     }
 
     @Override public void close() {

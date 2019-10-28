@@ -2,7 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.function;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.enums.FunctionType;
+import cn.edu.tsinghua.iotdb.benchmark.function.enums.FunctionType;
 import java.util.Random;
 
 public class Function {

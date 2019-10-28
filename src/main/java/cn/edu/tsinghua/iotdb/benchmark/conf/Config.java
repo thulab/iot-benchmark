@@ -107,9 +107,6 @@ public class Config {
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
 
- 	/**存储系统性能信息的文件路径*/
- 	public String SERVER_MODE_INFO_FILE = "";
-
  	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 

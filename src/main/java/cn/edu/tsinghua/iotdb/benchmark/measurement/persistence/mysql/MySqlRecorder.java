@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.mysql;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -13,7 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,11 +118,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void insertSystemMetrics(double cpu, double mem, double io, double networkReceive, double networkSend,
-      double processMemSize,
-      double dataSize, double systemSize, double sequenceSize, double overflowSize, double walSize,
-      float tps, float ioRead, float ioWrite, List<Integer> openFileList) {
-
+  public void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap) {
     Statement stat = null;
     String sql = "";
     try {
@@ -129,29 +126,29 @@ public class MySqlRecorder implements ITestDataPersistence {
       sql = String.format("insert into SERVER_MODE_" + localName
               + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d)",
           System.currentTimeMillis(),
-          cpu,
-          mem,
-          io,
-          networkReceive,
-          networkSend,
-          processMemSize,
-          dataSize,
-          systemSize,
-          sequenceSize,
-          overflowSize,
-          walSize,
-          tps,
-          ioRead,
-          ioWrite,
-          openFileList.get(0),
-          openFileList.get(1),
-          openFileList.get(2),
-          openFileList.get(3),
-          openFileList.get(4),
-          openFileList.get(5),
-          openFileList.get(6),
-          openFileList.get(7),
-          openFileList.get(8));
+          systemMetricsMap.get(SystemMetrics.CPU_USAGE),
+          systemMetricsMap.get(SystemMetrics.MEM_USAGE),
+          systemMetricsMap.get(SystemMetrics.DISK_IO_USAGE),
+          systemMetricsMap.get(SystemMetrics.NETWORK_R_RATE),
+          systemMetricsMap.get(SystemMetrics.NETWORK_S_RATE),
+          systemMetricsMap.get(SystemMetrics.PROCESS_MEM_SIZE),
+          systemMetricsMap.get(SystemMetrics.DATA_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.SYSTEM_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.SEQUENCE_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.UN_SEQUENCE_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.WAL_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.DISK_TPS),
+          systemMetricsMap.get(SystemMetrics.DISK_READ_SPEED_MB),
+          systemMetricsMap.get(SystemMetrics.DISK_WRITE_SPEED_MB),
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1);
       stat.executeUpdate(sql);
     } catch (SQLException e) {
       LOGGER.error("{} insert into mysql failed", sql, e);
@@ -254,10 +251,10 @@ public class MySqlRecorder implements ITestDataPersistence {
         case Constants.DB_OPENTS:
         case Constants.DB_KAIROS:
         case Constants.DB_CTS:
-          String TSHost = config.DB_URL
+          String host = config.DB_URL
               .substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'ServerIP'", "'" + TSHost + "'");
+              "'ServerIP'", "'" + host + "'");
           stat.addBatch(sql);
           break;
         default:

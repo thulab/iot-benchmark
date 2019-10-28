@@ -119,7 +119,6 @@ public class ConfigDescriptor {
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.IS_QUIET_MODE = Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.IS_QUIET_MODE+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
 				config.WORKLOAD_BUFFER_SIZE = Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.WORKLOAD_BUFFER_SIZE+""));
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
 				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);

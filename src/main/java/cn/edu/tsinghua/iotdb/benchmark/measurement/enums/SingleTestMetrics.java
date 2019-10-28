@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence;
+package cn.edu.tsinghua.iotdb.benchmark.measurement.enums;
 
 public enum SingleTestMetrics {
     OK_POINT("okPoint","INT32"),

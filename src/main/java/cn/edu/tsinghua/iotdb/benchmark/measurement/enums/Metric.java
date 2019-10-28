@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.measurement;
+package cn.edu.tsinghua.iotdb.benchmark.measurement.enums;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import java.util.EnumMap;
@@ -22,13 +22,13 @@ public enum Metric {
     return typeValueMap;
   }
 
-  Map<Operation, Double> typeValueMap;
+  public Map<Operation, Double> typeValueMap;
 
   public String getName() {
     return name;
   }
 
-  String name;
+  public String name;
 
   Metric(String name) {
     this.name = name;

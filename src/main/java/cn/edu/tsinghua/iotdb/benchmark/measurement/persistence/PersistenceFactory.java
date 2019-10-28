@@ -17,9 +17,9 @@ public class PersistenceFactory {
         switch (config.TEST_DATA_PERSISTENCE) {
             case Constants.TDP_NONE:
                 return new NoneRecorder();
-            case Constants.TDP_IoTDB:
+            case Constants.TDP_IOTDB:
                 return new IotdbRecorder();
-            case Constants.TDP_MySQL:
+            case Constants.TDP_MYSQL:
                 return new MySqlRecorder();
             default:
                 LOGGER.error("unsupported test data persistence way: {}, use NoneRecorder", config.TEST_DATA_PERSISTENCE);
