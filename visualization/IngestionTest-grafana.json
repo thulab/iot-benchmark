@@ -14,25 +14,13 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "6.3.3"
+      "version": "6.4.3"
     },
     {
       "type": "datasource",
       "id": "grafana-simple-json-datasource",
       "name": "SimpleJson",
       "version": "1.4.0"
-    },
-    {
-      "type": "panel",
-      "id": "graph",
-      "name": "Graph",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "heatmap",
-      "name": "Heatmap",
-      "version": ""
     },
     {
       "type": "panel",
@@ -61,174 +49,15 @@
   "links": [],
   "panels": [
     {
-      "aliasColors": {
-        "test.IoTDB__2019_10_23_07_42_48_231.latency": "blue"
-      },
-      "bars": false,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "${DS_IOTDB}",
-      "decimals": null,
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      },
-      "id": 2,
-      "legend": {
-        "alignAsTable": true,
-        "avg": true,
-        "current": false,
-        "hideEmpty": false,
-        "hideZero": false,
-        "max": true,
-        "min": true,
-        "rightSide": false,
-        "show": true,
-        "total": true,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": true,
-      "pluginVersion": "6.3.3",
-      "pointradius": 1,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "refId": "A",
-          "target": "test.IoTDB__2019_10_24_10_40_58_362.pool-1-thread-1.INGESTION.latency",
-          "type": "timeserie"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Operation Latency in Millisecond",
-      "tooltip": {
-        "shared": true,
-        "sort": 2,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "short",
-          "label": "Latency (ms)",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": "",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "cards": {
-        "cardPadding": null,
-        "cardRound": null
-      },
-      "color": {
-        "cardColor": "#b4ff00",
-        "colorScale": "sqrt",
-        "colorScheme": "interpolateViridis",
-        "exponent": 0.5,
-        "min": null,
-        "mode": "spectrum"
-      },
-      "dataFormat": "timeseries",
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "heatmap": {},
-      "hideZeroBuckets": false,
-      "highlightCards": true,
-      "id": 6,
-      "legend": {
-        "show": true
-      },
-      "options": {},
-      "pluginVersion": "6.3.3",
-      "reverseYBuckets": false,
-      "targets": [
-        {
-          "refId": "A",
-          "target": "test.IoTDB__2019_10_24_10_40_58_362.pool-1-thread-1.INGESTION.latency",
-          "type": "timeserie"
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Latency Heat Map",
-      "tooltip": {
-        "show": true,
-        "showHistogram": false
-      },
-      "type": "heatmap",
-      "xAxis": {
-        "show": true
-      },
-      "xBucketNumber": null,
-      "xBucketSize": null,
-      "yAxis": {
-        "decimals": null,
-        "format": "ms",
-        "logBase": 1,
-        "max": null,
-        "min": null,
-        "show": true,
-        "splitFactor": null
-      },
-      "yBucketBound": "auto",
-      "yBucketNumber": null,
-      "yBucketSize": null
-    },
-    {
       "columns": [],
+      "datasource": "${DS_IOTDB}",
       "description": "The timestamp of each row is the start time of the test.\nThe unit of throughput is points/s",
       "fontSize": "100%",
       "gridPos": {
         "h": 6,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 0
       },
       "id": 12,
       "options": {},
@@ -402,13 +231,14 @@
     },
     {
       "columns": [],
+      "datasource": "${DS_IOTDB}",
       "description": "MID_AVG is the AVG without the 5% data of the head and the tail.",
       "fontSize": "100%",
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 6
       },
       "id": 10,
       "options": {},
@@ -496,11 +326,12 @@
     },
     {
       "collapsed": false,
+      "datasource": "${DS_IOTDB}",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 13
       },
       "id": 4,
       "panels": [],
@@ -509,15 +340,15 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 19,
+  "schemaVersion": 20,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "2019-10-24T14:40:57.874Z",
-    "to": "2019-10-24T14:41:09.991Z"
+    "from": "2013-05-15T17:22:17.660Z",
+    "to": "2026-04-03T11:59:50.204Z"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -536,5 +367,5 @@
   "timezone": "",
   "title": "Ingestion Test",
   "uid": "L0pAc6oZk",
-  "version": 8
+  "version": 4
 }
