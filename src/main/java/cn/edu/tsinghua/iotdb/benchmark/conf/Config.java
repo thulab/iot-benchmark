@@ -166,11 +166,11 @@ public class Config {
 	public long DATA_SEED = 666L;
 
 	/** 内置函数参数 */
-	public List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
 
 	/** 设备编号 */
 	public List<String> DEVICE_CODES = new ArrayList<String>();
@@ -314,27 +314,22 @@ public class Config {
 
 	/**
 	 * 根据传感器数，初始化传感器编号
-	 *
-	 * @param
-	 * @return
 	 */
-	public List<String> initSensorCodes() {
+	void initSensorCodes() {
 		for (int i = 0; i < SENSOR_NUMBER; i++) {
 			String sensorCode = "s_" + i;
 			SENSOR_CODES.add(sensorCode);
 		}
-		return SENSOR_CODES;
 	}
 
 	/**
 	 * 根据设备数，初始化设备编号
 	 */
-	public List<String> initDeviceCodes() {
+	void initDeviceCodes() {
 		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
 			String deviceCode = "d_" + i;
 			DEVICE_CODES.add(deviceCode);
 		}
-		return DEVICE_CODES;
 	}
 
 

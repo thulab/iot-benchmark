@@ -37,6 +37,7 @@ public class IoTDB implements IDatabase {
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private Connection connection;
+  private static final String ALREADY_KEYWORD = "already exist";
 
   public IoTDB() {
 
@@ -91,8 +92,11 @@ public class IoTDB implements IDatabase {
         statement.clearBatch();
       }
     } catch (SQLException e) {
-      LOGGER.error("Set storage group failed because ", e);
-      throw new TsdbException(e);
+      // ignore if already has the time series
+      if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+        LOGGER.error("Register IoTDB schema failed because ", e);
+        throw new TsdbException(e);
+      }
     }
     // create time series
     try (Statement statement = connection.createStatement()) {
@@ -116,8 +120,11 @@ public class IoTDB implements IDatabase {
       statement.executeBatch();
       statement.clearBatch();
     } catch (SQLException e) {
-      LOGGER.error("Register IoTDB schema failed because ", e);
-      throw new TsdbException(e);
+      // ignore if already has the time series
+      if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+        LOGGER.error("Register IoTDB schema failed because ", e);
+        throw new TsdbException(e);
+      }
     }
 
   }

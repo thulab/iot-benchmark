@@ -28,8 +28,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -335,6 +337,7 @@ public class App {
             HashMap<IoUsage.IOStatistics, Float> ioStatistics;
             int interval = config.INTERVAL;
             boolean headerPrinted = false;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             // 测量间隔至少为2秒
             while (true) {
                 long start = System.currentTimeMillis();
@@ -359,10 +362,12 @@ public class App {
                 LOGGER.debug("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
 
                 if (!headerPrinted) {
-                    LOGGER.info(",PID,内存使用大小GB,内存使用率,CPU使用率,磁盘IO使用率,磁盘TPS,读速率MB/s,写速率MB/s,网卡接收速率KB/s,网卡发送速率KB/s,data文件大小GB,system文件大小GB,sequence文件大小GB,unsequence文件大小GB,wal文件大小GB");
+                    LOGGER.info(",测量时间,PID,内存使用大小GB,内存使用率,CPU使用率,磁盘IO使用率,磁盘TPS,读速率MB/s,写速率MB/s,网卡接收速率KB/s,网卡发送速率KB/s,data文件大小GB,system文件大小GB,sequence文件大小GB,unsequence文件大小GB,wal文件大小GB");
                     headerPrinted = true;
                 }
-                LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", OpenFileNumber.getInstance().getPid(),
+                String time = sdf.format(new Date(start));
+                LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", OpenFileNumber.getInstance().getPid(),
+                    time,
                     proMem,
                     memRate,
                     ioUsageList.get(0),
