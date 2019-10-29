@@ -57,6 +57,7 @@ public class IotdbRecorder implements ITestDataPersistence {
         }
         localName = localName.replace("-", "_");
         localName = localName.replace(".", "_");
+        localName = "_" + localName;
         try {
             Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
             connection = DriverManager
@@ -95,7 +96,7 @@ public class IotdbRecorder implements ITestDataPersistence {
             for(SystemMetrics systemMetric: SystemMetrics.values()){
                 String createSeriesSql = String.format(CREATE_SERIES_SQL,
                     PATH_PREFIX
-                        + "._" + localName
+                        + "." + localName
                         + "." + systemMetric,
                     DOUBLE_TYPE, ENCODING, COMPRESS);
                 statement.addBatch(createSeriesSql);

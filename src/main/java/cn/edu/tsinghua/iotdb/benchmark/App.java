@@ -366,8 +366,9 @@ public class App {
                     headerPrinted = true;
                 }
                 String time = sdf.format(new Date(start));
-                LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", OpenFileNumber.getInstance().getPid(),
+                LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
                     time,
+                    OpenFileNumber.getInstance().getPid(),
                     proMem,
                     memRate,
                     ioUsageList.get(0),
