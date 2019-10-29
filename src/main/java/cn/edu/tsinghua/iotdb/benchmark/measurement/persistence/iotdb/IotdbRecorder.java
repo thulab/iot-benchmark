@@ -95,7 +95,7 @@ public class IotdbRecorder implements ITestDataPersistence {
             for(SystemMetrics systemMetric: SystemMetrics.values()){
                 String createSeriesSql = String.format(CREATE_SERIES_SQL,
                     PATH_PREFIX
-                        + "." + localName
+                        + "._" + localName
                         + "." + systemMetric,
                     DOUBLE_TYPE, ENCODING, COMPRESS);
                 statement.addBatch(createSeriesSql);
