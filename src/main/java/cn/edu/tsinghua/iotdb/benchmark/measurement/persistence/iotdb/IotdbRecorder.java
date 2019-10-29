@@ -77,11 +77,16 @@ public class IotdbRecorder implements ITestDataPersistence {
                 statement.execute(String.format(SET_STORAGE_GROUP_SQL, PATH_PREFIX));
             }
         } catch (SQLException e) {
-            // ignore if already has the storage group
+            // ignore if already has the time series
+            if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+                LOGGER.error(CRETE_SCHEMA_ERROR_HINT, e);
+            }
         }
         // create time series
-        initSingleTestMetrics();
-        initResultMetrics();
+        if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+            initSingleTestMetrics();
+            initResultMetrics();
+        }
         if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)) {
             initSystemMetrics();
         }
