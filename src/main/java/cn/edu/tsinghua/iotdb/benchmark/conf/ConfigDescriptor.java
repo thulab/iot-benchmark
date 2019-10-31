@@ -93,8 +93,11 @@ public class ConfigDescriptor {
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
 
-				config.MYSQL_URL = properties.getProperty("MYSQL_URL", config.MYSQL_URL);
-				config.IS_USE_MYSQL = Boolean.parseBoolean(properties.getProperty("IS_USE_MYSQL", config.IS_USE_MYSQL+""));
+				config.TEST_DATA_STORE_PORT = properties.getProperty("TEST_DATA_STORE_PORT", config.TEST_DATA_STORE_PORT);
+				config.TEST_DATA_STORE_DB = properties.getProperty("TEST_DATA_STORE_DB", config.TEST_DATA_STORE_DB);
+				config.TEST_DATA_STORE_IP = properties.getProperty("TEST_DATA_STORE_IP", config.TEST_DATA_STORE_IP);
+				config.TEST_DATA_STORE_USER = properties.getProperty("TEST_DATA_STORE_USER", config.TEST_DATA_STORE_USER);
+				config.TEST_DATA_STORE_PW = properties.getProperty("TEST_DATA_STORE_PW", config.TEST_DATA_STORE_PW);
 				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
 				config.VERSION = properties.getProperty("VERSION", "");
 
@@ -110,12 +113,12 @@ public class ConfigDescriptor {
 					config.UNSEQUENCE_DIR.add(data_ + "/unsequence");
 				}
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
+				config.TEST_DATA_PERSISTENCE = properties.getProperty("TEST_DATA_PERSISTENCE", "None");
 				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
 				config.LOG_PRINT_INTERVAL = Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.LOG_PRINT_INTERVAL+""));
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
 				config.IS_QUIET_MODE = Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.IS_QUIET_MODE+""));
 				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				config.SERVER_MODE_INFO_FILE = properties.getProperty("SERVER_MODE_INFO_FILE", "");
 				config.WORKLOAD_BUFFER_SIZE = Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.WORKLOAD_BUFFER_SIZE+""));
 				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
 				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);

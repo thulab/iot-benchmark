@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;

@@ -107,9 +107,6 @@ public class Config {
  	/**系统性能检测网卡设备名*/
  	public String NET_DEVICE = "e";
 
- 	/**存储系统性能信息的文件路径*/
- 	public String SERVER_MODE_INFO_FILE = "";
-
  	/**一个样例数据的存储组名称*/
  	public String STORAGE_GROUP_NAME ;
 
@@ -169,11 +166,11 @@ public class Config {
 	public long DATA_SEED = 666L;
 
 	/** 内置函数参数 */
-	public List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
-	public List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
+	private List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
 
 	/** 设备编号 */
 	public List<String> DEVICE_CODES = new ArrayList<String>();
@@ -206,12 +203,14 @@ public class Config {
 
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
-	public String MYSQL_URL = "jdbc:mysql://166.111.141.168:3306/benchmark?"
-			+ "user=root&password=Ise_Nel_2017&useUnicode=true&characterEncoding=UTF8&useSSL=false";
-	//是否将结果写入mysql
-	public boolean IS_USE_MYSQL = false;
+	public String TEST_DATA_PERSISTENCE = "None";
 
 	public String REMARK = "";
+	public String TEST_DATA_STORE_IP = "";
+	public String TEST_DATA_STORE_PORT = "";
+	public String TEST_DATA_STORE_DB = "";
+	public String TEST_DATA_STORE_USER = "";
+	public String TEST_DATA_STORE_PW = "";
 	public String VERSION = "";
 
 	// DB参数
@@ -315,27 +314,22 @@ public class Config {
 
 	/**
 	 * 根据传感器数，初始化传感器编号
-	 *
-	 * @param
-	 * @return
 	 */
-	public List<String> initSensorCodes() {
+	void initSensorCodes() {
 		for (int i = 0; i < SENSOR_NUMBER; i++) {
 			String sensorCode = "s_" + i;
 			SENSOR_CODES.add(sensorCode);
 		}
-		return SENSOR_CODES;
 	}
 
 	/**
 	 * 根据设备数，初始化设备编号
 	 */
-	public List<String> initDeviceCodes() {
+	void initDeviceCodes() {
 		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
 			String deviceCode = "d_" + i;
 			DEVICE_CODES.add(deviceCode);
 		}
-		return DEVICE_CODES;
 	}
 
 

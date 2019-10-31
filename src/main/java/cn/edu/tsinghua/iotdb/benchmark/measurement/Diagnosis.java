@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.DiagnosisItem;
 import java.util.EnumMap;
 import java.util.Map;
 

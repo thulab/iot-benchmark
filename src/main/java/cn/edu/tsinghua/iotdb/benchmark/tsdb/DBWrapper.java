@@ -1,11 +1,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.OperationController.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -29,7 +30,7 @@ public class DBWrapper implements IDatabase {
   private static final double NANO_TO_MILLIS = 1000000.0d;
   private Measurement measurement;
   private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
-  private MySqlRecorder mySqlRecorder;
+  private ITestDataPersistence recorder;
 
   public DBWrapper(Measurement measurement) {
     DBFactory dbFactory = new DBFactory();
@@ -39,7 +40,8 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Failed to get database because", e);
     }
     this.measurement = measurement;
-    mySqlRecorder = new MySqlRecorder();
+    PersistenceFactory persistenceFactory = new PersistenceFactory();
+    recorder = persistenceFactory.getPersistence();
   }
 
   @Override
@@ -66,14 +68,14 @@ public class DBWrapper implements IDatabase {
       } else {
         measurement.addFailOperationNum(operation);
         measurement.addFailPointNum(operation, batch.pointNum());
-        mySqlRecorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
+        recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
             status.getException().toString());
         LOGGER.error("Insert batch failed because", status.getException());
       }
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
-      mySqlRecorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0, e.toString());
+      recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0, e.toString());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
@@ -222,8 +224,8 @@ public class DBWrapper implements IDatabase {
   @Override
   public void close() throws TsdbException {
     db.close();
-    if (mySqlRecorder != null) {
-      mySqlRecorder.closeMysql();
+    if (recorder != null) {
+      recorder.close();
     }
   }
 
@@ -251,7 +253,7 @@ public class DBWrapper implements IDatabase {
     measurement.addFailOperationNum(operation);
     // currently we do not have expected result point number for query
     LOGGER.error(ERROR_LOG, operation, e);
-    mySqlRecorder.saveOperationResult(operation.getName(), 0, 0, 0, e.toString());
+    recorder.saveOperationResult(operation.getName(), 0, 0, 0, e.toString());
   }
 
   private void measureOkOperation(Status status, Operation operation, int okPointNum) {
@@ -259,7 +261,7 @@ public class DBWrapper implements IDatabase {
     measurement.addOperationLatency(operation, latencyInMillis);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
-    mySqlRecorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, "");
+    recorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, "");
   }
 
   private void handleQueryOperation(Status status, Operation operation) {
@@ -277,7 +279,7 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number for query
-      mySqlRecorder
+      recorder
           .saveOperationResult(operation.getName(), 0, 0, 0, status.getException().toString());
     }
   }
