@@ -29,7 +29,7 @@
 	- [Perform Multiple Tests Automatically](#perform-multiple-tests-automatically)
 		- [Configure](#configure-4)
 		- [Start](#start-1)
-	- [MySQL Integration](#mysql-integration)
+	- [Test Data Persistence](#test-data-persistence)
 - [Related Article](#related-article)
 
 <!-- /MarkdownTOC -->
@@ -425,13 +425,19 @@ In this case, if you want to know what is going on, you can check the log inform
 > tail -f log_info.log
 ```
 
-## MySQL Integration
+## Test Data Persistence
 
-IoTDB-benchmark can automatically store test information into MySQL for further analysis. To enable MySQL Integration, please configure ```config.properties```:
+IoTDB-benchmark can automatically store test information into database for further analysis. 
+ 
+To enable MySQL Integration, please configure ```config.properties```:
 
 ```
 TEST_DATA_PERSISTENCE=MySQL
-MYSQL_URL=jdbc:mysql://[DB_HOST]:3306/[DBName]?user=[UserName]&password=[PassWord]&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true
+TEST_DATA_STORE_IP=166.111.7.145
+TEST_DATA_STORE_PORT=3306
+TEST_DATA_STORE_DB=test
+TEST_DATA_STORE_USER=root
+TEST_DATA_STORE_PW=root
 ```
 
 If you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```.
