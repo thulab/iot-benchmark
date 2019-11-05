@@ -83,7 +83,7 @@ public class HyperLogLogTest {
                     list.add(random.nextInt((int) (sampleSize * floor[floorIndex])));
                 }
                 Set<Integer> set = new HashSet<>();
-                ICardinality card = new HyperLogLog(10);
+                ICardinality card = new HyperLogLog(13);
                 for (int a : list) {
                     set.add(a);
                     card.offer(a);
@@ -95,8 +95,8 @@ public class HyperLogLogTest {
             avgErrors[floorIndex] = String.format("%.5f", errorSum / testNum) ;
         }
         System.out.println(Arrays.toString(avgErrors));
-        // output: [0.00999, 0.01883, 0.03421, 0.00939, 0.01651, 0.01651, 0.02058, 0.03640, 0.02683, 0.03044, 0.03735, 0.02933, 0.02484, 0.02513, 0.02207]
-        // time cost: 10s
+        // output: [0.00299, 0.00914, 0.00331, 0.00294, 0.00348, 0.00450, 0.00605, 0.00581, 0.00580, 0.00585, 0.00668, 0.00672, 0.00748, 0.00753, 0.00742]
+        // time cost: 11s
     }
 
     @Test
@@ -111,7 +111,7 @@ public class HyperLogLogTest {
         int a = (int) (sampleSize * floor);
 
         long start = System.currentTimeMillis();
-        ICardinality card = new HyperLogLog(10);
+        ICardinality card = new HyperLogLog(13);
         for (int i = 0; i < sampleSize; i++) {
             card.offer(random.nextInt(a));
         }
