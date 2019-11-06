@@ -13,8 +13,4 @@ public class QueryRealDatasetClient extends BaseClient {
     super(id, countDownLatch, barrier, new RealDatasetWorkLoad(config));
   }
 
-  @Override
-  void initLogger() {
-    LOGGER = LoggerFactory.getLogger(QueryRealDatasetClient.class);
-  }
 }

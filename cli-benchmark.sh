@@ -37,13 +37,7 @@ mvn clean package -Dmaven.test.skip=true
 
 #prepare for client system info recording benchmark
 if [ -d $CLIENT_DB_DATA_PATH ]; then
-#    MYSQL_URL_LINE=$(grep "MYSQL_URL" $BENCHMARK_HOME/conf/config.properties)
-#    MYSQL_URL_VALUE=${MYSQL_URL_LINE#*=}
-#    IS_USE_MYSQL_LINE=$(grep "IS_USE_MYSQL" $BENCHMARK_HOME/conf/config.properties)
-#    IS_USE_MYSQL_VALUE=${IS_USE_MYSQL_LINE#*=}
-#    sed -i "s/^MYSQL_URL.*$/MYSQL_URL=${MYSQL_URL_VALUE}/g" $CLIENT_DB_DATA_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
-#    sed -i "s/^IS_USE_MYSQL.*$/MYSQL_URL=${IS_USE_MYSQL_VALUE}/g" $CLIENT_DB_DATA_PATH/iotdb-benchmark/conf/clientSystemInfo.properties
-#
+
     ssh $HOST_NAME@127.0.0.1 "sh $CLIENT_DB_DATA_PATH/iotdb-benchmark/ser_cli-benchmark.sh > /dev/null 2>&1 &"
     else
     ssh $HOST_NAME@127.0.0.1 "mkdir $CLIENT_DB_DATA_PATH;cp -r ${BENCHMARK_HOME} $CLIENT_DB_DATA_PATH"

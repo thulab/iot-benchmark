@@ -1,14 +1,9 @@
 package cn.edu.tsinghua.iotdb.benchmark.function;
 
-import java.math.RoundingMode;
-import java.text.NumberFormat;
-import java.util.Random;
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.enums.FunctionType;
-import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
+import cn.edu.tsinghua.iotdb.benchmark.function.enums.FunctionType;
+import java.util.Random;
 
 public class Function {
 //	private final static double[] ABNORMAL_RATE = { 0.005, 0.01, 0.1, 0.15, 0.2 };

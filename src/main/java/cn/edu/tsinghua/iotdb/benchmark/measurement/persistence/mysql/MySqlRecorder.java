@@ -1,8 +1,10 @@
-package cn.edu.tsinghua.iotdb.benchmark.mysql;
+package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.mysql;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
@@ -12,52 +14,53 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MySqlRecorder {
+public class MySqlRecorder implements ITestDataPersistence {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(MySqlRecorder.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MySqlRecorder.class);
   private static final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
   private static final String SAVE_RESULT = "insert into FINAL_RESULT values(NULL, '%s', '%s', '%s', '%s')";
   private Connection mysqlConnection = null;
   private Config config = ConfigDescriptor.getInstance().getConfig();
   private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
   private String localName;
   private String day;
-  private String projectID;
   private static final long EXP_TIME = System.currentTimeMillis();
+  private String projectID = String.format("%s_%s_%s_%s",config.BENCHMARK_WORK_MODE, config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
+  private Statement statement;
+  private static final String URL_TEMPLATE = "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
+  private String url = String.format(URL_TEMPLATE, config.TEST_DATA_STORE_IP,
+      config.TEST_DATA_STORE_PORT, config.TEST_DATA_STORE_DB, config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
+  private long count = 0;
 
   public MySqlRecorder() {
-    if (config.IS_USE_MYSQL) {
-      try {
-        InetAddress localhost = InetAddress.getLocalHost();
-        localName = localhost.getHostName();
-      } catch (UnknownHostException e) {
-        localName = "localName";
-        LOGGER.error("获取本机主机名称失败;UnknownHostException：{}", e.getMessage(), e);
-      }
-      localName = localName.replace("-", "_");
-      localName = localName.replace(".", "_");
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
-      String labID = sdf.format(new java.util.Date(EXP_TIME));
-      projectID =
-          config.BENCHMARK_WORK_MODE + "_" + config.DB_SWITCH + "_" + config.REMARK + "_" + labID;
-      Date date = new Date(EXP_TIME);
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd");
-      day = dateFormat.format(date);
-      try {
-        Class.forName(Constants.MYSQL_DRIVENAME);
-        mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
-        initTable();
-      } catch (SQLException e) {
-        LOGGER.error("mysql 初始化失败，原因是", e);
-      } catch (ClassNotFoundException e) {
-        LOGGER.error("mysql 连接初始化失败，原因是", e);
-      }
+    try {
+      InetAddress localhost = InetAddress.getLocalHost();
+      localName = localhost.getHostName();
+    } catch (UnknownHostException e) {
+      localName = "localName";
+      LOGGER.error("获取本机主机名称失败;UnknownHostException：{}", e.getMessage(), e);
     }
+    localName = localName.replace("-", "_");
+    localName = localName.replace(".", "_");
+    Date date = new Date(EXP_TIME);
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd");
+    day = dateFormat.format(date);
+    try {
+      Class.forName(Constants.MYSQL_DRIVENAME);
+      mysqlConnection = DriverManager.getConnection(url);
+      initTable();
+      statement = mysqlConnection.createStatement();
+    } catch (SQLException e) {
+      LOGGER.error("mysql 初始化失败，原因是", e);
+    } catch (ClassNotFoundException e) {
+      LOGGER.error("mysql 连接初始化失败，原因是", e);
+    }
+
   }
 
   // 检查记录本次实验的表格是否已经创建，没有则创建
@@ -78,7 +81,7 @@ public class MySqlRecorder {
               + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
               + "totalFileNum INT, dataFileNum INT, socketNum INT, settledNum INT, infoNum INT,"
               + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
-              + "remark varchar(6000), primary key(id))");
+              + "primary key(id))");
           LOGGER.info("Table SERVER_MODE create success!");
         }
         return;
@@ -103,7 +106,6 @@ public class MySqlRecorder {
       }
     } catch (SQLException e) {
       LOGGER.error("mysql 创建表格失败,原因是", e);
-
     } finally {
       try {
         if (stat != null) {
@@ -115,101 +117,100 @@ public class MySqlRecorder {
     }
   }
 
-  public void insertSERVER_MODE(double cpu, double mem, double io, double net_recv, double net_send, double pro_mem_size,
-      double dataSize, double systemSize, double sequenceSize, double overflowSize, double walSize,
-      float tps, float io_read, float io_wrtn,
-      List<Integer> openFileList, String remark) {
-    if (config.IS_USE_MYSQL) {
-      Statement stat = null;
-      String sql = "";
-      try {
-        stat = mysqlConnection.createStatement();
-        sql = String.format("insert into SERVER_MODE_" + localName
-                + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s)",
-            System.currentTimeMillis(),
-            cpu,
-            mem,
-            io,
-            net_recv,
-            net_send,
-            pro_mem_size,
-            dataSize,
-            systemSize,
-            sequenceSize,
-            overflowSize,
-            walSize,
-            tps,
-            io_read,
-            io_wrtn,
-            openFileList.get(0),
-            openFileList.get(1),
-            openFileList.get(2),
-            openFileList.get(3),
-            openFileList.get(4),
-            openFileList.get(5),
-            openFileList.get(6),
-            openFileList.get(7),
-            openFileList.get(8),
-            "'" + remark + "'");
-        stat.executeUpdate(sql);
-      } catch (SQLException e) {
-        LOGGER.error("{}将SERVER_MODE写入mysql失败,because:{}", sql,
-            e.getMessage());
-        e.printStackTrace();
-      } finally {
-        if (stat != null) {
-          try {
-            stat.close();
-          } catch (SQLException e) {
-            e.printStackTrace();
-          }
+  @Override
+  public void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap) {
+    Statement stat = null;
+    String sql = "";
+    try {
+      stat = mysqlConnection.createStatement();
+      sql = String.format("insert into SERVER_MODE_" + localName
+              + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d)",
+          System.currentTimeMillis(),
+          systemMetricsMap.get(SystemMetrics.CPU_USAGE),
+          systemMetricsMap.get(SystemMetrics.MEM_USAGE),
+          systemMetricsMap.get(SystemMetrics.DISK_IO_USAGE),
+          systemMetricsMap.get(SystemMetrics.NETWORK_R_RATE),
+          systemMetricsMap.get(SystemMetrics.NETWORK_S_RATE),
+          systemMetricsMap.get(SystemMetrics.PROCESS_MEM_SIZE),
+          systemMetricsMap.get(SystemMetrics.DATA_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.SYSTEM_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.SEQUENCE_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.UN_SEQUENCE_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.WAL_FILE_SIZE),
+          systemMetricsMap.get(SystemMetrics.DISK_TPS),
+          systemMetricsMap.get(SystemMetrics.DISK_READ_SPEED_MB),
+          systemMetricsMap.get(SystemMetrics.DISK_WRITE_SPEED_MB),
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1);
+      stat.executeUpdate(sql);
+    } catch (SQLException e) {
+      LOGGER.error("{} insert into mysql failed", sql, e);
+    } finally {
+      if (stat != null) {
+        try {
+          stat.close();
+        } catch (SQLException e) {
+          LOGGER.error("close statement failed", e);
         }
       }
     }
   }
 
   // 将插入测试的以batch为单位的中间结果存入数据库
+  @Override
   public void saveOperationResult(String operation, int okPoint, int failPoint,
       double latency, String remark) {
-    if (config.IS_USE_MYSQL) {
-      double rate = 0;
-      if (latency > 0) {
-        rate = okPoint * 1000 / latency; //unit: points/second
-      }
-      String time = df.format(new java.util.Date(System.currentTimeMillis()));
-      String mysqlSql = String
-          .format("insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')", projectID,
-              time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
-              remark);
-      try (Statement stat = mysqlConnection.createStatement()) {
-        stat.executeUpdate(mysqlSql);
-      } catch (Exception e) {
-        try {
-          if (!mysqlConnection.isValid(100)) {
-            LOGGER.info("Try to reconnect to MySQL");
-            try {
-              Class.forName(Constants.MYSQL_DRIVENAME);
-              mysqlConnection = DriverManager.getConnection(config.MYSQL_URL);
-            } catch (Exception ex) {
-              LOGGER.error("Reconnect to MySQL failed because", ex);
-            }
-          }
-        } catch (SQLException ex) {
-          LOGGER.error("Test if MySQL connection is valid failed", ex);
-        }
-        LOGGER.error(
-            "{} save saveInsertProcess info into mysql failed! Error：{}",
-            Thread.currentThread().getName(), e.getMessage());
-        LOGGER.error("{}", mysqlSql);
-      }
+
+    double rate = 0;
+    if (latency > 0) {
+      rate = okPoint * 1000 / latency; //unit: points/second
     }
+    String time = df.format(new java.util.Date(System.currentTimeMillis()));
+    String mysqlSql = String
+        .format("insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')", projectID,
+            time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
+            remark);
+    try {
+      statement = mysqlConnection.createStatement();
+      statement.execute(mysqlSql);
+      count ++;
+      if(count % 5000 == 0) {
+        statement.executeBatch();
+        statement.clearBatch();
+      }
+    } catch (Exception e) {
+      LOGGER.error("Exception: {}", e.getMessage(), e);
+      try {
+        if (!mysqlConnection.isValid(100)) {
+          LOGGER.info("Try to reconnect to MySQL");
+          try {
+            Class.forName(Constants.MYSQL_DRIVENAME);
+            mysqlConnection = DriverManager.getConnection(url);
+          } catch (Exception ex) {
+            LOGGER.error("Reconnect to MySQL failed because", ex);
+          }
+        }
+      } catch (SQLException ex) {
+        LOGGER.error("Test if MySQL connection is valid failed", ex);
+      }
+      LOGGER.error(
+          "{} save saveInsertProcess info into mysql failed! Error：{}",
+          Thread.currentThread().getName(), e.getMessage());
+      LOGGER.error("{}", mysqlSql);
+    }
+
   }
 
   // 存储实验结果
+  @Override
   public void saveResult(String operation, String k, String v) {
-    if (!config.IS_USE_MYSQL) {
-      return;
-    }
     Statement stat = null;
     String sql = String.format(SAVE_RESULT, projectID, operation, k, v);
     try {
@@ -226,13 +227,10 @@ public class MySqlRecorder {
         }
       }
     }
-
   }
 
+  @Override
   public void saveTestConfig() {
-    if (!config.IS_USE_MYSQL) {
-      return;
-    }
     Statement stat = null;
     String sql = "";
     try {
@@ -253,10 +251,10 @@ public class MySqlRecorder {
         case Constants.DB_OPENTS:
         case Constants.DB_KAIROS:
         case Constants.DB_CTS:
-          String TSHost = config.DB_URL
+          String host = config.DB_URL
               .substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'ServerIP'", "'" + TSHost + "'");
+              "'ServerIP'", "'" + host + "'");
           stat.addBatch(sql);
           break;
         default:
@@ -355,9 +353,12 @@ public class MySqlRecorder {
     }
   }
 
-  public void closeMysql() {
-    if (config.IS_USE_MYSQL && mysqlConnection != null) {
+  @Override
+  public void close() {
+    if (mysqlConnection != null) {
       try {
+        statement.executeBatch();
+        statement.close();
         mysqlConnection.close();
       } catch (SQLException e) {
         LOGGER.error("mysql 连接关闭失败,原因是:", e);

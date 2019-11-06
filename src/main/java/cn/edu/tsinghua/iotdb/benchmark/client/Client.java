@@ -37,8 +37,12 @@ public abstract class Client implements Runnable {
     try {
       try {
         dbWrapper.init();
-        barrier.await(); // wait for that all clients start test simultaneously
+
+        // wait for that all clients start test simultaneously
+        barrier.await();
+
         doTest();
+
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       } finally {

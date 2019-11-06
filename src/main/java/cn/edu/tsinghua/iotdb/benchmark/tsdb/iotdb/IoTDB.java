@@ -22,8 +22,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,14 +32,15 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private SimpleDateFormat sdf;
+
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private Connection connection;
+  private static final String ALREADY_KEYWORD = "already exist";
 
   public IoTDB() {
-    sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
   }
 
   @Override
@@ -87,15 +86,17 @@ public class IoTDB implements IDatabase {
       // register storage groups
       try (Statement statement = connection.createStatement()) {
         for (String group : groups) {
-          statement.addBatch(
-              String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+          statement.addBatch(String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
         }
         statement.executeBatch();
         statement.clearBatch();
       }
     } catch (SQLException e) {
-      LOGGER.error("Set storage group failed because ", e);
-      throw new TsdbException(e);
+      // ignore if already has the time series
+      if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+        LOGGER.error("Register IoTDB schema failed because ", e);
+        throw new TsdbException(e);
+      }
     }
     // create time series
     try (Statement statement = connection.createStatement()) {
@@ -119,8 +120,11 @@ public class IoTDB implements IDatabase {
       statement.executeBatch();
       statement.clearBatch();
     } catch (SQLException e) {
-      LOGGER.error("Register IoTDB schema failed because ", e);
-      throw new TsdbException(e);
+      // ignore if already has the time series
+      if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+        LOGGER.error("Register IoTDB schema failed because ", e);
+        throw new TsdbException(e);
+      }
     }
 
   }
@@ -128,18 +132,14 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    long st;
-    long en;
     try (Statement statement = connection.createStatement()) {
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
         statement.addBatch(sql);
       }
-      st = System.nanoTime();
       statement.executeBatch();
-      en = System.nanoTime();
-      return new Status(true, en - st);
+      return new Status(true);
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
@@ -320,30 +320,28 @@ public class IoTDB implements IDatabase {
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
-    String strTime = sdf.format(new Date(preciseQuery.getTimestamp()));
+    String strTime = preciseQuery.getTimestamp() + "";
     return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
-    long st;
-    long en;
+    if (!config.IS_QUIET_MODE) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
-      st = System.nanoTime();
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
         }
       }
-      en = System.nanoTime();
       queryResultPointNum = line * config.QUERY_SENSOR_NUM;
-      return new Status(true, en - st, queryResultPointNum);
+      return new Status(true, queryResultPointNum);
     } catch (Exception e) {
-      return new Status(false, 0, queryResultPointNum, e, sql);
+      return new Status(false, queryResultPointNum, e, sql);
     } catch (Throwable t) {
-      return new Status(false, 0, queryResultPointNum, new Exception(t), sql);
+      return new Status(false, queryResultPointNum, new Exception(t), sql);
     }
   }
 
@@ -352,17 +350,14 @@ public class IoTDB implements IDatabase {
   }
 
   private String addWhereTimeClause(String prefix, long start, long end) {
-    String startTime = sdf.format(new Date(start));
-    String endTime = sdf.format(new Date(end));
+    String startTime = start + "";
+    String endTime = end + "";
     return prefix + " WHERE time >= " + startTime + " AND time <= " + endTime;
   }
 
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    StringBuilder builder = new StringBuilder(prefix);
-    String startTime = sdf.format(new Date(start));
-    String endTime = sdf.format(new Date(end));
-    builder.append(" GROUP BY(").append(granularity).append("ms, ").append(start);
-    builder.append(",[").append(startTime).append(",").append(endTime).append("]").append(")");
-    return builder.toString();
+    String startTime = start + "";
+    String endTime = end + "";
+    return prefix + " GROUP BY(" + granularity + "ms, " + start + ",[" + startTime + "," + endTime + "]" + ")";
   }
 }
