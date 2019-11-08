@@ -6,7 +6,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
-import cn.edu.tsinghua.iotdb.benchmark.mysql.MySqlRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
@@ -26,6 +25,8 @@ import com.alibaba.fastjson.JSON;
 import java.io.IOException;
 import java.util.*;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,6 @@ public class OpenTSDB implements IDatabase {
     private String queryUrl;
     private String writeUrl;
     private String metric = "";
-    private MySqlRecorder mySql;
     private Random sensorRandom;
     private Random timestampRandom;
     private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
@@ -49,7 +49,6 @@ public class OpenTSDB implements IDatabase {
      * constructor.
      */
     public OpenTSDB() {
-        mySql = new MySqlRecorder();
         sensorRandom = new Random(1 + config.QUERY_SEED);
         timestampRandom = new Random(2 + config.QUERY_SEED);
         probTool = new ProbTool();
@@ -90,14 +89,9 @@ public class OpenTSDB implements IDatabase {
         }
     }
 
+    // no need for opentsdb
     @Override
     public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-        try {
-
-        } catch (Exception e) {
-            LOGGER.error("RegisterSchema OpenTSDB failed because ", e);
-            throw new TsdbException(e);
-        }
     }
 
     @Override
@@ -105,56 +99,107 @@ public class OpenTSDB implements IDatabase {
         // create dataModel
         LinkedList<TSDBDataModel> models = createDataModelByBatch(batch);
         String sql = JSON.toJSONString(models);
-        return executeQueryAndGetStatus(sql);
+        try {
+            HttpRequest.sendPost(writeUrl, sql);
+            return new Status(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Status(false, 0, e, e.toString());
+        }
     }
 
     @Override
     public Status preciseQuery(PreciseQuery preciseQuery) {
-        /*
-        Map<String, Object> queryMap = setQueryMap(startTime);
+        Map<String, Object> queryMap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        queryMap.put("msResolution", true);
+        queryMap.put("start", preciseQuery.getTimestamp() - 1);
+        queryMap.put("end", preciseQuery.getTimestamp() + 1);
+        list = getSubQueries(preciseQuery.getDeviceSchema(), "none");
+        queryMap.put("queries", list);
         String sql = JSON.toJSONString(queryMap);
-        return executeQueryAndGetStatus(sql);*/
-        return null;
+        return executeQueryAndGetStatus(sql, false);
     }
 
     @Override
     public Status rangeQuery(RangeQuery rangeQuery) {
-        return null;
+        Map<String, Object> queryMap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        queryMap.put("msResolution", true);
+        queryMap.put("start", rangeQuery.getStartTimestamp() - 1);
+        queryMap.put("end", rangeQuery.getEndTimestamp() + 1);
+        list = getSubQueries(rangeQuery.getDeviceSchema(), "none");
+        queryMap.put("queries", list);
+        String sql = JSON.toJSONString(queryMap);
+        return executeQueryAndGetStatus(sql, false);
     }
 
     @Override
     public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-        return null;
+        Exception e = new Exception("OpenTSDB don't support this kind of query");
+        return new Status(false, 0, e, e.getMessage());
     }
 
 
     @Override
     public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-        return null;
+        Map<String, Object> queryMap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        queryMap.put("msResolution", true);
+        queryMap.put("start", aggRangeQuery.getStartTimestamp() - 1);
+        queryMap.put("end", aggRangeQuery.getEndTimestamp() + 1);
+        list = getSubQueries(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
+        queryMap.put("queries", list);
+        String sql = JSON.toJSONString(queryMap);
+        return executeQueryAndGetStatus(sql, false);
     }
 
 
     @Override
     public Status aggValueQuery(AggValueQuery aggValueQuery) {
-        return null;
+        Exception e = new Exception("OpenTSDB don't support this kind of query");
+        return new Status(false, 0, e, e.getMessage());
     }
 
 
     @Override
     public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-        return null;
+        Exception e = new Exception("OpenTSDB don't support this kind of query");
+        return new Status(false, 0, e, e.getMessage());
     }
 
 
     @Override
     public Status groupByQuery(GroupByQuery groupByQuery) {
-        return null;
+        Map<String, Object> queryMap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        queryMap.put("msResolution", true);
+        queryMap.put("start", groupByQuery.getStartTimestamp() - 1);
+        queryMap.put("end", groupByQuery.getEndTimestamp() + 1);
+        list = getSubQueries(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+        for (Map<String, Object> subQuery : list) {
+            subQuery.put("downsample", groupByQuery.getGranularity() + "ms-" + groupByQuery.getAggFun());
+        }
+        queryMap.put("queries", list);
+        String sql = JSON.toJSONString(queryMap);
+        return executeQueryAndGetStatus(sql, false);
     }
 
 
     @Override
     public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-        return null;
+        Map<String, Object> queryMap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        queryMap.put("msResolution", true);
+        queryMap.put("start", latestPointQuery.getStartTimestamp() - 1);
+        queryMap.put("end", latestPointQuery.getEndTimestamp() + 1);
+        list = getSubQueries(latestPointQuery.getDeviceSchema(), "none");
+        for (Map<String, Object> subQuery : list) {
+            subQuery.put("downsample", "0all-last");
+        }
+        queryMap.put("queries", list);
+        String sql = JSON.toJSONString(queryMap);
+        return executeQueryAndGetStatus(sql, true);
     }
 
     @Override
@@ -188,30 +233,23 @@ public class OpenTSDB implements IDatabase {
     }
 
 
-    private Status executeQueryAndGetStatus(String sql) {
-        int cnt = 0;
+    private Status executeQueryAndGetStatus(String sql, boolean isLatestPoint) {
+        LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
         try {
-            long startTimeStamp = 0, endTimeStamp = 0, latency = 0;
-            //LOGGER.info("{} execute {} loop,提交的JSON：{}", Thread.currentThread().getName(), index, sql);
-            String str;
-            startTimeStamp = System.nanoTime();
-            str = HttpRequest.sendPost(queryUrl, sql);
-            endTimeStamp = System.nanoTime();
-            latency = endTimeStamp - startTimeStamp;
-            LOGGER.debug("Response: " + str);
-            cnt = getOneQueryPointNum(str);
-            return new Status(true, latency, cnt);
+            String response;
+            response = HttpRequest.sendPost(queryUrl, sql);
+            int pointNum = getOneQueryPointNum(response, isLatestPoint);
+            LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), pointNum);
+            return new Status(true, pointNum);
         } catch (Exception e) {
             e.printStackTrace();
-            return new Status(false, 0, cnt, e, sql);
+            return new Status(false, 0, e, sql);
         }
     }
 
-    private int getOneQueryPointNum(String str) {
-        /*
+    private int getOneQueryPointNum(String str, boolean isLatestPoint) {
         int pointNum = 0;
-        // 非最近点查询时选择方式1，否则选择方式2
-        if (config.QUERY_CHOICE != 6) {
+        if (!isLatestPoint) {
             JSONArray jsonArray = JSON.parseArray(str);
             for (int i = 0; i < jsonArray.size(); i++) {
                 JSONObject json = (JSONObject) jsonArray.get(i);
@@ -222,14 +260,46 @@ public class OpenTSDB implements IDatabase {
             pointNum += jsonArray.size();
         }
         return pointNum;
-        */return 0;
     }
 
-    private Map<String, Object> setQueryMap(long startTime) {
-        Map<String, Object> queryMap = new HashMap<>();
-        queryMap.put("msResolution", true);
-        queryMap.put("start", startTime - 1);
-        queryMap.put("end", startTime + config.QUERY_INTERVAL + 1);
-        return queryMap;
+    private List<Map<String, Object>> getSubQueries(List<DeviceSchema> devices, String aggreFunc) {
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        List<String> sensorList = new ArrayList<>();
+        for (String sensor : devices.get(0).getSensors()) {
+            sensorList.add(sensor);
+        }
+        Collections.shuffle(sensorList, sensorRandom);
+
+        Map<String, List<String>> metric2devices = new HashMap<>();
+        for (DeviceSchema d : devices) {
+            String m = d.getGroup();
+            metric2devices.putIfAbsent(m, new ArrayList());
+            metric2devices.get(m).add(d.getDevice());
+        }
+
+        for (Map.Entry<String, List<String>> queryMetric : metric2devices.entrySet()) {
+            Map<String, Object> subQuery = new HashMap<>();
+            subQuery.put("aggregator", aggreFunc);
+            subQuery.put("metric", queryMetric.getKey());
+
+            Map<String, String> tags = new HashMap<>();
+            String deviceStr = "";
+            for (String d : queryMetric.getValue()) {
+                deviceStr += "|" + d;
+            }
+            deviceStr = deviceStr.substring(1);
+
+            String sensorStr = sensorList.get(0);
+            for (int i = 1; i < config.QUERY_SENSOR_NUM; i++) {
+                sensorStr += "|" + sensorList.get(i);
+            }
+            tags.put("sensor", sensorStr);
+            tags.put("device", deviceStr);
+            subQuery.put("tags", tags);
+            list.add(subQuery);
+        }
+        return list;
     }
+
 }
