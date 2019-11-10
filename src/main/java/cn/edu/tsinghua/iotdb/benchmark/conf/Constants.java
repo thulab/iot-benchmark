@@ -39,6 +39,10 @@ public class Constants {
     public static final String MODE_SERVER_MODE = "serverMODE";
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
 
+    //different insert mode
+    public static final String INSERT_USE_JDBC = "jdbc";
+    public static final String INSERT_USE_SESSION = "session";
+
     // support test data persistence:
     public static final String TDP_NONE = "None";
     public static final String TDP_IOTDB = "IoTDB";
