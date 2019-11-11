@@ -136,7 +136,7 @@ public class OpenTSDB implements IDatabase {
 
     @Override
     public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-        Exception e = new Exception("OpenTSDB don't support this kind of query");
+        Exception e = new TsdbException("OpenTSDB don't support this kind of query");
         return new Status(false, 0, e, e.getMessage());
     }
 
@@ -157,14 +157,14 @@ public class OpenTSDB implements IDatabase {
 
     @Override
     public Status aggValueQuery(AggValueQuery aggValueQuery) {
-        Exception e = new Exception("OpenTSDB don't support this kind of query");
+        Exception e = new TsdbException("OpenTSDB don't support this kind of query");
         return new Status(false, 0, e, e.getMessage());
     }
 
 
     @Override
     public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-        Exception e = new Exception("OpenTSDB don't support this kind of query");
+        Exception e = new TsdbException("OpenTSDB don't support this kind of query");
         return new Status(false, 0, e, e.getMessage());
     }
 
