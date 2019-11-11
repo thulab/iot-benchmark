@@ -22,10 +22,6 @@ public class IoTDBSession extends IoTDB {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private Session session;
 
-  private Session getSession() {
-    return session;
-  }
-
   public IoTDBSession() {
     super();
     session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
@@ -38,7 +34,6 @@ public class IoTDBSession extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    Session session = getSession();
     Schema schema = new Schema();
     for (String sensor : batch.getDeviceSchema().getSensors()) {
       schema.registerMeasurement(
