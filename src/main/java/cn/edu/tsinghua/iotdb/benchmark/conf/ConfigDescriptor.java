@@ -83,6 +83,7 @@ public class ConfigDescriptor {
 				config.DB_URL = properties.getProperty("DB_URL", "localhost");
 				config.DB_NAME = properties.getProperty("DB_NAME", "test");
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
+				config.INSERT_MODE = properties.getProperty("INSERT_MODE", config.INSERT_MODE);
 
 				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
 				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));

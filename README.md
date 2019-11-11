@@ -112,6 +112,11 @@ POINT_STEP=5000
 LOOP=1000
 ```
 
+Currently, we have multiple ingestion modes for IoTDB v0.9.x. Specifically, jdbc mode(ingestion using jdbc) and session mode(ingestion using session).
+You can specify it in the following parameter of the ```conf/config.properties``` file.
+```
+INSERT_MODE=session
+```
 > NOTE:
 Other irrelevant parameters are omitted. You can just set as default. We will cover them later in other cases.
 

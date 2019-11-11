@@ -224,6 +224,9 @@ public class Config {
 
 	//benchmark 运行模式
 	public String BENCHMARK_WORK_MODE="";
+	//插入数据模式:
+	//IoTDB: jdbc,session
+	public String INSERT_MODE = "jdbc";
 	//the file path of import data
 	public String IMPORT_DATA_FILE_PATH = "";
 	//import csv数据文件时的BATCH
