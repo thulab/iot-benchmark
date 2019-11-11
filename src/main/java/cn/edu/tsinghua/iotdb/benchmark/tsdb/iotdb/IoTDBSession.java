@@ -60,13 +60,13 @@ public class IoTDBSession extends IoTDB {
     Object[] values = rowBatch.values;
 
     for (int i = 0; i < batch.getRecords().size(); i++) {
-      int row = rowBatch.batchSize++;
+      rowBatch.batchSize++;
       Record record = batch.getRecords().get(i);
       long currentTime = record.getTimestamp();
-      timestamps[row] = currentTime;
+      timestamps[i] = currentTime;
       for (int j = 0; j < record.getRecordDataValue().size(); j++) {
         double[] sensors = (double[]) values[j];
-        sensors[row] = Double.parseDouble(record.getRecordDataValue().get(j));
+        sensors[i] = Double.parseDouble(record.getRecordDataValue().get(j));
       }
     }
     try {
