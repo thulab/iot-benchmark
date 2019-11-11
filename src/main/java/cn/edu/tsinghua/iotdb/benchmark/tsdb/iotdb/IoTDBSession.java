@@ -23,16 +23,10 @@ public class IoTDBSession extends IoTDB {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private AtomicInteger index = new AtomicInteger();
-  private List<Session> sessionList = new ArrayList<>();
+  private static AtomicInteger index = new AtomicInteger();
+  private static List<Session> sessionList = new ArrayList<>();
 
-  public Session getSession() {
-    int listIndex = index.incrementAndGet() % config.CLIENT_NUMBER;
-    return sessionList.get(listIndex);
-  }
-
-  public IoTDBSession() {
-    super();
+  static {
     for (int i = 0; i < config.CLIENT_NUMBER; i++) {
       Session session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
       try {
@@ -42,6 +36,15 @@ public class IoTDBSession extends IoTDB {
         LOGGER.error("Failed to add session", e);
       }
     }
+  }
+
+  private Session getSession() {
+    int listIndex = index.incrementAndGet() % config.CLIENT_NUMBER;
+    return sessionList.get(listIndex);
+  }
+
+  public IoTDBSession() {
+    super();
   }
 
   @Override
