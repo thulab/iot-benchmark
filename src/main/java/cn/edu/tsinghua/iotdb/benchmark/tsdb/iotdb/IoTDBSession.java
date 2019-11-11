@@ -6,9 +6,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.iotdb.session.IoTDBSessionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -23,28 +20,20 @@ public class IoTDBSession extends IoTDB {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static AtomicInteger index = new AtomicInteger();
-  private static List<Session> sessionList = new ArrayList<>();
-
-  static {
-    for (int i = 0; i < config.CLIENT_NUMBER; i++) {
-      Session session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
-      try {
-        session.open();
-        sessionList.add(session);
-      } catch (IoTDBSessionException e) {
-        LOGGER.error("Failed to add session", e);
-      }
-    }
-  }
+  private Session session;
 
   private Session getSession() {
-    int listIndex = index.incrementAndGet() % config.CLIENT_NUMBER;
-    return sessionList.get(listIndex);
+    return session;
   }
 
   public IoTDBSession() {
     super();
+    session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
+    try {
+      session.open();
+    } catch (IoTDBSessionException e) {
+      LOGGER.error("Failed to add session", e);
+    }
   }
 
   @Override
