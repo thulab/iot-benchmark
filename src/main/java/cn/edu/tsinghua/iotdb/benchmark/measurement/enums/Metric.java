@@ -6,7 +6,6 @@ import java.util.Map;
 
 public enum Metric {
   AVG_LATENCY("AVG"),
-  MID_AVG_LATENCY("MID_AVG"),
   MIN_LATENCY("MIN"),
   P10_LATENCY("P10"),
   P25_LATENCY("P25"),
@@ -15,6 +14,7 @@ public enum Metric {
   P90_LATENCY("P90"),
   P95_LATENCY("P95"),
   P99_LATENCY("P99"),
+  P999_LATENCY("P999"),
   MAX_LATENCY("MAX"),
   MAX_THREAD_LATENCY_SUM("SLOWEST_THREAD");
 
