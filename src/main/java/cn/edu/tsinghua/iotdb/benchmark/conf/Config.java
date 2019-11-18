@@ -37,6 +37,11 @@ public class Config {
 	/** 查询时间戳变化增加步长 */
 	public int STEP_SIZE = 1;
 
+  /**
+   * 操作执行间隔
+   */
+	public int OP_INTERVAL = 0;
+
 	/** 存储组分配策略*/
 	public String SG_STRATEGY="hash";
 
@@ -73,6 +78,11 @@ public class Config {
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
 
+  /**
+   * 实际写入设备数占的比例
+   */
+	public double REAL_INSERT_RATE = 1.0;
+
 	/**使用集群模式**/
 	public boolean USE_CLUSTER = false;
 
@@ -89,9 +99,7 @@ public class Config {
 
 	public int MAX_K = 10;
 
-	public boolean IS_RANDOM_TIMESTAMP_INTERVAL = false ;
-
-	public boolean USE_OPS = false;
+	public boolean IS_RANDOM_TIMESTAMP_INTERVAL = false;
 
 	public double CLIENT_MAX_WRT_RATE = 10000000.0;
 

@@ -136,7 +136,6 @@ public class ConfigDescriptor {
 				config.MAX_K = Integer.parseInt(properties.getProperty("MAX_K", config.MAX_K+""));
 				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
 				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
-				config.USE_OPS = Boolean.parseBoolean(properties.getProperty("USE_OPS", config.USE_OPS+""));
 				config.CLIENT_MAX_WRT_RATE = Double.parseDouble(properties.getProperty("CLIENT_MAX_WRT_RATE", config.CLIENT_MAX_WRT_RATE+""));
 				config.QUERY_LIMIT_N = Integer.parseInt(properties.getProperty("QUERY_LIMIT_N", config.QUERY_LIMIT_N+""));
 				config.QUERY_LIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_LIMIT_OFFSET", config.QUERY_LIMIT_OFFSET+""));
@@ -151,6 +150,7 @@ public class ConfigDescriptor {
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
 				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));
 				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
+				config.OP_INTERVAL = Integer.parseInt(properties.getProperty("OP_INTERVAL", config.OP_INTERVAL+""));
 				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
 				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
@@ -163,6 +163,13 @@ public class ConfigDescriptor {
 				else {
 					config.FIRST_DEVICE_INDEX = 0;
 				}
+
+        config.REAL_INSERT_RATE = Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.REAL_INSERT_RATE+""));
+				if(config.REAL_INSERT_RATE <= 0 || config.REAL_INSERT_RATE > 1) {
+          config.REAL_INSERT_RATE = 1;
+          LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
+                  + "1], using default value 1.0", config.REAL_INSERT_RATE);
+        }
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

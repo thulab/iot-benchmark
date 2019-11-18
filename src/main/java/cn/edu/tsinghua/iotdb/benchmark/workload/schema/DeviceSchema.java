@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ public class DeviceSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  public static final String GROUP_NAME_PREFIX = "group_";
+  private static final String GROUP_NAME_PREFIX = "group_";
   private static final String DEVICE_NAME_PREFIX = "d_";
 
   // each device belongs to one group, i.e., database
@@ -46,18 +47,32 @@ public class DeviceSchema {
 
 
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
-    int thisDeviceGroupIndex = calGroupId(deviceId, config.GROUP_NUMBER);
+    int thisDeviceGroupIndex = calGroupId(deviceId);
     //System.out.println("device " + deviceId +" sg " + thisDeviceGroupIndex);
     group = GROUP_NAME_PREFIX + thisDeviceGroupIndex;
     sensors.addAll(config.SENSOR_CODES);
   }
 
-  static int calGroupId(int deviceId, int groupNum) throws WorkloadException {
-    return deviceId % groupNum;
+  private int calGroupId(int deviceId) throws WorkloadException {
+    switch (config.SG_STRATEGY) {
+      case Constants.MOD_SG_ASSIGN_MODE:
+        return deviceId % config.GROUP_NUMBER;
+      case Constants.HASH_SG_ASSIGN_MODE:
+        return (deviceId + "").hashCode() % config.GROUP_NUMBER;
+      case Constants.DIV_SG_ASSIGN_MODE:
+        int devicePerGroup = config.DEVICE_NUMBER / config.GROUP_NUMBER;
+        return (deviceId / devicePerGroup) % config.GROUP_NUMBER;
+      default:
+        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.SG_STRATEGY);
+    }
   }
 
   public String getDevice() {
     return device;
+  }
+
+  public int getDeviceId() {
+    return deviceId;
   }
 
   public void setDevice(String device) {
