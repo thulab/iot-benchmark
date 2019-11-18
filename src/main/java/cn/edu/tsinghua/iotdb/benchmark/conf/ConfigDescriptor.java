@@ -163,6 +163,13 @@ public class ConfigDescriptor {
 				else {
 					config.FIRST_DEVICE_INDEX = 0;
 				}
+
+        config.REAL_INSERT_RATE = Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.REAL_INSERT_RATE+""));
+				if(config.REAL_INSERT_RATE <= 0 || config.REAL_INSERT_RATE > 1) {
+          config.REAL_INSERT_RATE = 1;
+          LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
+                  + "1], using default value 1.0", config.REAL_INSERT_RATE);
+        }
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

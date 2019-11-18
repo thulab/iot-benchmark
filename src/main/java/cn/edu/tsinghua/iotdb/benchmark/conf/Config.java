@@ -73,6 +73,11 @@ public class Config {
 	/**批插入乱序比例*/
 	public double OVERFLOW_RATIO = 1.0;
 
+  /**
+   * 实际写入设备数占的比例
+   */
+	public double REAL_INSERT_RATE = 1.0;
+
 	/**使用集群模式**/
 	public boolean USE_CLUSTER = false;
 

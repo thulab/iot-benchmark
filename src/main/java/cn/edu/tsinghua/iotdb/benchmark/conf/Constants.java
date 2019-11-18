@@ -48,4 +48,9 @@ public class Constants {
     public static final String TDP_IOTDB = "IoTDB";
     public static final String TDP_MYSQL = "MySQL";
 
+    // device and storage group assignment
+    public static final String MOD_SG_ASSIGN_MODE = "mod";
+    public static final String HASH_SG_ASSIGN_MODE = "hash";
+    public static final String DIV_SG_ASSIGN_MODE = "div";
+
 }

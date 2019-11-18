@@ -42,6 +42,7 @@ public abstract class BaseClient extends Client implements Runnable {
 
   void doTest() {
     String currentThread = Thread.currentThread().getName();
+    double actualDeviceFloor = config.DEVICE_NUMBER * config.REAL_INSERT_RATE;
 
     // print current progress periodically
     service.scheduleAtFixedRate(() -> {
@@ -57,8 +58,10 @@ public abstract class BaseClient extends Client implements Runnable {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
-                Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-                dbWrapper.insertOneBatch(batch);
+                if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                  Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+                  dbWrapper.insertOneBatch(batch);
+                }
               }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
@@ -67,7 +70,9 @@ public abstract class BaseClient extends Client implements Runnable {
           } else {
             try {
               Batch batch = singletonWorkload.getOneBatch();
-              dbWrapper.insertOneBatch(batch);
+              if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
+                dbWrapper.insertOneBatch(batch);
+              }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
