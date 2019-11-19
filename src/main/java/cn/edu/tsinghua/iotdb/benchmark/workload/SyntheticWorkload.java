@@ -155,7 +155,7 @@ public class SyntheticWorkload implements IWorkload {
     checkQuerySchemaParams();
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> clientDevicesIndex = new ArrayList<>();
-    for (int m = 0; m < config.DEVICE_NUMBER; m++) {
+    for (int m = 0; m < config.DEVICE_NUMBER * config.REAL_INSERT_RATE; m++) {
       clientDevicesIndex.add(m);
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
