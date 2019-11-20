@@ -59,7 +59,7 @@ public class InfluxDB implements IDatabase {
       OkHttpClient.Builder client = new Builder().connectTimeout(5, TimeUnit.MINUTES).
           readTimeout(5, TimeUnit.MINUTES).writeTimeout(5, TimeUnit.MINUTES).
           retryOnConnectionFailure(true);
-      influxDbInstance = org.influxdb.InfluxDBFactory.connect(influxUrl);
+      influxDbInstance = org.influxdb.InfluxDBFactory.connect(influxUrl, client);
     } catch (Exception e) {
       LOGGER.error("Initialize InfluxDB failed because ", e);
       throw new TsdbException(e);
