@@ -234,7 +234,7 @@ public class KairosDB implements IDatabase {
   }
 
   private Status executeOneQuery(QueryBuilder builder) {
-    LOGGER.info("[JSON] {}", builder);
+    LOGGER.debug("[JSON] {}", builder);
     int queryResultPointNum = 0;
     try {
 
