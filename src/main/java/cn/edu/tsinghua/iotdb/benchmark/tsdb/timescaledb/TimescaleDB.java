@@ -265,14 +265,13 @@ public class TimescaleDB implements IDatabase {
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()){
-
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
         }
       }
 
-      queryResultPointNum = line * sensorNum;
+      queryResultPointNum = line * sensorNum * config.QUERY_DEVICE_NUM;
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);
