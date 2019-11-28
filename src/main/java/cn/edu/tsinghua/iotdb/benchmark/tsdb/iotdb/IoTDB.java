@@ -270,7 +270,11 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     for (String value : values) {
-      builder.append(",").append(value);
+      if (config.DATA_TYPE.equals("TEXT")) {
+        builder.append(",").append("'").append(value).append("'");
+      } else {
+        builder.append(",").append(value);
+      }
     }
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
