@@ -258,6 +258,11 @@ public class DBWrapper implements IDatabase {
 
   private void measureOkOperation(Status status, Operation operation, int okPointNum) {
     double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
+    if(latencyInMillis < 0) {
+      LOGGER.warn("Operation {} may have exception since the latency is negative, set it to zero",
+          operation.getName());
+      latencyInMillis = 0;
+    }
     measurement.addOperationLatency(operation, latencyInMillis);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
