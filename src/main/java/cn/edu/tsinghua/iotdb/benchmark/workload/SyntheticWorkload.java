@@ -53,13 +53,22 @@ public class SyntheticWorkload implements IWorkload {
     String[][] workloadValues = null;
     if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
+      StringBuilder builder = new StringBuilder();
+      for(int i = 0;i < config.NUMBER_OF_DECIMAL_DIGIT;i++) {
+        builder.append("A");
+      }
       for (int j = 0; j < config.SENSOR_NUMBER; j++) {
         String sensor = config.SENSOR_CODES.get(j);
         for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
           long currentTimestamp = getCurrentTimestamp(i);
-          FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-          String value = String.format(DECIMAL_FORMAT,
-              Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
+          String value;
+          if(!config.DATA_TYPE.equals("TEXT")) {
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            value = String.format(DECIMAL_FORMAT,
+                Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
+          } else {
+            value = builder.toString();
+          }
           workloadValues[j][i] = value;
         }
       }
