@@ -10,6 +10,7 @@ import org.apache.iotdb.session.IoTDBSessionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.RowBatch;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 import org.apache.iotdb.tsfile.write.schema.Schema;
@@ -46,14 +47,20 @@ public class IoTDBSession extends IoTDB {
     long[] timestamps = rowBatch.timestamps;
     Object[] values = rowBatch.values;
 
-    for (int i = 0; i < batch.getRecords().size(); i++) {
+    for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       rowBatch.batchSize++;
-      Record record = batch.getRecords().get(i);
+      Record record = batch.getRecords().get(recordIndex);
       long currentTime = record.getTimestamp();
-      timestamps[i] = currentTime;
-      for (int j = 0; j < record.getRecordDataValue().size(); j++) {
-        double[] sensors = (double[]) values[j];
-        sensors[i] = Double.parseDouble(record.getRecordDataValue().get(j));
+      timestamps[recordIndex] = currentTime;
+      for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
+        if(!config.DATA_TYPE.equals("TEXT")) {
+          double[] sensors = (double[]) values[recordValueIndex];
+          sensors[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
+              recordValueIndex));
+        } else {
+          Binary[] sensors = (Binary[]) values[recordValueIndex];
+          sensors[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
+        }
       }
     }
     try {

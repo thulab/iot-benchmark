@@ -121,7 +121,7 @@ public class IoTDB implements IDatabase {
         statement.clearBatch();
       } catch (SQLException e) {
         // ignore if already has the time series
-        if (!e.getMessage().contains(ALREADY_KEYWORD)) {
+        if (!e.getMessage().contains(ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
           LOGGER.error("Register IoTDB schema failed because ", e);
           throw new TsdbException(e);
         }

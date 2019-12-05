@@ -36,7 +36,10 @@ public class SyntheticWorkload implements IWorkload {
   private Map<Operation, Long> operationLoops;
   private static Random random = new Random();
   private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
+  private static Random dataRandom = new Random(config.DATA_SEED);
   private static String[][] workloadValues = initWorkloadValues();
+  private static final String CHAR_TABLE =
+      "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
@@ -53,20 +56,21 @@ public class SyntheticWorkload implements IWorkload {
     String[][] workloadValues = null;
     if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
-      StringBuilder builder = new StringBuilder();
-      for(int i = 0;i < config.NUMBER_OF_DECIMAL_DIGIT;i++) {
-        builder.append("A");
-      }
       for (int j = 0; j < config.SENSOR_NUMBER; j++) {
         String sensor = config.SENSOR_CODES.get(j);
         for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
           long currentTimestamp = getCurrentTimestamp(i);
           String value;
-          if(!config.DATA_TYPE.equals("TEXT")) {
+          if (!config.DATA_TYPE.equals("TEXT")) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             value = String.format(DECIMAL_FORMAT,
                 Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
           } else {
+            StringBuilder builder = new StringBuilder();
+            for (int k = 0; k < config.NUMBER_OF_DECIMAL_DIGIT; k++) {
+              assert dataRandom != null;
+              builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+            }
             value = builder.toString();
           }
           workloadValues[j][i] = value;
