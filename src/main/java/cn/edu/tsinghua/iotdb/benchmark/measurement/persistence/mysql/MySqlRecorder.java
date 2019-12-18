@@ -77,10 +77,8 @@ public class MySqlRecorder implements ITestDataPersistence {
               + day
               + "(id BIGINT, "
               + "cpu_usage DOUBLE,mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,net_send_rate DOUBLE, pro_mem_size DOUBLE, "
-              + "dataFileSize DOUBLE,infoFizeSize DOUBLE,metadataFileSize DOUBLE,OverflowFileSize DOUBLE, deltaFileSize DOUBLE, walFileSize DOUBLE,"
+              + "dataFileSize DOUBLE,systemFizeSize DOUBLE,sequenceFileSize DOUBLE,unsequenceFileSize DOUBLE, walFileSize DOUBLE,"
               + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
-              + "totalFileNum INT, dataFileNum INT, socketNum INT, settledNum INT, infoNum INT,"
-              + "schemaNum INT, metadataNum INT, overflowNum INT, walNum INT, "
               + "primary key(id))");
           LOGGER.info("Table SERVER_MODE create success!");
         }
@@ -124,7 +122,7 @@ public class MySqlRecorder implements ITestDataPersistence {
     try {
       stat = mysqlConnection.createStatement();
       sql = String.format("insert into SERVER_MODE_" + localName
-              + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d)",
+              + "_" + day + " values(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)",
           System.currentTimeMillis(),
           systemMetricsMap.get(SystemMetrics.CPU_USAGE),
           systemMetricsMap.get(SystemMetrics.MEM_USAGE),
@@ -139,16 +137,7 @@ public class MySqlRecorder implements ITestDataPersistence {
           systemMetricsMap.get(SystemMetrics.WAL_FILE_SIZE),
           systemMetricsMap.get(SystemMetrics.DISK_TPS),
           systemMetricsMap.get(SystemMetrics.DISK_READ_SPEED_MB),
-          systemMetricsMap.get(SystemMetrics.DISK_WRITE_SPEED_MB),
-          -1,
-          -1,
-          -1,
-          -1,
-          -1,
-          -1,
-          -1,
-          -1,
-          -1);
+          systemMetricsMap.get(SystemMetrics.DISK_WRITE_SPEED_MB));
       stat.executeUpdate(sql);
     } catch (SQLException e) {
       LOGGER.error("{} insert into mysql failed", sql, e);
