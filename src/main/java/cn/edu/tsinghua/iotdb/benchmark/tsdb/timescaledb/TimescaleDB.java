@@ -261,18 +261,17 @@ public class TimescaleDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
-    LOGGER.info("{} the query SQL: {}", Thread.currentThread().getName(), sql);
+    LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()){
-
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
         }
       }
 
-      queryResultPointNum = line * sensorNum;
+      queryResultPointNum = line * sensorNum * config.QUERY_DEVICE_NUM;
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);

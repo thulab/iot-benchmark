@@ -39,9 +39,18 @@ public class Constants {
     public static final String MODE_SERVER_MODE = "serverMODE";
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
 
+    //different insert mode
+    public static final String INSERT_USE_JDBC = "jdbc";
+    public static final String INSERT_USE_SESSION = "session";
+
     // support test data persistence:
     public static final String TDP_NONE = "None";
     public static final String TDP_IOTDB = "IoTDB";
     public static final String TDP_MYSQL = "MySQL";
+
+    // device and storage group assignment
+    public static final String MOD_SG_ASSIGN_MODE = "mod";
+    public static final String HASH_SG_ASSIGN_MODE = "hash";
+    public static final String DIV_SG_ASSIGN_MODE = "div";
 
 }

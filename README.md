@@ -112,6 +112,11 @@ POINT_STEP=5000
 LOOP=1000
 ```
 
+Currently, we have multiple ingestion modes for IoTDB v0.9.x. Specifically, jdbc mode(ingestion using jdbc) and session mode(ingestion using session).
+You can specify it in the following parameter of the ```conf/config.properties``` file.
+```
+INSERT_MODE=session
+```
 > NOTE:
 Other irrelevant parameters are omitted. You can just set as default. We will cover them later in other cases.
 
@@ -137,17 +142,17 @@ Now after launching the test, you will see testing information rolling like foll
 When test is done, the last output of the test information will be like following: 
 
 ```
-2019-10-15 21:18:03,148 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
+2019-11-12 14:48:06,195 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
 ----------------------Main Configurations----------------------
 DB_SWITCH: IoTDB
-OPERATION_PROPORTION: 2:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION: 1:0:0:0:0:0:0:0:0
 IS_CLIENT_BIND: true
 CLIENT_NUMBER: 20
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 20
 SENSOR_NUMBER: 300
-BATCH_SIZE: 10
-LOOP: 1000
+BATCH_SIZE: 100
+LOOP: 100
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OVERFLOW: false
@@ -155,11 +160,11 @@ OVERFLOW_MODE: 0
 OVERFLOW_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
-Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 36.10 second
+Create schema cost 1.72 second
+Test elapsed time (not include schema creation): 4.76 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           20000               60000000            0                   0                   1662182.15          
+INGESTION           2000                60000000            0                   0                   12595552.69         
 PRECISE_POINT       0                   0                   0                   0                   0.00                
 TIME_RANGE          0                   0                   0                   0                   0.00                
 VALUE_RANGE         0                   0                   0                   0                   0.00                
@@ -170,8 +175,8 @@ GROUP_BY            0                   0                   0                   
 LATEST_POINT        0                   0                   0                   0                   0.00                
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
-Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         SLOWEST_THREAD     
-INGESTION           33.45       14.61       5.24        8.58        9.05        10.07       15.14       98.55       157.05      265.06      5805.33     35222.02    
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+INGESTION           41.29       3.63        5.13        6.18        10.54       32.96       120.54      176.69      503.08      562.68      597.85      4409.70     
 PRECISE_POINT       0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 TIME_RANGE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 VALUE_RANGE         0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
@@ -239,7 +244,8 @@ TIME_UNIT=20000
 ```
 
 > NOTE:
-Usually the query test is performed after the data ingestion test. Of course you can add ingestion operation at the same time by setting ```OPERATION_PROPORTION=INGEST:1:2:1:1:1:1:1:1``` as long as ```INGEST``` is not zero, since the parameter ```OPERATION_PROPORTION``` is to control the proportion of different operations including ingestion and query operations.
+>
+> Usually the query test is performed after the data ingestion test. Of course you can add ingestion operation at the same time by setting ```OPERATION_PROPORTION=INGEST:1:2:1:1:1:1:1:1``` as long as ```INGEST``` is not zero, since the parameter ```OPERATION_PROPORTION``` is to control the proportion of different operations including ingestion and query operations.
 
 
 ### Start (Without Server System Information Recording)
@@ -264,7 +270,7 @@ Now after launching the test, you will see testing information rolling like foll
 When test is done, the last testing information will be like the following: 
 
 ```
-2019-10-15 21:22:04,751 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
+2019-11-12 14:49:16,824 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
 ----------------------Main Configurations----------------------
 DB_SWITCH: IoTDB
 OPERATION_PROPORTION: 0:1:2:1:1:1:1:1:1
@@ -273,8 +279,8 @@ CLIENT_NUMBER: 20
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 20
 SENSOR_NUMBER: 300
-BATCH_SIZE: 10
-LOOP: 1000
+BATCH_SIZE: 100
+LOOP: 100
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OVERFLOW: false
@@ -283,32 +289,36 @@ OVERFLOW_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 112.87 second
+Test elapsed time (not include schema creation): 2.67 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
 INGESTION           0                   0                   0                   0                   0.00                
-PRECISE_POINT       2237                2237                0                   0                   19.82               
-TIME_RANGE          4452                227052              0                   0                   2011.63             
-VALUE_RANGE         2138                109037              0                   0                   966.04              
-AGG_RANGE           2184                2184                0                   0                   19.35               
-AGG_VALUE           2173                2173                0                   0                   19.25               
-AGG_RANGE_VALUE     2327                2327                0                   0                   20.62               
-GROUP_BY            2283                29679               0                   0                   262.95              
-LATEST_POINT        2206                2206                0                   0                   19.54               
+PRECISE_POINT       236                 236                 0                   0                   88.29               
+TIME_RANGE          438                 22338               0                   0                   8356.46             
+VALUE_RANGE         221                 11271               0                   0                   4216.39             
+AGG_RANGE           213                 213                 0                   0                   79.68               
+AGG_VALUE           205                 205                 0                   0                   76.69               
+AGG_RANGE_VALUE     240                 240                 0                   0                   89.78               
+GROUP_BY            213                 2769                0                   0                   1035.86             
+LATEST_POINT        234                 234                 0                   0                   87.54               
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
-Operation           AVG         MID_AVG     MIN         P10         P25         MEDIAN      P75         P90         P95         P99         MAX         SLOWEST_THREAD     
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
 INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-PRECISE_POINT       67.98       67.36       6.07        37.51       49.49       56.64       96.85       100.43      112.30      149.98      197.27      8466.59     
-TIME_RANGE          69.00       68.81       7.10        37.64       49.71       58.47       97.36       100.84      110.94      150.15      216.05      16514.83    
-VALUE_RANGE         102.39      100.44      21.54       51.13       84.52       99.55       126.55      149.79      159.25      200.23      292.96      13785.02    
-AGG_RANGE           69.54       68.90       7.21        38.28       49.69       59.69       96.83       100.82      112.80      152.29      215.73      8658.98     
-AGG_VALUE           105.70      103.11      17.79       52.16       85.99       99.95       137.50      150.50      185.90      235.07      296.95      14625.04    
-AGG_RANGE_VALUE     104.19      102.30      15.60       52.21       86.05       99.82       134.94      150.11      162.78      203.62      292.38      13979.48    
-GROUP_BY            67.85       67.60       7.19        34.90       49.43       57.08       96.59       100.73      109.12      150.79      229.81      8979.77     
-LATEST_POINT        88.29       85.56       14.57       49.20       55.31       94.88       100.59      142.03      149.59      196.11      286.50      11234.28    
+PRECISE_POINT       15.05       2.20        3.56        4.45        6.69        12.24       29.59       72.03       121.50      173.74      168.56      370.39      
+TIME_RANGE          16.04       2.05        3.30        4.42        7.04        14.10       38.82       69.68       130.26      173.65      169.96      597.47      
+VALUE_RANGE         29.65       3.04        6.27        8.31        12.05       29.91       87.89       108.73      145.34      289.35      275.96      763.06      
+AGG_RANGE           14.69       2.05        3.48        4.62        7.08        14.30       34.46       53.81       88.67       154.63      148.23      334.28      
+AGG_VALUE           51.49       5.46        8.44        11.68       25.90       84.37       126.33      152.03      178.08      370.07      340.11      811.48      
+AGG_RANGE_VALUE     51.46       3.52        5.80        7.87        13.20       46.99       157.19      245.99      360.70      377.33      374.94      847.19      
+GROUP_BY            14.30       2.35        3.15        4.33        7.09        15.20       33.65       52.24       80.08       137.65      129.35      276.62      
+LATEST_POINT        14.03       1.81        2.49        3.46        5.84        12.46       36.78       57.48       98.36       146.52      139.68      397.61      
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
+
+> Note: 
+>
+> When okOperation is smaller than 1000 or 100, the quantiles P99 and P999 may even bigger than MAX because we use the T-Digest Algorithm which uses interpolation in that scenario. 
 
 ## Test IoTDB With Server System Information Recording
 

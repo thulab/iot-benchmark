@@ -16,8 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 负责人造数据的写入、查询，真实数据的查询。
- * 根据OPERATION_PROPORTION的比例执行写入和查询, 具体的查询和写入数据由workload确定。
+ * 负责人造数据的写入、查询，真实数据的查询。 根据OPERATION_PROPORTION的比例执行写入和查询, 具体的查询和写入数据由workload确定。
  */
 public abstract class BaseClient extends Client implements Runnable {
 
@@ -42,23 +41,29 @@ public abstract class BaseClient extends Client implements Runnable {
 
   void doTest() {
     String currentThread = Thread.currentThread().getName();
+    double actualDeviceFloor = config.DEVICE_NUMBER * config.REAL_INSERT_RATE;
 
     // print current progress periodically
     service.scheduleAtFixedRate(() -> {
       String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
       LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
     }, 1, config.LOG_PRINT_INTERVAL, TimeUnit.SECONDS);
-
+    long start = 0;
     for (loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
       Operation operation = operationController.getNextOperationType();
+      if (config.OP_INTERVAL > 0) {
+        start = System.currentTimeMillis();
+      }
       switch (operation) {
         case INGESTION:
           if (config.IS_CLIENT_BIND) {
             try {
               List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schema) {
-                Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-                dbWrapper.insertOneBatch(batch);
+                if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                  Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+                  dbWrapper.insertOneBatch(batch);
+                }
               }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
@@ -67,7 +72,9 @@ public abstract class BaseClient extends Client implements Runnable {
           } else {
             try {
               Batch batch = singletonWorkload.getOneBatch();
-              dbWrapper.insertOneBatch(batch);
+              if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
+                dbWrapper.insertOneBatch(batch);
+              }
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
@@ -132,6 +139,17 @@ public abstract class BaseClient extends Client implements Runnable {
         default:
           LOGGER.error("Unsupported operation type {}", operation);
       }
+      if (config.OP_INTERVAL > 0) {
+        long elapsed = System.currentTimeMillis() - start;
+        if (elapsed < config.OP_INTERVAL) {
+          try {
+            Thread.sleep(config.OP_INTERVAL - elapsed);
+          } catch (InterruptedException e) {
+            LOGGER.error("Wait for next operation failed because ", e);
+          }
+        }
+      }
+
     }
     service.shutdown();
   }

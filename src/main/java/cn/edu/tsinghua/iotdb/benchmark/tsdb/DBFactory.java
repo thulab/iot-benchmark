@@ -6,8 +6,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.fakedb.FakeDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDBSession;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.timescaledb.TimescaleDB;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.opentsdb.OpenTSDB;
 import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,12 @@ public class DBFactory {
 
     switch (config.DB_SWITCH) {
       case Constants.DB_IOT:
-        return new IoTDB();
+        switch (config.INSERT_MODE) {
+          case Constants.INSERT_USE_JDBC:
+            return new IoTDB();
+          case Constants.INSERT_USE_SESSION:
+            return new IoTDBSession();
+        }
       case Constants.DB_INFLUX:
         return new InfluxDB();
       case Constants.DB_KAIROS:
@@ -30,6 +37,8 @@ public class DBFactory {
         return new TimescaleDB();
       case Constants.DB_FAKE:
         return new FakeDB();
+      case Constants.DB_OPENTS:
+        return new OpenTSDB();
       default:
         LOGGER.error("unsupported database {}", config.DB_SWITCH);
         throw new SQLException("unsupported database " + config.DB_SWITCH);
