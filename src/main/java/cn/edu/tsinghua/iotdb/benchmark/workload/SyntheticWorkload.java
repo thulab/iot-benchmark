@@ -17,10 +17,12 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -30,7 +32,7 @@ public class SyntheticWorkload implements IWorkload {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static Random timestampRandom = new Random(config.DATA_SEED);
   private ProbTool probTool;
-  private long maxTimestampIndex;
+  private Map<DeviceSchema, Long> maxTimestampIndexMap;
   private Random poissonRandom;
   private Random queryDeviceRandom;
   private Map<Operation, Long> operationLoops;
@@ -43,8 +45,11 @@ public class SyntheticWorkload implements IWorkload {
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
-    maxTimestampIndex = 0;
+    maxTimestampIndexMap = new HashMap<>();
     poissonRandom = new Random(config.DATA_SEED);
+    for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
+      maxTimestampIndexMap.put(schema, 0L);
+    }
     queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
     operationLoops = new EnumMap<>(Operation.class);
     for (Operation operation : Operation.values()) {
@@ -128,11 +133,11 @@ public class SyntheticWorkload implements IWorkload {
       if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
         // generate overflow timestamp
         nextDelta = poissonDistribution.getNextPossionDelta();
-        stepOffset = maxTimestampIndex - nextDelta;
+        stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
       } else {
         // generate normal increasing timestamp
-        maxTimestampIndex++;
-        stepOffset = maxTimestampIndex;
+        maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
+        stepOffset = maxTimestampIndexMap.get(deviceSchema);
       }
       addOneRowIntoBatch(batch, stepOffset);
     }
