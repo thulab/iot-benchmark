@@ -12,7 +12,7 @@ LOG_STOP_FLAG_PATH=${FLAG_AND_DATA_PATH#*=}
 IS_TEST_BASELINE=$1
 
 
-git pull
+
 if [ $IS_TEST_BASELINE = "true" ]; then
     cp ./archive/pom/baseline_pom.xml  ./pom.xml
     COMMIT_ID="BASELINE_commit_id:"$(ssh $SERVER_HOST "cd $LOG_STOP_FLAG_PATH/baseline_iotdb/iotdb;git rev-parse HEAD")
