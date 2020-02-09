@@ -76,21 +76,15 @@ public class SingletonWorkload {
     return null;
   }
 
-  private Batch getGlobalOutOfOrderBatch() {
-    return null;
-  }
-
   public Batch getOneBatch() throws WorkloadException {
     if (!config.IS_OVERFLOW) {
       return getOrderedBatch();
     } else {
       switch (config.OVERFLOW_MODE) {
         case 0:
-          return getLocalOutOfOrderBatch();
-        case 1:
-          return getGlobalOutOfOrderBatch();
-        case 2:
           return getDistOutOfOrderBatch();
+        case 1:
+          return getLocalOutOfOrderBatch();
         default:
           throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
       }
