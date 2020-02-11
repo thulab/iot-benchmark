@@ -43,6 +43,8 @@ public class InfluxDB implements IDatabase {
 
   private org.influxdb.InfluxDB influxDbInstance;
   private static final int MILLIS_TO_NANO = 1000000;
+  private static final long TIMESTAMP_TO_NANO = (config.TIMESTAMP_PRECISION.equals("ms")) ?
+          MILLIS_TO_NANO : 1;
 
   /**
    * constructor.
@@ -221,6 +223,7 @@ public class InfluxDB implements IDatabase {
     model.measurement = deviceSchema.getGroup();
     model.tagSet.put("device", deviceSchema.getDevice());
     model.timestamp = time;
+    model.timestampPrecision = config.TIMESTAMP_PRECISION;
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
       Number value = parseNumber(valueList.get(i));
@@ -272,7 +275,7 @@ public class InfluxDB implements IDatabase {
   }
 
   private static String getPreciseQuerySql(PreciseQuery preciseQuery) {
-    String strTime = "" + preciseQuery.getTimestamp() * MILLIS_TO_NANO;
+    String strTime = "" + preciseQuery.getTimestamp() * TIMESTAMP_TO_NANO;
     return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " AND time = " + strTime;
   }
 
@@ -284,8 +287,8 @@ public class InfluxDB implements IDatabase {
    * @return sql with time filter
    */
   private static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
-    String startTime = "" + rangeQuery.getStartTimestamp() * MILLIS_TO_NANO;
-    String endTime = "" + rangeQuery.getEndTimestamp() * MILLIS_TO_NANO;
+    String startTime = "" + rangeQuery.getStartTimestamp() * TIMESTAMP_TO_NANO;
+    String endTime = "" + rangeQuery.getEndTimestamp() * TIMESTAMP_TO_NANO;
     return sql + " AND time >= " + startTime
         + " AND time <= " + endTime;
   }
@@ -314,7 +317,7 @@ public class InfluxDB implements IDatabase {
    * @param timeGranularity time granularity of group by
    */
   private static String addGroupByClause(String sqlHeader, long timeGranularity) {
-    return sqlHeader + " GROUP BY time(" + timeGranularity + "ms)";
+    return sqlHeader + " GROUP BY time(" + timeGranularity + config.TIMESTAMP_PRECISION +")";
   }
 
   /**

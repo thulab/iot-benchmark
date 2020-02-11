@@ -13,11 +13,13 @@ public class AggValueQuery extends AggRangeQuery {
   // large time range to cover the whole time series. However this method still can not guarantee
   // that the series is fully covered.
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final long timeStampConst = (config.TIMESTAMP_PRECISION.equals("ms")) ? 1L : 1000000L;
+  private static final long timeRangeConst = (config.TIMESTAMP_PRECISION.equals("ms")) ? 1000L : 3L;
   private static final long END_TIME =
-      Constants.START_TIMESTAMP + config.POINT_STEP * config.BATCH_SIZE * 1000000L;
+          (Constants.START_TIMESTAMP + config.POINT_STEP * config.BATCH_SIZE * 1000L * timeRangeConst) * timeStampConst;
 
   public AggValueQuery(List<DeviceSchema> deviceSchema, String aggFun, double valueThreshold) {
-    super(deviceSchema, Constants.START_TIMESTAMP, END_TIME, aggFun);
+    super(deviceSchema, Constants.START_TIMESTAMP * timeStampConst, END_TIME, aggFun);
     this.valueThreshold = valueThreshold;
   }
 

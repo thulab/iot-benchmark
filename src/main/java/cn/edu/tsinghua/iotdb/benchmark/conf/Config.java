@@ -34,6 +34,9 @@ public class Config {
 	/** 数据采集步长 */
 	public long POINT_STEP = 7000;
 
+	/** 时间戳精度 */
+	public String TIMESTAMP_PRECISION = "ms";
+
 	/** 查询时间戳变化增加步长 */
 	public int STEP_SIZE = 1;
 

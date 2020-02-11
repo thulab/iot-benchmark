@@ -10,6 +10,8 @@ public class InfluxDataModel {
     public HashMap<String, String> tagSet;
     public HashMap<String, Number> fields;
     public long timestamp;
+    public String timestampPrecision;
+    public final long toNanoConst = (timestampPrecision.equals("ms")) ? 1000000L : 1L;
 
     public InfluxDataModel() {
         tagSet = new HashMap<>();
@@ -63,18 +65,27 @@ public class InfluxDataModel {
         }
         // attach timestamp
         builder.append(" ");
-        builder.append(timestamp);
+        builder.append(this.timestamp * this.toNanoConst);
         return builder.toString();
     }
 
     public Point toInfluxPoint() {
         HashMap<String, Object> fields = new HashMap<>();
         fields.putAll(this.fields);
-        Point point = Point.measurement(this.measurement)
-                            .time(this.timestamp, TimeUnit.MILLISECONDS)
-                            .tag(this.tagSet)
-                            .fields(fields)
-                            .build();
-        return  point;
+        if (this.timestampPrecision.equals("ns")) {
+            Point point = Point.measurement(this.measurement)
+                    .time(this.timestamp, TimeUnit.NANOSECONDS)
+                    .tag(this.tagSet)
+                    .fields(fields)
+                    .build();
+            return point;
+        } else {
+            Point point = Point.measurement(this.measurement)
+                    .time(this.timestamp, TimeUnit.MILLISECONDS)
+                    .tag(this.tagSet)
+                    .fields(fields)
+                    .build();
+            return point;
+        }
     }
 }

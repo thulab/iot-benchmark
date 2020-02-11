@@ -85,6 +85,17 @@ public class ConfigDescriptor {
 				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
 				config.INSERT_MODE = properties.getProperty("INSERT_MODE", config.INSERT_MODE);
 
+				config.TIMESTAMP_PRECISION = properties.getProperty("TIMESTAMP_PRECISION", config.TIMESTAMP_PRECISION+"");
+				switch (config.TIMESTAMP_PRECISION) {
+					case "ms":  break;
+					case "ns":
+						if (!config.DB_SWITCH.equals("IoTDB") && !config.DB_SWITCH.equals("InfluxDB")){
+							throw new RuntimeException("The database " + config.DB_SWITCH + " can't use ns precision");
+						}
+						break;
+					default: throw new RuntimeException("not support timestamp precision: " + config.TIMESTAMP_PRECISION);
+				}
+
 				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
 				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));
 				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
