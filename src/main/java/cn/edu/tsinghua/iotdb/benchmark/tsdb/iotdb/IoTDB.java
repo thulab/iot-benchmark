@@ -362,6 +362,6 @@ public class IoTDB implements IDatabase {
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
     String startTime = start + "";
     String endTime = end + "";
-    return prefix + " GROUP BY(" + granularity + config.TIMESTAMP_PRECISION +", " + start + ",[" + startTime + "," + endTime + "]" + ")";
+    return prefix + " GROUP BY(" + granularity + "ms, " + start + ",[" + startTime + "," + endTime + "]" + ")";
   }
 }

@@ -42,7 +42,7 @@ public class SyntheticWorkload implements IWorkload {
   private static String[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final long timeStampConst = (config.TIMESTAMP_PRECISION.equals("ms")) ? 1L : 100000L;
+  private static final long timeStampConst = getTimestampConst(config.TIMESTAMP_PRECISION);
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
@@ -266,5 +266,13 @@ public class SyntheticWorkload implements IWorkload {
         config.QUERY_AGGREGATE_FUN);
   }
 
-
+  private static long getTimestampConst(String timePrecision){
+    if(timePrecision == "ms") {
+      return 1L;
+    } else if(timePrecision == "us") {
+      return 1000L;
+    } else {
+      return 1000000L;
+    }
+  }
 }

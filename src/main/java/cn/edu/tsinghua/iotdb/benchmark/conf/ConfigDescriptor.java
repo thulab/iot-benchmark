@@ -88,9 +88,9 @@ public class ConfigDescriptor {
 				config.TIMESTAMP_PRECISION = properties.getProperty("TIMESTAMP_PRECISION", config.TIMESTAMP_PRECISION+"");
 				switch (config.TIMESTAMP_PRECISION) {
 					case "ms":  break;
-					case "ns":
+					case "us":
 						if (!config.DB_SWITCH.equals("IoTDB") && !config.DB_SWITCH.equals("InfluxDB")){
-							throw new RuntimeException("The database " + config.DB_SWITCH + " can't use ns precision");
+							throw new RuntimeException("The database " + config.DB_SWITCH + " can't use microsecond precision");
 						}
 						break;
 					default: throw new RuntimeException("not support timestamp precision: " + config.TIMESTAMP_PRECISION);

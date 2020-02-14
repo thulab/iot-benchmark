@@ -17,9 +17,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
@@ -42,9 +41,7 @@ public class InfluxDB implements IDatabase {
   private final String dataType;
 
   private org.influxdb.InfluxDB influxDbInstance;
-  private static final int MILLIS_TO_NANO = 1000000;
-  private static final long TIMESTAMP_TO_NANO = (config.TIMESTAMP_PRECISION.equals("ms")) ?
-          MILLIS_TO_NANO : 1;
+  private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.TIMESTAMP_PRECISION);
 
   /**
    * constructor.
@@ -220,15 +217,19 @@ public class InfluxDB implements IDatabase {
       List<String> valueList)
       throws TsdbException {
     InfluxDataModel model = new InfluxDataModel();
-    model.measurement = deviceSchema.getGroup();
-    model.tagSet.put("device", deviceSchema.getDevice());
-    model.timestamp = time;
-    model.timestampPrecision = config.TIMESTAMP_PRECISION;
+    model.setMeasurement(deviceSchema.getGroup());
+    HashMap<String, String> tags = new HashMap<>();
+    tags.put("device", deviceSchema.getDevice());
+    model.setTagSet(tags);
+    model.setTimestamp(time);
+    model.setTimestampPrecision(config.TIMESTAMP_PRECISION);
+    HashMap<String, Number> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
       Number value = parseNumber(valueList.get(i));
-      model.fields.put(sensors.get(i), value);
+      fields.put(sensors.get(i), value);
     }
+    model.setFields(fields);
     return model;
   }
 
@@ -317,7 +318,7 @@ public class InfluxDB implements IDatabase {
    * @param timeGranularity time granularity of group by
    */
   private static String addGroupByClause(String sqlHeader, long timeGranularity) {
-    return sqlHeader + " GROUP BY time(" + timeGranularity + config.TIMESTAMP_PRECISION +")";
+    return sqlHeader + " GROUP BY time(" + timeGranularity + "ms)";
   }
 
   /**
@@ -387,6 +388,16 @@ public class InfluxDB implements IDatabase {
     builder.append(")");
 
     return builder.toString();
+  }
+
+  private static long getToNanoConst(String timePrecision){
+    if(timePrecision == "ms") {
+      return 1000000L;
+    } else if(timePrecision == "us") {
+      return 1000L;
+    } else {
+      return 1L;
+    }
   }
 
 }

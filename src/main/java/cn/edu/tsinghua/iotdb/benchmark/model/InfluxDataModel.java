@@ -2,20 +2,49 @@ package cn.edu.tsinghua.iotdb.benchmark.model;
 
 import org.influxdb.dto.Point;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class InfluxDataModel {
-    public String measurement;
-    public HashMap<String, String> tagSet;
-    public HashMap<String, Number> fields;
-    public long timestamp;
-    public String timestampPrecision;
-    public final long toNanoConst = (timestampPrecision.equals("ms")) ? 1000000L : 1L;
+public class InfluxDataModel implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private String measurement;
+    private HashMap<String, String> tagSet;
+    private HashMap<String, Number> fields;
+    private long timestamp;
+    private String timestampPrecision;
+    private long toNanoConst = 1L;
 
     public InfluxDataModel() {
-        tagSet = new HashMap<>();
-        fields = new HashMap<>();
+        this.tagSet = new HashMap<>();
+        this.fields = new HashMap<>();
+    }
+
+    public void setMeasurement(String measurement) {
+        this.measurement = measurement;
+    }
+
+    public void setTagSet(HashMap<String, String> tagSet) {
+        this.tagSet = tagSet;
+    }
+
+    public void setFields(HashMap<String, Number> fields) {
+        this.fields = fields;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setTimestampPrecision(String timestampPrecision) {
+        this.timestampPrecision = timestampPrecision;
+        if(timestampPrecision == "ns"){
+            this.toNanoConst = 1L;
+        } else if(timestampPrecision == "us") {
+            this.toNanoConst = 1000L;
+        } else if(timestampPrecision == "ms") {
+            this.toNanoConst = 1000000L;
+        }
     }
 
     @Override
@@ -75,6 +104,13 @@ public class InfluxDataModel {
         if (this.timestampPrecision.equals("ns")) {
             Point point = Point.measurement(this.measurement)
                     .time(this.timestamp, TimeUnit.NANOSECONDS)
+                    .tag(this.tagSet)
+                    .fields(fields)
+                    .build();
+            return point;
+        } else if(this.timestampPrecision.equals("us")) {
+            Point point = Point.measurement(this.measurement)
+                    .time(this.timestamp, TimeUnit.MICROSECONDS)
                     .tag(this.tagSet)
                     .fields(fields)
                     .build();
