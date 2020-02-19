@@ -44,6 +44,7 @@ Databases currently supported:
 + InfluxDB
 + KairosDB
 + TimescaleDB
++ OpenTSDB
 
 # Main Features
 

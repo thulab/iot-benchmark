@@ -42,6 +42,7 @@ public class SyntheticWorkload implements IWorkload {
   private static String[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final long timeStampConst = getTimestampConst(config.TIMESTAMP_PRECISION);
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
@@ -90,7 +91,7 @@ public class SyntheticWorkload implements IWorkload {
     if (config.IS_OVERFLOW) {
       timeStampOffset += random.nextDouble() * config.POINT_STEP;
     }
-    long currentTimestamp = Constants.START_TIMESTAMP + timeStampOffset;
+    long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
     if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
       currentTimestamp += (long) (config.POINT_STEP * timestampRandom.nextDouble());
     }
@@ -204,7 +205,7 @@ public class SyntheticWorkload implements IWorkload {
     long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
     long timestampOffset = currentQueryLoop * config.STEP_SIZE * config.POINT_STEP;
     operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
-    return Constants.START_TIMESTAMP + timestampOffset;
+    return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
   }
 
   public PreciseQuery getPreciseQuery() throws WorkloadException {
@@ -253,8 +254,8 @@ public class SyntheticWorkload implements IWorkload {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
-    return new GroupByQuery(queryDevices, startTimestamp, endTimestamp, config.QUERY_AGGREGATE_FUN,
-        config.TIME_UNIT);
+    return new GroupByQuery(queryDevices, startTimestamp, endTimestamp,
+        config.QUERY_AGGREGATE_FUN, config.TIME_UNIT);
   }
 
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {
@@ -265,5 +266,13 @@ public class SyntheticWorkload implements IWorkload {
         config.QUERY_AGGREGATE_FUN);
   }
 
-
+  private static long getTimestampConst(String timePrecision){
+    if(timePrecision == "ms") {
+      return 1L;
+    } else if(timePrecision == "us") {
+      return 1000L;
+    } else {
+      return 1000000L;
+    }
+  }
 }
