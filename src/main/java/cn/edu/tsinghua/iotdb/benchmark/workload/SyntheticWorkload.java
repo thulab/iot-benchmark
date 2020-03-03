@@ -36,7 +36,7 @@ public class SyntheticWorkload implements IWorkload {
   private Random poissonRandom;
   private Random queryDeviceRandom;
   private Map<Operation, Long> operationLoops;
-  private static Random random = new Random();
+  private static Random random = new Random(config.DATA_SEED);
   private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
   private static Random dataRandom = new Random(config.DATA_SEED);
   private static String[][] workloadValues = initWorkloadValues();
@@ -89,9 +89,9 @@ public class SyntheticWorkload implements IWorkload {
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.POINT_STEP * stepOffset;
     if (config.IS_OVERFLOW) {
+      timeStampOffset += (long) (random.nextDouble() * config.POINT_STEP);
+    } else {
       if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-        timeStampOffset += (long) (random.nextDouble() * config.POINT_STEP);
-      } else {
         timeStampOffset += (long) (config.POINT_STEP * timestampRandom.nextDouble());
       }
     }
