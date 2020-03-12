@@ -38,11 +38,11 @@ public class InfluxDataModel implements Serializable {
 
     public void setTimestampPrecision(String timestampPrecision) {
         this.timestampPrecision = timestampPrecision;
-        if(timestampPrecision == "ns"){
+        if(timestampPrecision.equals("ns")){
             this.toNanoConst = 1L;
-        } else if(timestampPrecision == "us") {
+        } else if(timestampPrecision.equals("us")) {
             this.toNanoConst = 1000L;
-        } else if(timestampPrecision == "ms") {
+        } else if(timestampPrecision.equals("ms")) {
             this.toNanoConst = 1000000L;
         }
     }

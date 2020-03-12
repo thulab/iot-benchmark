@@ -391,9 +391,9 @@ public class InfluxDB implements IDatabase {
   }
 
   private static long getToNanoConst(String timePrecision){
-    if(timePrecision == "ms") {
+    if(timePrecision.equals("ms")) {
       return 1000000L;
-    } else if(timePrecision == "us") {
+    } else if(timePrecision.equals("us")) {
       return 1000L;
     } else {
       return 1L;
