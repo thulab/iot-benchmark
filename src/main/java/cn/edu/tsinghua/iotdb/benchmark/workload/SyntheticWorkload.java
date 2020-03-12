@@ -268,9 +268,9 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   private static long getTimestampConst(String timePrecision){
-    if(timePrecision == "ms") {
+    if(timePrecision.equals("ms")) {
       return 1L;
-    } else if(timePrecision == "us") {
+    } else if(timePrecision.equals("us")) {
       return 1000L;
     } else {
       return 1000000L;
