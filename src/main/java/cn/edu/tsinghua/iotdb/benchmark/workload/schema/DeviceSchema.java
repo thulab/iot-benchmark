@@ -53,7 +53,7 @@ public class DeviceSchema {
     sensors.addAll(config.SENSOR_CODES);
   }
 
-  private int calGroupId(int deviceId) throws WorkloadException {
+  int calGroupId(int deviceId) throws WorkloadException {
     switch (config.SG_STRATEGY) {
       case Constants.MOD_SG_ASSIGN_MODE:
         return deviceId % config.GROUP_NUMBER;

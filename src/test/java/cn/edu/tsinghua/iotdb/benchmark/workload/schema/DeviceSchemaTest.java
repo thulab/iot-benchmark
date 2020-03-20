@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import static org.junit.Assert.assertEquals;
+
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import org.junit.Test;
 
 /** 
@@ -11,23 +13,35 @@ import org.junit.Test;
 * @version 1.0 
 */ 
 public class DeviceSchemaTest {
-/** 
-* 
-* Method: CalGroupId()
-* 
-*/ 
-@Test
-public void testCalGroupId() throws Exception {
-  int g1 = DeviceSchema.calGroupId(4, 3);
-  assertEquals(1,g1 );
-  int g2 = DeviceSchema.calGroupId(3, 3);
-  assertEquals(0, g2);
-  int g3 = DeviceSchema.calGroupId(30, 30);
-  assertEquals(0, g3);
-  int g4 = DeviceSchema.calGroupId(40, 30);
-  assertEquals(10, g4);
-  int g5 = DeviceSchema.calGroupId(0, 3);
-  assertEquals(0, g5);
-} 
+  /**
+  *
+  * Method: CalGroupId()
+  *
+  */
+  @Test
+  public void testCalGroupId() throws Exception {
+    int ori = ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER;
+    DeviceSchema schema = new DeviceSchema(0);
+    ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER = 3;
+    int g1 = schema.calGroupId(4);
+    assertEquals(1,g1 );
+
+    ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER = 3;
+    int g2 = schema.calGroupId(3);
+    assertEquals(0, g2);
+
+    ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER = 30;
+    int g3 = schema.calGroupId(30);
+    assertEquals(0, g3);
+    ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER = 30;
+    int g4 = schema.calGroupId(40);
+    assertEquals(10, g4);
+
+    ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER = 3;
+    int g5 = schema.calGroupId(0);
+    assertEquals(0, g5);
+
+    ConfigDescriptor.getInstance().getConfig().GROUP_NUMBER = ori;
+  }
 
 } 
