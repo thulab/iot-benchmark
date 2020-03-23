@@ -6,7 +6,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import org.apache.iotdb.session.IoTDBSessionException;
+import org.apache.iotdb.rpc.BatchExecutionException;
+import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
@@ -28,7 +29,7 @@ public class IoTDBSession extends IoTDB {
     session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
     try {
       session.open();
-    } catch (IoTDBSessionException e) {
+    } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to add session", e);
     }
   }
@@ -67,7 +68,7 @@ public class IoTDBSession extends IoTDB {
       session.insertBatch(rowBatch);
       rowBatch.reset();
       return new Status(true);
-    } catch (IoTDBSessionException e) {
+    } catch (IoTDBConnectionException | BatchExecutionException e) {
       return new Status(false, 0, e, e.toString());
     }
   }
