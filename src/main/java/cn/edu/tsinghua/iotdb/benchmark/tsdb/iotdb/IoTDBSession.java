@@ -11,6 +11,7 @@ import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.iotdb.tsfile.read.common.Path;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.RowBatch;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
@@ -37,14 +38,15 @@ public class IoTDBSession extends IoTDB {
   @Override
   public Status insertOneBatch(Batch batch) {
     Schema schema = new Schema();
+    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
+        .getDeviceSchema().getDevice();
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      schema.registerMeasurement(
+      schema.registerTimeseries(
+          new Path(deviceId, sensor),
           new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
               Enum.valueOf(TSEncoding.class, config.ENCODING)));
     }
-    RowBatch rowBatch = schema.createRowBatch(
-        Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
-            .getDeviceSchema().getDevice(), batch.getRecords().size());
+    RowBatch rowBatch = schema.createRowBatch(deviceId, batch.getRecords().size());
     long[] timestamps = rowBatch.timestamps;
     Object[] values = rowBatch.values;
 
