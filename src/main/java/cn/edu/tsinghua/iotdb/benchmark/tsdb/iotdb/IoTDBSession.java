@@ -6,16 +6,16 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.iotdb.rpc.BatchExecutionException;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-import org.apache.iotdb.tsfile.read.common.Path;
 import org.apache.iotdb.tsfile.utils.Binary;
-import org.apache.iotdb.tsfile.write.record.RowBatch;
+import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
-import org.apache.iotdb.tsfile.write.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,21 +37,19 @@ public class IoTDBSession extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    Schema schema = new Schema();
-    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
-        .getDeviceSchema().getDevice();
+    List<MeasurementSchema> schemaList = new ArrayList<>();
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      schema.registerTimeseries(
-          new Path(deviceId, sensor),
-          new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
+      schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
               Enum.valueOf(TSEncoding.class, config.ENCODING)));
     }
-    RowBatch rowBatch = schema.createRowBatch(deviceId, batch.getRecords().size());
-    long[] timestamps = rowBatch.timestamps;
-    Object[] values = rowBatch.values;
+    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
+        .getDeviceSchema().getDevice();
+    Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
+    long[] timestamps = tablet.timestamps;
+    Object[] values = tablet.values;
 
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
-      rowBatch.batchSize++;
+      tablet.rowSize++;
       Record record = batch.getRecords().get(recordIndex);
       long currentTime = record.getTimestamp();
       timestamps[recordIndex] = currentTime;
@@ -67,8 +65,8 @@ public class IoTDBSession extends IoTDB {
       }
     }
     try {
-      session.insertBatch(rowBatch);
-      rowBatch.reset();
+      session.insertTablet(tablet);
+      tablet.reset();
       return new Status(true);
     } catch (IoTDBConnectionException | BatchExecutionException e) {
       return new Status(false, 0, e, e.toString());
