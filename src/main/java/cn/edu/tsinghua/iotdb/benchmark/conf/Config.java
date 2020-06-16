@@ -16,7 +16,7 @@ import javax.xml.bind.Unmarshaller;
 
 public class Config {
 
-	public String HOST ="127.0.0.1";
+	public String HOST ="192.168.130.19";
 	public String PORT ="6667";
 
 	/** 设备数量 */
@@ -24,6 +24,9 @@ public class Config {
 
 	/** 设备和客户端是否绑定 */
 	public boolean IS_CLIENT_BIND = true;
+
+	/** if enable the thrift compression */
+	public boolean ENABLE_THRIFT_COMPRESSION = true;
 
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
@@ -109,6 +112,8 @@ public class Config {
 	public int LIMIT_CLAUSE_MODE = 0;
 
 	public String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
+
+	public String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
 	public String START_TIME = "2018-8-30T00:00:00+08:00";
 
@@ -200,7 +205,7 @@ public class Config {
 	public int QUERY_DEVICE_NUM = 1;
 	public String QUERY_AGGREGATE_FUN = "";
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
-	public double QUERY_LOWER_LIMIT = 0;
+	public int QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	public long TIME_UNIT = QUERY_INTERVAL / 2;
 	public long QUERY_SEED = 1516580959202L;

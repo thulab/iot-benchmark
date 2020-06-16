@@ -1,15 +1,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.Collections;
+import java.util.Properties;
 
 public class ConfigDescriptor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
@@ -100,7 +97,7 @@ public class ConfigDescriptor {
 				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));
 				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
 				config.QUERY_INTERVAL = Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.QUERY_INTERVAL+""));
-				config.QUERY_LOWER_LIMIT = Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.QUERY_LOWER_LIMIT+""));
+				config.QUERY_LOWER_LIMIT = Integer.parseInt(properties.getProperty("QUERY_LOWER_LIMIT", config.QUERY_LOWER_LIMIT+""));
 				config.QUERY_SEED = Long.parseLong(properties.getProperty("QUERY_SEED", config.QUERY_SEED+""));
 				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
 				config.REMARK = properties.getProperty("REMARK", "-");
@@ -156,6 +153,7 @@ public class ConfigDescriptor {
 				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
 				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
+				config.INSERT_DATATYPE_PROPORTION = properties.getProperty("INSERT_DATATYPE_PROPORTION", config.INSERT_DATATYPE_PROPORTION);
 				config.START_TIME = properties.getProperty("START_TIME", config.START_TIME);
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
@@ -167,6 +165,7 @@ public class ConfigDescriptor {
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
 				config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
 				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER + ""));
+				config.ENABLE_THRIFT_COMPRESSION=Boolean.parseBoolean(properties.getProperty("ENABLE_THRIFT_COMPRESSION", config.ENABLE_THRIFT_COMPRESSION + ""));
 				if (config.USE_CLUSTER){
 					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX + ""));
 					config.FIRST_DEVICE_INDEX = config.FIRST_INDEX * config.DEVICE_NUMBER;
