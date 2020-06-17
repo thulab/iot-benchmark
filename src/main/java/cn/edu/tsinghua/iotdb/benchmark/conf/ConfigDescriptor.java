@@ -123,6 +123,7 @@ public class ConfigDescriptor {
 				}
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.TEST_DATA_PERSISTENCE = properties.getProperty("TEST_DATA_PERSISTENCE", "None");
+				config.CSV_OUTPUT = Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.CSV_OUTPUT+""));
 				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
 				config.LOG_PRINT_INTERVAL = Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.LOG_PRINT_INTERVAL+""));
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));

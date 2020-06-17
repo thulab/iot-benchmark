@@ -220,6 +220,7 @@ public class Config {
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
 	public String TEST_DATA_PERSISTENCE = "None";
+	public boolean CSV_OUTPUT = true;
 
 	public String REMARK = "";
 	public String TEST_DATA_STORE_IP = "";
