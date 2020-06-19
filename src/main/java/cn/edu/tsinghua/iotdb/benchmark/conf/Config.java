@@ -205,7 +205,7 @@ public class Config {
 	public int QUERY_DEVICE_NUM = 1;
 	public String QUERY_AGGREGATE_FUN = "";
 	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
-	public int QUERY_LOWER_LIMIT = 0;
+	public double QUERY_LOWER_LIMIT = 0;
 	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	public long TIME_UNIT = QUERY_INTERVAL / 2;
 	public long QUERY_SEED = 1516580959202L;
