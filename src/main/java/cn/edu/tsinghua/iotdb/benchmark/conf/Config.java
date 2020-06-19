@@ -16,7 +16,7 @@ import javax.xml.bind.Unmarshaller;
 
 public class Config {
 
-	public String HOST ="192.168.130.19";
+	public String HOST ="127.0.0.1";
 	public String PORT ="6667";
 
 	/** 设备数量 */
@@ -26,7 +26,7 @@ public class Config {
 	public boolean IS_CLIENT_BIND = true;
 
 	/** if enable the thrift compression */
-	public boolean ENABLE_THRIFT_COMPRESSION = true;
+	public boolean ENABLE_THRIFT_COMPRESSION = false;
 
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
