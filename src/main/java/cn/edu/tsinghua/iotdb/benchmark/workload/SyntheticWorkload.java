@@ -19,6 +19,10 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -29,6 +33,7 @@ import java.util.Random;
 
 public class SyntheticWorkload implements IWorkload {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static Random timestampRandom = new Random(config.DATA_SEED);
   private ProbTool probTool;
@@ -62,16 +67,18 @@ public class SyntheticWorkload implements IWorkload {
     String[][] workloadValues = null;
     if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
+      int sensorIndex = 0;
       for (int j = 0; j < config.SENSOR_NUMBER; j++) {
         String sensor = config.SENSOR_CODES.get(j);
         for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
           long currentTimestamp = getCurrentTimestamp(i);
           String value;
-          if (!config.DATA_TYPE.equals("TEXT")) {
+          if (!getNextDataType(sensorIndex).equals("TEXT")) {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
             value = String.format(DECIMAL_FORMAT,
                 Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
           } else {
+            //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
             StringBuilder builder = new StringBuilder();
             for (int k = 0; k < config.NUMBER_OF_DECIMAL_DIGIT; k++) {
               assert dataRandom != null;
@@ -81,9 +88,68 @@ public class SyntheticWorkload implements IWorkload {
           }
           workloadValues[j][i] = value;
         }
+        sensorIndex++;
       }
     }
     return workloadValues;
+  }
+
+  public static String getNextDataType(int sensorIndex) {
+    List<Double> proportion = resolveDataTypeProportion();
+    double[] p = new double[TSDataType.values().length + 1];
+    p[0] = 0.0;
+    // split [0,1] to n regions, each region corresponds to a data type whose proportion
+    // is the region range size.
+    for (int i = 1; i <= TSDataType.values().length; i++) {
+      p[i] = p[i - 1] + proportion.get(i - 1);
+    }
+    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
+    int i;
+    for (i = 1; i <= TSDataType.values().length; i++) {
+      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
+        break;
+      }
+    }
+    switch (i) {
+      case 1:
+        return "BOOLEAN";
+      case 2:
+        return "INT32";
+      case 3:
+        return "INT64";
+      case 4:
+        return "FLOAT";
+      case 5:
+        return "DOUBLE";
+      case 6:
+        return "TEXT";
+      default:
+        LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
+        return "TEXT";
+    }
+  }
+
+  public static List<Double> resolveDataTypeProportion() {
+    List<Double> proportion = new ArrayList<>();
+    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+    if (split.length != TSDataType.values().length) {
+      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
+    }
+    double[] proportions = new double[TSDataType.values().length];
+    double sum = 0;
+    for (int i = 0; i < split.length; i++) {
+      proportions[i] = Double.parseDouble(split[i]);
+      sum += proportions[i];
+    }
+    for (int i = 0; i < split.length; i++) {
+      if (sum != 0) {
+        proportion.add(proportions[i] / sum);
+      } else {
+        proportion.add(0.0);
+        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+      }
+    }
+    return proportion;
   }
 
   private static long getCurrentTimestamp(long stepOffset) {

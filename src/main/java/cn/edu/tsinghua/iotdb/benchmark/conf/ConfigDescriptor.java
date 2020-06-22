@@ -126,6 +126,7 @@ public class ConfigDescriptor {
 				}
 				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
 				config.TEST_DATA_PERSISTENCE = properties.getProperty("TEST_DATA_PERSISTENCE", "None");
+				config.CSV_OUTPUT = Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.CSV_OUTPUT+""));
 				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
 				config.LOG_PRINT_INTERVAL = Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.LOG_PRINT_INTERVAL+""));
 				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
@@ -156,6 +157,7 @@ public class ConfigDescriptor {
 				config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
 				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
+				config.INSERT_DATATYPE_PROPORTION = properties.getProperty("INSERT_DATATYPE_PROPORTION", config.INSERT_DATATYPE_PROPORTION);
 				config.START_TIME = properties.getProperty("START_TIME", config.START_TIME);
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
@@ -167,6 +169,7 @@ public class ConfigDescriptor {
 				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
 				config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
 				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER + ""));
+				config.ENABLE_THRIFT_COMPRESSION=Boolean.parseBoolean(properties.getProperty("ENABLE_THRIFT_COMPRESSION", config.ENABLE_THRIFT_COMPRESSION + ""));
 				if (config.USE_CLUSTER){
 					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX + ""));
 					config.FIRST_DEVICE_INDEX = config.FIRST_INDEX * config.DEVICE_NUMBER;

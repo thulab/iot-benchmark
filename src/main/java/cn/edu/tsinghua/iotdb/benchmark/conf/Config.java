@@ -25,6 +25,9 @@ public class Config {
 	/** 设备和客户端是否绑定 */
 	public boolean IS_CLIENT_BIND = true;
 
+	/** if enable the thrift compression */
+	public boolean ENABLE_THRIFT_COMPRESSION = false;
+
 	/** 测试客户端线程数量 */
 	public int CLIENT_NUMBER = 2;
 
@@ -109,6 +112,8 @@ public class Config {
 	public int LIMIT_CLAUSE_MODE = 0;
 
 	public String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
+
+	public String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
 	public String START_TIME = "2018-8-30T00:00:00+08:00";
 
@@ -215,6 +220,7 @@ public class Config {
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
 	public String TEST_DATA_PERSISTENCE = "None";
+	public boolean CSV_OUTPUT = true;
 
 	public String REMARK = "";
 	public String TEST_DATA_STORE_IP = "";
