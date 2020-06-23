@@ -41,7 +41,6 @@ public abstract class BaseClient extends Client implements Runnable {
 
   void doTest() {
     String currentThread = Thread.currentThread().getName();
-    //Equals device number when the rate is 1.
     double actualDeviceFloor = config.DEVICE_NUMBER * config.REAL_INSERT_RATE;
 
     // print current progress periodically
@@ -51,7 +50,6 @@ public abstract class BaseClient extends Client implements Runnable {
     }, 1, config.LOG_PRINT_INTERVAL, TimeUnit.SECONDS);
     long start = 0;
     for (loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
-      //According to the probabilities (proportion) of operations.
       Operation operation = operationController.getNextOperationType();
       if (config.OP_INTERVAL > 0) {
         start = System.currentTimeMillis();
@@ -60,8 +58,8 @@ public abstract class BaseClient extends Client implements Runnable {
         case INGESTION:
           if (config.IS_CLIENT_BIND) {
             try {
-              List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
-              for (DeviceSchema deviceSchema : schemas) {
+              List<DeviceSchema> schema = dataSchema.getClientBindSchema().get(clientThreadId);
+              for (DeviceSchema deviceSchema : schema) {
                 if (deviceSchema.getDeviceId() < actualDeviceFloor) {
                   Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
                   dbWrapper.insertOneBatch(batch);

@@ -8,8 +8,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.iotdb.rpc.BatchExecutionException;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
@@ -29,11 +29,7 @@ public class IoTDBSession extends IoTDB {
     super();
     session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
     try {
-      if (config.ENABLE_THRIFT_COMPRESSION) {
-        session.open(true);
-      } else {
-        session.open();
-      }
+      session.open();
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to add session", e);
     }
@@ -42,11 +38,9 @@ public class IoTDBSession extends IoTDB {
   @Override
   public Status insertOneBatch(Batch batch) {
     List<MeasurementSchema> schemaList = new ArrayList<>();
-    int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, getNextDataType(sensorIndex)),
+      schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
               Enum.valueOf(TSEncoding.class, config.ENCODING)));
-      sensorIndex++;
     }
     String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
         .getDeviceSchema().getDevice();
@@ -57,49 +51,24 @@ public class IoTDBSession extends IoTDB {
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
       Record record = batch.getRecords().get(recordIndex);
-      sensorIndex = 0;
       long currentTime = record.getTimestamp();
       timestamps[recordIndex] = currentTime;
       for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
-        switch (getNextDataType(sensorIndex)) {
-          case "BOOLEAN":
-            boolean[] sensorsBool = (boolean []) values[recordValueIndex];
-            sensorsBool[recordIndex] = (Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex)) > 500);
-            break;
-          case "INT32":
-            int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex));
-            break;
-          case "INT64":
-            long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex));
-            break;
-          case "FLOAT":
-            float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex));
-            break;
-          case "DOUBLE":
-            double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex));
-            break;
-          case "TEXT":
-            Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
-            break;
+        if(!config.DATA_TYPE.equals("TEXT")) {
+          double[] sensors = (double[]) values[recordValueIndex];
+          sensors[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
+              recordValueIndex));
+        } else {
+          Binary[] sensors = (Binary[]) values[recordValueIndex];
+          sensors[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
         }
-        sensorIndex++;
       }
     }
     try {
       session.insertTablet(tablet);
       tablet.reset();
       return new Status(true);
-    } catch (IoTDBConnectionException | StatementExecutionException e) {
+    } catch (IoTDBConnectionException | BatchExecutionException e) {
       return new Status(false, 0, e, e.toString());
     }
   }
