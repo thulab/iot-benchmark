@@ -334,12 +334,34 @@ public class IoTDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
+    int sensorIndex = 0;
     for (String value : values) {
-      if (config.DATA_TYPE.equals("TEXT")) {
-        builder.append(",").append("'").append(value).append("'");
-      } else {
-        builder.append(",").append(value);
+      switch (getNextDataType(sensorIndex)) {
+        case "BOOLEAN":
+          boolean tempBoolean = (Double.parseDouble(value) > 500);
+          builder.append(",").append(tempBoolean);
+          break;
+        case "INT32":
+          int tempInt32 = (int) Double.parseDouble(value);
+          builder.append(",").append(tempInt32);
+          break;
+        case "INT64":
+          long tempInt64 = (long) Double.parseDouble(value);
+          builder.append(",").append(tempInt64);
+          break;
+        case "FLOAT":
+          float tempIntFloat = (float) Double.parseDouble(value);
+          builder.append(",").append(tempIntFloat);
+          break;
+        case "DOUBLE":
+          double tempIntDouble = Double.parseDouble(value);
+          builder.append(",").append(tempIntDouble);
+          break;
+        case "TEXT":
+          builder.append(",").append("'").append(value).append("'");
+          break;
       }
+      sensorIndex++;
     }
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
