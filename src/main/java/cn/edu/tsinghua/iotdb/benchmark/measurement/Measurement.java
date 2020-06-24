@@ -126,9 +126,9 @@ public class Measurement {
   public void mergeMeasurement(Measurement m) {
     for (Operation operation : Operation.values()) {
       okOperationNumMap
-          .put(operation, okOperationNumMap.get(operation) + m.getOkOperationNum(operation));
+              .put(operation, okOperationNumMap.get(operation) + m.getOkOperationNum(operation));
       failOperationNumMap
-          .put(operation, failOperationNumMap.get(operation) + m.getFailOperationNum(operation));
+              .put(operation, failOperationNumMap.get(operation) + m.getFailOperationNum(operation));
       okPointNumMap.put(operation, okPointNumMap.get(operation) + m.getOkPointNum(operation));
       failPointNumMap.put(operation, failPointNumMap.get(operation) + m.getFailPointNum(operation));
       // set operationLatencySumThisClient of this measurement the largest latency sum among all threads
@@ -136,7 +136,7 @@ public class Measurement {
         operationLatencySumThisClient.put(operation, m.getOperationLatencySumThisClient().get(operation));
       }
       operationLatencySumAllClient.put(operation,
-          operationLatencySumAllClient.get(operation) + m.getOperationLatencySumThisClient().get(operation));
+              operationLatencySumAllClient.get(operation) + m.getOperationLatencySumThisClient().get(operation));
     }
 
   }
@@ -172,7 +172,7 @@ public class Measurement {
     recorder.saveResult("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
     System.out.println(
-        "----------------------------------------------------------Result Matrix----------------------------------------------------------");
+            "----------------------------------------------------------Result Matrix----------------------------------------------------------");
     StringBuilder format = new StringBuilder();
     for (int i = 0; i < 6; i++) {
       format.append(RESULT_ITEM);
@@ -182,7 +182,7 @@ public class Measurement {
     for (Operation operation : Operation.values()) {
       String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
       System.out.printf(format.toString(), operation.getName(), okOperationNumMap.get(operation), okPointNumMap.get(operation),
-          failOperationNumMap.get(operation), failPointNumMap.get(operation), throughput);
+              failOperationNumMap.get(operation), failPointNumMap.get(operation), throughput);
 
       recorder.saveResult(operation.toString(), TotalOperationResult.OK_OPERATION_NUM.getName(), "" + okOperationNumMap.get(operation));
       recorder.saveResult(operation.toString(), TotalOperationResult.OK_POINT_NUM.getName(), "" + okPointNumMap.get(operation));
@@ -191,7 +191,7 @@ public class Measurement {
       recorder.saveResult(operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
     }
     System.out.println(
-        "---------------------------------------------------------------------------------------------------------------------------------");
+            "---------------------------------------------------------------------------------------------------------------------------------");
 
     recorder.close();
   }
@@ -219,7 +219,7 @@ public class Measurement {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     ITestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(
-        "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
+            "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
     System.out.printf(RESULT_ITEM, "Operation");
     for (Metric metric : Metric.values()) {
       System.out.printf(LATENCY_ITEM, metric.name);
@@ -235,18 +235,14 @@ public class Measurement {
       System.out.println();
     }
     System.out.println(
-        "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     recorder.close();
   }
 
   public void outputCSV() {
-    SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间
-    sdf.applyPattern("yyyy-MM-dd-HH-mm-ss");// a为am/pm的标记
-    Date date = new Date();// 获取当前时间
-    String currentTime = sdf.format(date);
-    String fileName = "data/csvOutput/" + currentTime + "-testOutput.csv";
 
     try {
+      String fileName = createFileName();
       File csv = new File(fileName);
       csv.createNewFile();
       outputConfigToCSV(csv);
@@ -256,6 +252,38 @@ public class Measurement {
     } catch (IOException e) {
       LOGGER.error("Exception occurred during writing csv file because: ", e);
     }
+  }
+
+  private String createFileName() {
+    // Formatting time
+    SimpleDateFormat sdf = new SimpleDateFormat();
+    sdf.applyPattern("yyyy-MM-dd-HH-mm-ss");
+    Date date = new Date();
+    String currentTime = sdf.format(date);
+
+    // Formatting current Operations
+    StringBuilder fileNameSB = new StringBuilder();
+    String[] operations = config.OPERATION_PROPORTION.split(":");
+
+    for (int i = 0; i < operations.length; i++) {
+      // Specify inserting or querying mode
+      if (i == 0) {
+        fileNameSB.append("I");
+      } else if (i == 1) {
+        fileNameSB.append("Q");
+      }
+      // Specify whether a specific operation is processed in this time of test.
+      if (!operations[i].equals("0")) {
+        if (i == 0) {
+          fileNameSB.append("1");
+        } else {
+          fileNameSB.append(i);
+        }
+      } else {
+        fileNameSB.append("0");
+      }
+    }
+    return "data/csvOutput/" + fileNameSB.toString() + "-" + currentTime + "-test-result.csv";
   }
 
   private void outputConfigToCSV(File csv) {
