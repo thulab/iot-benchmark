@@ -8,7 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.iotdb.rpc.BatchExecutionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -68,7 +68,7 @@ public class IoTDBSession extends IoTDB {
       session.insertTablet(tablet);
       tablet.reset();
       return new Status(true);
-    } catch (IoTDBConnectionException | BatchExecutionException e) {
+    } catch (IoTDBConnectionException | StatementExecutionException e) {
       return new Status(false, 0, e, e.toString());
     }
   }
