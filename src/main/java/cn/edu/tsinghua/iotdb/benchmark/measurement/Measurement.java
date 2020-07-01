@@ -9,20 +9,11 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalResult;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import com.clearspring.analytics.stream.quantile.TDigest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class Measurement {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Measurement.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static Map<Operation, TDigest> operationLatencyDigest = new EnumMap<>(Operation.class);
   private static Map<Operation, Double> operationLatencySumAllClient = new EnumMap<>(Operation.class);
@@ -237,108 +228,6 @@ public class Measurement {
     System.out.println(
         "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
     recorder.close();
-  }
-
-  public void outputCSV() {
-    SimpleDateFormat sdf = new SimpleDateFormat();// 格式化时间
-    sdf.applyPattern("yyyy-MM-dd-HH-mm-ss");// a为am/pm的标记
-    Date date = new Date();// 获取当前时间
-    String currentTime = sdf.format(date);
-    String fileName = "data/csvOutput/" + currentTime + "-testOutput.csv";
-
-    try {
-      File csv = new File(fileName);
-      csv.createNewFile();
-      outputConfigToCSV(csv);
-      outputResultMatrixToCSV(csv);
-      outputMetricsToCSV(csv);
-
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during writing csv file because: ", e);
-    }
-  }
-
-  private void outputConfigToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-      bw.write("Main Configurations");
-      bw.newLine();
-      bw.write("DB_SWITCH," + config.DB_SWITCH);
-      bw.newLine();
-      bw.write("OPERATION_PROPORTION," + config.OPERATION_PROPORTION);
-      bw.newLine();
-      bw.write("IS_CLIENT_BIND," + config.IS_CLIENT_BIND);
-      bw.newLine();
-      bw.write("CLIENT_NUMBER," + config.CLIENT_NUMBER);
-      bw.newLine();
-      bw.write("GROUP_NUMBER," + config.GROUP_NUMBER);
-      bw.newLine();
-      bw.write("DEVICE_NUMBER," + config.DEVICE_NUMBER);
-      bw.newLine();
-      bw.write("SENSOR_NUMBER," + config.SENSOR_NUMBER);
-      bw.newLine();
-      bw.write("BATCH_SIZE," + config.BATCH_SIZE);
-      bw.newLine();
-      bw.write("LOOP," + config.LOOP);
-      bw.newLine();
-      bw.write("POINT_STEP,"+ config.POINT_STEP);
-      bw.newLine();
-      bw.write("QUERY_INTERVAL," + config.QUERY_INTERVAL);
-      bw.newLine();
-      bw.write("IS_OVERFLOW," + config.IS_OVERFLOW);
-      bw.newLine();
-      bw.write("OVERFLOW_MODE," + config.OVERFLOW_MODE);
-      bw.newLine();
-      bw.write("OVERFLOW_RATIO," + config.OVERFLOW_RATIO);
-      bw.close();
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
-    }
-  }
-
-  private void outputResultMatrixToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-      bw.newLine();
-      bw.write("Result Matrix");
-      bw.newLine();
-      bw.write("Operation" + "," + "okOperation" + "," + "okPoint" + "," + "failOperation"
-              + "," + "failPoint" + "," + "throughput(point/s)");
-      for (Operation operation : Operation.values()) {
-        String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
-        bw.newLine();
-        bw.write(operation.getName() + "," + okOperationNumMap.get(operation) + "," + okPointNumMap.get(operation)
-                + "," + failOperationNumMap.get(operation) + "," + failPointNumMap.get(operation) + "," + throughput);
-      }
-      bw.close();
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
-    }
-  }
-
-  private void outputMetricsToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-      bw.newLine();
-      bw.write("Latency (ms) Matrix");
-      bw.newLine();
-      bw.write("Operation");
-      for (Metric metric : Metric.values()) {
-        bw.write("," + metric.name);
-      }
-      bw.newLine();
-      for (Operation operation : Operation.values()) {
-        bw.write(operation.getName());
-        for (Metric metric : Metric.values()) {
-          String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
-          bw.write("," + metricResult);
-        }
-        bw.newLine();
-      }
-      bw.close();
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
-    }
   }
 
 }

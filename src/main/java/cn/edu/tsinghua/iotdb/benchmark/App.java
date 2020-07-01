@@ -47,7 +47,6 @@ public class App {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     private static final double NANO_TO_SECOND = 1000000000.0d;
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
 
     public static void main(String[] args) throws SQLException {
 
@@ -243,9 +242,6 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
-        if (config.CSV_OUTPUT) {
-            measurement.outputCSV();
-        }
     }
 
     /**
