@@ -115,7 +115,7 @@ public class IoTDB implements IDatabase {
                     + "." + deviceSchema.getGroup()
                     + "." + deviceSchema.getDevice()
                     + "." + sensor,
-                    dataType, config.ENCODING, config.COMPRESSOR);
+                    dataType, getEncodingType(dataType), config.COMPRESSOR);
             statement.addBatch(createSeriesSql);
             count++;
             sensorIndex++;
@@ -193,6 +193,26 @@ public class IoTDB implements IDatabase {
       }
     }
     return proportion;
+  }
+
+  String getEncodingType(String dataType) {
+    switch (dataType) {
+      case "BOOLEAN":
+        return config.ENCODING_BOOLEAN;
+      case "INT32":
+        return config.ENCODING_INT32;
+      case "INT64":
+        return config.ENCODING_INT64;
+      case "FLOAT":
+        return config.ENCODING_FLOAT;
+      case "DOUBLE":
+        return config.ENCODING_DOUBLE;
+      case "TEXT":
+        return config.ENCODING_TEXT;
+      default:
+        LOGGER.error("Unsupported data type {}.", dataType);
+        return null;
+    }
   }
 
   @Override

@@ -200,6 +200,14 @@ public class Measurement {
     System.out.println("----------------------Main Configurations----------------------");
     System.out.println("DB_SWITCH: " + config.DB_SWITCH);
     System.out.println("OPERATION_PROPORTION: " + config.OPERATION_PROPORTION);
+    System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.ENABLE_THRIFT_COMPRESSION);
+    System.out.println("INSERT_DATATYPE_PROPORTION: " + config.INSERT_DATATYPE_PROPORTION);
+    System.out.println("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT): " + config.ENCODING_BOOLEAN
+                                                                     + "/" + config.ENCODING_INT32
+                                                                     + "/" + config.ENCODING_INT64
+                                                                     + "/" + config.ENCODING_FLOAT
+                                                                     + "/" + config.ENCODING_DOUBLE
+                                                                     + "/" + config.ENCODING_TEXT);
     System.out.println("IS_CLIENT_BIND: " + config.IS_CLIENT_BIND);
     System.out.println("CLIENT_NUMBER: " + config.CLIENT_NUMBER);
     System.out.println("GROUP_NUMBER: " + config.GROUP_NUMBER);
@@ -244,6 +252,7 @@ public class Measurement {
     try {
       String fileName = createFileName();
       File csv = new File(fileName);
+      createDirectory();
       csv.createNewFile();
       outputConfigToCSV(csv);
       outputResultMatrixToCSV(csv);
@@ -286,6 +295,13 @@ public class Measurement {
     return "data/csvOutput/" + fileNameSB.toString() + "-" + currentTime + "-test-result.csv";
   }
 
+  private void createDirectory() {
+    File folder = new File("data/csvOutput");
+    if (!folder.exists() && !folder.isDirectory()) {
+      folder.mkdirs();
+    }
+  }
+
   private void outputConfigToCSV(File csv) {
     try {
       BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
@@ -294,6 +310,17 @@ public class Measurement {
       bw.write("DB_SWITCH," + config.DB_SWITCH);
       bw.newLine();
       bw.write("OPERATION_PROPORTION," + config.OPERATION_PROPORTION);
+      bw.newLine();
+      bw.write("ENABLE_THRIFT_COMPRESSION," + config.ENABLE_THRIFT_COMPRESSION);
+      bw.newLine();
+      bw.write("INSERT_DATATYPE_PROPORTION," + config.INSERT_DATATYPE_PROPORTION);
+      bw.newLine();
+      bw.write("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT)," + config.ENCODING_BOOLEAN
+                                                                + "/" + config.ENCODING_INT32
+                                                                + "/" + config.ENCODING_INT64
+                                                                + "/" + config.ENCODING_FLOAT
+                                                                + "/" + config.ENCODING_DOUBLE
+                                                                + "/" + config.ENCODING_TEXT);
       bw.newLine();
       bw.write("IS_CLIENT_BIND," + config.IS_CLIENT_BIND);
       bw.newLine();

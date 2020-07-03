@@ -44,8 +44,9 @@ public class IoTDBSession extends IoTDB {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, getNextDataType(sensorIndex)),
-              Enum.valueOf(TSEncoding.class, config.ENCODING)));
+      String dataType = getNextDataType(sensorIndex);
+      schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, dataType),
+              Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
       sensorIndex++;
     }
     String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
