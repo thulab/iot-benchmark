@@ -115,7 +115,7 @@ public class IoTDB implements IDatabase {
                     + "." + deviceSchema.getGroup()
                     + "." + deviceSchema.getDevice()
                     + "." + sensor,
-                    dataType, config.ENCODING, config.COMPRESSOR);
+                    dataType, getEncodingType(dataType), config.COMPRESSOR);
             statement.addBatch(createSeriesSql);
             count++;
             sensorIndex++;
@@ -193,6 +193,26 @@ public class IoTDB implements IDatabase {
       }
     }
     return proportion;
+  }
+
+  String getEncodingType(String dataType) {
+    switch (dataType) {
+      case "BOOLEAN":
+        return config.ENCODING_BOOLEAN;
+      case "INT32":
+        return config.ENCODING_INT32;
+      case "INT64":
+        return config.ENCODING_INT64;
+      case "FLOAT":
+        return config.ENCODING_FLOAT;
+      case "DOUBLE":
+        return config.ENCODING_DOUBLE;
+      case "TEXT":
+        return config.ENCODING_TEXT;
+      default:
+        LOGGER.error("Unsupported data type {}.", dataType);
+        return null;
+    }
   }
 
   @Override
@@ -334,12 +354,34 @@ public class IoTDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
+    int sensorIndex = 0;
     for (String value : values) {
-      if (config.DATA_TYPE.equals("TEXT")) {
-        builder.append(",").append("'").append(value).append("'");
-      } else {
-        builder.append(",").append(value);
+      switch (getNextDataType(sensorIndex)) {
+        case "BOOLEAN":
+          boolean tempBoolean = (Double.parseDouble(value) > 500);
+          builder.append(",").append(tempBoolean);
+          break;
+        case "INT32":
+          int tempInt32 = (int) Double.parseDouble(value);
+          builder.append(",").append(tempInt32);
+          break;
+        case "INT64":
+          long tempInt64 = (long) Double.parseDouble(value);
+          builder.append(",").append(tempInt64);
+          break;
+        case "FLOAT":
+          float tempIntFloat = (float) Double.parseDouble(value);
+          builder.append(",").append(tempIntFloat);
+          break;
+        case "DOUBLE":
+          double tempIntDouble = Double.parseDouble(value);
+          builder.append(",").append(tempIntDouble);
+          break;
+        case "TEXT":
+          builder.append(",").append("'").append(value).append("'");
+          break;
       }
+      sensorIndex++;
     }
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);

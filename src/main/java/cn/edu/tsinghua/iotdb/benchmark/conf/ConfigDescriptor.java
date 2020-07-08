@@ -158,6 +158,12 @@ public class ConfigDescriptor {
 				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
 				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
 				config.INSERT_DATATYPE_PROPORTION = properties.getProperty("INSERT_DATATYPE_PROPORTION", config.INSERT_DATATYPE_PROPORTION);
+				config.ENCODING_BOOLEAN = properties.getProperty("ENCODING_BOOLEAN", config.ENCODING_BOOLEAN);
+				config.ENCODING_INT32 = properties.getProperty("ENCODING_INT32", config.ENCODING_INT32);
+				config.ENCODING_INT64 = properties.getProperty("ENCODING_INT64", config.ENCODING_INT64);
+				config.ENCODING_FLOAT = properties.getProperty("ENCODING_FLOAT", config.ENCODING_FLOAT);
+				config.ENCODING_DOUBLE = properties.getProperty("ENCODING_DOUBLE", config.ENCODING_DOUBLE);
+				config.ENCODING_TEXT = properties.getProperty("ENCODING_TEXT", config.ENCODING_TEXT);
 				config.START_TIME = properties.getProperty("START_TIME", config.START_TIME);
 				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
 				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));

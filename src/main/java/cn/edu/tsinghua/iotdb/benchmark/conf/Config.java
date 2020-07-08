@@ -115,6 +115,18 @@ public class Config {
 
 	public String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
+	public String ENCODING_BOOLEAN = "PLAIN";
+
+	public String ENCODING_INT32 = "PLAIN";
+
+	public String ENCODING_INT64 = "PLAIN";
+
+	public String ENCODING_FLOAT = "PLAIN";
+
+	public String ENCODING_DOUBLE = "PLAIN";
+
+	public String ENCODING_TEXT = "PLAIN";
+
 	public String START_TIME = "2018-8-30T00:00:00+08:00";
 
 	/**系统性能检测时间间隔-2秒*/
