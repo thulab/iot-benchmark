@@ -26,3 +26,4 @@
 ./conf/*.properties
 **/routine
 /target/
+data/

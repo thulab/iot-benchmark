@@ -8,7 +8,7 @@ echo $BENCHMARK_HOME
 
 MAIN_CLASS=cn.edu.tsinghua.iotdb.benchmark.App
 
-CLASSPATH=""
+CLASSPATH="."
 for f in ${BENCHMARK_HOME}/lib/*.jar; do
   CLASSPATH=${CLASSPATH}":"$f
 done

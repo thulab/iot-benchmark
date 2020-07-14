@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,9 @@ public class Config {
 
 	public String HOST ="127.0.0.1";
 	public String PORT ="6667";
+	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:55560","127.0.0.1:55561","127.0.0"
+		+ ".1:55562");
+	public boolean USE_CLUSTER_DB = true;
 
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;

@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.fakedb.FakeDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDBClusterSession;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDBSession;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.timescaledb.TimescaleDB;
@@ -27,7 +28,11 @@ public class DBFactory {
           case Constants.INSERT_USE_JDBC:
             return new IoTDB();
           case Constants.INSERT_USE_SESSION:
-            return new IoTDBSession();
+            if (config.USE_CLUSTER_DB) {
+              return new IoTDBClusterSession();
+            } else {
+              return new IoTDBSession();
+            }
         }
       case Constants.DB_INFLUX:
         return new InfluxDB();

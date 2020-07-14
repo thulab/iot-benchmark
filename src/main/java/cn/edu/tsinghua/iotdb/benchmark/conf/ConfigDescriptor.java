@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 import org.slf4j.Logger;
@@ -190,6 +191,10 @@ public class ConfigDescriptor {
           LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
                   + "1], using default value 1.0", config.REAL_INSERT_RATE);
         }
+				config.CLUSTER_HOSTS = Arrays.asList(properties.getProperty("CLUSTER_HOSTS", "").split(","));
+				config.USE_CLUSTER_DB = Boolean.parseBoolean(properties.getProperty("USE_CLUSTER_DB",
+						String.valueOf(config.USE_CLUSTER_DB)));
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -204,5 +209,4 @@ public class ConfigDescriptor {
 			LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);
 		}
 	}
-
 }
