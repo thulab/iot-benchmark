@@ -20,6 +20,7 @@ public class Constants {
     public static final String POSTGRESQL_PASSWD = "postgres";
     //support DB names of DB_SWITCH
     public static final String DB_IOT = "IoTDB";
+    public static final String DB_DOUBLE_IOT = "DoubleIoTDB";
     public static final String DB_INFLUX = "InfluxDB";
     public static final String DB_OPENTS = "OpenTSDB";
     public static final String DB_CTS = "CTSDB";
