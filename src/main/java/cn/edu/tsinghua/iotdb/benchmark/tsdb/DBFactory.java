@@ -21,7 +21,6 @@ public class DBFactory {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
   public IDatabase getDatabase() throws SQLException {
-    System.out.println(config.DB_SWITCH);
     switch (config.DB_SWITCH) {
       case Constants.DB_IOT:
         switch (config.INSERT_MODE) {

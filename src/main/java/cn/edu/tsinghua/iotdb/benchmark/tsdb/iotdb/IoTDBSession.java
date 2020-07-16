@@ -39,6 +39,23 @@ public class IoTDBSession extends IoTDB {
     }
   }
 
+  /**
+   * for double IoTDB
+   */
+  public IoTDBSession(String host, String port, String user, String password) {
+    super();
+    session = new Session(host, port, user, password);
+    try {
+      if (config.ENABLE_THRIFT_COMPRESSION) {
+        session.open(true);
+      } else {
+        session.open();
+      }
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to add session", e);
+    }
+  }
+
   @Override
   public Status insertOneBatch(Batch batch) {
     List<MeasurementSchema> schemaList = new ArrayList<>();
@@ -101,6 +118,7 @@ public class IoTDBSession extends IoTDB {
       tablet.reset();
       return new Status(true);
     } catch (IoTDBConnectionException | StatementExecutionException e) {
+      System.out.println("failed!");
       return new Status(false, 0, e, e.toString());
     }
   }
