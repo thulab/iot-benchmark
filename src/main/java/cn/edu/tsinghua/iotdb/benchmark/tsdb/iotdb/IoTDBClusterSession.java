@@ -47,15 +47,16 @@ public class IoTDBClusterSession extends IoTDB {
 
   public IoTDBClusterSession() {
     super();
-  }
-
-  @Override
-  public void init() throws TsdbException {
     try {
       createSessions();
     } catch (IoTDBConnectionException e) {
-      throw new TsdbException(e);
+      LOGGER.error("Failed to add session", e);
     }
+  }
+
+  @Override
+  public void init() {
+
   }
 
   private void createSessions() throws IoTDBConnectionException {
