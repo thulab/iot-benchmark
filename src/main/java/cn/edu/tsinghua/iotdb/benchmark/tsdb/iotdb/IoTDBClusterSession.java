@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import java.util.ArrayList;
@@ -46,10 +47,14 @@ public class IoTDBClusterSession extends IoTDB {
 
   public IoTDBClusterSession() {
     super();
+  }
+
+  @Override
+  public void init() throws TsdbException {
     try {
       createSessions();
     } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to add session", e);
+      throw new TsdbException(e);
     }
   }
 
