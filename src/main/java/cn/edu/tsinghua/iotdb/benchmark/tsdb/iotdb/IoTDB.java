@@ -317,7 +317,7 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String aggQuerySqlHead = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "max_time");
+    String aggQuerySqlHead = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
     return executeQueryAndGetStatus(aggQuerySqlHead);
   }
 
@@ -409,9 +409,16 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<String> querySensors = devices.get(0).getSensors();
-    builder.append(aggFun).append("(").append(querySensors.get(0)).append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(aggFun).append("(").append(querySensors.get(i)).append(")");
+    if (aggFun.equals("last")) {
+      builder.append(aggFun).append(" ").append(querySensors.get(0));
+      for (int i = 1; i < querySensors.size(); i++) {
+        builder.append(", ").append(querySensors.get(i));
+      }
+    } else {
+      builder.append(aggFun).append("(").append(querySensors.get(0)).append(")");
+      for (int i = 1; i < querySensors.size(); i++) {
+        builder.append(", ").append(aggFun).append("(").append(querySensors.get(i)).append(")");
+      }
     }
     return addFromClause(devices, builder);
   }
