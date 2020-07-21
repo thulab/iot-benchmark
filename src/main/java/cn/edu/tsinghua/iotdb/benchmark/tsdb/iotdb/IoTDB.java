@@ -317,8 +317,19 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String aggQuerySqlHead = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "max_time");
+    String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
     return executeQueryAndGetStatus(aggQuerySqlHead);
+  }
+
+  private String getLatestPointQuerySql(List<DeviceSchema> devices) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT last ");
+    List<String> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0));
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder.append(", ").append(querySensors.get(i));
+    }
+    return addFromClause(devices, builder);
   }
 
   private String getvalueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
