@@ -16,8 +16,7 @@ public class BatchSerializer implements Serializer<Batch> {
 
   @Override
   public byte[] serialize(String s, Batch batch) {
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    try {
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
       batch.serialize(outputStream);
       return outputStream.toByteArray();
     } catch (IOException e) {

@@ -9,8 +9,8 @@ public class BatchDeserializer implements Decoder<Batch> {
 
   @Override
   public Batch fromBytes(byte[] bytes) {
-    try {
-      return Batch.deserialize(new ByteArrayInputStream(bytes));
+    try (ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes)) {
+      return Batch.deserialize(inputStream);
     } catch (IOException e) {
       e.printStackTrace();
     }
