@@ -222,6 +222,7 @@ public class SyntheticWorkload implements IWorkload {
     batch.add(currentTimestamp, values);
   }
 
+  @Override
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
     if (!config.IS_OVERFLOW) {
       return getOrderedBatch(deviceSchema, loopIndex);
