@@ -234,16 +234,13 @@ public class InfluxDB implements IDatabase {
 
   private Number parseNumber(int index, String value) throws TsdbException {
     switch (DBUtil.getDataType(index)) {
-      case "float":
+      case "FLOAT":
         return Float.parseFloat(value);
-      case "double":
+      case "DOUBLE":
         return Double.parseDouble(value);
-      case "int":
-      case "int32":
-      case "integer":
+      case "INT32":
         return Integer.parseInt(value);
-      case "int64":
-      case "long":
+      case "INT64":
         return Long.parseLong(value);
       default:
         throw new TsdbException("unsuport datatype " + DBUtil.getDataType(index));
