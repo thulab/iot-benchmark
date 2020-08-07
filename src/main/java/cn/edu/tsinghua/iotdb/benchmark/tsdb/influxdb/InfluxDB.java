@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.model.InfluxDataModel;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -38,7 +39,6 @@ public class InfluxDB implements IDatabase {
   private final String influxUrl;
   private final String influxDbName;
   private final String defaultRp = "autogen";
-  private final String dataType;
 
   private org.influxdb.InfluxDB influxDbInstance;
   private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.TIMESTAMP_PRECISION);
@@ -49,7 +49,6 @@ public class InfluxDB implements IDatabase {
   public InfluxDB() {
     influxUrl = config.DB_URL;
     influxDbName = config.DB_NAME;
-    dataType = config.DATA_TYPE.toLowerCase();
   }
 
   @Override
@@ -226,15 +225,15 @@ public class InfluxDB implements IDatabase {
     HashMap<String, Number> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
-      Number value = parseNumber(valueList.get(i));
+      Number value = parseNumber(i, valueList.get(i));
       fields.put(sensors.get(i), value);
     }
     model.setFields(fields);
     return model;
   }
 
-  private Number parseNumber(String value) throws TsdbException {
-    switch (dataType) {
+  private Number parseNumber(int index, String value) throws TsdbException {
+    switch (DBUtil.getDataType(index)) {
       case "float":
         return Float.parseFloat(value);
       case "double":
@@ -247,8 +246,7 @@ public class InfluxDB implements IDatabase {
       case "long":
         return Long.parseLong(value);
       default:
-        throw new TsdbException("unsuport datatype " + dataType);
-
+        throw new TsdbException("unsuport datatype " + DBUtil.getDataType(index));
     }
   }
 

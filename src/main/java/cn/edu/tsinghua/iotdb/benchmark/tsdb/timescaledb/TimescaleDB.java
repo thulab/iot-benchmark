@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -385,8 +386,8 @@ public class TimescaleDB implements IDatabase {
   private String getCreateTableSql(String tableName, List<String> sensors) {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
     sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
-    for (String sensor : sensors) {
-      sqlBuilder.append(", ").append(sensor).append(" ").append(config.DATA_TYPE)
+    for (int i = 0; i < sensors.size(); i++ ) {
+      sqlBuilder.append(", ").append(sensors.get(i)).append(" ").append(DBUtil.getDataType(i))
           .append(" PRECISION NULL");
     }
     sqlBuilder.append(");");

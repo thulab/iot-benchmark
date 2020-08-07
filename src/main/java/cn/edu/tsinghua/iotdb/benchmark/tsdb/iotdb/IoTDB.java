@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -18,13 +19,11 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -109,7 +108,7 @@ public class IoTDB implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            String dataType = getNextDataType(sensorIndex);
+            String dataType = DBUtil.getDataType(sensorIndex);
             String createSeriesSql = String.format(CREATE_SERIES_SQL,
                 Constants.ROOT_SERIES_NAME
                     + "." + deviceSchema.getGroup()
@@ -137,63 +136,7 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getNextDataType(int sensorIndex) {
-    List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[TSDataType.values().length + 1];
-    p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a data type whose proportion
-    // is the region range size.
-    for (int i = 1; i <= TSDataType.values().length; i++) {
-      p[i] = p[i - 1] + proportion.get(i - 1);
-    }
-    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
-    int i;
-    for (i = 1; i <= TSDataType.values().length; i++) {
-      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
-        break;
-      }
-    }
-    switch (i) {
-      case 1:
-        return "BOOLEAN";
-      case 2:
-        return "INT32";
-      case 3:
-        return "INT64";
-      case 4:
-        return "FLOAT";
-      case 5:
-        return "DOUBLE";
-      case 6:
-        return "TEXT";
-      default:
-        LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
-        return "TEXT";
-    }
-  }
 
-  List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TSDataType.values().length) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[TSDataType.values().length];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
-      }
-    }
-    return proportion;
-  }
 
   String getEncodingType(String dataType) {
     switch (dataType) {
@@ -367,7 +310,7 @@ public class IoTDB implements IDatabase {
     builder.append(timestamp);
     int sensorIndex = 0;
     for (String value : values) {
-      switch (getNextDataType(sensorIndex)) {
+      switch (DBUtil.getDataType(sensorIndex)) {
         case "BOOLEAN":
           boolean tempBoolean = (Double.parseDouble(value) > 500);
           builder.append(",").append(tempBoolean);
