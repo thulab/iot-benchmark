@@ -387,7 +387,7 @@ public class TimescaleDB implements IDatabase {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
     sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
     for (int i = 0; i < sensors.size(); i++ ) {
-      sqlBuilder.append(", ").append(sensors.get(i)).append(" ").append(DBUtil.getDataType(i))
+      sqlBuilder.append(", ").append(sensors.get(i)).append(" ").append(typeMap(DBUtil.getDataType(i)))
           .append(" PRECISION NULL");
     }
     sqlBuilder.append(");");
@@ -420,6 +420,27 @@ public class TimescaleDB implements IDatabase {
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
+  }
+
+  @Override
+  public String typeMap(String iotdbType) {
+    switch (iotdbType) {
+      case "BOOLEAN":
+        return "BOOL";
+      case "INT32":
+        return "INT";
+      case "INT64":
+        return "BIGINT";
+      case "FLOAT":
+        return "FLOAT";
+      case "DOUBLE":
+        return "FLOAT8";
+      case "TEXT":
+        return "TEXT";
+      default:
+        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+        return "TEXT";
+    }
   }
 }
 
