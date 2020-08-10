@@ -29,7 +29,7 @@ public class BatchConsumer {
     props.put("consumer.timeout.ms", "10000");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BatchDeserializer.class.getName());
-    props.put("auto.offset.reset", "smallest");
+    props.put("auto.offset.reset", "latest");
 
 
     kafka.consumer.ConsumerConfig config = new kafka.consumer.ConsumerConfig(props);
