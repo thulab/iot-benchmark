@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb.taosdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 
 import java.sql.*;
@@ -87,7 +88,7 @@ public class TaosDB implements IDatabase {
         StringBuilder superSql = new StringBuilder();
         int sensorIndex = 0;
         for (String sensor : config.SENSOR_CODES) {
-          String dataType = getNextDataType(sensorIndex);
+          String dataType = typeMap(DBUtil.getDataType(sensorIndex));
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
           } else {
@@ -152,7 +153,7 @@ public class TaosDB implements IDatabase {
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = 0;
     for (String value : values) {
-      switch (getNextDataType(sensorIndex)) {
+      switch (typeMap(DBUtil.getDataType(sensorIndex))) {
         case "BOOL":
           boolean tempBoolean = (Double.parseDouble(value) > 500);
           builder.append(",").append(tempBoolean);
@@ -405,62 +406,25 @@ public class TaosDB implements IDatabase {
     return sqlHeader + " interval (" + timeGranularity + "a)";
   }
 
-  String getNextDataType(int sensorIndex) {
-    List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[TSDataType.values().length + 1];
-    p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a data type whose proportion
-    // is the region range size.
-    for (int i = 1; i <= TSDataType.values().length; i++) {
-      p[i] = p[i - 1] + proportion.get(i - 1);
-    }
-    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
-    int i;
-    for (i = 1; i <= TSDataType.values().length; i++) {
-      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
-        break;
-      }
-    }
-    switch (i) {
-      case 1:
+
+  @Override
+  public String typeMap(String iotdbType) {
+    switch (iotdbType) {
+      case "BOOLEAN":
         return "BOOL";
-      case 2:
+      case "INT32":
         return "INT";
-      case 3:
+      case "INT64":
         return "BIGINT";
-      case 4:
+      case "FLOAT":
         return "FLOAT";
-      case 5:
+      case "DOUBLE":
         return "DOUBLE";
-      case 6:
+      case "TEXT":
         return "BINARY";
       default:
-        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", i);
+        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
         return "BINARY";
     }
   }
-
-  List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TSDataType.values().length) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[TSDataType.values().length];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
-      }
-    }
-    return proportion;
-  }
-
 }

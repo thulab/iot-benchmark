@@ -107,12 +107,7 @@ public class KairosDB implements IDatabase {
     for (String sensor : deviceSchema.getSensors()) {
       KairosDataModel model = new KairosDataModel();
       model.setName(sensor);
-      // KairosDB do not support float as data type
-      if (config.DATA_TYPE.equalsIgnoreCase("FLOAT")) {
-        model.setType("double");
-      } else {
-        model.setType(config.DATA_TYPE.toLowerCase());
-      }
+      // TODO: KairosDB do not support float as data type, use double instead.
       model.setTimestamp(timestamp);
       model.setValue(recordValues.get(i));
       Map<String, String> tags = new HashMap<>();

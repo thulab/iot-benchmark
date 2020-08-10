@@ -57,9 +57,6 @@ public class Config {
 	/** 存储组数量 */
 	public int GROUP_NUMBER = 1;
 
-	/** 数据类型 */
-	public String DATA_TYPE = "FLOAT";
-
 	/** 数据编码方式 */
 	public String ENCODING = "PLAIN";
 
