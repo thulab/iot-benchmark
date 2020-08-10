@@ -131,25 +131,29 @@ public class TaosDB implements IDatabase {
   public Status insertOneBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
       statement.execute(String.format(USE_DB, TEST_DB));
+      StringBuilder builder = new StringBuilder();
+      DeviceSchema deviceSchema = batch.getDeviceSchema();
+      builder.append("insert into ")
+        .append(deviceSchema.getDevice())
+        .append(" values ");
       for (Record record : batch.getRecords()) {
-        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
-          record.getRecordDataValue());
-        statement.addBatch(sql);
+        builder.append(getInsertOneRecordSql(batch.getDeviceSchema(), record.getTimestamp(),
+          record.getRecordDataValue()));
+
       }
+      LOGGER.debug("getInsertOneBatchSql: {}", builder.toString());
+      statement.addBatch(builder.toString());
       statement.executeBatch();
-      statement.clearBatch();
       return new Status(true);
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
   }
 
-  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+  private String getInsertOneRecordSql(DeviceSchema deviceSchema, long timestamp,
                                       List<String> values) {
     StringBuilder builder = new StringBuilder();
-    builder.append("insert into ")
-      .append(deviceSchema.getDevice())
-      .append(" values ('");
+    builder.append(" ('");
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = 0;
     for (String value : values) {
@@ -181,8 +185,7 @@ public class TaosDB implements IDatabase {
       }
       sensorIndex++;
     }
-    builder.append(");");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    builder.append(")");
     return builder.toString();
   }
 
