@@ -61,6 +61,9 @@ public class Config {
 	/** 存储组数量 */
 	public int GROUP_NUMBER = 1;
 
+    /** 存储组前缀 **/
+    public String GROUP_NAME_PREFIX = "group_";
+
 	/** 数据类型 */
 	public String DATA_TYPE = "FLOAT";
 
