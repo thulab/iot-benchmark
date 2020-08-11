@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class IoTDBSession extends IoTDB {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      String dataType = getNextDataType(sensorIndex);
+      String dataType = DBUtil.getDataType(sensorIndex);
       schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, dataType),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
       sensorIndex++;
@@ -79,7 +80,7 @@ public class IoTDBSession extends IoTDB {
       long currentTime = record.getTimestamp();
       timestamps[recordIndex] = currentTime;
       for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
-        switch (getNextDataType(sensorIndex)) {
+        switch (DBUtil.getDataType(sensorIndex)) {
           case "BOOLEAN":
             boolean[] sensorsBool = (boolean []) values[recordValueIndex];
             sensorsBool[recordIndex] = (Double.parseDouble(record.getRecordDataValue().get(

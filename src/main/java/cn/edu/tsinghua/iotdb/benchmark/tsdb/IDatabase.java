@@ -118,4 +118,12 @@ public interface IDatabase {
    */
   Status latestPointQuery(LatestPointQuery latestPointQuery);
 
+  /**
+   * map the given type string name to the name in the target DB
+   * @param iotdbType: "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
+   * @return
+   */
+  default String typeMap(String iotdbType) {
+   return iotdbType;
+  }
 }
