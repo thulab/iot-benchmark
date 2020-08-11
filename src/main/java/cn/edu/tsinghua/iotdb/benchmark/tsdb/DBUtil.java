@@ -71,7 +71,7 @@ public class DBUtil {
       }
     }
 
-    probabilities = new double[TSDataType.values().length];
+    probabilities = new double[TSDataType.values().length + 1];
     probabilities[0] = 0.0;
     // split [0,1] to n regions, each region corresponds to a data type whose proportion
     // is the region range size.
