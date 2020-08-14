@@ -79,4 +79,26 @@ public class DBUtil {
       probabilities[i] = probabilities[i - 1] + proportion.get(i - 1);
     }
   }
+
+  //currently, the workload engine just generate double, so we need a uniform way to transform it to other data type.
+  public static boolean convertToBoolean(String doubleString) {
+    return Double.parseDouble(doubleString) > 500;
+  }
+  public static int convertToInt(String doubleString) {
+    return (int) Double.parseDouble(doubleString);
+  }
+  public static long convertToLong(String doubleString) {
+    return (long) Double.parseDouble(doubleString);
+  }
+  public static float convertToFloat(String doubleString) {
+    return (float) Double.parseDouble(doubleString);
+  }
+  public static double convertToDouble(String doubleString) {
+    return  Double.parseDouble(doubleString);
+  }
+
+  public static String convertToText(String doubleString) {
+    return  doubleString;
+  }
+
 }

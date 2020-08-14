@@ -66,32 +66,27 @@ public class IoTDBSession extends IoTDB {
         switch (DBUtil.getDataType(sensorIndex)) {
           case "BOOLEAN":
             boolean[] sensorsBool = (boolean []) values[recordValueIndex];
-            sensorsBool[recordIndex] = (Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex)) > 500);
+            sensorsBool[recordIndex] = DBUtil.convertToBoolean(record.getRecordDataValue().get(recordValueIndex));
             break;
           case "INT32":
             int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex));
+            sensorsInt[recordIndex] = DBUtil.convertToInt(record.getRecordDataValue().get(recordValueIndex));
             break;
           case "INT64":
             long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex));
+            sensorsLong[recordIndex] = DBUtil.convertToLong(record.getRecordDataValue().get(recordValueIndex));
             break;
           case "FLOAT":
             float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex));
+            sensorsFloat[recordIndex] = DBUtil.convertToFloat(record.getRecordDataValue().get(recordValueIndex));
             break;
           case "DOUBLE":
             double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex));
+            sensorsDouble[recordIndex] = DBUtil.convertToDouble(record.getRecordDataValue().get(recordValueIndex));
             break;
           case "TEXT":
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
+            sensorsText[recordIndex] = Binary.valueOf(DBUtil.convertToText(record.getRecordDataValue().get(recordValueIndex)));
             break;
         }
         sensorIndex++;
