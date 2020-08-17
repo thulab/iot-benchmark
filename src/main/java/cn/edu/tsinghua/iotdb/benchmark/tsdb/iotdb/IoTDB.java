@@ -256,7 +256,7 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_time(s_76) FROM root.group_3.d_31
+   * SELECT last s_76 FROM root.group_3.d_31
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
