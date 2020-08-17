@@ -10,7 +10,7 @@ public class InfluxDataModel implements Serializable {
     private static final long serialVersionUID = 1L;
     private String measurement;
     private HashMap<String, String> tagSet;
-    private HashMap<String, Number> fields;
+    private HashMap<String, Object> fields;
     private long timestamp;
     private String timestampPrecision;
     private long toNanoConst = 1L;
@@ -28,7 +28,7 @@ public class InfluxDataModel implements Serializable {
         this.tagSet = tagSet;
     }
 
-    public void setFields(HashMap<String, Number> fields) {
+    public void setFields(HashMap<String, Object> fields) {
         this.fields = fields;
     }
 
@@ -73,16 +73,16 @@ public class InfluxDataModel implements Serializable {
         }
         // attach fields
         builder.append(" ");
-        ArrayList<Map.Entry<String, Number>> entries = new ArrayList<>();
+        ArrayList<Map.Entry<String, Object>> entries = new ArrayList<>();
         entries.addAll(fields.entrySet());
-        entries.sort(new Comparator<Map.Entry<String, Number>>() {
+        entries.sort(new Comparator<Map.Entry<String, Object>>() {
             @Override
-            public int compare(Map.Entry<String, Number> o1, Map.Entry<String, Number> o2) {
+            public int compare(Map.Entry<String, Object> o1, Map.Entry<String, Object> o2) {
                 return o1.getKey().compareTo(o2.getKey());
             }
         });
         boolean isFirstField = true;
-        for(Map.Entry<String, Number> entry : entries) {
+        for(Map.Entry<String, Object> entry : entries) {
             if(isFirstField){
                 isFirstField = false;
             } else {

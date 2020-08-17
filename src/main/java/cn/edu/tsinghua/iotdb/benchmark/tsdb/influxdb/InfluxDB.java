@@ -222,26 +222,30 @@ public class InfluxDB implements IDatabase {
     model.setTagSet(tags);
     model.setTimestamp(time);
     model.setTimestampPrecision(config.TIMESTAMP_PRECISION);
-    HashMap<String, Number> fields = new HashMap<>();
+    HashMap<String, Object> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
-      Number value = parseNumber(i, valueList.get(i));
+      Object value = parseNumber(i, valueList.get(i));
       fields.put(sensors.get(i), value);
     }
     model.setFields(fields);
     return model;
   }
 
-  private Number parseNumber(int index, String value) throws TsdbException {
+  private Object parseNumber(int index, String value) throws TsdbException {
     switch (DBUtil.getDataType(index)) {
       case "FLOAT":
-        return Float.parseFloat(value);
+        return DBUtil.convertToFloat(value);
       case "DOUBLE":
-        return Double.parseDouble(value);
+        return DBUtil.convertToDouble(value);
       case "INT32":
-        return Integer.parseInt(value);
+        return DBUtil.convertToInt(value);
       case "INT64":
-        return Long.parseLong(value);
+        return DBUtil.convertToLong(value);
+      case "BOOLEAN":
+        return DBUtil.convertToBoolean(value);
+      case "TEXT":
+        return DBUtil.convertToText(value);
       default:
         throw new TsdbException("unsuport datatype " + DBUtil.getDataType(index));
     }
