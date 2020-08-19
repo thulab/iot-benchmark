@@ -1,6 +1,10 @@
-#kafka启动流程
+#写入两个IoTDB示例流程
 
-## 安装
+##总体思路
+通过benchmark Producer生成数据，写到kafka一个topic中。接下来，启动两次 benchmark consumer，以不同的 consumer group 将数据消费到两个 IoTDB 中。此方案只用来准备数据，并不生成有效报告。
+
+
+## 安装kafka
 
 https://www.jianshu.com/p/a5b200ce7aae
 
