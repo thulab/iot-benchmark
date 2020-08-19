@@ -159,28 +159,28 @@ public class TaosDB implements IDatabase {
     for (String value : values) {
       switch (typeMap(DBUtil.getDataType(sensorIndex))) {
         case "BOOL":
-          boolean tempBoolean = (Double.parseDouble(value) > 500);
+          boolean tempBoolean = DBUtil.convertToBoolean(value);
           builder.append(",").append(tempBoolean);
           break;
         case "INT":
-          int tempInt32 = (int) Double.parseDouble(value);
+          int tempInt32 = DBUtil.convertToInt(value);
           builder.append(",").append(tempInt32);
           break;
         case "BIGINT":
-          long tempInt64 = (long) Double.parseDouble(value);
+          long tempInt64 = DBUtil.convertToLong(value);
           builder.append(",").append(tempInt64);
           break;
         case "FLOAT":
-          float tempIntFloat = (float) Double.parseDouble(value);
+          float tempIntFloat = DBUtil.convertToFloat(value);
           builder.append(",").append(tempIntFloat);
           break;
         case "DOUBLE":
-          double tempIntDouble = Double.parseDouble(value);
+          double tempIntDouble = DBUtil.convertToDouble(value);
           builder.append(",").append(tempIntDouble);
           break;
         case "BINARY":
         default:
-          builder.append(",").append("'").append(value).append("'");
+          builder.append(",").append("'").append(DBUtil.convertToText(value)).append("'");
           break;
       }
       sensorIndex++;
