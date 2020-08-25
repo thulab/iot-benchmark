@@ -345,7 +345,7 @@ public class IoTDB implements IDatabase {
   }
 
   private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
-      List<String> values) {
+      List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder.append("insert into ")
         .append(Constants.ROOT_SERIES_NAME)
@@ -358,7 +358,7 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     int sensorIndex = 0;
-    for (String value : values) {
+    for (Object value : values) {
       switch (getNextDataType(sensorIndex)) {
         case "BOOLEAN":
         case "INT32":

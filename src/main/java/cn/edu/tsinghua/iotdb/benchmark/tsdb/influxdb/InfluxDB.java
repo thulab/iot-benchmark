@@ -214,7 +214,7 @@ public class InfluxDB implements IDatabase {
   }
 
   private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
-      List<String> valueList)
+      List<Object> valueList)
       throws TsdbException {
     InfluxDataModel model = new InfluxDataModel();
     model.setMeasurement(deviceSchema.getGroup());
@@ -226,7 +226,7 @@ public class InfluxDB implements IDatabase {
     HashMap<String, Number> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
-      Number value = parseNumber(valueList.get(i));
+      Number value = parseNumber(valueList.get(i).toString());
       fields.put(sensors.get(i), value);
     }
     model.setFields(fields);

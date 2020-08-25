@@ -30,7 +30,7 @@ public class Batch {
     return records;
   }
 
-  public void add(long timestamp, List<String> values) {
+  public void add(long timestamp, List<Object> values) {
     records.add(new Record(timestamp, values));
   }
 

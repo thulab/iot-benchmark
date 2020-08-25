@@ -4,9 +4,9 @@ import java.util.List;
 
 public class Record {
   private long timestamp;
-  private List<String> recordDataValue;
+  private List<Object> recordDataValue;
 
-  public Record(long timestamp, List<String> recordDataValue) {
+  public Record(long timestamp, List<Object> recordDataValue) {
     this.timestamp = timestamp;
     this.recordDataValue = recordDataValue;
   }
@@ -19,7 +19,7 @@ public class Record {
     return timestamp;
   }
 
-  public List<String> getRecordDataValue() {
+  public List<Object> getRecordDataValue() {
     return recordDataValue;
   }
 

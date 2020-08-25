@@ -44,7 +44,8 @@ public class SyntheticWorkload implements IWorkload {
   private static Random random = new Random(config.DATA_SEED);
   private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
   private static Random dataRandom = new Random(config.DATA_SEED);
-  private static String[][] workloadValues = initWorkloadValues();
+  private static Object[][] workloadValues = initWorkloadValues();
+  private static int scaleFactor = 1;
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst = getTimestampConst(config.TIMESTAMP_PRECISION);
@@ -63,8 +64,15 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 
-  private static String[][] initWorkloadValues() {
-    String[][] workloadValues = null;
+  private static void initScaleFactor() {
+    for (int i = 0; i < ConfigDescriptor.getInstance().getConfig().NUMBER_OF_DECIMAL_DIGIT; i++) {
+      scaleFactor *= 10;
+    }
+  }
+
+  private static Object[][] initWorkloadValues() {
+    initScaleFactor();
+    Object[][] workloadValues = null;
     if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
       int sensorIndex = 0;
@@ -72,7 +80,7 @@ public class SyntheticWorkload implements IWorkload {
         String sensor = config.SENSOR_CODES.get(j);
         for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
           long currentTimestamp = getCurrentTimestamp(i);
-          String value;
+          Object value;
           if (getNextDataType(sensorIndex).equals("TEXT")) {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
             StringBuilder builder = new StringBuilder();
@@ -83,23 +91,22 @@ public class SyntheticWorkload implements IWorkload {
             value = builder.toString();
           } else {
             FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-            float floatValue = Function.getValueByFuntionidAndParam(param, currentTimestamp)
-                .floatValue();
+            Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
             switch (getNextDataType(sensorIndex)) {
               case "BOOLEAN":
-                value = floatValue > 500 ? "TRUE" : "FALSE";
+                value = number.floatValue() > 500;
                 break;
               case "INT32":
-                value = String.valueOf((int) floatValue);
+                value = number.intValue();
                 break;
               case "INT64":
-                value = String.valueOf((long) floatValue);
+                value = number.longValue();
                 break;
               case "FLOAT":
-                value = String.valueOf(floatValue);
+                value = (float) Math.round(number.floatValue() * scaleFactor) / scaleFactor;
                 break;
               case "DOUBLE":
-                value = String.valueOf((double) floatValue);
+                value = (double) Math.round(number.doubleValue() * scaleFactor) / scaleFactor;
                 break;
               default:
                 value = null;
@@ -234,7 +241,7 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   static void addOneRowIntoBatch(Batch batch, long stepOffset) {
-    List<String> values = new ArrayList<>();
+    List<Object> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     for (int i = 0; i < config.SENSOR_NUMBER; i++) {
       values.add(workloadValues[i][(int) (Math.abs(stepOffset) % config.WORKLOAD_BUFFER_SIZE)]);
