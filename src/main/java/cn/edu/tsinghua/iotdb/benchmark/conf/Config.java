@@ -119,6 +119,8 @@ public class Config {
 
 	public String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
+	public List<Double> proportion;
+
 	public String ENCODING_BOOLEAN = "PLAIN";
 
 	public String ENCODING_INT32 = "PLAIN";

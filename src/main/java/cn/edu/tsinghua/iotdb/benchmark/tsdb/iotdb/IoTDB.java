@@ -173,26 +173,29 @@ public class IoTDB implements IDatabase {
   }
 
   List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TSDataType.values().length) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[TSDataType.values().length];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+    if(ConfigDescriptor.getInstance().getConfig().proportion == null){
+      List<Double> proportion = new ArrayList<>();
+      String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+      if (split.length != TSDataType.values().length) {
+        LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
       }
+      double[] proportions = new double[TSDataType.values().length];
+      double sum = 0;
+      for (int i = 0; i < split.length; i++) {
+        proportions[i] = Double.parseDouble(split[i]);
+        sum += proportions[i];
+      }
+      for (int i = 0; i < split.length; i++) {
+        if (sum != 0) {
+          proportion.add(proportions[i] / sum);
+        } else {
+          proportion.add(0.0);
+          LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+        }
+      }
+      ConfigDescriptor.getInstance().getConfig().proportion = proportion;
     }
-    return proportion;
+    return ConfigDescriptor.getInstance().getConfig().proportion;
   }
 
   String getEncodingType(String dataType) {
