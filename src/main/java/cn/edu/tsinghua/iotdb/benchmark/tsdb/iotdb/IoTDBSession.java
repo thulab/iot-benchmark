@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+import com.fasterxml.jackson.databind.deser.std.NumberDeserializers.IntegerDeserializer;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -70,17 +71,17 @@ public class IoTDBSession extends IoTDB {
             break;
           case "INT32":
             int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) Double.parseDouble(record.getRecordDataValue().get(
+            sensorsInt[recordIndex] = Integer.parseInt(record.getRecordDataValue().get(
                     recordValueIndex));
             break;
           case "INT64":
             long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) Double.parseDouble(record.getRecordDataValue().get(
+            sensorsLong[recordIndex] = Long.parseLong(record.getRecordDataValue().get(
                     recordValueIndex));
             break;
           case "FLOAT":
             float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) Double.parseDouble(record.getRecordDataValue().get(
+            sensorsFloat[recordIndex] = Float.parseFloat(record.getRecordDataValue().get(
                     recordValueIndex));
             break;
           case "DOUBLE":
