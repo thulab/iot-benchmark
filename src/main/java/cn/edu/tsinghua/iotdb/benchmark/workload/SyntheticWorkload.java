@@ -115,6 +115,7 @@ public class SyntheticWorkload implements IWorkload {
                 break;
             }
           }
+          System.out.println(value.getClass().getName());
           workloadValues[j][i] = value;
         }
         sensorIndex++;
