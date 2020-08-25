@@ -65,8 +65,8 @@ public class IoTDBSession extends IoTDB {
         switch (getNextDataType(sensorIndex)) {
           case "BOOLEAN":
             boolean[] sensorsBool = (boolean []) values[recordValueIndex];
-            sensorsBool[recordIndex] = (Double.parseDouble(record.getRecordDataValue().get(
-                    recordValueIndex)) > 500);
+            sensorsBool[recordIndex] = Boolean.parseBoolean(record.getRecordDataValue().get(
+                    recordValueIndex));
             break;
           case "INT32":
             int[] sensorsInt = (int[]) values[recordValueIndex];
