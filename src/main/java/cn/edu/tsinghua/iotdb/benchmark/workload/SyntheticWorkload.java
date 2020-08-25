@@ -53,7 +53,7 @@ public class SyntheticWorkload implements IWorkload {
     probTool = new ProbTool();
     maxTimestampIndexMap = new HashMap<>();
     poissonRandom = new Random(config.DATA_SEED);
-    for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
+    for (DeviceSchema schema : DataSchema.getInstance().getClientBindSchema().get(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);
     }
     queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
@@ -65,7 +65,7 @@ public class SyntheticWorkload implements IWorkload {
 
   private static String[][] initWorkloadValues() {
     String[][] workloadValues = null;
-    if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
+    if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
       int sensorIndex = 0;
       for (int j = 0; j < config.SENSOR_NUMBER; j++) {
@@ -73,11 +73,7 @@ public class SyntheticWorkload implements IWorkload {
         for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
           long currentTimestamp = getCurrentTimestamp(i);
           String value;
-          if (!getNextDataType(sensorIndex).equals("TEXT")) {
-            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-            value = String.format(DECIMAL_FORMAT,
-                Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
-          } else {
+          if (getNextDataType(sensorIndex).equals("TEXT")) {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
             StringBuilder builder = new StringBuilder();
             for (int k = 0; k < config.NUMBER_OF_DECIMAL_DIGIT; k++) {
@@ -85,6 +81,30 @@ public class SyntheticWorkload implements IWorkload {
               builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
             }
             value = builder.toString();
+          } else {
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            float floatValue = Function.getValueByFuntionidAndParam(param, currentTimestamp)
+                .floatValue();
+            switch (getNextDataType(sensorIndex)) {
+              case "BOOLEAN":
+                value = floatValue > 500 ? "TRUE" : "FALSE";
+                break;
+              case "INT32":
+                value = String.valueOf((int) floatValue);
+                break;
+              case "INT64":
+                value = String.valueOf((long) floatValue);
+                break;
+              case "FLOAT":
+                value = String.valueOf(floatValue);
+                break;
+              case "DOUBLE":
+                value = String.valueOf((double) floatValue);
+                break;
+              default:
+                value = null;
+                break;
+            }
           }
           workloadValues[j][i] = value;
         }
@@ -176,20 +196,20 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
-      Batch batch = new Batch();
-      long barrier = (long) (config.BATCH_SIZE * config.OVERFLOW_RATIO);
-      long stepOffset = loopIndex * config.BATCH_SIZE + barrier;
+    Batch batch = new Batch();
+    long barrier = (long) (config.BATCH_SIZE * config.OVERFLOW_RATIO);
+    long stepOffset = loopIndex * config.BATCH_SIZE + barrier;
+    addOneRowIntoBatch(batch, stepOffset);
+    for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
+      stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
-      for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
-          stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-          addOneRowIntoBatch(batch, stepOffset);
-      }
-      for (long batchOffset = barrier + 1; batchOffset < config.BATCH_SIZE; batchOffset++) {
-          stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
-          addOneRowIntoBatch(batch, stepOffset);
-      }
-      batch.setDeviceSchema(deviceSchema);
-      return batch;
+    }
+    for (long batchOffset = barrier + 1; batchOffset < config.BATCH_SIZE; batchOffset++) {
+      stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+      addOneRowIntoBatch(batch, stepOffset);
+    }
+    batch.setDeviceSchema(deviceSchema);
+    return batch;
   }
 
   private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
@@ -216,8 +236,8 @@ public class SyntheticWorkload implements IWorkload {
   static void addOneRowIntoBatch(Batch batch, long stepOffset) {
     List<String> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
-    for(int i = 0;i < config.SENSOR_NUMBER;i++) {
-      values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.WORKLOAD_BUFFER_SIZE)]);
+    for (int i = 0; i < config.SENSOR_NUMBER; i++) {
+      values.add(workloadValues[i][(int) (Math.abs(stepOffset) % config.WORKLOAD_BUFFER_SIZE)]);
     }
     batch.add(currentTimestamp, values);
   }
@@ -333,10 +353,10 @@ public class SyntheticWorkload implements IWorkload {
         config.QUERY_AGGREGATE_FUN);
   }
 
-  private static long getTimestampConst(String timePrecision){
-    if(timePrecision.equals("ms")) {
+  private static long getTimestampConst(String timePrecision) {
+    if (timePrecision.equals("ms")) {
       return 1L;
-    } else if(timePrecision.equals("us")) {
+    } else if (timePrecision.equals("us")) {
       return 1000L;
     } else {
       return 1000000L;

@@ -361,24 +361,11 @@ public class IoTDB implements IDatabase {
     for (String value : values) {
       switch (getNextDataType(sensorIndex)) {
         case "BOOLEAN":
-          boolean tempBoolean = (Double.parseDouble(value) > 500);
-          builder.append(",").append(tempBoolean);
-          break;
         case "INT32":
-          int tempInt32 = (int) Double.parseDouble(value);
-          builder.append(",").append(tempInt32);
-          break;
         case "INT64":
-          long tempInt64 = (long) Double.parseDouble(value);
-          builder.append(",").append(tempInt64);
-          break;
         case "FLOAT":
-          float tempIntFloat = (float) Double.parseDouble(value);
-          builder.append(",").append(tempIntFloat);
-          break;
         case "DOUBLE":
-          double tempIntDouble = Double.parseDouble(value);
-          builder.append(",").append(tempIntDouble);
+          builder.append(",").append(value);
           break;
         case "TEXT":
           builder.append(",").append("'").append(value).append("'");
