@@ -74,7 +74,7 @@ public class SyntheticWorkload implements IWorkload {
     initScaleFactor();
     Object[][] workloadValues = null;
     if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
-      workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
+      workloadValues = new Object[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
       int sensorIndex = 0;
       for (int j = 0; j < config.SENSOR_NUMBER; j++) {
         String sensor = config.SENSOR_CODES.get(j);
@@ -115,7 +115,6 @@ public class SyntheticWorkload implements IWorkload {
                 break;
             }
           }
-          System.out.println(value.getClass().getName());
           workloadValues[j][i] = value;
         }
         sensorIndex++;
