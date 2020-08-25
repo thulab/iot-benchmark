@@ -94,19 +94,21 @@ public class SyntheticWorkload implements IWorkload {
             Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
             switch (getNextDataType(sensorIndex)) {
               case "BOOLEAN":
-                value = number.floatValue() > 500;
+                value = Boolean.valueOf(number.floatValue() > 500);
                 break;
               case "INT32":
-                value = number.intValue();
+                value = Integer.valueOf(number.intValue());
                 break;
               case "INT64":
-                value = number.longValue();
+                value = Long.valueOf(number.longValue());
                 break;
               case "FLOAT":
-                value = (float) Math.round(number.floatValue() * scaleFactor) / scaleFactor;
+                value = Float.valueOf(
+                    ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor);
                 break;
               case "DOUBLE":
-                value = (double) Math.round(number.doubleValue() * scaleFactor) / scaleFactor;
+                value = Double.valueOf(
+                    ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor);
                 break;
               default:
                 value = null;
