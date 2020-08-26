@@ -53,6 +53,13 @@ public class ConfigDescriptor {
 				properties.load(inputStream);
 				config.HOST = properties.getProperty("HOST", "no HOST");
 				config.PORT = properties.getProperty("PORT", "no PORT");
+				config.ANOTHER_HOST = properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST");
+				config.ANOTHER_PORT = properties.getProperty("ANOTHER_PORT", "no ANOTHER_PORT");
+				config.KAFKA_LOCATION = properties.getProperty("KAFKA_LOCATION", "no KAFKA_LOCATION");
+				config.ZOOKEEPER_LOCATION = properties.getProperty("ZOOKEEPER_LOCATION", "no ZOOKEEPER_LOCATION");
+				config.TOPIC_NAME = properties.getProperty("TOPIC_NAME", "NULL");
+
+
 				config.DEVICE_NUMBER = Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.DEVICE_NUMBER+""));
 				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
 

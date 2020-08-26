@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.fakedb.FakeDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.DoubleIOTDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDB;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb.IoTDBSession;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB;
@@ -21,7 +22,6 @@ public class DBFactory {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
   public IDatabase getDatabase() throws SQLException {
-
     switch (config.DB_SWITCH) {
       case Constants.DB_IOT:
         switch (config.INSERT_MODE) {
@@ -40,6 +40,8 @@ public class DBFactory {
         return new FakeDB();
       case Constants.DB_OPENTS:
         return new OpenTSDB();
+      case Constants.DB_DOUBLE_IOT:
+        return new DoubleIOTDB();
       case Constants.DB_TAOSDB:
         return new TaosDB();
       default:

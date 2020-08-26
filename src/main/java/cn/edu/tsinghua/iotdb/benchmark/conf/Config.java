@@ -19,6 +19,13 @@ public class Config {
 	public String HOST ="127.0.0.1";
 	public String PORT ="6667";
 
+	public String ANOTHER_HOST ="127.0.0.1";
+	public String ANOTHER_PORT ="6668";
+
+	public String KAFKA_LOCATION = "127.0.0.1:9092";
+	public String ZOOKEEPER_LOCATION = "127.0.0.1:2181";
+	public String TOPIC_NAME = "NULL";
+
 	/** 设备数量 */
 	public int DEVICE_NUMBER = 2;
 
