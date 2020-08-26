@@ -401,7 +401,7 @@ public class TimescaleDB implements IDatabase {
    * </p>
    */
   private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
-      List<String> values) {
+      List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder.append("insert into ")
         .append(tableName)
@@ -413,7 +413,7 @@ public class TimescaleDB implements IDatabase {
     builder.append(timestamp);
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
-    for (String value : values) {
+    for (Object value : values) {
       builder.append(",").append(value);
     }
     builder.append(")");

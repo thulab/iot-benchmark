@@ -100,7 +100,7 @@ public class KairosDB implements IDatabase {
 
 
   private LinkedList<KairosDataModel> createDataModel(DeviceSchema deviceSchema, long timestamp,
-      List<String> recordValues) {
+      List<Object> recordValues) {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     String groupId = deviceSchema.getGroup();
     int i = 0;

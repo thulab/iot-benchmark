@@ -37,7 +37,7 @@ public class ReddReader extends BasicReader {
 
   private Record convertToRecord(String line) {
     try {
-      List<String> fields = new ArrayList<>();
+      List<Object> fields = new ArrayList<>();
       String[] items = line.split(" ");
       long time = Long.parseLong(items[0]) * 1000;
       fields.add(items[1]);

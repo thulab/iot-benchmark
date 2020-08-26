@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IoTDBClusterSession extends IoTDB {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBClusterSession.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private Session[] sessions;
@@ -76,8 +77,9 @@ public class IoTDBClusterSession extends IoTDB {
           Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
       sensorIndex++;
     }
-    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
-        .getDeviceSchema().getDevice();
+    String deviceId =
+        Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
+            .getDeviceSchema().getDevice();
     Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
@@ -88,36 +90,38 @@ public class IoTDBClusterSession extends IoTDB {
       sensorIndex = 0;
       long currentTime = record.getTimestamp();
       timestamps[recordIndex] = currentTime;
-      for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
+      for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size();
+          recordValueIndex++) {
         switch (getNextDataType(sensorIndex)) {
           case "BOOLEAN":
-            boolean[] sensorsBool = (boolean []) values[recordValueIndex];
-            sensorsBool[recordIndex] = (Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex)) > 500);
+            boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
+            sensorsBool[recordIndex] = (boolean) record.getRecordDataValue().get(
+                recordValueIndex);
             break;
           case "INT32":
             int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex));
+            sensorsInt[recordIndex] = (int) record.getRecordDataValue().get(
+                recordValueIndex);
             break;
           case "INT64":
             long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex));
+            sensorsLong[recordIndex] = (long) record.getRecordDataValue().get(
+                recordValueIndex);
             break;
           case "FLOAT":
             float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex));
+            sensorsFloat[recordIndex] = (float) record.getRecordDataValue().get(
+                recordValueIndex);
             break;
           case "DOUBLE":
             double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
-                recordValueIndex));
+            sensorsDouble[recordIndex] = (double) record.getRecordDataValue().get(
+                recordValueIndex);
             break;
           case "TEXT":
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
+            sensorsText[recordIndex] = Binary
+                .valueOf((String) record.getRecordDataValue().get(recordValueIndex));
             break;
         }
         sensorIndex++;

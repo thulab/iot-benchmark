@@ -173,26 +173,29 @@ public class IoTDB implements IDatabase {
   }
 
   List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TSDataType.values().length) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[TSDataType.values().length];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+    if(ConfigDescriptor.getInstance().getConfig().proportion == null){
+      List<Double> proportion = new ArrayList<>();
+      String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+      if (split.length != TSDataType.values().length) {
+        LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
       }
+      double[] proportions = new double[TSDataType.values().length];
+      double sum = 0;
+      for (int i = 0; i < split.length; i++) {
+        proportions[i] = Double.parseDouble(split[i]);
+        sum += proportions[i];
+      }
+      for (int i = 0; i < split.length; i++) {
+        if (sum != 0) {
+          proportion.add(proportions[i] / sum);
+        } else {
+          proportion.add(0.0);
+          LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+        }
+      }
+      ConfigDescriptor.getInstance().getConfig().proportion = proportion;
     }
-    return proportion;
+    return ConfigDescriptor.getInstance().getConfig().proportion;
   }
 
   String getEncodingType(String dataType) {
@@ -342,7 +345,7 @@ public class IoTDB implements IDatabase {
   }
 
   private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
-      List<String> values) {
+      List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder.append("insert into ")
         .append(Constants.ROOT_SERIES_NAME)
@@ -355,27 +358,14 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     int sensorIndex = 0;
-    for (String value : values) {
+    for (Object value : values) {
       switch (getNextDataType(sensorIndex)) {
         case "BOOLEAN":
-          boolean tempBoolean = (Double.parseDouble(value) > 500);
-          builder.append(",").append(tempBoolean);
-          break;
         case "INT32":
-          int tempInt32 = (int) Double.parseDouble(value);
-          builder.append(",").append(tempInt32);
-          break;
         case "INT64":
-          long tempInt64 = (long) Double.parseDouble(value);
-          builder.append(",").append(tempInt64);
-          break;
         case "FLOAT":
-          float tempIntFloat = (float) Double.parseDouble(value);
-          builder.append(",").append(tempIntFloat);
-          break;
         case "DOUBLE":
-          double tempIntDouble = Double.parseDouble(value);
-          builder.append(",").append(tempIntDouble);
+          builder.append(",").append(value);
           break;
         case "TEXT":
           builder.append(",").append("'").append(value).append("'");

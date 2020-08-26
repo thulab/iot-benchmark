@@ -50,7 +50,7 @@ public class TDriveReader extends BasicReader {
   private Record convertToRecord(String line) {
 
     try {
-      List<String> fields = new ArrayList<>();
+      List<Object> fields = new ArrayList<>();
 
       String[] items = line.split(",");
 
