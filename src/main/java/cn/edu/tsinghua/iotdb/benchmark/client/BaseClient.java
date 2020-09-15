@@ -42,7 +42,7 @@ public abstract class BaseClient extends Client implements Runnable {
   void doTest() {
     String currentThread = Thread.currentThread().getName();
     //Equals device number when the rate is 1.
-    double actualDeviceFloor = config.DEVICE_NUMBER * config.REAL_INSERT_RATE;
+    double actualDeviceFloor = config.DEVICE_NUMBER * config.FIRST_INDEX + config.DEVICE_NUMBER * config.REAL_INSERT_RATE;
 
     // print current progress periodically
     service.scheduleAtFixedRate(() -> {

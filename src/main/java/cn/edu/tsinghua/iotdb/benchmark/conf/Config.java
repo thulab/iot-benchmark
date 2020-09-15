@@ -205,7 +205,7 @@ public class Config {
 	private List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
 
 	/** 设备编号 */
-	public List<String> DEVICE_CODES = new ArrayList<String>();
+	public List<Integer> DEVICE_CODES = new ArrayList<Integer>();
 
 	/** 传感器编号 */
 	public List<String> SENSOR_CODES = new ArrayList<String>();
@@ -363,8 +363,7 @@ public class Config {
 	 */
 	void initDeviceCodes() {
 		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
-			String deviceCode = "d_" + i;
-			DEVICE_CODES.add(deviceCode);
+			DEVICE_CODES.add(i);
 		}
 	}
 

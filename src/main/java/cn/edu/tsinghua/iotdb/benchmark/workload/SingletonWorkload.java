@@ -39,7 +39,7 @@ public class SingletonWorkload {
 
   private Batch getOrderedBatch() {
     long curLoop = insertLoop.getAndIncrement();
-    DeviceSchema deviceSchema = new DeviceSchema((int) (curLoop % config.DEVICE_NUMBER));
+    DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.DEVICE_NUMBER);
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
       long stepOffset = (curLoop / config.DEVICE_NUMBER) * config.BATCH_SIZE + batchOffset;

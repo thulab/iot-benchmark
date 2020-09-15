@@ -45,10 +45,10 @@ public class DataSchema {
     for (int clientId = 0; clientId < config.CLIENT_NUMBER; clientId++) {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int j = 0; j < eachClientDeviceNum; j++) {
-        deviceSchemaList.add(new DeviceSchema(deviceId++));
+        deviceSchemaList.add(new DeviceSchema(config.DEVICE_CODES.get(deviceId++)));
       }
       if (clientId < mod) {
-        deviceSchemaList.add(new DeviceSchema(deviceId++));
+        deviceSchemaList.add(new DeviceSchema(config.DEVICE_CODES.get(deviceId++)));
       }
       CLIENT_BIND_SCHEMA.put(clientId, deviceSchemaList);
     }
