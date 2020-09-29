@@ -24,18 +24,18 @@ import org.slf4j.LoggerFactory;
 public class IotdbRecorder implements ITestDataPersistence {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IotdbRecorder.class);
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
     private static final String CREATE_SERIES_SQL = "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
     private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
     private static final long EXP_TIME = System.currentTimeMillis();
     private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME + "." + config.TEST_DATA_STORE_DB;
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
-    private String projectID = String.format("%s_%s_%s", config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
+    private final String projectID = String.format("%s_%s_%s", config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
     private Statement globalStatement;
     private static final String THREAD_PREFIX = "pool-1-thread-";
-    private String insertSqlPrefix = "insert into " + PATH_PREFIX;
-    private String operationResultPrefix = insertSqlPrefix + "." + projectID + ".";
+    private final String insertSqlPrefix = "insert into " + PATH_PREFIX;
+    private final String operationResultPrefix = insertSqlPrefix + "." + projectID + ".";
     private long count = 0;
     private static final String ENCODING = "PLAIN";
     private static final String COMPRESS = "UNCOMPRESSED";

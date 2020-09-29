@@ -24,16 +24,16 @@ public class MySqlRecorder implements ITestDataPersistence {
   private static final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
   private static final String SAVE_RESULT = "insert into FINAL_RESULT values(NULL, '%s', '%s', '%s', '%s')";
   private Connection mysqlConnection = null;
-  private Config config = ConfigDescriptor.getInstance().getConfig();
-  private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
+  private final Config config = ConfigDescriptor.getInstance().getConfig();
+  private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+  private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
   private String localName;
-  private String day;
+  private final String day;
   private static final long EXP_TIME = System.currentTimeMillis();
-  private String projectID = String.format("%s_%s_%s_%s",config.BENCHMARK_WORK_MODE, config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
+  private final String projectID = String.format("%s_%s_%s_%s",config.BENCHMARK_WORK_MODE, config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
   private Statement statement;
   private static final String URL_TEMPLATE = "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
-  private String url = String.format(URL_TEMPLATE, config.TEST_DATA_STORE_IP,
+  private final String url = String.format(URL_TEMPLATE, config.TEST_DATA_STORE_IP,
       config.TEST_DATA_STORE_PORT, config.TEST_DATA_STORE_DB, config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
   private long count = 0;
 

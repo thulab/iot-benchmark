@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class PersistenceFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceFactory.class);
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     public ITestDataPersistence getPersistence() {
         switch (config.TEST_DATA_PERSISTENCE) {

@@ -5,9 +5,9 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.Random;
 
 public class PoissonDistribution {
-    private Config config ;
+    private final Config config ;
     private double lambda;
-    private Random random;
+    private final Random random;
     private int deltaKinds;
     private static final double BASIC_MODEL_LAMBDA = 10;
     private static final int BASIC_MODEL_MAX_K = 25;

@@ -6,8 +6,8 @@ import java.util.Map;
 
 public class Diagnosis {
 
-    private Map<DiagnosisItem, Long> timeCost = new EnumMap<>(DiagnosisItem.class);
-    private Map<DiagnosisItem, Integer> count = new EnumMap<>(DiagnosisItem.class);
+    private final Map<DiagnosisItem, Long> timeCost = new EnumMap<>(DiagnosisItem.class);
+    private final Map<DiagnosisItem, Integer> count = new EnumMap<>(DiagnosisItem.class);
 
     private Diagnosis() {
         for(DiagnosisItem diagnosisItem: DiagnosisItem.values()){

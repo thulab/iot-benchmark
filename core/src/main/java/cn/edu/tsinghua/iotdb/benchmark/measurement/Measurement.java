@@ -23,16 +23,16 @@ import java.util.Date;
 public class Measurement {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Measurement.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static Map<Operation, TDigest> operationLatencyDigest = new EnumMap<>(Operation.class);
-  private static Map<Operation, Double> operationLatencySumAllClient = new EnumMap<>(Operation.class);
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Map<Operation, TDigest> operationLatencyDigest = new EnumMap<>(Operation.class);
+  private static final Map<Operation, Double> operationLatencySumAllClient = new EnumMap<>(Operation.class);
   private double createSchemaTime;
   private double elapseTime;
-  private Map<Operation, Double> operationLatencySumThisClient;
-  private Map<Operation, Long> okOperationNumMap;
-  private Map<Operation, Long> failOperationNumMap;
-  private Map<Operation, Long> okPointNumMap;
-  private Map<Operation, Long> failPointNumMap;
+  private final Map<Operation, Double> operationLatencySumThisClient;
+  private final Map<Operation, Long> okOperationNumMap;
+  private final Map<Operation, Long> failOperationNumMap;
+  private final Map<Operation, Long> okPointNumMap;
+  private final Map<Operation, Long> failPointNumMap;
   private static final String RESULT_ITEM = "%-20s";
   private static final String LATENCY_ITEM = "%-12s";
   private static final int COMPRESSION = 100;
@@ -143,7 +143,7 @@ public class Measurement {
 
   public void calculateMetrics() {
     for (Operation operation : Operation.values()) {
-      double avgLatency = 0;
+      double avgLatency;
       if (okOperationNumMap.get(operation) != 0) {
         avgLatency = operationLatencySumAllClient.get(operation) / okOperationNumMap.get(operation);
         Metric.AVG_LATENCY.getTypeValueMap().put(operation, avgLatency);

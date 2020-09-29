@@ -1,16 +1,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.collection.immutable.Stream;
+
+import java.io.*;
+import java.util.Collections;
+import java.util.Properties;
 
 public class ConfigDescriptor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);

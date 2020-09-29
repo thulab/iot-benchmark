@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.kafka;
 
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBFactory;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import kafka.consumer.KafkaStream;
