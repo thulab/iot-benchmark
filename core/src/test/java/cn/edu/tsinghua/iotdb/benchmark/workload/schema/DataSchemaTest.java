@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.List;
 import java.util.Map;
-import javax.xml.crypto.dsig.keyinfo.KeyValue;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,17 +13,17 @@ public class DataSchemaTest {
 
   @Test
   public void test(){
-    testBalanceSplit(100, 30);
-
+    testBalanceSplit();
   }
 
-  void testBalanceSplit(int deviceNum, int clientNum){
+  void testBalanceSplit(){
     int preDeviceNum = config.DEVICE_NUMBER;
     int preClientNum = config.CLIENT_NUMBER;
-    config.DEVICE_NUMBER = deviceNum;
-    config.CLIENT_NUMBER = clientNum;
+    config.DEVICE_NUMBER = 100;
+    config.CLIENT_NUMBER = 30;
     int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
     int deviceNumEachClient = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
+    config.initDeviceCodes();
     DataSchema dataSchema = DataSchema.getInstance();
     Map<Integer, List<DeviceSchema>> client2Schema = dataSchema.getClientBindSchema();
     for (int clientId : client2Schema.keySet()){

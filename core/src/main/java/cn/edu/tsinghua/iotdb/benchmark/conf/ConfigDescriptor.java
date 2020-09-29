@@ -10,11 +10,12 @@ import java.util.Collections;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.collection.immutable.Stream;
 
 public class ConfigDescriptor {
-	private static final Logger LOGGER = null;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
 
-	private Config config;
+	private final Config config;
 
 	private static class ConfigDescriptorHolder {
 		private static final ConfigDescriptor INSTANCE = new ConfigDescriptor();
@@ -30,7 +31,7 @@ public class ConfigDescriptor {
 		config.initRealDataSetSchema();
 	}
 
-	public static final ConfigDescriptor getInstance() {
+	public static ConfigDescriptor getInstance() {
 		return ConfigDescriptorHolder.INSTANCE;
 	}
 
@@ -39,7 +40,7 @@ public class ConfigDescriptor {
 	}
 
 	private void loadProps() {
-		String url = System.getProperty(Constants.BENCHMARK_CONF, "/Users/zhutianci/Documents/GitHub/iotdb-benchmark/core/src/conf/config.properties");
+		String url = System.getProperty(Constants.BENCHMARK_CONF, "conf/config.properties");
 		if (url != null) {
 			InputStream inputStream;
 			try {
@@ -199,12 +200,10 @@ public class ConfigDescriptor {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (IOException e) {
-					LOGGER.error("Fail to close config file input stream", e);
-				}
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				LOGGER.error("Fail to close config file input stream", e);
 			}
 		} else {
 			LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);

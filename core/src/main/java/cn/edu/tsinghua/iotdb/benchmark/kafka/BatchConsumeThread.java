@@ -17,7 +17,7 @@ public class BatchConsumeThread implements Runnable {
     /*
      * Establish session connection of IoTDB
      */
-    session = (IDatabase) Class.forName(DBFactory.getDbClassName()).newInstance();
+    session = (IDatabase) Class.forName("cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB").newInstance();
   }
 
   @Override

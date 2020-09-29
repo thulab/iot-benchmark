@@ -50,7 +50,6 @@ public class App {
     private static Config config = ConfigDescriptor.getInstance().getConfig();
 
     public static void main(String[] args) throws SQLException {
-
         CommandCli cli = new CommandCli();
         if (!cli.init(args)) {
             return;

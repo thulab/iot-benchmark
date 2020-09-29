@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb011;
+package cn.edu.tsinghua.iotdb.benchmark.iotdb010;
 
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;

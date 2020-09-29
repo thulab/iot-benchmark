@@ -5,12 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
@@ -200,9 +195,9 @@ public class Config {
 	/** 内置函数参数 */
 	private final List<FunctionParam> LINE_LIST = new ArrayList<>();
 	private final List<FunctionParam> SIN_LIST = new ArrayList<>();
-	private final List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
-	private final List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
-	private final List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
+	private final List<FunctionParam> SQUARE_LIST = new ArrayList<>();
+	private final List<FunctionParam> RANDOM_LIST = new ArrayList<>();
+	private final List<FunctionParam> CONSTANT_LIST = new ArrayList<>();
 
 	/** 设备编号 */
 	public List<Integer> DEVICE_CODES = new ArrayList<>();
@@ -211,7 +206,7 @@ public class Config {
 	public List<String> SENSOR_CODES = new ArrayList<>();
 
 	/** 传感器对应的函数 */
-	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<String, FunctionParam>();
+	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
 
 	// 负载测试完是否删除数据
 	public boolean IS_DELETE_DATA = false;
@@ -280,18 +275,18 @@ public class Config {
 		}
 		List<FunctionParam> xmlFuctions = xml.getFunctions();
 		for (FunctionParam param : xmlFuctions) {
-			if (param.getFunctionType().indexOf("_mono_k") != -1) {
+			if (param.getFunctionType().contains("_mono_k")) {
 				LINE_LIST.add(param);
-			} else if (param.getFunctionType().indexOf("_mono") != -1) {
+			} else if (param.getFunctionType().contains("_mono")) {
 				// 如果min==max则为常数，系统没有非常数的
 				if (param.getMin() == param.getMax()) {
 					CONSTANT_LIST.add(param);
 				}
-			} else if (param.getFunctionType().indexOf("_sin") != -1) {
+			} else if (param.getFunctionType().contains("_sin")) {
 				SIN_LIST.add(param);
-			} else if (param.getFunctionType().indexOf("_square") != -1) {
+			} else if (param.getFunctionType().contains("_square")) {
 				SQUARE_LIST.add(param);
-			} else if (param.getFunctionType().indexOf("_random") != -1) {
+			} else if (param.getFunctionType().contains("_random")) {
 				RANDOM_LIST.add(param);
 			}
 		}
@@ -361,7 +356,7 @@ public class Config {
 	/**
 	 * 根据设备数，初始化设备编号
 	 */
-	void initDeviceCodes() {
+	public void initDeviceCodes() {
 		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
 			DEVICE_CODES.add(i);
 		}
@@ -375,7 +370,7 @@ public class Config {
 				PRECISION = new int[]{5, 5};
 				break;
 			case REDD:
-				FIELDS = Arrays.asList("v");
+				FIELDS = Collections.singletonList("v");
 				PRECISION = new int[]{2};
 				break;
 			case GEOLIFE:
