@@ -22,7 +22,6 @@
     <maven.compiler.target>${targetJavaVersion}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.12</junit.version>
-    <slf4j.version>1.7.12</slf4j.version>
     <logback.version>1.1.3</logback.version>
     <common.cli.version>1.3.1</common.cli.version>
     <skip.ut>false</skip.ut>

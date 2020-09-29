@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class OperationController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OperationController.class);
+  private static final Logger LOGGER = null;
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private Random random;
 

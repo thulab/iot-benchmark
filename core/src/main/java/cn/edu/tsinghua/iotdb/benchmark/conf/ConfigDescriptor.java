@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ConfigDescriptor {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
+	private static final Logger LOGGER = null;
 
 	private Config config;
 
@@ -39,7 +39,7 @@ public class ConfigDescriptor {
 	}
 
 	private void loadProps() {
-		String url = System.getProperty(Constants.BENCHMARK_CONF, "conf/config.properties");
+		String url = System.getProperty(Constants.BENCHMARK_CONF, "/Users/zhutianci/Documents/GitHub/iotdb-benchmark/core/src/conf/config.properties");
 		if (url != null) {
 			InputStream inputStream;
 			try {

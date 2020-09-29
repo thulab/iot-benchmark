@@ -43,7 +43,7 @@ public class BatchConsumer {
    * @param user session username
    * @param password session password
    */
-  public void consume(String host, String port, String user, String password) {
+  public void consume(String host, String port, String user, String password) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
     /*
      * Specify the number of consumer thread
      */

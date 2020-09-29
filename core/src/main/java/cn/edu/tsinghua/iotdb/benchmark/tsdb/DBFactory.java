@@ -13,6 +13,7 @@ public class DBFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(DBFactory.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private Properties dbMapping = new Properties();
+  private static String dbClassName;
 
   public DBFactory() {
     try {
@@ -23,21 +24,20 @@ public class DBFactory {
   }
 
   public IDatabase getDatabase() throws SQLException {
-    String iotdbClassName = dbMapping.getProperty(config.DB_SWITCH);
-    if(iotdbClassName == null) {
+    dbClassName = dbMapping.getProperty(config.DB_SWITCH);
+    if(dbClassName == null) {
       LOGGER.error("unsupported database {}", config.DB_SWITCH);
       throw new SQLException("unsupported database " + config.DB_SWITCH);
     }
     try {
-      return (IDatabase) Class.forName(iotdbClassName).newInstance();
-    } catch (InstantiationException e) {
-      e.printStackTrace();
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    } catch (ClassNotFoundException e) {
+      return (IDatabase) Class.forName(dbClassName).newInstance();
+    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
       e.printStackTrace();
     }
     throw new SQLException("init database " + config.DB_SWITCH + " failed");
   }
 
+  public static String getDbClassName() {
+    return dbClassName;
+  }
 }

@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.kafka;
 
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.iotdb011.IoTDBSession;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBFactory;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;
@@ -8,15 +9,15 @@ import kafka.message.MessageAndMetadata;
 public class BatchConsumeThread implements Runnable {
 
   private final KafkaStream<String, Batch> stream;
-  private IoTDBSession session;
+  private IDatabase session;
 
   public BatchConsumeThread(KafkaStream<String, Batch> stream, String host, String port,
-      String user, String password) {
+      String user, String password) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
     this.stream = stream;
     /*
      * Establish session connection of IoTDB
      */
-    session = new IoTDBSession(host, port, user, password);
+    session = (IDatabase) Class.forName(DBFactory.getDbClassName()).newInstance();
   }
 
   @Override

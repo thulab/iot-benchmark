@@ -19,7 +19,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,16 +95,16 @@ public class SyntheticWorkload implements IWorkload {
 
   public static String getNextDataType(int sensorIndex) {
     List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[TSDataType.values().length + 1];
+    double[] p = new double[6 + 1];
     p[0] = 0.0;
     // split [0,1] to n regions, each region corresponds to a data type whose proportion
     // is the region range size.
-    for (int i = 1; i <= TSDataType.values().length; i++) {
+    for (int i = 1; i <= 6; i++) {
       p[i] = p[i - 1] + proportion.get(i - 1);
     }
     double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
     int i;
-    for (i = 1; i <= TSDataType.values().length; i++) {
+    for (i = 1; i <= 6; i++) {
       if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
         break;
       }
@@ -132,10 +131,10 @@ public class SyntheticWorkload implements IWorkload {
   public static List<Double> resolveDataTypeProportion() {
     List<Double> proportion = new ArrayList<>();
     String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TSDataType.values().length) {
+    if (split.length != 6) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
     }
-    double[] proportions = new double[TSDataType.values().length];
+    double[] proportions = new double[6];
     double sum = 0;
     for (int i = 0; i < split.length; i++) {
       proportions[i] = Double.parseDouble(split[i]);

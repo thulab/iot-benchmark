@@ -198,17 +198,17 @@ public class Config {
 	public long DATA_SEED = 666L;
 
 	/** 内置函数参数 */
-	private List<FunctionParam> LINE_LIST = new ArrayList<FunctionParam>();
-	private List<FunctionParam> SIN_LIST = new ArrayList<FunctionParam>();
-	private List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
-	private List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
-	private List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
+	private final List<FunctionParam> LINE_LIST = new ArrayList<>();
+	private final List<FunctionParam> SIN_LIST = new ArrayList<>();
+	private final List<FunctionParam> SQUARE_LIST = new ArrayList<FunctionParam>();
+	private final List<FunctionParam> RANDOM_LIST = new ArrayList<FunctionParam>();
+	private final List<FunctionParam> CONSTANT_LIST = new ArrayList<FunctionParam>();
 
 	/** 设备编号 */
-	public List<Integer> DEVICE_CODES = new ArrayList<Integer>();
+	public List<Integer> DEVICE_CODES = new ArrayList<>();
 
 	/** 传感器编号 */
-	public List<String> SENSOR_CODES = new ArrayList<String>();
+	public List<String> SENSOR_CODES = new ArrayList<>();
 
 	/** 传感器对应的函数 */
 	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<String, FunctionParam>();

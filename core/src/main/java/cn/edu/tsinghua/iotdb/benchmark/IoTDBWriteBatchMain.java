@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.kafka.BatchConsumer;
 
 public class IoTDBWriteBatchMain {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IllegalAccessException, ClassNotFoundException, InstantiationException {
 
     BatchConsumer consumer = new BatchConsumer(args[4]);
 
