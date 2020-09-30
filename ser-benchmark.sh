@@ -13,8 +13,6 @@ sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_H
 
 cd $BENCHMARK_HOME
 
-mvn clean package -Dmaven.test.skip=true
-
 echo '------Server Test Begin Time------'
 
 date

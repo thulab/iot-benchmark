@@ -13,8 +13,6 @@ echo $BENCHMARK_HOME
 
 cd $BENCHMARK_HOME
 
-mvn clean package -Dmaven.test.skip=true
-
 echo '------Server Test Begin Time------'
 
 date

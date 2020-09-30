@@ -34,7 +34,7 @@ public class RealDatasetWorkLoad implements IWorkload {
    * @param config config
    */
   public RealDatasetWorkLoad(List<String> files, Config config) {
-    switch (config.DATA_SET) {
+    switch (config.getDATA_SET()) {
       case TDRIVE:
         reader = new TDriveReader(config, files);
         break;
@@ -45,7 +45,7 @@ public class RealDatasetWorkLoad implements IWorkload {
         reader = new GeolifeReader(config, files);
         break;
       default:
-        throw new RuntimeException(config.DATA_SET + " not supported");
+        throw new RuntimeException(config.getDATA_SET() + " not supported");
     }
   }
 
@@ -60,14 +60,14 @@ public class RealDatasetWorkLoad implements IWorkload {
     //init sensor list
     List<String> sensorList = new ArrayList<>();
     for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
-      sensorList.add(config.FIELDS.get(i));
+      sensorList.add(config.getFIELDS().get(i));
     }
 
     //init device schema list
     deviceSchemaList = new ArrayList<>();
     for (int i = 1; i <= config.QUERY_DEVICE_NUM; i++) {
       String deviceIdStr = "" + i;
-      DeviceSchema deviceSchema = new DeviceSchema(calGroupIdStr(deviceIdStr, config.GROUP_NUMBER),
+      DeviceSchema deviceSchema = new DeviceSchema(calGroupIdStr(deviceIdStr, config.getGROUP_NUMBER()),
           deviceIdStr, sensorList);
       deviceSchemaList.add(deviceSchema);
     }

@@ -64,7 +64,7 @@ public class OperationController {
 
   List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
-    String[] split = config.OPERATION_PROPORTION.split(":");
+    String[] split = config.getOPERATION_PROPORTION().split(":");
     if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }

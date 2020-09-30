@@ -30,7 +30,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   private String localName;
   private final String day;
   private static final long EXP_TIME = System.currentTimeMillis();
-  private final String projectID = String.format("%s_%s_%s_%s",config.BENCHMARK_WORK_MODE, config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
+  private final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
   private Statement statement;
   private static final String URL_TEMPLATE = "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
   private final String url = String.format(URL_TEMPLATE, config.TEST_DATA_STORE_IP,
@@ -68,8 +68,8 @@ public class MySqlRecorder implements ITestDataPersistence {
     Statement stat = null;
     try {
       stat = mysqlConnection.createStatement();
-      if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)
-          || config.BENCHMARK_WORK_MODE.equals(Constants.MODE_CLIENT_SYSTEM_INFO)) {
+      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_SERVER_MODE)
+          || config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_CLIENT_SYSTEM_INFO)) {
         if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
           stat.executeUpdate("create table SERVER_MODE_"
               + localName
@@ -94,7 +94,7 @@ public class MySqlRecorder implements ITestDataPersistence {
             "create table FINAL_RESULT (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, projectID VARCHAR(150), operation VARCHAR(50), result_key VARCHAR(150), result_value VARCHAR(150))AUTO_INCREMENT = 1;");
         LOGGER.info("Table FINAL_RESULT create success!");
       }
-      if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !hasTable(
+      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !hasTable(
           projectID)) {
         stat.executeUpdate("create table "
             + projectID
@@ -224,107 +224,107 @@ public class MySqlRecorder implements ITestDataPersistence {
     String sql = "";
     try {
       stat = mysqlConnection.createStatement();
-      if (config.BENCHMARK_WORK_MODE.equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'MODE'", "'DEFAULT_TEST_MODE'");
         stat.addBatch(sql);
       }
-      switch (config.DB_SWITCH.trim()) {
+      switch (config.getDB_SWITCH().trim()) {
         case Constants.DB_IOT:
         case Constants.DB_TIMESCALE:
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'ServerIP'", "'" + config.HOST + "'");
+              "'ServerIP'", "'" + config.getHOST() + "'");
           stat.addBatch(sql);
           break;
         case Constants.DB_INFLUX:
         case Constants.DB_OPENTS:
         case Constants.DB_KAIROS:
         case Constants.DB_CTS:
-          String host = config.DB_URL
-              .substring(config.DB_URL.lastIndexOf('/') + 1, config.DB_URL.lastIndexOf(':'));
+          String host = config.getDB_URL()
+              .substring(config.getDB_URL().lastIndexOf('/') + 1, config.getDB_URL().lastIndexOf(':'));
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
               "'ServerIP'", "'" + host + "'");
           stat.addBatch(sql);
           break;
         default:
-          throw new SQLException("unsupported database " + config.DB_SWITCH);
+          throw new SQLException("unsupported database " + config.getDB_SWITCH());
       }
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
           "'CLIENT'", "'" + localName + "'");
       stat.addBatch(sql);
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-          "'DB_SWITCH'", "'" + config.DB_SWITCH + "'");
+          "'DB_SWITCH'", "'" + config.getDB_SWITCH() + "'");
       stat.addBatch(sql);
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-          "'VERSION'", "'" + config.VERSION + "'");
+          "'VERSION'", "'" + config.getVERSION() + "'");
       stat.addBatch(sql);
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-          "'CLIENT_NUMBER'", "'" + config.CLIENT_NUMBER + "'");
+          "'getCLIENT_NUMBER()'", "'" + config.getCLIENT_NUMBER() + "'");
       stat.addBatch(sql);
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'", "'LOOP'",
-          "'" + config.LOOP + "'");
+          "'" + config.getLOOP() + "'");
       stat.addBatch(sql);
-      if (config.BENCHMARK_WORK_MODE
+      if (config.getBENCHMARK_WORK_MODE()
           .equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'查询数据集存储组数'",
-            "'" + config.GROUP_NUMBER + "'");
+            "'" + config.getGROUP_NUMBER() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'查询数据集设备数'", "'" + config.DEVICE_NUMBER
+            "'查询数据集设备数'", "'" + config.getDEVICE_NUMBER()
                 + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'查询数据集传感器数'", "'" + config.SENSOR_NUMBER
+            "'查询数据集传感器数'", "'" + config.getSENSOR_NUMBER()
                 + "'");
         stat.addBatch(sql);
-        if (config.DB_SWITCH.equals(Constants.DB_IOT)) {
+        if (config.getDB_SWITCH().equals(Constants.DB_IOT)) {
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'IOTDB编码方式'", "'" + config.ENCODING + "'");
+              "'IOTDB编码方式'", "'" + config.getENCODING() + "'");
           stat.addBatch(sql);
         }
 
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'QUERY_DEVICE_NUM'", "'" + config.QUERY_DEVICE_NUM
+            "'QUERY_DEVICE_NUM'", "'" + config.getQUERY_DEVICE_NUM()
                 + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'QUERY_SENSOR_NUM'", "'" + config.QUERY_SENSOR_NUM
+            "'QUERY_SENSOR_NUM'", "'" + config.getQUERY_SENSOR_NUM()
                 + "'");
         stat.addBatch(sql);
 
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'IS_OVERFLOW'", "'" + config.IS_OVERFLOW + "'");
+            "'IS_OVERFLOW'", "'" + config.isIS_OVERFLOW() + "'");
         stat.addBatch(sql);
-        if (config.IS_OVERFLOW) {
+        if (config.isIS_OVERFLOW()) {
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'OVERFLOW_RATIO'", "'" + config.OVERFLOW_RATIO + "'");
+              "'OVERFLOW_RATIO'", "'" + config.getOVERFLOW_RATIO() + "'");
           stat.addBatch(sql);
         }
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'MUL_DEV_BATCH'", "'" + config.MUL_DEV_BATCH + "'");
+            "'MUL_DEV_BATCH'", "'" + config.isMUL_DEV_BATCH() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'DEVICE_NUMBER'", "'" + config.DEVICE_NUMBER + "'");
+            "'DEVICE_NUMBER'", "'" + config.getDEVICE_NUMBER() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'GROUP_NUMBER'", "'" + config.GROUP_NUMBER + "'");
+            "'GROUP_NUMBER'", "'" + config.getGROUP_NUMBER() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'DEVICE_NUMBER'", "'" + config.DEVICE_NUMBER + "'");
+            "'DEVICE_NUMBER'", "'" + config.getDEVICE_NUMBER() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'SENSOR_NUMBER'", "'" + config.SENSOR_NUMBER + "'");
+            "'SENSOR_NUMBER'", "'" + config.getSENSOR_NUMBER() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'BATCH_SIZE'", "'" + config.BATCH_SIZE + "'");
+            "'BATCH_SIZE'", "'" + config.getBATCH_SIZE() + "'");
         stat.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'POINT_STEP'", "'" + config.POINT_STEP + "'");
+            "'POINT_STEP'", "'" + config.getPOINT_STEP() + "'");
         stat.addBatch(sql);
-        if (config.DB_SWITCH.equals(Constants.DB_IOT)) {
+        if (config.getDB_SWITCH().equals(Constants.DB_IOT)) {
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'ENCODING'", "'" + config.ENCODING + "'");
+              "'ENCODING'", "'" + config.getENCODING() + "'");
           stat.addBatch(sql);
         }
       }

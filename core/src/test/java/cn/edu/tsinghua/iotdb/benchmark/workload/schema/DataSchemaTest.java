@@ -17,13 +17,12 @@ public class DataSchemaTest {
   }
 
   void testBalanceSplit(){
-    int preDeviceNum = config.DEVICE_NUMBER;
-    int preClientNum = config.CLIENT_NUMBER;
-    config.DEVICE_NUMBER = 100;
-    config.CLIENT_NUMBER = 30;
-    int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
-    int deviceNumEachClient = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
-    config.initDeviceCodes();
+    int preDeviceNum = config.getDEVICE_NUMBER();
+    int preClientNum = config.getCLIENT_NUMBER();
+    config.setDEVICE_NUMBER(100);
+    config.setCLIENT_NUMBER(30);
+    int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
+    int deviceNumEachClient = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
     DataSchema dataSchema = DataSchema.getInstance();
     Map<Integer, List<DeviceSchema>> client2Schema = dataSchema.getClientBindSchema();
     for (int clientId : client2Schema.keySet()){
@@ -35,8 +34,8 @@ public class DataSchemaTest {
         Assert.assertEquals(deviceNumEachClient,deviceNumInClient);
       }
     }
-    config.DEVICE_NUMBER = preDeviceNum;
-    config.CLIENT_NUMBER = preClientNum;
+    config.setDEVICE_NUMBER(preDeviceNum);
+    config.setCLIENT_NUMBER(preClientNum);
   }
 
 

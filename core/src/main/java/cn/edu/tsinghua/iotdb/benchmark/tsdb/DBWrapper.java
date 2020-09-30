@@ -57,7 +57,7 @@ public class DBWrapper implements IDatabase {
 
       if (status.isOk()) {
         measureOkOperation(status, operation, batch.pointNum());
-        if (!config.IS_QUIET_MODE) {
+        if (!config.isIS_QUIET_MODE()) {
           double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
           String formatTimeInMillis = String.format("%.2f", timeInMillis);
           double throughput = batch.pointNum() * 1000 / timeInMillis;
@@ -272,7 +272,7 @@ public class DBWrapper implements IDatabase {
   private void handleQueryOperation(Status status, Operation operation) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum());
-      if(!config.IS_QUIET_MODE) {
+      if(!config.isIS_QUIET_MODE()) {
         double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();

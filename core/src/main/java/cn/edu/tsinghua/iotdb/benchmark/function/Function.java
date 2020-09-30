@@ -23,7 +23,7 @@ public class Function {
 //		return value;
 //	}
 	private static final Config config = ConfigDescriptor.getInstance().getConfig();
-	private static final Random r = new Random(config.DATA_SEED);
+	private static final Random r = new Random(config.getDATA_SEED());
 
 
 

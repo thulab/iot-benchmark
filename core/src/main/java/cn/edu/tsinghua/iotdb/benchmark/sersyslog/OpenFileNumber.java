@@ -12,14 +12,14 @@ import java.util.ArrayList;
 
 public class OpenFileNumber {
 
-    private static Logger log = LoggerFactory.getLogger(OpenFileNumber.class);
-    private Config config;
+    private static final Logger log = LoggerFactory.getLogger(OpenFileNumber.class);
+    private final Config config;
     private static int pid = -1;
-    private static int port = -1;
+    private static final int port = -1;
 
     private static final String SEARCH_PID = "ps -aux | grep -i %s | grep -v grep";
     private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
-    private static String cmds[] = {"/bin/bash", "-c", ""};
+    private static final String[] cmds = {"/bin/bash", "-c", ""};
     //private static String passward = "";
 
     private static class OpenFileNumberHolder {
@@ -28,7 +28,7 @@ public class OpenFileNumber {
 
     private OpenFileNumber() {
         config = ConfigDescriptor.getInstance().getConfig();
-        pid = getPID(config.DB_SWITCH);
+        pid = getPID(config.getDB_SWITCH());
     }
 
     public static final OpenFileNumber getInstance() {
@@ -118,7 +118,7 @@ public class OpenFileNumber {
         int walsNum = 0;
 
         String filter = "";
-        switch (config.DB_SWITCH) {
+        switch (config.getDB_SWITCH()) {
             case Constants.DB_IOT:
                 filter = "/data/";
                 break;
@@ -135,7 +135,7 @@ public class OpenFileNumber {
                 filter = "iotdb-benchmark";
                 break;
             default:
-                throw new SQLException("unsupported db name :" + config.DB_SWITCH);
+                throw new SQLException("unsupported db name :" + config.getDB_SWITCH());
         }
         Process pro = null;
         Runtime r = Runtime.getRuntime();
@@ -212,7 +212,7 @@ public class OpenFileNumber {
         ArrayList<Integer> list = null;
         //如果port和pid不合理，再次尝试获取
         if (!(pid > 0)) {
-            pid = getPID(config.DB_SWITCH);
+            pid = getPID(config.getDB_SWITCH());
         }
         //如果pid合理，则加入打开文件总数和数据文件数目以及socket数目
         if (pid > 0) {
@@ -244,7 +244,7 @@ public class OpenFileNumber {
     }
 
     public int getPid() {
-        return getPID(config.DB_SWITCH);
+        return getPID(config.getDB_SWITCH());
     }
 
 

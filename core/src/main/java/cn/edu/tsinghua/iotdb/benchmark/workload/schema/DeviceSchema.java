@@ -20,7 +20,7 @@ public class DeviceSchema {
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static final String GROUP_NAME_PREFIX = "group_";
   private static final String DEVICE_NAME_PREFIX = "d_";
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   // each device belongs to one group, i.e., database
   private String group;
 
@@ -64,16 +64,16 @@ public class DeviceSchema {
   }
 
   int calGroupId(int deviceId) throws WorkloadException {
-    switch (config.SG_STRATEGY) {
+    switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
-        return deviceId % config.GROUP_NUMBER;
+        return deviceId % config.getGROUP_NUMBER();
       case Constants.HASH_SG_ASSIGN_MODE:
-        return (deviceId + "").hashCode() % config.GROUP_NUMBER;
+        return (deviceId + "").hashCode() % config.getGROUP_NUMBER();
       case Constants.DIV_SG_ASSIGN_MODE:
-        int devicePerGroup = config.DEVICE_NUMBER / config.GROUP_NUMBER;
-        return (deviceId / devicePerGroup) % config.GROUP_NUMBER;
+        int devicePerGroup = config.getDEVICE_NUMBER() / config.getGROUP_NUMBER();
+        return (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
       default:
-        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.SG_STRATEGY);
+        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
   }
 

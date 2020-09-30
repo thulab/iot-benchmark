@@ -16,23 +16,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ImportDataFromCSV {
-	private Config config;
+	private final Config config;
 	private IotdbBasic iotdb;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImportDataFromCSV.class);
 	// storage csv table head info
-	private List<String> headInfo = new ArrayList<>();
+	private final List<String> headInfo = new ArrayList<>();
 	// storage csv device sensor info, corresponding csv table head
-	private Map<String, ArrayList<Integer>> deviceToColumn = new HashMap<>();
+	private final Map<String, ArrayList<Integer>> deviceToColumn = new HashMap<>();
 	// map column index to timederies path
-	private List<String> colInfo = new ArrayList<>();
+	private final List<String> colInfo = new ArrayList<>();
 	// storage timeseries DataType
-	private Map<String, String> timeseriesDataType = new HashMap<>();
-	private static ThreadLocal<Long> totalTime = new ThreadLocal<Long>() {
+	private final Map<String, String> timeseriesDataType = new HashMap<>();
+	private static final ThreadLocal<Long> totalTime = new ThreadLocal<Long>() {
 		protected Long initialValue() {
 			return (long) 0;
 		}
 	};
-	private static ThreadLocal<Long> errorCount = new ThreadLocal<Long>() {
+	private static final ThreadLocal<Long> errorCount = new ThreadLocal<Long>() {
 		protected Long initialValue() {
 			return (long) 0;
 		}
@@ -145,7 +145,7 @@ public class ImportDataFromCSV {
 				for (String str : sqls) {
 					count++;
 					tmp.add(str);
-					if (count == config.BATCH_EXECUTE_COUNT) {
+					if (count == config.getBATCH_EXECUTE_COUNT()) {
 						iotdb.insertOneBatch(tmp, totalTime, errorCount);
 						count = 0;
 						tmp.clear();

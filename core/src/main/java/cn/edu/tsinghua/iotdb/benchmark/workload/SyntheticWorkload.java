@@ -33,25 +33,25 @@ import java.util.Random;
 public class SyntheticWorkload implements IWorkload {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static Random timestampRandom = new Random(config.DATA_SEED);
-  private ProbTool probTool;
-  private Map<DeviceSchema, Long> maxTimestampIndexMap;
-  private Random poissonRandom;
-  private Random queryDeviceRandom;
-  private Map<Operation, Long> operationLoops;
-  private static Random random = new Random(config.DATA_SEED);
-  private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
-  private static Random dataRandom = new Random(config.DATA_SEED);
-  private static String[][] workloadValues = initWorkloadValues();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Random timestampRandom = new Random(config.getDATA_SEED());
+  private final ProbTool probTool;
+  private final Map<DeviceSchema, Long> maxTimestampIndexMap;
+  private final Random poissonRandom;
+  private final Random queryDeviceRandom;
+  private final Map<Operation, Long> operationLoops;
+  private static final Random random = new Random(config.getDATA_SEED());
+  private static final String DECIMAL_FORMAT = "%." + config.getNUMBER_OF_DECIMAL_DIGIT() + "f";
+  private static final Random dataRandom = new Random(config.getDATA_SEED());
+  private static final String[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final long timeStampConst = getTimestampConst(config.TIMESTAMP_PRECISION);
+  private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
 
   public SyntheticWorkload(int clientId) {
     probTool = new ProbTool();
     maxTimestampIndexMap = new HashMap<>();
-    poissonRandom = new Random(config.DATA_SEED);
+    poissonRandom = new Random(config.getDATA_SEED());
     for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);
     }
@@ -64,12 +64,12 @@ public class SyntheticWorkload implements IWorkload {
 
   private static String[][] initWorkloadValues() {
     String[][] workloadValues = null;
-    if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
-      workloadValues = new String[config.SENSOR_NUMBER][config.WORKLOAD_BUFFER_SIZE];
+    if(!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+      workloadValues = new String[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
       int sensorIndex = 0;
-      for (int j = 0; j < config.SENSOR_NUMBER; j++) {
+      for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.SENSOR_CODES.get(j);
-        for (int i = 0; i < config.WORKLOAD_BUFFER_SIZE; i++) {
+        for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           long currentTimestamp = getCurrentTimestamp(i);
           String value;
           if (!getNextDataType(sensorIndex).equals("TEXT")) {
@@ -79,8 +79,7 @@ public class SyntheticWorkload implements IWorkload {
           } else {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
             StringBuilder builder = new StringBuilder();
-            for (int k = 0; k < config.NUMBER_OF_DECIMAL_DIGIT; k++) {
-              assert dataRandom != null;
+            for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
               builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
             }
             value = builder.toString();
@@ -102,7 +101,7 @@ public class SyntheticWorkload implements IWorkload {
     for (int i = 1; i <= 6; i++) {
       p[i] = p[i - 1] + proportion.get(i - 1);
     }
-    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
+    double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
     int i;
     for (i = 1; i <= 6; i++) {
       if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
@@ -130,7 +129,7 @@ public class SyntheticWorkload implements IWorkload {
 
   public static List<Double> resolveDataTypeProportion() {
     List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (split.length != 6) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
     }
@@ -152,22 +151,21 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   private static long getCurrentTimestamp(long stepOffset) {
-    long timeStampOffset = config.POINT_STEP * stepOffset;
-    if (config.IS_OVERFLOW) {
-      timeStampOffset += (long) (random.nextDouble() * config.POINT_STEP);
+    long timeStampOffset = config.getPOINT_STEP() * stepOffset;
+    if (config.isIS_OVERFLOW()) {
+      timeStampOffset += (long) (random.nextDouble() * config.getPOINT_STEP());
     } else {
-      if (config.IS_RANDOM_TIMESTAMP_INTERVAL) {
-        timeStampOffset += (long) (config.POINT_STEP * timestampRandom.nextDouble());
+      if (config.isIS_RANDOM_TIMESTAMP_INTERVAL()) {
+        timeStampOffset += (long) (config.getPOINT_STEP() * timestampRandom.nextDouble());
       }
     }
-    long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
-    return currentTimestamp;
+    return Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
   }
 
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
-      long stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+      long stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
@@ -176,15 +174,15 @@ public class SyntheticWorkload implements IWorkload {
 
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
       Batch batch = new Batch();
-      long barrier = (long) (config.BATCH_SIZE * config.OVERFLOW_RATIO);
-      long stepOffset = loopIndex * config.BATCH_SIZE + barrier;
+      long barrier = (long) (config.getBATCH_SIZE() * config.getOVERFLOW_RATIO());
+      long stepOffset = loopIndex * config.getBATCH_SIZE() + barrier;
       addOneRowIntoBatch(batch, stepOffset);
       for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
-          stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+          stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
           addOneRowIntoBatch(batch, stepOffset);
       }
-      for (long batchOffset = barrier + 1; batchOffset < config.BATCH_SIZE; batchOffset++) {
-          stepOffset = loopIndex * config.BATCH_SIZE + batchOffset;
+      for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+          stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
           addOneRowIntoBatch(batch, stepOffset);
       }
       batch.setDeviceSchema(deviceSchema);
@@ -196,8 +194,8 @@ public class SyntheticWorkload implements IWorkload {
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.BATCH_SIZE; batchOffset++) {
-      if (probTool.returnTrueByProb(config.OVERFLOW_RATIO, poissonRandom)) {
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+      if (probTool.returnTrueByProb(config.getOVERFLOW_RATIO(), poissonRandom)) {
         // generate overflow timestamp
         nextDelta = poissonDistribution.getNextPossionDelta();
         stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
@@ -215,24 +213,24 @@ public class SyntheticWorkload implements IWorkload {
   static void addOneRowIntoBatch(Batch batch, long stepOffset) {
     List<String> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
-    for(int i = 0;i < config.SENSOR_NUMBER;i++) {
-      values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.WORKLOAD_BUFFER_SIZE)]);
+    for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
+      values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     }
     batch.add(currentTimestamp, values);
   }
 
   @Override
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
-    if (!config.IS_OVERFLOW) {
+    if (!config.isIS_OVERFLOW()) {
       return getOrderedBatch(deviceSchema, loopIndex);
     } else {
-      switch (config.OVERFLOW_MODE) {
+      switch (config.getOVERFLOW_MODE()) {
         case 0:
           return getDistOutOfOrderBatch(deviceSchema);
         case 1:
           return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
         default:
-          throw new WorkloadException("Unsupported overflow mode: " + config.OVERFLOW_MODE);
+          throw new WorkloadException("Unsupported overflow mode: " + config.getOVERFLOW_MODE());
       }
     }
   }
@@ -241,7 +239,7 @@ public class SyntheticWorkload implements IWorkload {
     checkQuerySchemaParams();
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> clientDevicesIndex = new ArrayList<>();
-    for (int m = 0; m < config.DEVICE_NUMBER * config.REAL_INSERT_RATE; m++) {
+    for (int m = 0; m < config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE(); m++) {
       clientDevicesIndex.add(m);
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
@@ -260,17 +258,17 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   private void checkQuerySchemaParams() throws WorkloadException {
-    if (!(config.QUERY_DEVICE_NUM > 0 && config.QUERY_DEVICE_NUM <= config.DEVICE_NUMBER)) {
+    if (!(config.QUERY_DEVICE_NUM > 0 && config.QUERY_DEVICE_NUM <= config.getDEVICE_NUMBER())) {
       throw new WorkloadException("QUERY_DEVICE_NUM is not correct, please check.");
     }
-    if (!(config.QUERY_SENSOR_NUM > 0 && config.QUERY_SENSOR_NUM <= config.SENSOR_NUMBER)) {
+    if (!(config.QUERY_SENSOR_NUM > 0 && config.QUERY_SENSOR_NUM <= config.getSENSOR_NUMBER())) {
       throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
     }
   }
 
   private long getQueryStartTimestamp() {
     long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
-    long timestampOffset = currentQueryLoop * config.STEP_SIZE * config.POINT_STEP;
+    long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
     operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
     return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
   }

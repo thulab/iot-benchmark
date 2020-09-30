@@ -15,8 +15,8 @@ public abstract class Client implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected Measurement measurement;
-  private CountDownLatch countDownLatch;
-  private CyclicBarrier barrier;
+  private final CountDownLatch countDownLatch;
+  private final CyclicBarrier barrier;
   int clientThreadId;
   DBWrapper dbWrapper;
 
@@ -49,7 +49,7 @@ public abstract class Client implements Runnable {
         try {
           dbWrapper.close();
         } catch (TsdbException e) {
-          LOGGER.error("Close {} error: ", config.DB_SWITCH, e);
+          LOGGER.error("Close {} error: ", config.getDB_SWITCH(), e);
         }
       }
     } finally {

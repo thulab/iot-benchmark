@@ -29,7 +29,7 @@ public class IoTDBSession extends IoTDB {
 
   public IoTDBSession() {
     super();
-    session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
+    session = new Session(config.getHOST(), config.getPORT(), Constants.USER, Constants.PASSWD);
     try {
       if (config.ENABLE_THRIFT_COMPRESSION) {
         session.open(true);

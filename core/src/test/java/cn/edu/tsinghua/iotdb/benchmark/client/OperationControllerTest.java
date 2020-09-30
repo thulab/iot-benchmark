@@ -27,7 +27,7 @@ public class OperationControllerTest {
 
   @Test
   public void testResolveOperationProportion() {
-    config.OPERATION_PROPORTION = "1:1:0:1:0:1:0:1:0";
+    config.setOPERATION_PROPORTION("1:1:0:1:0:1:0:1:0");
     Double[] expectedProbability = {0.2, 0.2, 0.0, 0.2, 0.0, 0.2, 0.0, 0.2, 0.0};
     List<Double> proportion = operationController.resolveOperationProportion();
     for (int i = 0; i < proportion.size(); i++) {
@@ -37,12 +37,12 @@ public class OperationControllerTest {
 
   @Test
   public void testGetNextOperationType() {
-    config.OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
+    config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0");
     int loop = 10000;
     for(int i=0;i<loop;i++){
       assertEquals(Operation.INGESTION, operationController.getNextOperationType());
     }
-    config.OPERATION_PROPORTION = "0:1:0:0:0:0:0:0:0";
+    config.setOPERATION_PROPORTION("0:1:0:0:0:0:0:0:0");
     for(int i=0;i<loop;i++){
       assertEquals(Operation.PRECISE_QUERY, operationController.getNextOperationType());
     }

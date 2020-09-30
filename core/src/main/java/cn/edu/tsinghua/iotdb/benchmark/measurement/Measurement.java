@@ -198,28 +198,28 @@ public class Measurement {
 
   public void showConfigs() {
     System.out.println("----------------------Main Configurations----------------------");
-    System.out.println("DB_SWITCH: " + config.DB_SWITCH);
-    System.out.println("OPERATION_PROPORTION: " + config.OPERATION_PROPORTION);
-    System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.ENABLE_THRIFT_COMPRESSION);
-    System.out.println("INSERT_DATATYPE_PROPORTION: " + config.INSERT_DATATYPE_PROPORTION);
-    System.out.println("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT): " + config.ENCODING_BOOLEAN
-                                                                     + "/" + config.ENCODING_INT32
-                                                                     + "/" + config.ENCODING_INT64
-                                                                     + "/" + config.ENCODING_FLOAT
-                                                                     + "/" + config.ENCODING_DOUBLE
-                                                                     + "/" + config.ENCODING_TEXT);
-    System.out.println("IS_CLIENT_BIND: " + config.IS_CLIENT_BIND);
-    System.out.println("CLIENT_NUMBER: " + config.CLIENT_NUMBER);
-    System.out.println("GROUP_NUMBER: " + config.GROUP_NUMBER);
-    System.out.println("DEVICE_NUMBER: " + config.DEVICE_NUMBER);
-    System.out.println("SENSOR_NUMBER: " + config.SENSOR_NUMBER);
-    System.out.println("BATCH_SIZE: " + config.BATCH_SIZE);
-    System.out.println("LOOP: " + config.LOOP);
-    System.out.println("POINT_STEP: "+ config.POINT_STEP);
-    System.out.println("QUERY_INTERVAL: " + config.QUERY_INTERVAL);
-    System.out.println("IS_OVERFLOW: " + config.IS_OVERFLOW);
-    System.out.println("OVERFLOW_MODE: " + config.OVERFLOW_MODE);
-    System.out.println("OVERFLOW_RATIO: " + config.OVERFLOW_RATIO);
+    System.out.println("DB_SWITCH: " + config.getDB_SWITCH());
+    System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
+    System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
+    System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());
+    System.out.println("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT): " + config.getENCODING_BOOLEAN()
+                                                                     + "/" + config.getENCODING_INT32()
+                                                                     + "/" + config.getENCODING_INT64()
+                                                                     + "/" + config.getENCODING_FLOAT()
+                                                                     + "/" + config.getENCODING_DOUBLE()
+                                                                     + "/" + config.getENCODING_TEXT());
+    System.out.println("IS_CLIENT_BIND: " + config.isIS_CLIENT_BIND());
+    System.out.println("CLIENT_NUMBER: " + config.getCLIENT_NUMBER());
+    System.out.println("GROUP_NUMBER: " + config.getGROUP_NUMBER());
+    System.out.println("DEVICE_NUMBER: " + config.getDEVICE_NUMBER());
+    System.out.println("SENSOR_NUMBER: " + config.getSENSOR_NUMBER());
+    System.out.println("BATCH_SIZE: " + config.getBATCH_SIZE());
+    System.out.println("LOOP: " + config.getLOOP());
+    System.out.println("POINT_STEP: "+ config.getPOINT_STEP());
+    System.out.println("QUERY_INTERVAL: " + config.getQUERY_INTERVAL());
+    System.out.println("IS_OVERFLOW: " + config.isIS_OVERFLOW());
+    System.out.println("OVERFLOW_MODE: " + config.getOVERFLOW_MODE());
+    System.out.println("OVERFLOW_RATIO: " + config.getOVERFLOW_RATIO());
     System.out.println("---------------------------------------------------------------");
   }
 
@@ -272,7 +272,7 @@ public class Measurement {
 
     // Formatting current Operations
     StringBuilder fileNameSB = new StringBuilder();
-    String[] operations = config.OPERATION_PROPORTION.split(":");
+    String[] operations = config.getOPERATION_PROPORTION().split(":");
 
     for (int i = 0; i < operations.length; i++) {
       // Specify inserting or querying mode
@@ -307,44 +307,44 @@ public class Measurement {
       BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
       bw.write("Main Configurations");
       bw.newLine();
-      bw.write("DB_SWITCH," + config.DB_SWITCH);
+      bw.write("DB_SWITCH," + config.getDB_SWITCH());
       bw.newLine();
-      bw.write("OPERATION_PROPORTION," + config.OPERATION_PROPORTION);
+      bw.write("OPERATION_PROPORTION," + config.getOPERATION_PROPORTION());
       bw.newLine();
-      bw.write("ENABLE_THRIFT_COMPRESSION," + config.ENABLE_THRIFT_COMPRESSION);
+      bw.write("ENABLE_THRIFT_COMPRESSION," + config.isENABLE_THRIFT_COMPRESSION());
       bw.newLine();
-      bw.write("INSERT_DATATYPE_PROPORTION," + config.INSERT_DATATYPE_PROPORTION);
+      bw.write("INSERT_DATATYPE_PROPORTION," + config.getINSERT_DATATYPE_PROPORTION());
       bw.newLine();
-      bw.write("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT)," + config.ENCODING_BOOLEAN
-                                                                + "/" + config.ENCODING_INT32
-                                                                + "/" + config.ENCODING_INT64
-                                                                + "/" + config.ENCODING_FLOAT
-                                                                + "/" + config.ENCODING_DOUBLE
-                                                                + "/" + config.ENCODING_TEXT);
+      bw.write("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT)," + config.getENCODING_BOOLEAN()
+                                                                + "/" + config.getENCODING_INT32()
+                                                                + "/" + config.getENCODING_INT64()
+                                                                + "/" + config.getENCODING_FLOAT()
+                                                                + "/" + config.getENCODING_DOUBLE()
+                                                                + "/" + config.getENCODING_TEXT());
       bw.newLine();
-      bw.write("IS_CLIENT_BIND," + config.IS_CLIENT_BIND);
+      bw.write("IS_CLIENT_BIND," + config.isIS_CLIENT_BIND());
       bw.newLine();
-      bw.write("CLIENT_NUMBER," + config.CLIENT_NUMBER);
+      bw.write("CLIENT_NUMBER," + config.getCLIENT_NUMBER());
       bw.newLine();
-      bw.write("GROUP_NUMBER," + config.GROUP_NUMBER);
+      bw.write("GROUP_NUMBER," + config.getGROUP_NUMBER());
       bw.newLine();
-      bw.write("DEVICE_NUMBER," + config.DEVICE_NUMBER);
+      bw.write("DEVICE_NUMBER," + config.getDEVICE_NUMBER());
       bw.newLine();
-      bw.write("SENSOR_NUMBER," + config.SENSOR_NUMBER);
+      bw.write("SENSOR_NUMBER," + config.getSENSOR_NUMBER());
       bw.newLine();
-      bw.write("BATCH_SIZE," + config.BATCH_SIZE);
+      bw.write("BATCH_SIZE," + config.getBATCH_SIZE());
       bw.newLine();
-      bw.write("LOOP," + config.LOOP);
+      bw.write("LOOP," + config.getLOOP());
       bw.newLine();
-      bw.write("POINT_STEP,"+ config.POINT_STEP);
+      bw.write("POINT_STEP,"+ config.getPOINT_STEP());
       bw.newLine();
-      bw.write("QUERY_INTERVAL," + config.QUERY_INTERVAL);
+      bw.write("QUERY_INTERVAL," + config.getQUERY_INTERVAL());
       bw.newLine();
-      bw.write("IS_OVERFLOW," + config.IS_OVERFLOW);
+      bw.write("IS_OVERFLOW," + config.isIS_OVERFLOW());
       bw.newLine();
-      bw.write("OVERFLOW_MODE," + config.OVERFLOW_MODE);
+      bw.write("OVERFLOW_MODE," + config.getOVERFLOW_MODE());
       bw.newLine();
-      bw.write("OVERFLOW_RATIO," + config.OVERFLOW_RATIO);
+      bw.write("OVERFLOW_RATIO," + config.getOVERFLOW_RATIO());
       bw.close();
     } catch (IOException e) {
       LOGGER.error("Exception occurred during operating buffer writer because: ", e);

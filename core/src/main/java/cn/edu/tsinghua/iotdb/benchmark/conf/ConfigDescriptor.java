@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class ConfigDescriptor {
@@ -24,6 +24,7 @@ public class ConfigDescriptor {
 		config.initDeviceCodes();
 		config.initSensorCodes();
 		config.initSensorFunction();
+		config.setDATA_SET(DataSet.GEOLIFE);
 		config.initRealDataSetSchema();
 	}
 
@@ -48,150 +49,149 @@ public class ConfigDescriptor {
 			Properties properties = new Properties();
 			try {
 				properties.load(inputStream);
-				config.HOST = properties.getProperty("HOST", "no HOST");
-				config.PORT = properties.getProperty("PORT", "no PORT");
-				config.ANOTHER_HOST = properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST");
-				config.ANOTHER_PORT = properties.getProperty("ANOTHER_PORT", "no ANOTHER_PORT");
-				config.KAFKA_LOCATION = properties.getProperty("KAFKA_LOCATION", "no KAFKA_LOCATION");
-				config.ZOOKEEPER_LOCATION = properties.getProperty("ZOOKEEPER_LOCATION", "no ZOOKEEPER_LOCATION");
-				config.TOPIC_NAME = properties.getProperty("TOPIC_NAME", "NULL");
+				config.setHOST(properties.getProperty("HOST", "no HOST"));
+				config.setPORT(properties.getProperty("PORT", "no PORT"));
+				config.setANOTHER_HOST(properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST"));
+				config.setANOTHER_PORT(properties.getProperty("ANOTHER_PORT", "no ANOTHER_PORT"));
+				config.setKAFKA_LOCATION(properties.getProperty("KAFKA_LOCATION", "no KAFKA_LOCATION"));
+				config.setZOOKEEPER_LOCATION(properties.getProperty("ZOOKEEPER_LOCATION", "no ZOOKEEPER_LOCATION"));
+				config.setTOPIC_NAME(properties.getProperty("TOPIC_NAME", "NULL"));
 
+				config.setDEVICE_NUMBER(Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.getDEVICE_NUMBER()+"")));
+				config.setSENSOR_NUMBER(Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.getSENSOR_NUMBER()+"")));
 
-				config.DEVICE_NUMBER = Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.DEVICE_NUMBER+""));
-				config.SENSOR_NUMBER = Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.SENSOR_NUMBER+""));
-
-				config.FILE_PATH = properties.getProperty("FILE_PATH", "no file");
+				config.setFILE_PATH(properties.getProperty("FILE_PATH", "no file"));
 
 				String dataset = properties.getProperty("DATA_SET", "NULL");
 				switch (properties.getProperty("DATA_SET", "REDD")) {
-					case "GEOLIFE": config.DATA_SET = DataSet.GEOLIFE; break;
-					case "REDD": config.DATA_SET = DataSet.REDD; break;
-					case "TDRIVE": config.DATA_SET = DataSet.TDRIVE; break;
+					case "GEOLIFE": config.setDATA_SET(DataSet.GEOLIFE); break;
+					case "REDD": config.setDATA_SET(DataSet.REDD); break;
+					case "TDRIVE": config.setDATA_SET(DataSet.TDRIVE); break;
 					default: throw new RuntimeException("not support dataset: " + dataset);
 				}
 
-				config.POINT_STEP = Long.parseLong(properties.getProperty("POINT_STEP", config.POINT_STEP+""));
-				config.BATCH_SIZE = Integer.parseInt(properties.getProperty("BATCH_SIZE", config.BATCH_SIZE +""));
-				config.SG_STRATEGY = properties.getProperty("SG_STRATEGY", "hash");
-				config.LOOP = Long.parseLong(properties.getProperty("LOOP", config.LOOP+""));
-				config.LINE_RATIO = Double.parseDouble(properties.getProperty("LINE_RATIO", config.LINE_RATIO+""));
-				config.SIN_RATIO = Double.parseDouble(properties.getProperty("SIN_RATIO", config.SIN_RATIO+""));
-				config.SQUARE_RATIO = Double.parseDouble(properties.getProperty("SQUARE_RATIO", config.SQUARE_RATIO+""));
-				config.RANDOM_RATIO = Double.parseDouble(properties.getProperty("RANDOM_RATIO", config.RANDOM_RATIO+""));
-				config.CONSTANT_RATIO = Double.parseDouble(properties.getProperty("CONSTANT_RATIO", config.CONSTANT_RATIO+""));
+				config.setPOINT_STEP(Long.parseLong(properties.getProperty("POINT_STEP", config.getPOINT_STEP()+"")));
+				config.setBATCH_SIZE(Integer.parseInt(properties.getProperty("BATCH_SIZE", config.getBATCH_SIZE() +"")));
+				config.setSG_STRATEGY(properties.getProperty("SG_STRATEGY", "hash"));
+				config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP()+"")));
+				config.setLINE_RATIO(Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO()+"")));
+				config.setSIN_RATIO(Double.parseDouble(properties.getProperty("SIN_RATIO", config.getSIN_RATIO()+"")));
+				config.setSQUARE_RATIO(Double.parseDouble(properties.getProperty("SQUARE_RATIO", config.getSQUARE_RATIO()+"")));
+				config.setRANDOM_RATIO(Double.parseDouble(properties.getProperty("RANDOM_RATIO", config.getRANDOM_RATIO()+"")));
+				config.setCONSTANT_RATIO(Double.parseDouble(properties.getProperty("CONSTANT_RATIO", config.getCONSTANT_RATIO()+"")));
 
-				config.INTERVAL = Integer.parseInt(properties.getProperty("INTERVAL", config.INTERVAL+""));
-				config.CLIENT_NUMBER = Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.CLIENT_NUMBER+""));
-				config.GROUP_NUMBER = Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.GROUP_NUMBER+""));
+				config.setINTERVAL(Integer.parseInt(properties.getProperty("INTERVAL", config.getINTERVAL()+"")));
+				config.setCLIENT_NUMBER(Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER()+"")));
+				config.setGROUP_NUMBER(Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER()+"")));
 
-				config.DB_URL = properties.getProperty("DB_URL", "localhost");
-				config.DB_NAME = properties.getProperty("DB_NAME", "test");
-				config.DB_SWITCH = properties.getProperty("DB_SWITCH", Constants.DB_IOT);
-				config.INSERT_MODE = properties.getProperty("INSERT_MODE", config.INSERT_MODE);
+				config.setDB_URL(properties.getProperty("DB_URL", "localhost"));
+				config.setDB_NAME(properties.getProperty("DB_NAME", "test"));
+				config.setDB_SWITCH(properties.getProperty("DB_SWITCH", Constants.DB_IOT));
+				config.setINSERT_MODE(properties.getProperty("INSERT_MODE", config.getINSERT_MODE()));
 
-				config.TIMESTAMP_PRECISION = properties.getProperty("TIMESTAMP_PRECISION", config.TIMESTAMP_PRECISION+"");
-				switch (config.TIMESTAMP_PRECISION) {
+				config.setTIMESTAMP_PRECISION(properties.getProperty("TIMESTAMP_PRECISION", config.getTIMESTAMP_PRECISION()+""));
+				switch (config.getTIMESTAMP_PRECISION()) {
 					case "ms":  break;
 					case "us":
-						if (!config.DB_SWITCH.equals("IoTDB") && !config.DB_SWITCH.equals("InfluxDB")){
-							throw new RuntimeException("The database " + config.DB_SWITCH + " can't use microsecond precision");
+						if (!config.getDB_SWITCH().equals("IoTDB") && !config.getDB_SWITCH().equals("InfluxDB")){
+							throw new RuntimeException("The database " + config.getDB_SWITCH() + " can't use microsecond precision");
 						}
 						break;
-					default: throw new RuntimeException("not support timestamp precision: " + config.TIMESTAMP_PRECISION);
+					default: throw new RuntimeException("not support timestamp precision: " + config.getTIMESTAMP_PRECISION());
 				}
 
-				config.QUERY_SENSOR_NUM  = Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.QUERY_SENSOR_NUM+""));
-				config.QUERY_DEVICE_NUM  = Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.QUERY_DEVICE_NUM+""));
-				config.QUERY_AGGREGATE_FUN = properties.getProperty("QUERY_AGGREGATE_FUN", config.QUERY_AGGREGATE_FUN);
-				config.QUERY_INTERVAL = Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.QUERY_INTERVAL+""));
-				config.QUERY_LOWER_LIMIT = Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.QUERY_LOWER_LIMIT+""));
-				config.QUERY_SEED = Long.parseLong(properties.getProperty("QUERY_SEED", config.QUERY_SEED+""));
-				config.IS_EMPTY_PRECISE_POINT_QUERY = Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.IS_EMPTY_PRECISE_POINT_QUERY+""));
-				config.REMARK = properties.getProperty("REMARK", "-");
+				config.setQUERY_SENSOR_NUM(Integer.parseInt(properties.getProperty("QUERY_SENSOR_NUM", config.getQUERY_SENSOR_NUM()+"")));
+				config.setQUERY_DEVICE_NUM(Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()+"")));
+				config.setQUERY_AGGREGATE_FUN(properties.getProperty("QUERY_AGGREGATE_FUN", config.getQUERY_AGGREGATE_FUN()));
+				config.setQUERY_INTERVAL(Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.getQUERY_INTERVAL()+"")));
+				config.setQUERY_LOWER_LIMIT(Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.getQUERY_LOWER_LIMIT()+"")));
+				config.setQUERY_SEED(Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED()+"")));
+				config.setIS_EMPTY_PRECISE_POINT_QUERY(Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.isIS_EMPTY_PRECISE_POINT_QUERY()+"")));
+				config.setREMARK(properties.getProperty("REMARK", "-"));
 
-				config.TEST_DATA_STORE_PORT = properties.getProperty("TEST_DATA_STORE_PORT", config.TEST_DATA_STORE_PORT);
-				config.TEST_DATA_STORE_DB = properties.getProperty("TEST_DATA_STORE_DB", config.TEST_DATA_STORE_DB);
-				config.TEST_DATA_STORE_IP = properties.getProperty("TEST_DATA_STORE_IP", config.TEST_DATA_STORE_IP);
-				config.TEST_DATA_STORE_USER = properties.getProperty("TEST_DATA_STORE_USER", config.TEST_DATA_STORE_USER);
-				config.TEST_DATA_STORE_PW = properties.getProperty("TEST_DATA_STORE_PW", config.TEST_DATA_STORE_PW);
-				config.TIME_UNIT = Long.parseLong(properties.getProperty("TIME_UNIT", config.TIME_UNIT+""));
-				config.VERSION = properties.getProperty("VERSION", "");
+				config.setTEST_DATA_STORE_PORT(properties.getProperty("TEST_DATA_STORE_PORT", config.getTEST_DATA_STORE_PORT()));
+				config.setTEST_DATA_STORE_DB(properties.getProperty("TEST_DATA_STORE_DB", config.getTEST_DATA_STORE_DB()));
+				config.setTEST_DATA_STORE_IP(properties.getProperty("TEST_DATA_STORE_IP", config.getTEST_DATA_STORE_IP()));
+				config.setTEST_DATA_STORE_USER(properties.getProperty("TEST_DATA_STORE_USER", config.getTEST_DATA_STORE_USER()));
+				config.setTEST_DATA_STORE_PW(properties.getProperty("TEST_DATA_STORE_PW", config.getTEST_DATA_STORE_PW()));
+				config.setTIME_UNIT(Long.parseLong(properties.getProperty("TIME_UNIT", config.getTIME_UNIT()+"")));
+				config.setVERSION(properties.getProperty("VERSION", ""));
 
-				config.DB_DATA_PATH = properties.getProperty("DB_DATA_PATH", "/home/liurui");
+				config.setDB_DATA_PATH(properties.getProperty("DB_DATA_PATH", "/home/liurui"));
 				String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
-				Collections.addAll(config.IOTDB_DATA_DIR, dataDir.split(","));
+				config.setIOTDB_DATA_DIR(Arrays.asList(dataDir.split(",")));
 				String walDir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
-				Collections.addAll(config.IOTDB_WAL_DIR, walDir.split(","));
+				config.setIOTDB_WAL_DIR(Arrays.asList(walDir.split(",")));
 				String systemDir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
-				Collections.addAll(config.IOTDB_SYSTEM_DIR, systemDir.split(","));
-				for (String data_ : config.IOTDB_DATA_DIR) {
-					config.SEQUENCE_DIR.add(data_ + "/sequence");
-					config.UNSEQUENCE_DIR.add(data_ + "/unsequence");
+				config.setIOTDB_SYSTEM_DIR(Arrays.asList(systemDir.split(",")));
+				for (String data_ : config.getIOTDB_DATA_DIR()) {
+					config.getSEQUENCE_DIR().add(data_ + "/sequence");
+					config.getUNSEQUENCE_DIR().add(data_ + "/unsequence");
 				}
-				config.ENCODING = properties.getProperty("ENCODING", "PLAIN");
-				config.TEST_DATA_PERSISTENCE = properties.getProperty("TEST_DATA_PERSISTENCE", "None");
-				config.CSV_OUTPUT = Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.CSV_OUTPUT+""));
-				config.NUMBER_OF_DECIMAL_DIGIT = Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.NUMBER_OF_DECIMAL_DIGIT+""));
-				config.LOG_PRINT_INTERVAL = Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.LOG_PRINT_INTERVAL+""));
-				config.MUL_DEV_BATCH = Boolean.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.MUL_DEV_BATCH+""));
-				config.IS_QUIET_MODE = Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.IS_QUIET_MODE+""));
-				config.NET_DEVICE = properties.getProperty("NET_DEVICE", "e");
-				config.WORKLOAD_BUFFER_SIZE = Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.WORKLOAD_BUFFER_SIZE+""));
-				config.STORAGE_GROUP_NAME = properties.getProperty("STORAGE_GROUP_NAME", config.STORAGE_GROUP_NAME);
-				config.TIMESERIES_NAME = properties.getProperty("TIMESERIES_NAME", config.TIMESERIES_NAME);
-				config.TIMESERIES_TYPE = properties.getProperty("TIMESERIES_TYPE", config.TIMESERIES_TYPE);
-				config.TIMESERIES_VALUE_SCOPE = properties.getProperty("TIMESERIES_VALUE_SCOPE", config.TIMESERIES_VALUE_SCOPE);
-				config.IS_OVERFLOW = Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.IS_OVERFLOW+""));
-				config.OVERFLOW_RATIO = Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.OVERFLOW_RATIO+""));
+				config.setENCODING(properties.getProperty("ENCODING", "PLAIN"));
+				config.setTEST_DATA_PERSISTENCE(properties.getProperty("TEST_DATA_PERSISTENCE", "None"));
+				config.setCSV_OUTPUT(Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT()+"")));
+				config.setNUMBER_OF_DECIMAL_DIGIT(Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.getNUMBER_OF_DECIMAL_DIGIT()+"")));
+				config.setNUMBER_OF_DECIMAL_DIGIT(Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.getNUMBER_OF_DECIMAL_DIGIT()+"")));
+				config.setLOG_PRINT_INTERVAL(Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.getLOG_PRINT_INTERVAL()+"")));
+				config.setIS_QUIET_MODE(Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.isIS_QUIET_MODE()+"")));
+				config.setNET_DEVICE(properties.getProperty("NET_DEVICE", "e"));
+				config.setWORKLOAD_BUFFER_SIZE(Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.getWORKLOAD_BUFFER_SIZE()+"")));
+				config.setSTORAGE_GROUP_NAME(properties.getProperty("STORAGE_GROUP_NAME", config.getSTORAGE_GROUP_NAME()));
+				config.setTIMESERIES_NAME(properties.getProperty("TIMESERIES_NAME", config.getTIMESERIES_NAME()));
+				config.setTIMESERIES_TYPE(properties.getProperty("TIMESERIES_TYPE", config.getTIMESERIES_TYPE()));
+				config.setTIMESERIES_VALUE_SCOPE(properties.getProperty("TIMESERIES_VALUE_SCOPE", config.getTIMESERIES_VALUE_SCOPE()));
+				config.setIS_OVERFLOW(Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.isIS_OVERFLOW()+"")));
+				config.setOVERFLOW_RATIO(Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.getOVERFLOW_RATIO()+"")));
 
-				config.BENCHMARK_WORK_MODE = properties.getProperty("BENCHMARK_WORK_MODE", "");
-				config.IMPORT_DATA_FILE_PATH = properties.getProperty("IMPORT_DATA_FILE_PATH", "");
-				config.METADATA_FILE_PATH= properties.getProperty("METADATA_FILE_PATH", "");
-				config.BATCH_EXECUTE_COUNT = Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.BATCH_EXECUTE_COUNT+""));
-				config.OVERFLOW_MODE = Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.OVERFLOW_MODE+""));
-				config.MAX_K = Integer.parseInt(properties.getProperty("MAX_K", config.MAX_K+""));
-				config.LAMBDA = Double.parseDouble(properties.getProperty("LAMBDA", config.LAMBDA+""));
-				config.IS_RANDOM_TIMESTAMP_INTERVAL = Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.IS_RANDOM_TIMESTAMP_INTERVAL+""));
-				config.CLIENT_MAX_WRT_RATE = Double.parseDouble(properties.getProperty("CLIENT_MAX_WRT_RATE", config.CLIENT_MAX_WRT_RATE+""));
-				config.QUERY_LIMIT_N = Integer.parseInt(properties.getProperty("QUERY_LIMIT_N", config.QUERY_LIMIT_N+""));
-				config.QUERY_LIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_LIMIT_OFFSET", config.QUERY_LIMIT_OFFSET+""));
-				config.QUERY_SLIMIT_N = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_N", config.QUERY_SLIMIT_N+""));
-				config.QUERY_SLIMIT_OFFSET = Integer.parseInt(properties.getProperty("QUERY_SLIMIT_OFFSET", config.QUERY_SLIMIT_OFFSET+""));
-				config.CREATE_SCHEMA = Boolean.parseBoolean(properties.getProperty("CREATE_SCHEMA", config.CREATE_SCHEMA+""));
-				config.COMPRESSOR = properties.getProperty("COMPRESSOR", "UNCOMPRESSOR");
-				config.OPERATION_PROPORTION = properties.getProperty("OPERATION_PROPORTION", config.OPERATION_PROPORTION);
-				config.INSERT_DATATYPE_PROPORTION = properties.getProperty("INSERT_DATATYPE_PROPORTION", config.INSERT_DATATYPE_PROPORTION);
-				config.ENCODING_BOOLEAN = properties.getProperty("ENCODING_BOOLEAN", config.ENCODING_BOOLEAN);
-				config.ENCODING_INT32 = properties.getProperty("ENCODING_INT32", config.ENCODING_INT32);
-				config.ENCODING_INT64 = properties.getProperty("ENCODING_INT64", config.ENCODING_INT64);
-				config.ENCODING_FLOAT = properties.getProperty("ENCODING_FLOAT", config.ENCODING_FLOAT);
-				config.ENCODING_DOUBLE = properties.getProperty("ENCODING_DOUBLE", config.ENCODING_DOUBLE);
-				config.ENCODING_TEXT = properties.getProperty("ENCODING_TEXT", config.ENCODING_TEXT);
-				config.START_TIME = properties.getProperty("START_TIME", config.START_TIME);
-				config.INIT_WAIT_TIME = Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.INIT_WAIT_TIME+""));
-				config.DATA_SEED = Long.parseLong(properties.getProperty("DATA_SEED", config.DATA_SEED+""));
-				config.LIMIT_CLAUSE_MODE = Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.LIMIT_CLAUSE_MODE + ""));
-				config.STEP_SIZE = Integer.parseInt(properties.getProperty("STEP_SIZE", config.STEP_SIZE+""));
-				config.OP_INTERVAL = Integer.parseInt(properties.getProperty("OP_INTERVAL", config.OP_INTERVAL+""));
-				config.IS_CLIENT_BIND = Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.IS_CLIENT_BIND+""));
-				config.IS_DELETE_DATA = Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.IS_DELETE_DATA+""));
-				config.REAL_QUERY_START_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.REAL_QUERY_START_TIME+""));
-				config.REAL_QUERY_STOP_TIME = Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.REAL_QUERY_STOP_TIME+""));
-				config.USE_CLUSTER=Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.USE_CLUSTER + ""));
-				config.ENABLE_THRIFT_COMPRESSION=Boolean.parseBoolean(properties.getProperty("ENABLE_THRIFT_COMPRESSION", config.ENABLE_THRIFT_COMPRESSION + ""));
-				if (config.USE_CLUSTER){
-					config.FIRST_INDEX = Integer.parseInt(properties.getProperty("FIRST_INDEX",config.FIRST_INDEX + ""));
-					config.FIRST_DEVICE_INDEX = config.FIRST_INDEX * config.DEVICE_NUMBER;
+				config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
+				config.setIMPORT_DATA_FILE_PATH(properties.getProperty("IMPORT_DATA_FILE_PATH", ""));
+				config.setMETADATA_FILE_PATH(properties.getProperty("METADATA_FILE_PATH", ""));
+				config.setBATCH_EXECUTE_COUNT(Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.getBATCH_EXECUTE_COUNT()+"")));
+				config.setOVERFLOW_MODE(Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.getOVERFLOW_MODE()+"")));
+				config.setMAX_K(Integer.parseInt(properties.getProperty("MAX_K", config.getMAX_K()+"")));
+				config.setLAMBDA(Double.parseDouble(properties.getProperty("LAMBDA", config.getLAMBDA()+"")));
+				config.setIS_RANDOM_TIMESTAMP_INTERVAL(Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.isIS_RANDOM_TIMESTAMP_INTERVAL()+"")));
+				config.setCLIENT_MAX_WRT_RATE(Double.parseDouble(properties.getProperty("CLIENT_MAX_WRT_RATE", config.getCLIENT_MAX_WRT_RATE()+"")));
+				config.setQUERY_LIMIT_N(Integer.parseInt(properties.getProperty("QUERY_LIMIT_N", config.getQUERY_LIMIT_N()+"")));
+				config.setQUERY_LIMIT_OFFSET(Integer.parseInt(properties.getProperty("QUERY_LIMIT_OFFSET", config.getQUERY_LIMIT_OFFSET()+"")));
+				config.setQUERY_SLIMIT_N(Integer.parseInt(properties.getProperty("QUERY_SLIMIT_N", config.getQUERY_SLIMIT_N()+"")));
+				config.setQUERY_SLIMIT_OFFSET(Integer.parseInt(properties.getProperty("QUERY_SLIMIT_OFFSET", config.getQUERY_SLIMIT_OFFSET()+"")));
+				config.setCREATE_SCHEMA(Boolean.parseBoolean(properties.getProperty("CREATE_SCHEMA", config.isCREATE_SCHEMA()+"")));
+				config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", "UNCOMPRESSOR"));
+				config.setOPERATION_PROPORTION(properties.getProperty("OPERATION_PROPORTION", config.getOPERATION_PROPORTION()));
+				config.setINSERT_DATATYPE_PROPORTION(properties.getProperty("INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
+				config.setENCODING_BOOLEAN(properties.getProperty("ENCODING_BOOLEAN", config.getENCODING_BOOLEAN()));
+				config.setENCODING_INT32(properties.getProperty("ENCODING_INT32", config.getENCODING_INT32()));
+				config.setENCODING_INT64(properties.getProperty("ENCODING_INT64", config.getENCODING_INT64()));
+				config.setENCODING_FLOAT(properties.getProperty("ENCODING_FLOAT", config.getENCODING_FLOAT()));
+				config.setENCODING_DOUBLE(properties.getProperty("ENCODING_DOUBLE", config.getENCODING_DOUBLE()));
+				config.setENCODING_TEXT(properties.getProperty("ENCODING_TEXT", config.getENCODING_TEXT()));
+				config.setSTART_TIME(properties.getProperty("START_TIME", config.getSTART_TIME()));
+				config.setINIT_WAIT_TIME(Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME()+"")));
+				config.setDATA_SEED(Long.parseLong(properties.getProperty("DATA_SEED", config.getDATA_SEED()+"")));
+				config.setLIMIT_CLAUSE_MODE(Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.getLIMIT_CLAUSE_MODE() + "")));
+				config.setSTEP_SIZE(Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE()+"")));
+				config.setOP_INTERVAL(Integer.parseInt(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
+				config.setIS_CLIENT_BIND(Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND()+"")));
+				config.setIS_DELETE_DATA(Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA()+"")));
+				config.setREAL_QUERY_START_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.getREAL_QUERY_START_TIME()+"")));
+				config.setREAL_QUERY_STOP_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.getREAL_QUERY_STOP_TIME()+"")));
+				config.setUSE_CLUSTER(Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.isUSE_CLUSTER() + "")));
+				config.setENABLE_THRIFT_COMPRESSION(Boolean.parseBoolean(properties.getProperty("ENABLE_THRIFT_COMPRESSION", config.isENABLE_THRIFT_COMPRESSION() + "")));
+				if (config.isUSE_CLUSTER()){
+					config.setFIRST_INDEX(Integer.parseInt(properties.getProperty("FIRST_INDEX",config.getFIRST_INDEX() + "")));
+					config.setFIRST_DEVICE_INDEX(config.getFIRST_INDEX() * config.getDEVICE_NUMBER());
 				}
 				else {
-					config.FIRST_DEVICE_INDEX = 0;
+					config.setFIRST_DEVICE_INDEX(0);
 				}
 
-        config.REAL_INSERT_RATE = Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.REAL_INSERT_RATE+""));
-				if(config.REAL_INSERT_RATE <= 0 || config.REAL_INSERT_RATE > 1) {
-          config.REAL_INSERT_RATE = 1;
+        config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));
+				if(config.getREAL_INSERT_RATE() <= 0 || config.getREAL_INSERT_RATE() > 1) {
+          config.setREAL_INSERT_RATE(1);
           LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
-                  + "1], using default value 1.0", config.REAL_INSERT_RATE);
+                  + "1], using default value 1.0", config.getREAL_INSERT_RATE());
         }
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -17,6 +17,6 @@ public class DBFactory {
     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
       e.printStackTrace();
     }
-    throw new SQLException("init database " + config.DB_SWITCH + " failed");
+    throw new SQLException("init database " + config.getDB_SWITCH() + " failed");
   }
 }

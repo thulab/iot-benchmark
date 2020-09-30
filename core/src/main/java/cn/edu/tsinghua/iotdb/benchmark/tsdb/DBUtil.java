@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class DBUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(DBUtil.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private static double[] probabilities = null;
 
@@ -18,7 +18,7 @@ public class DBUtil {
     if (probabilities == null) {
       resolveDataTypeProportion();
     }
-    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
+    double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
     int i;
     for (i = 1; i <= 6; i++) {
       if (sensorPosition >= probabilities[i - 1] && sensorPosition < probabilities[i]) {
@@ -51,7 +51,7 @@ public class DBUtil {
     }
     //the following implementation is not graceful, but it is okey as it only is run once.
     List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (split.length != 6) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
     }

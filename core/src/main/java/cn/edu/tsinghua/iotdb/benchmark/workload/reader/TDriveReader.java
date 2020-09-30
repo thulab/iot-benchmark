@@ -30,7 +30,7 @@ public class TDriveReader extends BasicReader {
   @Override
   public void init() {
     currentDeviceId = new File(currentFile).getName();
-    deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.GROUP_NUMBER),
+    deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
         currentDeviceId, sensors);
   }
 

@@ -47,10 +47,10 @@ public class DoubleIOTDB implements IDatabase {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection1 = DriverManager
-          .getConnection(String.format(Constants.URL, config.HOST, config.PORT), Constants.USER,
+          .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()), Constants.USER,
               Constants.PASSWD);
       connection2 = DriverManager
-          .getConnection(String.format(Constants.URL, config.ANOTHER_HOST, config.ANOTHER_PORT),
+          .getConnection(String.format(Constants.URL, config.getANOTHER_HOST(), config.getANOTHER_PORT()),
               Constants.USER,
               Constants.PASSWD);
     } catch (Exception e) {
@@ -88,7 +88,7 @@ public class DoubleIOTDB implements IDatabase {
 
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
+    if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       try {
         // get all storage groups
         Set<String> groups = new HashSet<>();
@@ -139,7 +139,7 @@ public class DoubleIOTDB implements IDatabase {
                   + "." + deviceSchema.getGroup()
                   + "." + deviceSchema.getDevice()
                   + "." + sensor,
-              dataType, getEncodingType(dataType), config.COMPRESSOR);
+              dataType, getEncodingType(dataType), config.getCOMPRESSOR());
           statement.addBatch(createSeriesSql);
           count++;
           sensorIndex++;
@@ -215,7 +215,7 @@ public class DoubleIOTDB implements IDatabase {
     for (int i = 1; i <= TSDataType.values().length; i++) {
       p[i] = p[i - 1] + proportion.get(i - 1);
     }
-    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
+    double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
     int i;
     for (i = 1; i <= TSDataType.values().length; i++) {
       if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
@@ -243,7 +243,7 @@ public class DoubleIOTDB implements IDatabase {
 
   List<Double> resolveDataTypeProportion() {
     List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (split.length != TSDataType.values().length) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
     }
@@ -267,17 +267,17 @@ public class DoubleIOTDB implements IDatabase {
   String getEncodingType(String dataType) {
     switch (dataType) {
       case "BOOLEAN":
-        return config.ENCODING_BOOLEAN;
+        return config.getENCODING_BOOLEAN();
       case "INT32":
-        return config.ENCODING_INT32;
+        return config.getENCODING_INT32();
       case "INT64":
-        return config.ENCODING_INT64;
+        return config.getENCODING_INT64();
       case "FLOAT":
-        return config.ENCODING_FLOAT;
+        return config.getENCODING_FLOAT();
       case "DOUBLE":
-        return config.ENCODING_DOUBLE;
+        return config.getENCODING_DOUBLE();
       case "TEXT":
-        return config.ENCODING_TEXT;
+        return config.getENCODING_TEXT();
       default:
         LOGGER.error("Unsupported data type {}.", dataType);
         return null;

@@ -7,7 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
  */
 public class Constants {
     private static Config config = ConfigDescriptor.getInstance().getConfig();
-    public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(config.START_TIME);
+    public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
     public static final String URL = "jdbc:iotdb://%s:%s/";
     public static final String USER = "root";
     public static final String PASSWD = "root";

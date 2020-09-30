@@ -41,14 +41,14 @@ public class InfluxDB implements IDatabase {
   private final String defaultRp = "autogen";
 
   private org.influxdb.InfluxDB influxDbInstance;
-  private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.TIMESTAMP_PRECISION);
+  private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.getTIMESTAMP_PRECISION());
 
   /**
    * constructor.
    */
   public InfluxDB() {
-    influxUrl = config.DB_URL;
-    influxDbName = config.DB_NAME;
+    influxUrl = config.getDB_URL();
+    influxDbName = config.getDB_NAME();
   }
 
   @Override
@@ -73,8 +73,8 @@ public class InfluxDB implements IDatabase {
       }
 
       // wait for deletion complete
-      LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-      Thread.sleep(config.INIT_WAIT_TIME);
+      LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      Thread.sleep(config.getINIT_WAIT_TIME());
     } catch (Exception e) {
       LOGGER.error("Cleanup InfluxDB failed because ", e);
       throw new TsdbException(e);
@@ -221,7 +221,7 @@ public class InfluxDB implements IDatabase {
     tags.put("device", deviceSchema.getDevice());
     model.setTagSet(tags);
     model.setTimestamp(time);
-    model.setTimestampPrecision(config.TIMESTAMP_PRECISION);
+    model.setTimestampPrecision(config.getTIMESTAMP_PRECISION());
     HashMap<String, Object> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
