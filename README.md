@@ -11,9 +11,6 @@
 - [Prerequisites](#prerequisites)
 - [Build](#build)
 - [Quick Start](#quick-start)
-- [The relation of IoTDB and Benchmark with version](#The relation of IoTDB and Benchmark with version)
-		- [IoTDB 0.10.0](#When the version of IoTDB is master(0.10.0) , you have to use the rel/0.10 branch of benchmark to test it.)
-		- [IoTDB 0.9.0](#When the version of IoTDB is not master(0.9.0) , you have to use the rel/0.9 branch of benchmark to test it.)
 - [Data Ingestion Test](#data-ingestion-test)
 		- [Configure](#configure)
 		- [Start \(Without Server System Information Recording\)](#start-without-server-system-information-recording)
@@ -76,8 +73,9 @@ You can build IoTDB-benchmark using Maven:
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
+This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-> This step is not necessary since the ```benchmark.sh``` script will build the project every time. You can comment the corresponding command to save time.
+After, you can go to `target/database` to run benchmark script.
 
 # Quick Start
 

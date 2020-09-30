@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 
 import java.sql.SQLException;
 
@@ -12,8 +13,17 @@ public class DBFactory {
   public DBFactory() { }
 
   public IDatabase getDatabase() throws SQLException {
+    String dbClass = Constants.IOTDB011_CLASS;
     try {
-      return (IDatabase) Class.forName("cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB").newInstance();
+      switch(config.getDB_SWITCH()) {
+        case "IoTDB011":
+          dbClass = Constants.IOTDB011_CLASS;
+          break;
+        case "IoTDB010":
+          dbClass = Constants.IOTDB010_CLASS;
+          break;
+      }
+      return (IDatabase) Class.forName(dbClass).newInstance();
     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
       e.printStackTrace();
     }

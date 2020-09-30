@@ -6,7 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
  * 系统运行常量值
  */
 public class Constants {
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
     public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
     public static final String URL = "jdbc:iotdb://%s:%s/";
     public static final String USER = "root";
@@ -55,4 +55,6 @@ public class Constants {
     public static final String HASH_SG_ASSIGN_MODE = "hash";
     public static final String DIV_SG_ASSIGN_MODE = "div";
 
+    public static final String IOTDB011_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB";
+    public static final String IOTDB010_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb010.IoTDB";
 }
