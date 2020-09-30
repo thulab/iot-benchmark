@@ -23,14 +23,14 @@ import org.slf4j.LoggerFactory;
 public class IoTDBSession extends IoTDB {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private Session session;
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private final Session session;
 
   public IoTDBSession() {
     super();
     session = new Session(config.getHOST(), config.getPORT(), Constants.USER, Constants.PASSWD);
     try {
-      if (config.ENABLE_THRIFT_COMPRESSION) {
+      if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
       } else {
         session.open();
@@ -47,7 +47,7 @@ public class IoTDBSession extends IoTDB {
     super();
     session = new Session(host, port, user, password);
     try {
-      if (config.ENABLE_THRIFT_COMPRESSION) {
+      if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
       } else {
         session.open();

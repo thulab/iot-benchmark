@@ -23,6 +23,7 @@ public class DataSchemaTest {
     config.setCLIENT_NUMBER(30);
     int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
     int deviceNumEachClient = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
+    config.initDeviceCodes();
     DataSchema dataSchema = DataSchema.getInstance();
     Map<Integer, List<DeviceSchema>> client2Schema = dataSchema.getClientBindSchema();
     for (int clientId : client2Schema.keySet()){
