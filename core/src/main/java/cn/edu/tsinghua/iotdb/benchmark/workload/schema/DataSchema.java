@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class DataSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSchema.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
 
   public Map<Integer, List<DeviceSchema>> getClientBindSchema() {
@@ -32,7 +32,7 @@ public class DataSchema {
   }
 
   private void createClientBindSchema() {
-    int eachClientDeviceNum = 0;
+    int eachClientDeviceNum;
     if (config.getCLIENT_NUMBER() != 0) {
       eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
     } else {

@@ -55,7 +55,7 @@ public class SyntheticWorkload implements IWorkload {
     for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);
     }
-    queryDeviceRandom = new Random(config.QUERY_SEED + clientId);
+    queryDeviceRandom = new Random(config.getQUERY_SEED() + clientId);
     operationLoops = new EnumMap<>(Operation.class);
     for (Operation operation : Operation.values()) {
       operationLoops.put(operation, 0L);
