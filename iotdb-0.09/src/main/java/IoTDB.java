@@ -1,6 +1,3 @@
-package cn.edu.tsinghua.iotdb.benchmark.iotdb010;
-
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -39,9 +36,6 @@ public class IoTDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
-
-      org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.isENABLE_THRIFT_COMPRESSION();
-
       connection = DriverManager
           .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()), Constants.USER,
               Constants.PASSWD);
@@ -93,10 +87,10 @@ public class IoTDB implements IDatabase {
           throw new TsdbException(e);
         }
       }
+      int sensorIndex = 0;
       // create time series
       try (Statement statement = connection.createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
-          int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
             String dataType = getNextDataType(sensorIndex);
             String createSeriesSql = String.format(CREATE_SERIES_SQL,
@@ -104,15 +98,16 @@ public class IoTDB implements IDatabase {
                     + "." + deviceSchema.getGroup()
                     + "." + deviceSchema.getDevice()
                     + "." + sensor,
-                    dataType, getEncodingType(dataType), config.getCOMPRESSOR());
+                dataType, config.getENCODING(), config.getCOMPRESSOR());
             statement.addBatch(createSeriesSql);
-            count++;
             sensorIndex++;
+            count++;
             if (count % 5000 == 0) {
               statement.executeBatch();
               statement.clearBatch();
             }
           }
+
         }
         statement.executeBatch();
         statement.clearBatch();
@@ -126,83 +121,6 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getNextDataType(int sensorIndex) {
-    List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[6 + 1];
-    p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a data type whose proportion
-    // is the region range size.
-    for (int i = 1; i <= 6; i++) {
-      p[i] = p[i - 1] + proportion.get(i - 1);
-    }
-    double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
-    int i;
-    for (i = 1; i <= 6; i++) {
-      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
-        break;
-      }
-    }
-    switch (i) {
-      case 1:
-        return "BOOLEAN";
-      case 2:
-        return "INT32";
-      case 3:
-        return "INT64";
-      case 4:
-        return "FLOAT";
-      case 5:
-        return "DOUBLE";
-      case 6:
-        return "TEXT";
-      default:
-        LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
-        return "TEXT";
-    }
-  }
-
-  List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (split.length != 6) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[6];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
-      }
-    }
-    return proportion;
-  }
-
-  String getEncodingType(String dataType) {
-    switch (dataType) {
-      case "BOOLEAN":
-        return config.getENCODING_BOOLEAN();
-      case "INT32":
-        return config.getENCODING_INT32();
-      case "INT64":
-        return config.getENCODING_INT64();
-      case "FLOAT":
-        return config.getENCODING_FLOAT();
-      case "DOUBLE":
-        return config.getENCODING_DOUBLE();
-      case "TEXT":
-        return config.getENCODING_TEXT();
-      default:
-        LOGGER.error("Unsupported data type {}.", dataType);
-        return null;
-    }
-  }
 
   @Override
   public Status insertOneBatch(Batch batch) {
@@ -267,7 +185,7 @@ public class IoTDB implements IDatabase {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
     String sql = aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
-            (int) aggValueQuery.getValueThreshold()).substring(4);
+        aggValueQuery.getValueThreshold()).substring(4);
     return executeQueryAndGetStatus(sql);
   }
 
@@ -282,7 +200,7 @@ public class IoTDB implements IDatabase {
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeValueQuery.getStartTimestamp(),
         aggRangeValueQuery.getEndTimestamp());
     sql += getValueFilterClause(aggRangeValueQuery.getDeviceSchema(),
-            (int) aggRangeValueQuery.getValueThreshold());
+        aggRangeValueQuery.getValueThreshold());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -306,30 +224,19 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+    String aggQuerySqlHead = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "max_time");
     return executeQueryAndGetStatus(aggQuerySqlHead);
-  }
-
-  private String getLatestPointQuerySql(List<DeviceSchema> devices) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("SELECT last ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0));
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
-    }
-    return addFromClause(devices, builder);
   }
 
   private String getvalueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
     String rangeQuerySql = getRangeQuerySql(valueRangeQuery.getDeviceSchema(),
         valueRangeQuery.getStartTimestamp(), valueRangeQuery.getEndTimestamp());
     String valueFilterClause = getValueFilterClause(valueRangeQuery.getDeviceSchema(),
-            (int) valueRangeQuery.getValueThreshold());
+        valueRangeQuery.getValueThreshold());
     return rangeQuerySql + valueFilterClause;
   }
 
-  private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
+  private String getValueFilterClause(List<DeviceSchema> deviceSchemas, double valueThreshold) {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (String sensor : deviceSchema.getSensors()) {
@@ -356,30 +263,10 @@ public class IoTDB implements IDatabase {
     builder.append(timestamp);
     int sensorIndex = 0;
     for (String value : values) {
-      switch (getNextDataType(sensorIndex)) {
-        case "BOOLEAN":
-          boolean tempBoolean = (Double.parseDouble(value) > 500);
-          builder.append(",").append(tempBoolean);
-          break;
-        case "INT32":
-          int tempInt32 = (int) Double.parseDouble(value);
-          builder.append(",").append(tempInt32);
-          break;
-        case "INT64":
-          long tempInt64 = (long) Double.parseDouble(value);
-          builder.append(",").append(tempInt64);
-          break;
-        case "FLOAT":
-          float tempIntFloat = (float) Double.parseDouble(value);
-          builder.append(",").append(tempIntFloat);
-          break;
-        case "DOUBLE":
-          double tempIntDouble = Double.parseDouble(value);
-          builder.append(",").append(tempIntDouble);
-          break;
-        case "TEXT":
-          builder.append(",").append("'").append(value).append("'");
-          break;
+      if (getNextDataType(sensorIndex).equals("TEXT")) {
+        builder.append(",").append("'").append(value).append("'");
+      } else {
+        builder.append(",").append(value);
       }
       sensorIndex++;
     }
@@ -467,6 +354,66 @@ public class IoTDB implements IDatabase {
   }
 
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
+    String startTime = start + "";
+    String endTime = end + "";
+    return prefix + " GROUP BY(" + granularity + "ms, " + start + ",[" + startTime + "," + endTime + "]" + ")";
+  }
+
+  String getNextDataType(int sensorIndex) {
+    List<Double> proportion = resolveDataTypeProportion();
+    double[] p = new double[6 + 1];
+    p[0] = 0.0;
+    // split [0,1] to n regions, each region corresponds to a data type whose proportion
+    // is the region range size.
+    for (int i = 1; i <= 6; i++) {
+      p[i] = p[i - 1] + proportion.get(i - 1);
+    }
+    double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
+    int i;
+    for (i = 1; i <= 6; i++) {
+      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
+        break;
+      }
+    }
+    switch (i) {
+      case 1:
+        return "BOOLEAN";
+      case 2:
+        return "INT32";
+      case 3:
+        return "INT64";
+      case 4:
+        return "FLOAT";
+      case 5:
+        return "DOUBLE";
+      case 6:
+        return "TEXT";
+      default:
+        LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
+        return "TEXT";
+    }
+  }
+
+  List<Double> resolveDataTypeProportion() {
+    List<Double> proportion = new ArrayList<>();
+    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
+    if (split.length != 6) {
+      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
+    }
+    double[] proportions = new double[6];
+    double sum = 0;
+    for (int i = 0; i < split.length; i++) {
+      proportions[i] = Double.parseDouble(split[i]);
+      sum += proportions[i];
+    }
+    for (int i = 0; i < split.length; i++) {
+      if (sum != 0) {
+        proportion.add(proportions[i] / sum);
+      } else {
+        proportion.add(0.0);
+        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+      }
+    }
+    return proportion;
   }
 }
