@@ -242,7 +242,7 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
-        if (config.CSV_OUTPUT) {
+        if (config.isCSV_OUTPUT()) {
             measurement.outputCSV();
         }
     }
@@ -277,9 +277,9 @@ public class App {
     }
 
     private static boolean checkParamForQueryRealDataSet(Config config) {
-        if (config.QUERY_SENSOR_NUM > config.getFIELDS().size()) {
+        if (config.getQUERY_SENSOR_NUM() > config.getFIELDS().size()) {
             LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
-                config.QUERY_SENSOR_NUM, config.getFIELDS());
+                config.getQUERY_SENSOR_NUM(), config.getFIELDS());
             return false;
         }
         String[] split = config.getOPERATION_PROPORTION().split(":");
