@@ -22,6 +22,11 @@ public class DBFactory {
         case "IoTDB010":
           dbClass = Constants.IOTDB010_CLASS;
           break;
+        case "IoTDB009":
+          dbClass = Constants.IOTDB009_CLASS;
+          break;
+        default:
+          throw new SQLException("didn't support this database");
       }
       return (IDatabase) Class.forName(dbClass).newInstance();
     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {

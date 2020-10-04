@@ -1,3 +1,5 @@
+package cn.edu.tsinghua.iotdb.benchmark.iotdb009;
+
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -18,12 +20,12 @@ import org.slf4j.LoggerFactory;
 public class IoTDBSession extends IoTDB {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private Session session;
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private final Session session;
 
   public IoTDBSession() {
     super();
-    session = new Session(config.HOST, config.PORT, Constants.USER, Constants.PASSWD);
+    session = new Session(config.getHOST(), config.getPORT(), Constants.USER, Constants.PASSWD);
     try {
       session.open();
     } catch (IoTDBSessionException e) {
@@ -34,10 +36,13 @@ public class IoTDBSession extends IoTDB {
   @Override
   public Status insertOneBatch(Batch batch) {
     Schema schema = new Schema();
+    int index = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
+      String dataType = getNextDataType(index);
       schema.registerMeasurement(
-          new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, config.DATA_TYPE),
-              Enum.valueOf(TSEncoding.class, config.ENCODING)));
+          new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, dataType),
+              Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
+      index++;
     }
     RowBatch rowBatch = schema.createRowBatch(
         Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
@@ -50,8 +55,9 @@ public class IoTDBSession extends IoTDB {
       Record record = batch.getRecords().get(recordIndex);
       long currentTime = record.getTimestamp();
       timestamps[recordIndex] = currentTime;
+      index = 0;
       for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
-        if(!config.DATA_TYPE.equals("TEXT")) {
+        if(!getNextDataType(index).equals("TEXT")) {
           double[] sensors = (double[]) values[recordValueIndex];
           sensors[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
               recordValueIndex));
@@ -59,6 +65,7 @@ public class IoTDBSession extends IoTDB {
           Binary[] sensors = (Binary[]) values[recordValueIndex];
           sensors[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
         }
+        index++;
       }
     }
     try {
