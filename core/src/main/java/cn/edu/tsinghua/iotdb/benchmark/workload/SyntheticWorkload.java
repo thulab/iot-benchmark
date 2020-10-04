@@ -243,12 +243,12 @@ public class SyntheticWorkload implements IWorkload {
       clientDevicesIndex.add(m);
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
-    for (int m = 0; m < config.QUERY_DEVICE_NUM; m++) {
+    for (int m = 0; m < config.getQUERY_DEVICE_NUM(); m++) {
       DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
       List<String> sensors = deviceSchema.getSensors();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();
-      for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
+      for (int i = 0; i < config.getQUERY_SENSOR_NUM(); i++) {
         querySensors.add(sensors.get(i));
       }
       deviceSchema.setSensors(querySensors);
@@ -258,10 +258,10 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   private void checkQuerySchemaParams() throws WorkloadException {
-    if (!(config.QUERY_DEVICE_NUM > 0 && config.QUERY_DEVICE_NUM <= config.getDEVICE_NUMBER())) {
-      throw new WorkloadException("QUERY_DEVICE_NUM is not correct, please check.");
+    if (!(config.getQUERY_DEVICE_NUM() > 0 && config.getQUERY_DEVICE_NUM() <= config.getDEVICE_NUMBER())) {
+      throw new WorkloadException("getQUERY_DEVICE_NUM() is not correct, please check.");
     }
-    if (!(config.QUERY_SENSOR_NUM > 0 && config.QUERY_SENSOR_NUM <= config.getSENSOR_NUMBER())) {
+    if (!(config.getQUERY_SENSOR_NUM() > 0 && config.getQUERY_SENSOR_NUM() <= config.getSENSOR_NUMBER())) {
       throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
     }
   }
@@ -282,53 +282,53 @@ public class SyntheticWorkload implements IWorkload {
   public RangeQuery getRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
   }
 
   public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(queryDevices, startTimestamp, endTimestamp,
-        config.QUERY_LOWER_LIMIT);
+        config.getQUERY_LOWER_LIMIT());
   }
 
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(queryDevices, startTimestamp, endTimestamp,
-        config.QUERY_AGGREGATE_FUN);
+        config.getQUERY_AGGREGATE_FUN());
   }
 
   public AggValueQuery getAggValueQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    return new AggValueQuery(queryDevices, config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT);
+    return new AggValueQuery(queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_LIMIT());
   }
 
   public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeValueQuery(queryDevices, startTimestamp, endTimestamp,
-        config.QUERY_AGGREGATE_FUN, config.QUERY_LOWER_LIMIT);
+        config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_LIMIT());
   }
 
   public GroupByQuery getGroupByQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(queryDevices, startTimestamp, endTimestamp,
-        config.QUERY_AGGREGATE_FUN, config.TIME_UNIT);
+        config.getQUERY_AGGREGATE_FUN(), config.getTIME_UNIT());
   }
 
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.QUERY_INTERVAL;
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(queryDevices, startTimestamp, endTimestamp,
-        config.QUERY_AGGREGATE_FUN);
+        config.getQUERY_AGGREGATE_FUN());
   }
 
   private static long getTimestampConst(String timePrecision){

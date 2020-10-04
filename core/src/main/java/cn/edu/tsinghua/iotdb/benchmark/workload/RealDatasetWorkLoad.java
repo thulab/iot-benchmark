@@ -59,13 +59,13 @@ public class RealDatasetWorkLoad implements IWorkload {
 
     //init sensor list
     List<String> sensorList = new ArrayList<>();
-    for (int i = 0; i < config.QUERY_SENSOR_NUM; i++) {
+    for (int i = 0; i < config.getQUERY_SENSOR_NUM(); i++) {
       sensorList.add(config.getFIELDS().get(i));
     }
 
     //init device schema list
     deviceSchemaList = new ArrayList<>();
-    for (int i = 1; i <= config.QUERY_DEVICE_NUM; i++) {
+    for (int i = 1; i <= config.getQUERY_DEVICE_NUM(); i++) {
       String deviceIdStr = "" + i;
       DeviceSchema deviceSchema = new DeviceSchema(calGroupIdStr(deviceIdStr, config.getGROUP_NUMBER()),
           deviceIdStr, sensorList);
@@ -73,8 +73,8 @@ public class RealDatasetWorkLoad implements IWorkload {
     }
 
     //init startTime, endTime
-    startTime = config.REAL_QUERY_START_TIME;
-    endTime = config.REAL_QUERY_STOP_TIME;
+    startTime = config.getREAL_QUERY_START_TIME();
+    endTime = config.getREAL_QUERY_STOP_TIME();
 
   }
 
@@ -103,30 +103,30 @@ public class RealDatasetWorkLoad implements IWorkload {
 
   @Override
   public ValueRangeQuery getValueRangeQuery() {
-    return new ValueRangeQuery(deviceSchemaList, startTime, endTime, config.QUERY_LOWER_LIMIT);
+    return new ValueRangeQuery(deviceSchemaList, startTime, endTime, config.getQUERY_LOWER_LIMIT());
   }
 
   @Override
   public AggRangeQuery getAggRangeQuery() {
-    return new AggRangeQuery(deviceSchemaList, startTime, endTime, config.QUERY_AGGREGATE_FUN);
+    return new AggRangeQuery(deviceSchemaList, startTime, endTime, config.getQUERY_AGGREGATE_FUN());
   }
 
   @Override
   public AggValueQuery getAggValueQuery() {
-    return new AggValueQuery(startTime, endTime, deviceSchemaList, config.QUERY_AGGREGATE_FUN,
-        config.QUERY_LOWER_LIMIT);
+    return new AggValueQuery(startTime, endTime, deviceSchemaList, config.getQUERY_AGGREGATE_FUN(),
+        config.getQUERY_LOWER_LIMIT());
   }
 
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() {
-    return new AggRangeValueQuery(deviceSchemaList, startTime, endTime, config.QUERY_AGGREGATE_FUN,
-        config.QUERY_LOWER_LIMIT);
+    return new AggRangeValueQuery(deviceSchemaList, startTime, endTime, config.getQUERY_AGGREGATE_FUN(),
+        config.getQUERY_LOWER_LIMIT());
   }
 
   @Override
   public GroupByQuery getGroupByQuery() {
-    return new GroupByQuery(deviceSchemaList, startTime, endTime, config.QUERY_AGGREGATE_FUN,
-        config.QUERY_INTERVAL);
+    return new GroupByQuery(deviceSchemaList, startTime, endTime, config.getQUERY_AGGREGATE_FUN(),
+        config.getQUERY_INTERVAL());
   }
 
   @Override

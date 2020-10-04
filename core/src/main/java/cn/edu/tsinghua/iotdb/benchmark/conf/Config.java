@@ -996,34 +996,34 @@ public class Config {
 	}
 
 	//iotDB查询测试相关参数
-	public int QUERY_SENSOR_NUM = 1;
-	public int QUERY_DEVICE_NUM = 1;
-	public String QUERY_AGGREGATE_FUN = "";
-	public long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
-	public double QUERY_LOWER_LIMIT = 0;
-	public boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
-	public long TIME_UNIT = QUERY_INTERVAL / 2;
-	public long QUERY_SEED = 1516580959202L;
-	public int QUERY_LIMIT_N = 1;
-	public int QUERY_LIMIT_OFFSET = 0;
-	public int QUERY_SLIMIT_N = 1;
-	public int QUERY_SLIMIT_OFFSET = 0;
-	public boolean CREATE_SCHEMA = true;
-	public long REAL_QUERY_START_TIME = 0;
-	public long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
+	private int QUERY_SENSOR_NUM = 1;
+	private int QUERY_DEVICE_NUM = 1;
+	private String QUERY_AGGREGATE_FUN = "";
+	private long QUERY_INTERVAL = DEVICE_NUMBER * POINT_STEP;
+	private double QUERY_LOWER_LIMIT = 0;
+	private boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
+	private long TIME_UNIT = QUERY_INTERVAL / 2;
+	private long QUERY_SEED = 1516580959202L;
+	private int QUERY_LIMIT_N = 1;
+	private int QUERY_LIMIT_OFFSET = 0;
+	private int QUERY_SLIMIT_N = 1;
+	private int QUERY_SLIMIT_OFFSET = 0;
+	private boolean CREATE_SCHEMA = true;
+	private long REAL_QUERY_START_TIME = 0;
+	private long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
 
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
-	public String TEST_DATA_PERSISTENCE = "None";
-	public boolean CSV_OUTPUT = true;
+	private String TEST_DATA_PERSISTENCE = "None";
+	private boolean CSV_OUTPUT = true;
 
-	public String REMARK = "";
-	public String TEST_DATA_STORE_IP = "";
-	public String TEST_DATA_STORE_PORT = "";
-	public String TEST_DATA_STORE_DB = "";
-	public String TEST_DATA_STORE_USER = "";
-	public String TEST_DATA_STORE_PW = "";
-	public String VERSION = "";
+	private String REMARK = "";
+	private String TEST_DATA_STORE_IP = "";
+	private String TEST_DATA_STORE_PORT = "";
+	private String TEST_DATA_STORE_DB = "";
+	private String TEST_DATA_STORE_USER = "";
+	private String TEST_DATA_STORE_PW = "";
+	private String VERSION = "";
 
 	public String getVERSION() {
 		return VERSION;

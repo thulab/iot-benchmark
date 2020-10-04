@@ -30,11 +30,11 @@ public class MySqlRecorder implements ITestDataPersistence {
   private String localName;
   private final String day;
   private static final long EXP_TIME = System.currentTimeMillis();
-  private final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
+  private final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
   private Statement statement;
   private static final String URL_TEMPLATE = "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
-  private final String url = String.format(URL_TEMPLATE, config.TEST_DATA_STORE_IP,
-      config.TEST_DATA_STORE_PORT, config.TEST_DATA_STORE_DB, config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
+  private final String url = String.format(URL_TEMPLATE, config.getTEST_DATA_STORE_IP(),
+      config.getTEST_DATA_STORE_PORT(), config.TEST_DATA_STORE_DB, config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
   private long count = 0;
 
   public MySqlRecorder() {

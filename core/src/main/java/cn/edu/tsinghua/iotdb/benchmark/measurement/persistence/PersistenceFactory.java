@@ -14,7 +14,7 @@ public class PersistenceFactory {
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     public ITestDataPersistence getPersistence() {
-        switch (config.TEST_DATA_PERSISTENCE) {
+        switch (config.getTEST_DATA_PERSISTENCE()) {
             case Constants.TDP_NONE:
                 return new NoneRecorder();
             case Constants.TDP_IOTDB:
@@ -22,7 +22,7 @@ public class PersistenceFactory {
             case Constants.TDP_MYSQL:
                 return new MySqlRecorder();
             default:
-                LOGGER.error("unsupported test data persistence way: {}, use NoneRecorder", config.TEST_DATA_PERSISTENCE);
+                LOGGER.error("unsupported test data persistence way: {}, use NoneRecorder", config.getTEST_DATA_PERSISTENCE());
                 return new NoneRecorder();
         }
     }
