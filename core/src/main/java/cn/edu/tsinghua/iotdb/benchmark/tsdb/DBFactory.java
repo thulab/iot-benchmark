@@ -13,7 +13,7 @@ public class DBFactory {
   public DBFactory() { }
 
   public IDatabase getDatabase() throws SQLException {
-    String dbClass = Constants.IOTDB011_JDBC_CLASS;
+    String dbClass;
     try {
       switch(config.getDB_SWITCH()) {
         case "IoTDB011":

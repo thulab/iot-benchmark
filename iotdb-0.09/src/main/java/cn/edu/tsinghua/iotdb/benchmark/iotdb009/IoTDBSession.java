@@ -4,8 +4,11 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.iotdb.session.IoTDBSessionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -13,7 +16,6 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.RowBatch;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
-import org.apache.iotdb.tsfile.write.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,44 +37,62 @@ public class IoTDBSession extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    Schema schema = new Schema();
-    int index = 0;
+    List<MeasurementSchema> schemaList = new ArrayList<>();
+    int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      String dataType = getNextDataType(index);
-      schema.registerMeasurement(
-          new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, dataType),
+      String dataType = DBUtil.getDataType(sensorIndex);
+      schemaList.add(new MeasurementSchema(sensor, Enum.valueOf(TSDataType.class, dataType),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
-      index++;
+      sensorIndex++;
     }
-    RowBatch rowBatch = schema.createRowBatch(
-        Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
-            .getDeviceSchema().getDevice(), batch.getRecords().size());
-    long[] timestamps = rowBatch.timestamps;
-    Object[] values = rowBatch.values;
+    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
+            .getDeviceSchema().getDevice();
+    RowBatch tablet = new RowBatch(deviceId, schemaList, batch.getRecords().size());
+    long[] timestamps = tablet.timestamps;
+    Object[] values = tablet.values;
 
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
-      rowBatch.batchSize++;
+      tablet.batchSize++;
       Record record = batch.getRecords().get(recordIndex);
+      sensorIndex = 0;
       long currentTime = record.getTimestamp();
       timestamps[recordIndex] = currentTime;
-      index = 0;
       for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
-        if(!getNextDataType(index).equals("TEXT")) {
-          double[] sensors = (double[]) values[recordValueIndex];
-          sensors[recordIndex] = Double.parseDouble(record.getRecordDataValue().get(
-              recordValueIndex));
-        } else {
-          Binary[] sensors = (Binary[]) values[recordValueIndex];
-          sensors[recordIndex] = Binary.valueOf(record.getRecordDataValue().get(recordValueIndex));
+        switch (DBUtil.getDataType(sensorIndex)) {
+          case "BOOLEAN":
+            boolean[] sensorsBool = (boolean []) values[recordValueIndex];
+            sensorsBool[recordIndex] = DBUtil.convertToBoolean(record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case "INT32":
+            int[] sensorsInt = (int[]) values[recordValueIndex];
+            sensorsInt[recordIndex] = DBUtil.convertToInt(record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case "INT64":
+            long[] sensorsLong = (long[]) values[recordValueIndex];
+            sensorsLong[recordIndex] = DBUtil.convertToLong(record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case "FLOAT":
+            float[] sensorsFloat = (float[]) values[recordValueIndex];
+            sensorsFloat[recordIndex] = DBUtil.convertToFloat(record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case "DOUBLE":
+            double[] sensorsDouble = (double[]) values[recordValueIndex];
+            sensorsDouble[recordIndex] = DBUtil.convertToDouble(record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case "TEXT":
+            Binary[] sensorsText = (Binary[]) values[recordValueIndex];
+            sensorsText[recordIndex] = Binary.valueOf(DBUtil.convertToText(record.getRecordDataValue().get(recordValueIndex)));
+            break;
         }
-        index++;
+        sensorIndex++;
       }
     }
     try {
-      session.insertBatch(rowBatch);
-      rowBatch.reset();
+      session.insertBatch(tablet);
+      tablet.reset();
       return new Status(true);
     } catch (IoTDBSessionException e) {
+      System.out.println("failed!");
       return new Status(false, 0, e, e.toString());
     }
   }
