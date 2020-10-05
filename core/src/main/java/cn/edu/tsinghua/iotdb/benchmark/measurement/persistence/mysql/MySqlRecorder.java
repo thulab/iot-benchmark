@@ -34,7 +34,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   private Statement statement;
   private static final String URL_TEMPLATE = "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
   private final String url = String.format(URL_TEMPLATE, config.getTEST_DATA_STORE_IP(),
-      config.getTEST_DATA_STORE_PORT(), config.TEST_DATA_STORE_DB, config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
+      config.getTEST_DATA_STORE_PORT(), config.getTEST_DATA_STORE_DB(), config.getTEST_DATA_STORE_USER(), config.getTEST_DATA_STORE_PW());
   private long count = 0;
 
   public MySqlRecorder() {

@@ -44,8 +44,8 @@ public class OpenTSDB implements IDatabase {
      * constructor.
      */
     public OpenTSDB() {
-        sensorRandom = new Random(1 + config.QUERY_SEED);
-        Random timestampRandom = new Random(2 + config.QUERY_SEED);
+        sensorRandom = new Random(1 + config.getQUERY_SEED());
+        Random timestampRandom = new Random(2 + config.getQUERY_SEED());
         ProbTool probTool = new ProbTool();
         String openUrl = config.getDB_URL();
         writeUrl = openUrl + "/api/put?summary ";
@@ -288,7 +288,7 @@ public class OpenTSDB implements IDatabase {
             deviceStr = deviceStr.substring(1);
 
             String sensorStr = sensorList.get(0);
-            for (int i = 1; i < config.QUERY_SENSOR_NUM; i++) {
+            for (int i = 1; i < config.getQUERY_SENSOR_NUM(); i++) {
                 sensorStr += "|" + sensorList.get(i);
             }
             tags.put("sensor", sensorStr);

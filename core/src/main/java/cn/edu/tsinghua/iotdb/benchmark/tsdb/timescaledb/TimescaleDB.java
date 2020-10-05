@@ -272,7 +272,7 @@ public class TimescaleDB implements IDatabase {
         }
       }
 
-      queryResultPointNum = line * sensorNum * config.QUERY_DEVICE_NUM;
+      queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);
