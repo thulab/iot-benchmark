@@ -401,7 +401,7 @@ public class IoTDB implements IDatabase {
           line++;
         }
       }
-      queryResultPointNum = line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM;
+      queryResultPointNum = line * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);
