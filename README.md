@@ -75,7 +75,7 @@ mvn clean package -Dmaven.test.skip=true
 ```
 This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-After, you can go to `target/database` to run benchmark script.
+After, you can go to `target/database` to run benchmark script. Don't forget to change 'DB_SWITCH';
 
 # Quick Start
 
@@ -102,7 +102,7 @@ edit the corresponding parameters in the ```conf/config.properties``` file as fo
 ```
 HOST=127.0.0.1
 PORT=6667
-DB_SWITCH=IoTDB
+DB_SWITCH=IoTDB011
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=2:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
