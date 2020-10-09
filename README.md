@@ -75,7 +75,7 @@ mvn clean package -Dmaven.test.skip=true
 ```
 This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-After, you can go to `target/database` to run benchmark script. Don't forget to change 'VERSION' of database to which you want to test;
+After, for example, you can go to `/iotdb-benchmark/iotdb-0.11/target/iotdb-0.11-0.0.1` to run benchmark script. The default 'VERSION' is '0.11.0'. If you want to run a database of other version, go to the `/iotdb-benchmark/{database-name}/target/{database-name}` and don't forget to change `VERSION` in `config.properties` to which you want to test.
 
 # Quick Start
 
