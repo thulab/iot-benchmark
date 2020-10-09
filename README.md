@@ -60,7 +60,7 @@ IoTDB-benchmark's features are as following:
 To use IoTDB-benchmark, you need to have:
 
 1. Java 8
-2. Maven (If you want to compile and install IoTDB from source code)
+2. Maven
 3. Apache IoTDB >= v0.8.0 ([https://github.com/apache/incubator-iotdb](https://github.com/apache/incubator-iotdb))
 4. InfluxDB >= 1.3.7
 5. other database system under test
