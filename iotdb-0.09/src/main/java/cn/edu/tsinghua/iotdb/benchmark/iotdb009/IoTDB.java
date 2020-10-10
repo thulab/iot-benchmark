@@ -406,7 +406,9 @@ public class IoTDB implements IDatabase {
     }
 
     private String addGroupByClause(String prefix, long start, long end, long granularity) {
-        return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
+        String startTime = start + "";
+        String endTime = end + "";
+        return prefix + " GROUP BY(" + granularity + "ms, " + start + ",[" + startTime + "," + endTime + "]" + ")";
     }
 }
 
