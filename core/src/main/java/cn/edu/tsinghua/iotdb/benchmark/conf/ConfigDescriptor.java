@@ -37,7 +37,7 @@ public class ConfigDescriptor {
 	}
 
 	private void loadProps() {
-		String url = System.getProperty("BENCHMARK_HOME") + "/conf/config.properties";
+		String url = System.getProperty(Constants.BENCHMARK_CONF, "conf/config.properties");
 		if (url != null) {
 			InputStream inputStream;
 			try {
