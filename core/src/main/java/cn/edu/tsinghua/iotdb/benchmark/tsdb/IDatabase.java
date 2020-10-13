@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
@@ -47,7 +48,7 @@ public interface IDatabase {
    * @param batch universal insertion data structure
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status insertOneBatch(Batch batch);
+  Status insertOneBatch(Batch batch) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors at a precise timestamp.

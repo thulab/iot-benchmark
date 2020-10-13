@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.RealDatasetWorkLoad;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import java.util.List;

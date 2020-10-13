@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
@@ -50,6 +51,7 @@ public abstract class BaseClient extends Client implements Runnable {
       LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
     }, 1, config.getLOG_PRINT_INTERVAL(), TimeUnit.SECONDS);
     long start = 0;
+loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       //According to the probabilities (proportion) of operations.
       Operation operation = operationController.getNextOperationType();
@@ -67,6 +69,9 @@ public abstract class BaseClient extends Client implements Runnable {
                   dbWrapper.insertOneBatch(batch);
                 }
               }
+            } catch (DBConnectException e) {
+              LOGGER.error("Failed to insert one batch data because ", e);
+              break loop;
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
@@ -77,6 +82,9 @@ public abstract class BaseClient extends Client implements Runnable {
               if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
                 dbWrapper.insertOneBatch(batch);
               }
+            } catch (DBConnectException e) {
+              LOGGER.error("Failed to insert one batch data because ", e);
+              break loop;
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }

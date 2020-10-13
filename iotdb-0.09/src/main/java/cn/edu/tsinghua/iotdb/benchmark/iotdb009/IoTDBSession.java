@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb009;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -36,7 +37,7 @@ public class IoTDBSession extends IoTDB {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(Batch batch) throws DBConnectException{
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
@@ -88,12 +89,12 @@ public class IoTDBSession extends IoTDB {
       }
     }
     try {
-      session.insertBatch(tablet);
+      session.testInsertBatch(tablet);
       tablet.reset();
       return new Status(true);
     } catch (IoTDBSessionException e) {
       System.out.println("failed!");
-      return new Status(false, 0, e, e.toString());
+      throw new DBConnectException(e.getMessage());
     }
   }
 

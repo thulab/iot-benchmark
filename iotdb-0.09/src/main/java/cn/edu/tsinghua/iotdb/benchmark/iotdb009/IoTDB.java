@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb009;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -155,7 +156,7 @@ public class IoTDB implements IDatabase {
     }
 
     @Override
-    public Status insertOneBatch(Batch batch) {
+    public Status insertOneBatch(Batch batch) throws DBConnectException {
         try (Statement statement = connection.createStatement()) {
             for (Record record : batch.getRecords()) {
                 String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),

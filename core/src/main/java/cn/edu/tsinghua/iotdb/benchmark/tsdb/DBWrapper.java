@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
@@ -45,7 +46,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(Batch batch) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
@@ -72,6 +73,8 @@ public class DBWrapper implements IDatabase {
             status.getException().toString());
         LOGGER.error("Insert batch failed because", status.getException());
       }
+    } catch (DBConnectException ex) {
+      throw ex;
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
