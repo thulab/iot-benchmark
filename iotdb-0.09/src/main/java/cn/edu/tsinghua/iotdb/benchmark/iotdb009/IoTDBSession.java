@@ -89,7 +89,7 @@ public class IoTDBSession extends IoTDB {
       }
     }
     try {
-      session.testInsertBatch(tablet);
+      session.insertBatch(tablet);
       tablet.reset();
       return new Status(true);
     } catch (IoTDBSessionException e) {
