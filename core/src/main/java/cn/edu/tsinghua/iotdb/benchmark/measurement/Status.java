@@ -2,7 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
 public class Status {
 
-  private boolean isOk;
+  private final boolean isOk;
   private long costTime;
   private int queryResultPointNum;
   private Exception exception;

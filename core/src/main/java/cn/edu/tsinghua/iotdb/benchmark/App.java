@@ -47,16 +47,15 @@ public class App {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     private static final double NANO_TO_SECOND = 1000000000.0d;
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     public static void main(String[] args) throws SQLException {
-
         CommandCli cli = new CommandCli();
         if (!cli.init(args)) {
             return;
         }
         Config config = ConfigDescriptor.getInstance().getConfig();
-        switch (config.BENCHMARK_WORK_MODE.trim()) {
+        switch (config.getBENCHMARK_WORK_MODE().trim()) {
             case Constants.MODE_TEST_WITH_DEFAULT_PATH:
                 testWithDefaultPath(config);
                 break;
@@ -74,7 +73,7 @@ public class App {
                 importDataFromCSV(config);
                 break;
             default:
-                throw new SQLException("unsupported mode " + config.BENCHMARK_WORK_MODE);
+                throw new SQLException("unsupported mode " + config.getBENCHMARK_WORK_MODE());
         }
 
     }// main
@@ -96,7 +95,7 @@ public class App {
                 try {
                     dbWrapper.cleanup();
                 } catch (TsdbException e) {
-                    LOGGER.error("Cleanup {} failed because ", config.DB_SWITCH, e);
+                    LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
                 }
             }
             try {
@@ -107,26 +106,26 @@ public class App {
                 }
                 dbWrapper.registerSchema(schemaList);
             } catch (TsdbException e) {
-                LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
+                LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
             }
         } catch (TsdbException e) {
-            LOGGER.error("Initialize {} failed because ", config.DB_SWITCH, e);
+            LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
         } finally {
             try {
                 dbWrapper.close();
             } catch (TsdbException e) {
-                LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
+                LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
             }
         }
-        // create CLIENT_NUMBER client threads to do the workloads
+        // create getCLIENT_NUMBER() client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
-        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
-        CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
+        CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+        CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
         long st = 0;
-        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+        ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
         LOGGER.info("Generating workload buffer...");
-        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
             SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
             clients.add(client);
             st = System.nanoTime();
@@ -139,19 +138,19 @@ public class App {
      * 测试真实数据集
      */
     private static void testWithRealDataSet(Config config) {
-        // BATCH_SIZE is points number in this mode
-        config.BATCH_SIZE = config.BATCH_SIZE / config.FIELDS.size();
+        // getBATCH_SIZE() is points number in this mode
+        config.setBATCH_SIZE(config.getBATCH_SIZE() / config.getFIELDS().size());
 
-        File dirFile = new File(config.FILE_PATH);
+        File dirFile = new File(config.getFILE_PATH());
         if (!dirFile.exists()) {
-            LOGGER.error("{} does not exit", config.FILE_PATH);
+            LOGGER.error("{} does not exit", config.getFILE_PATH());
             return;
         }
 
-        LOGGER.info("use dataset: {}", config.DATA_SET);
+        LOGGER.info("use dataset: {}", config.getDATA_SET());
 
         List<String> files = new ArrayList<>();
-        getAllFiles(config.FILE_PATH, files);
+        getAllFiles(config.getFILE_PATH(), files);
         LOGGER.info("total files: {}", files.size());
 
         Collections.sort(files);
@@ -162,14 +161,14 @@ public class App {
         DBWrapper dbWrapper = new DBWrapper(measurement);
         // register schema if needed
         try {
-            LOGGER.info("start to init database {}", config.DB_SWITCH);
+            LOGGER.info("start to init database {}", config.getNET_DEVICE());
             dbWrapper.init();
             if (config.IS_DELETE_DATA) {
                 try {
                     LOGGER.info("start to clean old data");
                     dbWrapper.cleanup();
                 } catch (TsdbException e) {
-                    LOGGER.error("Cleanup {} failed because ", config.DB_SWITCH, e);
+                    LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
                 }
             }
             try {
@@ -177,37 +176,37 @@ public class App {
                 LOGGER.info("start to register schema");
                 dbWrapper.registerSchema(deviceSchemaList);
             } catch (TsdbException e) {
-                LOGGER.error("Register {} schema failed because ", config.DB_SWITCH, e);
+                LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
             }
         } catch (TsdbException e) {
-            LOGGER.error("Initialize {} failed because ", config.DB_SWITCH, e);
+            LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
         } finally {
             try {
                 dbWrapper.close();
             } catch (TsdbException e) {
-                LOGGER.error("Close {} failed because ", config.DB_SWITCH, e);
+                LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
             }
         }
-        CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
+        CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
         List<List<String>> threadFiles = new ArrayList<>();
-        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
             threadFiles.add(new ArrayList<>());
         }
 
         for (int i = 0; i < files.size(); i++) {
             String filePath = files.get(i);
-            int thread = i % config.CLIENT_NUMBER;
+            int thread = i % config.getCLIENT_NUMBER();
             threadFiles.get(thread).add(filePath);
         }
 
-        // create CLIENT_NUMBER client threads to do the workloads
+        // create getCLIENT_NUMBER() client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
-        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
         long st = System.nanoTime();
-        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
-        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
             Client client = new RealDatasetClient(i, downLatch, config, threadFiles.get(i), barrier);
             clients.add(client);
             executorService.submit(client);
@@ -243,7 +242,7 @@ public class App {
         measurement.showConfigs();
         measurement.showMeasurements();
         measurement.showMetrics();
-        if (config.CSV_OUTPUT) {
+        if (config.isCSV_OUTPUT()) {
             measurement.outputCSV();
         }
     }
@@ -254,22 +253,22 @@ public class App {
      * @param config configurations
      */
     private static void queryWithRealDataSet(Config config) {
-        LOGGER.info("use dataset: {}", config.DATA_SET);
+        LOGGER.info("use dataset: {}", config.getDATA_SET());
         //check whether the parameters are legitimate
         if (!checkParamForQueryRealDataSet(config)) {
             return;
         }
 
         Measurement measurement = new Measurement();
-        CyclicBarrier barrier = new CyclicBarrier(config.CLIENT_NUMBER);
+        CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
-        // create CLIENT_NUMBER client threads to do the workloads
+        // create getCLIENT_NUMBER() client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
-        CountDownLatch downLatch = new CountDownLatch(config.CLIENT_NUMBER);
+        CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
         long st = System.nanoTime();
-        ExecutorService executorService = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
-        for (int i = 0; i < config.CLIENT_NUMBER; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
             Client client = new QueryRealDatasetClient(i, downLatch, barrier, config);
             clients.add(client);
             executorService.submit(client);
@@ -278,19 +277,19 @@ public class App {
     }
 
     private static boolean checkParamForQueryRealDataSet(Config config) {
-        if (config.QUERY_SENSOR_NUM > config.FIELDS.size()) {
+        if (config.getQUERY_SENSOR_NUM() > config.getFIELDS().size()) {
             LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
-                config.QUERY_SENSOR_NUM, config.FIELDS);
+                config.getQUERY_SENSOR_NUM(), config.getFIELDS());
             return false;
         }
-        String[] split = config.OPERATION_PROPORTION.split(":");
+        String[] split = config.getOPERATION_PROPORTION().split(":");
         if (split.length != Operation.values().length) {
             LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
             return false;
         }
         if (!split[0].trim().equals("0")) {
             LOGGER.error("OPERATION_PROPORTION {} error, {} can't have write operation.",
-                config.OPERATION_PROPORTION, config.BENCHMARK_WORK_MODE);
+                config.getOPERATION_PROPORTION(), config.getBENCHMARK_WORK_MODE());
             return false;
         }
         return true;
@@ -315,9 +314,9 @@ public class App {
      */
     private static void importDataFromCSV(Config config) throws SQLException {
         MetaDateBuilder builder = new MetaDateBuilder();
-        builder.createMataData(config.METADATA_FILE_PATH);
+        builder.createMataData(config.getMETADATA_FILE_PATH());
         ImportDataFromCSV importTool = new ImportDataFromCSV();
-        importTool.importData(config.IMPORT_DATA_FILE_PATH);
+        importTool.importData(config.getIMPORT_DATA_FILE_PATH());
     }
 
     /**
@@ -326,20 +325,20 @@ public class App {
     private static void serverMode(Config config) {
         PersistenceFactory persistenceFactory = new PersistenceFactory();
         ITestDataPersistence recorder = persistenceFactory.getPersistence();
-        File dir = new File(config.DB_DATA_PATH);
+        File dir = new File(config.getDB_DATA_PATH());
 
         if (dir.exists() && dir.isDirectory()) {
             float abnormalValue = -1;
-            File file = new File(config.DB_DATA_PATH + "/log_stop_flag");
+            File file = new File(config.getDB_DATA_PATH() + "/log_stop_flag");
             Map<FileSize.FileSizeKinds, Float> fileSizeStatistics = new EnumMap<>(FileSize.FileSizeKinds.class);
-            boolean isClientMonitor = config.BENCHMARK_WORK_MODE.equals(Constants.MODE_CLIENT_SYSTEM_INFO);
+            boolean isClientMonitor = config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_CLIENT_SYSTEM_INFO);
             if (isClientMonitor) {
                 for (FileSize.FileSizeKinds kinds : FileSize.FileSizeKinds.values()) {
                     fileSizeStatistics.put(kinds, abnormalValue);
                 }
             }
             HashMap<IoUsage.IOStatistics, Float> ioStatistics;
-            int interval = config.INTERVAL;
+            int interval = config.getINTERVAL();
             boolean headerPrinted = false;
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             // 测量间隔至少为2秒

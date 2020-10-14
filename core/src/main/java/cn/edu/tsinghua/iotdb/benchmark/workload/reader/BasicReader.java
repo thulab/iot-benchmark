@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BasicReader {
 
-  private static Logger logger = LoggerFactory.getLogger(BasicReader.class);
+  private static final Logger logger = LoggerFactory.getLogger(BasicReader.class);
   protected Config config;
-  private List<String> files;
+  private final List<String> files;
   protected BufferedReader reader;
   protected List<String> cachedLines;
   private boolean hasInit = false;
@@ -90,7 +90,7 @@ public abstract class BasicReader {
 
         // read a line, cache it
         cachedLines.add(line);
-        if (cachedLines.size() == config.BATCH_SIZE) {
+        if (cachedLines.size() == config.getBATCH_SIZE()) {
           break;
         }
       }
@@ -128,8 +128,8 @@ public abstract class BasicReader {
 
     // remove duplicated devices
     Set<String> devices = new HashSet<>();
-    int groupNum = config.GROUP_NUMBER;
-    switch (config.DATA_SET) {
+    int groupNum = config.getGROUP_NUMBER();
+    switch (config.getDATA_SET()) {
       case REDD:
       case TDRIVE:
         for (String currentFile : files) {
@@ -138,18 +138,18 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList
-                .add(new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.FIELDS));
+                .add(new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
           }
         }
         break;
       case GEOLIFE:
         for (String currentFile : files) {
-          String deviceId = currentFile.split(config.FILE_PATH)[1].
+          String deviceId = currentFile.split(config.getFILE_PATH())[1].
               split("/Trajectory")[0].replace("/", "");
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.FIELDS));
+                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
           }
         }
     }

@@ -24,18 +24,18 @@ import org.slf4j.LoggerFactory;
 public class IotdbRecorder implements ITestDataPersistence {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IotdbRecorder.class);
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
     private static final String CREATE_SERIES_SQL = "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
     private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
     private static final long EXP_TIME = System.currentTimeMillis();
-    private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME + "." + config.TEST_DATA_STORE_DB;
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
-    private String projectID = String.format("%s_%s_%s", config.DB_SWITCH, config.REMARK, sdf.format(new java.util.Date(EXP_TIME)));
+    private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME + "." + config.getTEST_DATA_STORE_DB();
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
+    private final String projectID = String.format("%s_%s_%s", config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
     private Statement globalStatement;
     private static final String THREAD_PREFIX = "pool-1-thread-";
-    private String insertSqlPrefix = "insert into " + PATH_PREFIX;
-    private String operationResultPrefix = insertSqlPrefix + "." + projectID + ".";
+    private final String insertSqlPrefix = "insert into " + PATH_PREFIX;
+    private final String operationResultPrefix = insertSqlPrefix + "." + projectID + ".";
     private long count = 0;
     private static final String ENCODING = "PLAIN";
     private static final String COMPRESS = "UNCOMPRESSED";
@@ -61,8 +61,8 @@ public class IotdbRecorder implements ITestDataPersistence {
         try {
             Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
             connection = DriverManager
-                .getConnection(String.format(Constants.URL, config.TEST_DATA_STORE_IP, config.TEST_DATA_STORE_PORT),
-                    config.TEST_DATA_STORE_USER, config.TEST_DATA_STORE_PW);
+                .getConnection(String.format(Constants.URL, config.getTEST_DATA_STORE_IP(), config.getTEST_DATA_STORE_PORT()),
+                    config.getTEST_DATA_STORE_USER(), config.getTEST_DATA_STORE_PW());
             initSchema();
             globalStatement = connection.createStatement();
         } catch (Exception e) {
@@ -83,11 +83,11 @@ public class IotdbRecorder implements ITestDataPersistence {
             }
         }
         // create time series
-        if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+        if(config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
             initSingleTestMetrics();
             initResultMetrics();
         }
-        if(config.BENCHMARK_WORK_MODE.equals(Constants.MODE_SERVER_MODE)) {
+        if(config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_SERVER_MODE)) {
             initSystemMetrics();
         }
     }
@@ -157,7 +157,7 @@ public class IotdbRecorder implements ITestDataPersistence {
     private void initSingleTestMetrics() {
         try (Statement statement = connection.createStatement()) {
             for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
-                for (int i = 1; i <= config.CLIENT_NUMBER; i++) {
+                for (int i = 1; i <= config.getCLIENT_NUMBER(); i++) {
                     for(Operation op: Operation.values()){
                         String threadName = THREAD_PREFIX + i;
                         String createSeriesSql = String.format(CREATE_SERIES_SQL,

@@ -13,17 +13,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FileSize {
-    private static Logger log = LoggerFactory.getLogger(FileSize.class);
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Logger log = LoggerFactory.getLogger(FileSize.class);
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
     private static final String LINUX_FILE_SIZE_CMD = "du -sm %s";
     private static final float MB2GB = 1024;
     private static final float ABNORMAL_VALUE = -1;
     public enum FileSizeKinds {
-        DATA(config.IOTDB_DATA_DIR),
-        SYSTEM(config.IOTDB_SYSTEM_DIR),
-        WAL(config.IOTDB_WAL_DIR),
-        SEQUENCE(config.SEQUENCE_DIR),
-        UN_SEQUENCE(config.UNSEQUENCE_DIR);
+        DATA(config.getIOTDB_DATA_DIR()),
+        SYSTEM(config.getIOTDB_SYSTEM_DIR()),
+        WAL(config.getIOTDB_WAL_DIR()),
+        SEQUENCE(config.getSEQUENCE_DIR()),
+        UN_SEQUENCE(config.getUNSEQUENCE_DIR());
 
         List<String> path;
 
@@ -37,12 +37,12 @@ public class FileSize {
     }
 
     private FileSize(){
-        switch (config.DB_SWITCH){
+        switch (config.getDB_SWITCH()){
             case Constants.DB_IOT:
             case Constants.BENCHMARK_IOTDB:
                 break;
             default:
-                log.error("unsupported db name: {}", config.DB_SWITCH);
+                log.error("unsupported db name: {}", config.getDB_SWITCH());
         }
     }
 

@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
@@ -45,7 +46,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(Batch batch) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
@@ -57,7 +58,7 @@ public class DBWrapper implements IDatabase {
 
       if (status.isOk()) {
         measureOkOperation(status, operation, batch.pointNum());
-        if (!config.IS_QUIET_MODE) {
+        if (!config.isIS_QUIET_MODE()) {
           double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
           String formatTimeInMillis = String.format("%.2f", timeInMillis);
           double throughput = batch.pointNum() * 1000 / timeInMillis;
@@ -72,6 +73,8 @@ public class DBWrapper implements IDatabase {
             status.getException().toString());
         LOGGER.error("Insert batch failed because", status.getException());
       }
+    } catch (DBConnectException ex) {
+      throw ex;
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
@@ -236,7 +239,7 @@ public class DBWrapper implements IDatabase {
     long st = 0;
     LOGGER.info("Registering schema...");
     try {
-      if (config.CREATE_SCHEMA) {
+      if (config.isCREATE_SCHEMA()) {
         st = System.nanoTime();
         db.registerSchema(schemaList);
         en = System.nanoTime();
@@ -272,7 +275,7 @@ public class DBWrapper implements IDatabase {
   private void handleQueryOperation(Status status, Operation operation) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum());
-      if(!config.IS_QUIET_MODE) {
+      if(!config.isIS_QUIET_MODE()) {
         double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();

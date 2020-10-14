@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
@@ -22,12 +23,12 @@ public abstract class BaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(BaseClient.class);
 
-  private OperationController operationController;
-  private IWorkload syntheticWorkload;
+  private final OperationController operationController;
+  private final IWorkload syntheticWorkload;
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
-  private DataSchema dataSchema = DataSchema.getInstance();
-  private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+  private final DataSchema dataSchema = DataSchema.getInstance();
+  private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   private long loopIndex;
 
   public BaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier,
@@ -42,23 +43,24 @@ public abstract class BaseClient extends Client implements Runnable {
   void doTest() {
     String currentThread = Thread.currentThread().getName();
     //Equals device number when the rate is 1.
-    double actualDeviceFloor = config.DEVICE_NUMBER * config.FIRST_INDEX + config.DEVICE_NUMBER * config.REAL_INSERT_RATE;
+    double actualDeviceFloor = config.getDEVICE_NUMBER() * config.getFIRST_INDEX() + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
 
     // print current progress periodically
     service.scheduleAtFixedRate(() -> {
-      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.LOOP);
+      String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
       LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
-    }, 1, config.LOG_PRINT_INTERVAL, TimeUnit.SECONDS);
+    }, 1, config.getLOG_PRINT_INTERVAL(), TimeUnit.SECONDS);
     long start = 0;
-    for (loopIndex = 0; loopIndex < config.LOOP; loopIndex++) {
+loop:
+    for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       //According to the probabilities (proportion) of operations.
       Operation operation = operationController.getNextOperationType();
-      if (config.OP_INTERVAL > 0) {
+      if (config.getOP_INTERVAL() > 0) {
         start = System.currentTimeMillis();
       }
       switch (operation) {
         case INGESTION:
-          if (config.IS_CLIENT_BIND) {
+          if (config.isIS_CLIENT_BIND()) {
             try {
               List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
               for (DeviceSchema deviceSchema : schemas) {
@@ -67,6 +69,9 @@ public abstract class BaseClient extends Client implements Runnable {
                   dbWrapper.insertOneBatch(batch);
                 }
               }
+            } catch (DBConnectException e) {
+              LOGGER.error("Failed to insert one batch data because ", e);
+              break loop;
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
@@ -77,6 +82,9 @@ public abstract class BaseClient extends Client implements Runnable {
               if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
                 dbWrapper.insertOneBatch(batch);
               }
+            } catch (DBConnectException e) {
+              LOGGER.error("Failed to insert one batch data because ", e);
+              break loop;
             } catch (Exception e) {
               LOGGER.error("Failed to insert one batch data because ", e);
             }
@@ -141,11 +149,11 @@ public abstract class BaseClient extends Client implements Runnable {
         default:
           LOGGER.error("Unsupported operation type {}", operation);
       }
-      if (config.OP_INTERVAL > 0) {
+      if (config.getOP_INTERVAL() > 0) {
         long elapsed = System.currentTimeMillis() - start;
-        if (elapsed < config.OP_INTERVAL) {
+        if (elapsed < config.getOP_INTERVAL()) {
           try {
-            Thread.sleep(config.OP_INTERVAL - elapsed);
+            Thread.sleep(config.getOP_INTERVAL() - elapsed);
           } catch (InterruptedException e) {
             LOGGER.error("Wait for next operation failed because ", e);
           }

@@ -20,8 +20,8 @@ public class BatchProducer {
   public BatchProducer() {
 
     Properties properties = new Properties();
-    properties.put("bootstrap.servers", config.KAFKA_LOCATION);
-    properties.put("zookeeper.connect", config.ZOOKEEPER_LOCATION);
+    properties.put("bootstrap.servers", config.getKAFKA_LOCATION());
+    properties.put("zookeeper.connect", config.getZOOKEEPER_LOCATION());
     properties.put("key.serializer", StringSerializer.class.getName());
     properties.put("value.serializer", BatchSerializer.class.getName());
     properties.put("acks", "-1");
@@ -40,7 +40,7 @@ public class BatchProducer {
    * @param batch batch
    */
   public void send(Batch batch) {
-    ProducerRecord<String, Batch> record = new ProducerRecord<>(config.TOPIC_NAME,
+    ProducerRecord<String, Batch> record = new ProducerRecord<>(config.getTOPIC_NAME(),
         String.valueOf(random.nextInt(1000)), batch);
     producer.send(record);
   }

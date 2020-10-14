@@ -51,17 +51,17 @@ public class KairosDB implements IDatabase {
 
   public KairosDB() {
     config = ConfigDescriptor.getInstance().getConfig();
-    writeUrl = config.DB_URL + "/api/v1/datapoints";
+    writeUrl = config.getDB_URL() + "/api/v1/datapoints";
 
   }
 
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient(config.DB_URL);
+      client = new HttpClient(config.getDB_URL());
     } catch (MalformedURLException e) {
       throw new TsdbException(
-          "Init KairosDB client failed, the url is " + config.DB_URL + ". Message is " + e
+          "Init KairosDB client failed, the url is " + config.getDB_URL() + ". Message is " + e
               .getMessage());
     }
   }
@@ -77,8 +77,8 @@ public class KairosDB implements IDatabase {
         client.deleteMetric(metric);
       }
       // wait for deletion complete
-      LOGGER.info("[KAIROSDB]:Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-      Thread.sleep(config.INIT_WAIT_TIME);
+      LOGGER.info("[KAIROSDB]:Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      Thread.sleep(config.getINIT_WAIT_TIME());
     } catch (Exception e) {
       LOGGER.error("Delete old data failed because ", e);
     }

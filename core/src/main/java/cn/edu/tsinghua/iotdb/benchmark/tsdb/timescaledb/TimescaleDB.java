@@ -40,7 +40,7 @@ public class TimescaleDB implements IDatabase {
 
   public TimescaleDB() {
     config = ConfigDescriptor.getInstance().getConfig();
-    tableName = config.DB_NAME;
+    tableName = config.getDB_NAME();
   }
 
   @Override
@@ -48,7 +48,7 @@ public class TimescaleDB implements IDatabase {
     try {
       Class.forName(Constants.POSTGRESQL_JDBC_NAME);
       connection = DriverManager.getConnection(
-          String.format(Constants.POSTGRESQL_URL, config.HOST, config.PORT, config.DB_NAME),
+          String.format(Constants.POSTGRESQL_URL, config.getHOST(), config.getPORT(), config.getDB_NAME()),
           Constants.POSTGRESQL_USER,
           Constants.POSTGRESQL_PASSWD
       );
@@ -64,8 +64,8 @@ public class TimescaleDB implements IDatabase {
     try (Statement statement = connection.createStatement()){
       statement.execute(String.format(dropTable, tableName));
       // wait for deletion complete
-      LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-      Thread.sleep(config.INIT_WAIT_TIME);
+      LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      Thread.sleep(config.getINIT_WAIT_TIME());
     } catch (Exception e) {
       LOGGER.warn("delete old data table {} failed, because: {}", tableName, e.getMessage());
       if (!e.getMessage().contains("does not exist")) {
@@ -272,7 +272,7 @@ public class TimescaleDB implements IDatabase {
         }
       }
 
-      queryResultPointNum = line * sensorNum * config.QUERY_DEVICE_NUM;
+      queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);

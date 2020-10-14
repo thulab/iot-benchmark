@@ -22,7 +22,7 @@ public class BatchConsumer {
 
   public BatchConsumer(String group) {
     Properties props = new Properties();
-    props.put("zookeeper.connect", config.ZOOKEEPER_LOCATION);
+    props.put("zookeeper.connect", config.getZOOKEEPER_LOCATION());
     props.put(ConsumerConfig.GROUP_ID_CONFIG, group);
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
     props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
@@ -43,12 +43,12 @@ public class BatchConsumer {
    * @param user session username
    * @param password session password
    */
-  public void consume(String host, String port, String user, String password) {
+  public void consume(String host, String port, String user, String password) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
     /*
      * Specify the number of consumer thread
      */
     Map<String, Integer> topicCountMap = new HashMap<>();
-    topicCountMap.put(config.TOPIC_NAME, config.CLIENT_NUMBER);
+    topicCountMap.put(config.getTOPIC_NAME(), config.getCLIENT_NUMBER());
 
     /*
      * Specify data decoder
@@ -60,8 +60,8 @@ public class BatchConsumer {
         .createMessageStreams(topicCountMap, keyDecoder,
             valueDecoder);
 
-    List<KafkaStream<String, Batch>> streams = consumerMap.get(config.TOPIC_NAME);
-    ExecutorService executor = Executors.newFixedThreadPool(config.CLIENT_NUMBER);
+    List<KafkaStream<String, Batch>> streams = consumerMap.get(config.getTOPIC_NAME());
+    ExecutorService executor = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
     for (final KafkaStream<String, Batch> stream : streams) {
       executor.submit(new BatchConsumeThread(stream, host, port, user, password));
     }

@@ -44,13 +44,13 @@ public class GeolifeReader extends BasicReader {
 
   @Override
   public void init() throws Exception {
-    currentDeviceId = currentFile.split(config.FILE_PATH)[1].split("/Trajectory")[0];
+    currentDeviceId = currentFile.split(config.getFILE_PATH())[1].split("/Trajectory")[0];
     // skip 6 lines, which is useless
     for (int i = 0; i < 6; i++) {
       reader.readLine();
     }
-    deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.GROUP_NUMBER),
-        currentDeviceId, config.FIELDS);
+    deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
+        currentDeviceId, config.getFIELDS());
   }
 
   @Override

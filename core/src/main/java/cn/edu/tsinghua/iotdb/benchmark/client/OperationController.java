@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class OperationController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OperationController.class);
+  private static final Logger LOGGER = null;
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private Random random;
 
@@ -64,7 +64,7 @@ public class OperationController {
 
   List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
-    String[] split = config.OPERATION_PROPORTION.split(":");
+    String[] split = config.getOPERATION_PROPORTION().split(":");
     if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }

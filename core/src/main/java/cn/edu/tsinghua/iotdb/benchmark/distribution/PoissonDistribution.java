@@ -5,9 +5,9 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.Random;
 
 public class PoissonDistribution {
-    private Config config ;
+    private final Config config ;
     private double lambda;
-    private Random random;
+    private final Random random;
     private int deltaKinds;
     private static final double BASIC_MODEL_LAMBDA = 10;
     private static final int BASIC_MODEL_MAX_K = 25;
@@ -24,8 +24,8 @@ public class PoissonDistribution {
     public PoissonDistribution(Random ran) {
         this.config = ConfigDescriptor.getInstance().getConfig();
         this.random = ran;
-        this.lambda = config.LAMBDA;
-        this.deltaKinds = config.MAX_K;
+        this.lambda = config.getLAMBDA();
+        this.deltaKinds = config.getMAX_K();
     }
 
     private double getPossionProbability(int k, double la) {
@@ -41,19 +41,19 @@ public class PoissonDistribution {
         int nextDelta = 0;
         if(lambda < 500) {
             double rand = random.nextDouble();
-            double[] p = new double[config.MAX_K];
+            double[] p = new double[config.getMAX_K()];
             double sum = 0;
-            for (int i = 0; i < config.MAX_K - 1; i++) {
-                p[i] = getPossionProbability(i,config.LAMBDA);
+            for (int i = 0; i < config.getMAX_K() - 1; i++) {
+                p[i] = getPossionProbability(i,config.getLAMBDA());
                 sum += p[i];
             }
-            p[config.MAX_K - 1] = 1 - sum;
-            double[] range = new double[config.MAX_K + 1];
+            p[config.getMAX_K() - 1] = 1 - sum;
+            double[] range = new double[config.getMAX_K() + 1];
             range[0] = 0;
-            for (int i = 0; i < config.MAX_K; i++) {
+            for (int i = 0; i < config.getMAX_K(); i++) {
                 range[i + 1] = range[i] + p[i];
             }
-            for (int i = 0; i < config.MAX_K; i++) {
+            for (int i = 0; i < config.getMAX_K(); i++) {
                 nextDelta++;
                 if (isBetween(rand, range[i], range[i + 1])) {
                     break;

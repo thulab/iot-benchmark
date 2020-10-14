@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class DataSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DataSchema.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
 
   public Map<Integer, List<DeviceSchema>> getClientBindSchema() {
@@ -32,23 +32,23 @@ public class DataSchema {
   }
 
   private void createClientBindSchema() {
-    int eachClientDeviceNum = 0;
-    if (config.CLIENT_NUMBER != 0) {
-      eachClientDeviceNum = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
+    int eachClientDeviceNum;
+    if (config.getCLIENT_NUMBER() != 0) {
+      eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
     } else {
-      LOGGER.error("CLIENT_NUMBER can not be zero.");
+      LOGGER.error("getCLIENT_NUMBER() can not be zero.");
       return;
     }
 
     int deviceId = 0;
-    int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
-    for (int clientId = 0; clientId < config.CLIENT_NUMBER; clientId++) {
+    int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
+    for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int j = 0; j < eachClientDeviceNum; j++) {
-        deviceSchemaList.add(new DeviceSchema(config.DEVICE_CODES.get(deviceId++)));
+        deviceSchemaList.add(new DeviceSchema(config.getDEVICE_CODES().get(deviceId++)));
       }
       if (clientId < mod) {
-        deviceSchemaList.add(new DeviceSchema(config.DEVICE_CODES.get(deviceId++)));
+        deviceSchemaList.add(new DeviceSchema(config.getDEVICE_CODES().get(deviceId++)));
       }
       CLIENT_BIND_SCHEMA.put(clientId, deviceSchemaList);
     }

@@ -16,7 +16,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,7 @@ public class TaosDB implements IDatabase {
     try {
       Class.forName(TAOS_DRIVER);
       connection = DriverManager
-        .getConnection(String.format(URL_TAOS, config.HOST, config.PORT, USER, PASSWD));
+        .getConnection(String.format(URL_TAOS, config.getHOST(), config.getPORT(), USER, PASSWD));
       LOGGER.info("init success.");
     } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();
@@ -73,9 +72,9 @@ public class TaosDB implements IDatabase {
 
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
-      if (config.SENSOR_NUMBER > 1024) {
-        LOGGER.error("taosDB do not support more than 1024 column for one table, now is ", config.SENSOR_NUMBER);
+    if(!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+      if (config.getSENSOR_NUMBER() > 1024) {
+        LOGGER.error("taosDB do not support more than 1024 column for one table, now is ", config.getSENSOR_NUMBER());
         throw new TsdbException("taosDB do not support more than 1024 column for one table.");
       }
       // create database
@@ -324,7 +323,7 @@ public class TaosDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    if (!config.IS_QUIET_MODE) {
+    if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
     LOGGER.debug("execute sql {}", sql);
@@ -337,7 +336,7 @@ public class TaosDB implements IDatabase {
           line++;
         }
       }
-      queryResultPointNum = line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM;
+      queryResultPointNum = line * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);

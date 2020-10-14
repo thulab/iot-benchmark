@@ -33,26 +33,21 @@ import org.slf4j.LoggerFactory;
 public class OpenTSDB implements IDatabase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenTSDB.class);
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
-    private String openUrl;
-    private String queryUrl;
-    private String writeUrl;
-    private String metric = "";
-    private Random sensorRandom;
-    private Random timestampRandom;
-    private Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
-    private ProbTool probTool;
-    private final String DELETE_METRIC_URL = "%s?start=%s&m=sum:1ms-sum:%s";
-    private int backScanTime = 24;
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    private final String queryUrl;
+    private final String writeUrl;
+    private final Random sensorRandom;
+    private final Map<String, LinkedList<TSDBDataModel>> dataMap = new HashMap<>();
+    private final int backScanTime = 24;
 
     /**
      * constructor.
      */
     public OpenTSDB() {
-        sensorRandom = new Random(1 + config.QUERY_SEED);
-        timestampRandom = new Random(2 + config.QUERY_SEED);
-        probTool = new ProbTool();
-        openUrl = config.DB_URL;
+        sensorRandom = new Random(1 + config.getQUERY_SEED());
+        Random timestampRandom = new Random(2 + config.getQUERY_SEED());
+        ProbTool probTool = new ProbTool();
+        String openUrl = config.getDB_URL();
         writeUrl = openUrl + "/api/put?summary ";
         queryUrl = openUrl + "/api/query";
     }
@@ -66,8 +61,10 @@ public class OpenTSDB implements IDatabase {
     public void cleanup() throws TsdbException {
         //example URL:
         //http://host:4242/api/query?start=2016/02/16-00:00:00&end=2016/02/17-23:59:59&m=avg:1ms-avg:metricname
-        for(int i = 0;i < config.GROUP_NUMBER;i++){
+        for(int i = 0;i < config.getGROUP_NUMBER();i++){
+            String metric = "";
             String metricName = metric + "group_" + i;
+            String DELETE_METRIC_URL = "%s?start=%s&m=sum:1ms-sum:%s";
             String deleteMetricURL = String.format(DELETE_METRIC_URL, queryUrl, Constants.START_TIMESTAMP, metricName);
             String response;
             try {
@@ -81,8 +78,8 @@ public class OpenTSDB implements IDatabase {
         }
         // wait for deletion complete
         try {
-            LOGGER.info("Waiting {}ms for old data deletion.", config.INIT_WAIT_TIME);
-            Thread.sleep(config.INIT_WAIT_TIME);
+            LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+            Thread.sleep(config.getINIT_WAIT_TIME());
         } catch (InterruptedException e) {
             LOGGER.error("Delete old OpenTSDB metrics failed. Error: {}", e.getMessage());
             throw new TsdbException(e);
@@ -291,7 +288,7 @@ public class OpenTSDB implements IDatabase {
             deviceStr = deviceStr.substring(1);
 
             String sensorStr = sensorList.get(0);
-            for (int i = 1; i < config.QUERY_SENSOR_NUM; i++) {
+            for (int i = 1; i < config.getQUERY_SENSOR_NUM(); i++) {
                 sensorStr += "|" + sensorList.get(i);
             }
             tags.put("sensor", sensorStr);

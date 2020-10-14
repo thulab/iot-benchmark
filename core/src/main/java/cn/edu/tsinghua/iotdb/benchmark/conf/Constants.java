@@ -6,8 +6,8 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
  * 系统运行常量值
  */
 public class Constants {
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
-    public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(config.START_TIME);
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    public static final long START_TIMESTAMP = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
     public static final String URL = "jdbc:iotdb://%s:%s/";
     public static final String USER = "root";
     public static final String PASSWD = "root";
@@ -19,7 +19,7 @@ public class Constants {
     public static final String POSTGRESQL_USER = "postgres";
     public static final String POSTGRESQL_PASSWD = "postgres";
     //support DB names of DB_SWITCH
-    public static final String DB_IOT = "IoTDB011";
+    public static final String DB_IOT = "IoTDB";
     public static final String DB_DOUBLE_IOT = "DoubleIoTDB";
     public static final String DB_INFLUX = "InfluxDB";
     public static final String DB_OPENTS = "OpenTSDB";
@@ -55,4 +55,10 @@ public class Constants {
     public static final String HASH_SG_ASSIGN_MODE = "hash";
     public static final String DIV_SG_ASSIGN_MODE = "div";
 
+    public static final String IOTDB011_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB";
+    public static final String IOTDB011_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDBSession";
+    public static final String IOTDB010_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb010.IoTDB";
+    public static final String IOTDB010_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb010.IoTDBSession";
+    public static final String IOTDB009_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDB";
+    public static final String IOTDB009_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDBSession";
 }

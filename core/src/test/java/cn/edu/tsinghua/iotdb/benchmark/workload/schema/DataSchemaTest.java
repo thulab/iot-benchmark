@@ -4,7 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import java.util.List;
 import java.util.Map;
-import javax.xml.crypto.dsig.keyinfo.KeyValue;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,17 +13,17 @@ public class DataSchemaTest {
 
   @Test
   public void test(){
-    testBalanceSplit(100, 30);
-
+    testBalanceSplit();
   }
 
-  void testBalanceSplit(int deviceNum, int clientNum){
-    int preDeviceNum = config.DEVICE_NUMBER;
-    int preClientNum = config.CLIENT_NUMBER;
-    config.DEVICE_NUMBER = deviceNum;
-    config.CLIENT_NUMBER = clientNum;
-    int mod = config.DEVICE_NUMBER % config.CLIENT_NUMBER;
-    int deviceNumEachClient = config.DEVICE_NUMBER / config.CLIENT_NUMBER;
+  void testBalanceSplit(){
+    int preDeviceNum = config.getDEVICE_NUMBER();
+    int preClientNum = config.getCLIENT_NUMBER();
+    config.setDEVICE_NUMBER(100);
+    config.setCLIENT_NUMBER(30);
+    int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
+    int deviceNumEachClient = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
+    config.initDeviceCodes();
     DataSchema dataSchema = DataSchema.getInstance();
     Map<Integer, List<DeviceSchema>> client2Schema = dataSchema.getClientBindSchema();
     for (int clientId : client2Schema.keySet()){
@@ -35,8 +35,8 @@ public class DataSchemaTest {
         Assert.assertEquals(deviceNumEachClient,deviceNumInClient);
       }
     }
-    config.DEVICE_NUMBER = preDeviceNum;
-    config.CLIENT_NUMBER = preClientNum;
+    config.setDEVICE_NUMBER(preDeviceNum);
+    config.setCLIENT_NUMBER(preClientNum);
   }
 
 
