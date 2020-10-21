@@ -108,7 +108,7 @@ public class CSVRecorder implements ITestDataPersistence {
         }
         if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(
                 projectCSV)) {
-            String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark";
+            String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
             File file = new File(projectCSV);
             try {
                 if (!file.createNewFile()) {
