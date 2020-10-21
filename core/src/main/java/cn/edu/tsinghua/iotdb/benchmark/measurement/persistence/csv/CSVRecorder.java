@@ -46,17 +46,24 @@ public class CSVRecorder implements ITestDataPersistence {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd");
         String day = dateFormat.format(date);
         String confDir = System.getProperty(Constants.BENCHMARK_CONF);
-        String dataDir = confDir.substring(0, confDir.length() - 23) + "/data/csv";
-        confCSV = dataDir + "/CONF.csv";
-        finalResultCSV = dataDir + "/FINAL_RESULT.csv";
-        projectCSV = dataDir + "/" + projectID + ".csv";
-        File file = new File(dataDir);
-        if(!file.exists()) {
-            if (!file.mkdir()) {
+        String dataDir = confDir.substring(0, confDir.length() - 23) + "/data";
+        String csvDir = dataDir + "/csv";
+        confCSV = csvDir + "/CONF.csv";
+        finalResultCSV = csvDir + "/FINAL_RESULT.csv";
+        projectCSV = csvDir + "/" + projectID + ".csv";
+        File dataFile = new File(dataDir);
+        File csvFile = new File(csvDir);
+        if(!dataFile.exists()) {
+            if (!dataFile.mkdir()) {
                 LOGGER.error("can't create dir");
             }
         }
-        serverInfoCSV = dataDir + "/SERVER_MODE_" + localName + "_" + day + ".csv";
+        if(!csvFile.exists()) {
+            if (!csvFile.mkdir()) {
+                LOGGER.error("can't create dir");
+            }
+        }
+        serverInfoCSV = csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv";
         initCSVFile();
     }
 
