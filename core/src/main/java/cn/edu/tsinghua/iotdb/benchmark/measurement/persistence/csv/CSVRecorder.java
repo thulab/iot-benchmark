@@ -51,7 +51,7 @@ public class CSVRecorder implements ITestDataPersistence {
         finalResultCSV = dataDir + "/FINAL_RESULT.csv";
         projectCSV = dataDir + "/" + projectID + ".csv";
         File file = new File(dataDir);
-        if(file.exists() && file.isDirectory()) {
+        if(!file.exists()) {
             if (!file.mkdir()) {
                 LOGGER.error("can't create dir");
             }
