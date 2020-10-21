@@ -149,8 +149,8 @@ public class CSVRecorder implements ITestDataPersistence {
             rate = okPoint * 1000 / latency; //unit: points/second
         }
         String time = df.format(new java.util.Date(System.currentTimeMillis()));
-        String line = String.format("%s,%s,%s,%s,%d,%d,%f,%f,%s\n",
-                config.getCSVId(), time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
+        String line = String.format("NULL,%s,%s,%s,%d,%d,%f,%f,%s\n",
+                time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
                 remark);
         CSVFileUtil.appendMethod(projectCSV,line);
     }
