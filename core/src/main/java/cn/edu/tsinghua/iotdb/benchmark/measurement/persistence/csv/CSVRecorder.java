@@ -51,8 +51,10 @@ public class CSVRecorder implements ITestDataPersistence {
         finalResultCSV = dataDir + "/FINAL_RESULT.csv";
         projectCSV = dataDir + "/" + projectID + ".csv";
         File file = new File(dataDir);
-        if(!file.mkdir()) {
-            LOGGER.error("can't create dir");
+        if(file.exists() && file.isDirectory()) {
+            if (!file.mkdir()) {
+                LOGGER.error("can't create dir");
+            }
         }
         serverInfoCSV = dataDir + "/SERVER_MODE_" + localName + "_" + day + ".csv";
         initCSVFile();
@@ -98,7 +100,7 @@ public class CSVRecorder implements ITestDataPersistence {
             CSVFileUtil.appendMethod(finalResultCSV, firstLine);
         }
         if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(
-                projectID)) {
+                projectCSV)) {
             String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark";
             File file = new File(projectCSV);
             try {
