@@ -26,11 +26,10 @@ public class CSVRecorder implements ITestDataPersistence {
     private static final long EXP_TIME = System.currentTimeMillis();
     private final Config config = ConfigDescriptor.getInstance().getConfig();
     private final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
-    private String dataDir;
     String serverInfoCSV;
-    String confCSV = dataDir + "/CONF.csv";
-    String finalResultCSV = dataDir + "/FINAL_RESULT.csv";
-    String projectCSV = dataDir + "/" + projectID + ".csv";
+    String confCSV;
+    String finalResultCSV;
+    String projectCSV;
     private static final String FOUR = "NULL, %s, %s, %s\n";
 
     public CSVRecorder() {
@@ -47,7 +46,10 @@ public class CSVRecorder implements ITestDataPersistence {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd");
         String day = dateFormat.format(date);
         String confDir = System.getProperty(Constants.BENCHMARK_CONF);
-        dataDir = confDir.substring(0, confDir.length() - 4) + "/data";
+        String dataDir = confDir.substring(0, confDir.length() - 23) + "/data/csv";
+        confCSV = dataDir + "/CONF.csv";
+        finalResultCSV = dataDir + "/FINAL_RESULT.csv";
+        projectCSV = dataDir + "/" + projectID + ".csv";
         File file = new File(dataDir);
         if(!file.mkdir()) {
             LOGGER.error("can't create dir");
@@ -63,7 +65,7 @@ public class CSVRecorder implements ITestDataPersistence {
                     ",walFileSize,tps,MB_read,MB_wrtn\n";
             File file = new File(serverInfoCSV);
             try {
-                if (file.createNewFile()) {
+                if (!file.createNewFile()) {
                     LOGGER.error("can't create file");
                 }
             } catch (IOException e) {
@@ -75,7 +77,7 @@ public class CSVRecorder implements ITestDataPersistence {
             String firstLine = "id,projectID,configuration_item,configuration_value\n";
             File file = new File(confCSV);
             try {
-                if (file.createNewFile()) {
+                if (!file.createNewFile()) {
                     LOGGER.error("can't create file");
                 }
             } catch (IOException e) {
@@ -87,7 +89,7 @@ public class CSVRecorder implements ITestDataPersistence {
             String firstLine = "id,projectID,operation,result_key,result_value\n";
             File file = new File(finalResultCSV);
             try {
-                if (file.createNewFile()) {
+                if (!file.createNewFile()) {
                     LOGGER.error("can't create file");
                 }
             } catch (IOException e) {
@@ -100,7 +102,7 @@ public class CSVRecorder implements ITestDataPersistence {
             String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark";
             File file = new File(projectCSV);
             try {
-                if (file.createNewFile()) {
+                if (!file.createNewFile()) {
                     LOGGER.error("can't create file");
                 }
             } catch (IOException e) {
