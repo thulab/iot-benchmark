@@ -30,7 +30,7 @@ public class CSVRecorder implements ITestDataPersistence {
     String confCSV;
     String finalResultCSV;
     String projectCSV;
-    private static final String FOUR = "NULL, %s, %s, %s\n";
+    private static final String FOUR = ",%s,%s,%s\n";
 
     public CSVRecorder() {
         try {
@@ -149,7 +149,7 @@ public class CSVRecorder implements ITestDataPersistence {
             rate = okPoint * 1000 / latency; //unit: points/second
         }
         String time = df.format(new java.util.Date(System.currentTimeMillis()));
-        String line = String.format("NULL,%s,%s,%s,%d,%d,%f,%f,%s\n",
+        String line = String.format(",%s,%s,%s,%d,%d,%f,%f,%s\n",
                 time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
                 remark);
         CSVFileUtil.appendMethod(projectCSV,line);
@@ -157,7 +157,7 @@ public class CSVRecorder implements ITestDataPersistence {
 
     @Override
     public void saveResult(String operation, String k, String v) {
-        String line = String.format("NULL,%s,%s,%s,%s", projectID, operation, k, v);
+        String line = String.format(",%s,%s,%s,%s", projectID, operation, k, v);
         CSVFileUtil.appendMethod(finalResultCSV, line);
     }
 
