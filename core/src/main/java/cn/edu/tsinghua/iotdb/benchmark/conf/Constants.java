@@ -49,6 +49,7 @@ public class Constants {
     public static final String TDP_NONE = "None";
     public static final String TDP_IOTDB = "IoTDB";
     public static final String TDP_MYSQL = "MySQL";
+    public static final String TDP_CSV = "CSV";
 
     // device and storage group assignment
     public static final String MOD_SG_ASSIGN_MODE = "mod";
