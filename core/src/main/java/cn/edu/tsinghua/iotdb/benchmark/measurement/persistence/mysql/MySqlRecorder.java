@@ -193,8 +193,13 @@ public class MySqlRecorder implements ITestDataPersistence {
           "{} save saveInsertProcess info into mysql failed! Error：{}",
           Thread.currentThread().getName(), e.getMessage());
       LOGGER.error("{}", mysqlSql);
+    } finally {
+      try {
+        statement.close();
+      } catch (SQLException throwable) {
+        LOGGER.error("Failed to close statement for config info because", throwable);
+      }
     }
-
   }
 
   // 存储实验结果
