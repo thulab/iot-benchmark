@@ -111,6 +111,7 @@ public class ConfigDescriptor {
 
 				config.setTEST_DATA_STORE_PORT(properties.getProperty("TEST_DATA_STORE_PORT", config.getTEST_DATA_STORE_PORT()));
 				config.setTEST_DATA_STORE_DB(properties.getProperty("TEST_DATA_STORE_DB", config.getTEST_DATA_STORE_DB()));
+				config.setMaxCsvLine(Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getMaxCsvLine()+ "")));
 				config.setTEST_DATA_STORE_IP(properties.getProperty("TEST_DATA_STORE_IP", config.getTEST_DATA_STORE_IP()));
 				config.setTEST_DATA_STORE_USER(properties.getProperty("TEST_DATA_STORE_USER", config.getTEST_DATA_STORE_USER()));
 				config.setTEST_DATA_STORE_PW(properties.getProperty("TEST_DATA_STORE_PW", config.getTEST_DATA_STORE_PW()));

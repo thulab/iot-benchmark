@@ -1028,7 +1028,11 @@ public class Config {
 
 	private final AtomicLong currentCsvLine = new AtomicLong();
 
-	private long maxCsvLine = 10000;
+	private long maxCsvLine = 10000000;
+
+	public void setMaxCsvLine(long maxCsvLine) {
+		this.maxCsvLine = maxCsvLine;
+	}
 
 	public long getCurrentCsvLine() {
 		return currentCsvLine.getAndIncrement();
