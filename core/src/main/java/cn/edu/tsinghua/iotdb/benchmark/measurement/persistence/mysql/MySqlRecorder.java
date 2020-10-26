@@ -53,8 +53,8 @@ public class MySqlRecorder implements ITestDataPersistence {
     try {
       Class.forName(Constants.MYSQL_DRIVENAME);
       mysqlConnection = DriverManager.getConnection(url);
-      initTable();
       statement = mysqlConnection.createStatement();
+      initTable();
     } catch (SQLException e) {
       LOGGER.error("mysql 初始化失败，原因是", e);
     } catch (ClassNotFoundException e) {
