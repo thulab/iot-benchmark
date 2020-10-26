@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
@@ -1024,6 +1025,18 @@ public class Config {
 	private String TEST_DATA_STORE_USER = "";
 	private String TEST_DATA_STORE_PW = "";
 	private String VERSION = "";
+
+	private final AtomicLong currentCsvLine = new AtomicLong();
+
+	private long maxCsvLine = 10000;
+
+	public long getCurrentCsvLine() {
+		return currentCsvLine.getAndIncrement();
+	}
+
+	public long getMaxCsvLine() {
+		return maxCsvLine;
+	}
 
 	public String getVERSION() {
 		return VERSION;

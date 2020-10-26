@@ -29,7 +29,10 @@ public class CSVRecorder implements ITestDataPersistence {
     String serverInfoCSV;
     String confCSV;
     String finalResultCSV;
-    String projectCSV;
+    static String projectCSV;
+    String confDir;
+    String dataDir;
+    String csvDir;
     private static final String FOUR = ",%s,%s,%s\n";
 
     public CSVRecorder() {
@@ -45,9 +48,9 @@ public class CSVRecorder implements ITestDataPersistence {
         Date date = new Date(EXP_TIME);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd");
         String day = dateFormat.format(date);
-        String confDir = System.getProperty(Constants.BENCHMARK_CONF);
-        String dataDir = confDir.substring(0, confDir.length() - 23) + "/data";
-        String csvDir = dataDir + "/csv";
+        confDir = System.getProperty(Constants.BENCHMARK_CONF);
+        dataDir = confDir.substring(0, confDir.length() - 23) + "/data";
+        csvDir = dataDir + "/csv";
         confCSV = csvDir + "/CONF.csv";
         finalResultCSV = csvDir + "/FINAL_RESULT.csv";
         projectCSV = csvDir + "/" + projectID + ".csv";
@@ -153,6 +156,23 @@ public class CSVRecorder implements ITestDataPersistence {
                 time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
                 remark);
         CSVFileUtil.appendMethod(projectCSV,line);
+        int fileNumber = (int) (config.getCurrentCsvLine() / config.getMaxCsvLine());
+        if(fileNumber >= 1) {
+            projectCSV = csvDir + "/" + projectID + "_split" + fileNumber + ".csv";
+            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(
+                projectCSV)) {
+                String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
+                File file = new File(projectCSV);
+                try {
+                    if (!file.createNewFile()) {
+                        LOGGER.error("can't create file");
+                    }
+                } catch (IOException e) {
+                    LOGGER.error(e.getMessage());
+                }
+                CSVFileUtil.appendMethod(projectCSV, firstLine);
+            }
+        }
     }
 
     @Override
