@@ -188,6 +188,7 @@ public class ConfigDescriptor {
 					config.setFIRST_DEVICE_INDEX(0);
 				}
 
+				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
         config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));
 				if(config.getREAL_INSERT_RATE() <= 0 || config.getREAL_INSERT_RATE() > 1) {
           config.setREAL_INSERT_RATE(1);

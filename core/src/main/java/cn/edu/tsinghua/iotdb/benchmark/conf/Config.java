@@ -996,6 +996,16 @@ public class Config {
 		this.TEST_DATA_STORE_PW = TEST_DATA_STORE_PW;
 	}
 
+	public void setMYSQL_REAL_INSERT_RATE(double MYSQL_REAL_INSERT_RATE) {
+		this.MYSQL_REAL_INSERT_RATE = MYSQL_REAL_INSERT_RATE;
+	}
+
+	public double getMYSQL_REAL_INSERT_RATE() {
+		return MYSQL_REAL_INSERT_RATE;
+	}
+
+	private double MYSQL_REAL_INSERT_RATE = 1.0;
+
 	//iotDB查询测试相关参数
 	private int QUERY_SENSOR_NUM = 1;
 	private int QUERY_DEVICE_NUM = 1;
