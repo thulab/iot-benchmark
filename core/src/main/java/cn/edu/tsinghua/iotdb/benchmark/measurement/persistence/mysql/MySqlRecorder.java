@@ -136,42 +136,43 @@ public class MySqlRecorder implements ITestDataPersistence {
   @Override
   public void saveOperationResult(String operation, int okPoint, int failPoint,
       double latency, String remark) {
-
-    double rate = 0;
-    if (latency > 0) {
-      rate = okPoint * 1000 / latency; //unit: points/second
-    }
-    String time = df.format(new java.util.Date(System.currentTimeMillis()));
-    String mysqlSql = String
-        .format("insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')", projectID,
-            time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
-            remark);
-    try {
-      statement.execute(mysqlSql);
-      count ++;
-      if(count % 5000 == 0) {
-        statement.executeBatch();
-        statement.clearBatch();
+    if(config.getCurrentCsvLine() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
+      double rate = 0;
+      if (latency > 0) {
+        rate = okPoint * 1000 / latency; //unit: points/second
       }
-    } catch (Exception e) {
-      LOGGER.error("Exception: {}", e.getMessage(), e);
+      String time = df.format(new java.util.Date(System.currentTimeMillis()));
+      String mysqlSql = String
+          .format("insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')", projectID,
+              time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
+              remark);
       try {
-        if (!mysqlConnection.isValid(100)) {
-          LOGGER.info("Try to reconnect to MySQL");
-          try {
-            Class.forName(Constants.MYSQL_DRIVENAME);
-            mysqlConnection = DriverManager.getConnection(url);
-          } catch (Exception ex) {
-            LOGGER.error("Reconnect to MySQL failed because", ex);
-          }
+        statement.execute(mysqlSql);
+        count++;
+        if (count % 5000 == 0) {
+          statement.executeBatch();
+          statement.clearBatch();
         }
-      } catch (SQLException ex) {
-        LOGGER.error("Test if MySQL connection is valid failed", ex);
+      } catch (Exception e) {
+        LOGGER.error("Exception: {}", e.getMessage(), e);
+        try {
+          if (!mysqlConnection.isValid(100)) {
+            LOGGER.info("Try to reconnect to MySQL");
+            try {
+              Class.forName(Constants.MYSQL_DRIVENAME);
+              mysqlConnection = DriverManager.getConnection(url);
+            } catch (Exception ex) {
+              LOGGER.error("Reconnect to MySQL failed because", ex);
+            }
+          }
+        } catch (SQLException ex) {
+          LOGGER.error("Test if MySQL connection is valid failed", ex);
+        }
+        LOGGER.error(
+            "{} save saveInsertProcess info into mysql failed! Error：{}",
+            Thread.currentThread().getName(), e.getMessage());
+        LOGGER.error("{}", mysqlSql);
       }
-      LOGGER.error(
-          "{} save saveInsertProcess info into mysql failed! Error：{}",
-          Thread.currentThread().getName(), e.getMessage());
-      LOGGER.error("{}", mysqlSql);
     }
   }
 
