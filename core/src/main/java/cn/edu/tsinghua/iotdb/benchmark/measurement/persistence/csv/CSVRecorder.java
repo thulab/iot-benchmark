@@ -21,18 +21,18 @@ public class CSVRecorder implements ITestDataPersistence {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVRecorder.class);
     private String localName;
-    private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
+    private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
     private static final long EXP_TIME = System.currentTimeMillis();
-    private final Config config = ConfigDescriptor.getInstance().getConfig();
-    private final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
     String serverInfoCSV;
     String confCSV;
     String finalResultCSV;
     static String projectCSV;
     String confDir;
     String dataDir;
-    String csvDir;
+    static String csvDir;
     private static final String FOUR = ",%s,%s,%s\n";
 
     public CSVRecorder() {
@@ -147,25 +147,38 @@ public class CSVRecorder implements ITestDataPersistence {
 
     @Override
     public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
+        if(config.isCSV_FILE_SPLIT()) {
+            insertAndCreateNewCsv(operation, okPoint, failPoint, latency, remark);
+        } else {
+            insert(operation, okPoint, failPoint, latency, remark);
+        }
+    }
+
+    private static void insert(String operation, int okPoint, int failPoint, double latency,
+        String remark) {
         double rate = 0;
         if (latency > 0) {
             rate = okPoint * 1000 / latency; //unit: points/second
         }
         String time = df.format(new java.util.Date(System.currentTimeMillis()));
         String line = String.format(",%s,%s,%s,%d,%d,%f,%f,%s\n",
-                time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
-                remark);
+            time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
+            remark);
         CSVFileUtil.appendMethod(projectCSV,line);
-        int fileNumber = (int) (config.getCurrentCsvLine() / config.getMaxCsvLine());
-        if(fileNumber >= 1) {
+    }
+
+    private static synchronized void insertAndCreateNewCsv(String operation, int okPoint, int failPoint, double latency, String remark) {
+        int fileNumber = (int) (config.getCURRENT_CSV_LINE() / config.getMAX_CSV_LINE());
+        if (fileNumber >= 1) {
             projectCSV = csvDir + "/" + projectID + "_split" + fileNumber + ".csv";
-            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(
+            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)
+                && !CSVFileUtil.isCSVFileExist(
                 projectCSV)) {
                 String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
                 File file = new File(projectCSV);
                 try {
                     if (!file.createNewFile()) {
-                        LOGGER.error("can't create file");
+                        return;
                     }
                 } catch (IOException e) {
                     LOGGER.error(e.getMessage());
@@ -173,6 +186,7 @@ public class CSVRecorder implements ITestDataPersistence {
                 CSVFileUtil.appendMethod(projectCSV, firstLine);
             }
         }
+        insert(operation, okPoint, failPoint, latency, remark);
     }
 
     @Override

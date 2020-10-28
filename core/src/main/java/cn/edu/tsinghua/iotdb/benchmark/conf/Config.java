@@ -1036,20 +1036,30 @@ public class Config {
 	private String TEST_DATA_STORE_PW = "";
 	private String VERSION = "";
 
-	private final AtomicLong currentCsvLine = new AtomicLong();
+	private final AtomicLong CURRENT_CSV_LINE = new AtomicLong();
 
-	private long maxCsvLine = 10000000;
+	private long MAX_CSV_LINE = 10000000;
 
-	public void setMaxCsvLine(long maxCsvLine) {
-		this.maxCsvLine = maxCsvLine;
+	private boolean CSV_FILE_SPLIT = true;
+
+	public boolean isCSV_FILE_SPLIT() {
+		return CSV_FILE_SPLIT;
 	}
 
-	public long getCurrentCsvLine() {
-		return currentCsvLine.getAndIncrement();
+	public void setCSV_FILE_SPLIT(boolean CSV_FILE_SPLIT) {
+		this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
 	}
 
-	public long getMaxCsvLine() {
-		return maxCsvLine;
+	public void setMAX_CSV_LINE(long MAX_CSV_LINE) {
+		this.MAX_CSV_LINE = MAX_CSV_LINE;
+	}
+
+	public long getCURRENT_CSV_LINE() {
+		return CURRENT_CSV_LINE.getAndIncrement();
+	}
+
+	public long getMAX_CSV_LINE() {
+		return MAX_CSV_LINE;
 	}
 
 	public String getVERSION() {
