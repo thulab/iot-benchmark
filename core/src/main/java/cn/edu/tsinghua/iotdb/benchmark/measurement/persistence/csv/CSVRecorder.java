@@ -6,9 +6,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.utils.CSVFileUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -16,11 +13,17 @@ import java.net.UnknownHostException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CSVRecorder implements ITestDataPersistence {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVRecorder.class);
     private String localName;
+    private static int fileNumber = 1;
+    private final ReentrantLock reentrantLock = new ReentrantLock(true);
     private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
     private static final long EXP_TIME = System.currentTimeMillis();
@@ -147,14 +150,20 @@ public class CSVRecorder implements ITestDataPersistence {
 
     @Override
     public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
-        if(config.isCSV_FILE_SPLIT()) {
-            insertAndCreateNewCsv(operation, okPoint, failPoint, latency, remark);
+        if (config.isCSV_FILE_SPLIT()) {
+            if (config.IncrementAndGetCURRENT_CSV_LINE() == config.getMAX_CSV_LINE()) {
+                reentrantLock.lock();
+                createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark);
+                reentrantLock.unlock();
+            } else {
+                insert(operation, okPoint, failPoint, latency, remark);
+            }
         } else {
             insert(operation, okPoint, failPoint, latency, remark);
         }
     }
 
-    private static void insert(String operation, int okPoint, int failPoint, double latency,
+    private void insert(String operation, int okPoint, int failPoint, double latency,
         String remark) {
         double rate = 0;
         if (latency > 0) {
@@ -167,26 +176,27 @@ public class CSVRecorder implements ITestDataPersistence {
         CSVFileUtil.appendMethod(projectCSV,line);
     }
 
-    private static synchronized void insertAndCreateNewCsv(String operation, int okPoint, int failPoint, double latency, String remark) {
-        int fileNumber = (int) (config.getCURRENT_CSV_LINE() / config.getMAX_CSV_LINE());
-        if (fileNumber >= 1) {
+    private void createNewCsvOrInsert(String operation, int okPoint, int failPoint, double latency,
+        String remark) {
+        if(config.getCURRENT_CSV_LINE() == config.getMAX_CSV_LINE()) {
             projectCSV = csvDir + "/" + projectID + "_split" + fileNumber + ".csv";
-            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)
-                && !CSVFileUtil.isCSVFileExist(
-                projectCSV)) {
+            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(projectCSV)) {
                 String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
                 File file = new File(projectCSV);
                 try {
                     if (!file.createNewFile()) {
-                        return;
+                        LOGGER.error("can't create new file");
                     }
                 } catch (IOException e) {
                     LOGGER.error(e.getMessage());
                 }
                 CSVFileUtil.appendMethod(projectCSV, firstLine);
             }
+            fileNumber++;
+            config.setCURRENT_CSV_LINE(new AtomicLong(0));
+        } else {
+            insert(operation, okPoint, failPoint, latency, remark);
         }
-        insert(operation, okPoint, failPoint, latency, remark);
     }
 
     @Override
