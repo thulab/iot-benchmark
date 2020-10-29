@@ -22,8 +22,8 @@ public class CSVRecorder implements ITestDataPersistence {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVRecorder.class);
     private String localName;
-    private static int fileNumber = 1;
-    private final ReentrantLock reentrantLock = new ReentrantLock(true);
+    private static final AtomicLong fileNumber = new AtomicLong(1);
+    private final static ReentrantLock reentrantLock = new ReentrantLock(true);
     private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
     private static final long EXP_TIME = System.currentTimeMillis();
@@ -32,7 +32,7 @@ public class CSVRecorder implements ITestDataPersistence {
     String serverInfoCSV;
     String confCSV;
     String finalResultCSV;
-    static String projectCSV;
+    static volatile String projectCSV;
     String confDir;
     String dataDir;
     static String csvDir;
@@ -151,10 +151,14 @@ public class CSVRecorder implements ITestDataPersistence {
     @Override
     public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
         if (config.isCSV_FILE_SPLIT()) {
-            if (config.IncrementAndGetCURRENT_CSV_LINE() == config.getMAX_CSV_LINE()) {
+            if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getMAX_CSV_LINE()) {
                 reentrantLock.lock();
-                createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark);
-                reentrantLock.unlock();
+                try {
+                    createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark);
+                }
+                finally {
+                    reentrantLock.unlock();
+                }
             } else {
                 insert(operation, okPoint, failPoint, latency, remark);
             }
@@ -178,22 +182,24 @@ public class CSVRecorder implements ITestDataPersistence {
 
     private void createNewCsvOrInsert(String operation, int okPoint, int failPoint, double latency,
         String remark) {
-        if(config.getCURRENT_CSV_LINE() == config.getMAX_CSV_LINE()) {
-            projectCSV = csvDir + "/" + projectID + "_split" + fileNumber + ".csv";
-            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(projectCSV)) {
+        if(config.getCURRENT_CSV_LINE() >= config.getMAX_CSV_LINE()) {
+            String newFile = csvDir + "/" + projectID + "_split" + fileNumber.getAndIncrement() + ".csv";
+            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
                 String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
-                File file = new File(projectCSV);
+                File file = new File(newFile);
                 try {
                     if (!file.createNewFile()) {
-                        LOGGER.error("can't create new file");
+                        LOGGER.error("can't create new file " +  projectCSV);
+                        insert(operation, okPoint, failPoint, latency, remark);
+                        return;
                     }
                 } catch (IOException e) {
                     LOGGER.error(e.getMessage());
                 }
-                CSVFileUtil.appendMethod(projectCSV, firstLine);
+                CSVFileUtil.appendMethod(newFile, firstLine);
+                projectCSV = newFile;
             }
-            fileNumber++;
-            config.setCURRENT_CSV_LINE(new AtomicLong(0));
+            config.resetCURRENT_CSV_LINE();
         } else {
             insert(operation, okPoint, failPoint, latency, remark);
         }

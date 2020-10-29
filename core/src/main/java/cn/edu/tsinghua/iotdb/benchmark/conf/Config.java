@@ -1062,6 +1062,10 @@ public class Config {
 		return CURRENT_CSV_LINE.get();
 	}
 
+	public void resetCURRENT_CSV_LINE() {
+		CURRENT_CSV_LINE.set(0);
+	}
+
 	public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
 		this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
 	}
