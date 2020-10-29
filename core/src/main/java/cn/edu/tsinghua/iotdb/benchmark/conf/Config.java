@@ -1036,7 +1036,7 @@ public class Config {
 	private String TEST_DATA_STORE_PW = "";
 	private String VERSION = "";
 
-	private AtomicLong CURRENT_CSV_LINE = new AtomicLong();
+	private final AtomicLong CURRENT_CSV_LINE = new AtomicLong();
 
 	private long MAX_CSV_LINE = 10000000;
 
@@ -1054,18 +1054,9 @@ public class Config {
 		this.MAX_CSV_LINE = MAX_CSV_LINE;
 	}
 
-	public long IncrementAndGetCURRENT_CSV_LINE() {
-		return CURRENT_CSV_LINE.incrementAndGet();
-	}
-
 	public long getCURRENT_CSV_LINE() {
-		return CURRENT_CSV_LINE.get();
+		return CURRENT_CSV_LINE.getAndIncrement();
 	}
-
-	public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
-		this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
-	}
-
 
 	public long getMAX_CSV_LINE() {
 		return MAX_CSV_LINE;
