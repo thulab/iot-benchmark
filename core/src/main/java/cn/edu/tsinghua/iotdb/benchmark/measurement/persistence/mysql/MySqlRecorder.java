@@ -136,7 +136,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   @Override
   public void saveOperationResult(String operation, int okPoint, int failPoint,
       double latency, String remark) {
-    if(config.getCURRENT_CSV_LINE() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
+    if(config.IncrementAndGetCURRENT_CSV_LINE() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
       double rate = 0;
       if (latency > 0) {
         rate = okPoint * 1000 / latency; //unit: points/second
