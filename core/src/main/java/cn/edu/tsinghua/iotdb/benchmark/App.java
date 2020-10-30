@@ -12,6 +12,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.csv.CSVShutdownHook;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
@@ -54,6 +55,7 @@ public class App {
         if (!cli.init(args)) {
             return;
         }
+        Runtime.getRuntime().addShutdownHook(new CSVShutdownHook());
         Config config = ConfigDescriptor.getInstance().getConfig();
         switch (config.getBENCHMARK_WORK_MODE().trim()) {
             case Constants.MODE_TEST_WITH_DEFAULT_PATH:

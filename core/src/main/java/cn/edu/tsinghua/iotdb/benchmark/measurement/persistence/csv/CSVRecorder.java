@@ -5,11 +5,12 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
-import cn.edu.tsinghua.iotdb.benchmark.utils.CSVFileUtil;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.channels.FileChannel;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -21,7 +22,8 @@ import org.slf4j.LoggerFactory;
 public class CSVRecorder implements ITestDataPersistence {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CSVRecorder.class);
-    private String localName;
+    public static final int WRITE_RETRY_COUNT = 5;
+    private static String localName;
     private static final AtomicLong fileNumber = new AtomicLong(1);
     private final static ReentrantLock reentrantLock = new ReentrantLock(true);
     private static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -29,12 +31,12 @@ public class CSVRecorder implements ITestDataPersistence {
     private static final long EXP_TIME = System.currentTimeMillis();
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
     private static final String projectID = String.format("%s_%s_%s_%s",config.getBENCHMARK_WORK_MODE(), config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
-    String serverInfoCSV;
-    String confCSV;
-    String finalResultCSV;
-    static volatile String projectCSV;
-    String confDir;
-    String dataDir;
+    static volatile FileWriter projectWriter;
+    static FileWriter serverInfoWriter;
+    static FileWriter confWriter;
+    static FileWriter finalResultWriter;
+    static String confDir;
+    static String dataDir;
     static String csvDir;
     private static final String FOUR = ",%s,%s,%s\n";
 
@@ -54,9 +56,6 @@ public class CSVRecorder implements ITestDataPersistence {
         confDir = System.getProperty(Constants.BENCHMARK_CONF);
         dataDir = confDir.substring(0, confDir.length() - 23) + "/data";
         csvDir = dataDir + "/csv";
-        confCSV = csvDir + "/CONF.csv";
-        finalResultCSV = csvDir + "/FINAL_RESULT.csv";
-        projectCSV = csvDir + "/" + projectID + ".csv";
         File dataFile = new File(dataDir);
         File csvFile = new File(csvDir);
         if(!dataFile.exists()) {
@@ -69,61 +68,43 @@ public class CSVRecorder implements ITestDataPersistence {
                 LOGGER.error("can't create dir");
             }
         }
-        serverInfoCSV = csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv";
-        initCSVFile();
+        try {
+            confWriter = new FileWriter(csvDir + "/CONF.csv", true);
+            finalResultWriter = new FileWriter(csvDir + "/FINAL_RESULT.csv", true);
+            projectWriter = new FileWriter(csvDir + "/" + projectID + ".csv", true);
+            serverInfoWriter = new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
+            initCSVFile();
+        } catch (IOException e) {
+            LOGGER.error("",e);
+            try {
+                confWriter.close();
+                finalResultWriter.close();
+                projectWriter.close();
+                serverInfoWriter.close();
+            } catch (IOException ioException) {
+                LOGGER.error("",ioException);
+            }
+        }
     }
 
-    public void initCSVFile() {
-        if(!CSVFileUtil.isCSVFileExist(serverInfoCSV)) {
+    public void initCSVFile() throws IOException {
+        if(serverInfoWriter != null) {
             String firstLine = "id,cpu_usage,mem_usage,diskIo_usage,net_recv_rate,net_send_rate" +
                     ",pro_mem_size,dataFileSize,systemFizeSize,sequenceFileSize,unsequenceFileSize" +
                     ",walFileSize,tps,MB_read,MB_wrtn\n";
-            File file = new File(serverInfoCSV);
-            try {
-                if (!file.createNewFile()) {
-                    LOGGER.error("can't create file");
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-            CSVFileUtil.appendMethod(serverInfoCSV, firstLine);
+            serverInfoWriter.append(firstLine);
         }
-        if(!CSVFileUtil.isCSVFileExist(confCSV)) {
+        if(confWriter != null) {
             String firstLine = "id,projectID,configuration_item,configuration_value\n";
-            File file = new File(confCSV);
-            try {
-                if (!file.createNewFile()) {
-                    LOGGER.error("can't create file");
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-            CSVFileUtil.appendMethod(confCSV, firstLine);
+            confWriter.append(firstLine);
         }
-        if(!CSVFileUtil.isCSVFileExist(finalResultCSV)) {
+        if(serverInfoWriter != null) {
             String firstLine = "id,projectID,operation,result_key,result_value\n";
-            File file = new File(finalResultCSV);
-            try {
-                if (!file.createNewFile()) {
-                    LOGGER.error("can't create file");
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-            CSVFileUtil.appendMethod(finalResultCSV, firstLine);
+            serverInfoWriter.append(firstLine);
         }
-        if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && !CSVFileUtil.isCSVFileExist(
-                projectCSV)) {
+        if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH) && projectWriter != null) {
             String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
-            File file = new File(projectCSV);
-            try {
-                if (!file.createNewFile()) {
-                    LOGGER.error("can't create file");
-                }
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
-            }
-            CSVFileUtil.appendMethod(projectCSV, firstLine);
+            projectWriter.append(firstLine);
         }
 
     }
@@ -145,7 +126,11 @@ public class CSVRecorder implements ITestDataPersistence {
                 systemMetricsMap.get(SystemMetrics.DISK_TPS) + "," +
                 systemMetricsMap.get(SystemMetrics.DISK_READ_SPEED_MB) + "," +
                 systemMetricsMap.get(SystemMetrics.DISK_WRITE_SPEED_MB) + "\n";
-        CSVFileUtil.appendMethod(serverInfoCSV, system);
+        try {
+            serverInfoWriter.append(system);
+        } catch (IOException e) {
+            LOGGER.error("", e);
+        }
     }
 
     @Override
@@ -177,27 +162,43 @@ public class CSVRecorder implements ITestDataPersistence {
         String line = String.format(",%s,%s,%s,%d,%d,%f,%f,%s\n",
             time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
             remark);
-        CSVFileUtil.appendMethod(projectCSV,line);
+
+        // m
+        int count = 0;
+        while (true){
+            try {
+                projectWriter.append(line);
+                break;
+            } catch (IOException e) {
+                LOGGER.warn("try to write into old closed file, just try again");
+                count++;
+                if(count > WRITE_RETRY_COUNT){
+                    LOGGER.error("write to file failed", e);
+                    break;
+                }
+            }
+        }
     }
 
     private void createNewCsvOrInsert(String operation, int okPoint, int failPoint, double latency,
         String remark) {
         if(config.getCURRENT_CSV_LINE() >= config.getMAX_CSV_LINE()) {
-            String newFile = csvDir + "/" + projectID + "_split" + fileNumber.getAndIncrement() + ".csv";
+            FileWriter newProjectWriter = null;
             if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
                 String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
-                File file = new File(newFile);
                 try {
-                    if (!file.createNewFile()) {
-                        LOGGER.error("can't create new file " +  projectCSV);
-                        insert(operation, okPoint, failPoint, latency, remark);
-                        return;
-                    }
+                    newProjectWriter = new FileWriter(csvDir + "/" + projectID + "_split" + fileNumber.getAndIncrement() + ".csv", true);
+                    newProjectWriter.append(firstLine);
                 } catch (IOException e) {
-                    LOGGER.error(e.getMessage());
+                    LOGGER.error("", e);
                 }
-                CSVFileUtil.appendMethod(newFile, firstLine);
-                projectCSV = newFile;
+            }
+            FileWriter oldProjectWriter = projectWriter;
+            projectWriter = newProjectWriter;
+            try {
+                oldProjectWriter.close();
+            } catch (IOException e) {
+                LOGGER.error("", e);
             }
             config.resetCURRENT_CSV_LINE();
         } else {
@@ -208,7 +209,11 @@ public class CSVRecorder implements ITestDataPersistence {
     @Override
     public void saveResult(String operation, String k, String v) {
         String line = String.format(",%s,%s,%s,%s", projectID, operation, k, v);
-        CSVFileUtil.appendMethod(finalResultCSV, line);
+        try {
+            finalResultWriter.append(line);
+        } catch (IOException e) {
+            LOGGER.error("", e);
+        }
     }
 
     @Override
@@ -263,11 +268,33 @@ public class CSVRecorder implements ITestDataPersistence {
                 str.append(String.format(FOUR, projectID, "ENCODING", config.getENCODING()));
             }
         }
-        CSVFileUtil.appendMethod(confCSV, str.toString());
+        try {
+            confWriter.append(str.toString());
+        } catch (IOException e) {
+            LOGGER.error("", e);
+        }
     }
 
     @Override
     public void close() {
+//        try {
+//            confWriter.close();
+//            finalResultWriter.close();
+//            projectWriter.close();
+//            serverInfoWriter.close();
+//        } catch (IOException ioException) {
+//            LOGGER.error("",ioException);
+//        }
+    }
 
+    public static void readClose() {
+        try {
+            confWriter.close();
+            finalResultWriter.close();
+            projectWriter.close();
+            serverInfoWriter.close();
+        } catch (IOException ioException) {
+            LOGGER.error("",ioException);
+        }
     }
 }
