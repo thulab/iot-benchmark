@@ -10,7 +10,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.channels.FileChannel;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -163,7 +162,7 @@ public class CSVRecorder implements ITestDataPersistence {
             time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
             remark);
 
-        // m
+        // when create a new file writer, old file may be closed.
         int count = 0;
         while (true){
             try {
