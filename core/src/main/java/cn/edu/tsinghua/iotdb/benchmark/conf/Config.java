@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
@@ -995,6 +996,16 @@ public class Config {
 		this.TEST_DATA_STORE_PW = TEST_DATA_STORE_PW;
 	}
 
+	public void setMYSQL_REAL_INSERT_RATE(double MYSQL_REAL_INSERT_RATE) {
+		this.MYSQL_REAL_INSERT_RATE = MYSQL_REAL_INSERT_RATE;
+	}
+
+	public double getMYSQL_REAL_INSERT_RATE() {
+		return MYSQL_REAL_INSERT_RATE;
+	}
+
+	private double MYSQL_REAL_INSERT_RATE = 1.0;
+
 	//iotDB查询测试相关参数
 	private int QUERY_SENSOR_NUM = 1;
 	private int QUERY_DEVICE_NUM = 1;
@@ -1024,6 +1035,45 @@ public class Config {
 	private String TEST_DATA_STORE_USER = "";
 	private String TEST_DATA_STORE_PW = "";
 	private String VERSION = "";
+
+	private AtomicLong CURRENT_CSV_LINE = new AtomicLong();
+
+	private long MAX_CSV_LINE = 10000000;
+
+	private boolean CSV_FILE_SPLIT = true;
+
+	public boolean isCSV_FILE_SPLIT() {
+		return CSV_FILE_SPLIT;
+	}
+
+	public void setCSV_FILE_SPLIT(boolean CSV_FILE_SPLIT) {
+		this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
+	}
+
+	public void setMAX_CSV_LINE(long MAX_CSV_LINE) {
+		this.MAX_CSV_LINE = MAX_CSV_LINE;
+	}
+
+	public long IncrementAndGetCURRENT_CSV_LINE() {
+		return CURRENT_CSV_LINE.incrementAndGet();
+	}
+
+	public long getCURRENT_CSV_LINE() {
+		return CURRENT_CSV_LINE.get();
+	}
+
+	public void resetCURRENT_CSV_LINE() {
+		CURRENT_CSV_LINE.set(0);
+	}
+
+	public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
+		this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
+	}
+
+
+	public long getMAX_CSV_LINE() {
+		return MAX_CSV_LINE;
+	}
 
 	public String getVERSION() {
 		return VERSION;

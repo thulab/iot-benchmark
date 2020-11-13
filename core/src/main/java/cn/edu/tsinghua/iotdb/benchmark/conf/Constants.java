@@ -49,6 +49,7 @@ public class Constants {
     public static final String TDP_NONE = "None";
     public static final String TDP_IOTDB = "IoTDB";
     public static final String TDP_MYSQL = "MySQL";
+    public static final String TDP_CSV = "CSV";
 
     // device and storage group assignment
     public static final String MOD_SG_ASSIGN_MODE = "mod";
@@ -61,4 +62,5 @@ public class Constants {
     public static final String IOTDB010_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb010.IoTDBSession";
     public static final String IOTDB009_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDB";
     public static final String IOTDB009_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDBSession";
+    public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB";
 }

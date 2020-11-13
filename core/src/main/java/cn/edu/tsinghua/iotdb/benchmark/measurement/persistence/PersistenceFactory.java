@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.csv.CSVRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.iotdb.IotdbRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.mysql.MySqlRecorder;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.none.NoneRecorder;
@@ -21,6 +22,8 @@ public class PersistenceFactory {
                 return new IotdbRecorder();
             case Constants.TDP_MYSQL:
                 return new MySqlRecorder();
+            case Constants.TDP_CSV:
+                return new CSVRecorder();
             default:
                 LOGGER.error("unsupported test data persistence way: {}, use NoneRecorder", config.getTEST_DATA_PERSISTENCE());
                 return new NoneRecorder();

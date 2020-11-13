@@ -15,27 +15,36 @@ public class DBFactory {
   public IDatabase getDatabase() throws SQLException {
     String dbClass;
     try {
-      switch(config.getVERSION()) {
-        case "0.11.0":
-          if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
-            dbClass = Constants.IOTDB011_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB011_SESSION_CLASS;
+      switch(config.getDB_SWITCH()) {
+        case Constants.TDP_IOTDB:
+          switch(config.getVERSION()) {
+            case "0.11.0":
+              if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
+                dbClass = Constants.IOTDB011_JDBC_CLASS;
+              } else {
+                dbClass = Constants.IOTDB011_SESSION_CLASS;
+              }
+              break;
+            case "0.10.0":
+              if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
+                dbClass = Constants.IOTDB010_JDBC_CLASS;
+              } else {
+                dbClass = Constants.IOTDB010_SESSION_CLASS;
+              }
+              break;
+            case "0.9.0":
+              if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
+                dbClass = Constants.IOTDB009_JDBC_CLASS;
+              } else {
+                dbClass = Constants.IOTDB009_SESSION_CLASS;
+              }
+              break;
+            default:
+              throw new SQLException("didn't support this database");
           }
           break;
-        case "0.10.0":
-          if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
-            dbClass = Constants.IOTDB010_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB010_SESSION_CLASS;
-          }
-          break;
-        case "0.9.0":
-          if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
-            dbClass = Constants.IOTDB009_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB009_SESSION_CLASS;
-          }
+        case Constants.DB_INFLUX:
+          dbClass = Constants.INFLUXDB_CLASS;
           break;
         default:
           throw new SQLException("didn't support this database");
