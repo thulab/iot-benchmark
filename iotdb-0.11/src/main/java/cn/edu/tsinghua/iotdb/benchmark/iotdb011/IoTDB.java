@@ -195,6 +195,9 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String sql = getvalueRangeQuerySql(valueRangeQuery);
+    if(config.isORDER_BY_TIME_DESC()) {
+      sql = sql + " " + Constants.ORDER_BY_TIME_DESC;
+    }
     return executeQueryAndGetStatus(sql);
   }
 
@@ -209,6 +212,9 @@ public class IoTDB implements IDatabase {
         aggRangeQuery.getAggFun());
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery.getStartTimestamp(),
         aggRangeQuery.getEndTimestamp());
+    if(config.isORDER_BY_TIME_DESC()) {
+      sql = sql + " " + Constants.ORDER_BY_TIME_DESC;
+    }
     return executeQueryAndGetStatus(sql);
   }
 
@@ -222,6 +228,9 @@ public class IoTDB implements IDatabase {
         aggValueQuery.getAggFun());
     String sql = aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
             (int) aggValueQuery.getValueThreshold()).substring(4);
+    if(config.isORDER_BY_TIME_DESC()) {
+      sql = sql + " " + Constants.ORDER_BY_TIME_DESC;
+    }
     return executeQueryAndGetStatus(sql);
   }
 
@@ -237,6 +246,9 @@ public class IoTDB implements IDatabase {
         aggRangeValueQuery.getEndTimestamp());
     sql += getValueFilterClause(aggRangeValueQuery.getDeviceSchema(),
             (int) aggRangeValueQuery.getValueThreshold());
+    if(config.isORDER_BY_TIME_DESC()) {
+      sql = sql + " " + Constants.ORDER_BY_TIME_DESC;
+    }
     return executeQueryAndGetStatus(sql);
   }
 
@@ -252,6 +264,9 @@ public class IoTDB implements IDatabase {
         groupByQuery.getAggFun());
     String sql = addGroupByClause(aggQuerySqlHead, groupByQuery.getStartTimestamp(),
         groupByQuery.getEndTimestamp(), groupByQuery.getGranularity());
+    if(config.isORDER_BY_TIME_DESC()) {
+      sql = sql + " " + Constants.ORDER_BY_TIME_DESC;
+    }
     return executeQueryAndGetStatus(sql);
   }
 
@@ -261,6 +276,9 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+    if(config.isORDER_BY_TIME_DESC()) {
+      aggQuerySqlHead = aggQuerySqlHead + " " + Constants.ORDER_BY_TIME_DESC;
+    }
     return executeQueryAndGetStatus(aggQuerySqlHead);
   }
 

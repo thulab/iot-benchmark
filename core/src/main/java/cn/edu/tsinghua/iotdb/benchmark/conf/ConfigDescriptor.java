@@ -196,6 +196,7 @@ public class ConfigDescriptor {
           LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
                   + "1], using default value 1.0", config.getREAL_INSERT_RATE());
         }
+				config.setORDER_BY_TIME_DESC(Boolean.parseBoolean(properties.getProperty("ORDER_BY_TIME_DESC", config.isORDER_BY_TIME_DESC()+"")));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
