@@ -19,9 +19,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -29,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SyntheticWorkload implements IWorkload {
 
@@ -46,6 +45,7 @@ public class SyntheticWorkload implements IWorkload {
   private static final String[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String IKR_CHAR_TABLE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
 
   public SyntheticWorkload(int clientId) {
@@ -79,8 +79,14 @@ public class SyntheticWorkload implements IWorkload {
           } else {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
             StringBuilder builder = new StringBuilder();
-            for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
-              builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+            if (ConfigDescriptor.getInstance().getConfig().getDB_SWITCH().equals(Constants.DB_KAIROS)){
+              for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
+                builder.append(IKR_CHAR_TABLE.charAt(dataRandom.nextInt(IKR_CHAR_TABLE.length())));
+              }
+            } else {
+              for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
+                builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+              }
             }
             value = builder.toString();
           }

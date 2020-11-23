@@ -63,4 +63,5 @@ public class Constants {
     public static final String IOTDB009_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDB";
     public static final String IOTDB009_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDBSession";
     public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB";
+    public static final String KAIROSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB";
 }

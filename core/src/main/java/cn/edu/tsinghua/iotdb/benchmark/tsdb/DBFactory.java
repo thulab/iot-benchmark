@@ -46,6 +46,9 @@ public class DBFactory {
         case Constants.DB_INFLUX:
           dbClass = Constants.INFLUXDB_CLASS;
           break;
+        case Constants.DB_KAIROS:
+          dbClass = Constants.KAIROSDB_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }
