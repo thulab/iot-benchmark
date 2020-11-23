@@ -19,8 +19,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,7 +37,7 @@ public class IoTDB implements IDatabase {
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  private Connection connection;
+  private IoTDBConnection ioTDBConnection;
   private static final String ALREADY_KEYWORD = "already exist";
 
   public IoTDB() {
@@ -49,15 +47,9 @@ public class IoTDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
-
-      org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.ENABLE_THRIFT_COMPRESSION;
-
-      connection = DriverManager
-          .getConnection(String.format(Constants.URL, config.HOST, config.PORT), Constants.USER,
-              Constants.PASSWD);
+        ioTDBConnection = new IoTDBConnection();
+        ioTDBConnection.init();
     } catch (Exception e) {
-      LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
     }
   }
@@ -69,14 +61,7 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    if (connection != null) {
-      try {
-        connection.close();
-      } catch (SQLException e) {
-        LOGGER.error("Failed to close IoTDB connection because ", e);
-        throw new TsdbException(e);
-      }
-    }
+   ioTDBConnection.close();
   }
 
   @Override
@@ -90,7 +75,7 @@ public class IoTDB implements IDatabase {
           groups.add(schema.getGroup());
         }
         // register storage groups
-        try (Statement statement = connection.createStatement()) {
+        try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
           for (String group : groups) {
             statement.addBatch(String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
           }
@@ -105,7 +90,7 @@ public class IoTDB implements IDatabase {
         }
       }
       // create time series
-      try (Statement statement = connection.createStatement()) {
+      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
@@ -220,7 +205,7 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    try (Statement statement = connection.createStatement()) {
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
@@ -431,7 +416,7 @@ public class IoTDB implements IDatabase {
     }
     int line = 0;
     int queryResultPointNum = 0;
-    try (Statement statement = connection.createStatement()) {
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
