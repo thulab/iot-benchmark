@@ -1168,16 +1168,6 @@ public class Config {
 	//mataData文件路径
 	private String METADATA_FILE_PATH = "";
 
-	private boolean ORDER_BY_TIME_DESC = false;
-
-	public boolean isORDER_BY_TIME_DESC() {
-		return ORDER_BY_TIME_DESC;
-	}
-
-	public void setORDER_BY_TIME_DESC(boolean ORDER_BY_TIME_DESC) {
-		this.ORDER_BY_TIME_DESC = ORDER_BY_TIME_DESC;
-	}
-
 	public void initInnerFunction() {
 		FunctionXml xml = null;
 		try {
