@@ -146,6 +146,20 @@ loop:
             LOGGER.error("Failed to do latest point query because ", e);
           }
           break;
+        case RANGE_QUERY_ORDER_BY_TIME_DESC:
+          try {
+            dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery());
+          } catch (Exception e) {
+            LOGGER.error("Failed to do range query order by time desc because ", e);
+          }
+          break;
+        case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
+          try {
+            dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery());
+          } catch (Exception e) {
+            LOGGER.error("Failed to do range query order by time desc because ", e);
+          }
+          break;
         default:
           LOGGER.error("Unsupported operation type {}", operation);
       }

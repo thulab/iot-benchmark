@@ -100,4 +100,14 @@ public class FakeDB implements IDatabase {
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     return new Status(true, null, null);
   }
+
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    return null;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    return null;
+  }
 }

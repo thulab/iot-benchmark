@@ -228,6 +228,16 @@ public class KairosDB implements IDatabase {
     return executeOneQuery(builder);
   }
 
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    return null;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    return null;
+  }
+
   private Status executeOneQuery(QueryBuilder builder) {
     LOGGER.debug("[JSON] {}", builder);
     int queryResultPointNum = 0;

@@ -56,6 +56,10 @@ public class OperationController {
         return Operation.GROUP_BY_QUERY;
       case 9:
         return Operation.LATEST_POINT_QUERY;
+      case 10:
+        return Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
+      case 11:
+        return Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
       default:
         LOGGER.error("Unsupported operation {}, use default operation: INGESTION.", i);
         return Operation.INGESTION;

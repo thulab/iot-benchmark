@@ -215,6 +215,40 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    Status status = null;
+    Operation operation = Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
+    try {
+      rangeQuery.setDesc(true);
+      long st = System.nanoTime();
+      status = db.rangeQueryOrderByDesc(rangeQuery);
+      long en = System.nanoTime();
+      status.setTimeCost(en - st);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e);
+    }
+    return status;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    Status status = null;
+    Operation operation = Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
+    try {
+      valueRangeQuery.setDesc(true);
+      long st = System.nanoTime();
+      status = db.valueRangeQueryOrderByDesc(valueRangeQuery);
+      long en = System.nanoTime();
+      status.setTimeCost(en - st);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e);
+    }
+    return status;
+  }
+
+  @Override
   public void init() throws TsdbException {
     db.init();
   }
