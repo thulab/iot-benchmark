@@ -225,30 +225,11 @@ public class InfluxDB implements IDatabase {
     HashMap<String, Object> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
-      Object value = parseNumber(i, valueList.get(i));
+      Object value = DBUtil.parseNumber(i, valueList.get(i));
       fields.put(sensors.get(i), value);
     }
     model.setFields(fields);
     return model;
-  }
-
-  private Object parseNumber(int index, String value) throws TsdbException {
-    switch (DBUtil.getDataType(index)) {
-      case "FLOAT":
-        return DBUtil.convertToFloat(value);
-      case "DOUBLE":
-        return DBUtil.convertToDouble(value);
-      case "INT32":
-        return DBUtil.convertToInt(value);
-      case "INT64":
-        return DBUtil.convertToLong(value);
-      case "BOOLEAN":
-        return DBUtil.convertToBoolean(value);
-      case "TEXT":
-        return DBUtil.convertToText(value);
-      default:
-        throw new TsdbException("unsuport datatype " + DBUtil.getDataType(index));
-    }
   }
 
   private Status executeQueryAndGetStatus(String sql) {
