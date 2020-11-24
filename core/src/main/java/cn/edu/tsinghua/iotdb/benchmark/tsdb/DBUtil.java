@@ -79,6 +79,26 @@ public class DBUtil {
     }
   }
 
+  // parse different sensor index as different data type value
+  public static Object parseNumber(int index, String value) throws TsdbException {
+    switch (DBUtil.getDataType(index)) {
+      case "FLOAT":
+        return convertToFloat(value);
+      case "DOUBLE":
+        return convertToDouble(value);
+      case "INT32":
+        return convertToInt(value);
+      case "INT64":
+        return convertToLong(value);
+      case "BOOLEAN":
+        return convertToBoolean(value);
+      case "TEXT":
+        return convertToText(value);
+      default:
+        throw new TsdbException("unsuport datatype " + DBUtil.getDataType(index));
+    }
+  }
+
   //currently, the workload engine just generate double, so we need a uniform way to transform it to other data type.
   public static boolean convertToBoolean(String doubleString) {
     return Double.parseDouble(doubleString) > 500;

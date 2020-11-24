@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.model.KairosDataModel;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
@@ -21,6 +22,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.alibaba.fastjson.JSON;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -125,7 +127,7 @@ public class KairosDB implements IDatabase {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     for (Record record : batch.getRecords()) {
       models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
-          record.getRecordDataValue()));
+          recordTransform(record.getRecordDataValue())));
     }
     String body = JSON.toJSONString(models);
     LOGGER.debug("body: {}", body);
@@ -266,5 +268,18 @@ public class KairosDB implements IDatabase {
         queryMetric.addAggregator(aggregator);
       }
     });
+  }
+
+  private static List<String> recordTransform(List<String> valueList){
+    List<String> ret = new ArrayList<>();
+    try {
+      for (int i = 0; i < valueList.size(); i++) {
+        Object value = DBUtil.parseNumber(i, valueList.get(i));
+        ret.add(value + "");
+      }
+    } catch (Exception e) {
+      LOGGER.error("transform KairosDB value failed");
+    }
+    return ret;
   }
 }
