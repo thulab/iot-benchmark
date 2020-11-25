@@ -127,7 +127,7 @@ public class KairosDB implements IDatabase {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     for (Record record : batch.getRecords()) {
       models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
-          recordTransform(record.getRecordDataValue())));
+          DBUtil.recordTransform(record.getRecordDataValue())));
     }
     String body = JSON.toJSONString(models);
     LOGGER.debug("body: {}", body);
@@ -270,16 +270,4 @@ public class KairosDB implements IDatabase {
     });
   }
 
-  private static List<String> recordTransform(List<String> valueList){
-    List<String> ret = new ArrayList<>();
-    try {
-      for (int i = 0; i < valueList.size(); i++) {
-        Object value = DBUtil.parseNumber(i, valueList.get(i));
-        ret.add(value + "");
-      }
-    } catch (Exception e) {
-      LOGGER.error("transform KairosDB value failed");
-    }
-    return ret;
-  }
 }

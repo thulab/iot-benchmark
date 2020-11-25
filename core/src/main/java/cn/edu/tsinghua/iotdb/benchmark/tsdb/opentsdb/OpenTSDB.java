@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.model.TSDBDataModel;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
@@ -93,10 +94,10 @@ public class OpenTSDB implements IDatabase {
 
     @Override
     public Status insertOneBatch(Batch batch) {
-        // create dataModel
-        LinkedList<TSDBDataModel> models = createDataModelByBatch(batch);
-        String sql = JSON.toJSONString(models);
         try {
+            // create dataModel
+            LinkedList<TSDBDataModel> models = createDataModelByBatch(batch);
+            String sql = JSON.toJSONString(models);
             HttpRequest.sendPost(writeUrl, sql);
             return new Status(true);
         } catch (Exception e) {
@@ -204,7 +205,7 @@ public class OpenTSDB implements IDatabase {
 
     }
 
-    private LinkedList<TSDBDataModel> createDataModelByBatch(Batch batch) {
+    private LinkedList<TSDBDataModel> createDataModelByBatch(Batch batch) throws TsdbException {
         DeviceSchema deviceSchema = batch.getDeviceSchema();
         String device = deviceSchema.getDevice();
         List<Record> records = batch.getRecords();
@@ -218,7 +219,7 @@ public class OpenTSDB implements IDatabase {
                 TSDBDataModel model = new TSDBDataModel();
                 model.setMetric(deviceSchema.getGroup());
                 model.setTimestamp(record.getTimestamp());
-                model.setValue(record.getRecordDataValue().get(j));
+                model.setValue(DBUtil.parseNumber(j, record.getRecordDataValue().get(j)));
                 Map<String, String> tags = new HashMap<>();
                 tags.put("device", device);
                 tags.put("sensor", deviceSchema.getSensors().get(j));
