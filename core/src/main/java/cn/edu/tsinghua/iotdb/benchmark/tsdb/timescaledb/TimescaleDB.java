@@ -124,7 +124,7 @@ public class TimescaleDB implements IDatabase {
     try (Statement statement = connection.createStatement()){
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
-            record.getRecordDataValue());
+            DBUtil.recordTransform(record.getRecordDataValue()));
         statement.addBatch(sql);
       }
 

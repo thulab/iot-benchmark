@@ -49,6 +49,12 @@ public class DBFactory {
         case Constants.DB_KAIROS:
           dbClass = Constants.KAIROSDB_CLASS;
           break;
+        case Constants.DB_OPENTS:
+          dbClass = Constants.OPENTSDB_CLASS;
+          break;
+        case Constants.DB_TIMESCALE:
+          dbClass = Constants.TIMESCALEDB_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }
