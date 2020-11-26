@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
+import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.utils.Binary;
@@ -42,8 +42,9 @@ public class IoTDBClusterSession extends IoTDB {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBClusterSession.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private Session[] sessions;
+  private SessionPool[] sessions;
   private int currSession;
+  private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
 
   public IoTDBClusterSession() {
     super();
@@ -55,14 +56,18 @@ public class IoTDBClusterSession extends IoTDB {
   }
 
   private void createSessions() throws IoTDBConnectionException {
-    sessions = new Session[config.CLUSTER_HOSTS.size()];
+    sessions = new SessionPool[config.CLUSTER_HOSTS.size()];
     for (int i = 0; i < sessions.length; i++) {
       String[] split = config.CLUSTER_HOSTS.get(i).split(":");
-      sessions[i] = new Session(split[0], split[1], Constants.USER, Constants.PASSWD);
+
       if (config.ENABLE_THRIFT_COMPRESSION) {
-        sessions[i].open(true);
+        sessions[i] = new SessionPool(split[0], Integer.parseInt(split[1]), Constants.USER,
+            Constants.PASSWD,
+            MAX_SESSION_CONNECTION_PER_CLIENT, true);
       } else {
-        sessions[i].open();
+        sessions[i] = new SessionPool(split[0], Integer.parseInt(split[1]), Constants.USER,
+            Constants.PASSWD,
+            MAX_SESSION_CONNECTION_PER_CLIENT, false);
       }
     }
   }
@@ -79,7 +84,8 @@ public class IoTDBClusterSession extends IoTDB {
     }
     String deviceId =
         Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." + batch
-            .getDeviceSchema().getDevice();
+            .getDeviceSchema()
+            .getDevice();
     Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
@@ -95,33 +101,28 @@ public class IoTDBClusterSession extends IoTDB {
         switch (getNextDataType(sensorIndex)) {
           case "BOOLEAN":
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
-            sensorsBool[recordIndex] = (boolean) record.getRecordDataValue().get(
-                recordValueIndex);
+            sensorsBool[recordIndex] = (boolean) record.getRecordDataValue().get(recordValueIndex);
             break;
           case "INT32":
             int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) record.getRecordDataValue().get(
-                recordValueIndex);
+            sensorsInt[recordIndex] = (int) record.getRecordDataValue().get(recordValueIndex);
             break;
           case "INT64":
             long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) record.getRecordDataValue().get(
-                recordValueIndex);
+            sensorsLong[recordIndex] = (long) record.getRecordDataValue().get(recordValueIndex);
             break;
           case "FLOAT":
             float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) record.getRecordDataValue().get(
-                recordValueIndex);
+            sensorsFloat[recordIndex] = (float) record.getRecordDataValue().get(recordValueIndex);
             break;
           case "DOUBLE":
             double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] = (double) record.getRecordDataValue().get(
-                recordValueIndex);
+            sensorsDouble[recordIndex] = (double) record.getRecordDataValue().get(recordValueIndex);
             break;
           case "TEXT":
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] = Binary
-                .valueOf((String) record.getRecordDataValue().get(recordValueIndex));
+            sensorsText[recordIndex] =
+                Binary.valueOf((String) record.getRecordDataValue().get(recordValueIndex));
             break;
         }
         sensorIndex++;
