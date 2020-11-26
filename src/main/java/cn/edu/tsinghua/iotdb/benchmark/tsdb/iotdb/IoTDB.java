@@ -47,8 +47,8 @@ public class IoTDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-        ioTDBConnection = new IoTDBConnection();
-        ioTDBConnection.init();
+      ioTDBConnection = new IoTDBConnection();
+      ioTDBConnection.init();
     } catch (Exception e) {
       throw new TsdbException(e);
     }
@@ -61,13 +61,13 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-   ioTDBConnection.close();
+    ioTDBConnection.close();
   }
 
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     int count = 0;
-    if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
+    if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       try {
         // get all storage groups
         Set<String> groups = new HashSet<>();
@@ -77,7 +77,8 @@ public class IoTDB implements IDatabase {
         // register storage groups
         try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
           for (String group : groups) {
-            statement.addBatch(String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+            statement.addBatch(
+                String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
           }
           statement.executeBatch();
           statement.clearBatch();
@@ -100,7 +101,7 @@ public class IoTDB implements IDatabase {
                     + "." + deviceSchema.getGroup()
                     + "." + deviceSchema.getDevice()
                     + "." + sensor,
-                    dataType, getEncodingType(dataType), config.COMPRESSOR);
+                dataType, getEncodingType(dataType), config.COMPRESSOR);
             statement.addBatch(createSeriesSql);
             count++;
             sensorIndex++;
@@ -158,7 +159,7 @@ public class IoTDB implements IDatabase {
   }
 
   List<Double> resolveDataTypeProportion() {
-    if(ConfigDescriptor.getInstance().getConfig().proportion == null){
+    if (ConfigDescriptor.getInstance().getConfig().proportion == null) {
       List<Double> proportion = new ArrayList<>();
       String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
       if (split.length != TSDataType.values().length) {
@@ -232,10 +233,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT s_39 FROM root.group_2.d_29
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
-   * AND root.group_2.d_29.s_39 > 0.0
+   * SELECT s_39 FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01
+   * 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
@@ -244,9 +243,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_76) FROM root.group_3.d_31
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
+   * SELECT max_value(s_76) FROM root.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
@@ -258,21 +256,20 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29
-   * WHERE root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
     String sql = aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
-            (int) aggValueQuery.getValueThreshold()).substring(4);
+        (int) aggValueQuery.getValueThreshold()).substring(4);
     return executeQueryAndGetStatus(sql);
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND
-   * time <= 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
@@ -281,15 +278,14 @@ public class IoTDB implements IDatabase {
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeValueQuery.getStartTimestamp(),
         aggRangeValueQuery.getEndTimestamp());
     sql += getValueFilterClause(aggRangeValueQuery.getDeviceSchema(),
-            (int) aggRangeValueQuery.getValueThreshold());
+        (int) aggRangeValueQuery.getValueThreshold());
     return executeQueryAndGetStatus(sql);
   }
 
   /**
    * select aggFun(sensor) from device group by(interval, startTimestamp, [startTimestamp,
-   * endTimestamp])
-   * example: SELECT max_value(s_81) FROM root.group_9.d_92
-   * GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
+   * endTimestamp]) example: SELECT max_value(s_81) FROM root.group_9.d_92 GROUP BY(600000ms,
+   * 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
@@ -313,7 +309,7 @@ public class IoTDB implements IDatabase {
     String rangeQuerySql = getRangeQuerySql(valueRangeQuery.getDeviceSchema(),
         valueRangeQuery.getStartTimestamp(), valueRangeQuery.getEndTimestamp());
     String valueFilterClause = getValueFilterClause(valueRangeQuery.getDeviceSchema(),
-            (int) valueRangeQuery.getValueThreshold());
+        (int) valueRangeQuery.getValueThreshold());
     return rangeQuerySql + valueFilterClause;
   }
 
@@ -442,6 +438,6 @@ public class IoTDB implements IDatabase {
   }
 
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
+    return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 }

@@ -31,65 +31,66 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IoTDBConnection {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBConnection.class);
-    private static Config config = ConfigDescriptor.getInstance().getConfig();
-    private Connection[] connections;
-    private AtomicInteger currConnection = new AtomicInteger(0);
 
-    public IoTDBConnection() {
+  private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBConnection.class);
+  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private Connection[] connections;
+  private AtomicInteger currConnectionIndex = new AtomicInteger(0);
 
-    }
+  public IoTDBConnection() {
 
-    public void init() throws TsdbException {
-        int nodeSize = 0;
-        String[] urls;
-        if (config.USE_CLUSTER_DB) {
-            nodeSize = config.CLUSTER_HOSTS.size();
-            urls = new String[nodeSize];
-            List<String> clusterHosts = config.CLUSTER_HOSTS;
-            for (int i = 0; i < nodeSize; i++) {
-                String[] arrs = clusterHosts.get(i).split(":");
-                if (arrs.length != 2) {
-                    LOGGER.error("the cluster host format is not correct");
-                    return;
-                }
-                String jdbcUrl = String.format(Constants.URL, arrs[0], arrs[1]);
-                urls[i] = jdbcUrl;
-            }
-        } else {
-            nodeSize = 1;
-            urls = new String[nodeSize];
-            urls[0] = Constants.URL;
+  }
+
+  public void init() throws TsdbException {
+    int nodeSize = 0;
+    String[] urls;
+    if (config.USE_CLUSTER_DB) {
+      nodeSize = config.CLUSTER_HOSTS.size();
+      urls = new String[nodeSize];
+      List<String> clusterHosts = config.CLUSTER_HOSTS;
+      for (int i = 0; i < nodeSize; i++) {
+        String[] arrs = clusterHosts.get(i).split(":");
+        if (arrs.length != 2) {
+          LOGGER.error("the cluster host format is not correct");
+          return;
         }
-        connections = new Connection[nodeSize];
+        String jdbcUrl = String.format(Constants.URL, arrs[0], arrs[1]);
+        urls[i] = jdbcUrl;
+      }
+    } else {
+      nodeSize = 1;
+      urls = new String[nodeSize];
+      urls[0] = Constants.URL;
+    }
+    connections = new Connection[nodeSize];
 
-        for (int i = 0; i < connections.length; i++) {
-            try {
-                Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
-                org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.ENABLE_THRIFT_COMPRESSION;
-                connections[i] = DriverManager.getConnection(urls[i], Constants.USER, Constants.PASSWD);
-            } catch (Exception e) {
-                LOGGER.error("Initialize IoTDB failed because ", e);
-                throw new TsdbException(e);
-            }
+    for (int i = 0; i < connections.length; i++) {
+      try {
+        Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
+        org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.ENABLE_THRIFT_COMPRESSION;
+        connections[i] = DriverManager.getConnection(urls[i], Constants.USER, Constants.PASSWD);
+      } catch (Exception e) {
+        LOGGER.error("Initialize IoTDB failed because ", e);
+        throw new TsdbException(e);
+      }
+    }
+  }
+
+  public void close() throws TsdbException {
+    for (Connection connection : connections) {
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (SQLException e) {
+          LOGGER.error("Failed to close IoTDB connection because ", e);
+          throw new TsdbException(e);
         }
+      }
     }
+  }
 
-    public void close() throws TsdbException {
-        for (Connection connection : connections) {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    LOGGER.error("Failed to close IoTDB connection because ", e);
-                    throw new TsdbException(e);
-                }
-            }
-        }
-    }
-
-    public Connection getConnection() {
-        currConnection.set((currConnection.get() + 1) % connections.length);
-        return connections[currConnection.get() % connections.length];
-    }
+  public Connection getConnection() {
+    currConnectionIndex.set((currConnectionIndex.get() + 1) % connections.length);
+    return connections[currConnectionIndex.get() % connections.length];
+  }
 }
