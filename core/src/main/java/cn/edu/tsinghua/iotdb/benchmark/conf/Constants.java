@@ -66,4 +66,5 @@ public class Constants {
     public static final String KAIROSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB";
     public static final String OPENTSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.opentsdb.OpenTSDB";
     public static final String TIMESCALEDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.timescaledb.TimescaleDB";
+    public static final String TAOSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.taosdb.TaosDB";
 }
