@@ -72,6 +72,12 @@ public class IoTDB implements IDatabase {
   @Override
   public void close() throws TsdbException {
     ioTDBConnection.close();
+    if (service != null) {
+      service.shutdownNow();
+    }
+    if (future != null) {
+      future.cancel(true);
+    }
   }
 
   @Override
@@ -449,27 +455,6 @@ public class IoTDB implements IDatabase {
       return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
     }
   }
-
-//  private Status executeQueryAndGetStatus(String sql) {
-//    if (!config.IS_QUIET_MODE) {
-//      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
-//    }
-//    int line = 0;
-//    int queryResultPointNum = 0;
-//    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-//      try (ResultSet resultSet = statement.executeQuery(sql)) {
-//        while (resultSet.next()) {
-//          line++;
-//        }
-//      }
-//      queryResultPointNum = line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM;
-//      return new Status(true, queryResultPointNum);
-//    } catch (Exception e) {
-//      return new Status(false, queryResultPointNum, e, sql);
-//    } catch (Throwable t) {
-//      return new Status(false, queryResultPointNum, new Exception(t), sql);
-//    }
-//  }
 
   private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
     return addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end);
