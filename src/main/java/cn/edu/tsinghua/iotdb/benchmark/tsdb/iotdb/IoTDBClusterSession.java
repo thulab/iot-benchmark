@@ -27,6 +27,12 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionPool;
@@ -45,11 +51,15 @@ public class IoTDBClusterSession extends IoTDB {
   private SessionPool[] sessions;
   private int currSession;
   private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
+  private ExecutorService service;
+  private Future<?> future;
+
 
   public IoTDBClusterSession() {
     super();
     try {
       createSessions();
+      this.service = Executors.newSingleThreadExecutor();
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to add session", e);
     }
@@ -128,13 +138,24 @@ public class IoTDBClusterSession extends IoTDB {
         sensorIndex++;
       }
     }
+
+    future = service.submit(() -> {
+      try {
+        sessions[currSession].insertTablet(tablet);
+      } catch (IoTDBConnectionException | StatementExecutionException e) {
+        LOGGER.error("insert tablet failed", e);
+      }
+    });
+
     try {
-      sessions[currSession].insertTablet(tablet);
-      currSession = (currSession + 1) % sessions.length;
-      tablet.reset();
-      return new Status(true);
-    } catch (IoTDBConnectionException | StatementExecutionException e) {
+      future.get(config.WRITE_OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      future.cancel(true);
       return new Status(false, 0, e, e.toString());
     }
+
+    currSession = (currSession + 1) % sessions.length;
+    tablet.reset();
+    return new Status(true);
   }
 }

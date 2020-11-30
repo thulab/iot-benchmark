@@ -18,6 +18,13 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,6 +46,8 @@ public class IoTDB implements IDatabase {
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private IoTDBConnection ioTDBConnection;
   private static final String ALREADY_KEYWORD = "already exist";
+  private ExecutorService service;
+  private Future<?> future;
 
   public IoTDB() {
 
@@ -49,6 +58,7 @@ public class IoTDB implements IDatabase {
     try {
       ioTDBConnection = new IoTDBConnection();
       ioTDBConnection.init();
+      this.service = Executors.newSingleThreadExecutor();
     } catch (Exception e) {
       throw new TsdbException(e);
     }
@@ -410,22 +420,56 @@ public class IoTDB implements IDatabase {
     if (!config.IS_QUIET_MODE) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
-    int line = 0;
-    int queryResultPointNum = 0;
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      try (ResultSet resultSet = statement.executeQuery(sql)) {
-        while (resultSet.next()) {
-          line++;
+      future = service.submit(() -> {
+        try {
+          try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
+              line.getAndIncrement();
+            }
+          }
+        } catch (SQLException e) {
+          LOGGER.error("exception occurred when execute query={}", sql, e);
         }
+        queryResultPointNum.set(line.get() * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
+      });
+
+      try {
+        future.get(config.READ_OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        future.cancel(true);
+        return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      queryResultPointNum = line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM;
-      return new Status(true, queryResultPointNum);
+      return new Status(true, queryResultPointNum.get());
     } catch (Exception e) {
-      return new Status(false, queryResultPointNum, e, sql);
+      return new Status(false, queryResultPointNum.get(), e, sql);
     } catch (Throwable t) {
-      return new Status(false, queryResultPointNum, new Exception(t), sql);
+      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
     }
   }
+
+//  private Status executeQueryAndGetStatus(String sql) {
+//    if (!config.IS_QUIET_MODE) {
+//      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+//    }
+//    int line = 0;
+//    int queryResultPointNum = 0;
+//    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+//      try (ResultSet resultSet = statement.executeQuery(sql)) {
+//        while (resultSet.next()) {
+//          line++;
+//        }
+//      }
+//      queryResultPointNum = line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM;
+//      return new Status(true, queryResultPointNum);
+//    } catch (Exception e) {
+//      return new Status(false, queryResultPointNum, e, sql);
+//    } catch (Throwable t) {
+//      return new Status(false, queryResultPointNum, new Exception(t), sql);
+//    }
+//  }
 
   private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
     return addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end);
