@@ -234,7 +234,7 @@ public class Config {
 	public boolean CREATE_SCHEMA = true;
 	public long REAL_QUERY_START_TIME = 0;
 	public long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
-	public int WRITE_OPERATION_TIMEOUT_MS = 12000;
+	public int WRITE_OPERATION_TIMEOUT_MS = 120000;
   public int READ_OPERATION_TIMEOUT_MS = 300000;
 
 
