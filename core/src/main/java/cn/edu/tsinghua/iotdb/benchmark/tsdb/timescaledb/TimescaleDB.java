@@ -388,7 +388,7 @@ public class TimescaleDB implements IDatabase {
     sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
     for (int i = 0; i < sensors.size(); i++ ) {
       sqlBuilder.append(", ").append(sensors.get(i)).append(" ").append(typeMap(DBUtil.getDataType(i)))
-          .append(" PRECISION NULL");
+          .append(" NULL");
     }
     sqlBuilder.append(");");
     return sqlBuilder.toString();
@@ -426,7 +426,7 @@ public class TimescaleDB implements IDatabase {
   public String typeMap(String iotdbType) {
     switch (iotdbType) {
       case "BOOLEAN":
-        return "BOOL";
+        return "BOOLEAN";
       case "INT32":
         return "INT";
       case "INT64":
@@ -434,7 +434,7 @@ public class TimescaleDB implements IDatabase {
       case "FLOAT":
         return "FLOAT";
       case "DOUBLE":
-        return "FLOAT8";
+        return "DOUBLE PRECISION";
       case "TEXT":
         return "TEXT";
       default:
