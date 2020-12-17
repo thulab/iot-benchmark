@@ -15,6 +15,11 @@ public class DoubleIoTDBChecker extends DoubleIOTDB {
   }
 
   @Override
+  public void close() throws TsdbException {
+    closeConnection();
+  }
+
+  @Override
   public Status insertOneBatch(Batch batch) {
     boolean status1 = insertOneConnectionBatch(batch, connection1);
     boolean status2 = insertOneConnectionBatch(batch, connection2);

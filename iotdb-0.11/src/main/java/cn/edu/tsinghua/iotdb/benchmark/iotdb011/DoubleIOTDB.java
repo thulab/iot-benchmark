@@ -70,6 +70,11 @@ public class DoubleIOTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
+    closeConnection();
+    producer.close();
+  }
+
+  void closeConnection() throws TsdbException {
     if (connection1 != null) {
       try {
         connection1.close();
@@ -87,7 +92,6 @@ public class DoubleIOTDB implements IDatabase {
         throw new TsdbException(e);
       }
     }
-    producer.close();
   }
 
   @Override
