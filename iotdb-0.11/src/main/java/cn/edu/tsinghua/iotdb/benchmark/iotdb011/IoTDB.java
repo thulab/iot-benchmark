@@ -295,7 +295,7 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
-  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+  public static String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
       List<String> values) {
     StringBuilder builder = new StringBuilder();
     builder.append("insert into ")

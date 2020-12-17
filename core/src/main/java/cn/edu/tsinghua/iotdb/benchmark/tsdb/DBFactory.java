@@ -20,7 +20,11 @@ public class DBFactory {
           switch(config.getVERSION()) {
             case "0.11.0":
               if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
-                dbClass = Constants.IOTDB011_JDBC_CLASS;
+                if (config.isENABLE_DOUBLE_INSERT()){
+                  dbClass = Constants.IOTDB011_DOUBLE_JDBC_CLASS;
+                } else {
+                  dbClass = Constants.IOTDB011_JDBC_CLASS;
+                }
               } else {
                 dbClass = Constants.IOTDB011_SESSION_CLASS;
               }

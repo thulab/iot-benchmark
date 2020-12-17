@@ -37,8 +37,8 @@ public class DoubleIOTDB implements IDatabase {
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private static final String ALREADY_KEYWORD = "already exist";
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private Connection connection1;
-  private Connection connection2;
+  Connection connection1;
+  Connection connection2;
   private BatchProducer producer;
 
   @Override

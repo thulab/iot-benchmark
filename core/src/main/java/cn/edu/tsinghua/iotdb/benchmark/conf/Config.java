@@ -28,6 +28,14 @@ public class Config {
 		this.PORT = PORT;
 	}
 
+	public boolean isENABLE_DOUBLE_INSERT() {
+		return ENABLE_DOUBLE_INSERT;
+	}
+
+	public void setENABLE_DOUBLE_INSERT(boolean ENABLE_DOUBLE_INSERT) {
+		this.ENABLE_DOUBLE_INSERT = ENABLE_DOUBLE_INSERT;
+	}
+
 	public String getANOTHER_HOST() {
 		return ANOTHER_HOST;
 	}
@@ -583,6 +591,7 @@ public class Config {
 	private String HOST ="127.0.0.1";
 	private String PORT ="6667";
 
+	private boolean ENABLE_DOUBLE_INSERT = false;
 	private String ANOTHER_HOST ="127.0.0.1";
 	private String ANOTHER_PORT ="6668";
 

@@ -51,6 +51,8 @@ public class ConfigDescriptor {
 				properties.load(inputStream);
 				config.setHOST(properties.getProperty("HOST", "no HOST"));
 				config.setPORT(properties.getProperty("PORT", "no PORT"));
+				config.setENABLE_DOUBLE_INSERT(Boolean.parseBoolean(
+						properties.getProperty("ENABLE_DOUBLE_INSERT", config.isENABLE_DOUBLE_INSERT() + "")));
 				config.setANOTHER_HOST(properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST"));
 				config.setANOTHER_PORT(properties.getProperty("ANOTHER_PORT", "no ANOTHER_PORT"));
 				config.setKAFKA_LOCATION(properties.getProperty("KAFKA_LOCATION", "no KAFKA_LOCATION"));
