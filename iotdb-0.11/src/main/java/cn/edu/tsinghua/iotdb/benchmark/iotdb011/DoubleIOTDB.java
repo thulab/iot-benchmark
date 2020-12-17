@@ -31,12 +31,12 @@ import org.slf4j.LoggerFactory;
 
 public class DoubleIOTDB implements IDatabase {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
+  static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private static final String ALREADY_KEYWORD = "already exist";
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  static Config config = ConfigDescriptor.getInstance().getConfig();
   Connection connection1;
   Connection connection2;
   private BatchProducer producer;
@@ -44,15 +44,19 @@ public class DoubleIOTDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     producer = new BatchProducer();
+    initConnection();
+  }
+
+  void initConnection() throws TsdbException {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection1 = DriverManager
-          .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()), Constants.USER,
-              Constants.PASSWD);
+          .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()),
+              Constants.USER, Constants.PASSWD);
       connection2 = DriverManager
-          .getConnection(String.format(Constants.URL, config.getANOTHER_HOST(), config.getANOTHER_PORT()),
-              Constants.USER,
-              Constants.PASSWD);
+          .getConnection(
+              String.format(Constants.URL, config.getANOTHER_HOST(), config.getANOTHER_PORT()),
+              Constants.USER, Constants.PASSWD);
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
