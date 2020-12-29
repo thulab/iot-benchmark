@@ -18,9 +18,14 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,8 +44,10 @@ public class IoTDB implements IDatabase {
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  private Connection connection;
+  private IoTDBConnection ioTDBConnection;
   private static final String ALREADY_KEYWORD = "already exist";
+  private ExecutorService service;
+  private Future<?> future;
 
   public IoTDB() {
 
@@ -49,15 +56,10 @@ public class IoTDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
-
-      org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.ENABLE_THRIFT_COMPRESSION;
-
-      connection = DriverManager
-          .getConnection(String.format(Constants.URL, config.HOST, config.PORT), Constants.USER,
-              Constants.PASSWD);
+      ioTDBConnection = new IoTDBConnection();
+      ioTDBConnection.init();
+      this.service = Executors.newSingleThreadExecutor();
     } catch (Exception e) {
-      LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
     }
   }
@@ -69,20 +71,19 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    if (connection != null) {
-      try {
-        connection.close();
-      } catch (SQLException e) {
-        LOGGER.error("Failed to close IoTDB connection because ", e);
-        throw new TsdbException(e);
-      }
+    ioTDBConnection.close();
+    if (service != null) {
+      service.shutdownNow();
+    }
+    if (future != null) {
+      future.cancel(true);
     }
   }
 
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     int count = 0;
-    if(!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
+    if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       try {
         // get all storage groups
         Set<String> groups = new HashSet<>();
@@ -90,9 +91,10 @@ public class IoTDB implements IDatabase {
           groups.add(schema.getGroup());
         }
         // register storage groups
-        try (Statement statement = connection.createStatement()) {
+        try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
           for (String group : groups) {
-            statement.addBatch(String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+            statement.addBatch(
+                String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
           }
           statement.executeBatch();
           statement.clearBatch();
@@ -105,7 +107,7 @@ public class IoTDB implements IDatabase {
         }
       }
       // create time series
-      try (Statement statement = connection.createStatement()) {
+      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
@@ -115,7 +117,7 @@ public class IoTDB implements IDatabase {
                     + "." + deviceSchema.getGroup()
                     + "." + deviceSchema.getDevice()
                     + "." + sensor,
-                    dataType, getEncodingType(dataType), config.COMPRESSOR);
+                dataType, getEncodingType(dataType), config.COMPRESSOR);
             statement.addBatch(createSeriesSql);
             count++;
             sensorIndex++;
@@ -173,7 +175,7 @@ public class IoTDB implements IDatabase {
   }
 
   List<Double> resolveDataTypeProportion() {
-    if(ConfigDescriptor.getInstance().getConfig().proportion == null){
+    if (ConfigDescriptor.getInstance().getConfig().proportion == null) {
       List<Double> proportion = new ArrayList<>();
       String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
       if (split.length != TSDataType.values().length) {
@@ -220,7 +222,7 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    try (Statement statement = connection.createStatement()) {
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue());
@@ -247,10 +249,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT s_39 FROM root.group_2.d_29
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
-   * AND root.group_2.d_29.s_39 > 0.0
+   * SELECT s_39 FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01
+   * 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
@@ -259,9 +259,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_76) FROM root.group_3.d_31
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
+   * SELECT max_value(s_76) FROM root.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
@@ -273,21 +272,20 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29
-   * WHERE root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
     String sql = aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
-            (int) aggValueQuery.getValueThreshold()).substring(4);
+        (int) aggValueQuery.getValueThreshold()).substring(4);
     return executeQueryAndGetStatus(sql);
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND
-   * time <= 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
@@ -296,15 +294,14 @@ public class IoTDB implements IDatabase {
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeValueQuery.getStartTimestamp(),
         aggRangeValueQuery.getEndTimestamp());
     sql += getValueFilterClause(aggRangeValueQuery.getDeviceSchema(),
-            (int) aggRangeValueQuery.getValueThreshold());
+        (int) aggRangeValueQuery.getValueThreshold());
     return executeQueryAndGetStatus(sql);
   }
 
   /**
    * select aggFun(sensor) from device group by(interval, startTimestamp, [startTimestamp,
-   * endTimestamp])
-   * example: SELECT max_value(s_81) FROM root.group_9.d_92
-   * GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
+   * endTimestamp]) example: SELECT max_value(s_81) FROM root.group_9.d_92 GROUP BY(600000ms,
+   * 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
@@ -328,7 +325,7 @@ public class IoTDB implements IDatabase {
     String rangeQuerySql = getRangeQuerySql(valueRangeQuery.getDeviceSchema(),
         valueRangeQuery.getStartTimestamp(), valueRangeQuery.getEndTimestamp());
     String valueFilterClause = getValueFilterClause(valueRangeQuery.getDeviceSchema(),
-            (int) valueRangeQuery.getValueThreshold());
+        (int) valueRangeQuery.getValueThreshold());
     return rangeQuerySql + valueFilterClause;
   }
 
@@ -429,20 +426,33 @@ public class IoTDB implements IDatabase {
     if (!config.IS_QUIET_MODE) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
-    int line = 0;
-    int queryResultPointNum = 0;
-    try (Statement statement = connection.createStatement()) {
-      try (ResultSet resultSet = statement.executeQuery(sql)) {
-        while (resultSet.next()) {
-          line++;
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      future = service.submit(() -> {
+        try {
+          try (ResultSet resultSet = statement.executeQuery(sql)) {
+            while (resultSet.next()) {
+              line.getAndIncrement();
+            }
+          }
+        } catch (SQLException e) {
+          LOGGER.error("exception occurred when execute query={}", sql, e);
         }
+        queryResultPointNum.set(line.get() * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM);
+      });
+
+      try {
+        future.get(config.READ_OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        future.cancel(true);
+        return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      queryResultPointNum = line * config.QUERY_SENSOR_NUM * config.QUERY_DEVICE_NUM;
-      return new Status(true, queryResultPointNum);
+      return new Status(true, queryResultPointNum.get());
     } catch (Exception e) {
-      return new Status(false, queryResultPointNum, e, sql);
+      return new Status(false, queryResultPointNum.get(), e, sql);
     } catch (Throwable t) {
-      return new Status(false, queryResultPointNum, new Exception(t), sql);
+      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
     }
   }
 
@@ -457,6 +467,6 @@ public class IoTDB implements IDatabase {
   }
 
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
+    return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 }
