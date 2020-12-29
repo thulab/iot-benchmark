@@ -264,6 +264,19 @@ public class IoTDB implements IDatabase {
     return executeQueryAndGetStatus(aggQuerySqlHead);
   }
 
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+   String sql = getRangeQuerySql(rangeQuery.getDeviceSchema(), rangeQuery.getStartTimestamp(),
+        rangeQuery.getEndTimestamp()) + " order by time desc";
+   return executeQueryAndGetStatus(sql);
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    String sql = getvalueRangeQuerySql(valueRangeQuery) + " order by time desc";
+    return executeQueryAndGetStatus(sql);
+  }
+
   private String getLatestPointQuerySql(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT last ");

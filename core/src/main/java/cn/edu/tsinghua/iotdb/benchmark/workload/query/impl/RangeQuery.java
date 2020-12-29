@@ -8,6 +8,7 @@ public class RangeQuery {
   private List<DeviceSchema> deviceSchema;
   private long startTimestamp;
   private long endTimestamp;
+  private boolean desc = false;
 
   public RangeQuery(
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp) {
@@ -28,4 +29,11 @@ public class RangeQuery {
     return endTimestamp;
   }
 
+  public void setDesc(boolean desc) {
+    this.desc = desc;
+  }
+
+  public boolean isDesc() {
+    return desc;
+  }
 }

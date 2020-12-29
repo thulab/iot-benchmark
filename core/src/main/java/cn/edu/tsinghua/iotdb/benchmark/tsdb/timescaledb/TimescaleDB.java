@@ -261,6 +261,16 @@ public class TimescaleDB implements IDatabase {
     return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    return null;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    return null;
+  }
+
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
     LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     int line = 0;

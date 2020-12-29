@@ -214,6 +214,16 @@ public class DoubleIOTDB implements IDatabase {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    return null;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    return null;
+  }
+
   String getNextDataType(int sensorIndex) {
     List<Double> proportion = resolveDataTypeProportion();
     double[] p = new double[TSDataType.values().length + 1];

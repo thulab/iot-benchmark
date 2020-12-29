@@ -277,6 +277,16 @@ public class TaosDB implements IDatabase {
     return executeQueryAndGetStatus(sql);
   }
 
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    return null;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    return null;
+  }
+
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
     String strTime = preciseQuery.getTimestamp() + "";
     return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " AND time = " + strTime;
