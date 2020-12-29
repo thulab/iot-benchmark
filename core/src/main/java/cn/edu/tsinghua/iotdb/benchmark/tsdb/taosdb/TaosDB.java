@@ -237,7 +237,7 @@ public class TaosDB implements IDatabase {
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
       aggValueQuery.getAggFun());
-    String sql = addWhereValueClause(aggValueQuery.getDeviceSchema(), aggQuerySqlHead,
+    String sql = addWhereValueWithoutTimeClause(aggValueQuery.getDeviceSchema(), aggQuerySqlHead,
       aggValueQuery.getValueThreshold());
     return executeQueryAndGetStatus(sql);
   }
@@ -289,7 +289,7 @@ public class TaosDB implements IDatabase {
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
     String strTime = preciseQuery.getTimestamp() + "";
-    return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " AND time = " + strTime;
+    return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " Where time = " + strTime;
   }
 
   /**
@@ -321,14 +321,14 @@ public class TaosDB implements IDatabase {
    */
   private static String generateConstrainForDevices(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
-    builder.append(" FROM ").append(SUPER_TABLE);
-    builder.append(" WHERE (");
-    for (DeviceSchema d : devices) {
+    builder.append(" FROM ").append(devices.get(0).getDevice());
+    //builder.append(" WHERE ");
+    /*for (DeviceSchema d : devices) {
       builder.append(" device = '").append(d.getDevice()).append("' OR");
     }
     builder.delete(builder.lastIndexOf("OR"), builder.length());
     builder.append(")");
-
+    */
     return builder.toString();
   }
 
@@ -366,7 +366,7 @@ public class TaosDB implements IDatabase {
   private static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
     String startTime = "" + rangeQuery.getStartTimestamp();
     String endTime = "" + rangeQuery.getEndTimestamp();
-    return sql + " AND time >= " + startTime
+    return sql + " Where time >= " + startTime
       + " AND time <= " + endTime;
   }
 
@@ -386,6 +386,26 @@ public class TaosDB implements IDatabase {
     }
     return builder.toString();
   }
+
+  /**
+   * add value filter without time filter for query statements.
+   *
+   * @param devices query device schema
+   * @param sqlHeader sql header
+   * @param valueThreshold lower bound of query value filter
+   * @return sql with value filter
+   */
+  private static String addWhereValueWithoutTimeClause(List<DeviceSchema> devices, String sqlHeader,
+                                            double valueThreshold) {
+    StringBuilder builder = new StringBuilder(sqlHeader);
+    builder.append(" Where ");
+    for (String sensor : devices.get(0).getSensors()) {
+      builder.append(sensor).append(" > ").append(valueThreshold).append(" AND ");
+    }
+    builder.delete(builder.lastIndexOf("AND"), builder.length());
+    return builder.toString();
+  }
+
 
   /**
    * generate aggregation query header.
