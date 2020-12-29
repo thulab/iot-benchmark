@@ -21,4 +21,9 @@ public class PreciseQuery {
   public long getTimestamp() {
     return timestamp;
   }
+
+
+
+
+
 }
