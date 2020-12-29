@@ -200,6 +200,16 @@ public class OpenTSDB implements IDatabase {
     }
 
     @Override
+    public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+        return null;
+    }
+
+    @Override
+    public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+        return null;
+    }
+
+    @Override
     public void close() {
 
     }

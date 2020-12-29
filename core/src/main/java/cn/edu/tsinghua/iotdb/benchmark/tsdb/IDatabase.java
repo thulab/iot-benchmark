@@ -120,6 +120,16 @@ public interface IDatabase {
   Status latestPointQuery(LatestPointQuery latestPointQuery);
 
   /**
+   * similar to rangeQuery, but order by time desc.
+   */
+  Status rangeQueryOrderByDesc(RangeQuery rangeQuery);
+
+  /**
+   * similar to rangeQuery, but order by time desc.
+   */
+  Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery);
+
+  /**
    * map the given type string name to the name in the target DB
    * @param iotdbType: "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
    * @return

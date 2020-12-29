@@ -261,6 +261,16 @@ public class IoTDB implements IDatabase {
         return executeQueryAndGetStatus(aggQuerySqlHead);
     }
 
+    @Override
+    public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+        return null;
+    }
+
+    @Override
+    public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+        return null;
+    }
+
     private String getvalueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
         String rangeQuerySql = getRangeQuerySql(valueRangeQuery.getDeviceSchema(),
                 valueRangeQuery.getStartTimestamp(), valueRangeQuery.getEndTimestamp());

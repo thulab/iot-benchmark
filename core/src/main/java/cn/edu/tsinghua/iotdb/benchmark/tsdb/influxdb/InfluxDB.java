@@ -212,6 +212,16 @@ public class InfluxDB implements IDatabase {
     return executeQueryAndGetStatus(sql);
   }
 
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    return null;
+  }
+
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    return null;
+  }
+
   private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
       List<String> valueList)
       throws TsdbException {

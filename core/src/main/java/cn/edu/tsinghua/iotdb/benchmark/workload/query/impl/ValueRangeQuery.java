@@ -6,6 +6,7 @@ import java.util.List;
 public class ValueRangeQuery extends RangeQuery {
 
   private double valueThreshold;
+  private boolean desc = false;
 
   public ValueRangeQuery(
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp,
@@ -18,4 +19,11 @@ public class ValueRangeQuery extends RangeQuery {
     return valueThreshold;
   }
 
+  public void setDesc(boolean desc) {
+    this.desc = desc;
+  }
+
+  public boolean isDesc() {
+    return desc;
+  }
 }
