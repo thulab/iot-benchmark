@@ -146,6 +146,25 @@ public class MySqlRecorder implements ITestDataPersistence {
           .format("insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')", projectID,
               time, Thread.currentThread().getName(), operation, okPoint, failPoint, latency, rate,
               remark);
+       try {
+          if (!mysqlConnection.isValid(100)) {
+            LOGGER.info("Try to reconnect to MySQL");
+            try {
+            	if( statement != null )
+            		statement.close();
+            	if( mysqlConnection != null )
+                 	mysqlConnection.close();
+            	
+              Class.forName(Constants.MYSQL_DRIVENAME);
+              mysqlConnection = DriverManager.getConnection(url);
+              statement = mysqlConnection.createStatement();
+            } catch (Exception ex) {
+              LOGGER.error("Reconnect to MySQL failed because", ex);
+            }
+          }
+        } catch (SQLException ex) {
+          LOGGER.error("Test if MySQL connection is valid failed", ex);
+        }
       try {
         statement.execute(mysqlSql);
         count++;
