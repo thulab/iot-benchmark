@@ -62,6 +62,9 @@ public class DBFactory {
         case Constants.DB_TAOSDB:
           dbClass = Constants.TAOSDB_CLASS;
           break;
+        case Constants.DB_FAKE:
+          dbClass = Constants.FAKEDB_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }

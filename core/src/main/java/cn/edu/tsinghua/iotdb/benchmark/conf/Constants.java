@@ -64,6 +64,7 @@ public class Constants {
     public static final String IOTDB009_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDB";
     public static final String IOTDB009_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDBSession";
     public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.influxdb.InfluxDB";
+    public static final String FAKEDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.fakedb.FakeDB";
     public static final String KAIROSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.kairosdb.KairosDB";
     public static final String OPENTSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.opentsdb.OpenTSDB";
     public static final String TIMESCALEDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.timescaledb.TimescaleDB";

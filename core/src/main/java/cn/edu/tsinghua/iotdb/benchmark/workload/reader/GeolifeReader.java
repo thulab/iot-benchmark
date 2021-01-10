@@ -12,6 +12,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * DeviceID: 000
+ * sensor: Latitude, Longitude, Zero, Altitude
+ */
 public class GeolifeReader extends BasicReader {
 
   private static Logger logger = LoggerFactory.getLogger(GeolifeReader.class);
@@ -44,7 +48,8 @@ public class GeolifeReader extends BasicReader {
 
   @Override
   public void init() throws Exception {
-    currentDeviceId = currentFile.split(config.getFILE_PATH())[1].split("/Trajectory")[0];
+    currentDeviceId = currentFile.split(config.getFILE_PATH())[1]
+        .split("/Trajectory")[0].replaceAll("/", "");
     // skip 6 lines, which is useless
     for (int i = 0; i < 6; i++) {
       reader.readLine();

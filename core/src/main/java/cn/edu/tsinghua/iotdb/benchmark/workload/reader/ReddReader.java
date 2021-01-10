@@ -8,6 +8,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DeviceID: house_1_channel_1
+ * sensor: v
+ */
 public class ReddReader extends BasicReader {
 
   private DeviceSchema deviceSchema;
@@ -18,7 +22,9 @@ public class ReddReader extends BasicReader {
 
   @Override
   public void init() {
-    currentDeviceId = new File(currentFile).getName();
+    String[] items = new File(currentFile).getAbsolutePath().split("/");
+    currentDeviceId = items[items.length - 2] + "_"
+        + items[items.length -1].replaceAll("\\.dat", "");
     deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
         currentDeviceId, config.getFIELDS());
   }

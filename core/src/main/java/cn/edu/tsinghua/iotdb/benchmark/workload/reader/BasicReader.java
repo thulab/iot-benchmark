@@ -131,10 +131,21 @@ public abstract class BasicReader {
     int groupNum = config.getGROUP_NUMBER();
     switch (config.getDATA_SET()) {
       case REDD:
+        for (String currentFile : files) {
+          String[] items = currentFile.split("/");
+          String deviceId = items[items.length - 2] + "_"
+              + items[items.length -1].replaceAll("\\.dat", "");
+          if (!devices.contains(deviceId)) {
+            devices.add(deviceId);
+            deviceSchemaList
+                .add(new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
+          }
+        }
+        break;
       case TDRIVE:
         for (String currentFile : files) {
           String[] items = currentFile.split("/");
-          String deviceId = items[items.length - 1];
+          String deviceId = items[items.length - 1].replaceAll("\\.txt", "");
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList
@@ -145,7 +156,7 @@ public abstract class BasicReader {
       case GEOLIFE:
         for (String currentFile : files) {
           String deviceId = currentFile.split(config.getFILE_PATH())[1].
-              split("/Trajectory")[0].replace("/", "");
+              split("/Trajectory")[0].replaceAll("/", "");
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(

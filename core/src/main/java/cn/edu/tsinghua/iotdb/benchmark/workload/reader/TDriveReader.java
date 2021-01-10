@@ -13,6 +13,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * DeviceID: 1
+ * sensor: longitude, latitude
+ */
 public class TDriveReader extends BasicReader {
 
   private static Logger logger = LoggerFactory.getLogger(TDriveReader.class);
@@ -29,7 +33,7 @@ public class TDriveReader extends BasicReader {
 
   @Override
   public void init() {
-    currentDeviceId = new File(currentFile).getName();
+    currentDeviceId = new File(currentFile).getName().replaceAll("\\.txt", "");
     deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
         currentDeviceId, sensors);
   }

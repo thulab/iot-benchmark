@@ -51,6 +51,9 @@ public class App {
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     public static void main(String[] args) throws SQLException {
+        if (args == null || args.length == 0) {
+            args = new String[]{"-cf", "conf/config.properties"};
+        }
         CommandCli cli = new CommandCli();
         if (!cli.init(args)) {
             return;
