@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -163,6 +164,21 @@ public abstract class BasicReader {
                 new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
           }
         }
+        break;
+      case NOAA:
+        for (String currentFile : files) {
+          String[] splitStrings = new File(currentFile).getName().replaceAll("\\.op", "")
+              .split("-");
+          String deviceId = splitStrings[0] + "_" + splitStrings[1];
+          if (!devices.contains(deviceId)) {
+            devices.add(deviceId);
+            deviceSchemaList.add(
+                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
+          }
+        }
+        break;
+      default:
+        throw new RuntimeException(config.getDATA_SET() + " is not support");
     }
     return deviceSchemaList;
   }

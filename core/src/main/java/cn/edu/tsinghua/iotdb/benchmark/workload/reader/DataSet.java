@@ -1,8 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
-public enum  DataSet {
+public enum DataSet {
 
-  REDD("REDD"), TDRIVE("TDRIVE"), GEOLIFE("GEOLIFE");
+  REDD("REDD"), TDRIVE("TDRIVE"), GEOLIFE("GEOLIFE"), NOAA("NOAA");
 
   private String name;
 
