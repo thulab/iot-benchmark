@@ -1278,23 +1278,29 @@ public class Config {
 	}
 
 
-	void initRealDataSetSchema() {
-		switch (DATA_SET) {
-			case TDRIVE:
-				FIELDS = Arrays.asList("longitude", "latitude");
-				PRECISION = new int[]{5, 5};
-				break;
-			case REDD:
-				FIELDS = Collections.singletonList("v");
-				PRECISION = new int[]{2};
-				break;
-			case GEOLIFE:
-				FIELDS = Arrays.asList("Latitude", "Longitude", "Zero", "Altitude");
-				PRECISION = new int[]{6, 6, 0, 12};
-				break;
-			default:
-				throw new RuntimeException(DATA_SET + " is not support");
-		}
-	}
+  void initRealDataSetSchema() {
+    switch (DATA_SET) {
+      case TDRIVE:
+        FIELDS = Arrays.asList("longitude", "latitude");
+        PRECISION = new int[]{5, 5};
+        break;
+      case REDD:
+        FIELDS = Collections.singletonList("v");
+        PRECISION = new int[]{2};
+        break;
+      case GEOLIFE:
+        FIELDS = Arrays.asList("Latitude", "Longitude", "Zero", "Altitude");
+        PRECISION = new int[]{6, 6, 0, 12};
+        break;
+      case NOAA:
+        FIELDS = Arrays
+            .asList("TEMP", "DEWP", "SLP", "STP", "VISIB", "WDSP", "MXSPD", "GUST", "MAX", "MIN",
+                "PRCP", "SNDP", "FRSHTT");
+        PRECISION = new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0};
+        break;
+      default:
+        throw new RuntimeException(DATA_SET + " is not support");
+    }
+  }
 
 }

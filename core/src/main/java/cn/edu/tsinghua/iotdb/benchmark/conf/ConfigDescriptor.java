@@ -68,6 +68,7 @@ public class ConfigDescriptor {
 					case "GEOLIFE": config.setDATA_SET(DataSet.GEOLIFE); break;
 					case "REDD": config.setDATA_SET(DataSet.REDD); break;
 					case "TDRIVE": config.setDATA_SET(DataSet.TDRIVE); break;
+					case "NOAA": config.setDATA_SET(DataSet.NOAA); break;
 					default: throw new RuntimeException("not support dataset: " + dataset);
 				}
 

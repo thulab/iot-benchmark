@@ -12,6 +12,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.GeolifeReader;
+import cn.edu.tsinghua.iotdb.benchmark.workload.reader.NOAAReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.ReddReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.TDriveReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -30,7 +31,7 @@ public class RealDatasetWorkLoad implements IWorkload {
   /**
    * write test.
    *
-   * @param files real dataset files
+   * @param files  real dataset files
    * @param config config
    */
   public RealDatasetWorkLoad(List<String> files, Config config) {
@@ -43,6 +44,9 @@ public class RealDatasetWorkLoad implements IWorkload {
         break;
       case GEOLIFE:
         reader = new GeolifeReader(config, files);
+        break;
+      case NOAA:
+        reader = new NOAAReader(config, files);
         break;
       default:
         throw new RuntimeException(config.getDATA_SET() + " not supported");
