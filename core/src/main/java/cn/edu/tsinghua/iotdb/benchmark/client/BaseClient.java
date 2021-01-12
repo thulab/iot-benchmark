@@ -7,6 +7,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -61,21 +63,59 @@ loop:
       switch (operation) {
         case INGESTION:
           if (config.isIS_CLIENT_BIND()) {
-            try {
-              List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
-              for (DeviceSchema deviceSchema : schemas) {
-                if (deviceSchema.getDeviceId() < actualDeviceFloor) {
-                  Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-                  dbWrapper.insertOneBatch(batch);
-                }
-              }
-            } catch (DBConnectException e) {
-              LOGGER.error("Failed to insert one batch data because ", e);
-              break loop;
-            } catch (Exception e) {
-              LOGGER.error("Failed to insert one batch data because ", e);
-            }
-            insertLoopIndex++;
+        	  if(config.isIS_SENSOR_TS_ALIGNMENT())
+        	  {
+        		  try {
+                      List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+                      for (DeviceSchema deviceSchema : schemas) {
+                        if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                          Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+                          dbWrapper.insertOneBatch(batch);
+                        }
+                      }
+                    } catch (DBConnectException e) {
+                      LOGGER.error("Failed to insert one batch data because ", e);
+                      break loop;
+                    } catch (Exception e) {
+                      LOGGER.error("Failed to insert one batch data because ", e);
+                    }
+                    insertLoopIndex++;
+        	  }
+        	  else
+        	  {
+        		     try {
+        	              List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+        		      DeviceSchema sensorSchema = null;
+        	              List<String> sensorList =  new ArrayList<String>();
+        	              for (DeviceSchema deviceSchema : schemas) {
+        	                if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+        			int colIndex = 0;
+        			 for(String sensor : deviceSchema.getSensors())
+        	                {
+        				sensorList =  new ArrayList<String>();
+        	                	sensorList.add(sensor);
+        	                	//sensorSchema = new DeviceSchema(deviceSchema.getGroupId(),deviceSchema.getDeviceIdStr(),sensorList);
+        	                	sensorSchema = (DeviceSchema)deviceSchema.clone();
+        				sensorSchema.setSensors(sensorList);
+        	                	Batch batch = syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex);
+        	                        batch.setColIndex(colIndex);
+        	                        dbWrapper.insertOneBatch(batch);
+        	                        colIndex++; 
+        	            		insertLoopIndex++;
+        	                }
+        	                  //Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+        	                  //dbWrapper.insertOneBatch(batch);
+        	                }
+        	              }
+        	            } catch (DBConnectException e) {
+        	              LOGGER.error("Failed to insert one batch data because ", e);
+        	              break loop;
+        	            } catch (Exception e) {
+        	              LOGGER.error("Failed to insert one batch data because ", e);
+        	            }
+        	            //insertLoopIndex++;
+        	  }
+            
           } else {
             try {
               Batch batch = singletonWorkload.getOneBatch();
@@ -179,4 +219,3 @@ loop:
   }
 
 }
-

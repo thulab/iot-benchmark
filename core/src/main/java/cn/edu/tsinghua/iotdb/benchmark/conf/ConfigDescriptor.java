@@ -61,7 +61,7 @@ public class ConfigDescriptor {
 
 				config.setDEVICE_NUMBER(Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.getDEVICE_NUMBER()+"")));
 				config.setSENSOR_NUMBER(Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.getSENSOR_NUMBER()+"")));
-
+				config.setIS_SENSOR_TS_ALIGNMENT(Boolean.parseBoolean(properties.getProperty("SENSOR_TS_ALIGNMENT", config.isIS_SENSOR_TS_ALIGNMENT()+"")));
 				config.setFILE_PATH(properties.getProperty("FILE_PATH", "no file"));
 
 				String dataset = properties.getProperty("DATA_SET", "NULL");
@@ -178,6 +178,7 @@ public class ConfigDescriptor {
 				config.setSTEP_SIZE(Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE()+"")));
 				config.setOP_INTERVAL(Integer.parseInt(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
 				config.setIS_CLIENT_BIND(Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND()+"")));
+				config.setIS_SENSOR_TS_ALIGNMENT(Boolean.parseBoolean(properties.getProperty("IS_SENSOR_TS_ALIGNMENT", config.isIS_SENSOR_TS_ALIGNMENT()+"")));
 				config.setIS_DELETE_DATA(Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA()+"")));
 				config.setREAL_QUERY_START_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.getREAL_QUERY_START_TIME()+"")));
 				config.setREAL_QUERY_STOP_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.getREAL_QUERY_STOP_TIME()+"")));

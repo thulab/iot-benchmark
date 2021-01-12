@@ -14,6 +14,7 @@ public class Batch {
 
   private DeviceSchema deviceSchema;
   private List<Record> records;
+  private int colIndex ;
 
   public Batch() {
     records = new LinkedList<>();
@@ -31,7 +32,15 @@ public class Batch {
   public void setDeviceSchema(DeviceSchema deviceSchema) {
     this.deviceSchema = deviceSchema;
   }
+  
+  public void setColIndex(int colIndex) {
+	this.colIndex = colIndex;
+  }  
 
+  public int getColIndex(){
+	return colIndex;
+  }
+  
   public List<Record> getRecords() {
     return records;
   }

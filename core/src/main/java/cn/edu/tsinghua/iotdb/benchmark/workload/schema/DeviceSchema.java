@@ -15,7 +15,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceSchema {
+public class DeviceSchema implements Cloneable{
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static final String GROUP_NAME_PREFIX = "group_";
@@ -173,5 +173,8 @@ public class DeviceSchema {
         .append(sensors)
         .append(deviceId)
         .toHashCode();
+  }
+  public Object clone() throws CloneNotSupportedException{
+	return super.clone();
   }
 }

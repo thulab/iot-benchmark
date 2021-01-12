@@ -91,6 +91,14 @@ public class Config {
 	public void setIS_CLIENT_BIND(boolean IS_CLIENT_BIND) {
 		this.IS_CLIENT_BIND = IS_CLIENT_BIND;
 	}
+	
+	public void setIS_SENSOR_TS_ALIGNMENT(boolean IS_SENSOR_TS_ALIGNMENT) {
+		this.IS_SENSOR_TS_ALIGNMENT = IS_SENSOR_TS_ALIGNMENT;
+	}
+	
+	public boolean isIS_SENSOR_TS_ALIGNMENT() {
+		return IS_SENSOR_TS_ALIGNMENT ;
+	}
 
 	public boolean isENABLE_THRIFT_COMPRESSION() {
 		return ENABLE_THRIFT_COMPRESSION;
@@ -604,6 +612,9 @@ public class Config {
 
 	/** 设备和客户端是否绑定 */
 	private boolean IS_CLIENT_BIND = true;
+	
+	/** 传感器时间戳是否对齐*/
+	private boolean IS_SENSOR_TS_ALIGNMENT = true;
 
 	/** if enable the thrift compression */
 	private boolean ENABLE_THRIFT_COMPRESSION = false;
