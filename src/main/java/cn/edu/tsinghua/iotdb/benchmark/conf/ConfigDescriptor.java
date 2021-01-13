@@ -225,6 +225,7 @@ public class ConfigDescriptor {
             .getProperty("INSERT_DATATYPE_PROPORTION", config.INSERT_DATATYPE_PROPORTION);
         config.ENCODING_BOOLEAN = properties
             .getProperty("ENCODING_BOOLEAN", config.ENCODING_BOOLEAN);
+        config.GROUP_NAME_PREFIX = properties.getProperty("GROUP_NAME_PREFIX", config.GROUP_NAME_PREFIX+"");
         config.ENCODING_INT32 = properties.getProperty("ENCODING_INT32", config.ENCODING_INT32);
         config.ENCODING_INT64 = properties.getProperty("ENCODING_INT64", config.ENCODING_INT64);
         config.ENCODING_FLOAT = properties.getProperty("ENCODING_FLOAT", config.ENCODING_FLOAT);

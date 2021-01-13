@@ -13,7 +13,6 @@ public class DeviceSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final String GROUP_NAME_PREFIX = "group_";
   private static final String DEVICE_NAME_PREFIX = "d_";
 
   // each device belongs to one group, i.e., database
@@ -40,7 +39,7 @@ public class DeviceSchema {
   }
 
   public DeviceSchema(String group, String device, List<String> sensors) {
-    this.group = GROUP_NAME_PREFIX + group;
+    this.group = config.GROUP_NAME_PREFIX + group;
     this.device = DEVICE_NAME_PREFIX + device;
     this.sensors = sensors;
   }
@@ -49,7 +48,7 @@ public class DeviceSchema {
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
     int thisDeviceGroupIndex = calGroupId(deviceId);
     //System.out.println("device " + deviceId +" sg " + thisDeviceGroupIndex);
-    group = GROUP_NAME_PREFIX + thisDeviceGroupIndex;
+    group = config.GROUP_NAME_PREFIX + thisDeviceGroupIndex;
     sensors.addAll(config.SENSOR_CODES);
   }
 
