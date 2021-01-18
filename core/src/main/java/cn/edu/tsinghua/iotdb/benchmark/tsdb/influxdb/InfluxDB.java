@@ -120,6 +120,29 @@ public class InfluxDB implements IDatabase {
     }
   }
 
+  @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+    BatchPoints batchPoints = BatchPoints.database(influxDbName)
+        .retentionPolicy(defaultRp)
+        .consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
+    try {
+      InfluxDataModel model;
+      for (Record record : batch.getRecords()) {
+        model = createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
+            record.getRecordDataValue(),colIndex);
+        batchPoints.point(model.toInfluxPoint());
+      }
+
+      influxDbInstance.write(batchPoints);
+
+      return new Status(true);
+    } catch (Exception e) {
+      LOGGER.warn(e.getMessage());
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+
   /**
    * eg. SELECT s_0 FROM group_2  WHERE ( device = 'd_8' ) AND time = 1535558405000000000.
    */
@@ -242,6 +265,24 @@ public class InfluxDB implements IDatabase {
     return model;
   }
 
+  private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
+      List<String> valueList,int colIndex)
+      throws TsdbException {
+    InfluxDataModel model = new InfluxDataModel();
+    model.setMeasurement(deviceSchema.getGroup());
+    HashMap<String, String> tags = new HashMap<>();
+    tags.put("device", deviceSchema.getDevice());
+    model.setTagSet(tags);
+    model.setTimestamp(time);
+    model.setTimestampPrecision(config.getTIMESTAMP_PRECISION());
+    HashMap<String, Object> fields = new HashMap<>();
+    List<String> sensors = deviceSchema.getSensors();
+    
+    Object value = DBUtil.parseNumber(colIndex, valueList.get(0));
+    fields.put(sensors.get(0), value);
+    model.setFields(fields);
+    return model;
+  }
   private Status executeQueryAndGetStatus(String sql) {
     LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
 
@@ -391,3 +432,4 @@ public class InfluxDB implements IDatabase {
   }
 
 }
+

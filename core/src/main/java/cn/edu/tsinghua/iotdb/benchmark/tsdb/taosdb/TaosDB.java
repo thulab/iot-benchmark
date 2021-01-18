@@ -149,6 +149,42 @@ public class TaosDB implements IDatabase {
     }
   }
 
+  @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+    try (Statement statement = connection.createStatement()) {
+      statement.execute(String.format(USE_DB, TEST_DB));
+      StringBuilder builder = new StringBuilder();
+      DeviceSchema deviceSchema = batch.getDeviceSchema();
+      System.out.println("sensor:"+deviceSchema.getSensors().toString());
+      List<String> colList = deviceSchema.getSensors();
+      builder.append("insert into ")
+        .append(deviceSchema.getDevice())
+        .append(" (time, ");
+      int i = 0;
+      for(String colName : colList){
+        if(i > 0)
+          builder.append(","+colName);
+        else
+          builder.append(colName);
+
+        i++;
+      }
+      builder.append(") values ");
+      for (Record record : batch.getRecords()) {
+        builder.append(getInsertOneRecordSql(batch.getDeviceSchema(), record.getTimestamp(),
+          record.getRecordDataValue(),colIndex));
+
+      }
+      LOGGER.debug("getInsertOneBatchSql: {}", builder.toString());
+      statement.addBatch(builder.toString());
+      statement.executeBatch();
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+
   private String getInsertOneRecordSql(DeviceSchema deviceSchema, long timestamp,
                                       List<String> values) {
     StringBuilder builder = new StringBuilder();
@@ -187,6 +223,46 @@ public class TaosDB implements IDatabase {
     builder.append(")");
     return builder.toString();
   }
+
+  private String getInsertOneRecordSql(DeviceSchema deviceSchema, long timestamp,
+                                      List<String> values,int colIndex) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(" ('");
+    builder.append(sdf.format(new Date(timestamp))).append("'");
+    int sensorIndex = colIndex;
+    for (String value : values) {
+      switch (typeMap(DBUtil.getDataType(sensorIndex))) {
+        case "BOOL":
+          boolean tempBoolean = DBUtil.convertToBoolean(value);
+          builder.append(",").append(tempBoolean);
+          break;
+        case "INT":
+          int tempInt32 = DBUtil.convertToInt(value);
+          builder.append(",").append(tempInt32);
+          break;
+        case "BIGINT":
+          long tempInt64 = DBUtil.convertToLong(value);
+          builder.append(",").append(tempInt64);
+          break;
+        case "FLOAT":
+          float tempIntFloat = DBUtil.convertToFloat(value);
+          builder.append(",").append(tempIntFloat);
+          break;
+        case "DOUBLE":
+          double tempIntDouble = DBUtil.convertToDouble(value);
+          builder.append(",").append(tempIntDouble);
+          break;
+        case "BINARY":
+        default:
+          builder.append(",").append("'").append(DBUtil.convertToText(value)).append("'");
+          break;
+      }
+      sensorIndex++;
+    }
+    builder.append(")");
+    return builder.toString();
+  }
+
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
@@ -460,3 +536,4 @@ public class TaosDB implements IDatabase {
     }
   }
 }
+

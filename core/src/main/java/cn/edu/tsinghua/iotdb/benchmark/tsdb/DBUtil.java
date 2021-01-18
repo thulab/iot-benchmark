@@ -112,6 +112,18 @@ public class DBUtil {
     return ret;
   }
 
+  public static List<String> recordTransform(List<String> valueList,int colIndex){
+    List<String> ret = new ArrayList<>();
+    try {
+      Object value = DBUtil.parseNumber(colIndex, valueList.get(0));
+      ret.add(value + "");
+    } catch (Exception e) {
+      LOGGER.error("transform record value failed");
+    }
+    return ret;
+  }
+
+
   //currently, the workload engine just generate double, so we need a uniform way to transform it to other data type.
   public static boolean convertToBoolean(String doubleString) {
     return Double.parseDouble(doubleString) > 500;
@@ -134,3 +146,4 @@ public class DBUtil {
   }
 
 }
+

@@ -164,6 +164,21 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) throws DBConnectException {
+    try (Statement statement = connection.createStatement()) {
+      for (Record record : batch.getRecords()) {
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
+            record.getRecordDataValue());
+        statement.addBatch(sql);
+      }
+      statement.executeBatch();
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String sql = getPreciseQuerySql(preciseQuery);
     return executeQueryAndGetStatus(sql);
@@ -424,3 +439,4 @@ public class IoTDB implements IDatabase {
     return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
   }
 }
+

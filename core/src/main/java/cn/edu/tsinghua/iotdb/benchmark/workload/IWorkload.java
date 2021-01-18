@@ -15,6 +15,8 @@ public interface IWorkload {
 
   Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException;
 
+  Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException;
+
   PreciseQuery getPreciseQuery() throws WorkloadException;
 
   RangeQuery getRangeQuery() throws WorkloadException;

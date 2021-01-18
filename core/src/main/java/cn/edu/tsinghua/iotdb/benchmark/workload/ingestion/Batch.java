@@ -13,8 +13,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class Batch {
 
   private DeviceSchema deviceSchema;
+  private DeviceSchema deviceSchema_sensor;
   private List<Record> records;
-  private int colIndex ;
+  private int colIndex = -1;
+  private String colType ;
 
   public Batch() {
     records = new LinkedList<>();
@@ -24,21 +26,44 @@ public class Batch {
     this.deviceSchema = deviceSchema;
     this.records = records;
   }
+  
+  public Batch(DeviceSchema deviceSchema_sensor, List<Record> records,String colType) {
+	this.deviceSchema = null;
+	this.deviceSchema_sensor = deviceSchema_sensor;
+	this.records = records;
+	this.colType = colType;
+  }
 
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
+  }
+  
+  public DeviceSchema getDeviceSchema_sensor() {
+	return deviceSchema_sensor;
   }
 
   public void setDeviceSchema(DeviceSchema deviceSchema) {
     this.deviceSchema = deviceSchema;
   }
   
+  public void setDeviceSchema_sensor(DeviceSchema deviceSchema_sensor) {
+	this.deviceSchema_sensor = deviceSchema_sensor;
+  }
+  
   public void setColIndex(int colIndex) {
 	this.colIndex = colIndex;
+  } 
+  
+  public void setColType(String colType) {
+	this.colType = colType;
   }  
 
   public int getColIndex(){
 	return colIndex;
+  }
+  
+  public String getColType(){
+	return colType;
   }
   
   public List<Record> getRecords() {
@@ -110,10 +135,17 @@ public class Batch {
 
   @Override
   public String toString() {
-    return "Batch{" +
+	if(deviceSchema != null)
+		return "Batch{" +
         "deviceSchema=" + deviceSchema +
         ", records=" + records +
         '}';
+	else
+		return "Batch{" +
+        "deviceSchema_sensor=" + deviceSchema_sensor +
+        ", records=" + records +
+        '}';
+
   }
 
   @Override
@@ -124,3 +156,4 @@ public class Batch {
         .toHashCode();
   }
 }
+

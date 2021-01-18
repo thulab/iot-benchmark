@@ -143,6 +143,27 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+    LinkedList<KairosDataModel> models = new LinkedList<>();
+    for (Record record : batch.getRecords()) {
+      models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
+          DBUtil.recordTransform(record.getRecordDataValue(),colIndex)));
+    }
+    String body = JSON.toJSONString(models);
+    LOGGER.debug("body: {}", body);
+    try {
+
+      String response = HttpRequest.sendPost(writeUrl, body);
+
+      LOGGER.debug("response: {}", response);
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     long time = preciseQuery.getTimestamp();
     QueryBuilder builder = constructBuilder(time, time, preciseQuery.getDeviceSchema());
@@ -281,3 +302,4 @@ public class KairosDB implements IDatabase {
   }
 
 }
+

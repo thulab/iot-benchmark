@@ -177,22 +177,32 @@ public class SyntheticWorkload implements IWorkload {
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
+  
+  private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
+    Batch batch = new Batch();
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+      long stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
+      addOneRowIntoBatch(batch, stepOffset,colIndex);
+    }
+    batch.setDeviceSchema(deviceSchema);
+    return batch;
+  }
 
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
-      Batch batch = new Batch();
-      long barrier = (long) (config.getBATCH_SIZE() * config.getOVERFLOW_RATIO());
-      long stepOffset = loopIndex * config.getBATCH_SIZE() + barrier;
+    Batch batch = new Batch();
+    long barrier = (long) (config.getBATCH_SIZE() * config.getOVERFLOW_RATIO());
+    long stepOffset = loopIndex * config.getBATCH_SIZE() + barrier;
+    addOneRowIntoBatch(batch, stepOffset);
+    for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
+      stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
-      for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
-          stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
-          addOneRowIntoBatch(batch, stepOffset);
-      }
-      for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
-          stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
-          addOneRowIntoBatch(batch, stepOffset);
-      }
-      batch.setDeviceSchema(deviceSchema);
-      return batch;
+    }
+    for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+      stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
+      addOneRowIntoBatch(batch, stepOffset);
+    }
+    batch.setDeviceSchema(deviceSchema);
+    return batch;
   }
 
   private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
@@ -220,8 +230,16 @@ public class SyntheticWorkload implements IWorkload {
     List<String> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
-      values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
-    }
+        values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+
+    }      
+    batch.add(currentTimestamp, values);  
+  }
+  
+  static void addOneRowIntoBatch(Batch batch, long stepOffset,int colIndex) {
+    List<String> values = new ArrayList<>();
+    long currentTimestamp = getCurrentTimestamp(stepOffset);
+    values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);	    		    
     batch.add(currentTimestamp, values);
   }
 
@@ -229,6 +247,22 @@ public class SyntheticWorkload implements IWorkload {
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
     if (!config.isIS_OVERFLOW()) {
       return getOrderedBatch(deviceSchema, loopIndex);
+    } else {
+      switch (config.getOVERFLOW_MODE()) {
+        case 0:
+          return getDistOutOfOrderBatch(deviceSchema);
+        case 1:
+          return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
+        default:
+          throw new WorkloadException("Unsupported overflow mode: " + config.getOVERFLOW_MODE());
+      }
+    }
+  }
+  
+  @Override
+  public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException {
+    if (!config.isIS_OVERFLOW()) {
+      return getOrderedBatch(deviceSchema, loopIndex,colIndex);
     } else {
       switch (config.getOVERFLOW_MODE()) {
         case 0:
@@ -347,3 +381,4 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 }
+

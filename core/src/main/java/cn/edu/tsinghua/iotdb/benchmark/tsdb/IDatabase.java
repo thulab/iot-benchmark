@@ -49,6 +49,7 @@ public interface IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   Status insertOneBatch(Batch batch) throws DBConnectException;
+  Status insertOneBatch(Batch batch,int colIndex,String colType) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors at a precise timestamp.
@@ -138,3 +139,4 @@ public interface IDatabase {
    return iotdbType;
   }
 }
+

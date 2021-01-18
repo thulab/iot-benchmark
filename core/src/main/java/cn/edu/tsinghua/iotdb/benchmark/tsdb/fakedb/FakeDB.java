@@ -62,6 +62,12 @@ public class FakeDB implements IDatabase {
   }
 
   @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+    return new Status(true);
+  }
+
+
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     return new Status(true, null, null);
   }
@@ -111,3 +117,4 @@ public class FakeDB implements IDatabase {
     return null;
   }
 }
+

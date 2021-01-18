@@ -175,6 +175,13 @@ public class DoubleIOTDB implements IDatabase {
   }
 
   @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+    producer.send(batch);
+    return new Status(true);
+  }
+
+
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     throw new UnsupportedOperationException();
   }
@@ -302,3 +309,4 @@ public class DoubleIOTDB implements IDatabase {
     }
   }
 }
+

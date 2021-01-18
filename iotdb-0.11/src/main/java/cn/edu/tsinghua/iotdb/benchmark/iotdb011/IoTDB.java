@@ -174,6 +174,22 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) throws DBConnectException {
+    try (Statement statement = connection.createStatement()) {
+      for (Record record : batch.getRecords()) {
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
+            record.getRecordDataValue(),colType);
+        statement.addBatch(sql);
+      }
+      statement.executeBatch();
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String sql = getPreciseQuerySql(preciseQuery);
     return executeQueryAndGetStatus(sql);
@@ -355,6 +371,54 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
+  public static String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+      List<String> values,String colType) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("insert into ")
+        .append(Constants.ROOT_SERIES_NAME)
+        .append(".").append(deviceSchema.getGroup())
+        .append(".").append(deviceSchema.getDevice())
+        .append("(timestamp");
+    for (String sensor : deviceSchema.getSensors()) {
+      builder.append(",").append(sensor);
+    }
+    builder.append(") values(");
+    builder.append(timestamp);
+    int sensorIndex = 0;
+    for (String value : values) {
+      switch (colType) {
+        case "BOOLEAN":
+          boolean tempBoolean = (Double.parseDouble(value) > 500);
+          builder.append(",").append(tempBoolean);
+          break;
+        case "INT32":
+          int tempInt32 = (int) Double.parseDouble(value);
+          builder.append(",").append(tempInt32);
+          break;
+        case "INT64":
+          long tempInt64 = (long) Double.parseDouble(value);
+          builder.append(",").append(tempInt64);
+          break;
+        case "FLOAT":
+          float tempIntFloat = (float) Double.parseDouble(value);
+          builder.append(",").append(tempIntFloat);
+          break;
+        case "DOUBLE":
+          double tempIntDouble = Double.parseDouble(value);
+          builder.append(",").append(tempIntDouble);
+          break;
+        case "TEXT":
+          builder.append(",").append("'").append(value).append("'");
+          break;
+      }
+      sensorIndex++;
+    }
+    builder.append(")");
+    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    return builder.toString();
+  }
+
+
   /**
    * generate simple query header.
    *
@@ -437,3 +501,4 @@ public class IoTDB implements IDatabase {
     return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
   }
 }
+

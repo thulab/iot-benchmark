@@ -136,6 +136,23 @@ public class TimescaleDB implements IDatabase {
     }
   }
 
+  @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+    try (Statement statement = connection.createStatement()){
+      for (Record record : batch.getRecords()) {
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
+            DBUtil.recordTransform(record.getRecordDataValue(),colIndex));
+        statement.addBatch(sql);
+      }
+      statement.executeBatch();
+
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+
   /**
    * eg. SELECT time, device, s_2 FROM tutorial WHERE (device='d_8') and time=1535558400000.
    *
@@ -425,12 +442,41 @@ public class TimescaleDB implements IDatabase {
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
     for (String value : values) {
-      builder.append(",").append(value);
+      builder.append(",'").append(value).append("'");
     }
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
   }
+
+ /**
+   * eg.
+   * <p>
+   * INSERT INTO conditions(time, group, device, s_0, s_1) VALUES (1535558400000, 'group_0', 'd_0',
+   * 70.0, 50.0);
+   * </p>
+   */
+  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+      List<String> values,int colIndex) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("insert into ")
+        .append(tableName)
+        .append("(time, sGroup, device");
+    for (String sensor : deviceSchema.getSensors()) {
+      builder.append(",").append(sensor);
+    }
+    builder.append(") values(");
+    builder.append(timestamp);
+    builder.append(",'").append(deviceSchema.getGroup()).append("'");
+    builder.append(",'").append(deviceSchema.getDevice()).append("'");
+    for (String value : values) {
+      builder.append(",'").append(value).append("'");
+    }
+    builder.append(")");
+    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    return builder.toString();
+  }
+
 
   @Override
   public String typeMap(String iotdbType) {
@@ -453,4 +499,5 @@ public class TimescaleDB implements IDatabase {
     }
   }
 }
+
 

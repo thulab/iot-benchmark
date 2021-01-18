@@ -85,6 +85,44 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public Status insertOneBatch(Batch batch,int colIndex,String colType) throws DBConnectException {
+    Status status = null;
+    Operation operation = Operation.INGESTION;
+    try {
+
+      long st = System.nanoTime();
+      status = db.insertOneBatch(batch,colIndex,colType);
+      long en = System.nanoTime();
+      status.setTimeCost(en - st);
+
+      if (status.isOk()) {
+        measureOkOperation(status, operation, batch.pointNum());
+        if (!config.isIS_QUIET_MODE()) {
+          double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
+          String formatTimeInMillis = String.format("%.2f", timeInMillis);
+          double throughput = batch.pointNum() * 1000 / timeInMillis;
+          LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
+              Thread.currentThread().getName(), batch.getDeviceSchema().getDevice(),
+              batch.getDeviceSchema().getGroup(), formatTimeInMillis, throughput);
+        }
+      } else {
+        measurement.addFailOperationNum(operation);
+        measurement.addFailPointNum(operation, batch.pointNum());
+        recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
+            status.getException().toString());
+        LOGGER.error("Insert batch failed because", status.getException());
+      }
+    } catch (DBConnectException ex) {
+      throw ex;
+    } catch (Exception e) {
+      measurement.addFailOperationNum(operation);
+      measurement.addFailPointNum(operation, batch.pointNum());
+      recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0, e.toString());
+      LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
+    }
+    return status;
+  }
+  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
@@ -327,3 +365,4 @@ public class DBWrapper implements IDatabase {
   }
 
 }
+
