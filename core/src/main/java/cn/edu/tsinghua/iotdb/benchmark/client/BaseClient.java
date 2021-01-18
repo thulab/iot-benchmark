@@ -80,37 +80,37 @@ loop:
                 LOGGER.error("Failed to insert one batch data because ", e);
               }
               insertLoopIndex++;
-          } else {
-            try {
-            List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
-            DeviceSchema sensorSchema = null;
-            List<String> sensorList =  new ArrayList<String>();
-            for (DeviceSchema deviceSchema : schemas) {
-              if (deviceSchema.getDeviceId() < actualDeviceFloor) {
-        	int colIndex = 0;
-        	for(String sensor : deviceSchema.getSensors()){
-        	  sensorList =  new ArrayList<String>();
-                  sensorList.add(sensor);
-        	  sensorSchema = (DeviceSchema)deviceSchema.clone();
-        	  sensorSchema.setSensors(sensorList);
-        	  Batch batch = syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex,colIndex);
-        	  batch.setColIndex(colIndex);
-		  String colType = DBUtil.getDataType(colIndex);
-        	  batch.setColType(colType);
-        	  dbWrapper.insertOneBatch(batch,colIndex,colType);
-        	  colIndex++; 
-        	  insertLoopIndex++;
-        	  }
-        	}
-             }
-             } catch (DBConnectException e) {
+            } else {
+              try {
+              List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+              DeviceSchema sensorSchema = null;
+              List<String> sensorList =  new ArrayList<String>();
+              for (DeviceSchema deviceSchema : schemas) {
+                if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                  int colIndex = 0;
+                  for(String sensor : deviceSchema.getSensors()){
+                    sensorList =  new ArrayList<String>();
+                    sensorList.add(sensor);
+                    sensorSchema = (DeviceSchema)deviceSchema.clone();
+                    sensorSchema.setSensors(sensorList);
+                    Batch batch = syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex,colIndex);
+                    batch.setColIndex(colIndex);
+                    String colType = DBUtil.getDataType(colIndex);
+                    batch.setColType(colType);
+                    dbWrapper.insertOneBatch(batch,colIndex,colType);
+                    colIndex++; 
+                    insertLoopIndex++;
+                  }
+                }
+              }
+              } catch (DBConnectException e) {
                LOGGER.error("Failed to insert one batch data because ", e);
                break loop;
-             } catch (Exception e) {
+              } catch (Exception e) {
                LOGGER.error("Failed to insert one batch data because ", e);
-             }
-         } 
-         } else {
+              }
+            } 
+          } else {
             try {
               Batch batch = singletonWorkload.getOneBatch();
               if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
