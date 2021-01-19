@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import java.util.ArrayList;
@@ -84,6 +85,17 @@ public class IoTDBClusterSession extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
+    if (ioTDBConnection != null) {
+      try {
+        // in this implementation the connection is only for schema creation, so it is unneeded
+        // when the ingestion begins
+        ioTDBConnection.close();
+      } catch (TsdbException e) {
+        LOGGER.error("Cannot close connection for schema creation");
+      }
+      ioTDBConnection = null;
+    }
+
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
