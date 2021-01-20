@@ -175,7 +175,7 @@ public class DoubleIOTDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
     producer.send(batch);
     return new Status(true);
   }

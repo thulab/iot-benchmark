@@ -121,7 +121,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
     BatchPoints batchPoints = BatchPoints.database(influxDbName)
         .retentionPolicy(defaultRp)
         .consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();

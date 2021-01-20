@@ -85,13 +85,13 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch,int colIndex,String colType) throws DBConnectException {
+  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
 
       long st = System.nanoTime();
-      status = db.insertOneBatch(batch,colIndex,colType);
+      status = db.insertOneSensorBatch(batch,colIndex,colType);
       long en = System.nanoTime();
       status.setTimeCost(en - st);
 

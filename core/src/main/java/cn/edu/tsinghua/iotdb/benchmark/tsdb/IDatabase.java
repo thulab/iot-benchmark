@@ -49,7 +49,15 @@ public interface IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   Status insertOneBatch(Batch batch) throws DBConnectException;
-  Status insertOneBatch(Batch batch,int colIndex,String colType) throws DBConnectException;
+
+  /**
+   * Insert single-sensor one batch into the database, the DB implementation needs to resolve the data in batch
+   * which contains device schema and Map[Long, List[String]] records. The key of records is a
+   * timestamp and the value is one sensor value data.
+   * @param batch universal insertion data structure
+   * @return status which contains successfully executed flag, error message and so on.
+   */
+  Status insertOneSensorBatch(Batch batch,int colIndex,String colType) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors at a precise timestamp.

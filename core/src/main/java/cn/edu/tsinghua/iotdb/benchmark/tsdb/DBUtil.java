@@ -104,7 +104,7 @@ public class DBUtil {
     try {
       for (int i = 0; i < valueList.size(); i++) {
         Object value = DBUtil.parseNumber(i, valueList.get(i));
-        ret.add(value + "");
+        ret.add(value.toString());
       }
     } catch (Exception e) {
       LOGGER.error("transform record value failed");
@@ -116,7 +116,7 @@ public class DBUtil {
     List<String> ret = new ArrayList<>();
     try {
       Object value = DBUtil.parseNumber(colIndex, valueList.get(0));
-      ret.add(value + "");
+      ret.add(value.toString());
     } catch (Exception e) {
       LOGGER.error("transform record value failed");
     }

@@ -150,12 +150,11 @@ public class TaosDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
     try (Statement statement = connection.createStatement()) {
       statement.execute(String.format(USE_DB, TEST_DB));
       StringBuilder builder = new StringBuilder();
       DeviceSchema deviceSchema = batch.getDeviceSchema();
-      System.out.println("sensor:"+deviceSchema.getSensors().toString());
       List<String> colList = deviceSchema.getSensors();
       builder.append("insert into ")
         .append(deviceSchema.getDevice())
@@ -177,6 +176,7 @@ public class TaosDB implements IDatabase {
       }
       LOGGER.debug("getInsertOneBatchSql: {}", builder.toString());
       statement.addBatch(builder.toString());
+
       statement.executeBatch();
       return new Status(true);
     } catch (Exception e) {

@@ -137,7 +137,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
     try (Statement statement = connection.createStatement()){
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
@@ -452,8 +452,8 @@ public class TimescaleDB implements IDatabase {
  /**
    * eg.
    * <p>
-   * INSERT INTO conditions(time, group, device, s_0, s_1) VALUES (1535558400000, 'group_0', 'd_0',
-   * 70.0, 50.0);
+   * INSERT INTO conditions(time, group, device, s_n) VALUES (1535558400000, 'group_0', 'd_0',
+   * 70.0);
    * </p>
    */
   private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
