@@ -57,7 +57,7 @@ public interface IDatabase {
    * @param batch universal insertion data structure
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status insertOneSensorBatch(Batch batch,int colIndex,String colType) throws DBConnectException;
+  Status insertOneSensorBatch(Batch batch) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors at a precise timestamp.

@@ -62,7 +62,7 @@ public class FakeDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch) {
     return new Status(true);
   }
 

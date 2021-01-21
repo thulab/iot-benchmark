@@ -143,8 +143,9 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch) {
     LinkedList<KairosDataModel> models = new LinkedList<>();
+    int colIndex = batch.getColIndex();
     for (Record record : batch.getRecords()) {
       models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
           DBUtil.recordTransform(record.getRecordDataValue(),colIndex)));

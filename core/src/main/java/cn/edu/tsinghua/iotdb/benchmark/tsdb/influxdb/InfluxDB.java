@@ -121,12 +121,13 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch,int colIndex,String colType) {
+  public Status insertOneSensorBatch(Batch batch) {
     BatchPoints batchPoints = BatchPoints.database(influxDbName)
         .retentionPolicy(defaultRp)
         .consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL).build();
     try {
       InfluxDataModel model;
+      int colIndex = batch.getColIndex();
       for (Record record : batch.getRecords()) {
         model = createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
             record.getRecordDataValue(),colIndex);

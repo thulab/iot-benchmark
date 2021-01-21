@@ -97,7 +97,7 @@ loop:
                     batch.setColIndex(colIndex);
                     String colType = DBUtil.getDataType(colIndex);
                     batch.setColType(colType);
-                    dbWrapper.insertOneBatch(batch,colIndex,colType);
+                    dbWrapper.insertOneSensorBatch(batch);
                     colIndex++; 
                     insertLoopIndex++;
                   }
