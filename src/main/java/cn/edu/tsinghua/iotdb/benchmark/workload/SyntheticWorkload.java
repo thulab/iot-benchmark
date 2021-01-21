@@ -44,8 +44,8 @@ public class SyntheticWorkload implements IWorkload {
   private static Random random = new Random(config.DATA_SEED);
   private static final String DECIMAL_FORMAT = "%." + config.NUMBER_OF_DECIMAL_DIGIT + "f";
   private static Random dataRandom = new Random(config.DATA_SEED);
-  private static Object[][] workloadValues = initWorkloadValues();
   private static int scaleFactor = 1;
+  private static Object[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst = getTimestampConst(config.TIMESTAMP_PRECISION);
