@@ -136,6 +136,24 @@ public class TimescaleDB implements IDatabase {
     }
   }
 
+  @Override
+  public Status insertOneSensorBatch(Batch batch) {
+    try (Statement statement = connection.createStatement()){
+      int colIndex = batch.getColIndex();
+      for (Record record : batch.getRecords()) {
+        String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
+            DBUtil.recordTransform(record.getRecordDataValue(),colIndex));
+        statement.addBatch(sql);
+      }
+      statement.executeBatch();
+
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+
   /**
    * eg. SELECT time, device, s_2 FROM tutorial WHERE (device='d_8') and time=1535558400000.
    *
@@ -425,7 +443,7 @@ public class TimescaleDB implements IDatabase {
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
     for (String value : values) {
-      builder.append(",").append(value);
+      builder.append(",'").append(value).append("'");
     }
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
@@ -453,4 +471,5 @@ public class TimescaleDB implements IDatabase {
     }
   }
 }
+
 

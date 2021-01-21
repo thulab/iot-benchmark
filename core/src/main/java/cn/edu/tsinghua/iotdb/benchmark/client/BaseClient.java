@@ -7,6 +7,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -15,6 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 
 /**
  * 负责人造数据的写入、查询，真实数据的查询。 根据OPERATION_PROPORTION的比例执行写入和查询, 具体的查询和写入数据由workload确定。
@@ -61,21 +64,52 @@ loop:
       switch (operation) {
         case INGESTION:
           if (config.isIS_CLIENT_BIND()) {
-            try {
+            if(config.isIS_SENSOR_TS_ALIGNMENT()) {
+              try {
+                List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+                for (DeviceSchema deviceSchema : schemas) {
+                  if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                    Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+                    dbWrapper.insertOneBatch(batch);
+                  }
+                }
+              } catch (DBConnectException e) {
+                LOGGER.error("Failed to insert one batch data because ", e);
+                break loop;
+              } catch (Exception e) {
+                LOGGER.error("Failed to insert one batch data because ", e);
+              }
+              insertLoopIndex++;
+            } else {
+              try {
               List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+              DeviceSchema sensorSchema = null;
+              List<String> sensorList =  new ArrayList<String>();
               for (DeviceSchema deviceSchema : schemas) {
                 if (deviceSchema.getDeviceId() < actualDeviceFloor) {
-                  Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-                  dbWrapper.insertOneBatch(batch);
+                  int colIndex = 0;
+                  for(String sensor : deviceSchema.getSensors()){
+                    sensorList =  new ArrayList<String>();
+                    sensorList.add(sensor);
+                    sensorSchema = (DeviceSchema)deviceSchema.clone();
+                    sensorSchema.setSensors(sensorList);
+                    Batch batch = syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex,colIndex);
+                    batch.setColIndex(colIndex);
+                    String colType = DBUtil.getDataType(colIndex);
+                    batch.setColType(colType);
+                    dbWrapper.insertOneSensorBatch(batch);
+                    colIndex++; 
+                    insertLoopIndex++;
+                  }
                 }
               }
-            } catch (DBConnectException e) {
-              LOGGER.error("Failed to insert one batch data because ", e);
-              break loop;
-            } catch (Exception e) {
-              LOGGER.error("Failed to insert one batch data because ", e);
-            }
-            insertLoopIndex++;
+              } catch (DBConnectException e) {
+               LOGGER.error("Failed to insert one batch data because ", e);
+               break loop;
+              } catch (Exception e) {
+               LOGGER.error("Failed to insert one batch data because ", e);
+              }
+            } 
           } else {
             try {
               Batch batch = singletonWorkload.getOneBatch();

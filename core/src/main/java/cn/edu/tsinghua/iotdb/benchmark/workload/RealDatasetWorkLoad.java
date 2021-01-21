@@ -96,6 +96,11 @@ public class RealDatasetWorkLoad implements IWorkload {
   }
 
   @Override
+  public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException {
+    throw new WorkloadException("not support in real data workload.");
+  }
+
+  @Override
   public PreciseQuery getPreciseQuery() {
     return new PreciseQuery(deviceSchemaList, startTime);
   }
@@ -143,3 +148,4 @@ public class RealDatasetWorkLoad implements IWorkload {
   }
 
 }
+
