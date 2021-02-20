@@ -27,7 +27,9 @@ public class DBFactory {
         switch (config.INSERT_MODE) {
           case Constants.INSERT_USE_JDBC:
             return new IoTDB();
-          case Constants.INSERT_USE_SESSION:
+          case Constants.INSERT_USE_SESSION_RECORD:
+          case Constants.INSERT_USE_SESSION_RECORDS:
+          case Constants.INSERT_USE_SESSION_TABLET:
             if (config.USE_CLUSTER_DB) {
               return new IoTDBClusterSession();
             } else {
