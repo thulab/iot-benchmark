@@ -83,19 +83,93 @@ public class IoTDBClusterSession extends IoTDB {
     }
   }
 
-  @Override
-  public Status insertOneBatch(Batch batch) {
-    if (ioTDBConnection != null) {
-      try {
-        // in this implementation the connection is only for schema creation, so it is unneeded
-        // when the ingestion begins
-        ioTDBConnection.close();
-      } catch (TsdbException e) {
-        LOGGER.error("Cannot close connection for schema creation");
+
+  public List<TSDataType> constructDataTypes(int recordValueSize){
+    List<TSDataType> dataTypes = new ArrayList<>();
+    for (int sensorIndex = 0; sensorIndex < recordValueSize;
+        sensorIndex++) {
+      switch (getNextDataType(sensorIndex)) {
+        case "BOOLEAN":
+          dataTypes.add(TSDataType.BOOLEAN);
+          break;
+        case "INT32":
+          dataTypes.add(TSDataType.INT32);
+          break;
+        case "INT64":
+          dataTypes.add(TSDataType.INT64);
+          break;
+        case "FLOAT":
+          dataTypes.add(TSDataType.FLOAT);
+          break;
+        case "DOUBLE":
+          dataTypes.add(TSDataType.DOUBLE);
+          break;
+        case "TEXT":
+          dataTypes.add(TSDataType.TEXT);
+          break;
       }
-      ioTDBConnection = null;
+    }
+    return dataTypes;
+  }
+
+  public Status insertOneBatchByRecord(Batch batch) {
+    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." +
+        batch.getDeviceSchema().getDevice();
+    int failRecord = 0;
+    for (Record record : batch.getRecords()) {
+      long timestamp = record.getTimestamp();
+      List<TSDataType> dataTypes = constructDataTypes(record.getRecordDataValue().size());
+      try {
+        sessions[currSession].insertRecord(deviceId,timestamp,batch.getDeviceSchema().getSensors(), dataTypes, record.getRecordDataValue());
+      } catch (IoTDBConnectionException | StatementExecutionException e) {
+        LOGGER.error("insert record failed", e);
+        failRecord++;
+      }
+    }
+    currSession = (currSession + 1) % sessions.length;
+    Exception e = new Exception("failRecord number is " + failRecord);
+    if (failRecord == 0)
+      return new Status(true);
+    else
+      return new Status(false, 0, e, e.toString());
+  }
+
+  public Status insertOneBatchByRecords(Batch batch) {
+    List<String> deviceIds = new ArrayList<>();
+    String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." +
+        batch.getDeviceSchema().getDevice();
+    List<Long> times = new ArrayList<>();
+    List<List<String>> measurementsList = new ArrayList<>();
+    List<List<TSDataType>> typesList = new ArrayList<>();
+    List<List<Object>> valuesList = new ArrayList<>();
+    for (Record record : batch.getRecords()) {
+      deviceIds.add(deviceId);
+      times.add(record.getTimestamp());
+      measurementsList.add(batch.getDeviceSchema().getSensors());
+      valuesList.add(record.getRecordDataValue());
+      typesList.add(constructDataTypes(record.getRecordDataValue().size()));
     }
 
+    future = service.submit(() -> {
+      try {
+        sessions[currSession].insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+      } catch (IoTDBConnectionException | StatementExecutionException e) {
+        LOGGER.error("insert records failed", e);
+      }
+    });
+
+    try {
+      future.get(config.WRITE_OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      future.cancel(true);
+      return new Status(false, 0, e, e.toString());
+    }
+
+    currSession = (currSession + 1) % sessions.length;
+    return new Status(true);
+  }
+
+  public Status insertOneBatchByTablet(Batch batch) {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
@@ -169,5 +243,30 @@ public class IoTDBClusterSession extends IoTDB {
     currSession = (currSession + 1) % sessions.length;
     tablet.reset();
     return new Status(true);
+  }
+
+  @Override
+  public Status insertOneBatch(Batch batch) {
+    if (ioTDBConnection != null) {
+      try {
+        // in this implementation the connection is only for schema creation, so it is unneeded
+        // when the ingestion begins
+        ioTDBConnection.close();
+      } catch (TsdbException e) {
+        LOGGER.error("Cannot close connection for schema creation");
+      }
+      ioTDBConnection = null;
+    }
+
+    switch (config.INSERT_MODE) {
+      case "sessionByTablet":
+        return insertOneBatchByTablet(batch);
+      case "sessionByRecord":
+        return insertOneBatchByRecord(batch);
+      case "sessionByRecords":
+        return insertOneBatchByRecords(batch);
+      default:
+        throw new IllegalStateException("Unexpected INSERT_MODE value: " + config.INSERT_MODE);
+    }
   }
 }

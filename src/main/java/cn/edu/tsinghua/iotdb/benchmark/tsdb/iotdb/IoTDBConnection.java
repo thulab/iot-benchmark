@@ -60,7 +60,7 @@ public class IoTDBConnection {
     } else {
       nodeSize = 1;
       urls = new String[nodeSize];
-      urls[0] = Constants.URL;
+      urls[0] = String.format(Constants.URL, config.HOST, config.PORT);
     }
     connections = new Connection[nodeSize];
 

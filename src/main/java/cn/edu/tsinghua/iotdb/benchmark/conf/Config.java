@@ -7,7 +7,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -266,7 +265,7 @@ public class Config {
 	//benchmark 运行模式
 	public String BENCHMARK_WORK_MODE="";
 	//插入数据模式:
-	//IoTDB: jdbc,session
+	//IoTDB: jdbc,sessionByTablet,sessionByRecord,sessionByRecords
 	public String INSERT_MODE = "jdbc";
 	//the file path of import data
 	public String IMPORT_DATA_FILE_PATH = "";
