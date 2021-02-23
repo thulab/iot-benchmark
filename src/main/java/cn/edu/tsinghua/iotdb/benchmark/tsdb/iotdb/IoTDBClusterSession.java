@@ -53,7 +53,6 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   private SessionPool[] sessions;
   private int currSession;
   private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
-  private Future<?> future;
 
 
   public IoTDBClusterSession() {
