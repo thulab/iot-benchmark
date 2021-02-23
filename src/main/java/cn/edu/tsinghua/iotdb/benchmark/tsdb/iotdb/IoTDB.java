@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
@@ -25,6 +26,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.Session;
+import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,24 +38,21 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-
-  private static final String CREATE_SERIES_SQL =
-      "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
-  private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  protected IoTDBConnection ioTDBConnection;
   private static final String ALREADY_KEYWORD = "already exist";
-  private ExecutorService service;
-  private Future<?> future;
+  protected static Config config = ConfigDescriptor.getInstance().getConfig();
+
+  protected IoTDBConnection ioTDBConnection;
+  protected ExecutorService service;
+  protected Future<?> future;
 
   public IoTDB() {
-
   }
 
   @Override
@@ -65,7 +67,7 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public void cleanup() throws TsdbException {
+  public void cleanup() {
     // currently no implementation
   }
 
@@ -82,54 +84,58 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    int count = 0;
     if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
       try {
+        Session metaSession = new Session(config.HOST, config.PORT, Constants.USER,
+            Constants.PASSWD);
+        metaSession.open(config.ENABLE_THRIFT_COMPRESSION);
         // get all storage groups
         Set<String> groups = new HashSet<>();
         for (DeviceSchema schema : schemaList) {
           groups.add(schema.getGroup());
         }
         // register storage groups
-        try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-          for (String group : groups) {
-            statement.addBatch(
-                String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
-          }
-          statement.executeBatch();
-          statement.clearBatch();
+        for (String group : groups) {
+          metaSession.setStorageGroup(Constants.ROOT_SERIES_NAME + "." + group);
         }
-      } catch (SQLException e) {
-        // ignore if already has the time series
-        if (!e.getMessage().contains(ALREADY_KEYWORD)) {
-          LOGGER.error("Register IoTDB schema failed because ", e);
-          throw new TsdbException(e);
-        }
-      }
-      // create time series
-      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+
+        // create time series
+        List<String> paths = new ArrayList<>();
+        List<TSDataType> tsDataTypes = new ArrayList<>();
+        List<TSEncoding> tsEncodings = new ArrayList<>();
+        List<CompressionType> compressionTypes = new ArrayList<>();
+        int count = 0;
+        int createSchemaBatchNum = 10000;
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            String dataType = getNextDataType(sensorIndex);
-            String createSeriesSql = String.format(CREATE_SERIES_SQL,
-                Constants.ROOT_SERIES_NAME
-                    + "." + deviceSchema.getGroup()
-                    + "." + deviceSchema.getDevice()
-                    + "." + sensor,
-                dataType, getEncodingType(dataType), config.COMPRESSOR);
-            statement.addBatch(createSeriesSql);
-            count++;
-            sensorIndex++;
-            if (count % 5000 == 0) {
-              statement.executeBatch();
-              statement.clearBatch();
+            paths.add(getSensorPath(deviceSchema, sensor));
+            String datatype = SyntheticWorkload.getNextDataType(sensorIndex++);
+            tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype));
+            tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
+            compressionTypes.add(Enum.valueOf(CompressionType.class, config.COMPRESSOR));
+            if (++count % createSchemaBatchNum == 0) {
+              metaSession
+                  .createMultiTimeseries(paths, tsDataTypes, tsEncodings, compressionTypes, null,
+                      null, null, null);
+              paths.clear();
+              tsDataTypes.clear();
+              tsEncodings.clear();
+              compressionTypes.clear();
             }
           }
         }
-        statement.executeBatch();
-        statement.clearBatch();
-      } catch (SQLException e) {
+        if (!paths.isEmpty()) {
+          metaSession
+              .createMultiTimeseries(paths, tsDataTypes, tsEncodings, compressionTypes, null,
+                  null, null, null);
+          paths.clear();
+          tsDataTypes.clear();
+          tsEncodings.clear();
+          compressionTypes.clear();
+        }
+        metaSession.close();
+      } catch (Exception e) {
         // ignore if already has the time series
         if (!e.getMessage().contains(ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
           LOGGER.error("Register IoTDB schema failed because ", e);
@@ -137,67 +143,6 @@ public class IoTDB implements IDatabase {
         }
       }
     }
-  }
-
-  String getNextDataType(int sensorIndex) {
-    List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[TSDataType.values().length + 1];
-    p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a data type whose proportion
-    // is the region range size.
-    for (int i = 1; i <= TSDataType.values().length; i++) {
-      p[i] = p[i - 1] + proportion.get(i - 1);
-    }
-    double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
-    int i;
-    for (i = 1; i <= TSDataType.values().length; i++) {
-      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
-        break;
-      }
-    }
-    switch (i) {
-      case 1:
-        return "BOOLEAN";
-      case 2:
-        return "INT32";
-      case 3:
-        return "INT64";
-      case 4:
-        return "FLOAT";
-      case 5:
-        return "DOUBLE";
-      case 6:
-        return "TEXT";
-      default:
-        LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
-        return "TEXT";
-    }
-  }
-
-  List<Double> resolveDataTypeProportion() {
-    if (ConfigDescriptor.getInstance().getConfig().proportion == null) {
-      List<Double> proportion = new ArrayList<>();
-      String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-      if (split.length != TSDataType.values().length) {
-        LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-      }
-      double[] proportions = new double[TSDataType.values().length];
-      double sum = 0;
-      for (int i = 0; i < split.length; i++) {
-        proportions[i] = Double.parseDouble(split[i]);
-        sum += proportions[i];
-      }
-      for (int i = 0; i < split.length; i++) {
-        if (sum != 0) {
-          proportion.add(proportions[i] / sum);
-        } else {
-          proportion.add(0.0);
-          LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
-        }
-      }
-      ConfigDescriptor.getInstance().getConfig().proportion = proportion;
-    }
-    return ConfigDescriptor.getInstance().getConfig().proportion;
   }
 
   String getEncodingType(String dataType) {
@@ -218,6 +163,18 @@ public class IoTDB implements IDatabase {
         LOGGER.error("Unsupported data type {}.", dataType);
         return null;
     }
+  }
+
+  // convert deviceSchema to the format: root.group_1.d_1
+  private String getDevicePath(DeviceSchema deviceSchema) {
+    return Constants.ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema
+        .getDevice();
+  }
+
+  // convert deviceSchema and sensor to the format: root.group_1.d_1.s_1
+  private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
+    return Constants.ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema
+        .getDevice() + "." + sensor;
   }
 
   @Override
@@ -278,8 +235,9 @@ public class IoTDB implements IDatabase {
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
-    String sql = aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
-        (int) aggValueQuery.getValueThreshold()).substring(4);
+    String sql =
+        aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
+            (int) aggValueQuery.getValueThreshold()).substring(4);
     return executeQueryAndGetStatus(sql);
   }
 
@@ -341,40 +299,6 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
-  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
-      List<Object> values) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("insert into ")
-        .append(Constants.ROOT_SERIES_NAME)
-        .append(".").append(deviceSchema.getGroup())
-        .append(".").append(deviceSchema.getDevice())
-        .append("(timestamp");
-    for (String sensor : deviceSchema.getSensors()) {
-      builder.append(",").append(sensor);
-    }
-    builder.append(") values(");
-    builder.append(timestamp);
-    int sensorIndex = 0;
-    for (Object value : values) {
-      switch (getNextDataType(sensorIndex)) {
-        case "BOOLEAN":
-        case "INT32":
-        case "INT64":
-        case "FLOAT":
-        case "DOUBLE":
-          builder.append(",").append(value);
-          break;
-        case "TEXT":
-          builder.append(",").append("'").append(value).append("'");
-          break;
-      }
-      sensorIndex++;
-    }
-    builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
-    return builder.toString();
-  }
-
   /**
    * generate simple query header.
    *
@@ -409,12 +333,6 @@ public class IoTDB implements IDatabase {
       builder.append(", ").append(getDevicePath(devices.get(i)));
     }
     return builder.toString();
-  }
-
-  // convert deviceSchema to the format: root.group_1.d_1
-  private String getDevicePath(DeviceSchema deviceSchema) {
-    return Constants.ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema
-        .getDevice();
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
@@ -468,5 +386,39 @@ public class IoTDB implements IDatabase {
 
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
     return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
+  }
+
+  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+      List<Object> values) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("insert into ")
+        .append(Constants.ROOT_SERIES_NAME)
+        .append(".").append(deviceSchema.getGroup())
+        .append(".").append(deviceSchema.getDevice())
+        .append("(timestamp");
+    for (String sensor : deviceSchema.getSensors()) {
+      builder.append(",").append(sensor);
+    }
+    builder.append(") values(");
+    builder.append(timestamp);
+    int sensorIndex = 0;
+    for (Object value : values) {
+      switch (SyntheticWorkload.getNextDataType(sensorIndex)) {
+        case "BOOLEAN":
+        case "INT32":
+        case "INT64":
+        case "FLOAT":
+        case "DOUBLE":
+          builder.append(",").append(value);
+          break;
+        case "TEXT":
+          builder.append(",").append("'").append(value).append("'");
+          break;
+      }
+      sensorIndex++;
+    }
+    builder.append(")");
+    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    return builder.toString();
   }
 }

@@ -6,9 +6,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -225,7 +228,8 @@ public class ConfigDescriptor {
             .getProperty("INSERT_DATATYPE_PROPORTION", config.INSERT_DATATYPE_PROPORTION);
         config.ENCODING_BOOLEAN = properties
             .getProperty("ENCODING_BOOLEAN", config.ENCODING_BOOLEAN);
-        config.GROUP_NAME_PREFIX = properties.getProperty("GROUP_NAME_PREFIX", config.GROUP_NAME_PREFIX+"");
+        config.GROUP_NAME_PREFIX = properties
+            .getProperty("GROUP_NAME_PREFIX", config.GROUP_NAME_PREFIX + "");
         config.ENCODING_INT32 = properties.getProperty("ENCODING_INT32", config.ENCODING_INT32);
         config.ENCODING_INT64 = properties.getProperty("ENCODING_INT64", config.ENCODING_INT64);
         config.ENCODING_FLOAT = properties.getProperty("ENCODING_FLOAT", config.ENCODING_FLOAT);
@@ -274,6 +278,7 @@ public class ConfigDescriptor {
         config.USE_CLUSTER_DB = Boolean.parseBoolean(properties.getProperty("USE_CLUSTER_DB",
             String.valueOf(config.USE_CLUSTER_DB)));
 
+        resolveDataTypeProportion();
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -286,6 +291,38 @@ public class ConfigDescriptor {
       }
     } else {
       LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);
+    }
+  }
+
+  public void resolveDataTypeProportion() {
+    if (!config.OPERATION_PROPORTION.split(":")[0].equals("0")) {
+      List<Double> proportion = new ArrayList<>();
+      String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
+      if (split.length != TSDataType.values().length) {
+        LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
+      }
+      double[] proportions = new double[TSDataType.values().length];
+      double sum = 0;
+      for (int i = 0; i < split.length; i++) {
+        proportions[i] = Double.parseDouble(split[i]);
+        sum += proportions[i];
+      }
+      for (int i = 0; i < split.length; i++) {
+        if (sum != 0) {
+          proportion.add(proportions[i] / sum);
+        } else {
+          proportion.add(0.0);
+          LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+        }
+      }
+      Double[] p = new Double[TSDataType.values().length + 1];
+      p[0] = 0.0;
+      // split [0,1] to n regions, each region corresponds to a data type whose proportion
+      // is the region range size.
+      for (int i = 1; i <= TSDataType.values().length; i++) {
+        p[i] = p[i - 1] + proportion.get(i - 1);
+      }
+      config.proportion = Arrays.asList(p);
     }
   }
 }
