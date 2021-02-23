@@ -94,21 +94,19 @@ public class SyntheticWorkload implements IWorkload {
             Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
             switch (getNextDataType(sensorIndex)) {
               case "BOOLEAN":
-                value = Boolean.valueOf(number.floatValue() > 500);
+                value = number.floatValue() > 500;
                 break;
               case "INT32":
-                value = Integer.valueOf(number.intValue());
+                value = number.intValue();
                 break;
               case "INT64":
-                value = Long.valueOf(number.longValue());
+                value = number.longValue();
                 break;
               case "FLOAT":
-                value = Float.valueOf(
-                    ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor);
+                value = ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor;
                 break;
               case "DOUBLE":
-                value = Double.valueOf(
-                    ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor);
+                value = ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor;
                 break;
               default:
                 value = null;
@@ -124,18 +122,11 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   public static String getNextDataType(int sensorIndex) {
-    List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[TSDataType.values().length + 1];
-    p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a data type whose proportion
-    // is the region range size.
-    for (int i = 1; i <= TSDataType.values().length; i++) {
-      p[i] = p[i - 1] + proportion.get(i - 1);
-    }
+    List<Double> proportion = config.proportion;
     double sensorPosition = sensorIndex * 1.0 / config.SENSOR_NUMBER;
     int i;
     for (i = 1; i <= TSDataType.values().length; i++) {
-      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
+      if (sensorPosition >= proportion.get(i - 1) && sensorPosition < proportion.get(i)) {
         break;
       }
     }
@@ -158,29 +149,6 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 
-  public static List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TSDataType.values().length) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[TSDataType.values().length];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
-      }
-    }
-    return proportion;
-  }
-
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.POINT_STEP * stepOffset;
     if (config.IS_OVERFLOW) {
@@ -190,8 +158,7 @@ public class SyntheticWorkload implements IWorkload {
         timeStampOffset += (long) (config.POINT_STEP * timestampRandom.nextDouble());
       }
     }
-    long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
-    return currentTimestamp;
+    return Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
   }
 
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {

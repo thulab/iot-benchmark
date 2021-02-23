@@ -42,7 +42,7 @@ public class IoTDBConnection {
   }
 
   public void init() throws TsdbException {
-    int nodeSize = 0;
+    int nodeSize = 1;
     String[] urls;
     if (config.USE_CLUSTER_DB) {
       nodeSize = config.CLUSTER_HOSTS.size();
@@ -58,7 +58,6 @@ public class IoTDBConnection {
         urls[i] = jdbcUrl;
       }
     } else {
-      nodeSize = 1;
       urls = new String[nodeSize];
       urls[0] = String.format(Constants.URL, config.HOST, config.PORT);
     }
@@ -90,7 +89,6 @@ public class IoTDBConnection {
   }
 
   public Connection getConnection() {
-    currConnectionIndex.set((currConnectionIndex.get() + 1) % connections.length);
-    return connections[currConnectionIndex.get() % connections.length];
+    return connections[currConnectionIndex.incrementAndGet() % connections.length];
   }
 }
