@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionPool;
@@ -43,6 +45,7 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +68,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     for (int i = 0; i < sessions.length; i++) {
       String[] split = config.CLUSTER_HOSTS.get(i).split(":");
       sessions[i] = new SessionPool(split[0], Integer.parseInt(split[1]), Constants.USER,
-          Constants.PASSWD, MAX_SESSION_CONNECTION_PER_CLIENT, config.ENABLE_THRIFT_COMPRESSION);
+          Constants.PASSWD, MAX_SESSION_CONNECTION_PER_CLIENT, config.ENABLE_THRIFT_COMPRESSION,
+          true);
     }
   }
 
