@@ -16,7 +16,7 @@ public class DBFactory {
     String dbClass;
     try {
       switch(config.getDB_SWITCH()) {
-        case Constants.TDP_IOTDB:
+        case Constants.DB_IOT:
           switch(config.getVERSION()) {
             case "0.12.0":
               switch (config.getINSERT_MODE()) {
@@ -37,6 +37,7 @@ public class DBFactory {
                   }
                   break;
               }
+              break;
             case "0.11.0":
               if(config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
                 if (config.isENABLE_DOUBLE_INSERT()){
