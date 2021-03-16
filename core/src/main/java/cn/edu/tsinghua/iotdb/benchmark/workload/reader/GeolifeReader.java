@@ -29,13 +29,13 @@ public class GeolifeReader extends BasicReader {
 
   private Record convertToRecord(String line) {
     try {
-      List<String> fields = new ArrayList<>();
+      List<Object> fields = new ArrayList<>();
       String[] items = line.split(",");
 
-      fields.add(items[0]);
-      fields.add(items[1]);
-      fields.add(items[2]);
-      fields.add(items[3]);
+      fields.add(Double.valueOf(items[0]));
+      fields.add(Double.valueOf(items[1]));
+      fields.add(Double.valueOf(items[2]));
+      fields.add(Double.valueOf(items[3]));
 
       Date date = dateFormat.parse(items[5] + "-" + items[6]);
       long time = date.getTime();

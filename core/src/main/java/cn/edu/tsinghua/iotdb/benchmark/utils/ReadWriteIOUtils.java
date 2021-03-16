@@ -27,7 +27,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -661,6 +660,80 @@ public class ReadWriteIOUtils {
   }
 
 
+  /**
+   * read string list with self define length.
+   */
+  public static List<Object> readObjectList(InputStream inputStream) throws IOException {
+    List<Object> list = new ArrayList<>();
+    int size = readInt(inputStream);
+
+    for (int i = 0; i < size; i++) {
+      list.add(readObject(inputStream));
+    }
+
+    return list;
+  }
+
+
+  public static void writeObject(Object value, OutputStream outputStream) {
+    try {
+      if (value instanceof Long) {
+        outputStream.write(ClassSerializeId.LONG.ordinal());
+        write((long)value, outputStream);
+      } else if (value instanceof Double) {
+        outputStream.write(ClassSerializeId.DOUBLE.ordinal());
+        write((double) value, outputStream);
+      } else if (value instanceof Integer) {
+        outputStream.write(ClassSerializeId.INTEGER.ordinal());
+        write((int)value, outputStream);
+      } else if (value instanceof Float) {
+        outputStream.write(ClassSerializeId.FLOAT.ordinal());
+        write((float) value, outputStream);
+      } else if (value instanceof String) {
+        outputStream.write(ClassSerializeId.BINARY.ordinal());
+        byte[] bytes = ((String) value).getBytes();
+        write((int) bytes.length, outputStream);
+        outputStream.write(bytes);
+      } else if (value instanceof Boolean) {
+        outputStream.write(ClassSerializeId.BOOLEAN.ordinal());
+        outputStream.write(Boolean.TRUE.equals(value) ? 1 : 0);
+      } else if (value == null) {
+        outputStream.write(ClassSerializeId.NULL.ordinal());
+      } else {
+        outputStream.write(ClassSerializeId.STRING.ordinal());
+        byte[] bytes = value.toString().getBytes();
+        write((int) bytes.length, outputStream);
+        outputStream.write(bytes);
+      }
+    } catch (IOException ignored) {
+      // ignored
+    }
+  }
+
+  public static Object readObject(InputStream inputstream) throws IOException {
+    ClassSerializeId serializeId = ClassSerializeId.values()[inputstream.read()];
+    switch (serializeId) {
+      case BOOLEAN:
+        return readInt(inputstream) == 1;
+      case FLOAT:
+        return readFloat(inputstream);
+      case DOUBLE:
+        return readDouble(inputstream);
+      case LONG:
+        return readLong(inputstream);
+      case INTEGER:
+        return readInt(inputstream);
+
+      case NULL:
+        return null;
+      case BINARY:
+      case STRING:
+      default:
+        int length = readInt(inputstream);
+        byte[] bytes = readBytes(inputstream, length);
+        return new java.lang.String(bytes);
+    }
+  }
 
   enum ClassSerializeId {
     LONG, DOUBLE, INTEGER, FLOAT, BINARY, BOOLEAN, STRING, NULL

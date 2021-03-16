@@ -54,12 +54,12 @@ public class TDriveReader extends BasicReader {
   private Record convertToRecord(String line) {
 
     try {
-      List<String> fields = new ArrayList<>();
+      List<Object> fields = new ArrayList<>();
 
       String[] items = line.split(",");
 
-      fields.add(items[2]);
-      fields.add(items[3]);
+      fields.add(Double.valueOf(items[2]));
+      fields.add(Double.valueOf(items[3]));
 
       Date date = dateFormat.parse(items[1]);
       long time = date.getTime();

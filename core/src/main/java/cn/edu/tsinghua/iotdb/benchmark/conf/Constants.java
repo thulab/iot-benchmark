@@ -43,7 +43,9 @@ public class Constants {
 
     //different insert mode
     public static final String INSERT_USE_JDBC = "jdbc";
-    public static final String INSERT_USE_SESSION = "session";
+    public static final String INSERT_USE_SESSION_TABLET= "sessionByTablet";
+    public static final String INSERT_USE_SESSION_RECORD = "sessionByRecord";
+    public static final String INSERT_USE_SESSION_RECORDS = "sessionByRecords";
 
     // support test data persistence:
     public static final String TDP_NONE = "None";
@@ -55,6 +57,11 @@ public class Constants {
     public static final String MOD_SG_ASSIGN_MODE = "mod";
     public static final String HASH_SG_ASSIGN_MODE = "hash";
     public static final String DIV_SG_ASSIGN_MODE = "div";
+
+    public static final String IOTDB012_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDB";
+    public static final String IOTDB012_DOUBLE_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.DoubleIoTDBChecker";
+    public static final String IOTDB012_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDBSession";
+    public static final String IOTDB012_ROUNDROBIN_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDBSession";
 
     public static final String IOTDB011_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB";
     public static final String IOTDB011_DOUBLE_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.DoubleIoTDBChecker";

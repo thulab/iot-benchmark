@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -11,9 +12,9 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 public class Record {
 
   private long timestamp;
-  private List<String> recordDataValue;
+  private List<Object> recordDataValue;
 
-  public Record(long timestamp, List<String> recordDataValue) {
+  public Record(long timestamp, List<Object> recordDataValue) {
     this.timestamp = timestamp;
     this.recordDataValue = recordDataValue;
   }
@@ -25,7 +26,7 @@ public class Record {
    */
   public static Record deserialize(ByteArrayInputStream inputStream) throws IOException {
     long timestamp = ReadWriteIOUtils.readLong(inputStream);
-    return new Record(timestamp, ReadWriteIOUtils.readStringList(inputStream));
+    return new Record(timestamp, ReadWriteIOUtils.readObjectList(inputStream));
   }
 
   @Override
@@ -44,7 +45,7 @@ public class Record {
     return timestamp;
   }
 
-  public List<String> getRecordDataValue() {
+  public List<Object> getRecordDataValue() {
     return recordDataValue;
   }
 
@@ -56,8 +57,8 @@ public class Record {
   public void serialize(ByteArrayOutputStream outputStream) throws IOException {
     ReadWriteIOUtils.write(timestamp, outputStream);
     ReadWriteIOUtils.write(recordDataValue.size(), outputStream);
-    for (String value : recordDataValue) {
-      ReadWriteIOUtils.write(value, outputStream);
+    for (Object value : recordDataValue) {
+      ReadWriteIOUtils.writeObject(value, outputStream);
     }
   }
 

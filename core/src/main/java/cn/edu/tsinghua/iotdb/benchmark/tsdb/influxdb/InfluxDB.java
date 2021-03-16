@@ -130,7 +130,7 @@ public class InfluxDB implements IDatabase {
       int colIndex = batch.getColIndex();
       for (Record record : batch.getRecords()) {
         model = createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
-            record.getRecordDataValue(),colIndex);
+            record.getRecordDataValue(), colIndex);
         batchPoints.point(model.toInfluxPoint());
       }
 
@@ -247,7 +247,7 @@ public class InfluxDB implements IDatabase {
   }
 
   private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
-      List<String> valueList)
+      List<Object> valueList)
       throws TsdbException {
     InfluxDataModel model = new InfluxDataModel();
     model.setMeasurement(deviceSchema.getGroup());
@@ -259,16 +259,14 @@ public class InfluxDB implements IDatabase {
     HashMap<String, Object> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
-      Object value = DBUtil.parseNumber(i, valueList.get(i));
-      fields.put(sensors.get(i), value);
+      fields.put(sensors.get(i), valueList.get(i));
     }
     model.setFields(fields);
     return model;
   }
 
   private InfluxDataModel createDataModel(DeviceSchema deviceSchema, Long time,
-      List<String> valueList,int colIndex)
-      throws TsdbException {
+      List<Object> valueList,int colIndex) {
     InfluxDataModel model = new InfluxDataModel();
     model.setMeasurement(deviceSchema.getGroup());
     HashMap<String, String> tags = new HashMap<>();
@@ -278,9 +276,8 @@ public class InfluxDB implements IDatabase {
     model.setTimestampPrecision(config.getTIMESTAMP_PRECISION());
     HashMap<String, Object> fields = new HashMap<>();
     List<String> sensors = deviceSchema.getSensors();
-    
-    Object value = DBUtil.parseNumber(colIndex, valueList.get(0));
-    fields.put(sensors.get(0), value);
+    //值只有一个，在get(0)处，但是schema为了复用，没有改，所以在colIndex处
+    fields.put(sensors.get(colIndex), valueList.get(0));
     model.setFields(fields);
     return model;
   }

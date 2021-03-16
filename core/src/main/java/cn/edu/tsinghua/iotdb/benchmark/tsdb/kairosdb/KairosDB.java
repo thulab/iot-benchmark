@@ -102,7 +102,7 @@ public class KairosDB implements IDatabase {
 
 
   private LinkedList<KairosDataModel> createDataModel(DeviceSchema deviceSchema, long timestamp,
-      List<String> recordValues) {
+      List<Object> recordValues) {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     String groupId = deviceSchema.getGroup();
     int i = 0;
@@ -122,12 +122,29 @@ public class KairosDB implements IDatabase {
     return models;
   }
 
+  private LinkedList<KairosDataModel> createDataModel(DeviceSchema deviceSchema, long timestamp,
+      List<Object> recordValues, int colIndex) {
+    LinkedList<KairosDataModel> models = new LinkedList<>();
+    String groupId = deviceSchema.getGroup();
+      KairosDataModel model = new KairosDataModel();
+      model.setName(deviceSchema.getSensors().get(colIndex));
+      // TODO: KairosDB do not support float as data type, use double instead.
+      model.setTimestamp(timestamp);
+      model.setValue(recordValues.get(0));
+      Map<String, String> tags = new HashMap<>();
+      tags.put(GROUP_STR, groupId);
+      tags.put(DEVICE_STR, deviceSchema.getDevice());
+      model.setTags(tags);
+      models.addLast(model);
+    return models;
+  }
+
   @Override
   public Status insertOneBatch(Batch batch) {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     for (Record record : batch.getRecords()) {
       models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
-          DBUtil.recordTransform(record.getRecordDataValue())));
+          record.getRecordDataValue()));
     }
     String body = JSON.toJSONString(models);
     LOGGER.debug("body: {}", body);
@@ -148,7 +165,7 @@ public class KairosDB implements IDatabase {
     int colIndex = batch.getColIndex();
     for (Record record : batch.getRecords()) {
       models.addAll(createDataModel(batch.getDeviceSchema(), record.getTimestamp(),
-          DBUtil.recordTransform(record.getRecordDataValue(),colIndex)));
+          record.getRecordDataValue(),colIndex));
     }
     String body = JSON.toJSONString(models);
     LOGGER.debug("body: {}", body);

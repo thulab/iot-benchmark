@@ -67,26 +67,26 @@ public class NOAAReader extends BasicReader {
 
   private Record convertToRecord(String line) {
     try {
-      List<String> fields = new ArrayList<>();
+      List<Object> fields = new ArrayList<>();
 
       //add 70 years, make sure time > 0
       String yearmoda = line.substring(14, 22).trim();
       Date date = dateFormat.parse(yearmoda);
       long time = date.getTime() + 2209046400000L;
 
-      fields.add(line.substring(24, 30).trim());
-      fields.add(line.substring(35, 41).trim());
-      fields.add(line.substring(46, 52).trim());
-      fields.add(line.substring(57, 63).trim());
-      fields.add(line.substring(68, 73).trim());
-      fields.add(line.substring(78, 83).trim());
-      fields.add(line.substring(88, 93).trim());
-      fields.add(line.substring(95, 100).trim());
-      fields.add(line.substring(102, 108).trim());
-      fields.add(line.substring(110, 116).trim());
-      fields.add(line.substring(118, 123).trim());
-      fields.add(line.substring(125, 130).trim());
-      fields.add(line.substring(132, 138).trim());
+      fields.add(Double.valueOf(line.substring(24, 30).trim()));
+      fields.add(Double.valueOf(line.substring(35, 41).trim()));
+      fields.add(Double.valueOf(line.substring(46, 52).trim()));
+      fields.add(Double.valueOf(line.substring(57, 63).trim()));
+      fields.add(Double.valueOf(line.substring(68, 73).trim()));
+      fields.add(Double.valueOf(line.substring(78, 83).trim()));
+      fields.add(Double.valueOf(line.substring(88, 93).trim()));
+      fields.add(Double.valueOf(line.substring(95, 100).trim()));
+      fields.add(Double.valueOf(line.substring(102, 108).trim()));
+      fields.add(Double.valueOf(line.substring(110, 116).trim()));
+      fields.add(Double.valueOf(line.substring(118, 123).trim()));
+      fields.add(Double.valueOf(line.substring(125, 130).trim()));
+      fields.add(Double.valueOf(line.substring(132, 138).trim()));
 
       return new Record(time, fields);
     } catch (Exception e) {
