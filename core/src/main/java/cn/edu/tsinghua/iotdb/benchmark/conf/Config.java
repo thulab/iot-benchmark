@@ -598,8 +598,7 @@ public class Config {
 
 	private String HOST ="127.0.0.1";
 	private String PORT ="6667";
-	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:55560","127.0.0.1:55561","127.0.0"
-			+ ".1:55562");
+	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:6667");
 	/** whether access all nodeds, rather than just one coordinator*/
 	public boolean USE_CLUSTER_DB = true;
 
