@@ -40,8 +40,7 @@ public class DataSchema {
       return;
     }
 
-    int deviceId = config.getFIRST_DEVICE_INDEX();
-    //TODO FIXME
+    int deviceId = 0;
     //不能均分的数量
     int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
     for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
