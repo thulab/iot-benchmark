@@ -61,7 +61,7 @@ public class Constants {
     public static final String IOTDB012_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDB";
     public static final String IOTDB012_DOUBLE_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.DoubleIoTDBChecker";
     public static final String IOTDB012_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDBSession";
-    public static final String IOTDB012_ROUNDROBIN_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDBSession";
+    public static final String IOTDB012_ROUNDROBIN_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb012.IoTDBClusterSession";
 
     public static final String IOTDB011_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB";
     public static final String IOTDB011_DOUBLE_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.DoubleIoTDBChecker";
