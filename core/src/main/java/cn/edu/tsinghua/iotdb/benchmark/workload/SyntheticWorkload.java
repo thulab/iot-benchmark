@@ -42,9 +42,10 @@ public class SyntheticWorkload implements IWorkload {
   private static final Random random = new Random(config.getDATA_SEED());
   private static final String DECIMAL_FORMAT = "%." + config.getNUMBER_OF_DECIMAL_DIGIT() + "f";
   private static final Random dataRandom = new Random(config.getDATA_SEED());
+  // this must before the initWorkloadValues function calls
+  private static int scaleFactor = 1;
   /**workloadValues[传感器][序号]。 对于那些有规律的数据，存储了每个传感器的一段数据，用于按规律快速生成*/
   private static final Object[][] workloadValues = initWorkloadValues();
-  private static int scaleFactor = 1;
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String IKR_CHAR_TABLE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

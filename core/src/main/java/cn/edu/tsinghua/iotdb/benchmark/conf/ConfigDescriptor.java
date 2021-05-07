@@ -198,6 +198,7 @@ public class ConfigDescriptor {
 				else {
 					config.setFIRST_DEVICE_INDEX(0);
 				}
+				config.GROUP_NAME_PREFIX = properties.getProperty("GROUP_NAME_PREFIX",config.GROUP_NAME_PREFIX);
 
 				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
                                 config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));

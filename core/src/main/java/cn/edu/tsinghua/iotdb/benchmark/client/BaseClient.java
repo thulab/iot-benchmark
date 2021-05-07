@@ -48,7 +48,7 @@ public abstract class BaseClient extends Client implements Runnable {
     //Equals device number when the rate is 1.
     //config.getDEVICE_NUMBER() * config.getBENCHMARK_INDEX() 是该benchmark生成的设备起始编号
     //config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE() 是实际会生成的设备数量
-    double actualDeviceFloor = config.getDEVICE_NUMBER() * config.getBENCHMARK_INDEX()
+    double actualDeviceFloor = config.getDEVICE_NUMBER() * config.getFIRST_DEVICE_INDEX()
         + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
 
     // print current progress periodically
