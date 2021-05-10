@@ -33,6 +33,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -94,65 +96,96 @@ public class IoTDB implements IDatabase {
     //therefore, we use session to create time series in batch.
 
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+      Session metaSession = null;
       try {
-        Session metaSession = new Session(config.getHOST(), config.getPORT(), Constants.USER,
+        metaSession = new Session(config.getHOST(), config.getPORT(), Constants.USER,
             Constants.PASSWD);
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-        // get all storage groups
-        Set<String> groups = new HashSet<>();
-        for (DeviceSchema schema : schemaList) {
-          groups.add(schema.getGroup());
-        }
-        // register storage groups
-        for (String group : groups) {
-          metaSession.setStorageGroup(Constants.ROOT_SERIES_NAME + "." + group);
-        }
 
-        // create time series
-        List<String> paths = new ArrayList<>();
-        List<TSDataType> tsDataTypes = new ArrayList<>();
-        List<TSEncoding> tsEncodings = new ArrayList<>();
-        List<CompressionType> compressionTypes = new ArrayList<>();
-        int count = 0;
-        int createSchemaBatchNum = 10000;
-        for (DeviceSchema deviceSchema : schemaList) {
-          int sensorIndex = 0;
-          for (String sensor : deviceSchema.getSensors()) {
-            paths.add(getSensorPath(deviceSchema, sensor));
-            String datatype = SyntheticWorkload.getNextDataType(sensorIndex++);
-            tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype));
-            tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
-            compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-            if (++count % createSchemaBatchNum == 0) {
-              metaSession
-                  .createMultiTimeseries(paths, tsDataTypes, tsEncodings, compressionTypes, null,
-                      null, null, null);
-              paths.clear();
-              tsDataTypes.clear();
-              tsEncodings.clear();
-              compressionTypes.clear();
-            }
-          }
-        }
-        if (!paths.isEmpty()) {
-          metaSession
-              .createMultiTimeseries(paths, tsDataTypes, tsEncodings, compressionTypes, null,
-                  null, null, null);
-          paths.clear();
-          tsDataTypes.clear();
-          tsEncodings.clear();
-          compressionTypes.clear();
-        }
-        metaSession.close();
+        registerStorageGroups(metaSession, schemaList);
+        registerTimeseries(metaSession, schemaList);
+
       } catch (Exception e) {
-        // ignore if already has the time series
-        if (!e.getMessage().contains(ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
-          LOGGER.error("Register IoTDB schema failed because ", e);
-          throw new TsdbException(e);
+        throw new TsdbException(e);
+      } finally {
+        if (metaSession != null) {
+          try {
+            metaSession.close();
+          } catch (IoTDBConnectionException e) {
+            LOGGER.error("Schema-register session cannot be closed: {}", e.getMessage());
+          }
         }
       }
     }
+  }
 
+  private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)
+      throws TsdbException {
+    // get all storage groups
+    Set<String> groups = new HashSet<>();
+    for (DeviceSchema schema : schemaList) {
+      groups.add(schema.getGroup());
+    }
+    // register storage groups
+    for (String group : groups) {
+      try {
+        metaSession.setStorageGroup(Constants.ROOT_SERIES_NAME + "." + group);
+      } catch (Exception e) {
+        handleRegisterException(e);
+      }
+    }
+  }
+
+  private void registerTimeseries(Session metaSession, List<DeviceSchema> schemaList)
+      throws TsdbException {
+    // create time series
+    List<String> paths = new ArrayList<>();
+    List<TSDataType> tsDataTypes = new ArrayList<>();
+    List<TSEncoding> tsEncodings = new ArrayList<>();
+    List<CompressionType> compressionTypes = new ArrayList<>();
+    int count = 0;
+    int createSchemaBatchNum = 10000;
+    for (DeviceSchema deviceSchema : schemaList) {
+      int sensorIndex = 0;
+      for (String sensor : deviceSchema.getSensors()) {
+        paths.add(getSensorPath(deviceSchema, sensor));
+        String datatype = SyntheticWorkload.getNextDataType(sensorIndex++);
+        tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype));
+        tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
+        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        if (++count % createSchemaBatchNum == 0) {
+          registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+        }
+      }
+    }
+    if (!paths.isEmpty()) {
+      registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+    }
+  }
+
+  private void registerTimeseriesBatch(Session metaSession, List<String> paths,
+      List<TSEncoding> tsEncodings,
+      List<TSDataType> tsDataTypes, List<CompressionType> compressionTypes) throws TsdbException {
+    try {
+      metaSession
+          .createMultiTimeseries(paths, tsDataTypes, tsEncodings, compressionTypes, null,
+              null, null, null);
+    } catch (Exception e) {
+      handleRegisterException(e);
+    } finally {
+      paths.clear();
+      tsDataTypes.clear();
+      tsEncodings.clear();
+      compressionTypes.clear();
+    }
+  }
+
+  private void handleRegisterException(Exception e) throws TsdbException {
+    // ignore if already has the time series
+    if (!e.getMessage().contains(ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
+      LOGGER.error("Register IoTDB schema failed because ", e);
+      throw new TsdbException(e);
+    }
   }
 
   String getEncodingType(String dataType) {
@@ -203,7 +236,7 @@ public class IoTDB implements IDatabase {
       int colIndex = batch.getColIndex();
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
-            record.getRecordDataValue().get(colIndex),colType);
+            record.getRecordDataValue().get(colIndex), colType);
         statement.addBatch(sql);
       }
       statement.executeBatch();
@@ -228,10 +261,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT s_39 FROM root.group_2.d_29
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
-   * AND root.group_2.d_29.s_39 > 0.0
+   * SELECT s_39 FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01
+   * 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
@@ -240,9 +271,8 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_76) FROM root.group_3.d_31
-   * WHERE time >= 2010-01-01 12:00:00
-   * AND time <= 2010-01-01 12:30:00
+   * SELECT max_value(s_76) FROM root.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
@@ -254,21 +284,20 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29
-   * WHERE root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     String aggQuerySqlHead = getAggQuerySqlHead(aggValueQuery.getDeviceSchema(),
         aggValueQuery.getAggFun());
     String sql = aggQuerySqlHead + " WHERE " + getValueFilterClause(aggValueQuery.getDeviceSchema(),
-            (int) aggValueQuery.getValueThreshold()).substring(4);
+        (int) aggValueQuery.getValueThreshold()).substring(4);
     return executeQueryAndGetStatus(sql);
   }
 
   /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND
-   * time <= 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
+   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <=
+   * 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
@@ -277,15 +306,14 @@ public class IoTDB implements IDatabase {
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeValueQuery.getStartTimestamp(),
         aggRangeValueQuery.getEndTimestamp());
     sql += getValueFilterClause(aggRangeValueQuery.getDeviceSchema(),
-            (int) aggRangeValueQuery.getValueThreshold());
+        (int) aggRangeValueQuery.getValueThreshold());
     return executeQueryAndGetStatus(sql);
   }
 
   /**
    * select aggFun(sensor) from device group by(interval, startTimestamp, [startTimestamp,
-   * endTimestamp])
-   * example: SELECT max_value(s_81) FROM root.group_9.d_92
-   * GROUP BY(600000ms, 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
+   * endTimestamp]) example: SELECT max_value(s_81) FROM root.group_9.d_92 GROUP BY(600000ms,
+   * 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
@@ -307,9 +335,9 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-   String sql = getRangeQuerySql(rangeQuery.getDeviceSchema(), rangeQuery.getStartTimestamp(),
+    String sql = getRangeQuerySql(rangeQuery.getDeviceSchema(), rangeQuery.getStartTimestamp(),
         rangeQuery.getEndTimestamp()) + " order by time desc";
-   return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql);
   }
 
   @Override
@@ -333,7 +361,7 @@ public class IoTDB implements IDatabase {
     String rangeQuerySql = getRangeQuerySql(valueRangeQuery.getDeviceSchema(),
         valueRangeQuery.getStartTimestamp(), valueRangeQuery.getEndTimestamp());
     String valueFilterClause = getValueFilterClause(valueRangeQuery.getDeviceSchema(),
-            (int) valueRangeQuery.getValueThreshold());
+        (int) valueRangeQuery.getValueThreshold());
     return rangeQuerySql + valueFilterClause;
   }
 
@@ -362,14 +390,14 @@ public class IoTDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
-      switch (colType) {
-        case "TEXT":
-          builder.append(",").append("'").append(value).append("'");
-          break;
-        default:
-          builder.append(",").append(value);
-          break;
-      }
+    switch (colType) {
+      case "TEXT":
+        builder.append(",").append("'").append(value).append("'");
+        break;
+      default:
+        builder.append(",").append(value);
+        break;
+    }
 
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
@@ -459,7 +487,8 @@ public class IoTDB implements IDatabase {
         } catch (SQLException e) {
           LOGGER.error("exception occurred when execute query={}", sql, e);
         }
-        queryResultPointNum.set(line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+        queryResultPointNum
+            .set(line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
       });
 
       try {
@@ -488,7 +517,7 @@ public class IoTDB implements IDatabase {
   }
 
   private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
+    return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
   public static String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
