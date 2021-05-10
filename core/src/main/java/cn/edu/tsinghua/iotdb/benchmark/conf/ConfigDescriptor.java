@@ -200,8 +200,8 @@ public class ConfigDescriptor {
 				}
 				config.GROUP_NAME_PREFIX = properties.getProperty("GROUP_NAME_PREFIX",config.GROUP_NAME_PREFIX);
 
-				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
-                                config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));
+				config.setMYSQL_REAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
+				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));
 				if(config.getREAL_INSERT_RATE() <= 0 || config.getREAL_INSERT_RATE() > 1) {
                                 config.setREAL_INSERT_RATE(1);
                                 LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
