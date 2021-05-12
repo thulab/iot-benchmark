@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.measurement.enums;
 
 public enum SingleTestMetrics {
+    CLIENT_NAME("clientName","TEXT"),
     OK_POINT("okPoint","INT32"),
     FAIL_POINT("failPoint","INT32"),
     LATENCY("latency","DOUBLE"),
