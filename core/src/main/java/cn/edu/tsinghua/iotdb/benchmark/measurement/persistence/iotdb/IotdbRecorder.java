@@ -29,17 +29,19 @@ public class IotdbRecorder implements ITestDataPersistence {
     private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
     private static final long EXP_TIME = System.currentTimeMillis();
-    private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME + "." + config.getTEST_DATA_STORE_DB();
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
-    private final String projectID = String.format("%s_%s_%s", config.getDB_SWITCH(), config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
+   // private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME + "." + config.getTEST_DATA_STORE_DB();
+    private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME ;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+    private final String projectID = String.format("%s_%s", config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
     private Statement globalStatement;
-    private static final String THREAD_PREFIX = "pool-1-thread-";
+    private static final String THREAD_PREFIX = "thread-";
     private final String insertSqlPrefix = "insert into " + PATH_PREFIX;
     private final String operationResultPrefix = insertSqlPrefix + "." + projectID + ".";
     private long count = 0;
     private static final String ENCODING = "PLAIN";
     private static final String COMPRESS = "UNCOMPRESSED";
     private static final String DOUBLE_TYPE = "DOUBLE";
+    private static final String ALREADY_KEYWORD_SG = "already been set to storage group";
     private static final String ALREADY_KEYWORD = "already exist";
     private static final String CRETE_SCHEMA_ERROR_HINT = "create schema error";
     private static final int SEND_TO_IOTDB_BATCH_SIZE = 1000;
@@ -57,7 +59,7 @@ public class IotdbRecorder implements ITestDataPersistence {
         }
         localName = localName.replace("-", "_");
         localName = localName.replace(".", "_");
-        localName = "_" + localName;
+       // localName = "_" + localName;
         try {
             Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
             connection = DriverManager
@@ -74,11 +76,11 @@ public class IotdbRecorder implements ITestDataPersistence {
         try {
             // register storage group using TEST_DATA_STORE_DB
             try (Statement statement = connection.createStatement()) {
-                statement.execute(String.format(SET_STORAGE_GROUP_SQL, PATH_PREFIX));
+               // statement.execute(String.format(SET_STORAGE_GROUP_SQL, PATH_PREFIX));
             }
         } catch (SQLException e) {
             // ignore if already has the time series
-            if(!e.getMessage().contains(ALREADY_KEYWORD)) {
+            if(!e.getMessage().contains(ALREADY_KEYWORD_SG)) {
                 LOGGER.error(CRETE_SCHEMA_ERROR_HINT, e);
             }
         }
@@ -102,6 +104,7 @@ public class IotdbRecorder implements ITestDataPersistence {
                 String createSeriesSql = String.format(CREATE_SERIES_SQL,
                     PATH_PREFIX
                         + "." + localName
+                        + "." + projectID
                         + "." + systemMetric,
                     DOUBLE_TYPE, ENCODING, COMPRESS);
                 statement.addBatch(createSeriesSql);
@@ -157,19 +160,19 @@ public class IotdbRecorder implements ITestDataPersistence {
     private void initSingleTestMetrics() {
         try (Statement statement = connection.createStatement()) {
             for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
-                for (int i = 1; i <= config.getCLIENT_NUMBER(); i++) {
+              //  for (int i = 1; i <= config.getCLIENT_NUMBER(); i++) {
                     for(Operation op: Operation.values()){
-                        String threadName = THREAD_PREFIX + i;
+                      //  String threadName = THREAD_PREFIX + i;
                         String createSeriesSql = String.format(CREATE_SERIES_SQL,
                             PATH_PREFIX
                                 + "." + projectID
-                                + "." + threadName
-                                + "." + op
+                       //         + "." + threadName
+                                + "." + op.getName()
                                 + "." + metrics.getName(),
                             metrics.getType(), ENCODING, COMPRESS);
                         statement.addBatch(createSeriesSql);
                     }
-                }
+               // }
             }
             statement.executeBatch();
             statement.clearBatch();
@@ -199,7 +202,7 @@ public class IotdbRecorder implements ITestDataPersistence {
     public void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap) {
         try (Statement statement = connection.createStatement()) {
             long currTime = System.currentTimeMillis();
-            StringBuilder builder = new StringBuilder(insertSqlPrefix).append(".").append(localName).append(INSERT_SQL_STR2);
+            StringBuilder builder = new StringBuilder(insertSqlPrefix).append(".").append(localName).append(".").append(projectID).append(INSERT_SQL_STR2);
             StringBuilder valueBuilder = new StringBuilder(INSERT_SQL_STR1).append(currTime);
             for(Map.Entry entry: systemMetricsMap.entrySet()) {
                 builder.append(",").append(entry.getKey());
@@ -218,15 +221,17 @@ public class IotdbRecorder implements ITestDataPersistence {
 
     @Override
     public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
-        StringBuilder builder = new StringBuilder(operationResultPrefix).append(Thread.currentThread().getName());
+       // StringBuilder builder = new StringBuilder(operationResultPrefix).append(Thread.currentThread().getName());
+        StringBuilder builder = new StringBuilder(operationResultPrefix);
         long currTime = System.currentTimeMillis();
-        builder.append(".").append(operation)
+        builder.append(operation)
             .append(INSERT_SQL_STR2);
         for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
             builder.append(",").append(metrics.getName());
         }
         builder.append(INSERT_SQL_STR1);
         builder.append(currTime);
+        builder.append(",'").append(Thread.currentThread().getName()).append("'");
         builder.append(",").append(okPoint);
         builder.append(",").append(failPoint);
         builder.append(",").append(latency);
