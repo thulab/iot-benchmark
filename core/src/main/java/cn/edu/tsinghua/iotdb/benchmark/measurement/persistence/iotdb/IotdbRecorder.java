@@ -29,7 +29,6 @@ public class IotdbRecorder implements ITestDataPersistence {
     private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
     private static final long EXP_TIME = System.currentTimeMillis();
-   // private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME + "." + config.getTEST_DATA_STORE_DB();
     private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME ;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
     private final String projectID = String.format("%s_%s", config.getREMARK(), sdf.format(new java.util.Date(EXP_TIME)));
@@ -59,7 +58,6 @@ public class IotdbRecorder implements ITestDataPersistence {
         }
         localName = localName.replace("-", "_");
         localName = localName.replace(".", "_");
-       // localName = "_" + localName;
         try {
             Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
             connection = DriverManager
@@ -73,17 +71,6 @@ public class IotdbRecorder implements ITestDataPersistence {
     }
 
     private void initSchema() {
-        try {
-            // register storage group using TEST_DATA_STORE_DB
-            try (Statement statement = connection.createStatement()) {
-               // statement.execute(String.format(SET_STORAGE_GROUP_SQL, PATH_PREFIX));
-            }
-        } catch (SQLException e) {
-            // ignore if already has the time series
-            if(!e.getMessage().contains(ALREADY_KEYWORD_SG)) {
-                LOGGER.error(CRETE_SCHEMA_ERROR_HINT, e);
-            }
-        }
         // create time series
         if(config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
             initSingleTestMetrics();
@@ -160,19 +147,15 @@ public class IotdbRecorder implements ITestDataPersistence {
     private void initSingleTestMetrics() {
         try (Statement statement = connection.createStatement()) {
             for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
-              //  for (int i = 1; i <= config.getCLIENT_NUMBER(); i++) {
                     for(Operation op: Operation.values()){
-                      //  String threadName = THREAD_PREFIX + i;
                         String createSeriesSql = String.format(CREATE_SERIES_SQL,
                             PATH_PREFIX
                                 + "." + projectID
-                       //         + "." + threadName
                                 + "." + op.getName()
                                 + "." + metrics.getName(),
                             metrics.getType(), ENCODING, COMPRESS);
                         statement.addBatch(createSeriesSql);
                     }
-               // }
             }
             statement.executeBatch();
             statement.clearBatch();
@@ -221,7 +204,6 @@ public class IotdbRecorder implements ITestDataPersistence {
 
     @Override
     public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
-       // StringBuilder builder = new StringBuilder(operationResultPrefix).append(Thread.currentThread().getName());
         StringBuilder builder = new StringBuilder(operationResultPrefix);
         long currTime = System.currentTimeMillis();
         builder.append(operation)
