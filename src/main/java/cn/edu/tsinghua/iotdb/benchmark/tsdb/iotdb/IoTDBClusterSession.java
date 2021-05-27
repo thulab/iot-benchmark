@@ -23,28 +23,23 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.Tablet;
-import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +51,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   private SessionPool[] sessions;
   private int currSession;
   private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
-
+  private Map<Integer, Long> brokenSessionFailedCountMap;
 
   public IoTDBClusterSession() {
     super();
@@ -65,6 +60,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   private void createSessions() {
     sessions = new SessionPool[config.CLUSTER_HOSTS.size()];
+    brokenSessionFailedCountMap = new ConcurrentHashMap<>();
     for (int i = 0; i < sessions.length; i++) {
       String[] split = config.CLUSTER_HOSTS.get(i).split(":");
       sessions[i] = new SessionPool(split[0], Integer.parseInt(split[1]), Constants.USER,
@@ -73,11 +69,29 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
   }
 
+  public void calculateCurrentSession() {
+    int i = 0;
+    for (i = 0; i < sessions.length; i++) {
+      currSession = (currSession + 1) % sessions.length;
+      Long lastBrokenTime = brokenSessionFailedCountMap.get(currSession);
+      // every 5 minutes try again;
+      if (lastBrokenTime == null || (System.currentTimeMillis() - lastBrokenTime
+          > 5 * 60 * 1000)) {
+        break;
+      }
+    }
+    if (i == sessions.length) {
+      LOGGER.error("can not get one available session client");
+    }
+  }
+
   @Override
   public Status insertOneBatchByRecord(Batch batch) {
     String deviceId = Constants.ROOT_SERIES_NAME + "." + batch.getDeviceSchema().getGroup() + "." +
         batch.getDeviceSchema().getDevice();
     int failRecord = 0;
+    boolean sessionBroken = false;
+    calculateCurrentSession();
     for (Record record : batch.getRecords()) {
       long timestamp = record.getTimestamp();
       List<TSDataType> dataTypes = constructDataTypes(record.getRecordDataValue().size());
@@ -85,12 +99,21 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         sessions[currSession]
             .insertRecord(deviceId, timestamp, batch.getDeviceSchema().getSensors(), dataTypes,
                 record.getRecordDataValue());
-      } catch (IoTDBConnectionException | StatementExecutionException e) {
+      } catch (IoTDBConnectionException e) {
+        brokenSessionFailedCountMap
+            .put(currSession, System.currentTimeMillis());
+        LOGGER.error("insert record failed", e);
+        sessionBroken = true;
+        failRecord++;
+      } catch (StatementExecutionException e) {
         LOGGER.error("insert record failed", e);
         failRecord++;
       }
     }
-    currSession = (currSession + 1) % sessions.length;
+
+    if (!sessionBroken) {
+      brokenSessionFailedCountMap.remove(currSession);
+    }
 
     if (failRecord == 0) {
       return new Status(true);
@@ -117,17 +140,25 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       typesList.add(constructDataTypes(record.getRecordDataValue().size()));
     }
 
+    AtomicBoolean sessionBroken = new AtomicBoolean(false);
+    calculateCurrentSession();
     future = service.submit(() -> {
       try {
         sessions[currSession]
             .insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
-      } catch (IoTDBConnectionException | StatementExecutionException e) {
+      } catch (IoTDBConnectionException e) {
+        LOGGER.error("insert records failed", e);
+        sessionBroken.set(true);
+        brokenSessionFailedCountMap.put(currSession, System.currentTimeMillis());
+      } catch (StatementExecutionException e) {
         LOGGER.error("insert records failed", e);
       }
     });
 
     Status status = waitFuture();
-    currSession = (currSession + 1) % sessions.length;
+    if (!sessionBroken.get()) {
+      brokenSessionFailedCountMap.remove(currSession);
+    }
     return status;
   }
 
@@ -135,16 +166,23 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   public Status insertOneBatchByTablet(Batch batch) {
     Tablet tablet = genTablet(batch);
 
+    AtomicBoolean sessionBroken = new AtomicBoolean(false);
+    calculateCurrentSession();
     future = service.submit(() -> {
       try {
         sessions[currSession].insertTablet(tablet);
-      } catch (IoTDBConnectionException | StatementExecutionException e) {
+      } catch (IoTDBConnectionException e) {
+        LOGGER.error("insert tablet failed", e);
+        sessionBroken.set(true);
+        brokenSessionFailedCountMap.put(currSession, System.currentTimeMillis());
+      } catch (StatementExecutionException e) {
         LOGGER.error("insert tablet failed", e);
       }
     });
-
     Status status = waitFuture();
-    currSession = (currSession + 1) % sessions.length;
+    if (!sessionBroken.get()) {
+      brokenSessionFailedCountMap.remove(currSession);
+    }
     return status;
   }
 
