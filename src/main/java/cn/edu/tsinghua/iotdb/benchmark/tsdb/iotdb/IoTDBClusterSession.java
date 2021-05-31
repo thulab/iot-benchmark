@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -150,8 +151,10 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         LOGGER.error("insert records failed", e);
         sessionBroken.set(true);
         brokenSessionFailedCountMap.put(currSession, System.currentTimeMillis());
+        throw new RuntimeException(e.getMessage());
       } catch (StatementExecutionException e) {
         LOGGER.error("insert records failed", e);
+        throw new RuntimeException(e.getMessage());
       }
     });
 
@@ -175,8 +178,10 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         LOGGER.error("insert tablet failed", e);
         sessionBroken.set(true);
         brokenSessionFailedCountMap.put(currSession, System.currentTimeMillis());
+        throw new RuntimeException(e.getMessage());
       } catch (StatementExecutionException e) {
         LOGGER.error("insert tablet failed", e);
+        throw new RuntimeException(e.getMessage());
       }
     });
     Status status = waitFuture();
