@@ -44,9 +44,6 @@ public class IoTDBSessionPool implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  private static final String CREATE_SERIES_SQL =
-      "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
-  private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private static final String ALREADY_KEYWORD = "already";
   private volatile boolean isInit = false;
 
@@ -67,13 +64,13 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public void cleanup() throws TsdbException {
+  public void cleanup() {
 
   }
 
   @Override
-  public void close() throws TsdbException {
-    pool.close();
+  public void close() {
+//    pool.close();
   }
 
   @Override
