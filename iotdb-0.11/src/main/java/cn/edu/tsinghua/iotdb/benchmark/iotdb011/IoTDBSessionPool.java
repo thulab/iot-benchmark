@@ -436,7 +436,7 @@ public class IoTDBSessionPool implements IDatabase {
     return prefix + " group by ([" + start + ","+ end + ")," + granularity + "ms) ";
   }
 
-  private String getvalueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
+  private String getValueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
     String rangeQuerySql = getRangeQuerySql(valueRangeQuery.getDeviceSchema(),
         valueRangeQuery.getStartTimestamp(), valueRangeQuery.getEndTimestamp());
     String valueFilterClause = getValueFilterClause(valueRangeQuery.getDeviceSchema(),
