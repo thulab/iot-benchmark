@@ -299,7 +299,7 @@ public class IoTDBSessionPool implements IDatabase {
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    String sql = getvalueRangeQuerySql(valueRangeQuery);
+    String sql = getValueRangeQuerySql(valueRangeQuery);
     return executeQueryAndGetStatus(sql);
   }
 
