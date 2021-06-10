@@ -356,7 +356,7 @@ public class IoTDBSessionPool implements IDatabase {
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    String sql = getvalueRangeQuerySql(valueRangeQuery) + " order by time desc";
+    String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
     return executeQueryAndGetStatus(sql);
   }
 
