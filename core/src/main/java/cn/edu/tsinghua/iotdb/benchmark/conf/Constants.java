@@ -44,6 +44,8 @@ public class Constants {
     //different insert mode
     public static final String INSERT_USE_JDBC = "jdbc";
     public static final String INSERT_USE_SESSION = "session";
+    public static final String INSERT_USE_SESSION_POOL = "session_pool";
+
 
     // support test data persistence:
     public static final String TDP_NONE = "None";
@@ -59,6 +61,7 @@ public class Constants {
     public static final String IOTDB011_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDB";
     public static final String IOTDB011_DOUBLE_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.DoubleIoTDBChecker";
     public static final String IOTDB011_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDBSession";
+    public static final String IOTDB011_SESSION_POOL_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb011.IoTDBSessionPool";
     public static final String IOTDB010_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb010.IoTDB";
     public static final String IOTDB010_SESSION_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb010.IoTDBSession";
     public static final String IOTDB009_JDBC_CLASS = "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDB";

@@ -596,6 +596,14 @@ public class Config {
 		this.DATA_SEED = DATA_SEED;
 	}
 
+	public int getPoolSize() {
+		return poolSize;
+	}
+
+	public void setPoolSize(int poolSize) {
+		this.poolSize = poolSize;
+	}
+
 	private String HOST ="127.0.0.1";
 	private String PORT ="6667";
 
@@ -606,6 +614,8 @@ public class Config {
 	private String KAFKA_LOCATION = "127.0.0.1:9092";
 	private String ZOOKEEPER_LOCATION = "127.0.0.1:2181";
 	private String TOPIC_NAME = "NULL";
+
+	private int poolSize = 50;
 
 	/** 设备数量 */
 	private int DEVICE_NUMBER = 2;
