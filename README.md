@@ -104,7 +104,7 @@ HOST=127.0.0.1
 PORT=6667
 DB_SWITCH=IoTDB011
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=2:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -116,6 +116,7 @@ LOOP=1000
 
 Currently, we have multiple ingestion modes for IoTDB v0.9.x. Specifically, jdbc mode(ingestion using jdbc) and session mode(ingestion using session).
 You can specify it in the following parameter of the ```conf/config.properties``` file.
+
 ```
 INSERT_MODE=session
 ```
@@ -123,6 +124,8 @@ INSERT_MODE=session
 Other irrelevant parameters are omitted. You can just set as default. We will cover them later in other cases.
 
 ### Start (Without Server System Information Recording)
+
+Before running the test, you need to open the IoTDB service.
 
 Running the startup script, currently we only support Unix/OS X system: 
 
@@ -147,7 +150,7 @@ When test is done, the last output of the test information will be like followin
 2019-11-12 14:48:06,195 INFO  cn.edu.tsinghua.iotdb.benchmark.App:230 - All clients finished. 
 ----------------------Main Configurations----------------------
 DB_SWITCH: IoTDB
-OPERATION_PROPORTION: 1:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION: 1:0:0:0:0:0:0:0:0:0:0
 IS_CLIENT_BIND: true
 CLIENT_NUMBER: 20
 GROUP_NUMBER: 20
@@ -220,7 +223,7 @@ HOST=127.0.0.1
 PORT=6667
 DB_SWITCH=IoTDB
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=0:1:2:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:2:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -247,7 +250,7 @@ TIME_UNIT=20000
 
 > NOTE:
 >
-> Usually the query test is performed after the data ingestion test. Of course you can add ingestion operation at the same time by setting ```OPERATION_PROPORTION=INGEST:1:2:1:1:1:1:1:1``` as long as ```INGEST``` is not zero, since the parameter ```OPERATION_PROPORTION``` is to control the proportion of different operations including ingestion and query operations.
+> Usually the query test is performed after the data ingestion test. Of course you can add ingestion operation at the same time by setting ```OPERATION_PROPORTION=INGEST:1:2:1:1:1:1:1:1:1:1``` as long as ```INGEST``` is not zero, since the parameter ```OPERATION_PROPORTION``` is to control the proportion of different operations including ingestion and query operations.
 
 
 ### Start (Without Server System Information Recording)
@@ -326,42 +329,43 @@ LATEST_POINT        14.03       1.81        2.49        3.46        5.84        
 
 ### Configure
 
-If you are using IoTDB-benchmark for the first time, you neet to config testing related environment in startup scripts 'cli-benchmark'.
+If you are using IoTDB-benchmark for the first time, you neet to config testing related environment in startup scripts 'benchmark'.
 Suppose your IoTDB server IP is 192.168.130.9 and your test client server which installed IoTDB-benchmark has authorized ssh access to the IoTDB server.
 Current version of information recording is dependent on iostat. Please make sure iostat is installed in IoTDB server.
 
-Configure 'config.properties'
-Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are INTERVAL and DB_DATA_PATH like:
+Configure ```conf/config.properties```
+Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are INTERVAL, DB_DATA_PATH and TEST_DATA_PERSISTENCE like:
 
 ```
 INTERVAL=0
 DB_DATA_PATH=/home/liurui
+TEST_DATA_PERSISTENCE=CSV
 ```
 
 INTERVAL=0 means the server information recording with the minimal interval 2 seconds. If you set INTERVAL=n then the interval will be n+2 seconds since the recording process require least 2 seconds. You may want to set the INTERVAL longer when conducting long testing.
-DB_DATA_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. It is also the data directory of IoTDB.
+DB_DATA_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. It is also the data directory of IoTDB. TEST_DATA_PERSISTENCE=CSV means the test results save as a CSV file.
 
-Configure 'cli-benchmark.sh'
+Configure ```conf/clientSystemInfo.properties ```
 
 ```
-IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
-REMOTE_BENCHMARK_HOME=/home/liurui/github/iotdb-benchmark
-HOST_NAME=liurui
+DB_DATA_PATH=/home/liurui/github/iotdb-benchmark
+TEST_DATA_PERSISTENCE=CSV
 ```
 
-+ IOTDB_HOME: The bin directory where you installed IoTDB on DB-server.
-+ REMOTE_BENCHMARK_HOME: The directory where you installed IoTDB-benchmark on DB-server.
-+ HOST_NAME: The host name of DB-server.
++ DB_DATA_PATH: The directory where to touch the file 'log_stop_flag' to stop the recording process. 
++ TEST_DATA_PERSISTENCE: This parameter is used to set the format of the test data.
 
 ### Start (With Server System Information Recording)
 
 After configuring the first-time test environment, you can just launch the test by startup script:
 
 ```
-> ./cli-benchmark.sh
+> ./benchmark.sh
 ```
 
 The system information will be logged in 'iotdb-benchmark/logs' on DB-server.
+
+The test results will be saved in the path 'data / csvOutput' in CSV format
 
 ## Test InfluxDB 
 
@@ -413,7 +417,13 @@ You can change multiple parameters in each test with format like 'LOOP=20 DEVICE
 
 ### Start 
 
-After configuring the file 'routine', you can launch the multi-test task by startup script:
+After configuring the file 'routine', you also need to modify rep-benchmark.sh and dea-benchmark.sh. You need to change cli-benchmark.sh to benchmark.sh
+
+```shell
+        sh $BENCHMARK_HOME/benchmark.sh
+```
+
+before running you can launch the multi-test task by startup script:
 
 ```
 > ./rep-benchmark.sh
@@ -440,7 +450,7 @@ In this case, if you want to know what is going on, you can check the log inform
 ## Test Data Persistence
 
 IoTDB-benchmark can automatically store test information into database for further analysis. 
- 
+
 To enable MySQL Integration, please configure ```config.properties```:
 
 ```
