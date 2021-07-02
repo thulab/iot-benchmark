@@ -47,7 +47,7 @@ public class BatchSerializeTest {
   }
 
   private Record buildRecord(long time, int size) {
-    List<String> value = new ArrayList<>();
+    List<Object> value = new ArrayList<>();
     for (int i = 0; i < size; i++) {
       value.add("v" + i);
     }

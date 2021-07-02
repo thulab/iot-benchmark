@@ -238,20 +238,36 @@ public class OpenTSDB implements IDatabase {
         int sensorNum = sensors.size();
         int recordNum = records.size();
         LinkedList<TSDBDataModel> models = new LinkedList<>();
-        for(int i = 0; i < recordNum; i++){
-            Record record = records.get(i);
-            for(int j = 0; j < sensorNum; j++){
-                TSDBDataModel model = new TSDBDataModel();
-                model.setMetric(deviceSchema.getGroup());
-                model.setTimestamp(record.getTimestamp());
-                model.setValue(DBUtil.parseNumber(j, record.getRecordDataValue().get(j)));
-                Map<String, String> tags = new HashMap<>();
-                tags.put("device", device);
-                tags.put("sensor", deviceSchema.getSensors().get(j));
-                model.setTags(tags);
-                models.addLast(model);
+
+            for (int i = 0; i < recordNum; i++) {
+                Record record = records.get(i);
+                if (batch.getColIndex() != -1) {
+                    //只插入一列
+                    TSDBDataModel model = new TSDBDataModel();
+                    model.setMetric(deviceSchema.getGroup());
+                    model.setTimestamp(record.getTimestamp());
+                    model.setValue(record.getRecordDataValue().get(0));
+                    Map<String, String> tags = new HashMap<>();
+                    tags.put("device", device);
+                    tags.put("sensor", deviceSchema.getSensors().get(batch.getColIndex()));
+                    model.setTags(tags);
+                    models.addLast(model);
+                } else {
+                    //插入对齐数据
+                    for (int j = 0; j < sensorNum; j++) {
+                        TSDBDataModel model = new TSDBDataModel();
+                        model.setMetric(deviceSchema.getGroup());
+                        model.setTimestamp(record.getTimestamp());
+                        model.setValue(record.getRecordDataValue().get(j));
+                        Map<String, String> tags = new HashMap<>();
+                        tags.put("device", device);
+                        tags.put("sensor", deviceSchema.getSensors().get(j));
+                        model.setTags(tags);
+                        models.addLast(model);
+                    }
+                }
             }
-        }
+
         return models;
     }
 

@@ -252,20 +252,20 @@ public class Config {
 		this.REAL_INSERT_RATE = REAL_INSERT_RATE;
 	}
 
-	public boolean isUSE_CLUSTER() {
-		return USE_CLUSTER;
+	public boolean isBENCHMARK_CLUSTER() {
+		return BENCHMARK_CLUSTER;
 	}
 
-	public void setUSE_CLUSTER(boolean USE_CLUSTER) {
-		this.USE_CLUSTER = USE_CLUSTER;
+	public void setBENCHMARK_CLUSTER(boolean BENCHMARK_CLUSTER) {
+		this.BENCHMARK_CLUSTER = BENCHMARK_CLUSTER;
 	}
 
-	public int getFIRST_INDEX() {
-		return FIRST_INDEX;
+	public int getBENCHMARK_INDEX() {
+		return BENCHMARK_INDEX;
 	}
 
-	public void setFIRST_INDEX(int FIRST_INDEX) {
-		this.FIRST_INDEX = FIRST_INDEX;
+	public void setBENCHMARK_INDEX(int BENCHMARK_INDEX) {
+		this.BENCHMARK_INDEX = BENCHMARK_INDEX;
 	}
 
 	public boolean isIS_QUIET_MODE() {
@@ -606,6 +606,9 @@ public class Config {
 
 	private String HOST ="127.0.0.1";
 	private String PORT ="6667";
+	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:6667");
+	/** whether access all nodeds, rather than just one coordinator*/
+	public boolean USE_CLUSTER_DB = true;
 
 	private boolean ENABLE_DOUBLE_INSERT = false;
 	private String ANOTHER_HOST ="127.0.0.1";
@@ -658,10 +661,13 @@ public class Config {
 	/** 存储组数量 */
 	private int GROUP_NUMBER = 1;
 
+	/** 存储组前缀 **/
+	public String GROUP_NAME_PREFIX = "group_";
+
 	/** 数据编码方式 */
 	private String ENCODING = "PLAIN";
 
-	/** 生成数据的小数保留位数 */
+	/** 生成数据的小数保留位数。 同时也当作字符串的长度了 */
 	private int NUMBER_OF_DECIMAL_DIGIT = 2;
 
 	/** 数据压缩方式 */
@@ -687,11 +693,11 @@ public class Config {
    */
 	private double REAL_INSERT_RATE = 1.0;
 
-	/**使用集群模式**/
-	private boolean USE_CLUSTER = false;
+	/**使用集群模式的Benchmark**/
+	private boolean BENCHMARK_CLUSTER = false;
 
-	/**集群模式下device的FIRST_INDEX**/
-	private int FIRST_INDEX = 0;
+	/**benchmark集群模式下, 各个benchmark的编号。会影响相应生成的设备编号**/
+	private int BENCHMARK_INDEX = 0;
 
 	private boolean IS_QUIET_MODE = true;
 
@@ -1052,6 +1058,9 @@ public class Config {
 	private boolean CREATE_SCHEMA = true;
 	private long REAL_QUERY_START_TIME = 0;
 	private long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
+	public int WRITE_OPERATION_TIMEOUT_MS = 120000;
+	public int READ_OPERATION_TIMEOUT_MS = 300000;
+
 
 	//mysql相关参数
 	// mysql服务器URL以及用户名密码
@@ -1189,7 +1198,7 @@ public class Config {
 	//benchmark 运行模式
 	private String BENCHMARK_WORK_MODE="";
 	//插入数据模式:
-	//IoTDB: jdbc,session
+	//IoTDB: jdbc,sessionByTablet,sessionByRecord,sessionByRecords
 	private String INSERT_MODE = "jdbc";
 	//the file path of import data
 	private String IMPORT_DATA_FILE_PATH = "";
@@ -1300,28 +1309,30 @@ public class Config {
 
 
   void initRealDataSetSchema() {
-    switch (DATA_SET) {
-      case TDRIVE:
-        FIELDS = Arrays.asList("longitude", "latitude");
-        PRECISION = new int[]{5, 5};
-        break;
-      case REDD:
-        FIELDS = Collections.singletonList("v");
-        PRECISION = new int[]{2};
-        break;
-      case GEOLIFE:
-        FIELDS = Arrays.asList("Latitude", "Longitude", "Zero", "Altitude");
-        PRECISION = new int[]{6, 6, 0, 12};
-        break;
-      case NOAA:
-        FIELDS = Arrays
-            .asList("TEMP", "DEWP", "SLP", "STP", "VISIB", "WDSP", "MXSPD", "GUST", "MAX", "MIN",
-                "PRCP", "SNDP", "FRSHTT");
-        PRECISION = new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0};
-        break;
-      default:
-        throw new RuntimeException(DATA_SET + " is not support");
-    }
+		if (DATA_SET!=null) {
+			switch (DATA_SET) {
+				case TDRIVE:
+					FIELDS = Arrays.asList("longitude", "latitude");
+					PRECISION = new int[]{5, 5};
+					break;
+				case REDD:
+					FIELDS = Collections.singletonList("v");
+					PRECISION = new int[]{2};
+					break;
+				case GEOLIFE:
+					FIELDS = Arrays.asList("Latitude", "Longitude", "Zero", "Altitude");
+					PRECISION = new int[]{6, 6, 0, 12};
+					break;
+				case NOAA:
+					FIELDS = Arrays
+							.asList("TEMP", "DEWP", "SLP", "STP", "VISIB", "WDSP", "MXSPD", "GUST", "MAX", "MIN",
+									"PRCP", "SNDP", "FRSHTT");
+					PRECISION = new int[]{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0};
+					break;
+				default:
+					throw new RuntimeException(DATA_SET + " is not support");
+			}
+		}
   }
 
 }

@@ -15,11 +15,31 @@ public class DBFactory {
   }
 
   public IDatabase getDatabase() throws SQLException {
-    String dbClass;
+    String dbClass = "";
     try {
-      switch (config.getDB_SWITCH()) {
-        case Constants.TDP_IOTDB:
-          switch (config.getVERSION()) {
+      switch(config.getDB_SWITCH()) {
+        case Constants.DB_IOT:
+          switch(config.getVERSION()) {
+            case "0.12.0":
+              switch (config.getINSERT_MODE()) {
+                case Constants.INSERT_USE_JDBC:
+                  if (config.isENABLE_DOUBLE_INSERT()){
+                    dbClass = Constants.IOTDB012_DOUBLE_JDBC_CLASS;
+                  } else {
+                    dbClass = Constants.IOTDB012_JDBC_CLASS;
+                  }
+                  break;
+                case Constants.INSERT_USE_SESSION_RECORD:
+                case Constants.INSERT_USE_SESSION_RECORDS:
+                case Constants.INSERT_USE_SESSION_TABLET:
+                  if (config.USE_CLUSTER_DB) {
+                    dbClass = Constants.IOTDB012_ROUNDROBIN_SESSION_CLASS;
+                  } else {
+                    dbClass = Constants.IOTDB012_SESSION_CLASS;
+                  }
+                  break;
+              }
+              break;
             case "0.11.0":
               if (config.getINSERT_MODE().equals(Constants.INSERT_USE_JDBC)) {
                 if (config.isENABLE_DOUBLE_INSERT()) {

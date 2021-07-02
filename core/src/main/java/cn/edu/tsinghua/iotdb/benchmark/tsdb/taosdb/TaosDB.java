@@ -158,18 +158,10 @@ public class TaosDB implements IDatabase {
       List<String> colList = deviceSchema.getSensors();
       builder.append("insert into ")
         .append(deviceSchema.getDevice())
-        .append(" (time, ");
-      int i = 0;
-      for(String colName : colList){
-        if(i > 0)
-          builder.append(","+colName);
-        else
-          builder.append(colName);
-
-        i++;
-      }
+        .append(" (time, ").append(colList.get(batch.getColIndex())) ;
       builder.append(") values ");
       int colIndex = batch.getColIndex();
+
       for (Record record : batch.getRecords()) {
         builder.append(getInsertOneRecordSql(batch.getDeviceSchema(), record.getTimestamp(),
           record.getRecordDataValue(),colIndex));
@@ -187,36 +179,31 @@ public class TaosDB implements IDatabase {
 
 
   private String getInsertOneRecordSql(DeviceSchema deviceSchema, long timestamp,
-                                      List<String> values) {
+                                      List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder.append(" ('");
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = 0;
-    for (String value : values) {
+    for (Object value : values) {
       switch (typeMap(DBUtil.getDataType(sensorIndex))) {
         case "BOOL":
-          boolean tempBoolean = DBUtil.convertToBoolean(value);
-          builder.append(",").append(tempBoolean);
+          builder.append(",").append((boolean)value);
           break;
         case "INT":
-          int tempInt32 = DBUtil.convertToInt(value);
-          builder.append(",").append(tempInt32);
+          builder.append(",").append((int)value);
           break;
         case "BIGINT":
-          long tempInt64 = DBUtil.convertToLong(value);
-          builder.append(",").append(tempInt64);
+          builder.append(",").append((long)value);
           break;
         case "FLOAT":
-          float tempIntFloat = DBUtil.convertToFloat(value);
-          builder.append(",").append(tempIntFloat);
+          builder.append(",").append((float)value);
           break;
         case "DOUBLE":
-          double tempIntDouble = DBUtil.convertToDouble(value);
-          builder.append(",").append(tempIntDouble);
+          builder.append(",").append((double)value);
           break;
         case "BINARY":
         default:
-          builder.append(",").append("'").append(DBUtil.convertToText(value)).append("'");
+          builder.append(",").append("'").append((String)value).append("'");
           break;
       }
       sensorIndex++;
@@ -226,40 +213,35 @@ public class TaosDB implements IDatabase {
   }
 
   private String getInsertOneRecordSql(DeviceSchema deviceSchema, long timestamp,
-                                      List<String> values,int colIndex) {
+                                      List<Object> values,int colIndex) {
     StringBuilder builder = new StringBuilder();
     builder.append(" ('");
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = colIndex;
-    for (String value : values) {
+    Object value = values.get(0);
       switch (typeMap(DBUtil.getDataType(sensorIndex))) {
         case "BOOL":
-          boolean tempBoolean = DBUtil.convertToBoolean(value);
-          builder.append(",").append(tempBoolean);
+          builder.append(",").append((boolean)value);
           break;
         case "INT":
-          int tempInt32 = DBUtil.convertToInt(value);
-          builder.append(",").append(tempInt32);
+          builder.append(",").append((int)value);
           break;
         case "BIGINT":
-          long tempInt64 = DBUtil.convertToLong(value);
-          builder.append(",").append(tempInt64);
+          builder.append(",").append((long) value);
           break;
         case "FLOAT":
-          float tempIntFloat = DBUtil.convertToFloat(value);
-          builder.append(",").append(tempIntFloat);
+          builder.append(",").append((float)value);
           break;
         case "DOUBLE":
-          double tempIntDouble = DBUtil.convertToDouble(value);
-          builder.append(",").append(tempIntDouble);
+          builder.append(",").append((double)value);
           break;
         case "BINARY":
         default:
-          builder.append(",").append("'").append(DBUtil.convertToText(value)).append("'");
+          builder.append(",").append("'").append(value).append("'");
           break;
       }
       sensorIndex++;
-    }
+
     builder.append(")");
     return builder.toString();
   }

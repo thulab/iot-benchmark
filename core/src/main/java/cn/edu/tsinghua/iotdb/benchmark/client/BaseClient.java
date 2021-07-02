@@ -46,7 +46,10 @@ public abstract class BaseClient extends Client implements Runnable {
   void doTest() {
     String currentThread = Thread.currentThread().getName();
     //Equals device number when the rate is 1.
-    double actualDeviceFloor = config.getDEVICE_NUMBER() * config.getFIRST_INDEX() + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
+    //config.getDEVICE_NUMBER() * config.getBENCHMARK_INDEX() 是该benchmark生成的设备起始编号
+    //config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE() 是实际会生成的设备数量
+    double actualDeviceFloor = config.getDEVICE_NUMBER() * config.getFIRST_DEVICE_INDEX()
+        + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
 
     // print current progress periodically
     service.scheduleAtFixedRate(() -> {
@@ -68,10 +71,11 @@ loop:
               try {
                 List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
                 for (DeviceSchema deviceSchema : schemas) {
-                  if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                  //TODO 为啥要做这样一个判断？？
+                  //if (deviceSchema.getDeviceId() < actualDeviceFloor) {
                     Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
                     dbWrapper.insertOneBatch(batch);
-                  }
+                  //}
                 }
               } catch (DBConnectException e) {
                 LOGGER.error("Failed to insert one batch data because ", e);
@@ -111,6 +115,7 @@ loop:
               }
             } 
           } else {
+            //TODO 下面这个暂时没在测试中用过，要慎重一下。
             try {
               Batch batch = singletonWorkload.getOneBatch();
               if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {

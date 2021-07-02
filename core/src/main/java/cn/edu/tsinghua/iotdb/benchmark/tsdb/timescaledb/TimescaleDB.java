@@ -124,7 +124,7 @@ public class TimescaleDB implements IDatabase {
     try (Statement statement = connection.createStatement()){
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
-            DBUtil.recordTransform(record.getRecordDataValue()));
+            record.getRecordDataValue());
         statement.addBatch(sql);
       }
 
@@ -142,7 +142,7 @@ public class TimescaleDB implements IDatabase {
       int colIndex = batch.getColIndex();
       for (Record record : batch.getRecords()) {
         String sql = getInsertOneBatchSql(batch.getDeviceSchema(), record.getTimestamp(),
-            DBUtil.recordTransform(record.getRecordDataValue(),colIndex));
+            record.getRecordDataValue().get(colIndex),colIndex);
         statement.addBatch(sql);
       }
       statement.executeBatch();
@@ -430,7 +430,7 @@ public class TimescaleDB implements IDatabase {
    * </p>
    */
   private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
-      List<String> values) {
+      List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder.append("insert into ")
         .append(tableName)
@@ -442,13 +442,39 @@ public class TimescaleDB implements IDatabase {
     builder.append(timestamp);
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
-    for (String value : values) {
+    for (Object value : values) {
       builder.append(",'").append(value).append("'");
     }
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
   }
+
+  /**
+   * eg.
+   * <p>
+   * INSERT INTO conditions(time, group, device, s_0, s_1) VALUES (1535558400000, 'group_0', 'd_0',
+   * 70.0, 50.0);
+   * </p>
+   */
+  private String getInsertOneBatchSql(DeviceSchema deviceSchema, long timestamp,
+      Object value, int colIndex) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("insert into ")
+        .append(tableName)
+        .append("(time, sGroup, device,")
+    .append(deviceSchema.getSensors().get(colIndex));
+    builder.append(") values(");
+    builder.append(timestamp);
+    builder.append(",'").append(deviceSchema.getGroup()).append("'");
+    builder.append(",'").append(deviceSchema.getDevice()).append("'");
+    builder.append(",'").append(value).append("'");
+
+    builder.append(")");
+    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    return builder.toString();
+  }
+
 
   @Override
   public String typeMap(String iotdbType) {

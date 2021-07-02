@@ -10,6 +10,9 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * 设备号不和客户端绑定的负载
+ */
 public class SingletonWorkload {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -42,6 +45,7 @@ public class SingletonWorkload {
     DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER());
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+      //todo 这里应该是有bug：device number  大于 batch size时， 会出现重复时间戳。
       long stepOffset = (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE() + batchOffset;
       SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
     }

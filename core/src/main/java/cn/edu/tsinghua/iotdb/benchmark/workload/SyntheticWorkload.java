@@ -42,7 +42,10 @@ public class SyntheticWorkload implements IWorkload {
   private static final Random random = new Random(config.getDATA_SEED());
   private static final String DECIMAL_FORMAT = "%." + config.getNUMBER_OF_DECIMAL_DIGIT() + "f";
   private static final Random dataRandom = new Random(config.getDATA_SEED());
-  private static final String[][] workloadValues = initWorkloadValues();
+  // this must before the initWorkloadValues function calls
+  private static int scaleFactor = 1;
+  /**workloadValues[传感器][序号]。 对于那些有规律的数据，存储了每个传感器的一段数据，用于按规律快速生成*/
+  private static final Object[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String IKR_CHAR_TABLE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -62,33 +65,56 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 
-  private static String[][] initWorkloadValues() {
-    String[][] workloadValues = null;
-    if(!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      workloadValues = new String[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
+  private static void initScaleFactor() {
+    for (int i = 0; i < ConfigDescriptor.getInstance().getConfig().getNUMBER_OF_DECIMAL_DIGIT(); i++) {
+      scaleFactor *= 10;
+    }
+  }
+
+  private static Object[][] initWorkloadValues() {
+    initScaleFactor();
+    Object[][] workloadValues = null;
+    if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+      //不为0就是有写入操作。
+      workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
       int sensorIndex = 0;
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.SENSOR_CODES.get(j);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
+          //这个时间戳只用来生成有周期性的数据。所以时间戳也是周期的。
           long currentTimestamp = getCurrentTimestamp(i);
-          String value;
-          if (!getNextDataType(sensorIndex).equals("TEXT")) {
-            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
-            value = String.format(DECIMAL_FORMAT,
-                Function.getValueByFuntionidAndParam(param, currentTimestamp).floatValue());
-          } else {
+          Object value;
+          if (getNextDataType(sensorIndex).equals("TEXT")) {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
             StringBuilder builder = new StringBuilder();
-            if (ConfigDescriptor.getInstance().getConfig().getDB_SWITCH().equals(Constants.DB_KAIROS)){
-              for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
-                builder.append(IKR_CHAR_TABLE.charAt(dataRandom.nextInt(IKR_CHAR_TABLE.length())));
-              }
-            } else {
-              for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
-                builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
-              }
+            for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
+              assert dataRandom != null;
+              builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
             }
             value = builder.toString();
+          } else {
+            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
+            switch (getNextDataType(sensorIndex)) {
+              case "BOOLEAN":
+                value = number.floatValue() > 500;
+                break;
+              case "INT32":
+                value = number.intValue();
+                break;
+              case "INT64":
+                value = number.longValue();
+                break;
+              case "FLOAT":
+                value = ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor;
+                break;
+              case "DOUBLE":
+                value = ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor;
+                break;
+              default:
+                value = null;
+                break;
+            }
           }
           workloadValues[j][i] = value;
         }
@@ -159,12 +185,16 @@ public class SyntheticWorkload implements IWorkload {
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.getPOINT_STEP() * stepOffset;
     if (config.isIS_OVERFLOW()) {
+      //随机加上数秒，使得时间不是均匀的。但是不会乱序。
+      //TODO 但是方法名可是说可能会乱序啊！！！！！！！
       timeStampOffset += (long) (random.nextDouble() * config.getPOINT_STEP());
     } else {
       if (config.isIS_RANDOM_TIMESTAMP_INTERVAL()) {
+        //TODO 这方法跟上面有啥区别？？？
         timeStampOffset += (long) (config.getPOINT_STEP() * timestampRandom.nextDouble());
       }
     }
+    //TODO 为啥timeStampOffset不乘以时间精度？？？
     return Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
   }
 
@@ -177,7 +207,7 @@ public class SyntheticWorkload implements IWorkload {
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
-  
+
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
@@ -227,19 +257,24 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   static void addOneRowIntoBatch(Batch batch, long stepOffset) {
-    List<String> values = new ArrayList<>();
+    List<Object> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
         values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
-
-    }      
-    batch.add(currentTimestamp, values);  
+    }
+    batch.add(currentTimestamp, values);
   }
-  
+
+  /**
+   * 该方法仅填充一个值进入values
+   * @param batch
+   * @param stepOffset
+   * @param colIndex
+   */
   static void addOneRowIntoBatch(Batch batch, long stepOffset,int colIndex) {
-    List<String> values = new ArrayList<>();
+    List<Object> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
-    values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);	    		    
+    values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     batch.add(currentTimestamp, values);
   }
 
@@ -258,7 +293,7 @@ public class SyntheticWorkload implements IWorkload {
       }
     }
   }
-  
+
   @Override
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException {
     if (!config.isIS_OVERFLOW()) {

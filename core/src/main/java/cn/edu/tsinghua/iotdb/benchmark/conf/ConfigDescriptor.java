@@ -108,6 +108,10 @@ public class ConfigDescriptor {
 				config.setQUERY_DEVICE_NUM(Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()+"")));
 				config.setQUERY_AGGREGATE_FUN(properties.getProperty("QUERY_AGGREGATE_FUN", config.getQUERY_AGGREGATE_FUN()));
 				config.setQUERY_INTERVAL(Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.getQUERY_INTERVAL()+"")));
+				config.WRITE_OPERATION_TIMEOUT_MS = Integer.parseInt(properties
+						.getProperty("WRITE_OPERATION_TIMEOUT_MS", config.WRITE_OPERATION_TIMEOUT_MS + ""));
+				config.READ_OPERATION_TIMEOUT_MS = Integer.parseInt(properties
+						.getProperty("READ_OPERATION_TIMEOUT_MS", config.READ_OPERATION_TIMEOUT_MS + ""));
 				config.setQUERY_LOWER_LIMIT(Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.getQUERY_LOWER_LIMIT()+"")));
 				config.setQUERY_SEED(Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED()+"")));
 				config.setIS_EMPTY_PRECISE_POINT_QUERY(Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.isIS_EMPTY_PRECISE_POINT_QUERY()+"")));
@@ -115,13 +119,13 @@ public class ConfigDescriptor {
 				config.setMYSQL_REAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+ "")));
 				config.setTEST_DATA_STORE_PORT(properties.getProperty("TEST_DATA_STORE_PORT", config.getTEST_DATA_STORE_PORT()));
 				config.setTEST_DATA_STORE_DB(properties.getProperty("TEST_DATA_STORE_DB", config.getTEST_DATA_STORE_DB()));
-				config.setMAX_CSV_LINE(Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getMAX_CSV_LINE()+ "")));
-				config.setCSV_FILE_SPLIT(Boolean.parseBoolean(properties.getProperty("CSV_FILE_SPLIT", config.isCSV_FILE_SPLIT() + "")));
 				config.setTEST_DATA_STORE_IP(properties.getProperty("TEST_DATA_STORE_IP", config.getTEST_DATA_STORE_IP()));
 				config.setTEST_DATA_STORE_USER(properties.getProperty("TEST_DATA_STORE_USER", config.getTEST_DATA_STORE_USER()));
 				config.setTEST_DATA_STORE_PW(properties.getProperty("TEST_DATA_STORE_PW", config.getTEST_DATA_STORE_PW()));
 				config.setTIME_UNIT(Long.parseLong(properties.getProperty("TIME_UNIT", config.getTIME_UNIT()+"")));
 				config.setVERSION(properties.getProperty("VERSION", ""));
+				config.setMAX_CSV_LINE(Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getMAX_CSV_LINE()+ "")));
+				config.setCSV_FILE_SPLIT(Boolean.parseBoolean(properties.getProperty("CSV_FILE_SPLIT", config.isCSV_FILE_SPLIT() + "")));
 
 				config.setDB_DATA_PATH(properties.getProperty("DB_DATA_PATH", "/home/liurui"));
 				String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
@@ -138,8 +142,9 @@ public class ConfigDescriptor {
 				config.setTEST_DATA_PERSISTENCE(properties.getProperty("TEST_DATA_PERSISTENCE", "None"));
 				config.setCSV_OUTPUT(Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT()+"")));
 				config.setNUMBER_OF_DECIMAL_DIGIT(Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.getNUMBER_OF_DECIMAL_DIGIT()+"")));
-				config.setNUMBER_OF_DECIMAL_DIGIT(Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.getNUMBER_OF_DECIMAL_DIGIT()+"")));
 				config.setLOG_PRINT_INTERVAL(Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.getLOG_PRINT_INTERVAL()+"")));
+				config.setMUL_DEV_BATCH(Boolean
+						.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.isMUL_DEV_BATCH() + "")));
 				config.setIS_QUIET_MODE(Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.isIS_QUIET_MODE()+"")));
 				config.setNET_DEVICE(properties.getProperty("NET_DEVICE", "e"));
 				config.setWORKLOAD_BUFFER_SIZE(Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.getWORKLOAD_BUFFER_SIZE()+"")));
@@ -164,6 +169,8 @@ public class ConfigDescriptor {
 				config.setQUERY_SLIMIT_N(Integer.parseInt(properties.getProperty("QUERY_SLIMIT_N", config.getQUERY_SLIMIT_N()+"")));
 				config.setQUERY_SLIMIT_OFFSET(Integer.parseInt(properties.getProperty("QUERY_SLIMIT_OFFSET", config.getQUERY_SLIMIT_OFFSET()+"")));
 				config.setCREATE_SCHEMA(Boolean.parseBoolean(properties.getProperty("CREATE_SCHEMA", config.isCREATE_SCHEMA()+"")));
+				//data type is removed in master
+				//config.DATA_TYPE = properties.getProperty("DATA_TYPE", "FLOAT");
 				config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", "UNCOMPRESSOR"));
 				config.setOPERATION_PROPORTION(properties.getProperty("OPERATION_PROPORTION", config.getOPERATION_PROPORTION()));
 				config.setINSERT_DATATYPE_PROPORTION(properties.getProperty("INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
@@ -184,23 +191,28 @@ public class ConfigDescriptor {
 				config.setIS_DELETE_DATA(Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA()+"")));
 				config.setREAL_QUERY_START_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.getREAL_QUERY_START_TIME()+"")));
 				config.setREAL_QUERY_STOP_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.getREAL_QUERY_STOP_TIME()+"")));
-				config.setUSE_CLUSTER(Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.isUSE_CLUSTER() + "")));
+				config.setBENCHMARK_CLUSTER(Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.isBENCHMARK_CLUSTER() + "")));
 				config.setENABLE_THRIFT_COMPRESSION(Boolean.parseBoolean(properties.getProperty("ENABLE_THRIFT_COMPRESSION", config.isENABLE_THRIFT_COMPRESSION() + "")));
-				if (config.isUSE_CLUSTER()){
-					config.setFIRST_INDEX(Integer.parseInt(properties.getProperty("FIRST_INDEX",config.getFIRST_INDEX() + "")));
-					config.setFIRST_DEVICE_INDEX(config.getFIRST_INDEX() * config.getDEVICE_NUMBER());
+				if (config.isBENCHMARK_CLUSTER()){
+					config.setBENCHMARK_INDEX(Integer.parseInt(properties.getProperty("FIRST_INDEX",config.getBENCHMARK_INDEX() + "")));
+					config.setFIRST_DEVICE_INDEX(config.getBENCHMARK_INDEX() * config.getDEVICE_NUMBER());
 				}
 				else {
 					config.setFIRST_DEVICE_INDEX(0);
 				}
+				config.GROUP_NAME_PREFIX = properties.getProperty("GROUP_NAME_PREFIX",config.GROUP_NAME_PREFIX);
 
-				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
-                                config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));
+				config.setMYSQL_REAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
+				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));
 				if(config.getREAL_INSERT_RATE() <= 0 || config.getREAL_INSERT_RATE() > 1) {
                                 config.setREAL_INSERT_RATE(1);
                                 LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
                   + "1], using default value 1.0", config.getREAL_INSERT_RATE());
         }
+				config.CLUSTER_HOSTS = Arrays
+						.asList(properties.getProperty("CLUSTER_HOSTS", "").split(","));
+				config.USE_CLUSTER_DB = Boolean.parseBoolean(properties.getProperty("USE_CLUSTER_DB",
+						String.valueOf(config.USE_CLUSTER_DB)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -213,5 +225,4 @@ public class ConfigDescriptor {
 			LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);
 		}
 	}
-
 }
