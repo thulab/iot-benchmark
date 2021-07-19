@@ -11,24 +11,90 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 public class Config {
-	// TODO zhy refact and check restraints
-	/** The host of database */
+	// 初始化
+	// 初始化：清理数据
+	/**
+	 * Whether to delete data after load test(call clean up)
+	 * Whether to clear old data before test(Except. IoTDB)
+	 */
+	public boolean IS_DELETE_DATA = false;
+	/** The time waiting for the init of database under test (unit: ms) */
+	private long INIT_WAIT_TIME = 5000;
+
+	// 初始化：基本信息
+	/** The version of IoTDB, Eg. 0.12.0 */
+	private String VERSION = "";
+	/** System performance detection network card device name*/
+	private String NET_DEVICE = "e";
+
+	// 初始化：工作状态
+	/** Total number of operations that each client process */
+	private long LOOP = 10000;
+	/**
+	 * The running mode of benchmark
+	 * testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple read and write operations
+	 * writeWithRealDataSet: Write the real data set mode, you need to configure FILE_PATH and DATA_SET
+	 * queryWithRealDataSet: To query the real data set mode, you need to configure REAL_QUERY_START_TIME, REAL_QUERY_STOP_TIME, DATA_SET and testWithDefaultPath mode to query related parameters
+	 * serverMODE: Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter)
+	 * importDataFromCSV: read data from csv file
+	 */
+	private String BENCHMARK_WORK_MODE="";
+
+	/** Whether use benchmark in cluster "群狼模式" **/
+	private boolean BENCHMARK_CLUSTER = false;
+	/**
+	 * In cluster mode of benchmark, the index of benchmark which will influence index of devices
+	 * benchmark集群模式下, 各个benchmark的编号。会影响相应生成的设备编号
+	 **/
+	private int BENCHMARK_INDEX = 0;
+
+	// 初始化：数据库信息
+	/** The database to use, currently supported IoTDB, InfluxDB, OpenTSDB, CTSDB, KairosDB, TimescaleDB, FakeDB, TaosDB */
+	private String DB_SWITCH = "IoTDB";
+	/** The path of database which contains data file and log_stop_flag */
+	private String DB_DATA_PATH;
+
+	// 初始化：被测数据库参数
+	/** The host of database server */
 	private String HOST ="127.0.0.1";
-	/** The port of database */
+	/** The port of database server */
 	private String PORT ="6667";
 
-	/** The hosts of database in cluster mode */
-	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:6667");
-	/** Whether access all nodes, rather than just one coordinator*/
-	public boolean USE_CLUSTER_DB = true;
+	/** The url of server 服务器URL */
+	private String DB_URL = "http://localhost:8086";
+	/** The name of database to use 使用的数据库名 */
+	private String DB_NAME = "test";
 
-	// TODO zhy Specific meaning
+	// 初始化：被测数据库IoTDB相关参数
+	/** The data dir of IoTDB (Split by comma)*/
+	private List<String> IOTDB_DATA_DIR = new ArrayList<>();
+	/** The WAL(Write-ahead-log) dir of IoTDB (Split by comma) */
+	private List<String> IOTDB_WAL_DIR = new ArrayList<>();
+	/** The system dirs of IoTDB */
+	private List<String> IOTDB_SYSTEM_DIR = new ArrayList<>();
+	/** The sequence dirs of IoTDB */
+	private List<String> SEQUENCE_DIR = new ArrayList<>();
+	/** The unsequence dirs of IoTDB */
+	private List<String> UNSEQUENCE_DIR = new ArrayList<>();
+	/** The first index of device */
+	private int FIRST_DEVICE_INDEX = 0;
+
+	// 初始化：第二数据库参数
+	// TODO Specific meaning
 	/** Whether insert into another database in the same time */
 	private boolean ENABLE_DOUBLE_INSERT = false;
-	/** The host of another database */
+	/** The host of another database server */
 	private String ANOTHER_HOST ="127.0.0.1";
-	/** The port of another database */
+	/** The port of another database server */
 	private String ANOTHER_PORT ="6668";
+
+	// 初始化：分布式数据库
+	/** Whether access all nodes, rather than just one coordinator */
+	public boolean USE_CLUSTER_DB = true;
+	/** The hosts of database in cluster mode */
+	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:6667");
+
+	// 初始化：Kafka
 	/** Location of Kafka */
 	private String KAFKA_LOCATION = "127.0.0.1:9092";
 	/** Location of Zookeeper */
@@ -36,130 +102,23 @@ public class Config {
 	/** The name of topic in Kafka */
 	private String TOPIC_NAME = "NULL";
 
-	/** The size of Core Session Pool */
-	private int poolSize = 50;
-
-	/** The number of devices 设备数量 */
-	private int DEVICE_NUMBER = 2;
-
-	/** whether the device is bind to client(if false, then number of clients can larger than devices) 设备和客户端是否绑定 */
-	private boolean IS_CLIENT_BIND = true;
-	
-	/** Whether the sensor timestamp is aligned 传感器时间戳是否对齐*/
-	private boolean IS_SENSOR_TS_ALIGNMENT = true;
-
-	/** if enable the thrift compression */
-	private boolean ENABLE_THRIFT_COMPRESSION = false;
-
-	/**
-	 * TODO zhy multi-explain
-	 * The number of concurrent clients, if the client is bound to the device, it must be less than or equal to the number of devices
-	 * The Thread Number of test client 测试客户端线程数量
-	 */
-	private int CLIENT_NUMBER = 2;
-
-	/** The number of sensors of each device 每个设备的传感器数量 */
-	private int SENSOR_NUMBER = 5;
-
-	/** The step size of data collections 数据采集步长 */
+	// 时间戳
+	/** The interval of timestamp(not real rate) */
 	private long POINT_STEP = 7000;
-
-	/** The precision of timestamp 时间戳精度 */
+	/** The precision of timestamp, currently support ms and us */
 	private String TIMESTAMP_PRECISION = "ms";
 
-	/** The increase step size of timestamp of query 查询时间戳变化增加步长 */
-	private int STEP_SIZE = 1;
-
-  	/** The operation execution interval 操作执行间隔 */
-	private int OP_INTERVAL = 0;
-
-	/** The number of data sending buffer 数据发送缓存条数 */
-	private int BATCH_SIZE = 1000;
-
-	/** Storage Group Allocation Strategy, currently supported hash/mode/div 存储组分配策略 */
-	private String SG_STRATEGY="hash";
-
-	/** The number of storage group, must <= number of devices 存储组数量 */
-	private int GROUP_NUMBER = 1;
-
-	/** The prefix of storage group 存储组前缀 **/
-	public String GROUP_NAME_PREFIX = "group_";
-
-	/** The encoding of data 数据编码方式 */
-	private String ENCODING = "PLAIN";
-
-	/** The number of decimal places for the generated data & The length of string
-	 * TODO 生成数据的小数保留位数，同时也当作字符串的长度 */
-	private int NUMBER_OF_DECIMAL_DIGIT = 2;
-
-	/** The compressor way of data 数据压缩方式 */
+	// 数据
+	// 数据：压缩
+	/** if enable the thrift compression */
+	private boolean ENABLE_THRIFT_COMPRESSION = false;
+	/** The compressor way of data, currently supported UNCOMPRESSOR | SNAPPY (only valid for IoTDB) */
 	private String COMPRESSOR = "UNCOMPRESSED";
 
-	/** Whether is multi devices insert 是否为多设备批插入模式(需要满足批写入语句条数和客户端数的乘积可以被设备数整除) */
-	private boolean MUL_DEV_BATCH = false;
-
-	/** The time waiting for the init of database(ms) 数据库初始化等待时间(ms) */
-	private long INIT_WAIT_TIME=5000;
-
-	/** Whether inserts out of order 是否为批插入乱序模式 */
-	private boolean IS_OVERFLOW = false;
-
-	/** The mode of out of order 乱序模式 */
-	private int OVERFLOW_MODE = 0;
-
-	/** The out of order ratio of batch inserting 批插入乱序比例 */
-	private double OVERFLOW_RATIO = 1.0;
-
-  	/** The ratio of actual write devices */
-	private double REAL_INSERT_RATE = 1.0;
-
-	/** Whether use benchmark in cluster 使用集群模式的Benchmark **/
-	private boolean BENCHMARK_CLUSTER = false;
-
-	/** In cluster mode of benchmark, the index of benchmark which will influence index of devices
-	 * benchmark集群模式下, 各个benchmark的编号。会影响相应生成的设备编号 **/
-	private int BENCHMARK_INDEX = 0;
-
-	/** Whether use quiet mode. Quiet mode will mute som log output and computations*/
-	private boolean IS_QUIET_MODE = true;
-
-	/** Print test progress log interval in second */
-	private int LOG_PRINT_INTERVAL = 5;
-
-	/** The size of workload buffer size */
-	private int WORKLOAD_BUFFER_SIZE = 100;
-
-	/** The expectation and variance of Poisson Distribution based on basic model */
-	private double LAMBDA = 3;
-
-	/** The max K of Poisson random variable based on basic model */
-	private int MAX_K = 10;
-
-	/** Whether use random time interval in inorder data & need IS_OVERFLOWED = true */
-	private boolean IS_RANDOM_TIMESTAMP_INTERVAL = false;
-
-	/** TODO zhy not find in config.properties */
-	private double CLIENT_MAX_WRT_RATE = 10000000.0;
-
-	/** TODO zhy not find in config.properties */
-	private int LIMIT_CLAUSE_MODE = 0;
-
-	/**
-	 * TODO zhy Check the meaning and the length
-	 * The ratio of each operation, Q1:Q2:Q3:Q4:Q5:Q6:Q7:Q8
-	 * Q1: Precise point query, Eg. select v1... from data where time = ? and device in ?
-	 * Q2: Time range query, Eg. select v1... from data where time > ? and time < ? and device in ?
-	 * Q3: Time Range query with value filtering, Eg. select v1... from data where time > ? and time < ? and v1 > ? and device in ?
-	 * Q4: Aggregate query with time filter, Eg. select func(v1)... from data where device in ? and time > ? and time < ?
-	 * Q5: Aggregate query with value filtering, Eg. select func(v1)... from data where device in ? and value > ?
-	 * Q6: Aggregate query with value filtering and time filtering, Eg. select func(v1)... from data where device in ? and value > ? and time > ? and time < ?
-	 * Q7: Grouped aggregate query, For the time being, only sentences with one time interval can be generated
-	 * Q8: Last point query, Eg. select time, v1... where device = ? and time = max(time)
-	 * Q9: Reverse order range query (only limited start and end time), Eg. select v1... from data where time > ? and time < ? and device in ? order by time desc
-	 * Q10: Range query with value filtering in reverse order, Eg. select v1... from data where time > ? and time < ? and v1 > ? and device in ? order by time desc
-	 */
-	private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
-
+	// 数据：格式与编码
+	/** The number of decimal places for the generated data & The length of string
+	 * TODO to be refactored 生成数据的小数保留位数，同时也当作字符串的长度 */
+	private int NUMBER_OF_DECIMAL_DIGIT = 2;
 	/**
 	 * Data Type, D1:D2:D3:D4:D5:D6
 	 * D1: BOOLEAN
@@ -170,7 +129,6 @@ public class Config {
 	 * D6: TEXT
 	 */
 	private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
-
 	/**
 	 * Supported encoding type for different types of data(Only works for IoTDB)
 	 */
@@ -187,57 +145,57 @@ public class Config {
 	/** TEXT: PLAIN*/
 	private String ENCODING_TEXT = "PLAIN";
 
-	/** Start time of writing data 写入数据起始时间 */
-	private String START_TIME = "2018-8-30T00:00:00+08:00";
+	// 测试数据相关参数
+	// 测试数据：生成测试数据
+	/** The name of the storage group for a sample data, MUST contains root */
+	private String STORAGE_GROUP_NAME;
+	/** Time series name of a sample data */
+	private String TIMESERIES_NAME;
+	/** Data type of a sample data */
+	private String TIMESERIES_TYPE;
+	/** Scope of timeseries(split by comma) */
+	private String TIMESERIES_VALUE_SCOPE;
 
-	/** System performance test interval(-2s) 系统性能检测时间间隔 -2s */
- 	private int INTERVAL = 0;
-
- 	/** System performance detection network card device name 系统性能检测网卡设备名 */
- 	private String NET_DEVICE = "e";
-
- 	/** The name of the storage group for a sample data 一个样例数据的存储组名称 */
- 	private String STORAGE_GROUP_NAME ;
-
- 	/** Time series name of a sample data 一个样例数据的时序名称 */
- 	private String TIMESERIES_NAME ;
- 	/** Data type of a sample data 一个时序的数据类型*/
- 	private String TIMESERIES_TYPE ;
- 	/** Scope of timeseries(split by comma) 时序数据取值范围 */
-	private String TIMESERIES_VALUE_SCOPE ;
-
-	/** The path of file 文件的名字 */
+	// 测试数据：外部测试数据
+	/** The path of file */
 	private String FILE_PATH;
-
-	/** the name of data set 数据集的名字 */
+	/** the name of data set*/
 	private DataSet DATA_SET;
-
-	/** The sensors of data set 数据集的传感器 TODO zhy not find in config.properties */
+	/** The sensors of data set (Generated by initRealDataSetSchema)*/
 	private List<String> FIELDS;
-
-	/** The precision of the sensor of the data set 数据集的传感器的精度 TODO zhy not find in config.properties*/
+	/** The precision of the sensor of the data set(Generated by initRealDataSetSchema) */
 	private int[] PRECISION;
 
-	/** The path of database which contains data file and log_stop_flag */
-	private String DB_DATA_PATH;
+	// 测试数据：从CSV文件中写入数据
+	/** The file path of import data  */
+	private String IMPORT_DATA_FILE_PATH = "";
+	/** The batch size when import csv file */
+	private int BATCH_EXECUTE_COUNT = 5000;
+	/** The file path of metadata */
+	private String METADATA_FILE_PATH = "";
 
-	/** The data dir of IoTDB (Split by comma)*/
-	private List<String> IOTDB_DATA_DIR = new ArrayList<>();
-	/** The WAL(Write-ahead-log) dir of IoTDB (Split by comma) */
-	private List<String> IOTDB_WAL_DIR = new ArrayList<>();
-	/** The system dir of IoTDB */
-	private List<String> IOTDB_SYSTEM_DIR = new ArrayList<>();
-	/** TODO zhy not find in config.properties */
-	private List<String> SEQUENCE_DIR = new ArrayList<>();
-	/** TODO zhy not find in config.properties */
-	private List<String> UNSEQUENCE_DIR = new ArrayList<>();
-	/** TODO zhy not find in config.properties */
-	private int FIRST_DEVICE_INDEX = 0;
+	// 设备、传感器、客户端相关参数
+	/**
+	 * whether the device is bind to client
+	 * if false: number of clients can larger than devices
+	 */
+	private boolean IS_CLIENT_BIND = true;
+	/** The number of devices of database */
+	private int DEVICE_NUMBER = 2;
+	/**
+	 * The number of client
+	 * if IS_CLIENT_BIND = true: this number must be less than or equal to the number of devices.
+	 */
+	private int CLIENT_NUMBER = 2;
+	/**
+	 * The number of sensors of each device
+	 * The number of timeseries = DEVICE_NUMBER * SENSOR_NUMBER
+	 */
+	private int SENSOR_NUMBER = 5;
+	/** Whether the sensor timestamp is aligned TODO check the meaning*/
+	private boolean IS_SENSOR_TS_ALIGNMENT = true;
 
-	/** Total number of operations that each client process */
-	private long LOOP = 10000;
-
-	/** TODO zhy Specific use */
+	// 设备、传感器、客户端：传感器参数相关，被initSensorFunction使用 TODO specific use
 	/** 线性 默认 9个 0.054 */
 	private double LINE_RATIO = 0.054;
 	/** 傅里叶函数 6个 0.036 */
@@ -248,38 +206,110 @@ public class Config {
 	private double RANDOM_RATIO = 0.512;
 	/** 常数 默认 58个 0.352 */
 	private double CONSTANT_RATIO = 0.352;
+	/** Seed of data */
 	private long DATA_SEED = 666L;
-
-	/** Built-in function parameters 内置函数参数 */
+	/** Built-in function parameters */
 	private final List<FunctionParam> LINE_LIST = new ArrayList<>();
 	private final List<FunctionParam> SIN_LIST = new ArrayList<>();
 	private final List<FunctionParam> SQUARE_LIST = new ArrayList<>();
 	private final List<FunctionParam> RANDOM_LIST = new ArrayList<>();
 	private final List<FunctionParam> CONSTANT_LIST = new ArrayList<>();
-
-	/** Device ID 设备编号 */
+	/** Device ID */
 	private List<Integer> DEVICE_CODES = new ArrayList<>();
-
-	/** Sensor number 传感器编号 */
+	/** Sensor number */
 	public List<String> SENSOR_CODES = new ArrayList<>();
-
-	/** Sensor function 传感器对应的函数 */
+	/** Sensor function */
 	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
 
+	// 存储组参数
+	/** Storage Group Allocation Strategy, currently supported hash/mode/div */
+	private String SG_STRATEGY="hash";
+	/** The number of storage group, must less than or equal to number of devices */
+	private int GROUP_NUMBER = 1;
+	/** The prefix of storage group name **/
+	public String GROUP_NAME_PREFIX = "group_";
+
+	// Operation 相关参数
+	/** The size of core session pool */
+	private int poolSize = 50;
 	/**
-	 * Whether to delete data after load test 负载测试完是否删除数据
-	 * TODO zhy conflict in config.properties
-	 * Whether to clear old data before test(Except. IoTDB)
+	 * The operation execution interval
+	 * if operation time > OP_INTERVAL, then execute next operations right now.
+	 * else wait (OP_INTERVAL - operation time)
+	 * unit: ms
 	 */
-	public boolean IS_DELETE_DATA = false;
+	private int OP_INTERVAL = 0;
+	/** The max time for writing in ms */
+	public int WRITE_OPERATION_TIMEOUT_MS = 120000;
+	/** The max time for reading in ms */
+	public int READ_OPERATION_TIMEOUT_MS = 300000;
 
-	/** ratio of real writes into mysql */
-	private double MYSQL_REAL_INSERT_RATE = 1.0;
+	// Operation：写入相关参数
+	/**
+	 * The number of data rows written in batch
+	 * each row is the data of all sensors of a certain device at a certain time stamp
+	 * the number of data points written in each batch = SENSOR_NUMBER * BATCH_SIZE
+	 */
+	private int BATCH_SIZE = 1000;
+	/** Whether create schema before writing */
+	private boolean CREATE_SCHEMA = true;
+	/** Insert mode, IoTDB currently supported jdbc, sessionByTablet, sessionByRecord, sessionByRecords */
+	private String INSERT_MODE = "jdbc";
+	/** The ratio of actual write devices. (0,1] */
+	private double REAL_INSERT_RATE = 1.0;
 
-	//iotDB查询测试相关参数
-	/** The number of sensors involved in each query 每条查询语句中查询涉及的传感器数量 */
+	/**
+	 * Whether is multi devices insert, TODO whether is in use
+	 * if true, then BATCH_SIZE * CLIENT_NUMBER % DEVICE_NUMBER == 0
+	 */
+	private boolean MUL_DEV_BATCH = false;
+	/**
+	 * Whether use random time interval in inorder data
+	 * need IS_OVERFLOWED = true
+	 */
+	private boolean IS_RANDOM_TIMESTAMP_INTERVAL = false;
+
+	/** Start time of writing data */
+	private String START_TIME = "2018-8-30T00:00:00+08:00";
+
+	// Operation：乱序写入部分
+	/** Whether insert out of order */
+	private boolean IS_OVERFLOW = false;
+	/**
+	 * The mode of out-of-order insertion
+	 * 0: Out-of-order mode of Poisson distribution
+	 * 1: Out-of-order mode of batch
+	 */
+	private int OVERFLOW_MODE = 0;
+	/** The out of order ratio of batch inserting */
+	private double OVERFLOW_RATIO = 1.0;
+
+	/** The expectation and variance of Poisson Distribution based on basic model */
+	private double LAMBDA = 3;
+	/** The max K of Poisson random variable based on basic model */
+	private int MAX_K = 10;
+
+	// Operation：查询相关参数
+	/** The change step size of the time starting point of the time filter condition */
+	private int STEP_SIZE = 1;
+	/**
+	 * The ratio of each operation, Q1:Q2:Q3:Q4:Q5:Q6:Q7:Q8
+	 * TODO Check the meaning and the length
+	 * Q1: Precise point query, Eg. select v1... from data where time = ? and device in ?
+	 * Q2: Time range query, Eg. select v1... from data where time > ? and time < ? and device in ?
+	 * Q3: Time Range query with value filtering, Eg. select v1... from data where time > ? and time < ? and v1 > ? and device in ?
+	 * Q4: Aggregate query with time filter, Eg. select func(v1)... from data where device in ? and time > ? and time < ?
+	 * Q5: Aggregate query with value filtering, Eg. select func(v1)... from data where device in ? and value > ?
+	 * Q6: Aggregate query with value filtering and time filtering, Eg. select func(v1)... from data where device in ? and value > ? and time > ? and time < ?
+	 * Q7: Grouped aggregate query, For the time being, only sentences with one time interval can be generated
+	 * Q8: Last point query, Eg. select time, v1... where device = ? and time = max(time)
+	 * Q9: Reverse order range query (only limited start and end time), Eg. select v1... from data where time > ? and time < ? and device in ? order by time desc
+	 * Q10: Range query with value filtering in reverse order, Eg. select v1... from data where time > ? and time < ? and v1 > ? and device in ? order by time desc
+	 */
+	private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0";
+	/** The number of sensors involved in each query */
 	private int QUERY_SENSOR_NUM = 1;
-	/** The number of devices involved in each query 每条查询语句中查询涉及的设备数量 */
+	/** The number of devices involved in each query */
 	private int QUERY_DEVICE_NUM = 1;
 	/** Set aggregate function when aggregate query, Eg. count */
 	private String QUERY_AGGREGATE_FUN = "";
@@ -292,7 +322,7 @@ public class Config {
 	private double QUERY_LOWER_LIMIT = 0;
 	/** Whether the query result is empty in the precise point query */
 	private boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
-	/** The size of group in groupby query(ms), Eg. 2000 */
+	/** The size of group in group by query(ms), Eg. 20000 */
 	private long TIME_UNIT = QUERY_INTERVAL / 2;
 	/** Query random seed */
 	private long QUERY_SEED = 1516580959202L;
@@ -304,27 +334,40 @@ public class Config {
 	private int QUERY_SLIMIT_N = 1;
 	/** Offset of output sequences */
 	private int QUERY_SLIMIT_OFFSET = 0;
-	/** Whether create schema before writing */
-	private boolean CREATE_SCHEMA = true;
 	/** The real time when query is started */
 	private long REAL_QUERY_START_TIME = 0;
 	/** The real time when query is stopped */
 	private long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
-	/** The max time for writing in ms */
-	public int WRITE_OPERATION_TIMEOUT_MS = 120000;
-	/** The max time for reading in ms */
-	public int READ_OPERATION_TIMEOUT_MS = 300000;
-
-
 	/**
-	 * Parameters of MySQL
-	 */
-	/** Use what to store test data, currently support None, IoTDB, MySQL, CSV*/
-	private String TEST_DATA_PERSISTENCE = "None";
-	/** Whether output the result to an csv file located in data folder */
-	private boolean CSV_OUTPUT = true;
+	 * The mode of limit clause in query
+	 * 0: there is no limit
+	 * 1: only contains limit
+	 * 2: only contains slimit
+	 * 3: contains both limit and slimit
+	 * TODO not find use */
+	private int LIMIT_CLAUSE_MODE = 0;
+
+	// workload 相关部分
+	/** The size of workload buffer size */
+	private int WORKLOAD_BUFFER_SIZE = 100;
+
+	// 输出
+	/** The encoding of out put data, currently supported PLAIN and GORILLA */
+	private String ENCODING = "PLAIN";
 	/** The remark of experiment which will be stored into mysql as part of table name(Notice that no .)*/
 	private String REMARK = "";
+
+	// 输出：系统性能
+	/** System performance information recording interval is INTERVAL+2 seconds */
+	private int INTERVAL = 0;
+
+	// 输出：日志
+	/** Whether use quiet mode. Quiet mode will mute some log output and computations */
+	private boolean IS_QUIET_MODE = true;
+	/** Print test progress log interval in second */
+	private int LOG_PRINT_INTERVAL = 5;
+
+	// 输出：数据库配置，当前支持IoTDB和MySQL
 	/** The Ip of database */
 	private String TEST_DATA_STORE_IP = "";
 	/** The Port of database */
@@ -335,47 +378,25 @@ public class Config {
 	private String TEST_DATA_STORE_USER = "";
 	/** The password of user */
 	private String TEST_DATA_STORE_PW = "";
-	/** The version of IoTDB, Eg. 0.12.0 */
-	private String VERSION = "";
 
+	// 输出：MySQL
+	/** ratio of real writes into mysql */
+	private double MYSQL_REAL_INSERT_RATE = 1.0;
+	/** Use what to store test data, currently support None, IoTDB, MySQL, CSV*/
+	private String TEST_DATA_PERSISTENCE = "None";
+
+	// 输出：CSV
+	/** Whether output the result to an csv file located in data folder */
+	private boolean CSV_OUTPUT = true;
+	/** Current csv file write line */
 	private AtomicLong CURRENT_CSV_LINE = new AtomicLong();
-
+	/** Max line of csv line*/
 	private long MAX_CSV_LINE = 10000000;
-
+	/** Whether split result into different csv file */
 	private boolean CSV_FILE_SPLIT = true;
 
-
-	/**
-	 * Parameter of database
-	 */
-
-	/** The url of server 服务器URL */
-	private String DB_URL = "http://localhost:8086";
-	/** The name of database to use 使用的数据库名 */
-	private String DB_NAME = "test";
-	/** The database to use, currently supported IoTDB, InfluxDB, OpenTSDB, CTSDB, KairosDB, TimescaleDB, FakeDB, TaosDB */
-	private String DB_SWITCH = "IoTDB";
-	/**
-	 * The running mode of benchmark
-	 * testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple read and write operations
-	 * writeWithRealDataSet: Write the real data set mode, you need to configure FILE_PATH and DATA_SET
-	 * queryWithRealDataSet: To query the real data set mode, you need to configure REAL_QUERY_START_TIME, REAL_QUERY_STOP_TIME, DATA_SET and testWithDefaultPath mode to query related parameters
-	 * serverMODE: Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter)
-	 * importDataFromCSV: read data from csv file
-	 */
-	private String BENCHMARK_WORK_MODE="";
-
-	/**
-	 * The parameters of write mode
-	 */
-	/** Insert mode, IoTDB currently supported jdbc, sessionByTablet, sessionByRecord, sessionByRecords */
-	private String INSERT_MODE = "jdbc";
-	/** The file path of import data  */
-	private String IMPORT_DATA_FILE_PATH = "";
-	/** The batch size when import csv file */
-	private int BATCH_EXECUTE_COUNT = 5000;
-	/** The file path of metadata */
-	private String METADATA_FILE_PATH = "";
+	/** TODO not find in use */
+	private double CLIENT_MAX_WRT_RATE = 10000000.0;
 
 	public void initInnerFunction() {
 		FunctionXml xml = null;
