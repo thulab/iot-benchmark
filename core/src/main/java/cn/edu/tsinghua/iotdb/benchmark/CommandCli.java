@@ -16,49 +16,35 @@ public class CommandCli {
 	private final String CONFIG_ARGS = "cf";
 	private final String CONFIG_NAME = "config file";
 	
-//	private final String HOST_ARGS = "h";
-//	private final String HOST_NAME = "HOST";
-	
-//	private final String PORT_ARGS = "p";
-//	private final String PORT_NAME = "PORT";
-//	
-//	private final String MODE_ARGS = "m";
-//	private final String MODE_NAME = "mode";
-//	
-//	private final String DEVICE_ARGS = "dn";
-//	private final String DEVICE_NAME = "device";
-//	private final String SENSOR_ARGS = "sn";
-//	private final String SENSOR_NAME = "sensor";
-	
 	private static final int MAX_HELP_CONSOLE_WIDTH = 88;
-	
+
+	/**
+	 * create options by config
+	 * @return
+	 */
 	private Options createOptions() {
 		Options options = new Options();
 		Option help = new Option(HELP_ARGS, false, "Display help information");
 		help.setRequired(false);
 		options.addOption(help);
 
-//		Option HOST = Option.builder(HOST_ARGS).argName(HOST_NAME).hasArg().desc("Host Name (required)").build();
-//		options.addOption(HOST);
-//
-//		Option PORT = Option.builder(PORT_ARGS).argName(PORT_NAME).hasArg().desc("Port (required)").build();
-//		options.addOption(PORT);
-//		
-//		Option mode = Option.builder(MODE_ARGS).argName(MODE_NAME).hasArg().desc("Mode (required)").build();
-//		options.addOption(mode);
-//		
-//		Option device = Option.builder(DEVICE_ARGS).argName(DEVICE_NAME).hasArg().desc("Device number (optional)").build();
-//		options.addOption(device);
-//		
-//		Option sensor = Option.builder(SENSOR_ARGS).argName(SENSOR_NAME).hasArg().desc("Sensor number (optional)").build();
-//		options.addOption(sensor);
-		
 		Option config = Option.builder(CONFIG_ARGS).argName(CONFIG_NAME).hasArg().desc("Config file path (optional)").build();
 		options.addOption(config);
 		
 		return options;
 	}
-	
+
+	/**
+	 * parse params and config system property
+	 * when args contains HELP_ARGS, it will just print help message
+	 * when args contains CONFIG_ARGS, it will set configuration for use.
+	 * @param commandLine
+	 * @param parser
+	 * @param options
+	 * @param args
+	 * @param hf
+	 * @return
+	 */
 	private boolean parseParams(CommandLine commandLine, CommandLineParser parser, Options options, String[] args, HelpFormatter hf){
 		try {
 			commandLine = parser.parse(options, args);
@@ -82,7 +68,7 @@ public class CommandCli {
 		}
 		return true;
 	}
-	
+
 	public boolean init(String[] args){
 		Options options = createOptions();
 		HelpFormatter hf = new HelpFormatter();
@@ -96,10 +82,6 @@ public class CommandCli {
 			return false;
 		}
 		return parseParams(commandLine, parser, options, args, hf);
-	}
-	
-	public static void main(String[] args) {
-
 	}
 
 }
