@@ -44,7 +44,6 @@ public class Config {
 	private boolean BENCHMARK_CLUSTER = false;
 	/**
 	 * In cluster mode of benchmark, the index of benchmark which will influence index of devices
-	 * benchmark集群模式下, 各个benchmark的编号。会影响相应生成的设备编号
 	 **/
 	private int BENCHMARK_INDEX = 0;
 
@@ -398,6 +397,9 @@ public class Config {
 	/** TODO not find in use */
 	private double CLIENT_MAX_WRT_RATE = 10000000.0;
 
+	/**
+	 * init inner functions
+	 */
 	public void initInnerFunction() {
 		FunctionXml xml = null;
 		try {
@@ -414,7 +416,7 @@ public class Config {
 			if (param.getFunctionType().contains("_mono_k")) {
 				LINE_LIST.add(param);
 			} else if (param.getFunctionType().contains("_mono")) {
-				// 如果min==max则为常数，系统没有非常数的
+				// if min equals to max, then it is constant.
 				if (param.getMin() == param.getMax()) {
 					CONSTANT_LIST.add(param);
 				}
@@ -429,10 +431,10 @@ public class Config {
 	}
 
 	/**
-	 * 初始化传感器函数 Constants.SENSOR_FUNCTION
+	 * init sensor functions -> Constants.SENSOR_FUNCTION
 	 */
 	public void initSensorFunction() {
-		// 根据传进来的各个函数比例进行配置
+		// Configure according to the ratio of each function passed in
 		double sumRatio = CONSTANT_RATIO + LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
 		if (sumRatio != 0 && CONSTANT_RATIO >= 0 && LINE_RATIO >= 0 && RANDOM_RATIO >= 0 && SIN_RATIO >= 0
 				&& SQUARE_RATIO >= 0) {
@@ -447,28 +449,34 @@ public class Config {
 				FunctionParam param = null;
 				Random fr = new Random(DATA_SEED + 1 + i);
 				double middle = fr.nextDouble();
-				if (property >= 0 && property < constantArea) {// constant
+				// constant
+				if (property >= 0 && property < constantArea) {
 					int index = (int) (middle * CONSTANT_LIST.size());
 					param = CONSTANT_LIST.get(index);
 				}
-				if (property >= constantArea && property < lineArea) {// line
+				// line
+				if (property >= constantArea && property < lineArea) {
 					int index = (int) (middle * LINE_LIST.size());
 					param = LINE_LIST.get(index);
 				}
-				if (property >= lineArea && property < randomArea) {// random
+				// random
+				if (property >= lineArea && property < randomArea) {
 					int index = (int) (middle * RANDOM_LIST.size());
 					param = RANDOM_LIST.get(index);
 				}
-				if (property >= randomArea && property < sinArea) {// sin
+				// sin
+				if (property >= randomArea && property < sinArea) {
 					int index = (int) (middle * SIN_LIST.size());
 					param = SIN_LIST.get(index);
 				}
-				if (property >= sinArea && property < squareArea) {// square
+				// square
+				if (property >= sinArea && property < squareArea) {
 					int index = (int) (middle * SQUARE_LIST.size());
 					param = SQUARE_LIST.get(index);
 				}
 				if (param == null) {
-					System.err.println(" initSensorFunction() 初始化函数比例有问题！");
+					System.err.println("There is a problem with the initialization function scale " +
+							"in initSensorFunction()!");
 					System.exit(0);
 				}
 				SENSOR_FUNCTION.put(SENSOR_CODES.get(i), param);
@@ -480,7 +488,7 @@ public class Config {
 	}
 
 	/**
-	 * 根据传感器数，初始化传感器编号
+	 * According to the number of sensors, initialize the sensor number
 	 */
 	void initSensorCodes() {
 		for (int i = 0; i < SENSOR_NUMBER; i++) {
@@ -490,7 +498,7 @@ public class Config {
 	}
 
 	/**
-	 * 根据设备数，初始化设备编号
+	 * According to the number of devices, initialize the device number
 	 */
 	public void initDeviceCodes() {
 		for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
@@ -498,8 +506,10 @@ public class Config {
 		}
 	}
 
-
-  void initRealDataSetSchema() {
+	/**
+	 * init schema of real data
+	 */
+	void initRealDataSetSchema() {
 		if (DATA_SET!=null) {
 			switch (DATA_SET) {
 				case TDRIVE:
@@ -524,7 +534,7 @@ public class Config {
 					throw new RuntimeException(DATA_SET + " is not support");
 			}
 		}
-  }
+	}
 
 	public String getHOST() {
 		return HOST;
