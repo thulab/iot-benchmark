@@ -73,15 +73,16 @@ public class Config {
 	/** The port of database server */
 	private List<String> PORT = Arrays.asList("6667");
 
-	/** The name of database to use 使用的数据库名，IoTDB root.{DB_NAME} TODO 添加到IoTDB */
-	private String DB_NAME = "test";
+	// TODO 添加进入IoTDB部分
+	/** The name of database to use 使用的数据库名，IoTDB root.{DB_NAME} */
+	private String DB_NAME = "_test";
 
 	// 初始化：分布式数据库
 	/**
 	 * 是否都可见，如果可见就可以向其他node发送
 	 * Whether access all nodes, rather than just one coordinator TODO rename to IS_ALL_NODES_VISIBLE
 	 */
-	public boolean USE_CLUSTER_DB = true;
+	public boolean IS_ALL_NODES_VISIBLE = true;
 	/** The hosts of database in cluster mode TODO 干掉 */
 	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:6667");
 

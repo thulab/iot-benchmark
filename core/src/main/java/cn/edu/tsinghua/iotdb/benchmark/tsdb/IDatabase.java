@@ -146,9 +146,5 @@ public interface IDatabase {
   default String typeMap(String iotdbType) {
    return iotdbType;
   }
-
-  // TODO
-  default boolean canAllNodesConnected(){return IS_ALL_NODES_VISIBLE;}
-
 }
 

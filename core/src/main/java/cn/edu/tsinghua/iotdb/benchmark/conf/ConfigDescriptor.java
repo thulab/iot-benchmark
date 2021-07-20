@@ -206,8 +206,8 @@ public class ConfigDescriptor {
         }
 				config.CLUSTER_HOSTS = Arrays
 						.asList(properties.getProperty("CLUSTER_HOSTS", "").split(","));
-				config.USE_CLUSTER_DB = Boolean.parseBoolean(properties.getProperty("USE_CLUSTER_DB",
-						String.valueOf(config.USE_CLUSTER_DB)));
+				config.IS_ALL_NODES_VISIBLE = Boolean.parseBoolean(properties.getProperty("USE_CLUSTER_DB",
+						String.valueOf(config.IS_ALL_NODES_VISIBLE)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
