@@ -27,9 +27,9 @@ public class SingleNodeJDBCConnection {
     int nodeSize = 1;
     String[] urls;
     if (config.IS_ALL_NODES_VISIBLE) {
-      nodeSize = config.CLUSTER_HOSTS.size();
+      nodeSize = config.getHOST().size();
       urls = new String[nodeSize];
-      List<String> clusterHosts = config.CLUSTER_HOSTS;
+      List<String> clusterHosts = config.getHOST();
       for (int i = 0; i < nodeSize; i++) {
         String[] arrs = clusterHosts.get(i).split(":");
         if (arrs.length != 2) {

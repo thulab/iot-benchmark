@@ -204,8 +204,6 @@ public class ConfigDescriptor {
                                 LOGGER.error("Invalid parameter REAL_INSERT_RATE: {}, whose value range should be (0, "
                   + "1], using default value 1.0", config.getREAL_INSERT_RATE());
         }
-				config.CLUSTER_HOSTS = Arrays
-						.asList(properties.getProperty("CLUSTER_HOSTS", "").split(","));
 				config.IS_ALL_NODES_VISIBLE = Boolean.parseBoolean(properties.getProperty("USE_CLUSTER_DB",
 						String.valueOf(config.IS_ALL_NODES_VISIBLE)));
 			} catch (IOException e) {

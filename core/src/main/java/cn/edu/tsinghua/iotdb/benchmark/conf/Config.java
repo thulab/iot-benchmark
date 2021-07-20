@@ -83,8 +83,6 @@ public class Config {
 	 * Whether access all nodes, rather than just one coordinator TODO rename to IS_ALL_NODES_VISIBLE
 	 */
 	public boolean IS_ALL_NODES_VISIBLE = true;
-	/** The hosts of database in cluster mode TODO 干掉 */
-	public List<String> CLUSTER_HOSTS = Arrays.asList("127.0.0.1:6667");
 
 	// 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
 	/** The data dir of IoTDB (Split by comma)*/
