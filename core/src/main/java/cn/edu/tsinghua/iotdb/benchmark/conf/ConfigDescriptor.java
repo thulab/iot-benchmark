@@ -54,8 +54,11 @@ public class ConfigDescriptor {
 				config.setPORT(Arrays.asList(ports.split(",")));
 				config.setENABLE_DOUBLE_INSERT(Boolean.parseBoolean(
 						properties.getProperty("ENABLE_DOUBLE_INSERT", config.isENABLE_DOUBLE_INSERT() + "")));
-				config.setANOTHER_HOST(properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST"));
-				config.setANOTHER_PORT(properties.getProperty("ANOTHER_PORT", "no ANOTHER_PORT"));
+				String another_host = properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST");
+				config.setANOTHER_HOST(Arrays.asList(another_host.split(",")));
+				String another_port = properties.getProperty("ANOTHER_PORT", "no ANOTHER_PORT");
+				config.setANOTHER_PORT(Arrays.asList(another_port.split(",")));
+				config.setANOTHER_DB_NAME(properties.getProperty("ANOTHER_DB_NAME", "no ANOTHER_DB_NAME"));
 				config.setKAFKA_LOCATION(properties.getProperty("KAFKA_LOCATION", "no KAFKA_LOCATION"));
 				config.setZOOKEEPER_LOCATION(properties.getProperty("ZOOKEEPER_LOCATION", "no ZOOKEEPER_LOCATION"));
 				config.setTOPIC_NAME(properties.getProperty("TOPIC_NAME", "NULL"));

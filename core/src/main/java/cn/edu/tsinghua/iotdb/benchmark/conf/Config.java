@@ -80,7 +80,7 @@ public class Config {
 	// 初始化：分布式数据库
 	/**
 	 * 是否都可见，如果可见就可以向其他node发送
-	 * Whether access all nodes, rather than just one coordinator TODO rename to IS_ALL_NODES_VISIBLE
+	 * Whether access all nodes, rather than just one coordinator
 	 */
 	private boolean IS_ALL_NODES_VISIBLE = true;
 
@@ -96,17 +96,16 @@ public class Config {
 	/** The unsequence dirs of IoTDB */
 	private List<String> UNSEQUENCE_DIR = new ArrayList<>();
 
-	// 双写模式：需要配置第二数据库 + Kafka
-	// 初始化：第二数据库参数 benchmark双写模式
-	// TODO Specific meaning
+	// TODO 双写模式功能
+	// 双写模式：目前双写要求相同类型数据库 需要配置第二数据库 + Kafka
 	/** Whether insert into another database in the same time */
 	private boolean ENABLE_DOUBLE_INSERT = false;
-	// TODO ANOTHER_DB_SWITCH
-	/** The host of another database server, TODO list  */
-	private String ANOTHER_HOST ="127.0.0.1";
-	/** The port of another database server TODO list */
-	private String ANOTHER_PORT ="6668";
-	// TODO ANOTHER_DB_NAME
+	/** The host of another database server */
+	private List<String> ANOTHER_HOST = Arrays.asList("127.0.0.1");
+	/** The port of another database server */
+	private List<String> ANOTHER_PORT = Arrays.asList("6668");
+	/** The name of another database TODO involve */
+	private String ANOTHER_DB_NAME = "_test";
 
 	// 初始化：Kafka
 	/** Location of Kafka */
@@ -582,19 +581,19 @@ public class Config {
 		this.ENABLE_DOUBLE_INSERT = ENABLE_DOUBLE_INSERT;
 	}
 
-	public String getANOTHER_HOST() {
+	public List<String> getANOTHER_HOST() {
 		return ANOTHER_HOST;
 	}
 
-	public void setANOTHER_HOST(String ANOTHER_HOST) {
+	public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
 		this.ANOTHER_HOST = ANOTHER_HOST;
 	}
 
-	public String getANOTHER_PORT() {
+	public List<String> getANOTHER_PORT() {
 		return ANOTHER_PORT;
 	}
 
-	public void setANOTHER_PORT(String ANOTHER_PORT) {
+	public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
 		this.ANOTHER_PORT = ANOTHER_PORT;
 	}
 
@@ -1452,5 +1451,13 @@ public class Config {
 
 	public void setREAD_OPERATION_TIMEOUT_MS(int READ_OPERATION_TIMEOUT_MS) {
 		this.READ_OPERATION_TIMEOUT_MS = READ_OPERATION_TIMEOUT_MS;
+	}
+
+	public String getANOTHER_DB_NAME() {
+		return ANOTHER_DB_NAME;
+	}
+
+	public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
+		this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
 	}
 }

@@ -51,12 +51,12 @@ public class DoubleIOTDB implements IDatabase {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection1 = DriverManager
-          .getConnection(String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0)),
-              Constants.USER, Constants.PASSWD);
+          .getConnection(String.format(Constants.URL, config.getHOST().get(0),
+                  config.getPORT().get(0)), Constants.USER, Constants.PASSWD);
       connection2 = DriverManager
           .getConnection(
-              String.format(Constants.URL, config.getANOTHER_HOST(), config.getANOTHER_PORT()),
-              Constants.USER, Constants.PASSWD);
+              String.format(Constants.URL, config.getANOTHER_HOST().get(0),
+                      config.getANOTHER_PORT().get(0)), Constants.USER, Constants.PASSWD);
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
