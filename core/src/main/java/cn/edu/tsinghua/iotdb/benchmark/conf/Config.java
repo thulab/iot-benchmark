@@ -62,9 +62,6 @@ public class Config {
 	 * insert mode: JDBC, SESSION_BY_TABLET, SESSION_BY_RECORD, SESSION_BY_RECORDS, SESSION_BY_POOL
 	 */
 	private String DB_SWITCH = "IoTDB-012-JDBC";
-	// TODO recheck whether is in use [before: remove]
-	/** The path of database which contains data file and log_stop_flag */
-	private String DB_DATA_PATH;
 
 	// 初始化：被测数据库参数
 	/**
@@ -1032,14 +1029,6 @@ public class Config {
 
 	public void setPRECISION(int[] PRECISION) {
 		this.PRECISION = PRECISION;
-	}
-
-	public String getDB_DATA_PATH() {
-		return DB_DATA_PATH;
-	}
-
-	public void setDB_DATA_PATH(String DB_DATA_PATH) {
-		this.DB_DATA_PATH = DB_DATA_PATH;
 	}
 
 	public List<String> getIOTDB_DATA_DIR() {

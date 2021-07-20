@@ -316,104 +316,90 @@ public class App {
     private static void serverMode(Config config) {
         PersistenceFactory persistenceFactory = new PersistenceFactory();
         ITestDataPersistence recorder = persistenceFactory.getPersistence();
-        File dir = new File(config.getDB_DATA_PATH());
 
-        if (dir.exists() && dir.isDirectory()) {
-            float abnormalValue = -1;
-            File file = new File(config.getDB_DATA_PATH() + "/log_stop_flag");
-            Map<FileSize.FileSizeKinds, Float> fileSizeStatistics = new EnumMap<>(FileSize.FileSizeKinds.class);
-            boolean isClientMonitor = config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_CLIENT_SYSTEM_INFO);
-            if (isClientMonitor) {
-                for (FileSize.FileSizeKinds kinds : FileSize.FileSizeKinds.values()) {
-                    fileSizeStatistics.put(kinds, abnormalValue);
-                }
+        float abnormalValue = -1;
+
+        Map<FileSize.FileSizeKinds, Float> fileSizeStatistics = new EnumMap<>(FileSize.FileSizeKinds.class);
+        boolean isClientMonitor = config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_CLIENT_SYSTEM_INFO);
+        if (isClientMonitor) {
+            for (FileSize.FileSizeKinds kinds : FileSize.FileSizeKinds.values()) {
+                fileSizeStatistics.put(kinds, abnormalValue);
             }
-            HashMap<IoUsage.IOStatistics, Float> ioStatistics;
-            int interval = config.getINTERVAL();
-            boolean headerPrinted = false;
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-            // 测量间隔至少为2秒
-            while (true) {
-                long start = System.currentTimeMillis();
-                ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
-                LOGGER.debug("IoUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-                start = System.currentTimeMillis();
-                ArrayList<Float> netUsageList = NetUsage.getInstance().get();
-                LOGGER.debug("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-                if (!isClientMonitor) {
-                    start = System.currentTimeMillis();
-                    fileSizeStatistics = FileSize.getInstance().getFileSize();
-                    LOGGER.debug("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
-                }
-                start = System.currentTimeMillis();
-                ioStatistics = IoUsage.getInstance().getIOStatistics();
-                LOGGER.debug("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
-                start = System.currentTimeMillis();
-                double memRate = MemUsage.getInstance().get();
-                LOGGER.debug("MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-                start = System.currentTimeMillis();
-                double proMem = MemUsage.getInstance().getProcessMemUsage();
-                LOGGER.debug("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
-
-                if (!headerPrinted) {
-                    LOGGER.info(",测量时间,PID,内存使用大小GB,内存使用率,CPU使用率,磁盘IO使用率,磁盘TPS,读速率MB/s,写速率MB/s,网卡接收速率KB/s,网卡发送速率KB/s,data文件大小GB,system文件大小GB,sequence文件大小GB,unsequence文件大小GB,wal文件大小GB");
-                    headerPrinted = true;
-                }
-                String time = sdf.format(new Date(start));
-                LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
-                    time,
-                    OpenFileNumber.getInstance().getPid(),
-                    proMem,
-                    memRate,
-                    ioUsageList.get(0),
-                    ioUsageList.get(1),
-                    ioStatistics.get(IoUsage.IOStatistics.TPS),
-                    ioStatistics.get(IoUsage.IOStatistics.MB_READ),
-                    ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
-                    netUsageList.get(0),
-                    netUsageList.get(1),
-                    fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
-                    fileSizeStatistics.get(FileSize.FileSizeKinds.SYSTEM),
-                    fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
-                    fileSizeStatistics.get(FileSize.FileSizeKinds.UN_SEQUENCE),
-                    fileSizeStatistics.get(FileSize.FileSizeKinds.WAL)
-                );
-
-                Map<SystemMetrics, Float> systemMetricsMap = new EnumMap<>(SystemMetrics.class);
-                systemMetricsMap.put(SystemMetrics.CPU_USAGE, ioUsageList.get(0));
-                systemMetricsMap.put(SystemMetrics.MEM_USAGE, MemUsage.getInstance().get());
-                systemMetricsMap.put(SystemMetrics.DISK_IO_USAGE, ioUsageList.get(1));
-                systemMetricsMap.put(SystemMetrics.NETWORK_R_RATE, netUsageList.get(0));
-                systemMetricsMap.put(SystemMetrics.NETWORK_S_RATE, netUsageList.get(1));
-                systemMetricsMap.put(SystemMetrics.PROCESS_MEM_SIZE, MemUsage.getInstance().getProcessMemUsage());
-                systemMetricsMap.put(SystemMetrics.DATA_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.DATA));
-                systemMetricsMap.put(SystemMetrics.SYSTEM_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.SYSTEM));
-                systemMetricsMap.put(SystemMetrics.SEQUENCE_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE));
-                systemMetricsMap.put(SystemMetrics.UN_SEQUENCE_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.UN_SEQUENCE));
-                systemMetricsMap.put(SystemMetrics.WAL_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
-                systemMetricsMap.put(SystemMetrics.DISK_TPS, ioStatistics.get(IoUsage.IOStatistics.TPS));
-                systemMetricsMap.put(SystemMetrics.DISK_READ_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_READ));
-                systemMetricsMap.put(SystemMetrics.DISK_WRITE_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_WRTN));
-                recorder.insertSystemMetrics(systemMetricsMap);
-
-                try {
-                    Thread.sleep(interval * 1000L);
-                } catch (Exception e) {
-                    LOGGER.error("sleep failed", e);
-                }
-                if (file.exists()) {
-                    try {
-                        Files.delete(file.toPath());
-                    } catch (IOException e) {
-                        LOGGER.error("log_stop_flag file delete failed");
-                    }
-                    break;
-                }
-            }
-        } else {
-            LOGGER.error("DB_DATA_PATH not exist!");
         }
-        recorder.close();
+        HashMap<IoUsage.IOStatistics, Float> ioStatistics;
+        int interval = config.getINTERVAL();
+        boolean headerPrinted = false;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        // 测量间隔至少为2秒
+        while (true) {
+            long start = System.currentTimeMillis();
+            ArrayList<Float> ioUsageList = IoUsage.getInstance().get();
+            LOGGER.debug("IoUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            ArrayList<Float> netUsageList = NetUsage.getInstance().get();
+            LOGGER.debug("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+            if (!isClientMonitor) {
+                start = System.currentTimeMillis();
+                fileSizeStatistics = FileSize.getInstance().getFileSize();
+                LOGGER.debug("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
+            }
+            start = System.currentTimeMillis();
+            ioStatistics = IoUsage.getInstance().getIOStatistics();
+            LOGGER.debug("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            double memRate = MemUsage.getInstance().get();
+            LOGGER.debug("MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
+            double proMem = MemUsage.getInstance().getProcessMemUsage();
+            LOGGER.debug("MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms", System.currentTimeMillis() - start);
+
+            if (!headerPrinted) {
+                LOGGER.info(",测量时间,PID,内存使用大小GB,内存使用率,CPU使用率,磁盘IO使用率,磁盘TPS,读速率MB/s,写速率MB/s,网卡接收速率KB/s,网卡发送速率KB/s,data文件大小GB,system文件大小GB,sequence文件大小GB,unsequence文件大小GB,wal文件大小GB");
+                headerPrinted = true;
+            }
+            String time = sdf.format(new Date(start));
+            LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+                time,
+                OpenFileNumber.getInstance().getPid(),
+                proMem,
+                memRate,
+                ioUsageList.get(0),
+                ioUsageList.get(1),
+                ioStatistics.get(IoUsage.IOStatistics.TPS),
+                ioStatistics.get(IoUsage.IOStatistics.MB_READ),
+                ioStatistics.get(IoUsage.IOStatistics.MB_WRTN),
+                netUsageList.get(0),
+                netUsageList.get(1),
+                fileSizeStatistics.get(FileSize.FileSizeKinds.DATA),
+                fileSizeStatistics.get(FileSize.FileSizeKinds.SYSTEM),
+                fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE),
+                fileSizeStatistics.get(FileSize.FileSizeKinds.UN_SEQUENCE),
+                fileSizeStatistics.get(FileSize.FileSizeKinds.WAL)
+            );
+
+            Map<SystemMetrics, Float> systemMetricsMap = new EnumMap<>(SystemMetrics.class);
+            systemMetricsMap.put(SystemMetrics.CPU_USAGE, ioUsageList.get(0));
+            systemMetricsMap.put(SystemMetrics.MEM_USAGE, MemUsage.getInstance().get());
+            systemMetricsMap.put(SystemMetrics.DISK_IO_USAGE, ioUsageList.get(1));
+            systemMetricsMap.put(SystemMetrics.NETWORK_R_RATE, netUsageList.get(0));
+            systemMetricsMap.put(SystemMetrics.NETWORK_S_RATE, netUsageList.get(1));
+            systemMetricsMap.put(SystemMetrics.PROCESS_MEM_SIZE, MemUsage.getInstance().getProcessMemUsage());
+            systemMetricsMap.put(SystemMetrics.DATA_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.DATA));
+            systemMetricsMap.put(SystemMetrics.SYSTEM_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.SYSTEM));
+            systemMetricsMap.put(SystemMetrics.SEQUENCE_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.SEQUENCE));
+            systemMetricsMap.put(SystemMetrics.UN_SEQUENCE_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.UN_SEQUENCE));
+            systemMetricsMap.put(SystemMetrics.WAL_FILE_SIZE, fileSizeStatistics.get(FileSize.FileSizeKinds.WAL));
+            systemMetricsMap.put(SystemMetrics.DISK_TPS, ioStatistics.get(IoUsage.IOStatistics.TPS));
+            systemMetricsMap.put(SystemMetrics.DISK_READ_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_READ));
+            systemMetricsMap.put(SystemMetrics.DISK_WRITE_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_WRTN));
+            recorder.insertSystemMetrics(systemMetricsMap);
+
+            try {
+                Thread.sleep(interval * 1000L);
+            } catch (Exception e) {
+                LOGGER.error("sleep failed", e);
+            }
+        }
     }
 
 }

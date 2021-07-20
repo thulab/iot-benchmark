@@ -126,7 +126,6 @@ public class ConfigDescriptor {
 				config.setMAX_CSV_LINE(Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getMAX_CSV_LINE()+ "")));
 				config.setCSV_FILE_SPLIT(Boolean.parseBoolean(properties.getProperty("CSV_FILE_SPLIT", config.isCSV_FILE_SPLIT() + "")));
 
-				config.setDB_DATA_PATH(properties.getProperty("DB_DATA_PATH", "/home/liurui"));
 				String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
 				config.setIOTDB_DATA_DIR(Arrays.asList(dataDir.split(",")));
 				String walDir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
