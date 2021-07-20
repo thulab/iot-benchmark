@@ -86,7 +86,7 @@ public class TaosDB implements IDatabase {
         // create super table
         StringBuilder superSql = new StringBuilder();
         int sensorIndex = 0;
-        for (String sensor : config.SENSOR_CODES) {
+        for (String sensor : config.getSENSOR_CODES()) {
           String dataType = typeMap(DBUtil.getDataType(sensorIndex));
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");

@@ -80,7 +80,7 @@ public class SyntheticWorkload implements IWorkload {
       workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
       int sensorIndex = 0;
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
-        String sensor = config.SENSOR_CODES.get(j);
+        String sensor = config.getSENSOR_CODES().get(j);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           //这个时间戳只用来生成有周期性的数据。所以时间戳也是周期的。
           long currentTimestamp = getCurrentTimestamp(i);
@@ -94,7 +94,7 @@ public class SyntheticWorkload implements IWorkload {
             }
             value = builder.toString();
           } else {
-            FunctionParam param = config.SENSOR_FUNCTION.get(sensor);
+            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
             Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
             switch (getNextDataType(sensorIndex)) {
               case "BOOLEAN":

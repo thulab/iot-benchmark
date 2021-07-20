@@ -59,7 +59,7 @@ public class DeviceSchema implements Cloneable{
     int thisDeviceGroupIndex = calGroupId(deviceId);
     //System.out.println("device " + deviceId +" sg " + thisDeviceGroupIndex);
     group = config.GROUP_NAME_PREFIX + thisDeviceGroupIndex;
-    sensors.addAll(config.SENSOR_CODES);
+    sensors.addAll(config.getSENSOR_CODES());
   }
 
   int calGroupId(int deviceId) throws WorkloadException {

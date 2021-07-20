@@ -14,7 +14,7 @@ public class Config {
 	// 初始化
 	// 初始化：清理数据
 	/** Whether to clear old data before test */
-	public boolean IS_DELETE_DATA = false;
+	private boolean IS_DELETE_DATA = false;
 	/**
 	 * The time The time waiting for the init of database under test (unit: ms)
 	 * it depends on whether delete of database is asynchronous
@@ -82,7 +82,7 @@ public class Config {
 	 * 是否都可见，如果可见就可以向其他node发送
 	 * Whether access all nodes, rather than just one coordinator TODO rename to IS_ALL_NODES_VISIBLE
 	 */
-	public boolean IS_ALL_NODES_VISIBLE = true;
+	private boolean IS_ALL_NODES_VISIBLE = true;
 
 	// 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
 	/** The data dir of IoTDB (Split by comma)*/
@@ -405,7 +405,7 @@ public class Config {
 	/** Device ID */
 	private List<Integer> DEVICE_CODES = new ArrayList<>();
 	/** Sensor number */
-	public List<String> SENSOR_CODES = new ArrayList<>();
+	private List<String> SENSOR_CODES = new ArrayList<>();
 	/** Built-in function parameters */
 	private final List<FunctionParam> LINE_LIST = new ArrayList<>();
 	private final List<FunctionParam> SIN_LIST = new ArrayList<>();
@@ -413,7 +413,7 @@ public class Config {
 	private final List<FunctionParam> RANDOM_LIST = new ArrayList<>();
 	private final List<FunctionParam> CONSTANT_LIST = new ArrayList<>();
 	/** Sensor function */
-	public Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
+	private Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
 	//TODO 非配置项
 
 	/** TODO 删除 */
@@ -1420,5 +1420,37 @@ public class Config {
 
 	public void setBENCHMARK_WORK_MODE(String BENCHMARK_WORK_MODE) {
 		this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+	}
+
+	public boolean isIS_ALL_NODES_VISIBLE() {
+		return IS_ALL_NODES_VISIBLE;
+	}
+
+	public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
+		this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
+	}
+
+	public String getGROUP_NAME_PREFIX() {
+		return GROUP_NAME_PREFIX;
+	}
+
+	public void setGROUP_NAME_PREFIX(String GROUP_NAME_PREFIX) {
+		this.GROUP_NAME_PREFIX = GROUP_NAME_PREFIX;
+	}
+
+	public int getWRITE_OPERATION_TIMEOUT_MS() {
+		return WRITE_OPERATION_TIMEOUT_MS;
+	}
+
+	public void setWRITE_OPERATION_TIMEOUT_MS(int WRITE_OPERATION_TIMEOUT_MS) {
+		this.WRITE_OPERATION_TIMEOUT_MS = WRITE_OPERATION_TIMEOUT_MS;
+	}
+
+	public int getREAD_OPERATION_TIMEOUT_MS() {
+		return READ_OPERATION_TIMEOUT_MS;
+	}
+
+	public void setREAD_OPERATION_TIMEOUT_MS(int READ_OPERATION_TIMEOUT_MS) {
+		this.READ_OPERATION_TIMEOUT_MS = READ_OPERATION_TIMEOUT_MS;
 	}
 }

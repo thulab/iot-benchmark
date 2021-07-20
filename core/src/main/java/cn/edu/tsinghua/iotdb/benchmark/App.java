@@ -92,7 +92,7 @@ public class App {
         // register schema if needed
         try {
             dbWrapper.init();
-            if (config.IS_DELETE_DATA) {
+            if (config.isIS_DELETE_DATA()) {
                 try {
                     dbWrapper.cleanup();
                 } catch (TsdbException e) {
@@ -164,7 +164,7 @@ public class App {
         try {
             LOGGER.info("start to init database {}", config.getNET_DEVICE());
             dbWrapper.init();
-            if (config.IS_DELETE_DATA) {
+            if (config.isIS_DELETE_DATA()) {
                 try {
                     LOGGER.info("start to clean old data");
                     dbWrapper.cleanup();

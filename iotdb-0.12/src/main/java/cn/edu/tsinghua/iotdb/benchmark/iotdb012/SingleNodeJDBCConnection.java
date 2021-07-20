@@ -26,7 +26,7 @@ public class SingleNodeJDBCConnection {
   public void init() throws TsdbException {
     int nodeSize = 1;
     String[] urls;
-    if (config.IS_ALL_NODES_VISIBLE) {
+    if (config.isIS_ALL_NODES_VISIBLE()) {
       nodeSize = config.getHOST().size();
       urls = new String[nodeSize];
       List<String> clusterHosts = config.getHOST();
