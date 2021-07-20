@@ -155,9 +155,6 @@ public class ConfigDescriptor {
 				config.setOVERFLOW_RATIO(Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.getOVERFLOW_RATIO()+"")));
 
 				config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
-				config.setIMPORT_DATA_FILE_PATH(properties.getProperty("IMPORT_DATA_FILE_PATH", ""));
-				config.setMETADATA_FILE_PATH(properties.getProperty("METADATA_FILE_PATH", ""));
-				config.setBATCH_EXECUTE_COUNT(Integer.parseInt(properties.getProperty("BATCH_EXECUTE_COUNT", config.getBATCH_EXECUTE_COUNT()+"")));
 				config.setOVERFLOW_MODE(Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.getOVERFLOW_MODE()+"")));
 				config.setMAX_K(Integer.parseInt(properties.getProperty("MAX_K", config.getMAX_K()+"")));
 				config.setLAMBDA(Double.parseDouble(properties.getProperty("LAMBDA", config.getLAMBDA()+"")));
