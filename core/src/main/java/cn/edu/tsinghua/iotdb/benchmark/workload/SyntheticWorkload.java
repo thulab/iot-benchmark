@@ -29,6 +29,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO 阅读
 public class SyntheticWorkload implements IWorkload {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
@@ -42,13 +43,12 @@ public class SyntheticWorkload implements IWorkload {
   private static final Random random = new Random(config.getDATA_SEED());
   private static final String DECIMAL_FORMAT = "%." + config.getNUMBER_OF_DECIMAL_DIGIT() + "f";
   private static final Random dataRandom = new Random(config.getDATA_SEED());
-  // this must before the initWorkloadValues function calls
-  private static int scaleFactor = 1;
+  // this must before the initWorkloadValues function calls TODO rename to valueScaleFactor 删除 * 10
+  private static int scaleFactor = 10;
   /**workloadValues[传感器][序号]。 对于那些有规律的数据，存储了每个传感器的一段数据，用于按规律快速生成*/
   private static final Object[][] workloadValues = initWorkloadValues();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final String IKR_CHAR_TABLE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
 
   public SyntheticWorkload(int clientId) {
@@ -65,6 +65,7 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 
+  // TODO 移除精度
   private static void initScaleFactor() {
     for (int i = 0; i < ConfigDescriptor.getInstance().getConfig().getNUMBER_OF_DECIMAL_DIGIT(); i++) {
       scaleFactor *= 10;
@@ -86,7 +87,7 @@ public class SyntheticWorkload implements IWorkload {
           Object value;
           if (getNextDataType(sensorIndex).equals("TEXT")) {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(config.getNUMBER_OF_DECIMAL_DIGIT());
             for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
               assert dataRandom != null;
               builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
@@ -97,6 +98,7 @@ public class SyntheticWorkload implements IWorkload {
             Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
             switch (getNextDataType(sensorIndex)) {
               case "BOOLEAN":
+                // TODO 500 -> avg
                 value = number.floatValue() > 500;
                 break;
               case "INT32":
@@ -106,9 +108,11 @@ public class SyntheticWorkload implements IWorkload {
                 value = number.longValue();
                 break;
               case "FLOAT":
+                // TODO
                 value = ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor;
                 break;
               case "DOUBLE":
+                // TODO
                 value = ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor;
                 break;
               default:
@@ -185,7 +189,8 @@ public class SyntheticWorkload implements IWorkload {
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.getPOINT_STEP() * stepOffset;
     if (config.isIS_OVERFLOW()) {
-      //随机加上数秒，使得时间不是均匀的。但是不会乱序。
+      // 随机加上数秒，使得时间不是均匀的。但是不会乱序。
+      // 添加 ratio 使用randorm->timestampRandom
       //TODO 但是方法名可是说可能会乱序啊！！！！！！！
       timeStampOffset += (long) (random.nextDouble() * config.getPOINT_STEP());
     } else {
@@ -208,6 +213,7 @@ public class SyntheticWorkload implements IWorkload {
     return batch;
   }
 
+  // TODO 为啥插入一个点
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
@@ -219,9 +225,13 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
+    // TODO 修改乱序的比例
+    // Config 添加乱序步长 Poisson 替代MAX_K
+    // 乱序步长为k，则在t-k的范围内按照分布规律进行差值，大于t的部分不变，t为当前时间
     Batch batch = new Batch();
     long barrier = (long) (config.getBATCH_SIZE() * config.getOVERFLOW_RATIO());
     long stepOffset = loopIndex * config.getBATCH_SIZE() + barrier;
+    // move data(index = barrier) to front
     addOneRowIntoBatch(batch, stepOffset);
     for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
       stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
@@ -266,7 +276,7 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   /**
-   * 该方法仅填充一个值进入values
+   * 该方法仅填充一个值进入values TODO check
    * @param batch
    * @param stepOffset
    * @param colIndex
@@ -390,6 +400,7 @@ public class SyntheticWorkload implements IWorkload {
         config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_LIMIT());
   }
 
+  @Override
   public GroupByQuery getGroupByQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
     long startTimestamp = getQueryStartTimestamp();

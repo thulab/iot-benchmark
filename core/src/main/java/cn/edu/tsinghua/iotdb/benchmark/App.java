@@ -58,6 +58,7 @@ public class App {
         if (!cli.init(args)) {
             return;
         }
+        // TODO 异常退出时，输出当前结果
         Runtime.getRuntime().addShutdownHook(new CSVShutdownHook());
         Config config = ConfigDescriptor.getInstance().getConfig();
         switch (config.getBENCHMARK_WORK_MODE().trim()) {
@@ -74,7 +75,7 @@ public class App {
             case Constants.MODE_CLIENT_SYSTEM_INFO:
                 serverMode(config);
                 break;
-            case Constants.MODE_IMPORT_DATA_FROM_CSV:
+            case Constants.MODE_IMPORT_DATA_FROM_CSV:// TODO remove
                 importDataFromCSV(config);
                 break;
             default:

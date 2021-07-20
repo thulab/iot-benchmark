@@ -63,9 +63,6 @@ public class TimescaleDB implements IDatabase {
     //delete old data
     try (Statement statement = connection.createStatement()){
       statement.execute(String.format(dropTable, tableName));
-      // wait for deletion complete
-      LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
-      Thread.sleep(config.getINIT_WAIT_TIME());
     } catch (Exception e) {
       LOGGER.warn("delete old data table {} failed, because: {}", tableName, e.getMessage());
       if (!e.getMessage().contains("does not exist")) {

@@ -78,9 +78,6 @@ public class KairosDB implements IDatabase {
         }
         client.deleteMetric(metric);
       }
-      // wait for deletion complete
-      LOGGER.info("[KAIROSDB]:Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
-      Thread.sleep(config.getINIT_WAIT_TIME());
     } catch (Exception e) {
       LOGGER.error("Delete old data failed because ", e);
     }

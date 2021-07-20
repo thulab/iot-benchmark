@@ -77,14 +77,6 @@ public class OpenTSDB implements IDatabase {
                 throw new TsdbException(e);
             }
         }
-        // wait for deletion complete
-        try {
-            LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
-            Thread.sleep(config.getINIT_WAIT_TIME());
-        } catch (InterruptedException e) {
-            LOGGER.error("Delete old OpenTSDB metrics failed. Error: {}", e.getMessage());
-            throw new TsdbException(e);
-        }
     }
 
     // no need for opentsdb

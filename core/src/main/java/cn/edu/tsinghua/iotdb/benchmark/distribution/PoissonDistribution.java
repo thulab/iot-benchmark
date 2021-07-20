@@ -87,6 +87,7 @@ public class PoissonDistribution {
             }
             nextDelta = (int)(lambda + ((nextDelta - BASIC_MODEL_LAMBDA) * step)) ;
         }
+        // TODO check 负值 ?
         return nextDelta;
     }
 

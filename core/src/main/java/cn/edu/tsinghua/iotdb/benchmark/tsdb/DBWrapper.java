@@ -293,7 +293,16 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public void cleanup() throws TsdbException {
+    // start cleanup database
     db.cleanup();
+    // waiting for deletion of database
+    try{
+      LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      Thread.sleep(config.getINIT_WAIT_TIME());
+    }catch (InterruptedException e){
+      LOGGER.warn("Failed to wait {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      throw new TsdbException(e);
+    }
   }
 
   @Override
@@ -363,6 +372,8 @@ public class DBWrapper implements IDatabase {
           .saveOperationResult(operation.getName(), 0, 0, 0, status.getException().toString());
     }
   }
+
+
 
 }
 

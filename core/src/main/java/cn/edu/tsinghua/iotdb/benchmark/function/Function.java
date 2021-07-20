@@ -126,6 +126,7 @@ public class Function {
 
 	public static Number getValueByFuntionidAndParam(FunctionType functionType, double max, double min, long cycle,
 			long currentTime) {
+		// TODO 如果是Boolean 直接返回0/1 see SyntheticWorkload
 		switch (functionType) {
 			case FLOAT_MONO:
 				return (float) getMonoValue(max, min, cycle, currentTime);

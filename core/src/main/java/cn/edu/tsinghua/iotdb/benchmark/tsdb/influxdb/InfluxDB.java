@@ -71,10 +71,6 @@ public class InfluxDB implements IDatabase {
       if (influxDbInstance.databaseExists(influxDbName)) {
         influxDbInstance.deleteDatabase(influxDbName);
       }
-
-      // wait for deletion complete
-      LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
-      Thread.sleep(config.getINIT_WAIT_TIME());
     } catch (Exception e) {
       LOGGER.error("Cleanup InfluxDB failed because ", e);
       throw new TsdbException(e);

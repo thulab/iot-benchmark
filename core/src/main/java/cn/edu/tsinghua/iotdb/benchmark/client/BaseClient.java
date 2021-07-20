@@ -20,7 +20,9 @@ import org.slf4j.LoggerFactory;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 
 /**
- * 负责人造数据的写入、查询，真实数据的查询。 根据OPERATION_PROPORTION的比例执行写入和查询, 具体的查询和写入数据由workload确定。
+ * Responsible for writing and querying artificial data, and querying real data
+ * Write and query are executed according to the proportion of OPERATION_PROPORTION.
+ * The specific query and written data are determined by workload.
  */
 public abstract class BaseClient extends Client implements Runnable {
 
@@ -43,6 +45,7 @@ public abstract class BaseClient extends Client implements Runnable {
     insertLoopIndex = 0;
   }
 
+  @Override
   void doTest() {
     String currentThread = Thread.currentThread().getName();
     //Equals device number when the rate is 1.
@@ -68,14 +71,15 @@ loop:
         case INGESTION:
           if (config.isIS_CLIENT_BIND()) {
             if(config.isIS_SENSOR_TS_ALIGNMENT()) {
+              // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
               try {
                 List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
                 for (DeviceSchema deviceSchema : schemas) {
-                  //TODO 为啥要做这样一个判断？？
-                  //if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+                  //TODO 为啥要做这样一个判断？？ DOC check
+                  if (deviceSchema.getDeviceId() < actualDeviceFloor) {
                     Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
                     dbWrapper.insertOneBatch(batch);
-                  //}
+                  }
                 }
               } catch (DBConnectException e) {
                 LOGGER.error("Failed to insert one batch data because ", e);
@@ -85,6 +89,7 @@ loop:
               }
               insertLoopIndex++;
             } else {
+              // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
               try {
               List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
               DeviceSchema sensorSchema = null;
