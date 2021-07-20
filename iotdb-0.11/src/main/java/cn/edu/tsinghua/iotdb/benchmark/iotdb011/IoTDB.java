@@ -53,8 +53,8 @@ public class IoTDB implements IDatabase {
       org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.isENABLE_THRIFT_COMPRESSION();
 
       connection = DriverManager
-          .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()), Constants.USER,
-              Constants.PASSWD);
+          .getConnection(String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0))
+                  , Constants.USER, Constants.PASSWD);
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);

@@ -48,7 +48,8 @@ public class TimescaleDB implements IDatabase {
     try {
       Class.forName(Constants.POSTGRESQL_JDBC_NAME);
       connection = DriverManager.getConnection(
-          String.format(Constants.POSTGRESQL_URL, config.getHOST(), config.getPORT(), config.getDB_NAME()),
+          String.format(Constants.POSTGRESQL_URL, config.getHOST().get(0),
+                  config.getPORT().get(0), config.getDB_NAME()),
           Constants.POSTGRESQL_USER,
           Constants.POSTGRESQL_PASSWD
       );

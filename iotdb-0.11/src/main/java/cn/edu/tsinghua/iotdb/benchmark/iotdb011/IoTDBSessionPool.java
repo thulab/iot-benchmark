@@ -58,7 +58,7 @@ public class IoTDBSessionPool implements IDatabase {
     }
 
     org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.isENABLE_THRIFT_COMPRESSION();
-    pool = new SessionPool(config.getHOST(), Integer.parseInt(config.getPORT()), Constants.USER,
+    pool = new SessionPool(config.getHOST().get(0), Integer.parseInt(config.getPORT().get(0)), Constants.USER,
         Constants.PASSWD, config.getPoolSize());
     isInit = true;
   }

@@ -226,15 +226,14 @@ public class CSVRecorder implements ITestDataPersistence {
         switch (config.getDB_SWITCH().split("-")[0].trim()) {
             case Constants.DB_IOT:
             case Constants.DB_TIMESCALE:
-                str.append(String.format(FOUR, projectID, "ServerIP", config.getHOST()));
+                str.append(String.format(FOUR, projectID, "ServerIP", config.getHOST().get(0)));
                 break;
             case Constants.DB_INFLUX:
             case Constants.DB_OPENTS:
             case Constants.DB_KAIROS:
             case Constants.DB_CTS:
-                String host = config.getDB_URL()
-                        .substring(config.getDB_URL().lastIndexOf('/') + 1, config.getDB_URL().lastIndexOf(':'));
-                str.append(String.format(FOUR, projectID, "ServerIP", host));
+                str.append(String.format(
+                        FOUR, projectID, "ServerIP", config.getHOST() + ":" + config.getPORT()));
                 break;
             default:
                 LOGGER.error("unsupported database " + config.getDB_SWITCH());

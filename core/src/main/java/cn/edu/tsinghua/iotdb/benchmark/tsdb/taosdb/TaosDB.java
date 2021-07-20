@@ -46,7 +46,7 @@ public class TaosDB implements IDatabase {
     try {
       Class.forName(TAOS_DRIVER);
       connection = DriverManager
-        .getConnection(String.format(URL_TAOS, config.getHOST(), config.getPORT(), USER, PASSWD));
+        .getConnection(String.format(URL_TAOS, config.getHOST().get(0), config.getPORT().get(0), USER, PASSWD));
       LOGGER.info("init success.");
     } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();

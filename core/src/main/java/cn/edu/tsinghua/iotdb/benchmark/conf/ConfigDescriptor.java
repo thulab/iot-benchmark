@@ -48,8 +48,10 @@ public class ConfigDescriptor {
 			Properties properties = new Properties();
 			try {
 				properties.load(inputStream);
-				config.setHOST(properties.getProperty("HOST", "no HOST"));
-				config.setPORT(properties.getProperty("PORT", "no PORT"));
+				String hosts = properties.getProperty("HOST", "no HOST");
+				config.setHOST(Arrays.asList(hosts.split(",")));
+				String ports = properties.getProperty("PORT", "no PORT");
+				config.setPORT(Arrays.asList(ports.split(",")));
 				config.setENABLE_DOUBLE_INSERT(Boolean.parseBoolean(
 						properties.getProperty("ENABLE_DOUBLE_INSERT", config.isENABLE_DOUBLE_INSERT() + "")));
 				config.setANOTHER_HOST(properties.getProperty("ANOTHER_HOST", "no ANOTHER_HOST"));
@@ -88,7 +90,6 @@ public class ConfigDescriptor {
 				config.setCLIENT_NUMBER(Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER()+"")));
 				config.setGROUP_NUMBER(Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER()+"")));
 
-				config.setDB_URL(properties.getProperty("DB_URL", "localhost"));
 				config.setDB_NAME(properties.getProperty("DB_NAME", "test"));
 				config.setDB_SWITCH(properties.getProperty("DB_SWITCH", Constants.DB_IOT));
 

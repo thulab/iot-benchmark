@@ -46,9 +46,7 @@ public class OpenTSDB implements IDatabase {
      */
     public OpenTSDB() {
         sensorRandom = new Random(1 + config.getQUERY_SEED());
-        Random timestampRandom = new Random(2 + config.getQUERY_SEED());
-        ProbTool probTool = new ProbTool();
-        String openUrl = config.getDB_URL();
+        String openUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
         writeUrl = openUrl + "/api/put?summary ";
         queryUrl = openUrl + "/api/query";
     }

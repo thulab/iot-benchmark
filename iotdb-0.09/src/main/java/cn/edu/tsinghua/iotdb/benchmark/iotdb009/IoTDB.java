@@ -50,8 +50,8 @@ public class IoTDB implements IDatabase {
         try {
             Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
             connection = DriverManager
-                    .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()), Constants.USER,
-                            Constants.PASSWD);
+                    .getConnection(String.format(Constants.URL, config.getHOST().get(0),
+                            config.getPORT().get(0)), Constants.USER, Constants.PASSWD);
         } catch (Exception e) {
             LOGGER.error("Initialize IoTDB failed because ", e);
             throw new TsdbException(e);

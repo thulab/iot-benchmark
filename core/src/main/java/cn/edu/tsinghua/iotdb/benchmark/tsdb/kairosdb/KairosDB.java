@@ -53,18 +53,18 @@ public class KairosDB implements IDatabase {
 
   public KairosDB() {
     config = ConfigDescriptor.getInstance().getConfig();
-    writeUrl = config.getDB_URL() + "/api/v1/datapoints";
+    writeUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0) + "/api/v1/datapoints";
 
   }
 
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient(config.getDB_URL());
+      client = new HttpClient(config.getHOST() + ":" + config.getPORT());
     } catch (MalformedURLException e) {
       throw new TsdbException(
-          "Init KairosDB client failed, the url is " + config.getDB_URL() + ". Message is " + e
-              .getMessage());
+          "Init KairosDB client failed, the url is " + config.getHOST() + ":" + config.getPORT()
+                  + ". Message is " + e.getMessage());
     }
   }
 

@@ -41,7 +41,7 @@ public class SingleNodeJDBCConnection {
       }
     } else {
       urls = new String[nodeSize];
-      urls[0] = String.format(Constants.URL, config.getHOST(), config.getPORT());
+      urls[0] = String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0));
     }
     connections = new Connection[nodeSize];
 

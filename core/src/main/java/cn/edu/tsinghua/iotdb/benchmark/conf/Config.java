@@ -30,22 +30,20 @@ public class Config {
 	private long LOOP = 10000;
 	/**
 	 * The running mode of benchmark
-	 * [1]testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple read and write operations
+	 * testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple read and write operations
 	 * writeWithRealDataSet: Write the real data set mode, you need to configure FILE_PATH and DATA_SET, currently supported [TODO 4 配置项聚集]
 	 * queryWithRealDataSet: To query the real data set mode, you need to configure REAL_QUERY_START_TIME, REAL_QUERY_STOP_TIME, DATA_SET and testWithDefaultPath mode to query related parameters currently supported [TODO 4 配置项聚集]
-	 * [1] 监控目标系统 serverMODE: Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter)
-	 * [× load metadata from csv] importDataFromCSV: read schema data from csv file
+	 * serverMODE: Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter)
+	 * [TODO × load metadata from csv] importDataFromCSV: read schema data from csv file
 	 */
 	private String BENCHMARK_WORK_MODE = "";
 
-	/** Whether use benchmark in cluster "群狼模式" **/
+	/** Whether use benchmark in cluster **/
 	private boolean BENCHMARK_CLUSTER = false;
-	/** The first index of device TODO 合并 Bench*/
-	private int FIRST_DEVICE_INDEX = 0;
-	/**
-	 * [√]In cluster mode of benchmark, the index of benchmark which will influence index of devices
-	 **/
+	/** In cluster mode of benchmark, the index of benchmark which will influence index of devices */
 	private int BENCHMARK_INDEX = 0;
+	/** Calculated in this way: FIRST_DEVICE_INDEX = BENCHMARK_INDEX * DEVICE_NUMBER */
+	private int FIRST_DEVICE_INDEX = 0;
 
 	// 初始化：数据库信息
 	/**
@@ -55,17 +53,20 @@ public class Config {
 	 * insert mode: JDBC, SESSION_BY_TABLET, SESSION_BY_RECORD, SESSION_BY_RECORDS, SESSION_BY_POOL
 	 */
 	private String DB_SWITCH = "IoTDB-012-JDBC";
-	/** The path of database which contains data file and log_stop_flag TODO 移除  */
+	// TODO recheck whether is in use [before: remove]
+	/** The path of database which contains data file and log_stop_flag */
 	private String DB_DATA_PATH;
 
 	// 初始化：被测数据库参数
-	/** The host of database server(TODO list ,) */
-	private String HOST ="127.0.0.1";
-	/** The port of database server(TODO list ,) */
-	private String PORT ="6667";
+	/**
+	 * The host of database server
+	 * for IoTDB, TimescaleDB: eg. 127.0.0.1
+	 * for influxDB, opentsDB, kairosDB, ctsDB: "http://localhost:8086"
+	 */
+	private List<String> HOST = Arrays.asList("127.0.0.1");
+	/** The port of database server */
+	private List<String> PORT = Arrays.asList("6667");
 
-	/** The url of server 服务器 URL TODO 删掉 */
-	private String DB_URL = "http://localhost:8086";
 	/** The name of database to use 使用的数据库名，IoTDB root.{DB_NAME} TODO 添加到IoTDB */
 	private String DB_NAME = "test";
 
@@ -385,7 +386,7 @@ public class Config {
 	/** The password of user */
 	private String TEST_DATA_STORE_PW = "";
 	/** The remark of experiment which will be stored into mysql as part of table name
-	 * (Notice that no .) rename to TEST_DATA_STORE_REMARK */
+	 * (Notice that no .) rename to TEST_DATA_STORE_REMARK TODO server mode whether use */
 	private String REMARK = "";
 
 	// 输出：MySQL
@@ -560,19 +561,19 @@ public class Config {
 		}
 	}
 
-	public String getHOST() {
+	public List<String> getHOST() {
 		return HOST;
 	}
 
-	public void setHOST(String HOST) {
+	public void setHOST(List<String> HOST) {
 		this.HOST = HOST;
 	}
 
-	public String getPORT() {
+	public List<String> getPORT() {
 		return PORT;
 	}
 
-	public void setPORT(String PORT) {
+	public void setPORT(List<String> PORT) {
 		this.PORT = PORT;
 	}
 
@@ -1406,14 +1407,6 @@ public class Config {
 
 	public long getMAX_CSV_LINE() {
 		return MAX_CSV_LINE;
-	}
-
-	public String getDB_URL() {
-		return DB_URL;
-	}
-
-	public void setDB_URL(String DB_URL) {
-		this.DB_URL = DB_URL;
 	}
 
 	public String getDB_NAME() {

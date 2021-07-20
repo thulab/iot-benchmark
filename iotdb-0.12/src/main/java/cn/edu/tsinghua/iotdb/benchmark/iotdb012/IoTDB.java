@@ -98,7 +98,7 @@ public class IoTDB implements IDatabase {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       Session metaSession = null;
       try {
-        metaSession = new Session(config.getHOST(), config.getPORT(), Constants.USER,
+        metaSession = new Session(config.getHOST().get(0), config.getPORT().get(0), Constants.USER,
             Constants.PASSWD);
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
 

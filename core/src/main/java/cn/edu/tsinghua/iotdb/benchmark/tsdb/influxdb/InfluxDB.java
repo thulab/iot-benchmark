@@ -47,7 +47,7 @@ public class InfluxDB implements IDatabase {
    * constructor.
    */
   public InfluxDB() {
-    influxUrl = config.getDB_URL();
+    influxUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
     influxDbName = config.getDB_NAME();
   }
 
