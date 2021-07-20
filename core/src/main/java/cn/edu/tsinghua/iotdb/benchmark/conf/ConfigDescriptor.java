@@ -142,7 +142,7 @@ public class ConfigDescriptor {
 				config.setENCODING(properties.getProperty("ENCODING", "PLAIN"));
 				config.setTEST_DATA_PERSISTENCE(properties.getProperty("TEST_DATA_PERSISTENCE", "None"));
 				config.setCSV_OUTPUT(Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT()+"")));
-				config.setNUMBER_OF_DECIMAL_DIGIT(Integer.parseInt(properties.getProperty("NUMBER_OF_DECIMAL_DIGIT", config.getNUMBER_OF_DECIMAL_DIGIT()+"")));
+				config.setSTRING_LENGTH(Integer.parseInt(properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH()+"")));
 				config.setLOG_PRINT_INTERVAL(Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.getLOG_PRINT_INTERVAL()+"")));
 				config.setMUL_DEV_BATCH(Boolean
 						.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.isMUL_DEV_BATCH() + "")));

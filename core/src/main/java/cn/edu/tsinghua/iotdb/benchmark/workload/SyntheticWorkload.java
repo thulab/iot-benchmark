@@ -41,7 +41,6 @@ public class SyntheticWorkload implements IWorkload {
   private final Random queryDeviceRandom;
   private final Map<Operation, Long> operationLoops;
   private static final Random random = new Random(config.getDATA_SEED());
-  private static final String DECIMAL_FORMAT = "%." + config.getNUMBER_OF_DECIMAL_DIGIT() + "f";
   private static final Random dataRandom = new Random(config.getDATA_SEED());
   // this must before the initWorkloadValues function calls TODO rename to valueScaleFactor 删除 * 10
   private static int scaleFactor = 10;
@@ -65,15 +64,7 @@ public class SyntheticWorkload implements IWorkload {
     }
   }
 
-  // TODO 移除精度
-  private static void initScaleFactor() {
-    for (int i = 0; i < ConfigDescriptor.getInstance().getConfig().getNUMBER_OF_DECIMAL_DIGIT(); i++) {
-      scaleFactor *= 10;
-    }
-  }
-
   private static Object[][] initWorkloadValues() {
-    initScaleFactor();
     Object[][] workloadValues = null;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       //不为0就是有写入操作。
@@ -87,8 +78,8 @@ public class SyntheticWorkload implements IWorkload {
           Object value;
           if (getNextDataType(sensorIndex).equals("TEXT")) {
             //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
-            StringBuilder builder = new StringBuilder(config.getNUMBER_OF_DECIMAL_DIGIT());
-            for (int k = 0; k < config.getNUMBER_OF_DECIMAL_DIGIT(); k++) {
+            StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
+            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
               assert dataRandom != null;
               builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
             }

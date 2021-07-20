@@ -124,7 +124,8 @@ public class Config {
 	// 数据
 	// 数据：压缩 要和IoTDB保持一致
 
-	/** TODO 删除，直接从IoTDB中使用 The compressor way of data, currently supported UNCOMPRESSOR | SNAPPY (only valid for IoTDB) */
+	// TODO 删除，直接从IoTDB中使用
+	/** The compressor way of data, currently supported UNCOMPRESSOR | SNAPPY (only valid for IoTDB) */
 	private String COMPRESSOR = "UNCOMPRESSED";
 
 	// 数据：格式与编码
@@ -132,6 +133,7 @@ public class Config {
 	 * TODO to be refactored 生成数据的小数保留位数，同时也当作字符串的长度
 	 * 修改为字符串长度 STRING_LENGTH */
 	private int NUMBER_OF_DECIMAL_DIGIT = 2;
+	private int STRING_LENGTH = 2;
 	/**
 	 * 插入数据的比例
 	 * Data Type, D1:D2:D3:D4:D5:D6
@@ -731,14 +733,6 @@ public class Config {
 
 	public void setENCODING(String ENCODING) {
 		this.ENCODING = ENCODING;
-	}
-
-	public int getNUMBER_OF_DECIMAL_DIGIT() {
-		return NUMBER_OF_DECIMAL_DIGIT;
-	}
-
-	public void setNUMBER_OF_DECIMAL_DIGIT(int NUMBER_OF_DECIMAL_DIGIT) {
-		this.NUMBER_OF_DECIMAL_DIGIT = NUMBER_OF_DECIMAL_DIGIT;
 	}
 
 	public String getCOMPRESSOR() {
@@ -1459,5 +1453,13 @@ public class Config {
 
 	public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
 		this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
+	}
+
+	public int getSTRING_LENGTH() {
+		return STRING_LENGTH;
+	}
+
+	public void setSTRING_LENGTH(int STRING_LENGTH) {
+		this.STRING_LENGTH = STRING_LENGTH;
 	}
 }
