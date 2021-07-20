@@ -45,7 +45,7 @@ public class OpenFileNumber {
         Process pro1;
         Runtime r = Runtime.getRuntime();
         String filter = "";
-        switch (dbName) {
+        switch (dbName.split("-")[0]) {
             case Constants.DB_IOT:
                 filter = "IOTDB_HOME";
                 break;
@@ -118,7 +118,7 @@ public class OpenFileNumber {
         int walsNum = 0;
 
         String filter = "";
-        switch (config.getDB_SWITCH()) {
+        switch (config.getDB_SWITCH().split("-")[0]) {
             case Constants.DB_IOT:
                 filter = "/data/";
                 break;

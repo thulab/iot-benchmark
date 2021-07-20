@@ -91,13 +91,12 @@ public class ConfigDescriptor {
 				config.setDB_URL(properties.getProperty("DB_URL", "localhost"));
 				config.setDB_NAME(properties.getProperty("DB_NAME", "test"));
 				config.setDB_SWITCH(properties.getProperty("DB_SWITCH", Constants.DB_IOT));
-				config.setINSERT_MODE(properties.getProperty("INSERT_MODE", config.getINSERT_MODE()));
 
 				config.setTIMESTAMP_PRECISION(properties.getProperty("TIMESTAMP_PRECISION", config.getTIMESTAMP_PRECISION()+""));
 				switch (config.getTIMESTAMP_PRECISION()) {
 					case "ms":  break;
 					case "us":
-						if (!config.getDB_SWITCH().equals("IoTDB") && !config.getDB_SWITCH().equals("InfluxDB")){
+						if (!config.getDB_SWITCH().contains("IoTDB") && !config.getDB_SWITCH().equals("InfluxDB")){
 							throw new RuntimeException("The database " + config.getDB_SWITCH() + " can't use microsecond precision");
 						}
 						break;
@@ -123,7 +122,6 @@ public class ConfigDescriptor {
 				config.setTEST_DATA_STORE_USER(properties.getProperty("TEST_DATA_STORE_USER", config.getTEST_DATA_STORE_USER()));
 				config.setTEST_DATA_STORE_PW(properties.getProperty("TEST_DATA_STORE_PW", config.getTEST_DATA_STORE_PW()));
 				config.setTIME_UNIT(Long.parseLong(properties.getProperty("TIME_UNIT", config.getTIME_UNIT()+"")));
-				config.setVERSION(properties.getProperty("VERSION", ""));
 				config.setMAX_CSV_LINE(Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getMAX_CSV_LINE()+ "")));
 				config.setCSV_FILE_SPLIT(Boolean.parseBoolean(properties.getProperty("CSV_FILE_SPLIT", config.isCSV_FILE_SPLIT() + "")));
 

@@ -37,7 +37,7 @@ public class FileSize {
     }
 
     private FileSize(){
-        switch (config.getDB_SWITCH()){
+        switch (config.getDB_SWITCH().split("-")[0]){
             case Constants.DB_IOT:
             case Constants.BENCHMARK_IOTDB:
                 break;

@@ -122,15 +122,17 @@ public class IoTDBSessionBase extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    switch (config.getINSERT_MODE()) {
-      case "sessionByTablet":
+    String[] params = config.getDB_SWITCH().split("-");
+    String insert_mode = params[params.length - 1];
+    switch (insert_mode) {
+      case Constants.INSERT_USE_SESSION_TABLET:
         return insertOneBatchByTablet(batch);
-      case "sessionByRecord":
+      case Constants.INSERT_USE_SESSION_RECORD:
         return insertOneBatchByRecord(batch);
-      case "sessionByRecords":
+      case Constants.INSERT_USE_SESSION_RECORDS:
         return insertOneBatchByRecords(batch);
       default:
-        throw new IllegalStateException("Unexpected INSERT_MODE value: " + config.getINSERT_MODE());
+        throw new IllegalStateException("Unexpected INSERT_MODE value: " + insert_mode);
     }
   }
 }

@@ -222,7 +222,8 @@ public class CSVRecorder implements ITestDataPersistence {
             str.append(String.format(FOUR, projectID,
                     "MODE", "DEFAULT_TEST_MODE"));
         }
-        switch (config.getDB_SWITCH().trim()) {
+
+        switch (config.getDB_SWITCH().split("-")[0].trim()) {
             case Constants.DB_IOT:
             case Constants.DB_TIMESCALE:
                 str.append(String.format(FOUR, projectID, "ServerIP", config.getHOST()));
@@ -240,14 +241,13 @@ public class CSVRecorder implements ITestDataPersistence {
         }
         str.append(String.format(FOUR, projectID, "CLIENT", localName));
         str.append(String.format(FOUR, projectID, "DB_SWITCH", config.getDB_SWITCH()));
-        str.append(String.format(FOUR, projectID, "VERSION", config.getVERSION()));
         str.append(String.format(FOUR, projectID, "getCLIENT_NUMBER()", config.getCLIENT_NUMBER()));
         str.append(String.format(FOUR, projectID, "LOOP", config.getLOOP()));
         if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
             str.append(String.format(FOUR, projectID, "查询数据集存储组数", config.getGROUP_NUMBER()));
             str.append(String.format(FOUR, projectID, "查询数据集设备数", config.getDEVICE_NUMBER()));
             str.append(String.format(FOUR, projectID, "查询数据集传感器数", config.getSENSOR_NUMBER()));
-            if (config.getDB_SWITCH().equals(Constants.DB_IOT)) {
+            if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
                 str.append(String.format(FOUR, projectID, "IOTDB编码方式", config.getENCODING()));
             }
             str.append(String.format(FOUR, projectID, "QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()));
@@ -263,7 +263,7 @@ public class CSVRecorder implements ITestDataPersistence {
             str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
             str.append(String.format(FOUR, projectID, "BATCH_SIZE", config.getBATCH_SIZE()));
             str.append(String.format(FOUR, projectID, "POINT_STEP", config.getPOINT_STEP()));
-            if (config.getDB_SWITCH().equals(Constants.DB_IOT)) {
+            if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
                 str.append(String.format(FOUR, projectID, "ENCODING", config.getENCODING()));
             }
         }

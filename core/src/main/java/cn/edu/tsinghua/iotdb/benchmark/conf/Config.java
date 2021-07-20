@@ -22,9 +22,6 @@ public class Config {
 	 */
 	private long INIT_WAIT_TIME = 5000;
 
-	// 初始化：基本信息
-	/** The version of IoTDB, Eg. 0.12.0 TODO move out of core */
-	private String VERSION = "";
 	/** System performance detection network card device name eg. eth0 */
 	private String NET_DEVICE = "e";
 
@@ -51,8 +48,13 @@ public class Config {
 	private int BENCHMARK_INDEX = 0;
 
 	// 初始化：数据库信息
-	/** The database to use, currently supported IoTDB{todo version, 09\010\011\012}-{JDBC\...}, InfluxDB, OpenTSDB, CTSDB, KairosDB, TimescaleDB, FakeDB, TaosDB */
-	private String DB_SWITCH = "IoTDB012";
+	/**
+	 * The database to use, format: {name of database}{-version}{-insert mode}
+	 * name of database: IoTDB, InfluxDB, OpenTSDB, CTSDB, KairosDB, TimescaleDB, FakeDB, TaosDB ...
+	 * version: take iotdb for example, 09, 10, 11, 12
+	 * insert mode: JDBC, SESSION_BY_TABLET, SESSION_BY_RECORD, SESSION_BY_RECORDS, SESSION_BY_POOL
+	 */
+	private String DB_SWITCH = "IoTDB-012-JDBC";
 	/** The path of database which contains data file and log_stop_flag TODO 移除  */
 	private String DB_DATA_PATH;
 
@@ -256,8 +258,6 @@ public class Config {
 	private int BATCH_SIZE = 1000;
 	/** Whether create schema before writing */
 	private boolean CREATE_SCHEMA = true;
-	/** Insert mode, IoTDB currently supported jdbc, sessionByTablet, sessionByRecord, sessionByRecords TODO 回到IoTDB ServiceLoader*/
-	private String INSERT_MODE = "jdbc";
 
 
 	/**
@@ -1408,14 +1408,6 @@ public class Config {
 		return MAX_CSV_LINE;
 	}
 
-	public String getVERSION() {
-		return VERSION;
-	}
-
-	public void setVERSION(String VERSION) {
-		this.VERSION = VERSION;
-	}
-
 	public String getDB_URL() {
 		return DB_URL;
 	}
@@ -1446,14 +1438,6 @@ public class Config {
 
 	public void setBENCHMARK_WORK_MODE(String BENCHMARK_WORK_MODE) {
 		this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
-	}
-
-	public String getINSERT_MODE() {
-		return INSERT_MODE;
-	}
-
-	public void setINSERT_MODE(String INSERT_MODE) {
-		this.INSERT_MODE = INSERT_MODE;
 	}
 
 	public String getIMPORT_DATA_FILE_PATH() {

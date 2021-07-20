@@ -215,7 +215,7 @@ public class MySqlRecorder implements ITestDataPersistence {
             "'MODE'", "'DEFAULT_TEST_MODE'");
         statement.addBatch(sql);
       }
-      switch (config.getDB_SWITCH().trim()) {
+      switch (config.getDB_SWITCH().split("-")[0].trim()) {
         case Constants.DB_IOT:
         case Constants.DB_TIMESCALE:
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
@@ -242,9 +242,6 @@ public class MySqlRecorder implements ITestDataPersistence {
           "'DB_SWITCH'", "'" + config.getDB_SWITCH() + "'");
       statement.addBatch(sql);
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-          "'VERSION'", "'" + config.getVERSION() + "'");
-      statement.addBatch(sql);
-      sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
           "'getCLIENT_NUMBER()'", "'" + config.getCLIENT_NUMBER() + "'");
       statement.addBatch(sql);
       sql = String.format(SAVE_CONFIG, "'" + projectID + "'", "'LOOP'",
@@ -264,7 +261,7 @@ public class MySqlRecorder implements ITestDataPersistence {
             "'查询数据集传感器数'", "'" + config.getSENSOR_NUMBER()
                 + "'");
         statement.addBatch(sql);
-        if (config.getDB_SWITCH().equals(Constants.DB_IOT)) {
+        if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
               "'IOTDB编码方式'", "'" + config.getENCODING() + "'");
           statement.addBatch(sql);
@@ -308,7 +305,7 @@ public class MySqlRecorder implements ITestDataPersistence {
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'POINT_STEP'", "'" + config.getPOINT_STEP() + "'");
         statement.addBatch(sql);
-        if (config.getDB_SWITCH().equals(Constants.DB_IOT)) {
+        if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
               "'ENCODING'", "'" + config.getENCODING() + "'");
           statement.addBatch(sql);
