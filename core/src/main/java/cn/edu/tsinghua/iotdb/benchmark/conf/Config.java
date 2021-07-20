@@ -28,13 +28,22 @@ public class Config {
 	// 初始化：工作状态
 	/** Total number of operations that each client process 查询时会被按比例划分 */
 	private long LOOP = 10000;
+
+	// TODO Server mode 配置项聚集
+
 	/**
 	 * The running mode of benchmark
-	 * testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple read and write operations
-	 * writeWithRealDataSet: Write the real data set mode, you need to configure FILE_PATH and DATA_SET, currently supported [TODO 4 配置项聚集]
-	 * queryWithRealDataSet: To query the real data set mode, you need to configure REAL_QUERY_START_TIME, REAL_QUERY_STOP_TIME, DATA_SET and testWithDefaultPath mode to query related parameters currently supported [TODO 4 配置项聚集]
-	 * serverMODE: Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter)
-	 * [TODO × load metadata from csv] importDataFromCSV: read schema data from csv file
+	 * 1. testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple
+	 *                         read and write operations
+	 * 2. writeWithRealDataSet: Write the real data set mode, you need to configure FILE_PATH
+	 *                          and DATA_SET, currently supported
+	 * 3. queryWithRealDataSet: To query the real data set mode, you need to configure
+	 *                          REAL_QUERY_START_TIME, REAL_QUERY_STOP_TIME, DATA_SET and
+	 *                          testWithDefaultPath mode to query related parameters currently
+	 *                          supported
+	 * 4. serverMODE: Server resource usage monitoring mode (run in this mode is started
+	 *                by the ser-benchmark.sh script, no need to manually configure
+	 *                this parameter)
 	 */
 	private String BENCHMARK_WORK_MODE = "";
 

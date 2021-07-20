@@ -18,8 +18,6 @@ import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.NetUsage;
 import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
-import cn.edu.tsinghua.iotdb.benchmark.tool.ImportDataFromCSV;
-import cn.edu.tsinghua.iotdb.benchmark.tool.MetaDateBuilder;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
@@ -74,9 +72,6 @@ public class App {
             case Constants.MODE_SERVER_MODE:
             case Constants.MODE_CLIENT_SYSTEM_INFO:
                 serverMode(config);
-                break;
-            case Constants.MODE_IMPORT_DATA_FROM_CSV:// TODO remove
-                importDataFromCSV(config);
                 break;
             default:
                 throw new SQLException("unsupported mode " + config.getBENCHMARK_WORK_MODE());
@@ -313,16 +308,6 @@ public class App {
         } else if (f.isFile()) {
             files.add(f.getAbsolutePath());
         }
-    }
-
-    /**
-     * 将数据从CSV文件导入IOTDB
-     */
-    private static void importDataFromCSV(Config config) throws SQLException {
-        MetaDateBuilder builder = new MetaDateBuilder();
-        builder.createMataData(config.getMETADATA_FILE_PATH());
-        ImportDataFromCSV importTool = new ImportDataFromCSV();
-        importTool.importData(config.getIMPORT_DATA_FILE_PATH());
     }
 
     /**
