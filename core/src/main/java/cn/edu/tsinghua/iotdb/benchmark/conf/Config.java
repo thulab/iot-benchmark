@@ -104,7 +104,8 @@ public class Config {
 	private List<String> ANOTHER_HOST = Arrays.asList("127.0.0.1");
 	/** The port of another database server */
 	private List<String> ANOTHER_PORT = Arrays.asList("6668");
-	/** The name of another database TODO involve */
+	// TODO involve
+	/** The name of another database */
 	private String ANOTHER_DB_NAME = "_test";
 
 	// 初始化：Kafka
@@ -242,15 +243,6 @@ public class Config {
 	private int BATCH_SIZE_PER_WRITE = 1000;
 	/** Whether create schema before writing */
 	private boolean CREATE_SCHEMA = true;
-
-
-	/**
-	 * Whether is multi devices insert, TODO whether is in use
-	 * if true, there are multi devices in one batch write operation,
-	 * and DEVICE_NUMBER % (BATCH_SIZE * CLIENT_NUMBER) == 0
-	 */
-	private boolean MUL_DEV_BATCH = false;
-
 
 	/** Start time of writing data */
 	private String START_TIME = "2018-8-30T00:00:00+08:00";
@@ -718,14 +710,6 @@ public class Config {
 
 	public void setCOMPRESSOR(String COMPRESSOR) {
 		this.COMPRESSOR = COMPRESSOR;
-	}
-
-	public boolean isMUL_DEV_BATCH() {
-		return MUL_DEV_BATCH;
-	}
-
-	public void setMUL_DEV_BATCH(boolean MUL_DEV_BATCH) {
-		this.MUL_DEV_BATCH = MUL_DEV_BATCH;
 	}
 
 	public long getINIT_WAIT_TIME() {

@@ -144,8 +144,6 @@ public class ConfigDescriptor {
 				config.setCSV_OUTPUT(Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT()+"")));
 				config.setSTRING_LENGTH(Integer.parseInt(properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH()+"")));
 				config.setLOG_PRINT_INTERVAL(Integer.parseInt(properties.getProperty("LOG_PRINT_INTERVAL", config.getLOG_PRINT_INTERVAL()+"")));
-				config.setMUL_DEV_BATCH(Boolean
-						.parseBoolean(properties.getProperty("MUL_DEV_BATCH", config.isMUL_DEV_BATCH() + "")));
 				config.setIS_QUIET_MODE(Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.isIS_QUIET_MODE()+"")));
 				config.setNET_DEVICE(properties.getProperty("NET_DEVICE", "e"));
 				config.setWORKLOAD_BUFFER_SIZE(Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.getWORKLOAD_BUFFER_SIZE()+"")));

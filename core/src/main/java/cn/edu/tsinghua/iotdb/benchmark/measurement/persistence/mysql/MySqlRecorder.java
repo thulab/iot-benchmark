@@ -283,8 +283,6 @@ public class MySqlRecorder implements ITestDataPersistence {
               "'OVERFLOW_RATIO'", "'" + config.getOVERFLOW_RATIO() + "'");
           statement.addBatch(sql);
         }
-        sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'MUL_DEV_BATCH'", "'" + config.isMUL_DEV_BATCH() + "'");
         statement.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'DEVICE_NUMBER'", "'" + config.getDEVICE_NUMBER() + "'");
