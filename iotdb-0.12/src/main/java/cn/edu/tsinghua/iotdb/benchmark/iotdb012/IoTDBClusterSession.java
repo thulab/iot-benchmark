@@ -120,7 +120,7 @@ public class IoTDBClusterSession  extends IoTDBSessionBase {
 
   private Status waitFuture() {
     try {
-      future.get(config.WRITE_OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      future.get(config.getWRITE_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       future.cancel(true);
       return new Status(false, 0, e, e.toString());

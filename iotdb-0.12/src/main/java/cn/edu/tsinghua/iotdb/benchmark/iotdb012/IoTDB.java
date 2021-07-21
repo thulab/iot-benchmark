@@ -492,7 +492,7 @@ public class IoTDB implements IDatabase {
       });
 
       try {
-        future.get(config.READ_OPERATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);

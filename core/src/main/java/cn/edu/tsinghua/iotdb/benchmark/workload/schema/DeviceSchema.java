@@ -49,7 +49,7 @@ public class DeviceSchema implements Cloneable{
   }
 
   public DeviceSchema(String group, String device, List<String> sensors) {
-    this.group = config.GROUP_NAME_PREFIX + group;
+    this.group = config.getDB_NAME() + "_" + group;
     this.device = DEVICE_NAME_PREFIX + device;
     this.sensors = sensors;
   }
@@ -58,7 +58,7 @@ public class DeviceSchema implements Cloneable{
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
     int thisDeviceGroupIndex = calGroupId(deviceId);
     //System.out.println("device " + deviceId +" sg " + thisDeviceGroupIndex);
-    group = config.GROUP_NAME_PREFIX + thisDeviceGroupIndex;
+    group = config.getDB_NAME() + thisDeviceGroupIndex;
     sensors.addAll(config.getSENSOR_CODES());
   }
 

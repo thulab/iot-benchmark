@@ -111,10 +111,10 @@ public class ConfigDescriptor {
 				config.setQUERY_DEVICE_NUM(Integer.parseInt(properties.getProperty("QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()+"")));
 				config.setQUERY_AGGREGATE_FUN(properties.getProperty("QUERY_AGGREGATE_FUN", config.getQUERY_AGGREGATE_FUN()));
 				config.setQUERY_INTERVAL(Long.parseLong(properties.getProperty("QUERY_INTERVAL", config.getQUERY_INTERVAL()+"")));
-				config.WRITE_OPERATION_TIMEOUT_MS = Integer.parseInt(properties
-						.getProperty("WRITE_OPERATION_TIMEOUT_MS", config.WRITE_OPERATION_TIMEOUT_MS + ""));
-				config.READ_OPERATION_TIMEOUT_MS = Integer.parseInt(properties
-						.getProperty("READ_OPERATION_TIMEOUT_MS", config.READ_OPERATION_TIMEOUT_MS + ""));
+				config.setWRITE_OPERATION_TIMEOUT_MS(Integer.parseInt(properties
+						.getProperty("WRITE_OPERATION_TIMEOUT_MS", config.getWRITE_OPERATION_TIMEOUT_MS() + "")));
+				config.setREAD_OPERATION_TIMEOUT_MS(Integer.parseInt(properties
+						.getProperty("READ_OPERATION_TIMEOUT_MS", config.getREAD_OPERATION_TIMEOUT_MS() + "")));
 				config.setQUERY_LOWER_LIMIT(Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.getQUERY_LOWER_LIMIT()+"")));
 				config.setQUERY_SEED(Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED()+"")));
 				config.setIS_EMPTY_PRECISE_POINT_QUERY(Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.isIS_EMPTY_PRECISE_POINT_QUERY()+"")));
@@ -194,7 +194,6 @@ public class ConfigDescriptor {
 				else {
 					config.setFIRST_DEVICE_INDEX(0);
 				}
-				config.GROUP_NAME_PREFIX = properties.getProperty("GROUP_NAME_PREFIX",config.GROUP_NAME_PREFIX);
 
 				config.setMYSQL_REAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+"")));
 				config.setREAL_INSERT_RATE(Double.parseDouble(properties.getProperty("REAL_INSERT_RATE", config.getREAL_INSERT_RATE()+"")));

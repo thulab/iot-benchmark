@@ -74,7 +74,7 @@ public class Config {
 	private List<String> PORT = Arrays.asList("6667");
 
 	// TODO 添加进入IoTDB部分
-	/** The name of database to use 使用的数据库名，IoTDB root.{DB_NAME} */
+	/** The name of database to use, and the prefix of group, eg.IoTDB root.{DB_NAME} */
 	private String DB_NAME = "_test";
 
 	// 初始化：分布式数据库
@@ -217,8 +217,6 @@ public class Config {
 	private String SG_STRATEGY="hash";
 	/** The number of storage group, must less than or equal to number of devices */
 	private int GROUP_NUMBER = 1;
-	/** The prefix of storage group name TODO，用DB_NAME代替 **/
-	public String GROUP_NAME_PREFIX = "group_";
 	/** The size of core session pool TODO rename to IOTDB_SESSION_POOL_SIZE*/
 	private int poolSize = 50;
 
@@ -231,9 +229,9 @@ public class Config {
 	 */
 	private int OP_INTERVAL = 0;
 	/** The max time for writing in ms */
-	public int WRITE_OPERATION_TIMEOUT_MS = 120000;
+	private int WRITE_OPERATION_TIMEOUT_MS = 120000;
 	/** The max time for reading in ms */
-	public int READ_OPERATION_TIMEOUT_MS = 300000;
+	private int READ_OPERATION_TIMEOUT_MS = 300000;
 
 	// Operation：写入相关参数
 	/**
@@ -1377,14 +1375,6 @@ public class Config {
 
 	public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
 		this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
-	}
-
-	public String getGROUP_NAME_PREFIX() {
-		return GROUP_NAME_PREFIX;
-	}
-
-	public void setGROUP_NAME_PREFIX(String GROUP_NAME_PREFIX) {
-		this.GROUP_NAME_PREFIX = GROUP_NAME_PREFIX;
 	}
 
 	public int getWRITE_OPERATION_TIMEOUT_MS() {
