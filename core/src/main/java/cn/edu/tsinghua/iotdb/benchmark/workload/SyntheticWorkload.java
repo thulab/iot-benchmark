@@ -397,7 +397,7 @@ public class SyntheticWorkload implements IWorkload {
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_AGGREGATE_FUN(), config.getTIME_UNIT());
+        config.getQUERY_AGGREGATE_FUN(), config.getGROUP_BY_TIME_UNIT());
   }
 
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {

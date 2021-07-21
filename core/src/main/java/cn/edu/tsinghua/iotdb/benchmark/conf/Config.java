@@ -301,8 +301,8 @@ public class Config {
 	private long QUERY_INTERVAL = 10000;
 	/** Conditional query parameters "where xxx > QUERY_LOWER_VALUE"*/
 	private double QUERY_LOWER_VALUE = 0;
-	/** The size of group in group by query(ms), Eg. 20000 TODO rename to GROUP_BY_TIME_UNIT */
-	private long TIME_UNIT = QUERY_INTERVAL / 2;
+	/** The size of group in group by query(ms), Eg. 20000 */
+	private long GROUP_BY_TIME_UNIT = QUERY_INTERVAL / 2;
 	/** Query random seed */
 	private long QUERY_SEED = 1516580959202L;
 	/** Maximum number of output items in conditional query with limit */
@@ -1081,12 +1081,12 @@ public class Config {
 		return QUERY_INTERVAL;
 	}
 
-	public long getTIME_UNIT() {
-		return TIME_UNIT;
+	public long getGROUP_BY_TIME_UNIT() {
+		return GROUP_BY_TIME_UNIT;
 	}
 
-	public void setTIME_UNIT(long TIME_UNIT) {
-		this.TIME_UNIT = TIME_UNIT;
+	public void setGROUP_BY_TIME_UNIT(long GROUP_BY_TIME_UNIT) {
+		this.GROUP_BY_TIME_UNIT = GROUP_BY_TIME_UNIT;
 	}
 
 	public long getQUERY_SEED() {
