@@ -129,10 +129,7 @@ public class Config {
 	private String COMPRESSOR = "UNCOMPRESSED";
 
 	// 数据：格式与编码
-	/** The number of decimal places for the generated data & The length of string
-	 * TODO to be refactored 生成数据的小数保留位数，同时也当作字符串的长度
-	 * 修改为字符串长度 STRING_LENGTH */
-	private int NUMBER_OF_DECIMAL_DIGIT = 2;
+	/**  The length of string */
 	private int STRING_LENGTH = 2;
 	/**
 	 * 插入数据的比例
@@ -163,15 +160,6 @@ public class Config {
 	private String ENCODING_TEXT = "PLAIN";
 
 	// 测试数据相关参数
-	// 测试数据：生成测试数据 TODO 删除，如果没人用
-	/** The name of the storage group for a sample data, MUST contains root */
-	private String STORAGE_GROUP_NAME;
-	/** Time series name of a sample data */
-	private String TIMESERIES_NAME;
-	/** Data type of a sample data */
-	private String TIMESERIES_TYPE;
-	/** Scope of timeseries(split by comma) */
-	private String TIMESERIES_VALUE_SCOPE;
 
 	// 测试数据：外部测试数据
 	/** The path of file */
@@ -957,38 +945,6 @@ public class Config {
 
 	public void setNET_DEVICE(String NET_DEVICE) {
 		this.NET_DEVICE = NET_DEVICE;
-	}
-
-	public String getSTORAGE_GROUP_NAME() {
-		return STORAGE_GROUP_NAME;
-	}
-
-	public void setSTORAGE_GROUP_NAME(String STORAGE_GROUP_NAME) {
-		this.STORAGE_GROUP_NAME = STORAGE_GROUP_NAME;
-	}
-
-	public String getTIMESERIES_NAME() {
-		return TIMESERIES_NAME;
-	}
-
-	public void setTIMESERIES_NAME(String TIMESERIES_NAME) {
-		this.TIMESERIES_NAME = TIMESERIES_NAME;
-	}
-
-	public String getTIMESERIES_TYPE() {
-		return TIMESERIES_TYPE;
-	}
-
-	public void setTIMESERIES_TYPE(String TIMESERIES_TYPE) {
-		this.TIMESERIES_TYPE = TIMESERIES_TYPE;
-	}
-
-	public String getTIMESERIES_VALUE_SCOPE() {
-		return TIMESERIES_VALUE_SCOPE;
-	}
-
-	public void setTIMESERIES_VALUE_SCOPE(String TIMESERIES_VALUE_SCOPE) {
-		this.TIMESERIES_VALUE_SCOPE = TIMESERIES_VALUE_SCOPE;
 	}
 
 	public String getFILE_PATH() {

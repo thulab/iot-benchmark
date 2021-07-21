@@ -149,10 +149,6 @@ public class ConfigDescriptor {
 				config.setIS_QUIET_MODE(Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.isIS_QUIET_MODE()+"")));
 				config.setNET_DEVICE(properties.getProperty("NET_DEVICE", "e"));
 				config.setWORKLOAD_BUFFER_SIZE(Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.getWORKLOAD_BUFFER_SIZE()+"")));
-				config.setSTORAGE_GROUP_NAME(properties.getProperty("STORAGE_GROUP_NAME", config.getSTORAGE_GROUP_NAME()));
-				config.setTIMESERIES_NAME(properties.getProperty("TIMESERIES_NAME", config.getTIMESERIES_NAME()));
-				config.setTIMESERIES_TYPE(properties.getProperty("TIMESERIES_TYPE", config.getTIMESERIES_TYPE()));
-				config.setTIMESERIES_VALUE_SCOPE(properties.getProperty("TIMESERIES_VALUE_SCOPE", config.getTIMESERIES_VALUE_SCOPE()));
 				config.setIS_OVERFLOW(Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.isIS_OVERFLOW()+"")));
 				config.setOVERFLOW_RATIO(Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.getOVERFLOW_RATIO()+"")));
 
