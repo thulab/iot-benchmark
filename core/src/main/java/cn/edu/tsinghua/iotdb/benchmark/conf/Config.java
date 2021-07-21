@@ -348,8 +348,9 @@ public class Config {
 	private String TEST_DATA_STORE_USER = "";
 	/** The password of user */
 	private String TEST_DATA_STORE_PW = "";
+	// TODO (features) server mode whether to use
 	/** The remark of experiment which will be stored into mysql as part of table name
-	 * (Notice that no .) rename to TEST_DATA_STORE_REMARK TODO server mode whether use */
+	 * (Notice that no .) rename to TEST_DATA_STORE_REMARK  */
 	private String REMARK = "";
 
 	// 输出：MySQL
@@ -380,10 +381,6 @@ public class Config {
 	private final List<FunctionParam> CONSTANT_LIST = new ArrayList<>();
 	/** Sensor function */
 	private Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
-	//TODO 非配置项
-
-	/** TODO 删除 */
-	private double CLIENT_MAX_WRT_RATE = 10000000.0;
 
 	/**
 	 * init inner functions
@@ -770,14 +767,6 @@ public class Config {
 
 	public void setMAX_K(int MAX_K) {
 		this.MAX_K = MAX_K;
-	}
-
-	public double getCLIENT_MAX_WRT_RATE() {
-		return CLIENT_MAX_WRT_RATE;
-	}
-
-	public void setCLIENT_MAX_WRT_RATE(double CLIENT_MAX_WRT_RATE) {
-		this.CLIENT_MAX_WRT_RATE = CLIENT_MAX_WRT_RATE;
 	}
 
 	public String getOPERATION_PROPORTION() {
