@@ -86,26 +86,35 @@ public class Constants {
     public static final String DB_TIMESCALE = "TimescaleDB";
     public static final String DB_FAKE = "FakeDB";
     public static final String DB_TAOSDB = "TaosDB";
-    //special DB_SWITCH
+
+    /**
+     * Special DB_SWITCH
+     */
     public static final String BENCHMARK_IOTDB = "App";
 
     public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 
-    //different running mode
-    public static final String MODE_IMPORT_DATA_FROM_CSV = "importDataFromCSV";
+    /**
+     * different running mode
+     */
     public static final String MODE_WRITE_WITH_REAL_DATASET = "writeWithRealDataSet";
     public static final String MODE_QUERY_WITH_REAL_DATASET = "queryWithRealDataSet";
     public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
     public static final String MODE_SERVER_MODE = "serverMODE";
+    // TODO check use
     public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
 
-    // support test data persistence:
+    /**
+     * support test data persistence
+     */
     public static final String TDP_NONE = "None";
     public static final String TDP_IOTDB = "IoTDB";
     public static final String TDP_MYSQL = "MySQL";
     public static final String TDP_CSV = "CSV";
 
-    // device and storage group assignment
+    /**
+     * device and storage group assignment
+     */
     public static final String MOD_SG_ASSIGN_MODE = "mod";
     public static final String HASH_SG_ASSIGN_MODE = "hash";
     public static final String DIV_SG_ASSIGN_MODE = "div";
