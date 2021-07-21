@@ -27,7 +27,7 @@ public class Config {
 	private String NET_DEVICE = "e";
 
 	// 初始化：工作状态
-	/** Total number of operations that each client process 查询时会被按比例划分 */
+	/** Total number of operations that each client process */
 	private long LOOP = 10000;
 
 	/**
@@ -172,7 +172,7 @@ public class Config {
 	 */
 	private int CLIENT_NUMBER = 2;
 
-	// 设备、传感器、客户端：传感器参数相关，被initSensorFunction使用，生成数据的规律
+	// 设备、传感器、客户端：生成数据的规律
 	/** 线性 默认 9个 0.054 */
 	private double LINE_RATIO = 0.054;
 	/** 傅里叶函数 6个 0.036 */
@@ -235,7 +235,7 @@ public class Config {
 	private double OUT_OF_ORDER_RATIO = 1.0;
 	/**
 	 * Whether use random time interval in inorder data
-	 * need IS_OUT_OF_ORDER = true
+	 * need IS_OUT_OF_ORDER = false
 	 */
 	private boolean IS_REGULAR_FREQUENCY = false;
 
@@ -292,11 +292,14 @@ public class Config {
 	/** The real time when query is stopped */
 	private long REAL_DATASET_QUERY_STOP_TIME = Long.MAX_VALUE;
 
-	// workload 相关部分 单位 MB
+	// workload 相关部分
 	/** The size of workload buffer size */
 	private int WORKLOAD_BUFFER_SIZE = 100;
 
 	// 输出
+	/** Use what to store test data, currently support None, IoTDB, MySQL, CSV*/
+	private String TEST_DATA_PERSISTENCE = "None";
+
 	// 输出：系统性能 Server mode
 	/** System performance information recording interval is INTERVAL+2 seconds */
 	private int MONITOR_INTERVAL = 0;
@@ -325,10 +328,9 @@ public class Config {
 	// 输出：MySQL
 	/** ratio of real writes into mysql */
 	private double MYSQL_REAL_INSERT_RATE = 1.0;
-	/** Use what to store test data, currently support None, IoTDB, MySQL, CSV*/
-	private String TEST_DATA_PERSISTENCE = "None";
 
 	// 输出：CSV
+	// TODO 检查和TEST_DATA_PERSISTENCE同时存在的必要性
 	/** Whether output the result to an csv file located in data folder */
 	private boolean CSV_OUTPUT = true;
 	/** Current csv file write line */
