@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Config {
-	// TODO check descriptor
 	// 初始化
 	// 初始化：清理数据
 	/** Whether to clear old data before test */
@@ -81,7 +80,7 @@ public class Config {
 	 * 是否都可见，如果可见就可以向其他node发送
 	 * Whether access all nodes, rather than just one coordinator
 	 */
-	private boolean IS_ALL_NODES_VISIBLE = true;
+	private boolean IS_ALL_NODES_VISIBLE = false;
 
 	// 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
 	/** The data dir of IoTDB (Split by comma)*/
@@ -227,7 +226,6 @@ public class Config {
 	/** Whether insert out of order */
 	private boolean IS_OUT_OF_ORDER = false;
 	/**
-	 * TODO 添加枚举类
 	 * The mode of out-of-order insertion
 	 * 0: Out-of-order mode of Poisson distribution
 	 * 1: Out-of-order mode of batch
@@ -320,7 +318,6 @@ public class Config {
 	private String TEST_DATA_STORE_USER = "";
 	/** The password of user */
 	private String TEST_DATA_STORE_PW = "";
-	// TODO (features) server mode whether to use
 	/** The remark of experiment which will be stored into mysql as part of table name
 	 * (Notice that no .) rename to TEST_DATA_STORE_REMARK  */
 	private String REMARK = "";

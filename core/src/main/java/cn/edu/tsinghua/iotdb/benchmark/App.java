@@ -1,10 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
-import cn.edu.tsinghua.iotdb.benchmark.client.QueryRealDatasetClient;
-import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
-import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.*;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
@@ -13,34 +9,23 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.csv.CSVShutdownHook;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.FileSize;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.IoUsage;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.MemUsage;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.NetUsage;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.OpenFileNumber;
+import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class App {
 
@@ -316,6 +301,7 @@ public class App {
     private static void serverMode(Config config) {
         PersistenceFactory persistenceFactory = new PersistenceFactory();
         ITestDataPersistence recorder = persistenceFactory.getPersistence();
+        recorder.saveTestConfig();
 
         float abnormalValue = -1;
 
