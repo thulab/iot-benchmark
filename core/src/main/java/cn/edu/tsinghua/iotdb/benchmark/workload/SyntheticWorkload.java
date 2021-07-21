@@ -367,7 +367,7 @@ public class SyntheticWorkload implements IWorkload {
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_LOWER_LIMIT());
+        config.getQUERY_LOWER_VALUE());
   }
 
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
@@ -380,7 +380,7 @@ public class SyntheticWorkload implements IWorkload {
 
   public AggValueQuery getAggValueQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    return new AggValueQuery(queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_LIMIT());
+    return new AggValueQuery(queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
   }
 
   public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
@@ -388,7 +388,7 @@ public class SyntheticWorkload implements IWorkload {
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeValueQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_LIMIT());
+        config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
   }
 
   @Override

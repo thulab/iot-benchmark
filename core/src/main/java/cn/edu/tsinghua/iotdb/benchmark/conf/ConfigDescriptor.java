@@ -115,7 +115,7 @@ public class ConfigDescriptor {
 						.getProperty("WRITE_OPERATION_TIMEOUT_MS", config.getWRITE_OPERATION_TIMEOUT_MS() + "")));
 				config.setREAD_OPERATION_TIMEOUT_MS(Integer.parseInt(properties
 						.getProperty("READ_OPERATION_TIMEOUT_MS", config.getREAD_OPERATION_TIMEOUT_MS() + "")));
-				config.setQUERY_LOWER_LIMIT(Double.parseDouble(properties.getProperty("QUERY_LOWER_LIMIT", config.getQUERY_LOWER_LIMIT()+"")));
+				config.setQUERY_LOWER_VALUE(Double.parseDouble(properties.getProperty("QUERY_LOWER_VALUE", config.getQUERY_LOWER_VALUE() + "")));
 				config.setQUERY_SEED(Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED()+"")));
 				config.setIS_EMPTY_PRECISE_POINT_QUERY(Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.isIS_EMPTY_PRECISE_POINT_QUERY()+"")));
 				config.setREMARK(properties.getProperty("REMARK", "-"));

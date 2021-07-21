@@ -296,13 +296,11 @@ public class Config {
 	private String QUERY_AGGREGATE_FUN = "";
 	/**
 	 * The time interval between the start time and the end time in the query with start and end time
-	 * the time interval in groupBy (the unit is determined by the accuracy TODO TIMESTAMP_PRECISION ?)
+	 * the time interval in groupBy (the unit is determined by the accuracy)
 	 */
 	private long QUERY_INTERVAL = 10000;
-	/** Conditional query parameters
-	 * "where xxx > QUERY_LOWER_LIMIT"
-	 * todo rename to QUERY_LOWER_VALUE */
-	private double QUERY_LOWER_LIMIT = 0;
+	/** Conditional query parameters "where xxx > QUERY_LOWER_VALUE"*/
+	private double QUERY_LOWER_VALUE = 0;
 	/** Whether the query result is empty in the precise point query TODO 删除 DOC 留一个场景 未命中 */
 	private boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	/** The size of group in group by query(ms), Eg. 20000 TODO rename to GROUP_BY_TIME_UNIT */
@@ -1085,18 +1083,6 @@ public class Config {
 		return QUERY_INTERVAL;
 	}
 
-	public void setQUERY_INTERVAL(long QUERY_INTERVAL) {
-		this.QUERY_INTERVAL = QUERY_INTERVAL;
-	}
-
-	public double getQUERY_LOWER_LIMIT() {
-		return QUERY_LOWER_LIMIT;
-	}
-
-	public void setQUERY_LOWER_LIMIT(double QUERY_LOWER_LIMIT) {
-		this.QUERY_LOWER_LIMIT = QUERY_LOWER_LIMIT;
-	}
-
 	public boolean isIS_EMPTY_PRECISE_POINT_QUERY() {
 		return IS_EMPTY_PRECISE_POINT_QUERY;
 	}
@@ -1391,5 +1377,13 @@ public class Config {
 
 	public void setIS_REGULAR_FREQUENCY(boolean IS_REGULAR_FREQUENCY) {
 		this.IS_REGULAR_FREQUENCY = IS_REGULAR_FREQUENCY;
+	}
+
+	public double getQUERY_LOWER_VALUE() {
+		return QUERY_LOWER_VALUE;
+	}
+
+	public void setQUERY_LOWER_VALUE(double QUERY_LOWER_VALUE) {
+		this.QUERY_LOWER_VALUE = QUERY_LOWER_VALUE;
 	}
 }

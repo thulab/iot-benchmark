@@ -112,7 +112,7 @@ public class RealDatasetWorkLoad implements IWorkload {
 
   @Override
   public ValueRangeQuery getValueRangeQuery() {
-    return new ValueRangeQuery(deviceSchemaList, startTime, endTime, config.getQUERY_LOWER_LIMIT());
+    return new ValueRangeQuery(deviceSchemaList, startTime, endTime, config.getQUERY_LOWER_VALUE());
   }
 
   @Override
@@ -123,13 +123,13 @@ public class RealDatasetWorkLoad implements IWorkload {
   @Override
   public AggValueQuery getAggValueQuery() {
     return new AggValueQuery(startTime, endTime, deviceSchemaList, config.getQUERY_AGGREGATE_FUN(),
-        config.getQUERY_LOWER_LIMIT());
+        config.getQUERY_LOWER_VALUE());
   }
 
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() {
     return new AggRangeValueQuery(deviceSchemaList, startTime, endTime, config.getQUERY_AGGREGATE_FUN(),
-        config.getQUERY_LOWER_LIMIT());
+        config.getQUERY_LOWER_VALUE());
   }
 
   @Override
