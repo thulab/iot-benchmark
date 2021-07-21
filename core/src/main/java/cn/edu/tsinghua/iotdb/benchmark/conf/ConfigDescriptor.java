@@ -138,7 +138,6 @@ public class ConfigDescriptor {
 					config.getSEQUENCE_DIR().add(data_ + "/sequence");
 					config.getUNSEQUENCE_DIR().add(data_ + "/unsequence");
 				}
-				config.setENCODING(properties.getProperty("ENCODING", "PLAIN"));
 				config.setTEST_DATA_PERSISTENCE(properties.getProperty("TEST_DATA_PERSISTENCE", "None"));
 				config.setCSV_OUTPUT(Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT()+"")));
 				config.setSTRING_LENGTH(Integer.parseInt(properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH()+"")));

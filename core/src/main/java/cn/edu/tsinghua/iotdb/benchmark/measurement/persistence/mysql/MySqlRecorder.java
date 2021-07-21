@@ -260,11 +260,6 @@ public class MySqlRecorder implements ITestDataPersistence {
             "'查询数据集传感器数'", "'" + config.getSENSOR_NUMBER()
                 + "'");
         statement.addBatch(sql);
-        if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
-          sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'IOTDB编码方式'", "'" + config.getENCODING() + "'");
-          statement.addBatch(sql);
-        }
 
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'QUERY_DEVICE_NUM'", "'" + config.getQUERY_DEVICE_NUM()
@@ -302,11 +297,6 @@ public class MySqlRecorder implements ITestDataPersistence {
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'POINT_STEP'", "'" + config.getPOINT_STEP() + "'");
         statement.addBatch(sql);
-        if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
-          sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'ENCODING'", "'" + config.getENCODING() + "'");
-          statement.addBatch(sql);
-        }
       }
       statement.executeBatch();
     } catch (SQLException e) {

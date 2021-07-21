@@ -246,9 +246,6 @@ public class CSVRecorder implements ITestDataPersistence {
             str.append(String.format(FOUR, projectID, "查询数据集存储组数", config.getGROUP_NUMBER()));
             str.append(String.format(FOUR, projectID, "查询数据集设备数", config.getDEVICE_NUMBER()));
             str.append(String.format(FOUR, projectID, "查询数据集传感器数", config.getSENSOR_NUMBER()));
-            if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
-                str.append(String.format(FOUR, projectID, "IOTDB编码方式", config.getENCODING()));
-            }
             str.append(String.format(FOUR, projectID, "QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()));
             str.append(String.format(FOUR, projectID, "QUERY_SENSOR_NUM", config.getQUERY_SENSOR_NUM()));
             str.append(String.format(FOUR, projectID, "IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER()));
@@ -261,9 +258,6 @@ public class CSVRecorder implements ITestDataPersistence {
             str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
             str.append(String.format(FOUR, projectID, "BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE()));
             str.append(String.format(FOUR, projectID, "POINT_STEP", config.getPOINT_STEP()));
-            if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
-                str.append(String.format(FOUR, projectID, "ENCODING", config.getENCODING()));
-            }
         }
         try {
             confWriter.append(str.toString());

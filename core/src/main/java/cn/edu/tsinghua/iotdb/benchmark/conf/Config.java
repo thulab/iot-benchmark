@@ -318,15 +318,11 @@ public class Config {
 	/** The real time when query is stopped */
 	private long REAL_DATASET_QUERY_STOP_TIME = Long.MAX_VALUE;
 
-	// workload 相关部分 单位 MB TODO ?
+	// workload 相关部分 单位 MB
 	/** The size of workload buffer size */
 	private int WORKLOAD_BUFFER_SIZE = 100;
 
-	// 输出 TODO delete(now only for IoTDB)
-	/** The encoding of output data, currently supported PLAIN and GORILLA  */
-	private String ENCODING = "PLAIN";
-
-
+	// 输出
 	// 输出：系统性能 Server mode
 	/** System performance information recording interval is INTERVAL+2 seconds */
 	private int MONITOR_INTERVAL = 0;
@@ -679,14 +675,6 @@ public class Config {
 
 	public void setGROUP_NUMBER(int GROUP_NUMBER) {
 		this.GROUP_NUMBER = GROUP_NUMBER;
-	}
-
-	public String getENCODING() {
-		return ENCODING;
-	}
-
-	public void setENCODING(String ENCODING) {
-		this.ENCODING = ENCODING;
 	}
 
 	public String getCOMPRESSOR() {
