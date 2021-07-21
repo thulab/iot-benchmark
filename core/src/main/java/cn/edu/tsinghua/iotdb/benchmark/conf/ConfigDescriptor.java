@@ -117,7 +117,6 @@ public class ConfigDescriptor {
 						.getProperty("READ_OPERATION_TIMEOUT_MS", config.getREAD_OPERATION_TIMEOUT_MS() + "")));
 				config.setQUERY_LOWER_VALUE(Double.parseDouble(properties.getProperty("QUERY_LOWER_VALUE", config.getQUERY_LOWER_VALUE() + "")));
 				config.setQUERY_SEED(Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED()+"")));
-				config.setIS_EMPTY_PRECISE_POINT_QUERY(Boolean.parseBoolean(properties.getProperty("IS_EMPTY_PRECISE_POINT_QUERY", config.isIS_EMPTY_PRECISE_POINT_QUERY()+"")));
 				config.setREMARK(properties.getProperty("REMARK", "-"));
 				config.setMYSQL_REAL_INSERT_RATE(Double.parseDouble(properties.getProperty("MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE()+ "")));
 				config.setTEST_DATA_STORE_PORT(properties.getProperty("TEST_DATA_STORE_PORT", config.getTEST_DATA_STORE_PORT()));

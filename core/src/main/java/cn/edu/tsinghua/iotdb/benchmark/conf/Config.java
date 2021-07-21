@@ -301,8 +301,6 @@ public class Config {
 	private long QUERY_INTERVAL = 10000;
 	/** Conditional query parameters "where xxx > QUERY_LOWER_VALUE"*/
 	private double QUERY_LOWER_VALUE = 0;
-	/** Whether the query result is empty in the precise point query TODO 删除 DOC 留一个场景 未命中 */
-	private boolean IS_EMPTY_PRECISE_POINT_QUERY = false;
 	/** The size of group in group by query(ms), Eg. 20000 TODO rename to GROUP_BY_TIME_UNIT */
 	private long TIME_UNIT = QUERY_INTERVAL / 2;
 	/** Query random seed */
@@ -1081,14 +1079,6 @@ public class Config {
 
 	public long getQUERY_INTERVAL() {
 		return QUERY_INTERVAL;
-	}
-
-	public boolean isIS_EMPTY_PRECISE_POINT_QUERY() {
-		return IS_EMPTY_PRECISE_POINT_QUERY;
-	}
-
-	public void setIS_EMPTY_PRECISE_POINT_QUERY(boolean IS_EMPTY_PRECISE_POINT_QUERY) {
-		this.IS_EMPTY_PRECISE_POINT_QUERY = IS_EMPTY_PRECISE_POINT_QUERY;
 	}
 
 	public long getTIME_UNIT() {
