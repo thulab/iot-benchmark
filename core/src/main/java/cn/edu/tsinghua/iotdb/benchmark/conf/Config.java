@@ -1386,4 +1386,8 @@ public class Config {
 	public void setQUERY_LOWER_VALUE(double QUERY_LOWER_VALUE) {
 		this.QUERY_LOWER_VALUE = QUERY_LOWER_VALUE;
 	}
+
+	public void setQUERY_INTERVAL(long QUERY_INTERVAL) {
+		this.QUERY_INTERVAL = QUERY_INTERVAL;
+	}
 }
