@@ -108,7 +108,7 @@ public class SyntheticWorkloadTest {
    */
   @Test
   public void testGetOrderedBatch() throws Exception {
-    config.setBATCH_SIZE(5);
+    config.setBATCH_SIZE_PER_WRITE(5);
     config.setPOINT_STEP(5000);
     config.setIS_RANDOM_TIMESTAMP_INTERVAL(false);
     SyntheticWorkload syntheticWorkload = new SyntheticWorkload(1);

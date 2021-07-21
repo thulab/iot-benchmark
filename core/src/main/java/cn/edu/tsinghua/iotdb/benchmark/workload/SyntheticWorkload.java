@@ -196,8 +196,8 @@ public class SyntheticWorkload implements IWorkload {
 
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
@@ -207,8 +207,8 @@ public class SyntheticWorkload implements IWorkload {
   // TODO 为啥插入一个点
   private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
     Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset,colIndex);
     }
     batch.setDeviceSchema(deviceSchema);
@@ -220,16 +220,16 @@ public class SyntheticWorkload implements IWorkload {
     // Config 添加乱序步长 Poisson 替代MAX_K
     // 乱序步长为k，则在t-k的范围内按照分布规律进行差值，大于t的部分不变，t为当前时间
     Batch batch = new Batch();
-    long barrier = (long) (config.getBATCH_SIZE() * config.getOVERFLOW_RATIO());
-    long stepOffset = loopIndex * config.getBATCH_SIZE() + barrier;
+    long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOVERFLOW_RATIO());
+    long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + barrier;
     // move data(index = barrier) to front
     addOneRowIntoBatch(batch, stepOffset);
     for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
-      stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
+      stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
     }
-    for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
-      stepOffset = loopIndex * config.getBATCH_SIZE() + batchOffset;
+    for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+      stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
@@ -241,7 +241,7 @@ public class SyntheticWorkload implements IWorkload {
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       if (probTool.returnTrueByProb(config.getOVERFLOW_RATIO(), poissonRandom)) {
         // generate overflow timestamp
         nextDelta = poissonDistribution.getNextPossionDelta();

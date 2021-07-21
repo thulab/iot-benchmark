@@ -238,9 +238,8 @@ public class Config {
 	 * The number of data rows written in batch
 	 * each row is the data of all sensors of a certain device at a certain time stamp
 	 * the number of data points written in each batch = SENSOR_NUMBER * BATCH_SIZE
-	 * TODO rename to BATCH_SIZE_PER_WRITE
 	 */
-	private int BATCH_SIZE = 1000;
+	private int BATCH_SIZE_PER_WRITE = 1000;
 	/** Whether create schema before writing */
 	private boolean CREATE_SCHEMA = true;
 
@@ -695,14 +694,6 @@ public class Config {
 
 	public void setSG_STRATEGY(String SG_STRATEGY) {
 		this.SG_STRATEGY = SG_STRATEGY;
-	}
-
-	public int getBATCH_SIZE() {
-		return BATCH_SIZE;
-	}
-
-	public void setBATCH_SIZE(int BATCH_SIZE) {
-		this.BATCH_SIZE = BATCH_SIZE;
 	}
 
 	public int getGROUP_NUMBER() {
@@ -1407,5 +1398,13 @@ public class Config {
 
 	public void setIOTDB_SESSION_POOL_SIZE(int IOTDB_SESSION_POOL_SIZE) {
 		this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
+	}
+
+	public int getBATCH_SIZE_PER_WRITE() {
+		return BATCH_SIZE_PER_WRITE;
+	}
+
+	public void setBATCH_SIZE_PER_WRITE(int BATCH_SIZE_PER_WRITE) {
+		this.BATCH_SIZE_PER_WRITE = BATCH_SIZE_PER_WRITE;
 	}
 }

@@ -299,7 +299,7 @@ public class MySqlRecorder implements ITestDataPersistence {
             "'SENSOR_NUMBER'", "'" + config.getSENSOR_NUMBER() + "'");
         statement.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'BATCH_SIZE'", "'" + config.getBATCH_SIZE() + "'");
+            "'BATCH_SIZE_PER_WRITE'", "'" + config.getBATCH_SIZE_PER_WRITE() + "'");
         statement.addBatch(sql);
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
             "'POINT_STEP'", "'" + config.getPOINT_STEP() + "'");

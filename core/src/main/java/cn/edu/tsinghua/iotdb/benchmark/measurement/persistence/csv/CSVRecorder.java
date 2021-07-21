@@ -260,7 +260,7 @@ public class CSVRecorder implements ITestDataPersistence {
             str.append(String.format(FOUR, projectID, "GROUP_NUMBER", config.getGROUP_NUMBER()));
             str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
             str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
-            str.append(String.format(FOUR, projectID, "BATCH_SIZE", config.getBATCH_SIZE()));
+            str.append(String.format(FOUR, projectID, "BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE()));
             str.append(String.format(FOUR, projectID, "POINT_STEP", config.getPOINT_STEP()));
             if (config.getDB_SWITCH().contains(Constants.DB_IOT)) {
                 str.append(String.format(FOUR, projectID, "ENCODING", config.getENCODING()));

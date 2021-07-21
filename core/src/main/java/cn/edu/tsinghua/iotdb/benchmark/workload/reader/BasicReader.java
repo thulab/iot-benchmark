@@ -91,7 +91,7 @@ public abstract class BasicReader {
 
         // read a line, cache it
         cachedLines.add(line);
-        if (cachedLines.size() == config.getBATCH_SIZE()) {
+        if (cachedLines.size() == config.getBATCH_SIZE_PER_WRITE()) {
           break;
         }
       }

@@ -213,7 +213,7 @@ public class Measurement {
     System.out.println("GROUP_NUMBER: " + config.getGROUP_NUMBER());
     System.out.println("DEVICE_NUMBER: " + config.getDEVICE_NUMBER());
     System.out.println("SENSOR_NUMBER: " + config.getSENSOR_NUMBER());
-    System.out.println("BATCH_SIZE: " + config.getBATCH_SIZE());
+    System.out.println("BATCH_SIZE_PER_WRITE: " + config.getBATCH_SIZE_PER_WRITE());
     System.out.println("LOOP: " + config.getLOOP());
     System.out.println("POINT_STEP: "+ config.getPOINT_STEP());
     System.out.println("QUERY_INTERVAL: " + config.getQUERY_INTERVAL());
@@ -332,7 +332,7 @@ public class Measurement {
       bw.newLine();
       bw.write("SENSOR_NUMBER," + config.getSENSOR_NUMBER());
       bw.newLine();
-      bw.write("BATCH_SIZE," + config.getBATCH_SIZE());
+      bw.write("BATCH_SIZE_PER_WRITE," + config.getBATCH_SIZE_PER_WRITE());
       bw.newLine();
       bw.write("LOOP," + config.getLOOP());
       bw.newLine();

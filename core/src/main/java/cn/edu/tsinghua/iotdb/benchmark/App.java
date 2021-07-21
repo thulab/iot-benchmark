@@ -140,7 +140,7 @@ public class App {
      */
     private static void testWithRealDataSet(Config config) {
         // getBATCH_SIZE() is points number in this mode
-        config.setBATCH_SIZE(config.getBATCH_SIZE() / config.getFIELDS().size());
+        config.setBATCH_SIZE_PER_WRITE(config.getBATCH_SIZE_PER_WRITE() / config.getFIELDS().size());
 
         File dirFile = new File(config.getFILE_PATH());
         if (!dirFile.exists()) {

@@ -44,9 +44,9 @@ public class SingletonWorkload {
     long curLoop = insertLoop.getAndIncrement();
     DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER());
     Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       //todo 这里应该是有bug：device number  大于 batch size时， 会出现重复时间戳。
-      long stepOffset = (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE() + batchOffset;
+      long stepOffset = (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
@@ -61,7 +61,7 @@ public class SingletonWorkload {
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE(); batchOffset++) {
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       if (probTool.returnTrueByProb(config.getOVERFLOW_RATIO(), poissonRandom)) {
         // generate overflow timestamp
         nextDelta = poissonDistribution.getNextPossionDelta();

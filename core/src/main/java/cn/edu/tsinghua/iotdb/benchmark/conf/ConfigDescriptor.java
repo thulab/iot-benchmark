@@ -80,7 +80,7 @@ public class ConfigDescriptor {
 				}
 
 				config.setPOINT_STEP(Long.parseLong(properties.getProperty("POINT_STEP", config.getPOINT_STEP()+"")));
-				config.setBATCH_SIZE(Integer.parseInt(properties.getProperty("BATCH_SIZE", config.getBATCH_SIZE() +"")));
+				config.setBATCH_SIZE_PER_WRITE(Integer.parseInt(properties.getProperty("BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE() + "")));
 				config.setSG_STRATEGY(properties.getProperty("SG_STRATEGY", "hash"));
 				config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP()+"")));
 				config.setLINE_RATIO(Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO()+"")));

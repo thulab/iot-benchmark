@@ -16,7 +16,8 @@ public class AggValueQuery extends AggRangeQuery {
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
   private static final long timeRangeConst = (config.getTIMESTAMP_PRECISION().equals("ns")) ? 3L : 1000L;
   private static final long END_TIME =
-          (Constants.START_TIMESTAMP + config.getPOINT_STEP() * config.getBATCH_SIZE() * 1000L * timeRangeConst) * timeStampConst;
+          (Constants.START_TIMESTAMP + config.getPOINT_STEP()
+                  * config.getBATCH_SIZE_PER_WRITE() * 1000L * timeRangeConst) * timeStampConst;
 
   public AggValueQuery(List<DeviceSchema> deviceSchema, String aggFun, double valueThreshold) {
     super(deviceSchema, Constants.START_TIMESTAMP * timeStampConst, END_TIME, aggFun);
