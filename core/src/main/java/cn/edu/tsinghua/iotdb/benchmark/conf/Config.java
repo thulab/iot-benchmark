@@ -217,8 +217,8 @@ public class Config {
 	private String SG_STRATEGY="hash";
 	/** The number of storage group, must less than or equal to number of devices */
 	private int GROUP_NUMBER = 1;
-	/** The size of core session pool TODO rename to IOTDB_SESSION_POOL_SIZE*/
-	private int poolSize = 50;
+	/** The size of IoTDB core session pool */
+	private int IOTDB_SESSION_POOL_SIZE = 50;
 
 	// Operation 相关参数
 	/**
@@ -1081,14 +1081,6 @@ public class Config {
 		this.DATA_SEED = DATA_SEED;
 	}
 
-	public int getPoolSize() {
-		return poolSize;
-	}
-
-	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
-	}
-
 	public List<Integer> getDEVICE_CODES() {
 		return DEVICE_CODES;
 	}
@@ -1407,5 +1399,13 @@ public class Config {
 
 	public void setSTRING_LENGTH(int STRING_LENGTH) {
 		this.STRING_LENGTH = STRING_LENGTH;
+	}
+
+	public int getIOTDB_SESSION_POOL_SIZE() {
+		return IOTDB_SESSION_POOL_SIZE;
+	}
+
+	public void setIOTDB_SESSION_POOL_SIZE(int IOTDB_SESSION_POOL_SIZE) {
+		this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
 	}
 }

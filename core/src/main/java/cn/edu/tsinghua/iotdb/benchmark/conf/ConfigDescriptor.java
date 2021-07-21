@@ -63,7 +63,7 @@ public class ConfigDescriptor {
 				config.setZOOKEEPER_LOCATION(properties.getProperty("ZOOKEEPER_LOCATION", "no ZOOKEEPER_LOCATION"));
 				config.setTOPIC_NAME(properties.getProperty("TOPIC_NAME", "NULL"));
 
-				config.setPoolSize(Integer.parseInt(properties.getProperty("POOL_SIZE", config.getPoolSize() + "")));
+				config.setIOTDB_SESSION_POOL_SIZE(Integer.parseInt(properties.getProperty("IOTDB_SESSION_POOL_SIZE", config.getIOTDB_SESSION_POOL_SIZE() + "")));
 
 				config.setDEVICE_NUMBER(Integer.parseInt(properties.getProperty("DEVICE_NUMBER", config.getDEVICE_NUMBER()+"")));
 				config.setSENSOR_NUMBER(Integer.parseInt(properties.getProperty("SENSOR_NUMBER", config.getSENSOR_NUMBER()+"")));
