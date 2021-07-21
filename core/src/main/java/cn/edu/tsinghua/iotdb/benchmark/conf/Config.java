@@ -29,8 +29,6 @@ public class Config {
 	/** Total number of operations that each client process 查询时会被按比例划分 */
 	private long LOOP = 10000;
 
-	// TODO Server mode 配置项聚集
-
 	/**
 	 * The running mode of benchmark
 	 * 1. testWithDefaultPath: Conventional test mode, supporting mixed loads of multiple
@@ -73,7 +71,6 @@ public class Config {
 	/** The port of database server */
 	private List<String> PORT = Arrays.asList("6667");
 
-	// TODO 添加进入IoTDB部分
 	/** The name of database to use, and the prefix of group, eg.IoTDB root.{DB_NAME} */
 	private String DB_NAME = "_test";
 

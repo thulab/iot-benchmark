@@ -11,7 +11,7 @@ public class Constants {
     public static final String URL = "jdbc:iotdb://%s:%s/";
     public static final String USER = "root";
     public static final String PASSWD = "root";
-    public static final String ROOT_SERIES_NAME = "root";
+    public static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
     public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
     public static final String BENCHMARK_CONF = "benchmark-conf";
     public static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
