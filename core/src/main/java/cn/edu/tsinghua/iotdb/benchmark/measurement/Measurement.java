@@ -217,9 +217,9 @@ public class Measurement {
     System.out.println("LOOP: " + config.getLOOP());
     System.out.println("POINT_STEP: "+ config.getPOINT_STEP());
     System.out.println("QUERY_INTERVAL: " + config.getQUERY_INTERVAL());
-    System.out.println("IS_OVERFLOW: " + config.isIS_OVERFLOW());
-    System.out.println("OVERFLOW_MODE: " + config.getOVERFLOW_MODE());
-    System.out.println("OVERFLOW_RATIO: " + config.getOVERFLOW_RATIO());
+    System.out.println("IS_OUT_OF_ORDER: " + config.isIS_OUT_OF_ORDER());
+    System.out.println("OUT_OF_ORDER_MODE: " + config.getOUT_OF_ORDER_MODE());
+    System.out.println("OUT_OF_ORDER_RATIO: " + config.getOUT_OF_ORDER_RATIO());
     System.out.println("---------------------------------------------------------------");
   }
 
@@ -340,11 +340,11 @@ public class Measurement {
       bw.newLine();
       bw.write("QUERY_INTERVAL," + config.getQUERY_INTERVAL());
       bw.newLine();
-      bw.write("IS_OVERFLOW," + config.isIS_OVERFLOW());
+      bw.write("IS_OUT_OF_ORDER," + config.isIS_OUT_OF_ORDER());
       bw.newLine();
-      bw.write("OVERFLOW_MODE," + config.getOVERFLOW_MODE());
+      bw.write("OVERFLOW_MODE_ORDER," + config.getOUT_OF_ORDER_MODE());
       bw.newLine();
-      bw.write("OVERFLOW_RATIO," + config.getOVERFLOW_RATIO());
+      bw.write("OUT_OF_ORDER_RATIO," + config.getOUT_OF_ORDER_RATIO());
       bw.close();
     } catch (IOException e) {
       LOGGER.error("Exception occurred during operating buffer writer because: ", e);

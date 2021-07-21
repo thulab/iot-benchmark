@@ -248,16 +248,17 @@ public class Config {
 	private String START_TIME = "2018-8-30T00:00:00+08:00";
 
 	// Operation：乱序写入部分
-	/** Whether insert out of order TODO rename IS_OUT_OF_ORDER*/
-	private boolean IS_OVERFLOW = false;
+	/** Whether insert out of order */
+	private boolean IS_OUT_OF_ORDER = false;
 	/**
+	 * TODO 添加枚举类
 	 * The mode of out-of-order insertion
 	 * 0: Out-of-order mode of Poisson distribution
 	 * 1: Out-of-order mode of batch
 	 */
-	private int OVERFLOW_MODE = 0;
+	private int OUT_OF_ORDER_MODE = 0;
 	/** The out of order ratio of batch inserting */
-	private double OVERFLOW_RATIO = 1.0;
+	private double OUT_OF_ORDER_RATIO = 1.0;
 	/**
 	 * Whether use random time interval in inorder data
 	 * need IS_OVERFLOWED = true TODO rename IS_REGULAR_FREQUENCY
@@ -718,30 +719,6 @@ public class Config {
 
 	public void setINIT_WAIT_TIME(long INIT_WAIT_TIME) {
 		this.INIT_WAIT_TIME = INIT_WAIT_TIME;
-	}
-
-	public boolean isIS_OVERFLOW() {
-		return IS_OVERFLOW;
-	}
-
-	public void setIS_OVERFLOW(boolean IS_OVERFLOW) {
-		this.IS_OVERFLOW = IS_OVERFLOW;
-	}
-
-	public int getOVERFLOW_MODE() {
-		return OVERFLOW_MODE;
-	}
-
-	public void setOVERFLOW_MODE(int OVERFLOW_MODE) {
-		this.OVERFLOW_MODE = OVERFLOW_MODE;
-	}
-
-	public double getOVERFLOW_RATIO() {
-		return OVERFLOW_RATIO;
-	}
-
-	public void setOVERFLOW_RATIO(double OVERFLOW_RATIO) {
-		this.OVERFLOW_RATIO = OVERFLOW_RATIO;
 	}
 
 	public double getREAL_INSERT_RATE() {
@@ -1390,5 +1367,29 @@ public class Config {
 
 	public void setBATCH_SIZE_PER_WRITE(int BATCH_SIZE_PER_WRITE) {
 		this.BATCH_SIZE_PER_WRITE = BATCH_SIZE_PER_WRITE;
+	}
+
+	public boolean isIS_OUT_OF_ORDER() {
+		return IS_OUT_OF_ORDER;
+	}
+
+	public void setIS_OUT_OF_ORDER(boolean IS_OUT_OF_ORDER) {
+		this.IS_OUT_OF_ORDER = IS_OUT_OF_ORDER;
+	}
+
+	public int getOUT_OF_ORDER_MODE() {
+		return OUT_OF_ORDER_MODE;
+	}
+
+	public void setOUT_OF_ORDER_MODE(int OUT_OF_ORDER_MODE) {
+		this.OUT_OF_ORDER_MODE = OUT_OF_ORDER_MODE;
+	}
+
+	public double getOUT_OF_ORDER_RATIO() {
+		return OUT_OF_ORDER_RATIO;
+	}
+
+	public void setOUT_OF_ORDER_RATIO(double OUT_OF_ORDER_RATIO) {
+		this.OUT_OF_ORDER_RATIO = OUT_OF_ORDER_RATIO;
 	}
 }

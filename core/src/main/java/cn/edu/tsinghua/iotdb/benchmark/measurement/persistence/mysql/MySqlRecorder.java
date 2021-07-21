@@ -276,11 +276,11 @@ public class MySqlRecorder implements ITestDataPersistence {
         statement.addBatch(sql);
 
         sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-            "'IS_OVERFLOW'", "'" + config.isIS_OVERFLOW() + "'");
+            "'IS_OUT_OF_ORDER'", "'" + config.isIS_OUT_OF_ORDER() + "'");
         statement.addBatch(sql);
-        if (config.isIS_OVERFLOW()) {
+        if (config.isIS_OUT_OF_ORDER()) {
           sql = String.format(SAVE_CONFIG, "'" + projectID + "'",
-              "'OVERFLOW_RATIO'", "'" + config.getOVERFLOW_RATIO() + "'");
+              "'OUT_OF_ORDER_RATIO'", "'" + config.getOUT_OF_ORDER_RATIO() + "'");
           statement.addBatch(sql);
         }
         statement.addBatch(sql);

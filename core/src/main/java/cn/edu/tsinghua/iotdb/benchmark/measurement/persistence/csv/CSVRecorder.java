@@ -251,9 +251,9 @@ public class CSVRecorder implements ITestDataPersistence {
             }
             str.append(String.format(FOUR, projectID, "QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()));
             str.append(String.format(FOUR, projectID, "QUERY_SENSOR_NUM", config.getQUERY_SENSOR_NUM()));
-            str.append(String.format(FOUR, projectID, "IS_OVERFLOW", config.isIS_OVERFLOW()));
-            if (config.isIS_OVERFLOW()) {
-                str.append(String.format(FOUR, projectID, "OVERFLOW_RATIO",  config.getOVERFLOW_RATIO()));
+            str.append(String.format(FOUR, projectID, "IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER()));
+            if (config.isIS_OUT_OF_ORDER()) {
+                str.append(String.format(FOUR, projectID, "OUT_OF_ORDER_RATIO",  config.getOUT_OF_ORDER_RATIO()));
             }
             str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
             str.append(String.format(FOUR, projectID, "GROUP_NUMBER", config.getGROUP_NUMBER()));

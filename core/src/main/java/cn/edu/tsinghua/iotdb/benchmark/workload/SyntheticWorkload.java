@@ -179,7 +179,7 @@ public class SyntheticWorkload implements IWorkload {
 
   private static long getCurrentTimestamp(long stepOffset) {
     long timeStampOffset = config.getPOINT_STEP() * stepOffset;
-    if (config.isIS_OVERFLOW()) {
+    if (config.isIS_OUT_OF_ORDER()) {
       // 随机加上数秒，使得时间不是均匀的。但是不会乱序。
       // 添加 ratio 使用randorm->timestampRandom
       //TODO 但是方法名可是说可能会乱序啊！！！！！！！
@@ -220,7 +220,7 @@ public class SyntheticWorkload implements IWorkload {
     // Config 添加乱序步长 Poisson 替代MAX_K
     // 乱序步长为k，则在t-k的范围内按照分布规律进行差值，大于t的部分不变，t为当前时间
     Batch batch = new Batch();
-    long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOVERFLOW_RATIO());
+    long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
     long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + barrier;
     // move data(index = barrier) to front
     addOneRowIntoBatch(batch, stepOffset);
@@ -242,7 +242,7 @@ public class SyntheticWorkload implements IWorkload {
     int nextDelta;
     long stepOffset;
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      if (probTool.returnTrueByProb(config.getOVERFLOW_RATIO(), poissonRandom)) {
+      if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
         // generate overflow timestamp
         nextDelta = poissonDistribution.getNextPossionDelta();
         stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
@@ -281,32 +281,32 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
-    if (!config.isIS_OVERFLOW()) {
+    if (!config.isIS_OUT_OF_ORDER()) {
       return getOrderedBatch(deviceSchema, loopIndex);
     } else {
-      switch (config.getOVERFLOW_MODE()) {
+      switch (config.getOUT_OF_ORDER_MODE()) {
         case 0:
           return getDistOutOfOrderBatch(deviceSchema);
         case 1:
           return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
         default:
-          throw new WorkloadException("Unsupported overflow mode: " + config.getOVERFLOW_MODE());
+          throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
       }
     }
   }
 
   @Override
   public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException {
-    if (!config.isIS_OVERFLOW()) {
+    if (!config.isIS_OUT_OF_ORDER()) {
       return getOrderedBatch(deviceSchema, loopIndex,colIndex);
     } else {
-      switch (config.getOVERFLOW_MODE()) {
+      switch (config.getOUT_OF_ORDER_MODE()) {
         case 0:
           return getDistOutOfOrderBatch(deviceSchema);
         case 1:
           return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
         default:
-          throw new WorkloadException("Unsupported overflow mode: " + config.getOVERFLOW_MODE());
+          throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
       }
     }
   }

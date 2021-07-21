@@ -62,7 +62,7 @@ public class SingletonWorkload {
     int nextDelta;
     long stepOffset;
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      if (probTool.returnTrueByProb(config.getOVERFLOW_RATIO(), poissonRandom)) {
+      if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
         // generate overflow timestamp
         nextDelta = poissonDistribution.getNextPossionDelta();
         stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).get() - nextDelta;
@@ -81,16 +81,16 @@ public class SingletonWorkload {
   }
 
   public Batch getOneBatch() throws WorkloadException {
-    if (!config.isIS_OVERFLOW()) {
+    if (!config.isIS_OUT_OF_ORDER()) {
       return getOrderedBatch();
     } else {
-      switch (config.getOVERFLOW_MODE()) {
+      switch (config.getOUT_OF_ORDER_MODE()) {
         case 0:
           return getDistOutOfOrderBatch();
         case 1:
           return getLocalOutOfOrderBatch();
         default:
-          throw new WorkloadException("Unsupported overflow mode: " + config.getOVERFLOW_MODE());
+          throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
       }
     }
   }

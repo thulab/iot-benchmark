@@ -147,11 +147,11 @@ public class ConfigDescriptor {
 				config.setIS_QUIET_MODE(Boolean.parseBoolean(properties.getProperty("IS_QUIET_MODE", config.isIS_QUIET_MODE()+"")));
 				config.setNET_DEVICE(properties.getProperty("NET_DEVICE", "e"));
 				config.setWORKLOAD_BUFFER_SIZE(Integer.parseInt(properties.getProperty("WORKLOAD_BUFFER_SIZE", config.getWORKLOAD_BUFFER_SIZE()+"")));
-				config.setIS_OVERFLOW(Boolean.parseBoolean(properties.getProperty("IS_OVERFLOW", config.isIS_OVERFLOW()+"")));
-				config.setOVERFLOW_RATIO(Double.parseDouble(properties.getProperty("OVERFLOW_RATIO", config.getOVERFLOW_RATIO()+"")));
+				config.setIS_OUT_OF_ORDER(Boolean.parseBoolean(properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
+				config.setOUT_OF_ORDER_MODE(Integer.parseInt(properties.getProperty("OUT_OF_ORDER_MODE", config.getOUT_OF_ORDER_MODE() + "")));
+				config.setOUT_OF_ORDER_RATIO(Double.parseDouble(properties.getProperty("OUT_OF_ORDER_RATIO", config.getOUT_OF_ORDER_RATIO() + "")));
 
 				config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
-				config.setOVERFLOW_MODE(Integer.parseInt(properties.getProperty("OVERFLOW_MODE", config.getOVERFLOW_MODE()+"")));
 				config.setMAX_K(Integer.parseInt(properties.getProperty("MAX_K", config.getMAX_K()+"")));
 				config.setLAMBDA(Double.parseDouble(properties.getProperty("LAMBDA", config.getLAMBDA()+"")));
 				config.setIS_RANDOM_TIMESTAMP_INTERVAL(Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.isIS_RANDOM_TIMESTAMP_INTERVAL()+"")));
