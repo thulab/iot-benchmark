@@ -77,8 +77,8 @@ public class RealDatasetWorkLoad implements IWorkload {
     }
 
     //init startTime, endTime
-    startTime = config.getREAL_QUERY_START_TIME();
-    endTime = config.getREAL_QUERY_STOP_TIME();
+    startTime = config.getREAL_DATASET_QUERY_START_TIME();
+    endTime = config.getREAL_DATASET_QUERY_STOP_TIME();
 
   }
 

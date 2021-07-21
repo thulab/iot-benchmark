@@ -180,8 +180,8 @@ public class ConfigDescriptor {
 				config.setIS_CLIENT_BIND(Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND()+"")));
 				config.setIS_SENSOR_TS_ALIGNMENT(Boolean.parseBoolean(properties.getProperty("IS_SENSOR_TS_ALIGNMENT", config.isIS_SENSOR_TS_ALIGNMENT()+"")));
 				config.setIS_DELETE_DATA(Boolean.parseBoolean(properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA()+"")));
-				config.setREAL_QUERY_START_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_START_TIME", config.getREAL_QUERY_START_TIME()+"")));
-				config.setREAL_QUERY_STOP_TIME(Long.parseLong(properties.getProperty("REAL_QUERY_STOP_TIME", config.getREAL_QUERY_STOP_TIME()+"")));
+				config.setREAL_DATASET_QUERY_START_TIME(Long.parseLong(properties.getProperty("REAL_DATASET_QUERY_START_TIME", config.getREAL_DATASET_QUERY_START_TIME() + "")));
+				config.setREAL_DATASET_QUERY_STOP_TIME(Long.parseLong(properties.getProperty("REAL_DATASET_QUERY_STOP_TIME", config.getREAL_DATASET_QUERY_STOP_TIME() + "")));
 				config.setBENCHMARK_CLUSTER(Boolean.parseBoolean(properties.getProperty("USE_CLUSTER",config.isBENCHMARK_CLUSTER() + "")));
 				config.setENABLE_THRIFT_COMPRESSION(Boolean.parseBoolean(properties.getProperty("ENABLE_THRIFT_COMPRESSION", config.isENABLE_THRIFT_COMPRESSION() + "")));
 				if (config.isBENCHMARK_CLUSTER()){

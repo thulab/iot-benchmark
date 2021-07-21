@@ -313,10 +313,10 @@ public class Config {
 	private int QUERY_SLIMIT_N = 1;
 	/** Offset of output sequences */
 	private int QUERY_SLIMIT_OFFSET = 0;
-	/** The real time when query is started todo rename to REAL_DATASET_QUERY_START_TIME*/
-	private long REAL_QUERY_START_TIME = 0;
-	/** The real time when query is stopped TODO rename */
-	private long REAL_QUERY_STOP_TIME = Long.MAX_VALUE;
+	/** The real time when query is started */
+	private long REAL_DATASET_QUERY_START_TIME = 0;
+	/** The real time when query is stopped */
+	private long REAL_DATASET_QUERY_STOP_TIME = Long.MAX_VALUE;
 	/**
 	 * The mode of limit clause in query
 	 * 0: there is no limit
@@ -1137,20 +1137,20 @@ public class Config {
 		this.CREATE_SCHEMA = CREATE_SCHEMA;
 	}
 
-	public long getREAL_QUERY_START_TIME() {
-		return REAL_QUERY_START_TIME;
+	public long getREAL_DATASET_QUERY_START_TIME() {
+		return REAL_DATASET_QUERY_START_TIME;
 	}
 
-	public void setREAL_QUERY_START_TIME(long REAL_QUERY_START_TIME) {
-		this.REAL_QUERY_START_TIME = REAL_QUERY_START_TIME;
+	public void setREAL_DATASET_QUERY_START_TIME(long REAL_DATASET_QUERY_START_TIME) {
+		this.REAL_DATASET_QUERY_START_TIME = REAL_DATASET_QUERY_START_TIME;
 	}
 
-	public long getREAL_QUERY_STOP_TIME() {
-		return REAL_QUERY_STOP_TIME;
+	public long getREAL_DATASET_QUERY_STOP_TIME() {
+		return REAL_DATASET_QUERY_STOP_TIME;
 	}
 
-	public void setREAL_QUERY_STOP_TIME(long REAL_QUERY_STOP_TIME) {
-		this.REAL_QUERY_STOP_TIME = REAL_QUERY_STOP_TIME;
+	public void setREAL_DATASET_QUERY_STOP_TIME(long REAL_DATASET_QUERY_STOP_TIME) {
+		this.REAL_DATASET_QUERY_STOP_TIME = REAL_DATASET_QUERY_STOP_TIME;
 	}
 
 	public String getTEST_DATA_PERSISTENCE() {
