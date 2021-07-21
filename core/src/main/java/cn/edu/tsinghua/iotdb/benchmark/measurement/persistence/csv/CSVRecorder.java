@@ -135,7 +135,7 @@ public class CSVRecorder implements ITestDataPersistence {
     @Override
     public void saveOperationResult(String operation, int okPoint, int failPoint, double latency, String remark) {
         if (config.isCSV_FILE_SPLIT()) {
-            if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getMAX_CSV_LINE()) {
+            if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
                 reentrantLock.lock();
                 try {
                     createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark);
@@ -181,7 +181,7 @@ public class CSVRecorder implements ITestDataPersistence {
 
     private void createNewCsvOrInsert(String operation, int okPoint, int failPoint, double latency,
         String remark) {
-        if(config.getCURRENT_CSV_LINE() >= config.getMAX_CSV_LINE()) {
+        if(config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
             FileWriter newProjectWriter = null;
             if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
                 String firstLine = "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";

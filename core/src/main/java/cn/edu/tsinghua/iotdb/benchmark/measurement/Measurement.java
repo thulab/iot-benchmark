@@ -202,12 +202,6 @@ public class Measurement {
     System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
     System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
     System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());
-    System.out.println("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT): " + config.getENCODING_BOOLEAN()
-                                                                     + "/" + config.getENCODING_INT32()
-                                                                     + "/" + config.getENCODING_INT64()
-                                                                     + "/" + config.getENCODING_FLOAT()
-                                                                     + "/" + config.getENCODING_DOUBLE()
-                                                                     + "/" + config.getENCODING_TEXT());
     System.out.println("IS_CLIENT_BIND: " + config.isIS_CLIENT_BIND());
     System.out.println("CLIENT_NUMBER: " + config.getCLIENT_NUMBER());
     System.out.println("GROUP_NUMBER: " + config.getGROUP_NUMBER());
@@ -314,13 +308,6 @@ public class Measurement {
       bw.write("ENABLE_THRIFT_COMPRESSION," + config.isENABLE_THRIFT_COMPRESSION());
       bw.newLine();
       bw.write("INSERT_DATATYPE_PROPORTION," + config.getINSERT_DATATYPE_PROPORTION());
-      bw.newLine();
-      bw.write("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT)," + config.getENCODING_BOOLEAN()
-                                                                + "/" + config.getENCODING_INT32()
-                                                                + "/" + config.getENCODING_INT64()
-                                                                + "/" + config.getENCODING_FLOAT()
-                                                                + "/" + config.getENCODING_DOUBLE()
-                                                                + "/" + config.getENCODING_TEXT());
       bw.newLine();
       bw.write("IS_CLIENT_BIND," + config.isIS_CLIENT_BIND());
       bw.newLine();

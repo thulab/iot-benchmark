@@ -4,13 +4,15 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 
 public class Config {
+	// TODO check descriptor
 	// 初始化
 	// 初始化：清理数据
 	/** Whether to clear old data before test */
@@ -93,7 +95,6 @@ public class Config {
 	/** The unsequence dirs of IoTDB */
 	private List<String> UNSEQUENCE_DIR = new ArrayList<>();
 
-	// TODO 双写模式功能
 	// 双写模式：目前双写要求相同类型数据库 需要配置第二数据库 + Kafka
 	/** Whether insert into another database in the same time */
 	private boolean ENABLE_DOUBLE_INSERT = false;
@@ -101,7 +102,6 @@ public class Config {
 	private List<String> ANOTHER_HOST = Arrays.asList("127.0.0.1");
 	/** The port of another database server */
 	private List<String> ANOTHER_PORT = Arrays.asList("6668");
-	// TODO involve
 	/** The name of another database */
 	private String ANOTHER_DB_NAME = "_test";
 
@@ -120,11 +120,6 @@ public class Config {
 	private String TIMESTAMP_PRECISION = "ms";
 
 	// 数据
-	// 数据：压缩 要和IoTDB保持一致
-
-	// TODO 删除，直接从IoTDB中使用
-	/** The compressor way of data, currently supported UNCOMPRESSOR | SNAPPY (only valid for IoTDB) */
-	private String COMPRESSOR = "UNCOMPRESSED";
 
 	// 数据：格式与编码
 	/**  The length of string */
@@ -140,22 +135,6 @@ public class Config {
 	 * D6: TEXT
 	 */
 	private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
-	/**
-	 * Supported encoding type for different types of data(Only works for IoTDB)
-	 * TODO 数据库本身参数 下面6个删除
-	 */
-	/** BOOLEAN: PLAIN/RLE */
-	private String ENCODING_BOOLEAN = "PLAIN";
-	/** INT32: PLAIN/RLE/TS_2DIFF/REGULAR */
-	private String ENCODING_INT32 = "PLAIN";
-	/** INT64: PLAIN/RLE/TS_2DIFF/REGULAR */
-	private String ENCODING_INT64 = "PLAIN";
-	/** FLOAT: PLAIN/RLE/TS_2DIFF/GORILLA */
-	private String ENCODING_FLOAT = "PLAIN";
-	/** DOUBLE: PLAIN/RLE/TS_2DIFF/GORILLA */
-	private String ENCODING_DOUBLE = "PLAIN";
-	/** TEXT: PLAIN*/
-	private String ENCODING_TEXT = "PLAIN";
 
 	// 测试数据相关参数
 
@@ -212,7 +191,7 @@ public class Config {
 	/** if enable the thrift compression */
 	private boolean ENABLE_THRIFT_COMPRESSION = false;
 	/** Storage Group Allocation Strategy, currently supported hash/mode/div */
-	private String SG_STRATEGY="hash";
+	private String SG_STRATEGY = "hash";
 	/** The number of storage group, must less than or equal to number of devices */
 	private int GROUP_NUMBER = 1;
 	/** The size of IoTDB core session pool */
@@ -237,7 +216,7 @@ public class Config {
 	 * each row is the data of all sensors of a certain device at a certain time stamp
 	 * the number of data points written in each batch = SENSOR_NUMBER * BATCH_SIZE
 	 */
-	private int BATCH_SIZE_PER_WRITE = 1000;
+	private int BATCH_SIZE_PER_WRITE = 1;
 	/** Whether create schema before writing */
 	private boolean CREATE_SCHEMA = true;
 
@@ -358,7 +337,7 @@ public class Config {
 	/** Current csv file write line */
 	private AtomicLong CURRENT_CSV_LINE = new AtomicLong();
 	/** Max line of csv line*/
-	private long MAX_CSV_LINE = 10000000;
+	private long CSV_MAX_LINE = 10000000;
 	/** Whether split result into different csv file */
 	private boolean CSV_FILE_SPLIT = true;
 
@@ -674,14 +653,6 @@ public class Config {
 		this.GROUP_NUMBER = GROUP_NUMBER;
 	}
 
-	public String getCOMPRESSOR() {
-		return COMPRESSOR;
-	}
-
-	public void setCOMPRESSOR(String COMPRESSOR) {
-		this.COMPRESSOR = COMPRESSOR;
-	}
-
 	public long getINIT_WAIT_TIME() {
 		return INIT_WAIT_TIME;
 	}
@@ -768,54 +739,6 @@ public class Config {
 
 	public void setINSERT_DATATYPE_PROPORTION(String INSERT_DATATYPE_PROPORTION) {
 		this.INSERT_DATATYPE_PROPORTION = INSERT_DATATYPE_PROPORTION;
-	}
-
-	public String getENCODING_BOOLEAN() {
-		return ENCODING_BOOLEAN;
-	}
-
-	public void setENCODING_BOOLEAN(String ENCODING_BOOLEAN) {
-		this.ENCODING_BOOLEAN = ENCODING_BOOLEAN;
-	}
-
-	public String getENCODING_INT32() {
-		return ENCODING_INT32;
-	}
-
-	public void setENCODING_INT32(String ENCODING_INT32) {
-		this.ENCODING_INT32 = ENCODING_INT32;
-	}
-
-	public String getENCODING_INT64() {
-		return ENCODING_INT64;
-	}
-
-	public void setENCODING_INT64(String ENCODING_INT64) {
-		this.ENCODING_INT64 = ENCODING_INT64;
-	}
-
-	public String getENCODING_FLOAT() {
-		return ENCODING_FLOAT;
-	}
-
-	public void setENCODING_FLOAT(String ENCODING_FLOAT) {
-		this.ENCODING_FLOAT = ENCODING_FLOAT;
-	}
-
-	public String getENCODING_DOUBLE() {
-		return ENCODING_DOUBLE;
-	}
-
-	public void setENCODING_DOUBLE(String ENCODING_DOUBLE) {
-		this.ENCODING_DOUBLE = ENCODING_DOUBLE;
-	}
-
-	public String getENCODING_TEXT() {
-		return ENCODING_TEXT;
-	}
-
-	public void setENCODING_TEXT(String ENCODING_TEXT) {
-		this.ENCODING_TEXT = ENCODING_TEXT;
 	}
 
 	public String getSTART_TIME() {
@@ -1190,10 +1113,6 @@ public class Config {
 		this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
 	}
 
-	public void setMAX_CSV_LINE(long MAX_CSV_LINE) {
-		this.MAX_CSV_LINE = MAX_CSV_LINE;
-	}
-
 	public long IncrementAndGetCURRENT_CSV_LINE() {
 		return CURRENT_CSV_LINE.incrementAndGet();
 	}
@@ -1210,8 +1129,12 @@ public class Config {
 		this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
 	}
 
-	public long getMAX_CSV_LINE() {
-		return MAX_CSV_LINE;
+	public long getCSV_MAX_LINE() {
+		return CSV_MAX_LINE;
+	}
+
+	public void setCSV_MAX_LINE(long CSV_MAX_LINE) {
+		this.CSV_MAX_LINE = CSV_MAX_LINE;
 	}
 
 	public String getDB_NAME() {

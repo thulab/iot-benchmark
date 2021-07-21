@@ -10,25 +10,15 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class IoTDB implements IDatabase {
 
@@ -36,7 +26,7 @@ public class IoTDB implements IDatabase {
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     private static final String CREATE_SERIES_SQL =
-            "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
+            "CREATE TIMESERIES %s WITH DATATYPE=%s";
     private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
     private Connection connection;
     private static final String ALREADY_KEYWORD = "already";
@@ -111,7 +101,7 @@ public class IoTDB implements IDatabase {
                                         + "." + deviceSchema.getGroup()
                                         + "." + deviceSchema.getDevice()
                                         + "." + sensor,
-                                dataType, getEncodingType(dataType), config.getCOMPRESSOR());
+                                dataType, getEncodingType(dataType));
                         statement.addBatch(createSeriesSql);
                         count++;
                         sensorIndex++;
@@ -138,17 +128,12 @@ public class IoTDB implements IDatabase {
     String getEncodingType(String dataType) {
         switch (dataType) {
             case "BOOLEAN":
-                return config.getENCODING_BOOLEAN();
             case "INT32":
-                return config.getENCODING_INT32();
             case "INT64":
-                return config.getENCODING_INT64();
             case "FLOAT":
-                return config.getENCODING_FLOAT();
             case "DOUBLE":
-                return config.getENCODING_DOUBLE();
             case "TEXT":
-                return config.getENCODING_TEXT();
+                return "PLAIN";
             default:
                 LOGGER.error("Unsupported data type {}.", dataType);
                 return null;
