@@ -317,14 +317,6 @@ public class Config {
 	private long REAL_DATASET_QUERY_START_TIME = 0;
 	/** The real time when query is stopped */
 	private long REAL_DATASET_QUERY_STOP_TIME = Long.MAX_VALUE;
-	/**
-	 * The mode of limit clause in query
-	 * 0: there is no limit
-	 * 1: only contains limit
-	 * 2: only contains slimit
-	 * 3: contains both limit and slimit
-	 * TODO not find use */
-	private int LIMIT_CLAUSE_MODE = 0;
 
 	// workload 相关部分 单位 MB TODO ?
 	/** The size of workload buffer size */
@@ -787,14 +779,6 @@ public class Config {
 
 	public void setCLIENT_MAX_WRT_RATE(double CLIENT_MAX_WRT_RATE) {
 		this.CLIENT_MAX_WRT_RATE = CLIENT_MAX_WRT_RATE;
-	}
-
-	public int getLIMIT_CLAUSE_MODE() {
-		return LIMIT_CLAUSE_MODE;
-	}
-
-	public void setLIMIT_CLAUSE_MODE(int LIMIT_CLAUSE_MODE) {
-		this.LIMIT_CLAUSE_MODE = LIMIT_CLAUSE_MODE;
 	}
 
 	public String getOPERATION_PROPORTION() {

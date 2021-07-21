@@ -174,7 +174,6 @@ public class ConfigDescriptor {
 				config.setSTART_TIME(properties.getProperty("START_TIME", config.getSTART_TIME()));
 				config.setINIT_WAIT_TIME(Long.parseLong(properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME()+"")));
 				config.setDATA_SEED(Long.parseLong(properties.getProperty("DATA_SEED", config.getDATA_SEED()+"")));
-				config.setLIMIT_CLAUSE_MODE(Integer.parseInt(properties.getProperty("LIMIT_CLAUSE_MODE", config.getLIMIT_CLAUSE_MODE() + "")));
 				config.setSTEP_SIZE(Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE()+"")));
 				config.setOP_INTERVAL(Integer.parseInt(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
 				config.setIS_CLIENT_BIND(Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND()+"")));
