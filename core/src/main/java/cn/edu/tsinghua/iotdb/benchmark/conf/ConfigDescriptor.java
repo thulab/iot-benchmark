@@ -89,7 +89,7 @@ public class ConfigDescriptor {
 				config.setRANDOM_RATIO(Double.parseDouble(properties.getProperty("RANDOM_RATIO", config.getRANDOM_RATIO()+"")));
 				config.setCONSTANT_RATIO(Double.parseDouble(properties.getProperty("CONSTANT_RATIO", config.getCONSTANT_RATIO()+"")));
 
-				config.setINTERVAL(Integer.parseInt(properties.getProperty("INTERVAL", config.getINTERVAL()+"")));
+				config.setMONITOR_INTERVAL(Integer.parseInt(properties.getProperty("MONITOR_INTERVAL", config.getMONITOR_INTERVAL() + "")));
 				config.setCLIENT_NUMBER(Integer.parseInt(properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER()+"")));
 				config.setGROUP_NUMBER(Integer.parseInt(properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER()+"")));
 

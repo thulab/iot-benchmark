@@ -327,7 +327,7 @@ public class App {
             }
         }
         HashMap<IoUsage.IOStatistics, Float> ioStatistics;
-        int interval = config.getINTERVAL();
+        int interval = config.getMONITOR_INTERVAL();
         boolean headerPrinted = false;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         // 测量间隔至少为2秒

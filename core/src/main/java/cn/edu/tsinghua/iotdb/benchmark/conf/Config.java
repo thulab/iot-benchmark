@@ -322,15 +322,14 @@ public class Config {
 	/** The size of workload buffer size */
 	private int WORKLOAD_BUFFER_SIZE = 100;
 
-	// 输出
-	/** The encoding of output data, currently supported PLAIN and GORILLA TODO delete */
+	// 输出 TODO delete(now only for IoTDB)
+	/** The encoding of output data, currently supported PLAIN and GORILLA  */
 	private String ENCODING = "PLAIN";
 
 
-	// 输出：系统性能
-	/** System performance information recording interval is INTERVAL+2 seconds
-	 * TODO rename MONITOR_INTERVAL move to server mode */
-	private int INTERVAL = 0;
+	// 输出：系统性能 Server mode
+	/** System performance information recording interval is INTERVAL+2 seconds */
+	private int MONITOR_INTERVAL = 0;
 
 	// 输出：日志
 	/** Whether use quiet mode. Quiet mode will mute some log output and computations */
@@ -853,12 +852,12 @@ public class Config {
 		this.START_TIME = START_TIME;
 	}
 
-	public int getINTERVAL() {
-		return INTERVAL;
+	public int getMONITOR_INTERVAL() {
+		return MONITOR_INTERVAL;
 	}
 
-	public void setINTERVAL(int INTERVAL) {
-		this.INTERVAL = INTERVAL;
+	public void setMONITOR_INTERVAL(int MONITOR_INTERVAL) {
+		this.MONITOR_INTERVAL = MONITOR_INTERVAL;
 	}
 
 	public String getNET_DEVICE() {
