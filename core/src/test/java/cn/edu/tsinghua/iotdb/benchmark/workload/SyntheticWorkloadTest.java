@@ -110,7 +110,7 @@ public class SyntheticWorkloadTest {
   public void testGetOrderedBatch() throws Exception {
     config.setBATCH_SIZE_PER_WRITE(5);
     config.setPOINT_STEP(5000);
-    config.setIS_RANDOM_TIMESTAMP_INTERVAL(false);
+    config.setIS_REGULAR_FREQUENCY(false);
     SyntheticWorkload syntheticWorkload = new SyntheticWorkload(1);
     for (int i = 0; i < 3; i++) {
       Batch batch = syntheticWorkload.getOneBatch(new DeviceSchema(1), i);

@@ -185,7 +185,7 @@ public class SyntheticWorkload implements IWorkload {
       //TODO 但是方法名可是说可能会乱序啊！！！！！！！
       timeStampOffset += (long) (random.nextDouble() * config.getPOINT_STEP());
     } else {
-      if (config.isIS_RANDOM_TIMESTAMP_INTERVAL()) {
+      if (config.isIS_REGULAR_FREQUENCY()) {
         //TODO 这方法跟上面有啥区别？？？
         timeStampOffset += (long) (config.getPOINT_STEP() * timestampRandom.nextDouble());
       }

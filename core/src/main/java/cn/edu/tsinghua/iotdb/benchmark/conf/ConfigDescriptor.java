@@ -154,7 +154,7 @@ public class ConfigDescriptor {
 				config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
 				config.setMAX_K(Integer.parseInt(properties.getProperty("MAX_K", config.getMAX_K()+"")));
 				config.setLAMBDA(Double.parseDouble(properties.getProperty("LAMBDA", config.getLAMBDA()+"")));
-				config.setIS_RANDOM_TIMESTAMP_INTERVAL(Boolean.parseBoolean(properties.getProperty("IS_RANDOM_TIMESTAMP_INTERVAL", config.isIS_RANDOM_TIMESTAMP_INTERVAL()+"")));
+				config.setIS_REGULAR_FREQUENCY(Boolean.parseBoolean(properties.getProperty("IS_REGULAR_FREQUENCY", config.isIS_REGULAR_FREQUENCY() + "")));
 				config.setCLIENT_MAX_WRT_RATE(Double.parseDouble(properties.getProperty("CLIENT_MAX_WRT_RATE", config.getCLIENT_MAX_WRT_RATE()+"")));
 				config.setQUERY_LIMIT_N(Integer.parseInt(properties.getProperty("QUERY_LIMIT_N", config.getQUERY_LIMIT_N()+"")));
 				config.setQUERY_LIMIT_OFFSET(Integer.parseInt(properties.getProperty("QUERY_LIMIT_OFFSET", config.getQUERY_LIMIT_OFFSET()+"")));

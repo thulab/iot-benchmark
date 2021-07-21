@@ -261,9 +261,9 @@ public class Config {
 	private double OUT_OF_ORDER_RATIO = 1.0;
 	/**
 	 * Whether use random time interval in inorder data
-	 * need IS_OVERFLOWED = true TODO rename IS_REGULAR_FREQUENCY
+	 * need IS_OUT_OF_ORDER = true
 	 */
-	private boolean IS_RANDOM_TIMESTAMP_INTERVAL = false;
+	private boolean IS_REGULAR_FREQUENCY = false;
 
 	/** The expectation and variance of Poisson Distribution based on basic model */
 	private double LAMBDA = 3;
@@ -783,14 +783,6 @@ public class Config {
 
 	public void setMAX_K(int MAX_K) {
 		this.MAX_K = MAX_K;
-	}
-
-	public boolean isIS_RANDOM_TIMESTAMP_INTERVAL() {
-		return IS_RANDOM_TIMESTAMP_INTERVAL;
-	}
-
-	public void setIS_RANDOM_TIMESTAMP_INTERVAL(boolean IS_RANDOM_TIMESTAMP_INTERVAL) {
-		this.IS_RANDOM_TIMESTAMP_INTERVAL = IS_RANDOM_TIMESTAMP_INTERVAL;
 	}
 
 	public double getCLIENT_MAX_WRT_RATE() {
@@ -1391,5 +1383,13 @@ public class Config {
 
 	public void setOUT_OF_ORDER_RATIO(double OUT_OF_ORDER_RATIO) {
 		this.OUT_OF_ORDER_RATIO = OUT_OF_ORDER_RATIO;
+	}
+
+	public boolean isIS_REGULAR_FREQUENCY() {
+		return IS_REGULAR_FREQUENCY;
+	}
+
+	public void setIS_REGULAR_FREQUENCY(boolean IS_REGULAR_FREQUENCY) {
+		this.IS_REGULAR_FREQUENCY = IS_REGULAR_FREQUENCY;
 	}
 }
