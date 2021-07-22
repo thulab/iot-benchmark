@@ -189,7 +189,10 @@ public class ConfigDescriptor {
 										config.getIOTDB_SESSION_POOL_SIZE() + "")));
 
 				config.setOP_INTERVAL(
-						Integer.parseInt(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
+						Long.parseLong(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
+				if(config.getOP_INTERVAL() == -1){
+					config.setOP_INTERVAL(config.getPOINT_STEP());
+				}
 				config.setWRITE_OPERATION_TIMEOUT_MS(
 						Integer.parseInt(
 								properties.getProperty("WRITE_OPERATION_TIMEOUT_MS", config.getWRITE_OPERATION_TIMEOUT_MS() + "")));

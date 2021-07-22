@@ -203,7 +203,7 @@ public class Config {
 	 * else wait (OP_INTERVAL - operation time)
 	 * unit: ms
 	 */
-	private int OP_INTERVAL = 0;
+	private long OP_INTERVAL = 0;
 	/** The max time for writing in ms */
 	private int WRITE_OPERATION_TIMEOUT_MS = 120000;
 	/** The max time for reading in ms */
@@ -903,11 +903,11 @@ public class Config {
 		this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
 	}
 
-	public int getOP_INTERVAL() {
+	public long getOP_INTERVAL() {
 		return OP_INTERVAL;
 	}
 
-	public void setOP_INTERVAL(int OP_INTERVAL) {
+	public void setOP_INTERVAL(long OP_INTERVAL) {
 		this.OP_INTERVAL = OP_INTERVAL;
 	}
 
