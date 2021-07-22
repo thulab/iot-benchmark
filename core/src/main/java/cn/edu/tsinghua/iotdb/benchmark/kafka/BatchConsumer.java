@@ -3,18 +3,19 @@ package cn.edu.tsinghua.iotdb.benchmark.kafka;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class BatchConsumer {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -31,7 +32,6 @@ public class BatchConsumer {
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BatchDeserializer.class.getName());
     props.put("auto.offset.reset", "latest");
 
-
     kafka.consumer.ConsumerConfig config = new kafka.consumer.ConsumerConfig(props);
     consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
   }
@@ -43,16 +43,13 @@ public class BatchConsumer {
    * @param user session username
    * @param password session password
    */
-  public void consume(String host, String port, String user, String password) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
-    /*
-     * Specify the number of consumer thread
-     */
+  public void consume(String host, String port, String user, String password)
+          throws IllegalAccessException, InstantiationException, ClassNotFoundException {
+    // Specify the number of consumer thread
     Map<String, Integer> topicCountMap = new HashMap<>();
     topicCountMap.put(config.getTOPIC_NAME(), config.getCLIENT_NUMBER());
 
-    /*
-     * Specify data decoder
-     */
+    // specify data decoder
     StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
     BatchDeserializer valueDecoder = new BatchDeserializer();
 

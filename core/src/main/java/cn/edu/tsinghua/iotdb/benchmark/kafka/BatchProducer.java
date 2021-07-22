@@ -3,12 +3,13 @@ package cn.edu.tsinghua.iotdb.benchmark.kafka;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import java.util.Properties;
-import java.util.Random;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+
+import java.util.Properties;
+import java.util.Random;
 
 public class BatchProducer {
 

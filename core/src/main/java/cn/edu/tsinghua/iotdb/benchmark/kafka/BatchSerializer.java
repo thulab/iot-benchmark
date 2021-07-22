@@ -2,17 +2,16 @@ package cn.edu.tsinghua.iotdb.benchmark.kafka;
 
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import org.apache.kafka.common.serialization.Serializer;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import org.apache.kafka.common.serialization.Serializer;
 
 public class BatchSerializer implements Serializer<Batch> {
 
   @Override
-  public void configure(Map<String, ?> map, boolean b) {
-
-  }
+  public void configure(Map<String, ?> map, boolean b) {}
 
   @Override
   public byte[] serialize(String s, Batch batch) {
@@ -26,9 +25,6 @@ public class BatchSerializer implements Serializer<Batch> {
   }
 
   @Override
-  public void close() {
-
-  }
-
+  public void close() {}
 
 }
