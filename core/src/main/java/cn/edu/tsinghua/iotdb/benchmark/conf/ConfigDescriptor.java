@@ -247,7 +247,10 @@ public class ConfigDescriptor {
 				config.setSTEP_SIZE(
 						Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE()+"")));
 				config.setOP_INTERVAL(
-						Integer.parseInt(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
+						Long.parseLong(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
+				if(config.getOP_INTERVAL() == -1){
+					config.setOP_INTERVAL(config.getPOINT_STEP());
+				}
 				config.setIS_CLIENT_BIND(
 						Boolean.parseBoolean(properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND()+"")));
 				config.setIS_SENSOR_TS_ALIGNMENT(
