@@ -232,7 +232,7 @@ public class SyntheticWorkload implements IWorkload {
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
         // generate overflow timestamp
-        nextDelta = poissonDistribution.getNextPossionDelta();
+        nextDelta = poissonDistribution.getNextPoissonDelta();
         stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
       } else {
         // generate normal increasing timestamp

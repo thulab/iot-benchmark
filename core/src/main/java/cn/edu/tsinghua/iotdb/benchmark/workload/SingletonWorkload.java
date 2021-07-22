@@ -64,7 +64,7 @@ public class SingletonWorkload {
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
         // generate overflow timestamp
-        nextDelta = poissonDistribution.getNextPossionDelta();
+        nextDelta = poissonDistribution.getNextPoissonDelta();
         stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).get() - nextDelta;
       } else {
         // generate normal increasing timestamp

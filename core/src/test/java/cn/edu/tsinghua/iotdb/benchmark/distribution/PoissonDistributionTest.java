@@ -1,12 +1,13 @@
 package cn.edu.tsinghua.iotdb.benchmark.distribution;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Random;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * PoissonDistribution Tester.
@@ -26,7 +27,7 @@ public class PoissonDistributionTest {
   }
 
   /**
-   * Method: setLambda(double lambda)
+   * Method: setLambdaConfig(double lambda)
    */
   @Test
   public void testSetLambda() throws Exception {
@@ -48,10 +49,10 @@ public class PoissonDistributionTest {
   public void testGetNextPoissonDelta() {
     ArrayList<Integer> list = new ArrayList<>();
     PoissonDistribution poissonDistribution = new PoissonDistribution(new Random(100));
-    poissonDistribution.setDeltaKinds(10);
-    poissonDistribution.setLambda(5.0);
+    poissonDistribution.setDeltaKindsConfig(10);
+    poissonDistribution.setLambdaConfig(5.0);
     for (int i = 0; i < 10; i++) {
-      list.add(poissonDistribution.getNextPossionDelta());
+      list.add(poissonDistribution.getNextPoissonDelta());
     }
 
     int[] count = new int[11];
