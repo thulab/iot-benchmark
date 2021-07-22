@@ -74,11 +74,10 @@ public class SyntheticWorkload implements IWorkload {
             value = builder.toString();
           } else {
             FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
-            Number number = Function.getValueByFuntionidAndParam(param, currentTimestamp);
+            Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
             switch (getNextDataType(sensorIndex)) {
               case "BOOLEAN":
-                // TODO 500 -> avg
-                value = number.floatValue() > 500;
+                value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
                 break;
               case "INT32":
                 value = number.intValue();

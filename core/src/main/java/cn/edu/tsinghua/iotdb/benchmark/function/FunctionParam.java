@@ -2,16 +2,29 @@ package cn.edu.tsinghua.iotdb.benchmark.function;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
-/**
- * 函数参数类 主要包含函数类别，函数参数
- * 
- */
 public class FunctionParam {
+	/**
+	 * Id of function
+	 */
 	private String id;
-	private String functionType;// 函数类别
-	private double max;// 最大值
-	private double min;// 最小值
-	private long cycle;// 周期,(对于 *-k函数，则只是为了计算斜率)
+	/**
+	 * Type of function
+	 * @see cn.edu.tsinghua.iotdb.benchmark.function.enums.FunctionType
+	 */
+	private String functionType;
+	/**
+	 * Maximum of function
+	 */
+	private double max;
+	/**
+	 * Minimum of function
+	 */
+	private double min;
+	/**
+	 * Cycle of function
+	 * For *-k function, only use to calculate k
+	 */
+	private long cycle;
 
 	@XmlAttribute(name = "function-type")
 	public String getFunctionType() {
