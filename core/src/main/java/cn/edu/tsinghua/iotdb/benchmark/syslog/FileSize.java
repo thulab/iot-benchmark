@@ -1,40 +1,25 @@
-package cn.edu.tsinghua.iotdb.benchmark.sersyslog;
+package cn.edu.tsinghua.iotdb.benchmark.syslog;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileSize {
     private static final Logger log = LoggerFactory.getLogger(FileSize.class);
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
     private static final String LINUX_FILE_SIZE_CMD = "du -sm %s";
     private static final float MB2GB = 1024;
     private static final float ABNORMAL_VALUE = -1;
-    public enum FileSizeKinds {
-        DATA(config.getIOTDB_DATA_DIR()),
-        SYSTEM(config.getIOTDB_SYSTEM_DIR()),
-        WAL(config.getIOTDB_WAL_DIR()),
-        SEQUENCE(config.getSEQUENCE_DIR()),
-        UN_SEQUENCE(config.getUNSEQUENCE_DIR());
-
-        List<String> path;
-
-        FileSizeKinds(List<String> path){
-            this.path = path;
-        }
-    }
-
-    private static class FileSizeHolder {
-        private static final FileSize INSTANCE = new FileSize();
-    }
 
     private FileSize(){
         switch (config.getDB_SWITCH().split("-")[0]){
@@ -50,6 +35,10 @@ public class FileSize {
         return FileSizeHolder.INSTANCE;
     }
 
+    /**
+     * Use `du` to get File size
+     * @return
+     */
     public Map<FileSizeKinds, Float> getFileSize() {
         Map<FileSizeKinds, Float> fileSize = new EnumMap<>(FileSizeKinds.class);
         BufferedReader in;
@@ -83,4 +72,24 @@ public class FileSize {
         return fileSize;
     }
 
+    /**
+     * Describe different kind files
+     */
+    public enum FileSizeKinds {
+        DATA(config.getIOTDB_DATA_DIR()),
+        SYSTEM(config.getIOTDB_SYSTEM_DIR()),
+        WAL(config.getIOTDB_WAL_DIR()),
+        SEQUENCE(config.getSEQUENCE_DIR()),
+        UN_SEQUENCE(config.getUNSEQUENCE_DIR());
+
+        List<String> path;
+
+        FileSizeKinds(List<String> path){
+            this.path = path;
+        }
+    }
+
+    private static class FileSizeHolder {
+        private static final FileSize INSTANCE = new FileSize();
+    }
 }

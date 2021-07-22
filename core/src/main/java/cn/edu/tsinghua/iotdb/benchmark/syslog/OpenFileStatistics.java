@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.sersyslog;
+package cn.edu.tsinghua.iotdb.benchmark.syslog;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -10,35 +10,29 @@ import java.io.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class OpenFileNumber {
+public class OpenFileStatistics {
 
-    private static final Logger log = LoggerFactory.getLogger(OpenFileNumber.class);
-    private final Config config;
+    private static final Logger log = LoggerFactory.getLogger(OpenFileStatistics.class);
+    private final Config config = ConfigDescriptor.getInstance().getConfig();;
     private static int pid = -1;
     private static final int port = -1;
 
     private static final String SEARCH_PID = "ps -aux | grep -i %s | grep -v grep";
     private static final String SEARCH_OPEN_DATA_FILE_BY_PID = "lsof -p %d";
     private static final String[] cmds = {"/bin/bash", "-c", ""};
-    //private static String passward = "";
 
-    private static class OpenFileNumberHolder {
-        private static final OpenFileNumber INSTANCE = new OpenFileNumber();
-    }
-
-    private OpenFileNumber() {
-        config = ConfigDescriptor.getInstance().getConfig();
+    private OpenFileStatistics() {
         pid = getPID(config.getDB_SWITCH());
     }
 
-    public static final OpenFileNumber getInstance() {
-        return OpenFileNumberHolder.INSTANCE;
+    public static final OpenFileStatistics getInstance() {
+        return OpenFileStatisticsHolder.INSTANCE;
     }
 
     /**
+     * Get the pid of the currently specified database server
      * @param
      * @return int, pid
-     * @Purpose:获得当前指定的数据库服务器的PID
      */
     public int getPID(String dbName) {
         int pid = -1;
@@ -64,14 +58,12 @@ public class OpenFileNumber {
         }
         try {
             String command = String.format(SEARCH_PID, filter);
-            //System.out.println(command);
             cmds[2] = command;
             pro1 = r.exec(cmds);
             BufferedReader in1 = new BufferedReader(new InputStreamReader(pro1.getInputStream()));
             String line = null;
             while ((line = in1.readLine()) != null) {
                 line = line.trim();
-                //System.out.println(line);
                 String[] temp = line.split("\\s+");
                 if (temp.length > 1 && isNumeric(temp[1])) {
                     pid = Integer.parseInt(temp[1]);
@@ -83,28 +75,17 @@ public class OpenFileNumber {
         } catch (IOException e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            log.error("统计打开文件数时getPid()发生InstantiationException. " + e.getMessage());
+            log.error("Statistic open files number: getPid() failed, InstantiationException. " + e.getMessage());
             log.error(sw.toString());
         }
         return pid;
     }
 
     /**
-     * 返回打开的文件数目的列表，
-     * 其中:
-     * list[0]表示该进程一共打开的文件数目，
-     * 1ist[1]表示该进程打开的数据文件和写前日志的数目
-     * 1ist[2]表示该进程打开的socket的数目
-     * <p>
-     * list[3]表示该进程打开delta文件的数目
-     * 1ist[4]表示该进程打开derby文件的数目
-     * 1ist[5]表示该进程打开digest文件的数目
-     * 1ist[6]表示该进程打开metadata文件的数目
-     * 1ist[7]表示该进程打开overflow文件的数目
-     * 1ist[8]表示该进程打开wals文件的数目
+     * Get details of open file
+     * @return a list of the number of open files
      */
     private ArrayList<Integer> getOpenFile(int pid) throws SQLException {
-        //log.info("开始收集打开的socket数目：");
         ArrayList<Integer> list = new ArrayList<Integer>();
         int dataFileNum = 0;
         int totalFileNum = 0;
@@ -147,7 +128,6 @@ public class OpenFileNumber {
             String line = null;
 
             while ((line = in.readLine()) != null) {
-                //System.out.println(line);
                 String[] temp = line.split("\\s+");
                 if (line.contains("" + pid) && temp.length > 8) {
                     totalFileNum++;
@@ -177,7 +157,7 @@ public class OpenFileNumber {
         } catch (IOException e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            log.error("统计打开文件数时getOpenFile()发生InstantiationException. " + e.getMessage());
+            log.error("Statistic open files number: getOpenFile() failed, InstantiationException. " + e.getMessage());
             log.error(sw.toString());
         }
         list.add(totalFileNum);
@@ -194,28 +174,26 @@ public class OpenFileNumber {
     }
 
     /**
-     * 返回打开的文件数目的列表，其中：
-     * list[0]表示该进程一共打开的文件数目
-     * 1ist[1]表示该进程打开的数据文件和写前日志的数目
-     * 1ist[2]表示该进程打开的socket的数目
-     * <p>
-     * list[3]表示该进程打开delta文件的数目，
-     * 1ist[4]表示该进程打开derby文件的数目
-     * 1ist[5]表示该进程打开digest文件的数目
-     * 1ist[6]表示该进程打开metadata文件的数目
-     * 1ist[7]表示该进程打开overflow文件的数目
-     * 1ist[8]表示该进程打开wals文件的数目
-     */
+     * Get details of open file
+     * @return a list of the number of open files
+     * list[0]: the number of files this process opens
+     * 1ist[1]: the number of data and pre-write log files this process opens
+     * 1ist[2]: the number of socket this process opens
+     * list[3]: the number of delta file this process opens
+     * 1ist[4]: the number of derby file this process opens
+     * 1ist[5]: the number of digest file this process opens
+     * 1ist[6]: the number of metadata file this process opens
+     * 1ist[7]: the number of overflow file this process opens
+     * 1ist[8]: the number of wals files this process opens
+    */
     public ArrayList<Integer> get() {
-        //System.out.println("PORT :"+PORT + " ; pid :"+pid);
-
         ArrayList<Integer> list = null;
-        //如果port和pid不合理，再次尝试获取
+        // if pid is not valid then try again
         if (!(pid > 0)) {
             pid = getPID(config.getDB_SWITCH());
         }
-        //如果pid合理，则加入打开文件总数和数据文件数目以及socket数目
         if (pid > 0) {
+            // if pid is valid, then statistic
             try {
                 list = getOpenFile(pid);
             } catch (SQLException e) {
@@ -223,9 +201,10 @@ public class OpenFileNumber {
                 e.printStackTrace();
             }
         } else {
-            //pid 不合理，赋不合法的值
-            if (list == null)
+            // if pid is not valid, then return default
+            if (list == null) {
                 list = new ArrayList<Integer>();
+            }
             for (int i = 0; i < 9; i++) {
                 list.add(-1);
             }
@@ -234,7 +213,7 @@ public class OpenFileNumber {
     }
 
     //检验一个字符串是否是整数
-    public static boolean isNumeric(String str) {
+    private static boolean isNumeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             if (!Character.isDigit(str.charAt(i))) {
                 return false;
@@ -247,5 +226,8 @@ public class OpenFileNumber {
         return getPID(config.getDB_SWITCH());
     }
 
+    private static class OpenFileStatisticsHolder {
+        private static final OpenFileStatistics INSTANCE = new OpenFileStatistics();
+    }
 
 }

@@ -9,7 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.csv.CSVShutdownHook;
-import cn.edu.tsinghua.iotdb.benchmark.sersyslog.*;
+import cn.edu.tsinghua.iotdb.benchmark.syslog.*;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
@@ -346,7 +346,7 @@ public class App {
             String time = sdf.format(new Date(start));
             LOGGER.info(",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
                 time,
-                OpenFileNumber.getInstance().getPid(),
+                OpenFileStatistics.getInstance().getPid(),
                 proMem,
                 memRate,
                 ioUsageList.get(0),

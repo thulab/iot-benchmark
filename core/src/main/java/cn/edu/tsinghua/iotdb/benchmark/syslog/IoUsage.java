@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.sersyslog;
+package cn.edu.tsinghua.iotdb.benchmark.syslog;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,40 +7,22 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * 采集磁盘IO使用率
- */
 public class IoUsage {
 
     private static Logger log = LoggerFactory.getLogger(IoUsage.class);
     private final int  BEGIN_LINE = 10;
-    public enum IOStatistics {
-        TPS(1,0),
-        MB_READ(2,0),
-        MB_WRTN(3,0);
 
-        public int pos;
-        public float max;
-
-        IOStatistics(int p,float m){
-            this.pos = p;
-            this.max = m;
-        }
-    };
-
-    private static class IoUsageHolder{
-        private static final IoUsage INSTANCE = new IoUsage();
-    }
-
-    private IoUsage(){
-
-    }
+    private IoUsage(){}
 
     public static IoUsage getInstance(){
         return IoUsageHolder.INSTANCE;
     }
 
-    public HashMap<IOStatistics,Float> getIOStatistics(){
+    /**
+     * use `iostat -m 1 2` to statistic IO
+     * @return
+     */
+    public HashMap<IOStatistics, Float> getIOStatistics(){
         HashMap<IOStatistics,Float> ioStaMap = new HashMap<>();
         for(IOStatistics iostat : IOStatistics.values()) {
             iostat.max = 0;
@@ -58,7 +40,7 @@ public class IoUsage {
                 String[] temp = line.split("\\s+");
                 if (++count >= BEGIN_LINE) {
                     if(temp.length > 1 && (temp[0].startsWith("s") || temp[0].startsWith("v"))) {
-                        //返回设备中最大的
+                        // return max one in devices
                         for(IOStatistics iostat : IOStatistics.values()) {
                             float t = Float.parseFloat(temp[iostat.pos]);
                             iostat.max = (iostat.max > t) ? iostat.max : t;
@@ -77,12 +59,10 @@ public class IoUsage {
     }
 
     /**
-     * @Purpose:采集磁盘IO使用率
-     * @param
-     * @return float,磁盘IO使用率,小于1
+     * use `iostat -x 1 2` to get IO usages of disk
+     * @return float: IO usage of different disks, less than 1
      */
     public ArrayList<Float> get() {
-        //log.info("开始收集磁盘IO使用率");
         ArrayList<Float> list = new ArrayList<>();
         float ioUsage = 0.0f;
         float cpuUsage = 0.0f;
@@ -96,7 +76,6 @@ public class IoUsage {
             int count =  0;
             int flag = 1;
             while((line=in.readLine()) != null) {
-                //log.info(line);
                 String[] temp = line.split("\\s+");
                 if (++count >= 8) {
                     if (temp[0].startsWith("a") && flag == 1) {
@@ -107,13 +86,12 @@ public class IoUsage {
                         flag = 1;
                     } else if(temp.length > 1 && (temp[0].startsWith("s") || temp[0].startsWith("v"))) {
                         float util = Float.parseFloat(temp[temp.length - 1]);
-                        //返回设备中利用率最大的
+                        // return max usage in devices
                         ioUsage = (ioUsage > util) ? ioUsage : util;
                     }
                 }
             }
             if(ioUsage > 0){
-                //log.info("磁盘IO使用率,{}%" , ioUsage);
                 ioUsage /= 100.0;
             }
             list.add(cpuUsage);
@@ -125,6 +103,27 @@ public class IoUsage {
             e.printStackTrace(new PrintWriter(sw));
         }
         return list;
+    }
+
+    /**
+     * Statistics of IO
+     */
+    public enum IOStatistics {
+        TPS(1,0),
+        MB_READ(2,0),
+        MB_WRTN(3,0);
+
+        public int pos;
+        public float max;
+
+        IOStatistics(int pos,float max){
+            this.pos = pos;
+            this.max = max;
+        }
+    };
+
+    private static class IoUsageHolder{
+        private static final IoUsage INSTANCE = new IoUsage();
     }
 
 }

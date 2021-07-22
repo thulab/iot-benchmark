@@ -1,34 +1,24 @@
-package cn.edu.tsinghua.iotdb.benchmark.sersyslog;
+package cn.edu.tsinghua.iotdb.benchmark.syslog;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * 采集内存使用率
- */
+import java.io.*;
+
 public class MemUsage {
 
     private static Logger log = LoggerFactory.getLogger(MemUsage.class);
-    private static final MemUsage INSTANCE = new MemUsage();
     private static final float KB2GB = 1024 * 1024f;
 
-    private MemUsage() {
-
-    }
+    private MemUsage() {}
 
     public static MemUsage getInstance() {
-        return INSTANCE;
+        return MemUsageHolder.INSTANCE;
     }
 
     /**
-     * Purpose:采集内存使用率
-     *
-     * @return float, 内存使用率, 小于1
+     * use `free` to get usage of memory of system
+     * @return usage <= 1
      */
     public float get() {
         float memUsage = 0.0f;
@@ -57,11 +47,15 @@ public class MemUsage {
         return memUsage;
     }
 
+    /**
+     * use `pmap -d` to get memory usage of database server
+     * @return usage <= 1
+     */
     public float getProcessMemUsage() {
         float processMemUsage = 0;
         Process pro;
         Runtime r = Runtime.getRuntime();
-        int pid = OpenFileNumber.getInstance().getPid();
+        int pid = OpenFileStatistics.getInstance().getPid();
         if (pid > 0) {
             String command = "pmap -d " + pid;
             try {
@@ -85,4 +79,7 @@ public class MemUsage {
         return processMemUsage;
     }
 
+    private static class MemUsageHolder{
+        private static final MemUsage INSTANCE = new MemUsage();
+    }
 }
