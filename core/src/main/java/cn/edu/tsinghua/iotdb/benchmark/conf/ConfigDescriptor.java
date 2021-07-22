@@ -190,7 +190,7 @@ public class ConfigDescriptor {
 
 				config.setOP_INTERVAL(
 						Long.parseLong(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL()+"")));
-				if(config.getOP_INTERVAL() == -1){
+				if(config.getOP_INTERVAL() == -1L){
 					config.setOP_INTERVAL(config.getPOINT_STEP());
 				}
 				config.setWRITE_OPERATION_TIMEOUT_MS(

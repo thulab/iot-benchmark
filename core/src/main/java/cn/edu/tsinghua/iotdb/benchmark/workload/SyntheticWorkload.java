@@ -9,25 +9,13 @@ import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 // TODO 阅读
 public class SyntheticWorkload implements IWorkload {
@@ -183,11 +171,11 @@ public class SyntheticWorkload implements IWorkload {
       // 随机加上数秒，使得时间不是均匀的。但是不会乱序。
       // 添加 ratio 使用randorm->timestampRandom
       //TODO 但是方法名可是说可能会乱序啊！！！！！！！
-      timeStampOffset += (long) (random.nextDouble() * config.getPOINT_STEP());
+      timeStampOffset += (random.nextDouble() * config.getPOINT_STEP());
     } else {
       if (config.isIS_REGULAR_FREQUENCY()) {
         //TODO 这方法跟上面有啥区别？？？
-        timeStampOffset += (long) (config.getPOINT_STEP() * timestampRandom.nextDouble());
+        timeStampOffset += (config.getPOINT_STEP() * timestampRandom.nextDouble());
       }
     }
     //TODO 为啥timeStampOffset不乘以时间精度？？？

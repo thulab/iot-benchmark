@@ -1,7 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
-import static org.junit.Assert.assertTrue;
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -10,6 +8,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * SyntheticWorkload Tester.
@@ -109,7 +109,7 @@ public class SyntheticWorkloadTest {
   @Test
   public void testGetOrderedBatch() throws Exception {
     config.setBATCH_SIZE_PER_WRITE(5);
-    config.setPOINT_STEP(5000);
+    config.setPOINT_STEP(5000L);
     config.setIS_REGULAR_FREQUENCY(false);
     SyntheticWorkload syntheticWorkload = new SyntheticWorkload(1);
     for (int i = 0; i < 3; i++) {
