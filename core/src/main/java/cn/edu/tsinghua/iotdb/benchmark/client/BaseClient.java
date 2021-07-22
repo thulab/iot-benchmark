@@ -1,23 +1,19 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import java.util.concurrent.*;
 
 /**
  * Responsible for writing and querying artificial data, and querying real data
@@ -48,9 +44,9 @@ public abstract class BaseClient extends Client implements Runnable {
   @Override
   void doTest() {
     String currentThread = Thread.currentThread().getName();
-    //Equals device number when the rate is 1.
-    //config.getDEVICE_NUMBER() * config.getBENCHMARK_INDEX() 是该benchmark生成的设备起始编号
-    //config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE() 是实际会生成的设备数量
+    // actualDeviceFloor equals to device number when REAL_INSERT_RATE = 1
+    // actualDeviceFloor = device_number * first_device_index(The first index of this benchmark)
+    //                   + device_number * real_insert_rate(Actual number of devices generated)
     double actualDeviceFloor = config.getDEVICE_NUMBER() * config.getFIRST_DEVICE_INDEX()
         + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
 
@@ -69,69 +65,8 @@ loop:
       }
       switch (operation) {
         case INGESTION:
-          if (config.isIS_CLIENT_BIND()) {
-            if(config.isIS_SENSOR_TS_ALIGNMENT()) {
-              // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-              try {
-                List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
-                for (DeviceSchema deviceSchema : schemas) {
-                  //TODO 为啥要做这样一个判断？？ DOC check
-                  if (deviceSchema.getDeviceId() < actualDeviceFloor) {
-                    Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-                    dbWrapper.insertOneBatch(batch);
-                  }
-                }
-              } catch (DBConnectException e) {
-                LOGGER.error("Failed to insert one batch data because ", e);
-                break loop;
-              } catch (Exception e) {
-                LOGGER.error("Failed to insert one batch data because ", e);
-              }
-              insertLoopIndex++;
-            } else {
-              // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
-              try {
-              List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
-              DeviceSchema sensorSchema = null;
-              List<String> sensorList =  new ArrayList<String>();
-              for (DeviceSchema deviceSchema : schemas) {
-                if (deviceSchema.getDeviceId() < actualDeviceFloor) {
-                  int colIndex = 0;
-                  for(String sensor : deviceSchema.getSensors()){
-                    sensorList =  new ArrayList<String>();
-                    sensorList.add(sensor);
-                    sensorSchema = (DeviceSchema)deviceSchema.clone();
-                    sensorSchema.setSensors(sensorList);
-                    Batch batch = syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex,colIndex);
-                    batch.setColIndex(colIndex);
-                    String colType = DBUtil.getDataType(colIndex);
-                    batch.setColType(colType);
-                    dbWrapper.insertOneSensorBatch(batch);
-                    colIndex++; 
-                    insertLoopIndex++;
-                  }
-                }
-              }
-              } catch (DBConnectException e) {
-               LOGGER.error("Failed to insert one batch data because ", e);
-               break loop;
-              } catch (Exception e) {
-               LOGGER.error("Failed to insert one batch data because ", e);
-              }
-            } 
-          } else {
-            //TODO 下面这个暂时没在测试中用过，要慎重一下。
-            try {
-              Batch batch = singletonWorkload.getOneBatch();
-              if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
-                dbWrapper.insertOneBatch(batch);
-              }
-            } catch (DBConnectException e) {
-              LOGGER.error("Failed to insert one batch data because ", e);
-              break loop;
-            } catch (Exception e) {
-              LOGGER.error("Failed to insert one batch data because ", e);
-            }
+          if(ingestionOperation(actualDeviceFloor)){
+            break loop;
           }
           break;
         case PRECISE_QUERY:
@@ -217,10 +152,81 @@ loop:
           }
         }
       }
-
     }
     service.shutdown();
   }
 
+  /**
+   * Do Ingestion Operation
+   * @param actualDeviceFloor
+   * @Return when connect failed return false
+   */
+  private boolean ingestionOperation(double actualDeviceFloor){
+    if (config.isIS_CLIENT_BIND()) {
+      if(config.isIS_SENSOR_TS_ALIGNMENT()) {
+        // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
+        try {
+          List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+          for (DeviceSchema deviceSchema : schemas) {
+            if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+              Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
+              dbWrapper.insertOneBatch(batch);
+            }
+          }
+        } catch (DBConnectException e) {
+          LOGGER.error("Failed to insert one batch data because ", e);
+          return false;
+        } catch (Exception e) {
+          LOGGER.error("Failed to insert one batch data because ", e);
+        }
+        insertLoopIndex++;
+      } else {
+        // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
+        try {
+          List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+          DeviceSchema sensorSchema = null;
+          List<String> sensorList =  new ArrayList<String>();
+          for (DeviceSchema deviceSchema : schemas) {
+            if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+              int colIndex = 0;
+              for(String sensor : deviceSchema.getSensors()){
+                sensorList = new ArrayList<String>();
+                sensorList.add(sensor);
+                sensorSchema = (DeviceSchema)deviceSchema.clone();
+                sensorSchema.setSensors(sensorList);
+                Batch batch = syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex,colIndex);
+                batch.setColIndex(colIndex);
+                String colType = DBUtil.getDataType(colIndex);
+                batch.setColType(colType);
+                dbWrapper.insertOneSensorBatch(batch);
+                colIndex++;
+                insertLoopIndex++;
+              }
+            }
+          }
+        } catch (DBConnectException e) {
+          LOGGER.error("Failed to insert one batch data because ", e);
+          return false;
+        } catch (Exception e) {
+          LOGGER.error("Failed to insert one batch data because ", e);
+        }
+      }
+    } else {
+      // IS_CLIENT_BIND = false
+      //TODO 下面这个暂时没在测试中用过，要慎重一下。
+      try {
+        Batch batch = singletonWorkload.getOneBatch();
+        if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
+          dbWrapper.insertOneBatch(batch);
+        }
+      } catch (DBConnectException e) {
+        LOGGER.error("Failed to insert one batch data because ", e);
+        return false;
+      } catch (Exception e) {
+        LOGGER.error("Failed to insert one batch data because ", e);
+      }
+    }
+    return true;
+  }
 }
 

@@ -2,12 +2,13 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DataSchema {
 
@@ -27,7 +28,7 @@ public class DataSchema {
     return DataSchemaHolder.INSTANCE;
   }
 
-  private static class  DataSchemaHolder {
+  private static class DataSchemaHolder {
     private static final DataSchema INSTANCE = new DataSchema();
   }
 

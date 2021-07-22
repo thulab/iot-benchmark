@@ -1,14 +1,14 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.RealDatasetWorkLoad;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RealDatasetClient extends Client implements Runnable {
 
@@ -21,6 +21,7 @@ public class RealDatasetClient extends Client implements Runnable {
     workload = new RealDatasetWorkLoad(files, config);
   }
 
+  @Override
   void doTest() {
     try {
       while (true) {

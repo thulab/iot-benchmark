@@ -492,164 +492,31 @@ public class Config {
 		}
 	}
 
-	public List<String> getHOST() {
-		return HOST;
+	public long IncrementAndGetCURRENT_CSV_LINE() {
+		return CURRENT_CSV_LINE.incrementAndGet();
 	}
 
-	public void setHOST(List<String> HOST) {
-		this.HOST = HOST;
+	public long getCURRENT_CSV_LINE() {
+		return CURRENT_CSV_LINE.get();
 	}
 
-	public List<String> getPORT() {
-		return PORT;
+	public void resetCURRENT_CSV_LINE() {
+		CURRENT_CSV_LINE.set(0);
 	}
 
-	public void setPORT(List<String> PORT) {
-		this.PORT = PORT;
+	public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
+		this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
 	}
 
-	public boolean isENABLE_DOUBLE_INSERT() {
-		return ENABLE_DOUBLE_INSERT;
+	/**
+	 * Getter and Setter
+	 */
+	public boolean isIS_DELETE_DATA() {
+		return IS_DELETE_DATA;
 	}
 
-	public void setENABLE_DOUBLE_INSERT(boolean ENABLE_DOUBLE_INSERT) {
-		this.ENABLE_DOUBLE_INSERT = ENABLE_DOUBLE_INSERT;
-	}
-
-	public List<String> getANOTHER_HOST() {
-		return ANOTHER_HOST;
-	}
-
-	public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
-		this.ANOTHER_HOST = ANOTHER_HOST;
-	}
-
-	public List<String> getANOTHER_PORT() {
-		return ANOTHER_PORT;
-	}
-
-	public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
-		this.ANOTHER_PORT = ANOTHER_PORT;
-	}
-
-	public String getKAFKA_LOCATION() {
-		return KAFKA_LOCATION;
-	}
-
-	public void setKAFKA_LOCATION(String KAFKA_LOCATION) {
-		this.KAFKA_LOCATION = KAFKA_LOCATION;
-	}
-
-	public String getZOOKEEPER_LOCATION() {
-		return ZOOKEEPER_LOCATION;
-	}
-
-	public void setZOOKEEPER_LOCATION(String ZOOKEEPER_LOCATION) {
-		this.ZOOKEEPER_LOCATION = ZOOKEEPER_LOCATION;
-	}
-
-	public String getTOPIC_NAME() {
-		return TOPIC_NAME;
-	}
-
-	public void setTOPIC_NAME(String TOPIC_NAME) {
-		this.TOPIC_NAME = TOPIC_NAME;
-	}
-
-	public int getDEVICE_NUMBER() {
-		return DEVICE_NUMBER;
-	}
-
-	public void setDEVICE_NUMBER(int DEVICE_NUMBER) {
-		this.DEVICE_NUMBER = DEVICE_NUMBER;
-	}
-
-	public boolean isIS_CLIENT_BIND() {
-		return IS_CLIENT_BIND;
-	}
-
-	public void setIS_CLIENT_BIND(boolean IS_CLIENT_BIND) {
-		this.IS_CLIENT_BIND = IS_CLIENT_BIND;
-	}
-
-	public void setIS_SENSOR_TS_ALIGNMENT(boolean IS_SENSOR_TS_ALIGNMENT) {
-		this.IS_SENSOR_TS_ALIGNMENT = IS_SENSOR_TS_ALIGNMENT;
-	}
-
-	public boolean isIS_SENSOR_TS_ALIGNMENT() {
-		return IS_SENSOR_TS_ALIGNMENT ;
-	}
-
-	public boolean isENABLE_THRIFT_COMPRESSION() {
-		return ENABLE_THRIFT_COMPRESSION;
-	}
-
-	public void setENABLE_THRIFT_COMPRESSION(boolean ENABLE_THRIFT_COMPRESSION) {
-		this.ENABLE_THRIFT_COMPRESSION = ENABLE_THRIFT_COMPRESSION;
-	}
-
-	public int getCLIENT_NUMBER() {
-		return CLIENT_NUMBER;
-	}
-
-	public void setCLIENT_NUMBER(int CLIENT_NUMBER) {
-		this.CLIENT_NUMBER = CLIENT_NUMBER;
-	}
-
-	public int getSENSOR_NUMBER() {
-		return SENSOR_NUMBER;
-	}
-
-	public void setSENSOR_NUMBER(int SENSOR_NUMBER) {
-		this.SENSOR_NUMBER = SENSOR_NUMBER;
-	}
-
-	public long getPOINT_STEP() {
-		return POINT_STEP;
-	}
-
-	public void setPOINT_STEP(long POINT_STEP) {
-		this.POINT_STEP = POINT_STEP;
-	}
-
-	public String getTIMESTAMP_PRECISION() {
-		return TIMESTAMP_PRECISION;
-	}
-
-	public void setTIMESTAMP_PRECISION(String TIMESTAMP_PRECISION) {
-		this.TIMESTAMP_PRECISION = TIMESTAMP_PRECISION;
-	}
-
-	public int getSTEP_SIZE() {
-		return STEP_SIZE;
-	}
-
-	public void setSTEP_SIZE(int STEP_SIZE) {
-		this.STEP_SIZE = STEP_SIZE;
-	}
-
-	public int getOP_INTERVAL() {
-		return OP_INTERVAL;
-	}
-
-	public void setOP_INTERVAL(int OP_INTERVAL) {
-		this.OP_INTERVAL = OP_INTERVAL;
-	}
-
-	public String getSG_STRATEGY() {
-		return SG_STRATEGY;
-	}
-
-	public void setSG_STRATEGY(String SG_STRATEGY) {
-		this.SG_STRATEGY = SG_STRATEGY;
-	}
-
-	public int getGROUP_NUMBER() {
-		return GROUP_NUMBER;
-	}
-
-	public void setGROUP_NUMBER(int GROUP_NUMBER) {
-		this.GROUP_NUMBER = GROUP_NUMBER;
+	public void setIS_DELETE_DATA(boolean IS_DELETE_DATA) {
+		this.IS_DELETE_DATA = IS_DELETE_DATA;
 	}
 
 	public long getINIT_WAIT_TIME() {
@@ -660,12 +527,28 @@ public class Config {
 		this.INIT_WAIT_TIME = INIT_WAIT_TIME;
 	}
 
-	public double getREAL_INSERT_RATE() {
-		return REAL_INSERT_RATE;
+	public String getNET_DEVICE() {
+		return NET_DEVICE;
 	}
 
-	public void setREAL_INSERT_RATE(double REAL_INSERT_RATE) {
-		this.REAL_INSERT_RATE = REAL_INSERT_RATE;
+	public void setNET_DEVICE(String NET_DEVICE) {
+		this.NET_DEVICE = NET_DEVICE;
+	}
+
+	public long getLOOP() {
+		return LOOP;
+	}
+
+	public void setLOOP(long LOOP) {
+		this.LOOP = LOOP;
+	}
+
+	public String getBENCHMARK_WORK_MODE() {
+		return BENCHMARK_WORK_MODE;
+	}
+
+	public void setBENCHMARK_WORK_MODE(String BENCHMARK_WORK_MODE) {
+		this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
 	}
 
 	public boolean isBENCHMARK_CLUSTER() {
@@ -684,116 +567,52 @@ public class Config {
 		this.BENCHMARK_INDEX = BENCHMARK_INDEX;
 	}
 
-	public boolean isIS_QUIET_MODE() {
-		return IS_QUIET_MODE;
+	public int getFIRST_DEVICE_INDEX() {
+		return FIRST_DEVICE_INDEX;
 	}
 
-	public void setIS_QUIET_MODE(boolean IS_QUIET_MODE) {
-		this.IS_QUIET_MODE = IS_QUIET_MODE;
+	public void setFIRST_DEVICE_INDEX(int FIRST_DEVICE_INDEX) {
+		this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
 	}
 
-	public int getLOG_PRINT_INTERVAL() {
-		return LOG_PRINT_INTERVAL;
+	public String getDB_SWITCH() {
+		return DB_SWITCH;
 	}
 
-	public void setLOG_PRINT_INTERVAL(int LOG_PRINT_INTERVAL) {
-		this.LOG_PRINT_INTERVAL = LOG_PRINT_INTERVAL;
+	public void setDB_SWITCH(String DB_SWITCH) {
+		this.DB_SWITCH = DB_SWITCH;
 	}
 
-	public int getWORKLOAD_BUFFER_SIZE() {
-		return WORKLOAD_BUFFER_SIZE;
+	public List<String> getHOST() {
+		return HOST;
 	}
 
-	public void setWORKLOAD_BUFFER_SIZE(int WORKLOAD_BUFFER_SIZE) {
-		this.WORKLOAD_BUFFER_SIZE = WORKLOAD_BUFFER_SIZE;
+	public void setHOST(List<String> HOST) {
+		this.HOST = HOST;
 	}
 
-	public double getLAMBDA() {
-		return LAMBDA;
+	public List<String> getPORT() {
+		return PORT;
 	}
 
-	public void setLAMBDA(double LAMBDA) {
-		this.LAMBDA = LAMBDA;
+	public void setPORT(List<String> PORT) {
+		this.PORT = PORT;
 	}
 
-	public int getMAX_K() {
-		return MAX_K;
+	public String getDB_NAME() {
+		return DB_NAME;
 	}
 
-	public void setMAX_K(int MAX_K) {
-		this.MAX_K = MAX_K;
+	public void setDB_NAME(String DB_NAME) {
+		this.DB_NAME = DB_NAME;
 	}
 
-	public String getOPERATION_PROPORTION() {
-		return OPERATION_PROPORTION;
+	public boolean isIS_ALL_NODES_VISIBLE() {
+		return IS_ALL_NODES_VISIBLE;
 	}
 
-	public void setOPERATION_PROPORTION(String OPERATION_PROPORTION) {
-		this.OPERATION_PROPORTION = OPERATION_PROPORTION;
-	}
-
-	public String getINSERT_DATATYPE_PROPORTION() {
-		return INSERT_DATATYPE_PROPORTION;
-	}
-
-	public void setINSERT_DATATYPE_PROPORTION(String INSERT_DATATYPE_PROPORTION) {
-		this.INSERT_DATATYPE_PROPORTION = INSERT_DATATYPE_PROPORTION;
-	}
-
-	public String getSTART_TIME() {
-		return START_TIME;
-	}
-
-	public void setSTART_TIME(String START_TIME) {
-		this.START_TIME = START_TIME;
-	}
-
-	public int getMONITOR_INTERVAL() {
-		return MONITOR_INTERVAL;
-	}
-
-	public void setMONITOR_INTERVAL(int MONITOR_INTERVAL) {
-		this.MONITOR_INTERVAL = MONITOR_INTERVAL;
-	}
-
-	public String getNET_DEVICE() {
-		return NET_DEVICE;
-	}
-
-	public void setNET_DEVICE(String NET_DEVICE) {
-		this.NET_DEVICE = NET_DEVICE;
-	}
-
-	public String getFILE_PATH() {
-		return FILE_PATH;
-	}
-
-	public void setFILE_PATH(String FILE_PATH) {
-		this.FILE_PATH = FILE_PATH;
-	}
-
-	public DataSet getDATA_SET() {
-		return DATA_SET;
-	}
-
-	public void setDATA_SET(DataSet DATA_SET) {
-		this.DATA_SET = DATA_SET;
-	}
-
-	public List<String> getFIELDS() {
-		return FIELDS;
-	}
-
-	public void setFIELDS(List<String> FIELDS) {
-		this.FIELDS = FIELDS;
-	}
-
-	public int[] getPRECISION() {
-		return PRECISION;
-	}
-
-	public void setPRECISION(int[] PRECISION) {
-		this.PRECISION = PRECISION;
+	public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
+		this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
 	}
 
 	public List<String> getIOTDB_DATA_DIR() {
@@ -836,20 +655,172 @@ public class Config {
 		this.UNSEQUENCE_DIR = UNSEQUENCE_DIR;
 	}
 
-	public int getFIRST_DEVICE_INDEX() {
-		return FIRST_DEVICE_INDEX;
+	public boolean isENABLE_DOUBLE_INSERT() {
+		return ENABLE_DOUBLE_INSERT;
 	}
 
-	public void setFIRST_DEVICE_INDEX(int FIRST_DEVICE_INDEX) {
-		this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
+	public void setENABLE_DOUBLE_INSERT(boolean ENABLE_DOUBLE_INSERT) {
+		this.ENABLE_DOUBLE_INSERT = ENABLE_DOUBLE_INSERT;
 	}
 
-	public long getLOOP() {
-		return LOOP;
+	public List<String> getANOTHER_HOST() {
+		return ANOTHER_HOST;
 	}
 
-	public void setLOOP(long LOOP) {
-		this.LOOP = LOOP;
+	public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
+		this.ANOTHER_HOST = ANOTHER_HOST;
+	}
+
+	public List<String> getANOTHER_PORT() {
+		return ANOTHER_PORT;
+	}
+
+	public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
+		this.ANOTHER_PORT = ANOTHER_PORT;
+	}
+
+	public String getANOTHER_DB_NAME() {
+		return ANOTHER_DB_NAME;
+	}
+
+	public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
+		this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
+	}
+
+	public String getKAFKA_LOCATION() {
+		return KAFKA_LOCATION;
+	}
+
+	public void setKAFKA_LOCATION(String KAFKA_LOCATION) {
+		this.KAFKA_LOCATION = KAFKA_LOCATION;
+	}
+
+	public String getZOOKEEPER_LOCATION() {
+		return ZOOKEEPER_LOCATION;
+	}
+
+	public void setZOOKEEPER_LOCATION(String ZOOKEEPER_LOCATION) {
+		this.ZOOKEEPER_LOCATION = ZOOKEEPER_LOCATION;
+	}
+
+	public String getTOPIC_NAME() {
+		return TOPIC_NAME;
+	}
+
+	public void setTOPIC_NAME(String TOPIC_NAME) {
+		this.TOPIC_NAME = TOPIC_NAME;
+	}
+
+	public long getPOINT_STEP() {
+		return POINT_STEP;
+	}
+
+	public void setPOINT_STEP(long POINT_STEP) {
+		this.POINT_STEP = POINT_STEP;
+	}
+
+	public String getTIMESTAMP_PRECISION() {
+		return TIMESTAMP_PRECISION;
+	}
+
+	public void setTIMESTAMP_PRECISION(String TIMESTAMP_PRECISION) {
+		this.TIMESTAMP_PRECISION = TIMESTAMP_PRECISION;
+	}
+
+	public int getSTRING_LENGTH() {
+		return STRING_LENGTH;
+	}
+
+	public void setSTRING_LENGTH(int STRING_LENGTH) {
+		this.STRING_LENGTH = STRING_LENGTH;
+	}
+
+	public String getINSERT_DATATYPE_PROPORTION() {
+		return INSERT_DATATYPE_PROPORTION;
+	}
+
+	public void setINSERT_DATATYPE_PROPORTION(String INSERT_DATATYPE_PROPORTION) {
+		this.INSERT_DATATYPE_PROPORTION = INSERT_DATATYPE_PROPORTION;
+	}
+
+	public String getFILE_PATH() {
+		return FILE_PATH;
+	}
+
+	public void setFILE_PATH(String FILE_PATH) {
+		this.FILE_PATH = FILE_PATH;
+	}
+
+	public DataSet getDATA_SET() {
+		return DATA_SET;
+	}
+
+	public void setDATA_SET(DataSet DATA_SET) {
+		this.DATA_SET = DATA_SET;
+	}
+
+	public List<String> getFIELDS() {
+		return FIELDS;
+	}
+
+	public void setFIELDS(List<String> FIELDS) {
+		this.FIELDS = FIELDS;
+	}
+
+	public int[] getPRECISION() {
+		return PRECISION;
+	}
+
+	public void setPRECISION(int[] PRECISION) {
+		this.PRECISION = PRECISION;
+	}
+
+	public int getDEVICE_NUMBER() {
+		return DEVICE_NUMBER;
+	}
+
+	public void setDEVICE_NUMBER(int DEVICE_NUMBER) {
+		this.DEVICE_NUMBER = DEVICE_NUMBER;
+	}
+
+	public double getREAL_INSERT_RATE() {
+		return REAL_INSERT_RATE;
+	}
+
+	public void setREAL_INSERT_RATE(double REAL_INSERT_RATE) {
+		this.REAL_INSERT_RATE = REAL_INSERT_RATE;
+	}
+
+	public int getSENSOR_NUMBER() {
+		return SENSOR_NUMBER;
+	}
+
+	public void setSENSOR_NUMBER(int SENSOR_NUMBER) {
+		this.SENSOR_NUMBER = SENSOR_NUMBER;
+	}
+
+	public boolean isIS_SENSOR_TS_ALIGNMENT() {
+		return IS_SENSOR_TS_ALIGNMENT;
+	}
+
+	public void setIS_SENSOR_TS_ALIGNMENT(boolean IS_SENSOR_TS_ALIGNMENT) {
+		this.IS_SENSOR_TS_ALIGNMENT = IS_SENSOR_TS_ALIGNMENT;
+	}
+
+	public boolean isIS_CLIENT_BIND() {
+		return IS_CLIENT_BIND;
+	}
+
+	public void setIS_CLIENT_BIND(boolean IS_CLIENT_BIND) {
+		this.IS_CLIENT_BIND = IS_CLIENT_BIND;
+	}
+
+	public int getCLIENT_NUMBER() {
+		return CLIENT_NUMBER;
+	}
+
+	public void setCLIENT_NUMBER(int CLIENT_NUMBER) {
+		this.CLIENT_NUMBER = CLIENT_NUMBER;
 	}
 
 	public double getLINE_RATIO() {
@@ -900,36 +871,148 @@ public class Config {
 		this.DATA_SEED = DATA_SEED;
 	}
 
-	public List<Integer> getDEVICE_CODES() {
-		return DEVICE_CODES;
+	public boolean isENABLE_THRIFT_COMPRESSION() {
+		return ENABLE_THRIFT_COMPRESSION;
 	}
 
-	public void setDEVICE_CODES(List<Integer> DEVICE_CODES) {
-		this.DEVICE_CODES = DEVICE_CODES;
+	public void setENABLE_THRIFT_COMPRESSION(boolean ENABLE_THRIFT_COMPRESSION) {
+		this.ENABLE_THRIFT_COMPRESSION = ENABLE_THRIFT_COMPRESSION;
 	}
 
-	public List<String> getSENSOR_CODES() {
-		return SENSOR_CODES;
+	public String getSG_STRATEGY() {
+		return SG_STRATEGY;
 	}
 
-	public void setSENSOR_CODES(List<String> SENSOR_CODES) {
-		this.SENSOR_CODES = SENSOR_CODES;
+	public void setSG_STRATEGY(String SG_STRATEGY) {
+		this.SG_STRATEGY = SG_STRATEGY;
 	}
 
-	public Map<String, FunctionParam> getSENSOR_FUNCTION() {
-		return SENSOR_FUNCTION;
+	public int getGROUP_NUMBER() {
+		return GROUP_NUMBER;
 	}
 
-	public void setSENSOR_FUNCTION(Map<String, FunctionParam> SENSOR_FUNCTION) {
-		this.SENSOR_FUNCTION = SENSOR_FUNCTION;
+	public void setGROUP_NUMBER(int GROUP_NUMBER) {
+		this.GROUP_NUMBER = GROUP_NUMBER;
 	}
 
-	public boolean isIS_DELETE_DATA() {
-		return IS_DELETE_DATA;
+	public int getIOTDB_SESSION_POOL_SIZE() {
+		return IOTDB_SESSION_POOL_SIZE;
 	}
 
-	public void setIS_DELETE_DATA(boolean IS_DELETE_DATA) {
-		this.IS_DELETE_DATA = IS_DELETE_DATA;
+	public void setIOTDB_SESSION_POOL_SIZE(int IOTDB_SESSION_POOL_SIZE) {
+		this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
+	}
+
+	public int getOP_INTERVAL() {
+		return OP_INTERVAL;
+	}
+
+	public void setOP_INTERVAL(int OP_INTERVAL) {
+		this.OP_INTERVAL = OP_INTERVAL;
+	}
+
+	public int getWRITE_OPERATION_TIMEOUT_MS() {
+		return WRITE_OPERATION_TIMEOUT_MS;
+	}
+
+	public void setWRITE_OPERATION_TIMEOUT_MS(int WRITE_OPERATION_TIMEOUT_MS) {
+		this.WRITE_OPERATION_TIMEOUT_MS = WRITE_OPERATION_TIMEOUT_MS;
+	}
+
+	public int getREAD_OPERATION_TIMEOUT_MS() {
+		return READ_OPERATION_TIMEOUT_MS;
+	}
+
+	public void setREAD_OPERATION_TIMEOUT_MS(int READ_OPERATION_TIMEOUT_MS) {
+		this.READ_OPERATION_TIMEOUT_MS = READ_OPERATION_TIMEOUT_MS;
+	}
+
+	public int getBATCH_SIZE_PER_WRITE() {
+		return BATCH_SIZE_PER_WRITE;
+	}
+
+	public void setBATCH_SIZE_PER_WRITE(int BATCH_SIZE_PER_WRITE) {
+		this.BATCH_SIZE_PER_WRITE = BATCH_SIZE_PER_WRITE;
+	}
+
+	public boolean isCREATE_SCHEMA() {
+		return CREATE_SCHEMA;
+	}
+
+	public void setCREATE_SCHEMA(boolean CREATE_SCHEMA) {
+		this.CREATE_SCHEMA = CREATE_SCHEMA;
+	}
+
+	public String getSTART_TIME() {
+		return START_TIME;
+	}
+
+	public void setSTART_TIME(String START_TIME) {
+		this.START_TIME = START_TIME;
+	}
+
+	public boolean isIS_OUT_OF_ORDER() {
+		return IS_OUT_OF_ORDER;
+	}
+
+	public void setIS_OUT_OF_ORDER(boolean IS_OUT_OF_ORDER) {
+		this.IS_OUT_OF_ORDER = IS_OUT_OF_ORDER;
+	}
+
+	public int getOUT_OF_ORDER_MODE() {
+		return OUT_OF_ORDER_MODE;
+	}
+
+	public void setOUT_OF_ORDER_MODE(int OUT_OF_ORDER_MODE) {
+		this.OUT_OF_ORDER_MODE = OUT_OF_ORDER_MODE;
+	}
+
+	public double getOUT_OF_ORDER_RATIO() {
+		return OUT_OF_ORDER_RATIO;
+	}
+
+	public void setOUT_OF_ORDER_RATIO(double OUT_OF_ORDER_RATIO) {
+		this.OUT_OF_ORDER_RATIO = OUT_OF_ORDER_RATIO;
+	}
+
+	public boolean isIS_REGULAR_FREQUENCY() {
+		return IS_REGULAR_FREQUENCY;
+	}
+
+	public void setIS_REGULAR_FREQUENCY(boolean IS_REGULAR_FREQUENCY) {
+		this.IS_REGULAR_FREQUENCY = IS_REGULAR_FREQUENCY;
+	}
+
+	public double getLAMBDA() {
+		return LAMBDA;
+	}
+
+	public void setLAMBDA(double LAMBDA) {
+		this.LAMBDA = LAMBDA;
+	}
+
+	public int getMAX_K() {
+		return MAX_K;
+	}
+
+	public void setMAX_K(int MAX_K) {
+		this.MAX_K = MAX_K;
+	}
+
+	public int getSTEP_SIZE() {
+		return STEP_SIZE;
+	}
+
+	public void setSTEP_SIZE(int STEP_SIZE) {
+		this.STEP_SIZE = STEP_SIZE;
+	}
+
+	public String getOPERATION_PROPORTION() {
+		return OPERATION_PROPORTION;
+	}
+
+	public void setOPERATION_PROPORTION(String OPERATION_PROPORTION) {
+		this.OPERATION_PROPORTION = OPERATION_PROPORTION;
 	}
 
 	public int getQUERY_SENSOR_NUM() {
@@ -958,6 +1041,18 @@ public class Config {
 
 	public long getQUERY_INTERVAL() {
 		return QUERY_INTERVAL;
+	}
+
+	public void setQUERY_INTERVAL(long QUERY_INTERVAL) {
+		this.QUERY_INTERVAL = QUERY_INTERVAL;
+	}
+
+	public double getQUERY_LOWER_VALUE() {
+		return QUERY_LOWER_VALUE;
+	}
+
+	public void setQUERY_LOWER_VALUE(double QUERY_LOWER_VALUE) {
+		this.QUERY_LOWER_VALUE = QUERY_LOWER_VALUE;
 	}
 
 	public long getGROUP_BY_TIME_UNIT() {
@@ -1008,14 +1103,6 @@ public class Config {
 		this.QUERY_SLIMIT_OFFSET = QUERY_SLIMIT_OFFSET;
 	}
 
-	public boolean isCREATE_SCHEMA() {
-		return CREATE_SCHEMA;
-	}
-
-	public void setCREATE_SCHEMA(boolean CREATE_SCHEMA) {
-		this.CREATE_SCHEMA = CREATE_SCHEMA;
-	}
-
 	public long getREAL_DATASET_QUERY_START_TIME() {
 		return REAL_DATASET_QUERY_START_TIME;
 	}
@@ -1032,6 +1119,14 @@ public class Config {
 		this.REAL_DATASET_QUERY_STOP_TIME = REAL_DATASET_QUERY_STOP_TIME;
 	}
 
+	public int getWORKLOAD_BUFFER_SIZE() {
+		return WORKLOAD_BUFFER_SIZE;
+	}
+
+	public void setWORKLOAD_BUFFER_SIZE(int WORKLOAD_BUFFER_SIZE) {
+		this.WORKLOAD_BUFFER_SIZE = WORKLOAD_BUFFER_SIZE;
+	}
+
 	public String getTEST_DATA_PERSISTENCE() {
 		return TEST_DATA_PERSISTENCE;
 	}
@@ -1040,20 +1135,28 @@ public class Config {
 		this.TEST_DATA_PERSISTENCE = TEST_DATA_PERSISTENCE;
 	}
 
-	public boolean isCSV_OUTPUT() {
-		return CSV_OUTPUT;
+	public int getMONITOR_INTERVAL() {
+		return MONITOR_INTERVAL;
 	}
 
-	public void setCSV_OUTPUT(boolean CSV_OUTPUT) {
-		this.CSV_OUTPUT = CSV_OUTPUT;
+	public void setMONITOR_INTERVAL(int MONITOR_INTERVAL) {
+		this.MONITOR_INTERVAL = MONITOR_INTERVAL;
 	}
 
-	public String getREMARK() {
-		return REMARK;
+	public boolean isIS_QUIET_MODE() {
+		return IS_QUIET_MODE;
 	}
 
-	public void setREMARK(String REMARK) {
-		this.REMARK = REMARK;
+	public void setIS_QUIET_MODE(boolean IS_QUIET_MODE) {
+		this.IS_QUIET_MODE = IS_QUIET_MODE;
+	}
+
+	public int getLOG_PRINT_INTERVAL() {
+		return LOG_PRINT_INTERVAL;
+	}
+
+	public void setLOG_PRINT_INTERVAL(int LOG_PRINT_INTERVAL) {
+		this.LOG_PRINT_INTERVAL = LOG_PRINT_INTERVAL;
 	}
 
 	public String getTEST_DATA_STORE_IP() {
@@ -1096,36 +1199,28 @@ public class Config {
 		this.TEST_DATA_STORE_PW = TEST_DATA_STORE_PW;
 	}
 
-	public void setMYSQL_REAL_INSERT_RATE(double MYSQL_REAL_INSERT_RATE) {
-		this.MYSQL_REAL_INSERT_RATE = MYSQL_REAL_INSERT_RATE;
+	public String getREMARK() {
+		return REMARK;
+	}
+
+	public void setREMARK(String REMARK) {
+		this.REMARK = REMARK;
 	}
 
 	public double getMYSQL_REAL_INSERT_RATE() {
 		return MYSQL_REAL_INSERT_RATE;
 	}
 
-	public boolean isCSV_FILE_SPLIT() {
-		return CSV_FILE_SPLIT;
+	public void setMYSQL_REAL_INSERT_RATE(double MYSQL_REAL_INSERT_RATE) {
+		this.MYSQL_REAL_INSERT_RATE = MYSQL_REAL_INSERT_RATE;
 	}
 
-	public void setCSV_FILE_SPLIT(boolean CSV_FILE_SPLIT) {
-		this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
+	public boolean isCSV_OUTPUT() {
+		return CSV_OUTPUT;
 	}
 
-	public long IncrementAndGetCURRENT_CSV_LINE() {
-		return CURRENT_CSV_LINE.incrementAndGet();
-	}
-
-	public long getCURRENT_CSV_LINE() {
-		return CURRENT_CSV_LINE.get();
-	}
-
-	public void resetCURRENT_CSV_LINE() {
-		CURRENT_CSV_LINE.set(0);
-	}
-
-	public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
-		this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
+	public void setCSV_OUTPUT(boolean CSV_OUTPUT) {
+		this.CSV_OUTPUT = CSV_OUTPUT;
 	}
 
 	public long getCSV_MAX_LINE() {
@@ -1136,127 +1231,55 @@ public class Config {
 		this.CSV_MAX_LINE = CSV_MAX_LINE;
 	}
 
-	public String getDB_NAME() {
-		return DB_NAME;
+	public boolean isCSV_FILE_SPLIT() {
+		return CSV_FILE_SPLIT;
 	}
 
-	public void setDB_NAME(String DB_NAME) {
-		this.DB_NAME = DB_NAME;
+	public void setCSV_FILE_SPLIT(boolean CSV_FILE_SPLIT) {
+		this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
 	}
 
-	public String getDB_SWITCH() {
-		return DB_SWITCH;
+	public List<Integer> getDEVICE_CODES() {
+		return DEVICE_CODES;
 	}
 
-	public void setDB_SWITCH(String DB_SWITCH) {
-		this.DB_SWITCH = DB_SWITCH;
+	public void setDEVICE_CODES(List<Integer> DEVICE_CODES) {
+		this.DEVICE_CODES = DEVICE_CODES;
 	}
 
-	public String getBENCHMARK_WORK_MODE() {
-		return BENCHMARK_WORK_MODE;
+	public List<String> getSENSOR_CODES() {
+		return SENSOR_CODES;
 	}
 
-	public void setBENCHMARK_WORK_MODE(String BENCHMARK_WORK_MODE) {
-		this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+	public void setSENSOR_CODES(List<String> SENSOR_CODES) {
+		this.SENSOR_CODES = SENSOR_CODES;
 	}
 
-	public boolean isIS_ALL_NODES_VISIBLE() {
-		return IS_ALL_NODES_VISIBLE;
+	public List<FunctionParam> getLINE_LIST() {
+		return LINE_LIST;
 	}
 
-	public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
-		this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
+	public List<FunctionParam> getSIN_LIST() {
+		return SIN_LIST;
 	}
 
-	public int getWRITE_OPERATION_TIMEOUT_MS() {
-		return WRITE_OPERATION_TIMEOUT_MS;
+	public List<FunctionParam> getSQUARE_LIST() {
+		return SQUARE_LIST;
 	}
 
-	public void setWRITE_OPERATION_TIMEOUT_MS(int WRITE_OPERATION_TIMEOUT_MS) {
-		this.WRITE_OPERATION_TIMEOUT_MS = WRITE_OPERATION_TIMEOUT_MS;
+	public List<FunctionParam> getRANDOM_LIST() {
+		return RANDOM_LIST;
 	}
 
-	public int getREAD_OPERATION_TIMEOUT_MS() {
-		return READ_OPERATION_TIMEOUT_MS;
+	public List<FunctionParam> getCONSTANT_LIST() {
+		return CONSTANT_LIST;
 	}
 
-	public void setREAD_OPERATION_TIMEOUT_MS(int READ_OPERATION_TIMEOUT_MS) {
-		this.READ_OPERATION_TIMEOUT_MS = READ_OPERATION_TIMEOUT_MS;
+	public Map<String, FunctionParam> getSENSOR_FUNCTION() {
+		return SENSOR_FUNCTION;
 	}
 
-	public String getANOTHER_DB_NAME() {
-		return ANOTHER_DB_NAME;
-	}
-
-	public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
-		this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
-	}
-
-	public int getSTRING_LENGTH() {
-		return STRING_LENGTH;
-	}
-
-	public void setSTRING_LENGTH(int STRING_LENGTH) {
-		this.STRING_LENGTH = STRING_LENGTH;
-	}
-
-	public int getIOTDB_SESSION_POOL_SIZE() {
-		return IOTDB_SESSION_POOL_SIZE;
-	}
-
-	public void setIOTDB_SESSION_POOL_SIZE(int IOTDB_SESSION_POOL_SIZE) {
-		this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
-	}
-
-	public int getBATCH_SIZE_PER_WRITE() {
-		return BATCH_SIZE_PER_WRITE;
-	}
-
-	public void setBATCH_SIZE_PER_WRITE(int BATCH_SIZE_PER_WRITE) {
-		this.BATCH_SIZE_PER_WRITE = BATCH_SIZE_PER_WRITE;
-	}
-
-	public boolean isIS_OUT_OF_ORDER() {
-		return IS_OUT_OF_ORDER;
-	}
-
-	public void setIS_OUT_OF_ORDER(boolean IS_OUT_OF_ORDER) {
-		this.IS_OUT_OF_ORDER = IS_OUT_OF_ORDER;
-	}
-
-	public int getOUT_OF_ORDER_MODE() {
-		return OUT_OF_ORDER_MODE;
-	}
-
-	public void setOUT_OF_ORDER_MODE(int OUT_OF_ORDER_MODE) {
-		this.OUT_OF_ORDER_MODE = OUT_OF_ORDER_MODE;
-	}
-
-	public double getOUT_OF_ORDER_RATIO() {
-		return OUT_OF_ORDER_RATIO;
-	}
-
-	public void setOUT_OF_ORDER_RATIO(double OUT_OF_ORDER_RATIO) {
-		this.OUT_OF_ORDER_RATIO = OUT_OF_ORDER_RATIO;
-	}
-
-	public boolean isIS_REGULAR_FREQUENCY() {
-		return IS_REGULAR_FREQUENCY;
-	}
-
-	public void setIS_REGULAR_FREQUENCY(boolean IS_REGULAR_FREQUENCY) {
-		this.IS_REGULAR_FREQUENCY = IS_REGULAR_FREQUENCY;
-	}
-
-	public double getQUERY_LOWER_VALUE() {
-		return QUERY_LOWER_VALUE;
-	}
-
-	public void setQUERY_LOWER_VALUE(double QUERY_LOWER_VALUE) {
-		this.QUERY_LOWER_VALUE = QUERY_LOWER_VALUE;
-	}
-
-	public void setQUERY_INTERVAL(long QUERY_INTERVAL) {
-		this.QUERY_INTERVAL = QUERY_INTERVAL;
+	public void setSENSOR_FUNCTION(Map<String, FunctionParam> SENSOR_FUNCTION) {
+		this.SENSOR_FUNCTION = SENSOR_FUNCTION;
 	}
 }

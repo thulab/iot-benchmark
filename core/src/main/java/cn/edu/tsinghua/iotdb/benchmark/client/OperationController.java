@@ -2,11 +2,11 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class OperationController {
 
@@ -23,13 +23,13 @@ public class OperationController {
    */
   Operation getNextOperationType() {
     List<Double> proportion = resolveOperationProportion();
+    // p contains cumulative probability
     double[] p = new double[Operation.values().length + 1];
     p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a operation type whose probability
-    // is the region range size.
     for (int i = 1; i <= Operation.values().length; i++) {
       p[i] = p[i - 1] + proportion.get(i - 1);
     }
+    // use random to getNextOperationType
     double rand = random.nextDouble();
     int i;
     for (i = 1; i <= Operation.values().length; i++) {
@@ -66,6 +66,10 @@ public class OperationController {
     }
   }
 
+  /**
+   * calculate proportion according to OPERATION_PROPORTION
+   * @return
+   */
   List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
     String[] split = config.getOPERATION_PROPORTION().split(":");
