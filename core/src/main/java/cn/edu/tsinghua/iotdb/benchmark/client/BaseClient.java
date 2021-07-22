@@ -65,7 +65,7 @@ loop:
       }
       switch (operation) {
         case INGESTION:
-          if(ingestionOperation(actualDeviceFloor)){
+          if(!ingestionOperation(actualDeviceFloor)){
             break loop;
           }
           break;

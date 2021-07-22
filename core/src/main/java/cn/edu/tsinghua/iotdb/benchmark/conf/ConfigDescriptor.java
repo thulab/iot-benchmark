@@ -57,15 +57,6 @@ public class ConfigDescriptor {
 				config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP()+"")));
 				config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
 
-				config.setBENCHMARK_CLUSTER(
-						Boolean.parseBoolean(properties.getProperty("BENCHMARK_CLUSTER",config.isBENCHMARK_CLUSTER() + "")));
-				if (config.isBENCHMARK_CLUSTER()){
-					config.setBENCHMARK_INDEX(Integer.parseInt(properties.getProperty("BENCHMARK_INDEX",config.getBENCHMARK_INDEX() + "")));
-					config.setFIRST_DEVICE_INDEX(config.getBENCHMARK_INDEX() * config.getDEVICE_NUMBER());
-				}else{
-					config.setFIRST_DEVICE_INDEX(0);
-				}
-
 				config.setDB_SWITCH(properties.getProperty("DB_SWITCH", config.getDB_SWITCH()));
 				String hosts = properties.getProperty("HOST", config.getHOST() + "");
 				config.setHOST(Arrays.asList(hosts.split(",")));
@@ -158,6 +149,14 @@ public class ConfigDescriptor {
 				config.setCLIENT_NUMBER(
 						Integer.parseInt(
 								properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER()+"")));
+				config.setBENCHMARK_CLUSTER(
+						Boolean.parseBoolean(properties.getProperty("BENCHMARK_CLUSTER",config.isBENCHMARK_CLUSTER() + "")));
+				if (config.isBENCHMARK_CLUSTER()){
+					config.setBENCHMARK_INDEX(Integer.parseInt(properties.getProperty("BENCHMARK_INDEX",config.getBENCHMARK_INDEX() + "")));
+					config.setFIRST_DEVICE_INDEX(config.getBENCHMARK_INDEX() * config.getDEVICE_NUMBER());
+				}else{
+					config.setFIRST_DEVICE_INDEX(0);
+				}
 
 				config.setLINE_RATIO(
 						Double.parseDouble(
