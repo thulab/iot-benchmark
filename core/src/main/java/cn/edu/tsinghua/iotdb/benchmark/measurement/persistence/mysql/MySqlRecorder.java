@@ -72,8 +72,7 @@ public class MySqlRecorder implements ITestDataPersistence {
      */
     private void initTable() {
         try {
-            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_SERVER_MODE)
-                    || config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_CLIENT_SYSTEM_INFO)) {
+            if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_SERVER_MODE)) {
                 if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
                     statement.executeUpdate("create table SERVER_MODE_"
                             + localName

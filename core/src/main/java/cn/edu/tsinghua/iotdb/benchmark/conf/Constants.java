@@ -101,9 +101,6 @@ public class Constants {
     public static final String MODE_QUERY_WITH_REAL_DATASET = "queryWithRealDataSet";
     public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
     public static final String MODE_SERVER_MODE = "serverMODE";
-    // TODO check use
-    public static final String MODE_CLIENT_SYSTEM_INFO = "clientSystemInfo";
-
     /**
      * support test data persistence
      */

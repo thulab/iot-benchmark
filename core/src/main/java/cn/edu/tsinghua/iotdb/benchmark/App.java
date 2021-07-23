@@ -54,7 +54,6 @@ public class App {
                 queryWithRealDataSet(config);
                 break;
             case Constants.MODE_SERVER_MODE:
-            case Constants.MODE_CLIENT_SYSTEM_INFO:
                 serverMode(config);
                 break;
             default:
@@ -322,12 +321,11 @@ public class App {
         float abnormalValue = -1;
 
         Map<FileSize.FileSizeKinds, Float> fileSizeStatistics = new EnumMap<>(FileSize.FileSizeKinds.class);
-        boolean isClientMonitor = config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_CLIENT_SYSTEM_INFO);
-        if (isClientMonitor) {
-            for (FileSize.FileSizeKinds kinds : FileSize.FileSizeKinds.values()) {
-                fileSizeStatistics.put(kinds, abnormalValue);
-            }
+
+        for (FileSize.FileSizeKinds kinds : FileSize.FileSizeKinds.values()) {
+            fileSizeStatistics.put(kinds, abnormalValue);
         }
+
         HashMap<IoUsage.IOStatistics, Float> ioStatistics;
         int interval = config.getMONITOR_INTERVAL();
         boolean headerPrinted = false;
@@ -340,11 +338,9 @@ public class App {
             start = System.currentTimeMillis();
             ArrayList<Float> netUsageList = NetUsage.getInstance().get();
             LOGGER.debug("NetUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
-            if (!isClientMonitor) {
-                start = System.currentTimeMillis();
-                fileSizeStatistics = FileSize.getInstance().getFileSize();
-                LOGGER.debug("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
-            }
+            start = System.currentTimeMillis();
+            fileSizeStatistics = FileSize.getInstance().getFileSize();
+            LOGGER.debug("FileSize.getInstance().getFileSize() consume ,{}, ms", System.currentTimeMillis() - start);
             start = System.currentTimeMillis();
             ioStatistics = IoUsage.getInstance().getIOStatistics();
             LOGGER.debug("IoUsage.getInstance().getIOStatistics() consume ,{}, ms", System.currentTimeMillis() - start);
