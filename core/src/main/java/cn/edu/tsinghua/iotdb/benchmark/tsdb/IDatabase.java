@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
-
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;

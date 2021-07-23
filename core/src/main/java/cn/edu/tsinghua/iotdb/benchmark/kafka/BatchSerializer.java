@@ -10,21 +10,21 @@ import java.util.Map;
 
 public class BatchSerializer implements Serializer<Batch> {
 
-  @Override
-  public void configure(Map<String, ?> map, boolean b) {}
+    @Override
+    public void configure(Map<String, ?> map, boolean b) {}
 
-  @Override
-  public byte[] serialize(String s, Batch batch) {
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      batch.serialize(outputStream);
-      return outputStream.toByteArray();
-    } catch (IOException e) {
-      e.printStackTrace();
+    @Override
+    public byte[] serialize(String s, Batch batch) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            batch.serialize(outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new byte[0];
     }
-    return new byte[0];
-  }
 
-  @Override
-  public void close() {}
+    @Override
+    public void close() {}
 
 }

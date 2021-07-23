@@ -13,24 +13,24 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 
 public interface IWorkload {
 
-  Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException;
+    Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException;
 
-  Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException;
+    Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException;
 
-  PreciseQuery getPreciseQuery() throws WorkloadException;
+    PreciseQuery getPreciseQuery() throws WorkloadException;
 
-  RangeQuery getRangeQuery() throws WorkloadException;
+    RangeQuery getRangeQuery() throws WorkloadException;
 
-  ValueRangeQuery getValueRangeQuery() throws WorkloadException;
+    ValueRangeQuery getValueRangeQuery() throws WorkloadException;
 
-  AggRangeQuery getAggRangeQuery() throws WorkloadException;
+    AggRangeQuery getAggRangeQuery() throws WorkloadException;
 
-  AggValueQuery getAggValueQuery() throws WorkloadException;
+    AggValueQuery getAggValueQuery() throws WorkloadException;
 
-  AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException;
+    AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException;
 
-  GroupByQuery getGroupByQuery() throws WorkloadException;
+    GroupByQuery getGroupByQuery() throws WorkloadException;
 
-  LatestPointQuery getLatestPointQuery() throws WorkloadException;
+    LatestPointQuery getLatestPointQuery() throws WorkloadException;
 
 }

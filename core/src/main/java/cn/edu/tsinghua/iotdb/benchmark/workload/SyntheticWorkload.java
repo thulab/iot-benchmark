@@ -21,335 +21,335 @@ import java.util.*;
 // TODO 阅读
 public class SyntheticWorkload implements IWorkload {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final Random timestampRandom = new Random(config.getDATA_SEED());
-  private final ProbTool probTool;
-  private final Map<DeviceSchema, Long> maxTimestampIndexMap;
-  private final Random poissonRandom;
-  private final Random queryDeviceRandom;
-  private final Map<Operation, Long> operationLoops;
-  private static final Random random = new Random(config.getDATA_SEED());
-  private static final Random dataRandom = new Random(config.getDATA_SEED());
-  // this must before the initWorkloadValues function calls TODO rename to valueScaleFactor 删除 * 10
-  private static int scaleFactor = 10;
-  /**workloadValues[传感器][序号]。 对于那些有规律的数据，存储了每个传感器的一段数据，用于按规律快速生成*/
-  private static final Object[][] workloadValues = initWorkloadValues();
-  private static final String CHAR_TABLE =
-      "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+    private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final Random timestampRandom = new Random(config.getDATA_SEED());
+    private final ProbTool probTool;
+    private final Map<DeviceSchema, Long> maxTimestampIndexMap;
+    private final Random poissonRandom;
+    private final Random queryDeviceRandom;
+    private final Map<Operation, Long> operationLoops;
+    private static final Random random = new Random(config.getDATA_SEED());
+    private static final Random dataRandom = new Random(config.getDATA_SEED());
+    // this must before the initWorkloadValues function calls TODO rename to valueScaleFactor 删除 * 10
+    private static int scaleFactor = 10;
+    /**workloadValues[传感器][序号]。 对于那些有规律的数据，存储了每个传感器的一段数据，用于按规律快速生成*/
+    private static final Object[][] workloadValues = initWorkloadValues();
+    private static final String CHAR_TABLE =
+            "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
 
-  public SyntheticWorkload(int clientId) {
-    probTool = new ProbTool();
-    maxTimestampIndexMap = new HashMap<>();
-    poissonRandom = new Random(config.getDATA_SEED());
-    for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
-      maxTimestampIndexMap.put(schema, 0L);
-    }
-    queryDeviceRandom = new Random(config.getQUERY_SEED() + clientId);
-    operationLoops = new EnumMap<>(Operation.class);
-    for (Operation operation : Operation.values()) {
-      operationLoops.put(operation, 0L);
-    }
-  }
-
-  private static Object[][] initWorkloadValues() {
-    Object[][] workloadValues = null;
-    if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      //不为0就是有写入操作。
-      workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
-      int sensorIndex = 0;
-      for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
-        String sensor = config.getSENSOR_CODES().get(j);
-        for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
-          //这个时间戳只用来生成有周期性的数据。所以时间戳也是周期的。
-          long currentTimestamp = getCurrentTimestamp(i);
-          Object value;
-          if (getNextDataType(sensorIndex).equals("TEXT")) {
-            //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
-            StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
-            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-              assert dataRandom != null;
-              builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
-            }
-            value = builder.toString();
-          } else {
-            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
-            Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
-            switch (getNextDataType(sensorIndex)) {
-              case "BOOLEAN":
-                value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
-                break;
-              case "INT32":
-                value = number.intValue();
-                break;
-              case "INT64":
-                value = number.longValue();
-                break;
-              case "FLOAT":
-                // TODO
-                value = ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor;
-                break;
-              case "DOUBLE":
-                // TODO
-                value = ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor;
-                break;
-              default:
-                value = null;
-                break;
-            }
-          }
-          workloadValues[j][i] = value;
+    public SyntheticWorkload(int clientId) {
+        probTool = new ProbTool();
+        maxTimestampIndexMap = new HashMap<>();
+        poissonRandom = new Random(config.getDATA_SEED());
+        for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
+            maxTimestampIndexMap.put(schema, 0L);
         }
-        sensorIndex++;
-      }
+        queryDeviceRandom = new Random(config.getQUERY_SEED() + clientId);
+        operationLoops = new EnumMap<>(Operation.class);
+        for (Operation operation : Operation.values()) {
+            operationLoops.put(operation, 0L);
+        }
     }
-    return workloadValues;
-  }
 
-  public static String getNextDataType(int sensorIndex) {
-    return DBUtil.getDataType(sensorIndex);
-  }
-
-  private static long getCurrentTimestamp(long stepOffset) {
-    long timeStampOffset = config.getPOINT_STEP() * stepOffset;
-    if (config.isIS_OUT_OF_ORDER()) {
-      // 随机加上数秒，使得时间不是均匀的。但是不会乱序。
-      // 添加 ratio 使用randorm->timestampRandom
-      //TODO 但是方法名可是说可能会乱序啊！！！！！！！
-      timeStampOffset += (random.nextDouble() * config.getPOINT_STEP());
-    } else {
-      if (config.isIS_REGULAR_FREQUENCY()) {
-        //TODO 这方法跟上面有啥区别？？？
-        timeStampOffset += (config.getPOINT_STEP() * timestampRandom.nextDouble());
-      }
+    private static Object[][] initWorkloadValues() {
+        Object[][] workloadValues = null;
+        if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+            //不为0就是有写入操作。
+            workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
+            int sensorIndex = 0;
+            for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
+                String sensor = config.getSENSOR_CODES().get(j);
+                for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
+                    //这个时间戳只用来生成有周期性的数据。所以时间戳也是周期的。
+                    long currentTimestamp = getCurrentTimestamp(i);
+                    Object value;
+                    if (getNextDataType(sensorIndex).equals("TEXT")) {
+                        //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
+                        StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
+                        for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+                            assert dataRandom != null;
+                            builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+                        }
+                        value = builder.toString();
+                    } else {
+                        FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
+                        Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
+                        switch (getNextDataType(sensorIndex)) {
+                            case "BOOLEAN":
+                                value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
+                                break;
+                            case "INT32":
+                                value = number.intValue();
+                                break;
+                            case "INT64":
+                                value = number.longValue();
+                                break;
+                            case "FLOAT":
+                                // TODO
+                                value = ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor;
+                                break;
+                            case "DOUBLE":
+                                // TODO
+                                value = ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor;
+                                break;
+                            default:
+                                value = null;
+                                break;
+                        }
+                    }
+                    workloadValues[j][i] = value;
+                }
+                sensorIndex++;
+            }
+        }
+        return workloadValues;
     }
-    //TODO 为啥timeStampOffset不乘以时间精度？？？
-    return Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
-  }
 
-  private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
-    Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
+    public static String getNextDataType(int sensorIndex) {
+        return DBUtil.getDataType(sensorIndex);
     }
-    batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
 
-  // TODO 为啥插入一个点
-  private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
-    Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      addOneRowIntoBatch(batch, stepOffset,colIndex);
+    private static long getCurrentTimestamp(long stepOffset) {
+        long timeStampOffset = config.getPOINT_STEP() * stepOffset;
+        if (config.isIS_OUT_OF_ORDER()) {
+            // 随机加上数秒，使得时间不是均匀的。但是不会乱序。
+            // 添加 ratio 使用randorm->timestampRandom
+            //TODO 但是方法名可是说可能会乱序啊！！！！！！！
+            timeStampOffset += (random.nextDouble() * config.getPOINT_STEP());
+        } else {
+            if (config.isIS_REGULAR_FREQUENCY()) {
+                //TODO 这方法跟上面有啥区别？？？
+                timeStampOffset += (config.getPOINT_STEP() * timestampRandom.nextDouble());
+            }
+        }
+        //TODO 为啥timeStampOffset不乘以时间精度？？？
+        return Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
     }
-    batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
 
-  private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
-    // TODO 修改乱序的比例
-    // Config 添加乱序步长 Poisson 替代MAX_K
-    // 乱序步长为k，则在t-k的范围内按照分布规律进行差值，大于t的部分不变，t为当前时间
-    Batch batch = new Batch();
-    long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
-    long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + barrier;
-    // move data(index = barrier) to front
-    addOneRowIntoBatch(batch, stepOffset);
-    for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
-      stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
+    private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
+        Batch batch = new Batch();
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
     }
-    for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
+
+    // TODO 为啥插入一个点
+    private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
+        Batch batch = new Batch();
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            addOneRowIntoBatch(batch, stepOffset,colIndex);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
     }
-    batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
 
-  private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
-    Batch batch = new Batch();
-    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
-    int nextDelta;
-    long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
-        // generate overflow timestamp
-        nextDelta = poissonDistribution.getNextPoissonDelta();
-        stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
-      } else {
-        // generate normal increasing timestamp
-        maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
-        stepOffset = maxTimestampIndexMap.get(deviceSchema);
-      }
-      addOneRowIntoBatch(batch, stepOffset);
+    private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
+        // TODO 修改乱序的比例
+        // Config 添加乱序步长 Poisson 替代MAX_K
+        // 乱序步长为k，则在t-k的范围内按照分布规律进行差值，大于t的部分不变，t为当前时间
+        Batch batch = new Batch();
+        long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
+        long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + barrier;
+        // move data(index = barrier) to front
+        addOneRowIntoBatch(batch, stepOffset);
+        for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
+            stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
     }
-    batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
 
-  static void addOneRowIntoBatch(Batch batch, long stepOffset) {
-    List<Object> values = new ArrayList<>();
-    long currentTimestamp = getCurrentTimestamp(stepOffset);
-    for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
-        values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+    private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
+        Batch batch = new Batch();
+        PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
+        int nextDelta;
+        long stepOffset;
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
+                // generate overflow timestamp
+                nextDelta = poissonDistribution.getNextPoissonDelta();
+                stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
+            } else {
+                // generate normal increasing timestamp
+                maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
+                stepOffset = maxTimestampIndexMap.get(deviceSchema);
+            }
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
     }
-    batch.add(currentTimestamp, values);
-  }
 
-  /**
-   * 该方法仅填充一个值进入values TODO check
-   * @param batch
-   * @param stepOffset
-   * @param colIndex
-   */
-  static void addOneRowIntoBatch(Batch batch, long stepOffset,int colIndex) {
-    List<Object> values = new ArrayList<>();
-    long currentTimestamp = getCurrentTimestamp(stepOffset);
-    values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
-    batch.add(currentTimestamp, values);
-  }
-
-  @Override
-  public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
-    if (!config.isIS_OUT_OF_ORDER()) {
-      return getOrderedBatch(deviceSchema, loopIndex);
-    } else {
-      switch (config.getOUT_OF_ORDER_MODE()) {
-        case 0:
-          return getDistOutOfOrderBatch(deviceSchema);
-        case 1:
-          return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
-        default:
-          throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
-      }
+    static void addOneRowIntoBatch(Batch batch, long stepOffset) {
+        List<Object> values = new ArrayList<>();
+        long currentTimestamp = getCurrentTimestamp(stepOffset);
+        for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
+            values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+        }
+        batch.add(currentTimestamp, values);
     }
-  }
 
-  @Override
-  public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException {
-    if (!config.isIS_OUT_OF_ORDER()) {
-      return getOrderedBatch(deviceSchema, loopIndex,colIndex);
-    } else {
-      switch (config.getOUT_OF_ORDER_MODE()) {
-        case 0:
-          return getDistOutOfOrderBatch(deviceSchema);
-        case 1:
-          return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
-        default:
-          throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
-      }
+    /**
+     * 该方法仅填充一个值进入values TODO check
+     * @param batch
+     * @param stepOffset
+     * @param colIndex
+     */
+    static void addOneRowIntoBatch(Batch batch, long stepOffset,int colIndex) {
+        List<Object> values = new ArrayList<>();
+        long currentTimestamp = getCurrentTimestamp(stepOffset);
+        values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+        batch.add(currentTimestamp, values);
     }
-  }
 
-  private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {
-    checkQuerySchemaParams();
-    List<DeviceSchema> queryDevices = new ArrayList<>();
-    List<Integer> clientDevicesIndex = new ArrayList<>();
-    for (int m = 0; m < config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE(); m++) {
-      clientDevicesIndex.add(m);
+    @Override
+    public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex) throws WorkloadException {
+        if (!config.isIS_OUT_OF_ORDER()) {
+            return getOrderedBatch(deviceSchema, loopIndex);
+        } else {
+            switch (config.getOUT_OF_ORDER_MODE()) {
+                case 0:
+                    return getDistOutOfOrderBatch(deviceSchema);
+                case 1:
+                    return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
+                default:
+                    throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
+            }
+        }
     }
-    Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
-    for (int m = 0; m < config.getQUERY_DEVICE_NUM(); m++) {
-      DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
-      List<String> sensors = deviceSchema.getSensors();
-      Collections.shuffle(sensors, queryDeviceRandom);
-      List<String> querySensors = new ArrayList<>();
-      for (int i = 0; i < config.getQUERY_SENSOR_NUM(); i++) {
-        querySensors.add(sensors.get(i));
-      }
-      deviceSchema.setSensors(querySensors);
-      queryDevices.add(deviceSchema);
+
+    @Override
+    public Batch getOneBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) throws WorkloadException {
+        if (!config.isIS_OUT_OF_ORDER()) {
+            return getOrderedBatch(deviceSchema, loopIndex,colIndex);
+        } else {
+            switch (config.getOUT_OF_ORDER_MODE()) {
+                case 0:
+                    return getDistOutOfOrderBatch(deviceSchema);
+                case 1:
+                    return getLocalOutOfOrderBatch(deviceSchema, loopIndex);
+                default:
+                    throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
+            }
+        }
     }
-    return queryDevices;
-  }
 
-  private void checkQuerySchemaParams() throws WorkloadException {
-    if (!(config.getQUERY_DEVICE_NUM() > 0 && config.getQUERY_DEVICE_NUM() <= config.getDEVICE_NUMBER())) {
-      throw new WorkloadException("getQUERY_DEVICE_NUM() is not correct, please check.");
+    private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {
+        checkQuerySchemaParams();
+        List<DeviceSchema> queryDevices = new ArrayList<>();
+        List<Integer> clientDevicesIndex = new ArrayList<>();
+        for (int m = 0; m < config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE(); m++) {
+            clientDevicesIndex.add(m);
+        }
+        Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
+        for (int m = 0; m < config.getQUERY_DEVICE_NUM(); m++) {
+            DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
+            List<String> sensors = deviceSchema.getSensors();
+            Collections.shuffle(sensors, queryDeviceRandom);
+            List<String> querySensors = new ArrayList<>();
+            for (int i = 0; i < config.getQUERY_SENSOR_NUM(); i++) {
+                querySensors.add(sensors.get(i));
+            }
+            deviceSchema.setSensors(querySensors);
+            queryDevices.add(deviceSchema);
+        }
+        return queryDevices;
     }
-    if (!(config.getQUERY_SENSOR_NUM() > 0 && config.getQUERY_SENSOR_NUM() <= config.getSENSOR_NUMBER())) {
-      throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
+
+    private void checkQuerySchemaParams() throws WorkloadException {
+        if (!(config.getQUERY_DEVICE_NUM() > 0 && config.getQUERY_DEVICE_NUM() <= config.getDEVICE_NUMBER())) {
+            throw new WorkloadException("getQUERY_DEVICE_NUM() is not correct, please check.");
+        }
+        if (!(config.getQUERY_SENSOR_NUM() > 0 && config.getQUERY_SENSOR_NUM() <= config.getSENSOR_NUMBER())) {
+            throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
+        }
     }
-  }
 
-  private long getQueryStartTimestamp() {
-    long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
-    long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
-    operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
-    return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
-  }
-
-  public PreciseQuery getPreciseQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long timestamp = getQueryStartTimestamp();
-    return new PreciseQuery(queryDevices, timestamp);
-  }
-
-  public RangeQuery getRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
-    return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
-  }
-
-  public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
-    return new ValueRangeQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_LOWER_VALUE());
-  }
-
-  public AggRangeQuery getAggRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
-    return new AggRangeQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_AGGREGATE_FUN());
-  }
-
-  public AggValueQuery getAggValueQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    return new AggValueQuery(queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
-  }
-
-  public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
-    return new AggRangeValueQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
-  }
-
-  @Override
-  public GroupByQuery getGroupByQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
-    return new GroupByQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_AGGREGATE_FUN(), config.getGROUP_BY_TIME_UNIT());
-  }
-
-  public LatestPointQuery getLatestPointQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
-    long startTimestamp = getQueryStartTimestamp();
-    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
-    return new LatestPointQuery(queryDevices, startTimestamp, endTimestamp,
-        config.getQUERY_AGGREGATE_FUN());
-  }
-
-  private static long getTimestampConst(String timePrecision){
-    if(timePrecision.equals("ms")) {
-      return 1L;
-    } else if(timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1000000L;
+    private long getQueryStartTimestamp() {
+        long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
+        long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
+        operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
+        return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
     }
-  }
+
+    public PreciseQuery getPreciseQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long timestamp = getQueryStartTimestamp();
+        return new PreciseQuery(queryDevices, timestamp);
+    }
+
+    public RangeQuery getRangeQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long startTimestamp = getQueryStartTimestamp();
+        long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+        return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
+    }
+
+    public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long startTimestamp = getQueryStartTimestamp();
+        long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+        return new ValueRangeQuery(queryDevices, startTimestamp, endTimestamp,
+                config.getQUERY_LOWER_VALUE());
+    }
+
+    public AggRangeQuery getAggRangeQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long startTimestamp = getQueryStartTimestamp();
+        long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+        return new AggRangeQuery(queryDevices, startTimestamp, endTimestamp,
+                config.getQUERY_AGGREGATE_FUN());
+    }
+
+    public AggValueQuery getAggValueQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        return new AggValueQuery(queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
+    }
+
+    public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long startTimestamp = getQueryStartTimestamp();
+        long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+        return new AggRangeValueQuery(queryDevices, startTimestamp, endTimestamp,
+                config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
+    }
+
+    @Override
+    public GroupByQuery getGroupByQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long startTimestamp = getQueryStartTimestamp();
+        long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+        return new GroupByQuery(queryDevices, startTimestamp, endTimestamp,
+                config.getQUERY_AGGREGATE_FUN(), config.getGROUP_BY_TIME_UNIT());
+    }
+
+    public LatestPointQuery getLatestPointQuery() throws WorkloadException {
+        List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+        long startTimestamp = getQueryStartTimestamp();
+        long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+        return new LatestPointQuery(queryDevices, startTimestamp, endTimestamp,
+                config.getQUERY_AGGREGATE_FUN());
+    }
+
+    private static long getTimestampConst(String timePrecision){
+        if(timePrecision.equals("ms")) {
+            return 1L;
+        } else if(timePrecision.equals("us")) {
+            return 1000L;
+        } else {
+            return 1000000L;
+        }
+    }
 }
 

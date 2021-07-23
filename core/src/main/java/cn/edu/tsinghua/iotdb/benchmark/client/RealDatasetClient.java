@@ -12,28 +12,28 @@ import java.util.concurrent.CyclicBarrier;
 
 public class RealDatasetClient extends Client implements Runnable {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RealDatasetClient.class);
-  private RealDatasetWorkLoad workload;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RealDatasetClient.class);
+    private RealDatasetWorkLoad workload;
 
-  public RealDatasetClient(int id, CountDownLatch countDownLatch, Config config,
-      List<String> files, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
-    workload = new RealDatasetWorkLoad(files, config);
-  }
-
-  @Override
-  void doTest() {
-    try {
-      while (true) {
-        Batch batch = workload.getOneBatch();
-        if (batch == null) {
-          break;
-        }
-        dbWrapper.insertOneBatch(batch);
-      }
-    } catch (Exception e) {
-      LOGGER.error("RealDatasetClient do test failed because ", e);
+    public RealDatasetClient(int id, CountDownLatch countDownLatch, Config config,
+                             List<String> files, CyclicBarrier barrier) {
+        super(id, countDownLatch, barrier);
+        workload = new RealDatasetWorkLoad(files, config);
     }
-  }
+
+    @Override
+    void doTest() {
+        try {
+            while (true) {
+                Batch batch = workload.getOneBatch();
+                if (batch == null) {
+                    break;
+                }
+                dbWrapper.insertOneBatch(batch);
+            }
+        } catch (Exception e) {
+            LOGGER.error("RealDatasetClient do test failed because ", e);
+        }
+    }
 
 }

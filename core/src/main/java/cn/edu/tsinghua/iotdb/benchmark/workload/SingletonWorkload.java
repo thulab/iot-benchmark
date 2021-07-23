@@ -15,84 +15,84 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class SingletonWorkload {
 
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private ProbTool probTool;
-  private Random poissonRandom;
-  private AtomicLong insertLoop;
-  private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
+    private static Config config = ConfigDescriptor.getInstance().getConfig();
+    private ProbTool probTool;
+    private Random poissonRandom;
+    private AtomicLong insertLoop;
+    private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
 
-  private static class SingletonWorkloadHolder {
+    private static class SingletonWorkloadHolder {
 
-    private static final SingletonWorkload INSTANCE = new SingletonWorkload();
-  }
-
-  public static SingletonWorkload getInstance() {
-    return SingletonWorkloadHolder.INSTANCE;
-  }
-
-  private SingletonWorkload() {
-    insertLoop = new AtomicLong(0);
-    deviceMaxTimeIndexMap = new ConcurrentHashMap<>();
-    for (int i = 0; i < config.getDEVICE_NUMBER(); i++) {
-      deviceMaxTimeIndexMap.put(i, new AtomicLong(0));
+        private static final SingletonWorkload INSTANCE = new SingletonWorkload();
     }
-    probTool = new ProbTool();
-    poissonRandom = new Random(config.getDATA_SEED());
-  }
 
-  private Batch getOrderedBatch() {
-    long curLoop = insertLoop.getAndIncrement();
-    DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER());
-    Batch batch = new Batch();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      //todo 这里应该是有bug：device number  大于 batch size时， 会出现重复时间戳。
-      long stepOffset = (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
+    public static SingletonWorkload getInstance() {
+        return SingletonWorkloadHolder.INSTANCE;
     }
-    batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
 
-  private Batch getDistOutOfOrderBatch() {
-    long curLoop = insertLoop.getAndIncrement();
-    int deviceIndex = (int) (curLoop % config.getDEVICE_NUMBER());
-    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex);
-    Batch batch = new Batch();
-    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
-    int nextDelta;
-    long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
-        // generate overflow timestamp
-        nextDelta = poissonDistribution.getNextPoissonDelta();
-        stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).get() - nextDelta;
-      } else {
-        // generate normal increasing timestamp
-        stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).getAndIncrement();
-      }
-      SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
+    private SingletonWorkload() {
+        insertLoop = new AtomicLong(0);
+        deviceMaxTimeIndexMap = new ConcurrentHashMap<>();
+        for (int i = 0; i < config.getDEVICE_NUMBER(); i++) {
+            deviceMaxTimeIndexMap.put(i, new AtomicLong(0));
+        }
+        probTool = new ProbTool();
+        poissonRandom = new Random(config.getDATA_SEED());
     }
-    batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
 
-  private Batch getLocalOutOfOrderBatch() {
-    return null;
-  }
-
-  public Batch getOneBatch() throws WorkloadException {
-    if (!config.isIS_OUT_OF_ORDER()) {
-      return getOrderedBatch();
-    } else {
-      switch (config.getOUT_OF_ORDER_MODE()) {
-        case 0:
-          return getDistOutOfOrderBatch();
-        case 1:
-          return getLocalOutOfOrderBatch();
-        default:
-          throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
-      }
+    private Batch getOrderedBatch() {
+        long curLoop = insertLoop.getAndIncrement();
+        DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER());
+        Batch batch = new Batch();
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            //todo 这里应该是有bug：device number  大于 batch size时， 会出现重复时间戳。
+            long stepOffset = (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
     }
-  }
+
+    private Batch getDistOutOfOrderBatch() {
+        long curLoop = insertLoop.getAndIncrement();
+        int deviceIndex = (int) (curLoop % config.getDEVICE_NUMBER());
+        DeviceSchema deviceSchema = new DeviceSchema(deviceIndex);
+        Batch batch = new Batch();
+        PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
+        int nextDelta;
+        long stepOffset;
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
+                // generate overflow timestamp
+                nextDelta = poissonDistribution.getNextPoissonDelta();
+                stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).get() - nextDelta;
+            } else {
+                // generate normal increasing timestamp
+                stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).getAndIncrement();
+            }
+            SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
+    }
+
+    private Batch getLocalOutOfOrderBatch() {
+        return null;
+    }
+
+    public Batch getOneBatch() throws WorkloadException {
+        if (!config.isIS_OUT_OF_ORDER()) {
+            return getOrderedBatch();
+        } else {
+            switch (config.getOUT_OF_ORDER_MODE()) {
+                case 0:
+                    return getDistOutOfOrderBatch();
+                case 1:
+                    return getLocalOutOfOrderBatch();
+                default:
+                    throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
+            }
+        }
+    }
 
 }

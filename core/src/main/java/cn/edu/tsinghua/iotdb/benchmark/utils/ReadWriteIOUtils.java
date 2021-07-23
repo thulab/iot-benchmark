@@ -19,7 +19,6 @@ package cn.edu.tsinghua.iotdb.benchmark.utils;
  * under the License.
  */
 
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
