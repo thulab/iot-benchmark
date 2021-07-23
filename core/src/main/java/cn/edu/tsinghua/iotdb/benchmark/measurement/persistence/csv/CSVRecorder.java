@@ -47,6 +47,7 @@ public class CSVRecorder implements ITestDataPersistence {
     static String confDir;
     static String dataDir;
     static String csvDir;
+    static boolean isRecord = false;
 
     private static final String FOUR = ",%s,%s,%s\n";
 

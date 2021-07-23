@@ -5,7 +5,7 @@ import java.util.List;
 
 
 public class GroupByQuery extends RangeQuery {
-    // use startTimestamp to be the segment start time
+    /** use startTimestamp to be the segment start time */
     private String aggFun;
     private long granularity;
 

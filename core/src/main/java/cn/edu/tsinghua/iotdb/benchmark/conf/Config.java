@@ -330,7 +330,6 @@ public class Config {
     private double MYSQL_REAL_INSERT_RATE = 1.0;
 
     // 输出：CSV
-    // TODO 检查和TEST_DATA_PERSISTENCE同时存在的必要性
     /** Whether output the result to an csv file located in data folder */
     private boolean CSV_OUTPUT = true;
     /** Current csv file write line */

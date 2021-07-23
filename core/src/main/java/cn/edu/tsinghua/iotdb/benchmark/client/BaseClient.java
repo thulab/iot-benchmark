@@ -213,7 +213,7 @@ public abstract class BaseClient extends Client implements Runnable {
             }
         } else {
             // IS_CLIENT_BIND = false
-            //TODO 下面这个暂时没在测试中用过，要慎重一下。
+            // not in use
             try {
                 Batch batch = singletonWorkload.getOneBatch();
                 if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {

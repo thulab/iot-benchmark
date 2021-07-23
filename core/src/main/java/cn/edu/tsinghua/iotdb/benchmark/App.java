@@ -41,7 +41,6 @@ public class App {
         if (!cli.init(args)) {
             return;
         }
-        // TODO 异常退出时，输出当前结果
         Runtime.getRuntime().addShutdownHook(new CSVShutdownHook());
         Config config = ConfigDescriptor.getInstance().getConfig();
         switch (config.getBENCHMARK_WORK_MODE().trim()) {
@@ -59,13 +58,12 @@ public class App {
                 serverMode(config);
                 break;
             default:
-                throw new SQLException("unsupported mode " + config.getBENCHMARK_WORK_MODE());
+                throw new SQLException("Unsupported mode:" + config.getBENCHMARK_WORK_MODE());
         }
-
-    }// main
+    }
 
     /**
-     * 按比例选择workload执行的测试
+     * Benchmark mode: testWithDefaultPath
      */
     private static void testWithDefaultPath(Config config) {
         PersistenceFactory persistenceFactory = new PersistenceFactory();
@@ -121,7 +119,7 @@ public class App {
     }
 
     /**
-     * 测试真实数据集
+     * Benchmark mode: testWithRealDataSet
      */
     private static void testWithRealDataSet(Config config) {
         // getBATCH_SIZE() is points number in this mode
@@ -200,6 +198,16 @@ public class App {
         finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
     }
 
+    /**
+     * Save measure
+     *
+     * @param executorService
+     * @param downLatch
+     * @param measurement
+     * @param threadsMeasurements
+     * @param st
+     * @param clients
+     */
     private static void finalMeasure(ExecutorService executorService, CountDownLatch downLatch,
         Measurement measurement, List<Measurement> threadsMeasurements,
         long st, List<Client> clients) {
@@ -234,7 +242,7 @@ public class App {
     }
 
     /**
-     * 测试真实数据集
+     * Benchmark mode: queryWithRealDataSet
      *
      * @param config configurations
      */
@@ -262,6 +270,11 @@ public class App {
         finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
     }
 
+    /**
+     * Check validation of real data set
+     * @param config
+     * @return
+     */
     private static boolean checkParamForQueryRealDataSet(Config config) {
         if (config.getQUERY_SENSOR_NUM() > config.getFIELDS().size()) {
             LOGGER.error("QUERY_SENSOR_NUM={} can't greater than size of field, {}.",
@@ -296,7 +309,10 @@ public class App {
     }
 
     /**
-     * 服务器端模式，监测系统内存等性能指标，获得插入的数据文件大小
+     * Benchmark mode: serverMode
+     * Server-side mode, monitor performance indicators such as system memory, and obtain the inserted data file size
+     *
+     * @param config configurations
      */
     private static void serverMode(Config config) {
         PersistenceFactory persistenceFactory = new PersistenceFactory();
@@ -316,7 +332,7 @@ public class App {
         int interval = config.getMONITOR_INTERVAL();
         boolean headerPrinted = false;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        // 测量间隔至少为2秒
+        // The minimum of interval is 2s
         while (true) {
             long start = System.currentTimeMillis();
             ArrayList<Float> ioUsageList = IoUsage.getInstance().get();

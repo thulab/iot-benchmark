@@ -8,10 +8,12 @@ import java.util.List;
 
 public class AggValueQuery extends AggRangeQuery {
 
-    // AggValueQuery is aggregation query without time filter which means time range should cover
-    // the whole time series, however some TSDBs require the time condition, in that case we use a
-    // large time range to cover the whole time series. However this method still can not guarantee
-    // that the series is fully covered.
+    /**
+     * AggValueQuery is aggregation query without time filter which means time range should cover
+     * the whole time series, however some TSDBs require the time condition, in that case we use a
+     * large time range to cover the whole time series. However this method still can not guarantee
+     * that the series is fully covered.
+     */
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
     private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
     private static final long timeRangeConst = (config.getTIMESTAMP_PRECISION().equals("ns")) ? 3L : 1000L;

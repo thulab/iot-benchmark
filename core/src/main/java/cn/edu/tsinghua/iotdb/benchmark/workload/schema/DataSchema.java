@@ -42,14 +42,14 @@ public class DataSchema {
         }
 
         int deviceId = 0;
-        //不能均分的数量
+        // The number of devices that cannot be divided equally
         int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
         for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
             List<DeviceSchema> deviceSchemaList = new ArrayList<>();
             for (int j = 0; j < eachClientDeviceNum; j++) {
                 deviceSchemaList.add(new DeviceSchema(config.getDEVICE_CODES().get(deviceId++)));
             }
-            //不能均分的这部分，就给那些编号比较小的客户端了。
+            // The part that cannot be divided equally is given to clients with a smaller number.
             if (clientId < mod) {
                 deviceSchemaList.add(new DeviceSchema(config.getDEVICE_CODES().get(deviceId++)));
             }

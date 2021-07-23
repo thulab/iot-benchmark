@@ -10,6 +10,7 @@ public class CSVShutdownHook extends Thread {
 
     @Override
     public void run() {
+        // TODO 异常退出时保存当前结果
         if(config.getTEST_DATA_PERSISTENCE().equals(Constants.TDP_CSV)) {
             CSVRecorder.readClose();
         }

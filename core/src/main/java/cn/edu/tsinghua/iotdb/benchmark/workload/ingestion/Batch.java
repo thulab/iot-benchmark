@@ -16,7 +16,7 @@ public class Batch {
     private DeviceSchema deviceSchema;
     private List<Record> records;
     private int colIndex = -1;
-    private String colType ;
+    private String colType;
 
     public Batch() {
         records = new LinkedList<>();
@@ -25,36 +25,6 @@ public class Batch {
     public Batch(DeviceSchema deviceSchema, List<Record> records) {
         this.deviceSchema = deviceSchema;
         this.records = records;
-    }
-
-    public DeviceSchema getDeviceSchema() {
-        return deviceSchema;
-    }
-
-
-    public void setDeviceSchema(DeviceSchema deviceSchema) {
-        this.deviceSchema = deviceSchema;
-    }
-
-
-    public void setColIndex(int colIndex) {
-        this.colIndex = colIndex;
-    }
-
-    public void setColType(String colType) {
-        this.colType = colType;
-    }
-
-    public int getColIndex(){
-        return colIndex;
-    }
-
-    public String getColType(){
-        return colType;
-    }
-
-    public List<Record> getRecords() {
-        return records;
     }
 
     public void add(long timestamp, List<Object> values) {
@@ -100,6 +70,34 @@ public class Batch {
         }
 
         return new Batch(deviceSchema, records);
+    }
+
+    public DeviceSchema getDeviceSchema() {
+        return deviceSchema;
+    }
+
+    public void setDeviceSchema(DeviceSchema deviceSchema) {
+        this.deviceSchema = deviceSchema;
+    }
+
+    public void setColIndex(int colIndex) {
+        this.colIndex = colIndex;
+    }
+
+    public void setColType(String colType) {
+        this.colType = colType;
+    }
+
+    public int getColIndex(){
+        return colIndex;
+    }
+
+    public String getColType(){
+        return colType;
+    }
+
+    public List<Record> getRecords() {
+        return records;
     }
 
     @Override

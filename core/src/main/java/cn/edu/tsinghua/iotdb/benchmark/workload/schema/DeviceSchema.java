@@ -19,24 +19,19 @@ import java.util.List;
 public class DeviceSchema implements Cloneable{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
-    private static final String DEVICE_NAME_PREFIX = "d_";
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
-    // each device belongs to one group, i.e., database
+    /** prefix of device name */
+    private static final String DEVICE_NAME_PREFIX = "d_";
+    /** Each device belongs to one group, i.e. database */
     private String group;
-
-    // deviceId
+    /** Id of device */
     private String device;
-
-    // sensorIds
+    /** Sensor ids of device */
     private List<String> sensors;
-
-    // only for synthetic data set
+    /** Only used for synthetic data set */
     private int deviceId;
 
-    public DeviceSchema(){
-
-    }
-
+    public DeviceSchema(){}
 
     public DeviceSchema(int deviceId) {
         this.deviceId = deviceId;
@@ -55,10 +50,8 @@ public class DeviceSchema implements Cloneable{
         this.sensors = sensors;
     }
 
-
     private void createEvenlyAllocDeviceSchema() throws WorkloadException {
         int thisDeviceGroupIndex = calGroupId(deviceId);
-        //System.out.println("device " + deviceId +" sg " + thisDeviceGroupIndex);
         group = config.getDB_NAME() + thisDeviceGroupIndex;
         sensors.addAll(config.getSENSOR_CODES());
     }
@@ -174,6 +167,8 @@ public class DeviceSchema implements Cloneable{
                 .append(deviceId)
                 .toHashCode();
     }
+
+    @Override
     public Object clone() throws CloneNotSupportedException{
         return super.clone();
     }

@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticWorkload;
@@ -137,7 +138,7 @@ public class IoTDB implements IDatabase {
       int sensorIndex = 0;
       for (String sensor : deviceSchema.getSensors()) {
         paths.add(getSensorPath(deviceSchema, sensor));
-        String datatype = SyntheticWorkload.getNextDataType(sensorIndex++);
+        String datatype = DBUtil.getDataType(sensorIndex++);
         tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
@@ -519,7 +520,7 @@ public class IoTDB implements IDatabase {
     builder.append(timestamp);
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (SyntheticWorkload.getNextDataType(sensorIndex)) {
+      switch (DBUtil.getDataType(sensorIndex)) {
         case "BOOLEAN":
         case "INT32":
         case "INT64":

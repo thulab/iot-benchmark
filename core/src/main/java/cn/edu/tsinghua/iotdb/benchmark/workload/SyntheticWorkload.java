@@ -18,31 +18,34 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-// TODO 阅读
 public class SyntheticWorkload implements IWorkload {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
     private static final Random timestampRandom = new Random(config.getDATA_SEED());
-    private final ProbTool probTool;
+
+    private static final ProbTool probTool = new ProbTool();
+    private static final Random poissonRandom = new Random(config.getDATA_SEED());
+
     private final Map<DeviceSchema, Long> maxTimestampIndexMap;
-    private final Random poissonRandom;
-    private final Random queryDeviceRandom;
     private final Map<Operation, Long> operationLoops;
+
+    private final Random queryDeviceRandom;
     private static final Random random = new Random(config.getDATA_SEED());
     private static final Random dataRandom = new Random(config.getDATA_SEED());
-    // this must before the initWorkloadValues function calls TODO rename to valueScaleFactor 删除 * 10
-    private static int scaleFactor = 10;
-    /**workloadValues[传感器][序号]。 对于那些有规律的数据，存储了每个传感器的一段数据，用于按规律快速生成*/
+
+    /**
+     * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。
+     * For those regular data, a piece of data of each sensor is stored for rapid generation according to the law
+     */
     private static final Object[][] workloadValues = initWorkloadValues();
     private static final String CHAR_TABLE =
             "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
 
     public SyntheticWorkload(int clientId) {
-        probTool = new ProbTool();
         maxTimestampIndexMap = new HashMap<>();
-        poissonRandom = new Random(config.getDATA_SEED());
         for(DeviceSchema schema: DataSchema.getInstance().getClientBindSchema().get(clientId)) {
             maxTimestampIndexMap.put(schema, 0L);
         }
@@ -53,30 +56,34 @@ public class SyntheticWorkload implements IWorkload {
         }
     }
 
+    /**
+     * Init workload values
+     * @return
+     */
     private static Object[][] initWorkloadValues() {
         Object[][] workloadValues = null;
         if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-            //不为0就是有写入操作。
+            // if the first number in OPERATION_PROPORTION not equals to 0, then write data
             workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
             int sensorIndex = 0;
             for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
                 String sensor = config.getSENSOR_CODES().get(j);
                 for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
-                    //这个时间戳只用来生成有周期性的数据。所以时间戳也是周期的。
+                    // This time stamp is only used to generate periodic data. So the timestamp is also periodic
                     long currentTimestamp = getCurrentTimestamp(i);
                     Object value;
-                    if (getNextDataType(sensorIndex).equals("TEXT")) {
-                        //TEXT case: pick NUMBER_OF_DECIMAL_DIGIT chars to be a String for insertion.
+                    if (DBUtil.getDataType(sensorIndex).equals("TEXT")) {
+                        // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
                         StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
                         for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-                            assert dataRandom != null;
                             builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
                         }
                         value = builder.toString();
                     } else {
+                        // not TEXT case
                         FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
                         Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
-                        switch (getNextDataType(sensorIndex)) {
+                        switch (DBUtil.getDataType(sensorIndex)) {
                             case "BOOLEAN":
                                 value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
                                 break;
@@ -87,12 +94,10 @@ public class SyntheticWorkload implements IWorkload {
                                 value = number.longValue();
                                 break;
                             case "FLOAT":
-                                // TODO
-                                value = ((float) (Math.round(number.floatValue() * scaleFactor))) / scaleFactor;
+                                value = (float) (Math.round(number.floatValue()));
                                 break;
                             case "DOUBLE":
-                                // TODO
-                                value = ((double) Math.round(number.doubleValue() * scaleFactor)) / scaleFactor;
+                                value = (double) Math.round(number.doubleValue());
                                 break;
                             default:
                                 value = null;
@@ -103,114 +108,10 @@ public class SyntheticWorkload implements IWorkload {
                 }
                 sensorIndex++;
             }
+        }else{
+            LOGGER.info("According to OPERATION_PROPORTION, there is no need to write");
         }
         return workloadValues;
-    }
-
-    public static String getNextDataType(int sensorIndex) {
-        return DBUtil.getDataType(sensorIndex);
-    }
-
-    private static long getCurrentTimestamp(long stepOffset) {
-        long timeStampOffset = config.getPOINT_STEP() * stepOffset;
-        if (config.isIS_OUT_OF_ORDER()) {
-            // 随机加上数秒，使得时间不是均匀的。但是不会乱序。
-            // 添加 ratio 使用randorm->timestampRandom
-            //TODO 但是方法名可是说可能会乱序啊！！！！！！！
-            timeStampOffset += (random.nextDouble() * config.getPOINT_STEP());
-        } else {
-            if (config.isIS_REGULAR_FREQUENCY()) {
-                //TODO 这方法跟上面有啥区别？？？
-                timeStampOffset += (config.getPOINT_STEP() * timestampRandom.nextDouble());
-            }
-        }
-        //TODO 为啥timeStampOffset不乘以时间精度？？？
-        return Constants.START_TIMESTAMP * timeStampConst + timeStampOffset;
-    }
-
-    private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
-        Batch batch = new Batch();
-        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-            long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-            addOneRowIntoBatch(batch, stepOffset);
-        }
-        batch.setDeviceSchema(deviceSchema);
-        return batch;
-    }
-
-    // TODO 为啥插入一个点
-    private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
-        Batch batch = new Batch();
-        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-            long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-            addOneRowIntoBatch(batch, stepOffset,colIndex);
-        }
-        batch.setDeviceSchema(deviceSchema);
-        return batch;
-    }
-
-    private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
-        // TODO 修改乱序的比例
-        // Config 添加乱序步长 Poisson 替代MAX_K
-        // 乱序步长为k，则在t-k的范围内按照分布规律进行差值，大于t的部分不变，t为当前时间
-        Batch batch = new Batch();
-        long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
-        long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + barrier;
-        // move data(index = barrier) to front
-        addOneRowIntoBatch(batch, stepOffset);
-        for (long batchOffset = 0; batchOffset < barrier; batchOffset++) {
-            stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-            addOneRowIntoBatch(batch, stepOffset);
-        }
-        for (long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-            stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-            addOneRowIntoBatch(batch, stepOffset);
-        }
-        batch.setDeviceSchema(deviceSchema);
-        return batch;
-    }
-
-    private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
-        Batch batch = new Batch();
-        PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
-        int nextDelta;
-        long stepOffset;
-        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-            if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
-                // generate overflow timestamp
-                nextDelta = poissonDistribution.getNextPoissonDelta();
-                stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
-            } else {
-                // generate normal increasing timestamp
-                maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
-                stepOffset = maxTimestampIndexMap.get(deviceSchema);
-            }
-            addOneRowIntoBatch(batch, stepOffset);
-        }
-        batch.setDeviceSchema(deviceSchema);
-        return batch;
-    }
-
-    static void addOneRowIntoBatch(Batch batch, long stepOffset) {
-        List<Object> values = new ArrayList<>();
-        long currentTimestamp = getCurrentTimestamp(stepOffset);
-        for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
-            values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
-        }
-        batch.add(currentTimestamp, values);
-    }
-
-    /**
-     * 该方法仅填充一个值进入values TODO check
-     * @param batch
-     * @param stepOffset
-     * @param colIndex
-     */
-    static void addOneRowIntoBatch(Batch batch, long stepOffset,int colIndex) {
-        List<Object> values = new ArrayList<>();
-        long currentTimestamp = getCurrentTimestamp(stepOffset);
-        values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
-        batch.add(currentTimestamp, values);
     }
 
     @Override
@@ -243,6 +144,148 @@ public class SyntheticWorkload implements IWorkload {
                     throw new WorkloadException("Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
             }
         }
+    }
+
+    /**
+     * Get timestamp according to stepOffset
+     * @param stepOffset
+     * @return
+     */
+    private static long getCurrentTimestamp(long stepOffset) {
+        // offset of data ahead
+        long offset = config.getPOINT_STEP() * stepOffset;
+        // timestamp for next data
+        long timestamp = 0;
+        // change timestamp frequency
+        if(config.isIS_REGULAR_FREQUENCY()){
+            // data is in regular frequency, then do nothing
+            timestamp += config.getPOINT_STEP();
+        }else{
+            // data is not in regular frequency, then use random
+            timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
+        }
+        return (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    }
+
+    /**
+     * Generate batch in order, each row contains data from all sensors
+     *
+     * @param deviceSchema
+     * @param loopIndex
+     * @return
+     */
+    private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex) {
+        Batch batch = new Batch();
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
+    }
+
+    /**
+     * Generate batch in order, each row contains data from sensor which index is colIndex
+     *
+     * @param deviceSchema
+     * @param loopIndex
+     * @param colIndex
+     * @return
+     */
+    private Batch getOrderedBatch(DeviceSchema deviceSchema, long loopIndex,int colIndex) {
+        Batch batch = new Batch();
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            addOneRowIntoBatch(batch, stepOffset, colIndex);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
+    }
+
+    /**
+     * Generate out of order batch in mode 0
+     * @param deviceSchema
+     * @return
+     */
+    private Batch getDistOutOfOrderBatch(DeviceSchema deviceSchema) {
+        Batch batch = new Batch();
+        PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
+        int nextDelta;
+        long stepOffset;
+        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+            if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
+                // generate out of order timestamp
+                nextDelta = poissonDistribution.getNextPoissonDelta();
+                stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
+            } else {
+                // generate normal increasing timestamp
+                maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
+                stepOffset = maxTimestampIndexMap.get(deviceSchema);
+            }
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
+    }
+
+    /**
+     * Generate out of order batch in mode 1
+     * @param deviceSchema
+     * @param loopIndex
+     * @return
+     */
+    private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
+        Batch batch = new Batch();
+        // 插入到前面的个数(含)
+        long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
+        long beforeOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE();
+        long startOffset = beforeOffset - config.getMAX_K();
+        if(startOffset < 0){
+            startOffset = 0;
+        }
+        // 乱序部分步长
+        long beforeStep = (barrier == 0) ? 0: (beforeOffset - startOffset) / barrier;
+        // 正序部分步长
+        long afterStep = config.getBATCH_SIZE_PER_WRITE() / (config.getBATCH_SIZE_PER_WRITE() - barrier);
+
+        long stepOffset;
+        for(long batchOffset = 0; batchOffset <= barrier; batchOffset++){
+            stepOffset = startOffset + beforeStep * batchOffset;
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        for(long batchOffset = barrier + 1; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++){
+            stepOffset = beforeOffset + afterStep * (batchOffset - barrier);
+            addOneRowIntoBatch(batch, stepOffset);
+        }
+        batch.setDeviceSchema(deviceSchema);
+        return batch;
+    }
+
+    /**
+     * Add one row into batch, row contains data from all sensors
+     * @param batch
+     * @param stepOffset
+     */
+    static void addOneRowIntoBatch(Batch batch, long stepOffset) {
+        List<Object> values = new ArrayList<>();
+        long currentTimestamp = getCurrentTimestamp(stepOffset);
+        for(int i = 0;i < config.getSENSOR_NUMBER();i++) {
+            values.add(workloadValues[i][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+        }
+        batch.add(currentTimestamp, values);
+    }
+
+    /**
+     * Add one row into batch, row contains data from one sensor which index is colIndex
+     * @param batch
+     * @param stepOffset
+     * @param colIndex
+     */
+    static void addOneRowIntoBatch(Batch batch, long stepOffset,int colIndex) {
+        List<Object> values = new ArrayList<>();
+        long currentTimestamp = getCurrentTimestamp(stepOffset);
+        values.add(workloadValues[colIndex][(int)(Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+        batch.add(currentTimestamp, values);
     }
 
     private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {
@@ -283,12 +326,14 @@ public class SyntheticWorkload implements IWorkload {
         return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
     }
 
+    @Override
     public PreciseQuery getPreciseQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         long timestamp = getQueryStartTimestamp();
         return new PreciseQuery(queryDevices, timestamp);
     }
 
+    @Override
     public RangeQuery getRangeQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         long startTimestamp = getQueryStartTimestamp();
@@ -296,6 +341,7 @@ public class SyntheticWorkload implements IWorkload {
         return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
     }
 
+    @Override
     public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         long startTimestamp = getQueryStartTimestamp();
@@ -304,6 +350,7 @@ public class SyntheticWorkload implements IWorkload {
                 config.getQUERY_LOWER_VALUE());
     }
 
+    @Override
     public AggRangeQuery getAggRangeQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         long startTimestamp = getQueryStartTimestamp();
@@ -312,11 +359,13 @@ public class SyntheticWorkload implements IWorkload {
                 config.getQUERY_AGGREGATE_FUN());
     }
 
+    @Override
     public AggValueQuery getAggValueQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         return new AggValueQuery(queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
     }
 
+    @Override
     public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         long startTimestamp = getQueryStartTimestamp();
@@ -334,6 +383,7 @@ public class SyntheticWorkload implements IWorkload {
                 config.getQUERY_AGGREGATE_FUN(), config.getGROUP_BY_TIME_UNIT());
     }
 
+    @Override
     public LatestPointQuery getLatestPointQuery() throws WorkloadException {
         List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
         long startTimestamp = getQueryStartTimestamp();

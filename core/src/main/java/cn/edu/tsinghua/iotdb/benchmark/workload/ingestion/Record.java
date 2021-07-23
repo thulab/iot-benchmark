@@ -19,24 +19,6 @@ public class Record {
         this.recordDataValue = recordDataValue;
     }
 
-    /**
-     * deserialize from input stream
-     *
-     * @param inputStream input stream
-     */
-    public static Record deserialize(ByteArrayInputStream inputStream) throws IOException {
-        long timestamp = ReadWriteIOUtils.readLong(inputStream);
-        return new Record(timestamp, ReadWriteIOUtils.readObjectList(inputStream));
-    }
-
-    @Override
-    public String toString() {
-        return "Record{" +
-                "timestamp=" + timestamp +
-                ", recordDataValue=" + recordDataValue +
-                '}';
-    }
-
     public int size() {
         return recordDataValue.size();
     }
@@ -60,6 +42,24 @@ public class Record {
         for (Object value : recordDataValue) {
             ReadWriteIOUtils.writeObject(value, outputStream);
         }
+    }
+
+    /**
+     * deserialize from input stream
+     *
+     * @param inputStream input stream
+     */
+    public static Record deserialize(ByteArrayInputStream inputStream) throws IOException {
+        long timestamp = ReadWriteIOUtils.readLong(inputStream);
+        return new Record(timestamp, ReadWriteIOUtils.readObjectList(inputStream));
+    }
+
+    @Override
+    public String toString() {
+        return "Record{" +
+                "timestamp=" + timestamp +
+                ", recordDataValue=" + recordDataValue +
+                '}';
     }
 
     @Override

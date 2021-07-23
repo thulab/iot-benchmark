@@ -29,7 +29,8 @@ public class RealDatasetWorkLoad implements IWorkload {
     private long endTime;
 
     /**
-     * write test.
+     * Init reader of real dataset
+     * write test
      *
      * @param files  real dataset files
      * @param config config
@@ -79,7 +80,6 @@ public class RealDatasetWorkLoad implements IWorkload {
         //init startTime, endTime
         startTime = config.getREAL_DATASET_QUERY_START_TIME();
         endTime = config.getREAL_DATASET_QUERY_STOP_TIME();
-
     }
 
     public Batch getOneBatch() {
