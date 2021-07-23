@@ -8,10 +8,5 @@ public class TimeUtils {
 		DateTime dateTime = new DateTime(dateStr);
 		return dateTime.getMillis();
 	}
-	
-	public static void main(String[] args) {
-		System.out.println(convertDateStrToTimestamp("2006-01-26T13:30:00+08:00"));
-		System.out.println(convertDateStrToTimestamp("2006-01-26T13:30:01+08:00"));
-	}
 
 }

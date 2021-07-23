@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
@@ -107,61 +108,7 @@ public class SyntheticWorkload implements IWorkload {
   }
 
   public static String getNextDataType(int sensorIndex) {
-    List<Double> proportion = resolveDataTypeProportion();
-    double[] p = new double[6 + 1];
-    p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a data type whose proportion
-    // is the region range size.
-    for (int i = 1; i <= 6; i++) {
-      p[i] = p[i - 1] + proportion.get(i - 1);
-    }
-    double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
-    int i;
-    for (i = 1; i <= 6; i++) {
-      if (sensorPosition >= p[i - 1] && sensorPosition < p[i]) {
-        break;
-      }
-    }
-    switch (i) {
-      case 1:
-        return "BOOLEAN";
-      case 2:
-        return "INT32";
-      case 3:
-        return "INT64";
-      case 4:
-        return "FLOAT";
-      case 5:
-        return "DOUBLE";
-      case 6:
-        return "TEXT";
-      default:
-        LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
-        return "TEXT";
-    }
-  }
-
-  public static List<Double> resolveDataTypeProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (split.length != 6) {
-      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[6];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
-      }
-    }
-    return proportion;
+    return DBUtil.getDataType(sensorIndex);
   }
 
   private static long getCurrentTimestamp(long stepOffset) {
