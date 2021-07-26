@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -26,17 +28,33 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class VictoriaMetrics implements IDatabase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
+    private static String INSERT_URL;
+    private static String QUERY_URL;
+
+    public VictoriaMetrics(){
+        String openUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
+        // TODO specific url
+        INSERT_URL = openUrl + "";
+        QUERY_URL = openUrl + "";
+    }
+
     /**
      * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
      * client thread.
      */
     @Override
     public void init() throws TsdbException {
-
+        // no need to init
     }
 
     /**
@@ -45,7 +63,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public void cleanup() throws TsdbException {
-
+        // http://<victoriametrics-addr>:8428/api/v1/admin/tsdb/delete_series?match[]=<timeseries_selector_for_delete>
     }
 
     /**
@@ -53,7 +71,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public void close() throws TsdbException {
-
+        // no need to close
     }
 
     /**
@@ -63,8 +81,10 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-
+        // no need to register
     }
+
+    // curl -d 'measurement,tag1=value1,tag2=value2 field1=123,field2=1.23' -X POST 'http://localhost:8428/write'
 
     /**
      * Insert one batch into the database, the DB implementation needs to resolve the data in batch
@@ -92,6 +112,8 @@ public class VictoriaMetrics implements IDatabase {
         return null;
     }
 
+
+    // https://github.com/VictoriaMetrics/VictoriaMetrics#prometheus-querying-api-usage
     /**
      * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where
      * time = ? and device in ?

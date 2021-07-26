@@ -81,6 +81,7 @@ public class IoTDB implements IDatabase {
   @Override
   public void cleanup() {
     // currently no implementation
+
   }
 
   @Override
