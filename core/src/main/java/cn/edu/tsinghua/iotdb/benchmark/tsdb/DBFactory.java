@@ -109,6 +109,9 @@ public class DBFactory {
         case Constants.DB_FAKE:
           dbClass = Constants.FAKEDB_CLASS;
           break;
+        case Constants.DB_VICTORIAMETRICS:
+          dbClass = Constants.VICTORIAMETRICS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }

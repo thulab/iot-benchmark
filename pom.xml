@@ -16,6 +16,7 @@
         <module>opentsdb</module>
         <module>taosdb</module>
         <module>timescaledb</module>
+        <module>victoriametrics</module>
         <module>iotdb-0.12</module>
         <module>iotdb-0.11</module>
         <module>iotdb-0.10</module>
