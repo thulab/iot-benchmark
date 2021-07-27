@@ -81,12 +81,13 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void cleanup() {
-    // currently no implementation
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      statement.execute(DELETE_SERIES_SQL);
-      LOGGER.info("Finish clean data!");
-    } catch (Exception e) {
-      LOGGER.warn("No Data to Clean!");
+    for (int i = 0; i < config.getHOST().size(); i++) {
+      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+        statement.execute(DELETE_SERIES_SQL);
+        LOGGER.info("Finish clean data!");
+      } catch (Exception e) {
+        LOGGER.warn("No Data to Clean!");
+      }
     }
   }
 
@@ -107,24 +108,26 @@ public class IoTDB implements IDatabase {
     // therefore, we use session to create time series in batch.
 
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      Session metaSession = null;
-      try {
-        metaSession =
-            new Session(
-                config.getHOST().get(0), config.getPORT().get(0), Constants.USER, Constants.PASSWD);
-        metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
+      for(int i = 0; i < config.getHOST().size(); i++) {
+        Session metaSession = null;
+        try {
+          metaSession =
+                  new Session(
+                          config.getHOST().get(i), config.getPORT().get(i),
+                          Constants.USER, Constants.PASSWD);
+          metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
 
-        registerStorageGroups(metaSession, schemaList);
-        registerTimeseries(metaSession, schemaList);
-
-      } catch (Exception e) {
-        throw new TsdbException(e);
-      } finally {
-        if (metaSession != null) {
-          try {
-            metaSession.close();
-          } catch (IoTDBConnectionException e) {
-            LOGGER.error("Schema-register session cannot be closed: {}", e.getMessage());
+          registerStorageGroups(metaSession, schemaList);
+          registerTimeseries(metaSession, schemaList);
+        } catch (Exception e) {
+          throw new TsdbException(e);
+        } finally {
+          if (metaSession != null) {
+            try {
+              metaSession.close();
+            } catch (IoTDBConnectionException e) {
+              LOGGER.error("Schema-register session cannot be closed: {}", e.getMessage());
+            }
           }
         }
       }
