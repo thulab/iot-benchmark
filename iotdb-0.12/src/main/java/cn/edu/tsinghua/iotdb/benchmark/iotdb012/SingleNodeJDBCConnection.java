@@ -49,12 +49,7 @@ public class SingleNodeJDBCConnection {
       urls = new String[nodeSize];
       List<String> clusterHosts = config.getHOST();
       for (int i = 0; i < nodeSize; i++) {
-        String[] arrs = clusterHosts.get(i).split(":");
-        if (arrs.length != 2) {
-          LOGGER.error("the cluster host format is not correct");
-          return;
-        }
-        String jdbcUrl = String.format(Constants.URL, arrs[0], arrs[1]);
+        String jdbcUrl = String.format(Constants.URL, config.getHOST().get(i), config.getPORT().get(i));
         urls[i] = jdbcUrl;
       }
     } else {
@@ -77,10 +72,6 @@ public class SingleNodeJDBCConnection {
   }
 
   public void close() throws TsdbException {
-    if(connections == null){
-      LOGGER.warn("No Connections");
-      return;
-    }
     for (Connection connection : connections) {
       if (connection != null) {
         try {
