@@ -26,17 +26,25 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class VictoriaMetrics implements IDatabase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
+    private static final String URL = config.getHOST().get(0) + ":" + config.getPORT().get(0);
+    private static final String CREATE_URL = URL + "/write?db=" + config.getDB_NAME();
+    private static final String DELETE_URL = URL + "/api/v1/admin/tsdb/delete_series?match={db=\"" + config.getDB_NAME() + "\"}";
 
     private static String INSERT_URL;
     private static String QUERY_URL;
@@ -63,7 +71,12 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public void cleanup() throws TsdbException {
-        // http://<victoriametrics-addr>:8428/api/v1/admin/tsdb/delete_series?match[]=<timeseries_selector_for_delete>
+        try{
+            HttpRequestUtil.sendPost(DELETE_URL, null);
+        }catch (Exception e){
+            LOGGER.warn("Failed to cleanup!");
+            throw new TsdbException("Failed to cleanup!", e);
+        }
     }
 
     /**
@@ -84,8 +97,6 @@ public class VictoriaMetrics implements IDatabase {
         // no need to register
     }
 
-    // curl -d 'measurement,tag1=value1,tag2=value2 field1=123,field2=1.23' -X POST 'http://localhost:8428/write'
-
     /**
      * Insert one batch into the database, the DB implementation needs to resolve the data in batch
      * which contains device schema and Map[Long, List[String]] records. The key of records is a
@@ -96,7 +107,18 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status insertOneBatch(Batch batch) throws DBConnectException {
-        return null;
+        try{
+            LinkedList<VictoriaMetricsModel> models = createDataModelByBatch(batch);
+            StringBuffer body = new StringBuffer();
+            for(VictoriaMetricsModel victoriaMetricsModel: models) {
+                body.append(victoriaMetricsModel.toString() + "\n");
+            }
+            HttpRequestUtil.sendPost(CREATE_URL, body.toString());
+            return new Status(true);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new Status(false, 0, e, e.toString());
+        }
     }
 
     /**
@@ -109,9 +131,59 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-        return null;
+        try{
+            LinkedList<VictoriaMetricsModel> models = createDataModelByBatch(batch);
+            StringBuffer body = new StringBuffer();
+            for(VictoriaMetricsModel victoriaMetricsModel: models) {
+                body.append(victoriaMetricsModel.toString() + "\n");
+            }
+            HttpRequestUtil.sendPost(CREATE_URL, body.toString());
+            return new Status(true);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new Status(false, 0, e, e.toString());
+        }
     }
 
+    private LinkedList<VictoriaMetricsModel> createDataModelByBatch(Batch batch){
+        DeviceSchema deviceSchema = batch.getDeviceSchema();
+        String device = deviceSchema.getDevice();
+        List<Record> records = batch.getRecords();
+        List<String> sensors = deviceSchema.getSensors();
+        int sensorNum = sensors.size();
+        LinkedList<VictoriaMetricsModel> models = new LinkedList<>();
+
+        for(Record record : records){
+            if(batch.getColIndex() != -1){
+                // insert one line
+                VictoriaMetricsModel model = createModel(deviceSchema.getGroup(),
+                        record.getTimestamp(), record.getRecordDataValue().get(0),
+                        device, deviceSchema.getSensors().get(batch.getColIndex()));
+                models.addLast(model);
+            }else{
+                // insert align data
+                for(int j = 0; j < sensorNum; j++) {
+                    VictoriaMetricsModel model = createModel(deviceSchema.getGroup(),
+                            record.getTimestamp(), record.getRecordDataValue().get(j),
+                            device, deviceSchema.getSensors().get(j));
+                    models.addLast(model);
+                }
+            }
+        }
+        return models;
+    }
+
+    private VictoriaMetricsModel createModel(String metric, long timestamp, Object value, String device, String sensor){
+        VictoriaMetricsModel model = new VictoriaMetricsModel();
+        model.setMetric(metric);
+        model.setTimestamp(timestamp);
+        model.setValue(value);
+        Map<String, String> tags = new HashMap<>();
+        tags.put("device", device);
+        tags.put("sensor", sensor);
+        model.setTags(tags);
+        return model;
+    }
 
     // https://github.com/VictoriaMetrics/VictoriaMetrics#prometheus-querying-api-usage
     /**
