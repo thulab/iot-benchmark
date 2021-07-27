@@ -56,11 +56,10 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   private void createSessions() {
     sessions = new SessionPool[config.getHOST().size()];
     for (int i = 0; i < sessions.length; i++) {
-      String[] split = config.getHOST().get(i).split(":");
       sessions[i] =
           new SessionPool(
-              split[0],
-              Integer.parseInt(split[1]),
+              config.getHOST().get(i),
+              Integer.parseInt(config.getPORT().get(i)),
               Constants.USER,
               Constants.PASSWD,
               MAX_SESSION_CONNECTION_PER_CLIENT,

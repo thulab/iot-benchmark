@@ -77,6 +77,10 @@ public class SingleNodeJDBCConnection {
   }
 
   public void close() throws TsdbException {
+    if(connections == null){
+      LOGGER.warn("No Connections");
+      return;
+    }
     for (Connection connection : connections) {
       if (connection != null) {
         try {
