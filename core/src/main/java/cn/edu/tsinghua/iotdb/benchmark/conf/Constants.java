@@ -91,6 +91,7 @@ public class Constants {
   public static final String DB_TIMESCALE = "TimescaleDB";
   public static final String DB_FAKE = "FakeDB";
   public static final String DB_TAOSDB = "TaosDB";
+  public static final String DB_QUESTDB = "QuestDB";
 
   /** Special DB_SWITCH */
   public static final String BENCHMARK_IOTDB = "App";
@@ -144,4 +145,5 @@ public class Constants {
   public static final String TIMESCALEDB_CLASS =
       "cn.edu.tsinghua.iotdb.benchmark.timescaledb.TimescaleDB";
   public static final String TAOSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.taosdb.TaosDB";
+  public static final String QUESTDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.questdb.QuestDB";
 }

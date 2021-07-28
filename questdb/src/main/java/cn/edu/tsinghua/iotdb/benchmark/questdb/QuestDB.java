@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.questdb;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -26,10 +28,29 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.*;
 import java.util.List;
+import java.util.Properties;
 
 public class QuestDB implements IDatabase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QuestDB.class);
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final String URL_QUEST = "jdbc:postgresql://%s:%s/qdb";
+
+    private static final String USERNAME = "admin";
+    private static final String PWD = "quest";
+    private static final String SSLMODE = "disable";
+
+    private static final String CREATE_TABLE = "create table " + config.getDB_NAME();
+    private static final String SELECT_SQL = "select * from " + config.getDB_NAME();
+    private static final String DROP_TABLE = "DROP TABLE ";
+
+    private Connection connection;
+
 
     /**
      * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
@@ -37,7 +58,21 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public void init() throws TsdbException {
-
+        try {
+            Properties properties = new Properties();
+            properties.setProperty("user", USERNAME);
+            properties.setProperty("password", PWD);
+            properties.setProperty("sslmode", SSLMODE);
+            connection = DriverManager.getConnection(
+                    String.format(URL_QUEST, config.getHOST().get(0), config.getPORT().get(0)),
+                    properties);
+            connection.setAutoCommit(false);
+            LOGGER.info("init success.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            LOGGER.error("Failed to init database");
+            throw new TsdbException("Failed to init database, maybe there is too much connections", e);
+        }
     }
 
     /**
@@ -46,7 +81,17 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public void cleanup() throws TsdbException {
-
+        try{
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SHOW TABLES");
+            while(resultSet.next()){
+                System.out.println(resultSet.getString(0));
+            }
+            statement.close();
+        }catch (SQLException e){
+            LOGGER.error("Failed to cleanup!");
+            throw new TsdbException("Failed to cleanup!", e);
+        }
     }
 
     /**
@@ -54,7 +99,14 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public void close() throws TsdbException {
-
+        if(connection != null){
+            try{
+                connection.close();
+            }catch (SQLException e){
+                LOGGER.warn("Failed to close connection");
+                throw new TsdbException("Failed to close", e);
+            }
+        }
     }
 
     /**
@@ -64,7 +116,21 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+        if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+            // TODO check the maximum of sensor_number
+            StringBuffer create = new StringBuffer(CREATE_TABLE);
+            create.append("( ts TIMESTAMP, ");
+            // contain
+            create.append(") timestamp(ts);");
 
+            try(Statement statement = connection.createStatement()){
+
+            } catch (SQLException e) {
+                // ignore if already has the time series
+                LOGGER.error("Register TaosDB schema failed because ", e);
+                throw new TsdbException(e);
+            }
+        }
     }
 
     /**
@@ -209,5 +275,32 @@ public class QuestDB implements IDatabase {
     @Override
     public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
         return null;
+    }
+
+    /**
+     * map the given type string name to the name in the target DB
+     *
+     * @param iotdbType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
+     * @return
+     */
+    @Override
+    public String typeMap(String iotdbType) {
+        switch (iotdbType) {
+            case "BOOLEAN":
+                return "BOOL";
+            case "INT32":
+                return "INT";
+            case "INT64":
+                return "BIGINT";
+            case "FLOAT":
+                return "FLOAT";
+            case "DOUBLE":
+                return "DOUBLE";
+            case "TEXT":
+                return "BINARY";
+            default:
+                LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+                return "BINARY";
+        }
     }
 }

@@ -24,6 +24,11 @@
             <artifactId>questdb-jdk8</artifactId>
             <version>6.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.16</version>
+        </dependency>
     </dependencies>
 
     <build>
