@@ -65,9 +65,10 @@ public class HttpRequestUtil {
      * Send Post request to target url
      * @param url
      * @param body
+     * @param contentType
      * @return
      */
-    public static String sendPost(String url, String body) throws Exception{
+    public static String sendPost(String url, String body, String contentType) throws Exception{
         PrintWriter out = null;
         BufferedReader in = null;
         StringBuffer result = new StringBuffer();
@@ -80,7 +81,7 @@ public class HttpRequestUtil {
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty(
                     "user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            connection.setRequestProperty("Content-Type", contentType);
             connection.setDoInput(true);
             connection.setDoOutput(true);
             // get output stream

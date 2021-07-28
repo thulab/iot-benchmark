@@ -25,14 +25,10 @@ import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +40,7 @@ public class VictoriaMetrics implements IDatabase {
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     private static final String URL = config.getHOST().get(0) + ":" + config.getPORT().get(0);
-    private static final String CREATE_URL = URL + "/write?db=" + config.getDB_NAME();
+    private static final String CREATE_URL = URL + "/api/v1/import/prometheus?extra_label=db=" + config.getDB_NAME();
     private static final String DELETE_URL = URL + "/api/v1/admin/tsdb/delete_series?match={db=\"" + config.getDB_NAME() + "\"}";
     private static final Random sensorRandom = new Random(1 + config.getDATA_SEED());
     private static final String QUERY_URL = URL + "/api/v1/query_range?query=test.*_value&";
@@ -66,7 +62,7 @@ public class VictoriaMetrics implements IDatabase {
     @Override
     public void cleanup() throws TsdbException {
         try{
-            HttpRequestUtil.sendPost(DELETE_URL, null);
+            HttpRequestUtil.sendPost(DELETE_URL, null, "application/x-www-form-urlencoded");
         }catch (Exception e){
             LOGGER.warn("Failed to cleanup!");
             throw new TsdbException("Failed to cleanup!", e);
@@ -107,7 +103,7 @@ public class VictoriaMetrics implements IDatabase {
             for(VictoriaMetricsModel victoriaMetricsModel: models) {
                 body.append(victoriaMetricsModel.toString() + "\n");
             }
-            HttpRequestUtil.sendPost(CREATE_URL, body.toString());
+            HttpRequestUtil.sendPost(CREATE_URL, body.toString(), "text/plain; version=0.0.4; charset=utf-8");
             return new Status(true);
         }catch (Exception e){
             e.printStackTrace();
@@ -131,7 +127,7 @@ public class VictoriaMetrics implements IDatabase {
             for(VictoriaMetricsModel victoriaMetricsModel: models) {
                 body.append(victoriaMetricsModel.toString() + "\n");
             }
-            HttpRequestUtil.sendPost(CREATE_URL, body.toString());
+            HttpRequestUtil.sendPost(CREATE_URL, body.toString(), "text/plain; version=0.0.4; charset=utf-8");
             return new Status(true);
         }catch (Exception e){
             e.printStackTrace();
@@ -189,16 +185,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status preciseQuery(PreciseQuery preciseQuery) {
-        Map<String, Object> queryMap = new HashMap<>();
-        List<Map<String, Object>> list = null;
-        queryMap.put("msResolution", true);
-        queryMap.put("start", preciseQuery.getTimestamp() - 1);
-        queryMap.put("end", preciseQuery.getTimestamp() + 1);
-        list = getSubQueries(preciseQuery.getDeviceSchema(), "none");
-        queryMap.put("queries", list);
-        String sql = JSON.toJSONString(queryMap);
-        System.out.println(sql);
-        return executeQueryAndGetStatus(sql, false);
+        return null;
     }
 
     /**
@@ -316,74 +303,5 @@ public class VictoriaMetrics implements IDatabase {
     @Override
     public String typeMap(String iotdbType) {
         return null;
-    }
-
-    private Status executeQueryAndGetStatus(String sql, boolean isLatestPoint) {
-        LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
-        try {
-            String response;
-            response = HttpRequest.sendPost(QUERY_URL, sql);
-            int pointNum = getOneQueryPointNum(response, isLatestPoint);
-            LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), pointNum);
-            return new Status(true, pointNum);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Status(false, 0, e, sql);
-        }
-    }
-
-    private int getOneQueryPointNum(String str, boolean isLatestPoint) {
-        int pointNum = 0;
-        if (!isLatestPoint) {
-            JSONArray jsonArray = JSON.parseArray(str);
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JSONObject json = (JSONObject) jsonArray.get(i);
-                pointNum += json.getJSONObject("dps").size();
-            }
-        } else {
-            JSONArray jsonArray = JSON.parseArray(str);
-            pointNum += jsonArray.size();
-        }
-        return pointNum;
-    }
-
-    private List<Map<String, Object>> getSubQueries(List<DeviceSchema> devices, String aggreFunc) {
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        List<String> sensorList = new ArrayList<>();
-        for (String sensor : devices.get(0).getSensors()) {
-            sensorList.add(sensor);
-        }
-        Collections.shuffle(sensorList, sensorRandom);
-
-        Map<String, List<String>> metric2devices = new HashMap<>();
-        for (DeviceSchema d : devices) {
-            String m = d.getGroup();
-            metric2devices.putIfAbsent(m, new ArrayList());
-            metric2devices.get(m).add(d.getDevice());
-        }
-
-        for (Map.Entry<String, List<String>> queryMetric : metric2devices.entrySet()) {
-            Map<String, Object> subQuery = new HashMap<>();
-            subQuery.put("aggregator", aggreFunc);
-            subQuery.put("metric", queryMetric.getKey());
-
-            Map<String, String> tags = new HashMap<>();
-            String deviceStr = "";
-            for (String d : queryMetric.getValue()) {
-                deviceStr += "|" + d;
-            }
-            deviceStr = deviceStr.substring(1);
-
-            String sensorStr = sensorList.get(0);
-            for (int i = 1; i < config.getQUERY_SENSOR_NUM(); i++) {
-                sensorStr += "|" + sensorList.get(i);
-            }
-            tags.put("sensor", sensorStr);
-            tags.put("device", deviceStr);
-            subQuery.put("tags", tags);
-            list.add(subQuery);
-        }
-        return list;
     }
 }

@@ -52,18 +52,25 @@ public class VictoriaMetricsModel implements Serializable {
     @Override
     public String toString() {
         StringBuffer result = new StringBuffer(metric);
+        result.append("{");
         if(tags != null){
+            boolean first = true;
             for(Map.Entry<String, String> pair: tags.entrySet()){
-                result.append(",");
+                if(!first){
+                    result.append(",");
+                }else{
+                    first = false;
+                }
                 result.append(pair.getKey());
-                result.append("=");
+                result.append("=\"");
                 result.append(pair.getValue());
+                result.append("\"");
             }
         }
-        result.append(" timestamp=");
-        result.append(timestamp);
-        result.append(",value=");
+        result.append("} ");
         result.append(value);
+        result.append(" ");
+        result.append(timestamp);
         return result.toString();
     }
 }
