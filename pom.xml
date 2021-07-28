@@ -15,6 +15,7 @@
         <module>kairosdb</module>
         <module>opentsdb</module>
         <module>taosdb</module>
+        <module>questdb</module>
         <module>timescaledb</module>
         <module>iotdb-0.12</module>
         <module>iotdb-0.11</module>
