@@ -175,7 +175,6 @@ public class VictoriaMetrics implements IDatabase {
         return model;
     }
 
-    // https://github.com/VictoriaMetrics/VictoriaMetrics#prometheus-querying-api-usage
     /**
      * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where
      * time = ? and device in ?
@@ -185,6 +184,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status preciseQuery(PreciseQuery preciseQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -197,6 +197,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status rangeQuery(RangeQuery rangeQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -209,6 +210,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -221,6 +223,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -233,6 +236,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status aggValueQuery(AggValueQuery aggValueQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -246,6 +250,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -259,6 +264,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status groupByQuery(GroupByQuery groupByQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -271,6 +277,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -281,6 +288,7 @@ public class VictoriaMetrics implements IDatabase {
      */
     @Override
     public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 
@@ -290,18 +298,8 @@ public class VictoriaMetrics implements IDatabase {
      * @param valueRangeQuery
      */
     @Override
-    public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-        return null;
-    }
-
-    /**
-     * map the given type string name to the name in the target DB
-     *
-     * @param iotdbType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
-     * @return
-     */
-    @Override
-    public String typeMap(String iotdbType) {
+    public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery){
+        LOGGER.warn("Not Supported Query!");
         return null;
     }
 }
