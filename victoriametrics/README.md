@@ -10,4 +10,20 @@ https://hub.docker.com/r/victoriametrics/victoria-metrics/
     1. `docker pull victoriametrics/victoria-metrics`
     2. `docker run -it --rm -v /path/to/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 -d --name=victoria victoriametrics/victoria-metrics -retentionPeriod=30 -search.latencyOffset=1s -search.disableCache=true`
     3. 请格外注意环境配置时的retentionPeriod参数的设计，该参数的单位为月，允许插入的时间序列范围为(当前月-retentionPeriod，当前月)
-3. 需要对conf文件中的参数进行修改保证可以正确插入
+
+# 配置文件修改(conf/config.properties)
+部分修改如下
+
+```properties
+DB_SWITCH=VictoriaMetrics
+# 主机列表，如果有多个主机则使用英文逗号进行分割
+# 其中如果是influxDB, opentsDB, kairosDB, ctsDB测试时需要完整路径，如"http://localhost:8086"
+HOST=http://192.168.99.100
+# 端口列表，需要和HOST数量一致，保持一一对应。如果有多个端口则使用英文逗号进行分割。
+# IoTDB: 6667，TimescaleDB: 5432，TaosDB: 6030，InfluxDB：8086
+# OpentsDB：4242，CtsDB:9200，KairosDB：8080 VictoriaMetrics: 8428
+PORT=8428
+
+# 由于retention time的设置，必须保证开始时间和计算后的结果时间在有效时间内
+START_TIME=2021-01-01T00:00:00+08:00
+```
