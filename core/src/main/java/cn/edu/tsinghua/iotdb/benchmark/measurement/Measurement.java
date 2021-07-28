@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
@@ -11,21 +30,24 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactor
 import com.clearspring.analytics.stream.quantile.TDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.EnumMap;
-import java.util.Map;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class Measurement {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Measurement.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final Map<Operation, TDigest> operationLatencyDigest = new EnumMap<>(Operation.class);
-  private static final Map<Operation, Double> operationLatencySumAllClient = new EnumMap<>(Operation.class);
+  private static final Map<Operation, TDigest> operationLatencyDigest =
+      new EnumMap<>(Operation.class);
+  private static final Map<Operation, Double> operationLatencySumAllClient =
+      new EnumMap<>(Operation.class);
   private double createSchemaTime;
   private double elapseTime;
   private final Map<Operation, Double> operationLatencySumThisClient;
@@ -56,6 +78,380 @@ public class Measurement {
       okPointNumMap.put(operation, 0L);
       failPointNumMap.put(operation, 0L);
       operationLatencySumThisClient.put(operation, 0D);
+    }
+  }
+
+  /**
+   * Users need to call calculateMetrics() after calling mergeMeasurement() to update metrics.
+   *
+   * @param m measurement to be merged
+   */
+  public void mergeMeasurement(Measurement m) {
+    for (Operation operation : Operation.values()) {
+      okOperationNumMap.put(
+          operation, okOperationNumMap.get(operation) + m.getOkOperationNum(operation));
+      failOperationNumMap.put(
+          operation, failOperationNumMap.get(operation) + m.getFailOperationNum(operation));
+      okPointNumMap.put(operation, okPointNumMap.get(operation) + m.getOkPointNum(operation));
+      failPointNumMap.put(operation, failPointNumMap.get(operation) + m.getFailPointNum(operation));
+
+      // set operationLatencySumThisClient of this measurement the largest latency sum among all
+      // threads
+      if (operationLatencySumThisClient.get(operation)
+          < m.getOperationLatencySumThisClient().get(operation)) {
+        operationLatencySumThisClient.put(
+            operation, m.getOperationLatencySumThisClient().get(operation));
+      }
+      operationLatencySumAllClient.put(
+          operation,
+          operationLatencySumAllClient.get(operation)
+              + m.getOperationLatencySumThisClient().get(operation));
+    }
+  }
+
+  /** Calculate metrics of each operation */
+  public void calculateMetrics() {
+    for (Operation operation : Operation.values()) {
+      double avgLatency;
+      if (okOperationNumMap.get(operation) != 0) {
+        avgLatency = operationLatencySumAllClient.get(operation) / okOperationNumMap.get(operation);
+        Metric.AVG_LATENCY.getTypeValueMap().put(operation, avgLatency);
+        Metric.MAX_THREAD_LATENCY_SUM
+            .getTypeValueMap()
+            .put(operation, operationLatencySumThisClient.get(operation));
+        Metric.MIN_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.0));
+        Metric.MAX_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(1.0));
+        Metric.P10_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.1));
+        Metric.P25_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.25));
+        Metric.MEDIAN_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.5));
+        Metric.P75_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.75));
+        Metric.P90_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.90));
+        Metric.P95_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.95));
+        Metric.P99_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.99));
+        Metric.P999_LATENCY
+            .getTypeValueMap()
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.999));
+      }
+    }
+  }
+
+  /** Show measurements and record according to TEST_DATA_PERSISTENCE */
+  public void showMeasurements() {
+    PersistenceFactory persistenceFactory = new PersistenceFactory();
+    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    System.out.println(Thread.currentThread().getName() + " measurements:");
+    System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
+    System.out.println(
+        "Test elapsed time (not include schema creation): "
+            + String.format("%.2f", elapseTime)
+            + " second");
+    recorder.saveResult("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
+    recorder.saveResult("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
+
+    System.out.println(
+        "----------------------------------------------------------Result Matrix----------------------------------------------------------");
+    StringBuilder format = new StringBuilder();
+    for (int i = 0; i < 6; i++) {
+      format.append(RESULT_ITEM);
+    }
+    format.append("\n");
+    System.out.printf(
+        format.toString(),
+        "Operation",
+        "okOperation",
+        "okPoint",
+        "failOperation",
+        "failPoint",
+        "throughput(point/s)");
+    for (Operation operation : Operation.values()) {
+      String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+      System.out.printf(
+          format.toString(),
+          operation.getName(),
+          okOperationNumMap.get(operation),
+          okPointNumMap.get(operation),
+          failOperationNumMap.get(operation),
+          failPointNumMap.get(operation),
+          throughput);
+
+      recorder.saveResult(
+          operation.toString(),
+          TotalOperationResult.OK_OPERATION_NUM.getName(),
+          "" + okOperationNumMap.get(operation));
+      recorder.saveResult(
+          operation.toString(),
+          TotalOperationResult.OK_POINT_NUM.getName(),
+          "" + okPointNumMap.get(operation));
+      recorder.saveResult(
+          operation.toString(),
+          TotalOperationResult.FAIL_OPERATION_NUM.getName(),
+          "" + failOperationNumMap.get(operation));
+      recorder.saveResult(
+          operation.toString(),
+          TotalOperationResult.FAIL_POINT_NUM.getName(),
+          "" + failPointNumMap.get(operation));
+      recorder.saveResult(
+          operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
+    }
+    System.out.println(
+        "---------------------------------------------------------------------------------------------------------------------------------");
+
+    recorder.close();
+  }
+
+  /** Show Config of test */
+  public void showConfigs() {
+    System.out.println("----------------------Main Configurations----------------------");
+    System.out.println("DB_SWITCH: " + config.getDB_SWITCH());
+    System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
+    System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
+    System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());
+    System.out.println("IS_CLIENT_BIND: " + config.isIS_CLIENT_BIND());
+    System.out.println("CLIENT_NUMBER: " + config.getCLIENT_NUMBER());
+    System.out.println("GROUP_NUMBER: " + config.getGROUP_NUMBER());
+    System.out.println("DEVICE_NUMBER: " + config.getDEVICE_NUMBER());
+    System.out.println("SENSOR_NUMBER: " + config.getSENSOR_NUMBER());
+    System.out.println("BATCH_SIZE_PER_WRITE: " + config.getBATCH_SIZE_PER_WRITE());
+    System.out.println("LOOP: " + config.getLOOP());
+    System.out.println("POINT_STEP: " + config.getPOINT_STEP());
+    System.out.println("QUERY_INTERVAL: " + config.getQUERY_INTERVAL());
+    System.out.println("IS_OUT_OF_ORDER: " + config.isIS_OUT_OF_ORDER());
+    System.out.println("OUT_OF_ORDER_MODE: " + config.getOUT_OF_ORDER_MODE());
+    System.out.println("OUT_OF_ORDER_RATIO: " + config.getOUT_OF_ORDER_RATIO());
+    System.out.println("---------------------------------------------------------------");
+  }
+
+  /** Show metrics of test */
+  public void showMetrics() {
+    PersistenceFactory persistenceFactory = new PersistenceFactory();
+    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    System.out.println(
+        "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
+    System.out.printf(RESULT_ITEM, "Operation");
+    for (Metric metric : Metric.values()) {
+      System.out.printf(LATENCY_ITEM, metric.name);
+    }
+    System.out.println();
+    for (Operation operation : Operation.values()) {
+      System.out.printf(RESULT_ITEM, operation.getName());
+      for (Metric metric : Metric.values()) {
+        String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
+        System.out.printf(LATENCY_ITEM, metricResult);
+        recorder.saveResult(operation.toString(), metric.name, metricResult);
+      }
+      System.out.println();
+    }
+    System.out.println(
+        "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    recorder.close();
+  }
+
+  /** output measurement to csv */
+  public void outputCSV() {
+    MeasurementCsvWriter measurementCsvWriter = new MeasurementCsvWriter();
+    measurementCsvWriter.write();
+  }
+
+  /** A class which write measurement to csv file */
+  private class MeasurementCsvWriter {
+    public void write() {
+      try {
+        String fileName = createFileName();
+        File csv = new File(fileName);
+        createDirectory();
+        csv.createNewFile();
+        outputConfigToCSV(csv);
+        outputResultMetricToCSV(csv);
+        outputLatencyMetricsToCSV(csv);
+
+      } catch (IOException e) {
+        LOGGER.error("Exception occurred during writing csv file because: ", e);
+      }
+    }
+
+    /**
+     * Get filename
+     *
+     * @return
+     */
+    private String createFileName() {
+      // Formatting time
+      SimpleDateFormat sdf = new SimpleDateFormat();
+      sdf.applyPattern("yyyy-MM-dd-HH-mm-ss");
+      Date date = new Date();
+      String currentTime = sdf.format(date);
+
+      // Formatting current Operations
+      StringBuilder fileNameSB = new StringBuilder();
+      String[] operations = config.getOPERATION_PROPORTION().split(":");
+
+      for (int i = 0; i < operations.length; i++) {
+        // Specify inserting or querying mode
+        if (i == 0) {
+          fileNameSB.append("I");
+        } else if (i == 1) {
+          fileNameSB.append("Q");
+        }
+        // Specify whether a specific operation is processed in this time of test.
+        if (!operations[i].equals("0")) {
+          if (i == 0) {
+            fileNameSB.append("1");
+          } else {
+            fileNameSB.append(i);
+          }
+        } else {
+          fileNameSB.append("0");
+        }
+      }
+      return "data/csvOutput/" + fileNameSB.toString() + "-" + currentTime + "-test-result.csv";
+    }
+
+    /** Create directory if not exists */
+    private void createDirectory() {
+      File folder = new File("data/csvOutput");
+      if (!folder.exists() && !folder.isDirectory()) {
+        folder.mkdirs();
+      }
+    }
+
+    /**
+     * Write config to csv
+     *
+     * @param csv
+     */
+    private void outputConfigToCSV(File csv) {
+      try {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+        bw.write("Main Configurations");
+        bw.newLine();
+        bw.write("DB_SWITCH," + config.getDB_SWITCH());
+        bw.newLine();
+        bw.write("OPERATION_PROPORTION," + config.getOPERATION_PROPORTION());
+        bw.newLine();
+        bw.write("ENABLE_THRIFT_COMPRESSION," + config.isENABLE_THRIFT_COMPRESSION());
+        bw.newLine();
+        bw.write("INSERT_DATATYPE_PROPORTION," + config.getINSERT_DATATYPE_PROPORTION());
+        bw.newLine();
+        bw.write("IS_CLIENT_BIND," + config.isIS_CLIENT_BIND());
+        bw.newLine();
+        bw.write("CLIENT_NUMBER," + config.getCLIENT_NUMBER());
+        bw.newLine();
+        bw.write("GROUP_NUMBER," + config.getGROUP_NUMBER());
+        bw.newLine();
+        bw.write("DEVICE_NUMBER," + config.getDEVICE_NUMBER());
+        bw.newLine();
+        bw.write("SENSOR_NUMBER," + config.getSENSOR_NUMBER());
+        bw.newLine();
+        bw.write("BATCH_SIZE_PER_WRITE," + config.getBATCH_SIZE_PER_WRITE());
+        bw.newLine();
+        bw.write("LOOP," + config.getLOOP());
+        bw.newLine();
+        bw.write("POINT_STEP," + config.getPOINT_STEP());
+        bw.newLine();
+        bw.write("QUERY_INTERVAL," + config.getQUERY_INTERVAL());
+        bw.newLine();
+        bw.write("IS_OUT_OF_ORDER," + config.isIS_OUT_OF_ORDER());
+        bw.newLine();
+        bw.write("OVERFLOW_MODE_ORDER," + config.getOUT_OF_ORDER_MODE());
+        bw.newLine();
+        bw.write("OUT_OF_ORDER_RATIO," + config.getOUT_OF_ORDER_RATIO());
+        bw.close();
+      } catch (IOException e) {
+        LOGGER.error("Exception occurred during operating buffer writer because: ", e);
+      }
+    }
+
+    /**
+     * Write result metric to csv
+     *
+     * @param csv
+     */
+    private void outputResultMetricToCSV(File csv) {
+      try {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+        bw.newLine();
+        bw.write("Result Matrix");
+        bw.newLine();
+        bw.write(
+            "Operation"
+                + ","
+                + "okOperation"
+                + ","
+                + "okPoint"
+                + ","
+                + "failOperation"
+                + ","
+                + "failPoint"
+                + ","
+                + "throughput(point/s)");
+        for (Operation operation : Operation.values()) {
+          String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+          bw.newLine();
+          bw.write(
+              operation.getName()
+                  + ","
+                  + okOperationNumMap.get(operation)
+                  + ","
+                  + okPointNumMap.get(operation)
+                  + ","
+                  + failOperationNumMap.get(operation)
+                  + ","
+                  + failPointNumMap.get(operation)
+                  + ","
+                  + throughput);
+        }
+        bw.close();
+      } catch (IOException e) {
+        LOGGER.error("Exception occurred during operating buffer writer because: ", e);
+      }
+    }
+
+    /**
+     * Write Latency metric to csv
+     *
+     * @param csv
+     */
+    private void outputLatencyMetricsToCSV(File csv) {
+      try {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+        bw.newLine();
+        bw.write("Latency (ms) Matrix");
+        bw.newLine();
+        bw.write("Operation");
+        for (Metric metric : Metric.values()) {
+          bw.write("," + metric.name);
+        }
+        bw.newLine();
+        for (Operation operation : Operation.values()) {
+          bw.write(operation.getName());
+          for (Metric metric : Metric.values()) {
+            String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
+            bw.write("," + metricResult);
+          }
+          bw.newLine();
+        }
+        bw.close();
+      } catch (IOException e) {
+        LOGGER.error("Exception occurred during operating buffer writer because: ", e);
+      }
     }
   }
 
@@ -117,283 +513,4 @@ public class Measurement {
   public void setElapseTime(double elapseTime) {
     this.elapseTime = elapseTime;
   }
-
-  /**
-   * users need to call calculateMetrics() after calling mergeMeasurement() to update metrics.
-   *
-   * @param m measurement to be merged
-   */
-  public void mergeMeasurement(Measurement m) {
-    for (Operation operation : Operation.values()) {
-      okOperationNumMap
-              .put(operation, okOperationNumMap.get(operation) + m.getOkOperationNum(operation));
-      failOperationNumMap
-              .put(operation, failOperationNumMap.get(operation) + m.getFailOperationNum(operation));
-      okPointNumMap.put(operation, okPointNumMap.get(operation) + m.getOkPointNum(operation));
-      failPointNumMap.put(operation, failPointNumMap.get(operation) + m.getFailPointNum(operation));
-      // set operationLatencySumThisClient of this measurement the largest latency sum among all threads
-      if(operationLatencySumThisClient.get(operation) < m.getOperationLatencySumThisClient().get(operation)) {
-        operationLatencySumThisClient.put(operation, m.getOperationLatencySumThisClient().get(operation));
-      }
-      operationLatencySumAllClient.put(operation,
-              operationLatencySumAllClient.get(operation) + m.getOperationLatencySumThisClient().get(operation));
-    }
-
-  }
-
-  public void calculateMetrics() {
-    for (Operation operation : Operation.values()) {
-      double avgLatency;
-      if (okOperationNumMap.get(operation) != 0) {
-        avgLatency = operationLatencySumAllClient.get(operation) / okOperationNumMap.get(operation);
-        Metric.AVG_LATENCY.getTypeValueMap().put(operation, avgLatency);
-        Metric.MAX_THREAD_LATENCY_SUM.getTypeValueMap().put(operation, operationLatencySumThisClient.get(operation));
-        Metric.MIN_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.0));
-        Metric.MAX_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(1.0));
-        Metric.P10_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.1));
-        Metric.P25_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.25));
-        Metric.MEDIAN_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.5));
-        Metric.P75_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.75));
-        Metric.P90_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.90));
-        Metric.P95_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.95));
-        Metric.P99_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.99));
-        Metric.P999_LATENCY.getTypeValueMap().put(operation, operationLatencyDigest.get(operation).quantile(0.999));
-      }
-    }
-  }
-
-  public void showMeasurements() {
-    PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
-    System.out.println(Thread.currentThread().getName() + " measurements:");
-    System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
-    System.out.println("Test elapsed time (not include schema creation): " + String.format("%.2f", elapseTime) + " second");
-    recorder.saveResult("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
-    recorder.saveResult("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
-
-    System.out.println(
-            "----------------------------------------------------------Result Matrix----------------------------------------------------------");
-    StringBuilder format = new StringBuilder();
-    for (int i = 0; i < 6; i++) {
-      format.append(RESULT_ITEM);
-    }
-    format.append("\n");
-    System.out.printf(format.toString(), "Operation", "okOperation", "okPoint", "failOperation", "failPoint", "throughput(point/s)");
-    for (Operation operation : Operation.values()) {
-      String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
-      System.out.printf(format.toString(), operation.getName(), okOperationNumMap.get(operation), okPointNumMap.get(operation),
-              failOperationNumMap.get(operation), failPointNumMap.get(operation), throughput);
-
-      recorder.saveResult(operation.toString(), TotalOperationResult.OK_OPERATION_NUM.getName(), "" + okOperationNumMap.get(operation));
-      recorder.saveResult(operation.toString(), TotalOperationResult.OK_POINT_NUM.getName(), "" + okPointNumMap.get(operation));
-      recorder.saveResult(operation.toString(), TotalOperationResult.FAIL_OPERATION_NUM.getName(), "" + failOperationNumMap.get(operation));
-      recorder.saveResult(operation.toString(), TotalOperationResult.FAIL_POINT_NUM.getName(), "" + failPointNumMap.get(operation));
-      recorder.saveResult(operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
-    }
-    System.out.println(
-            "---------------------------------------------------------------------------------------------------------------------------------");
-
-    recorder.close();
-  }
-
-  public void showConfigs() {
-    System.out.println("----------------------Main Configurations----------------------");
-    System.out.println("DB_SWITCH: " + config.getDB_SWITCH());
-    System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
-    System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
-    System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());
-    System.out.println("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT): " + config.getENCODING_BOOLEAN()
-                                                                     + "/" + config.getENCODING_INT32()
-                                                                     + "/" + config.getENCODING_INT64()
-                                                                     + "/" + config.getENCODING_FLOAT()
-                                                                     + "/" + config.getENCODING_DOUBLE()
-                                                                     + "/" + config.getENCODING_TEXT());
-    System.out.println("IS_CLIENT_BIND: " + config.isIS_CLIENT_BIND());
-    System.out.println("CLIENT_NUMBER: " + config.getCLIENT_NUMBER());
-    System.out.println("GROUP_NUMBER: " + config.getGROUP_NUMBER());
-    System.out.println("DEVICE_NUMBER: " + config.getDEVICE_NUMBER());
-    System.out.println("SENSOR_NUMBER: " + config.getSENSOR_NUMBER());
-    System.out.println("BATCH_SIZE: " + config.getBATCH_SIZE());
-    System.out.println("LOOP: " + config.getLOOP());
-    System.out.println("POINT_STEP: "+ config.getPOINT_STEP());
-    System.out.println("QUERY_INTERVAL: " + config.getQUERY_INTERVAL());
-    System.out.println("IS_OVERFLOW: " + config.isIS_OVERFLOW());
-    System.out.println("OVERFLOW_MODE: " + config.getOVERFLOW_MODE());
-    System.out.println("OVERFLOW_RATIO: " + config.getOVERFLOW_RATIO());
-    System.out.println("---------------------------------------------------------------");
-  }
-
-  public void showMetrics() {
-    PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
-    System.out.println(
-            "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
-    System.out.printf(RESULT_ITEM, "Operation");
-    for (Metric metric : Metric.values()) {
-      System.out.printf(LATENCY_ITEM, metric.name);
-    }
-    System.out.println();
-    for (Operation operation : Operation.values()) {
-      System.out.printf(RESULT_ITEM, operation.getName());
-      for (Metric metric : Metric.values()) {
-        String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
-        System.out.printf(LATENCY_ITEM, metricResult);
-        recorder.saveResult(operation.toString(), metric.name, metricResult);
-      }
-      System.out.println();
-    }
-    System.out.println(
-            "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    recorder.close();
-  }
-
-  public void outputCSV() {
-
-    try {
-      String fileName = createFileName();
-      File csv = new File(fileName);
-      createDirectory();
-      csv.createNewFile();
-      outputConfigToCSV(csv);
-      outputResultMatrixToCSV(csv);
-      outputMetricsToCSV(csv);
-
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during writing csv file because: ", e);
-    }
-  }
-
-  private String createFileName() {
-    // Formatting time
-    SimpleDateFormat sdf = new SimpleDateFormat();
-    sdf.applyPattern("yyyy-MM-dd-HH-mm-ss");
-    Date date = new Date();
-    String currentTime = sdf.format(date);
-
-    // Formatting current Operations
-    StringBuilder fileNameSB = new StringBuilder();
-    String[] operations = config.getOPERATION_PROPORTION().split(":");
-
-    for (int i = 0; i < operations.length; i++) {
-      // Specify inserting or querying mode
-      if (i == 0) {
-        fileNameSB.append("I");
-      } else if (i == 1) {
-        fileNameSB.append("Q");
-      }
-      // Specify whether a specific operation is processed in this time of test.
-      if (!operations[i].equals("0")) {
-        if (i == 0) {
-          fileNameSB.append("1");
-        } else {
-          fileNameSB.append(i);
-        }
-      } else {
-        fileNameSB.append("0");
-      }
-    }
-    return "data/csvOutput/" + fileNameSB.toString() + "-" + currentTime + "-test-result.csv";
-  }
-
-  private void createDirectory() {
-    File folder = new File("data/csvOutput");
-    if (!folder.exists() && !folder.isDirectory()) {
-      folder.mkdirs();
-    }
-  }
-
-  private void outputConfigToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-      bw.write("Main Configurations");
-      bw.newLine();
-      bw.write("DB_SWITCH," + config.getDB_SWITCH());
-      bw.newLine();
-      bw.write("OPERATION_PROPORTION," + config.getOPERATION_PROPORTION());
-      bw.newLine();
-      bw.write("ENABLE_THRIFT_COMPRESSION," + config.isENABLE_THRIFT_COMPRESSION());
-      bw.newLine();
-      bw.write("INSERT_DATATYPE_PROPORTION," + config.getINSERT_DATATYPE_PROPORTION());
-      bw.newLine();
-      bw.write("ENCODING(BOOLEAN/INT32/INT64/FLOAT/DOUBLE/TEXT)," + config.getENCODING_BOOLEAN()
-                                                                + "/" + config.getENCODING_INT32()
-                                                                + "/" + config.getENCODING_INT64()
-                                                                + "/" + config.getENCODING_FLOAT()
-                                                                + "/" + config.getENCODING_DOUBLE()
-                                                                + "/" + config.getENCODING_TEXT());
-      bw.newLine();
-      bw.write("IS_CLIENT_BIND," + config.isIS_CLIENT_BIND());
-      bw.newLine();
-      bw.write("CLIENT_NUMBER," + config.getCLIENT_NUMBER());
-      bw.newLine();
-      bw.write("GROUP_NUMBER," + config.getGROUP_NUMBER());
-      bw.newLine();
-      bw.write("DEVICE_NUMBER," + config.getDEVICE_NUMBER());
-      bw.newLine();
-      bw.write("SENSOR_NUMBER," + config.getSENSOR_NUMBER());
-      bw.newLine();
-      bw.write("BATCH_SIZE," + config.getBATCH_SIZE());
-      bw.newLine();
-      bw.write("LOOP," + config.getLOOP());
-      bw.newLine();
-      bw.write("POINT_STEP,"+ config.getPOINT_STEP());
-      bw.newLine();
-      bw.write("QUERY_INTERVAL," + config.getQUERY_INTERVAL());
-      bw.newLine();
-      bw.write("IS_OVERFLOW," + config.isIS_OVERFLOW());
-      bw.newLine();
-      bw.write("OVERFLOW_MODE," + config.getOVERFLOW_MODE());
-      bw.newLine();
-      bw.write("OVERFLOW_RATIO," + config.getOVERFLOW_RATIO());
-      bw.close();
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
-    }
-  }
-
-  private void outputResultMatrixToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-      bw.newLine();
-      bw.write("Result Matrix");
-      bw.newLine();
-      bw.write("Operation" + "," + "okOperation" + "," + "okPoint" + "," + "failOperation"
-              + "," + "failPoint" + "," + "throughput(point/s)");
-      for (Operation operation : Operation.values()) {
-        String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
-        bw.newLine();
-        bw.write(operation.getName() + "," + okOperationNumMap.get(operation) + "," + okPointNumMap.get(operation)
-                + "," + failOperationNumMap.get(operation) + "," + failPointNumMap.get(operation) + "," + throughput);
-      }
-      bw.close();
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
-    }
-  }
-
-  private void outputMetricsToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-      bw.newLine();
-      bw.write("Latency (ms) Matrix");
-      bw.newLine();
-      bw.write("Operation");
-      for (Metric metric : Metric.values()) {
-        bw.write("," + metric.name);
-      }
-      bw.newLine();
-      for (Operation operation : Operation.values()) {
-        bw.write(operation.getName());
-        for (Metric metric : Metric.values()) {
-          String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
-          bw.write("," + metricResult);
-        }
-        bw.newLine();
-      }
-      bw.close();
-    } catch (IOException e) {
-      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
-    }
-  }
-
 }

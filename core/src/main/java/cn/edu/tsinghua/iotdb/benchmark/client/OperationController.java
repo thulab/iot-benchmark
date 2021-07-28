@@ -1,12 +1,31 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class OperationController {
 
@@ -18,18 +37,16 @@ public class OperationController {
     random = new Random(seed);
   }
 
-  /**
-   * @return Operation the next operation for client to execute
-   */
+  /** @return Operation the next operation for client to execute */
   Operation getNextOperationType() {
     List<Double> proportion = resolveOperationProportion();
+    // p contains cumulative probability
     double[] p = new double[Operation.values().length + 1];
     p[0] = 0.0;
-    // split [0,1] to n regions, each region corresponds to a operation type whose probability
-    // is the region range size.
     for (int i = 1; i <= Operation.values().length; i++) {
       p[i] = p[i - 1] + proportion.get(i - 1);
     }
+    // use random to getNextOperationType
     double rand = random.nextDouble();
     int i;
     for (i = 1; i <= Operation.values().length; i++) {
@@ -66,6 +83,11 @@ public class OperationController {
     }
   }
 
+  /**
+   * calculate proportion according to OPERATION_PROPORTION
+   *
+   * @return
+   */
   List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
     String[] split = config.getOPERATION_PROPORTION().split(":");
@@ -88,5 +110,4 @@ public class OperationController {
     }
     return proportion;
   }
-
 }

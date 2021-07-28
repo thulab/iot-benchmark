@@ -23,14 +23,15 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NOAAReader extends BasicReader {
 
@@ -46,8 +47,11 @@ public class NOAAReader extends BasicReader {
   public void init() throws Exception {
     String[] splitStrings = new File(currentFile).getName().replaceAll("\\.op", "").split("-");
     currentDeviceId = splitStrings[0] + "_" + splitStrings[1];
-    deviceSchema = new DeviceSchema(calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
-        currentDeviceId, config.getFIELDS());
+    deviceSchema =
+        new DeviceSchema(
+            calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
+            currentDeviceId,
+            config.getFIELDS());
 
     // skip first line, which is the metadata
     reader.readLine();
@@ -69,7 +73,7 @@ public class NOAAReader extends BasicReader {
     try {
       List<Object> fields = new ArrayList<>();
 
-      //add 70 years, make sure time > 0
+      // add 70 years, make sure time > 0
       String yearmoda = line.substring(14, 22).trim();
       Date date = dateFormat.parse(yearmoda);
       long time = date.getTime() + 2209046400000L;
@@ -90,8 +94,8 @@ public class NOAAReader extends BasicReader {
 
       return new Record(time, fields);
     } catch (Exception e) {
-      logger.warn("can not parse: {}, error message: {}, File name: {}", line, e.getMessage(),
-          currentFile);
+      logger.warn(
+          "can not parse: {}, error message: {}, File name: {}", line, e.getMessage(), currentFile);
     }
     return null;
   }
