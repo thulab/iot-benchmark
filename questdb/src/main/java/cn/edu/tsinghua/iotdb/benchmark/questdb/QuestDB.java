@@ -23,15 +23,19 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -45,12 +49,13 @@ public class QuestDB implements IDatabase {
     private static final String PWD = "quest";
     private static final String SSLMODE = "disable";
 
-    private static final String CREATE_TABLE = "create table " + config.getDB_NAME();
+    private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS ";
+    private static final String INSERT_SQL = "INSERT INTO ";
     private static final String SELECT_SQL = "select * from " + config.getDB_NAME();
     private static final String DROP_TABLE = "DROP TABLE ";
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private Connection connection;
-
 
     /**
      * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
@@ -66,7 +71,6 @@ public class QuestDB implements IDatabase {
             connection = DriverManager.getConnection(
                     String.format(URL_QUEST, config.getHOST().get(0), config.getPORT().get(0)),
                     properties);
-            connection.setAutoCommit(false);
             LOGGER.info("init success.");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -85,8 +89,12 @@ public class QuestDB implements IDatabase {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SHOW TABLES");
             while(resultSet.next()){
-                System.out.println(resultSet.getString(0));
+                String table = resultSet.getString(1);
+                if(table.startsWith(config.getDB_NAME())){
+                    statement.addBatch(DROP_TABLE + table + ";");
+                }
             }
+            statement.executeBatch();
             statement.close();
         }catch (SQLException e){
             LOGGER.error("Failed to cleanup!");
@@ -118,13 +126,33 @@ public class QuestDB implements IDatabase {
     public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
         if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
             // TODO check the maximum of sensor_number
-            StringBuffer create = new StringBuffer(CREATE_TABLE);
-            create.append("( ts TIMESTAMP, ");
-            // contain
-            create.append(") timestamp(ts);");
-
             try(Statement statement = connection.createStatement()){
-
+                for(DeviceSchema deviceSchema: schemaList){
+                    StringBuffer create = new StringBuffer(CREATE_TABLE);
+                    // 添加表名
+                    create.append(config.getDB_NAME());
+                    create.append("_");
+                    create.append(deviceSchema.getGroup());
+                    create.append("_");
+                    create.append(deviceSchema.getDevice());
+                    // 添加时间戳
+                    create.append("( ts TIMESTAMP, ");
+                    // 添加传感器
+                    List<String> sensors = deviceSchema.getSensors();
+                    for(int index = 0; index < sensors.size(); index++){
+                        String dataType = typeMap(DBUtil.getDataType(index));
+                        create.append(sensors.get(index));
+                        create.append(" ");
+                        create.append(dataType);
+                        if(index != sensors.size() - 1){
+                            create.append(", ");
+                        }
+                    }
+                    // 声明主要的部分
+                    create.append(") timestamp(ts) ");
+                    statement.addBatch(create.toString());
+                }
+                statement.executeBatch();
             } catch (SQLException e) {
                 // ignore if already has the time series
                 LOGGER.error("Register TaosDB schema failed because ", e);
@@ -143,7 +171,7 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public Status insertOneBatch(Batch batch) throws DBConnectException {
-        return null;
+        return insertBatch(batch);
     }
 
     /**
@@ -156,7 +184,55 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-        return null;
+        return insertBatch(batch);
+    }
+
+    private Status insertBatch(Batch batch){
+        try(Statement statement = connection.createStatement()){
+            DeviceSchema deviceSchema = batch.getDeviceSchema();
+            StringBuffer tableName = new StringBuffer(config.getDB_NAME());
+            tableName.append("_");
+            tableName.append(deviceSchema.getGroup());
+            tableName.append("_");
+            tableName.append(deviceSchema.getDevice());
+            List<String> insertSQLs= new ArrayList<>();
+            for(Record record: batch.getRecords()){
+                StringBuffer insertSQL = new StringBuffer(INSERT_SQL);
+                insertSQL.append(tableName);
+                insertSQL.append(" values ('");
+                insertSQL.append(sdf.format(record.getTimestamp()));
+                insertSQL.append("'");
+                for(int i = 0; i < record.getRecordDataValue().size(); i++){
+                    Object value = record.getRecordDataValue().get(i);
+                    switch (typeMap(DBUtil.getDataType(i))) {
+                        case "BOOLEAN":
+                            insertSQL.append(",").append((boolean) value);
+                            break;
+                        case "INT":
+                            insertSQL.append(",").append((int) value);
+                            break;
+                        case "FLOAT":
+                        case "DOUBLE":
+                            insertSQL.append(",").append((double) value);
+                            break;
+                        case "STRING":
+                        default:
+                            insertSQL.append(",").append("'").append((String) value).append("'");
+                            break;
+                    }
+                }
+                insertSQL.append(")");
+                insertSQLs.add(insertSQL.toString());
+                statement.addBatch(insertSQL.toString());
+            }
+            statement.executeBatch();
+            statement.close();
+            return new Status(true);
+        }catch (SQLException e){
+            e.printStackTrace();
+            System.out.println("Error!");
+            return new Status(false, 0, e, e.toString());
+        }
     }
 
     /**
@@ -287,20 +363,18 @@ public class QuestDB implements IDatabase {
     public String typeMap(String iotdbType) {
         switch (iotdbType) {
             case "BOOLEAN":
-                return "BOOL";
+                return "BOOLEAN";
             case "INT32":
-                return "INT";
             case "INT64":
-                return "BIGINT";
+                return "INT";
             case "FLOAT":
-                return "FLOAT";
             case "DOUBLE":
                 return "DOUBLE";
             case "TEXT":
-                return "BINARY";
+                return "STRING";
             default:
                 LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
-                return "BINARY";
+                return "STRING";
         }
     }
 }
