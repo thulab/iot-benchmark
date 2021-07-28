@@ -244,7 +244,27 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public Status preciseQuery(PreciseQuery preciseQuery) {
-        return null;
+        // select * from test_${group}_${device} where ts = ?
+        DeviceSchema targetDevice = preciseQuery.getDeviceSchema().get(0);
+        String sensor = targetDevice.getSensors().get(0);
+        String table = config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        String sql = "SELECT " + sensor + " FROM " + table + " where ts = '"
+                + sdf.format(preciseQuery.getTimestamp()) + "'";
+
+        int line = 0;
+        int queryResultPointNum = 0;
+        try(Statement statement = connection.createStatement()){
+            ResultSet resultSet = statement.executeQuery(sql);
+            line = 0;
+            while(resultSet.next()){
+                line++;
+            }
+            queryResultPointNum = line * config.getQUERY_SENSOR_NUM() * config.getDEVICE_NUMBER();
+            return new Status(true, queryResultPointNum);
+        }catch (SQLException e){
+            e.printStackTrace();
+            return new Status(false, 0, e, e.toString());
+        }
     }
 
     /**
