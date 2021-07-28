@@ -6,6 +6,9 @@ This project is using iotdb-benchmark to test influxdb
 1. influxdb: 1.8.6-1
 2. OS: windows
 
+# config.properties
+[使用配置文件](config.properties)
+
 # config
 ```
 ----------------------Main Configurations----------------------
