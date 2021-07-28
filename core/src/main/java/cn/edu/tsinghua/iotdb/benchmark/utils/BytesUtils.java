@@ -1,5 +1,3 @@
-package cn.edu.tsinghua.iotdb.benchmark.utils;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package cn.edu.tsinghua.iotdb.benchmark.utils;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -19,24 +17,27 @@ package cn.edu.tsinghua.iotdb.benchmark.utils;
  * under the License.
  */
 
+package cn.edu.tsinghua.iotdb.benchmark.utils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * BytesUtils is a utility class. It provide conversion among byte array and other type including
- * integer, long, float, boolean, double and string. <br> It also provide other usable function as
- * follow:<br> reading function which receives InputStream. <br> concat function to join a list of
- * byte array to one.<br> get and set one bit in a byte array.
+ * integer, long, float, boolean, double and string. <br>
+ * It also provide other usable function as follow:<br>
+ * reading function which receives InputStream. <br>
+ * concat function to join a list of byte array to one.<br>
+ * get and set one bit in a byte array.
  */
 public class BytesUtils {
 
-  private BytesUtils() {
-  }
+  private BytesUtils() {}
 
   private static final Logger LOG = LoggerFactory.getLogger(BytesUtils.class);
 
@@ -47,14 +48,16 @@ public class BytesUtils {
    * @return byte[4] for integer
    */
   public static byte[] intToBytes(int i) {
-    return new byte[]{(byte) ((i >> 24) & 0xFF), (byte) ((i >> 16) & 0xFF),
-        (byte) ((i >> 8) & 0xFF),
-        (byte) (i & 0xFF)};
+    return new byte[] {
+      (byte) ((i >> 24) & 0xFF),
+      (byte) ((i >> 16) & 0xFF),
+      (byte) ((i >> 8) & 0xFF),
+      (byte) (i & 0xFF)
+    };
   }
 
   /**
-   * integer convert to byte array, then write four bytes to parameter desc start from
-   * index:offset.
+   * integer convert to byte array, then write four bytes to parameter desc start from index:offset.
    *
    * @param i integer to convert
    * @param desc byte array be written
@@ -88,11 +91,14 @@ public class BytesUtils {
       try {
         result[temp] = setByteN(result[temp], pos + width - 1 - i, getIntN(srcNum, i));
       } catch (Exception e) {
-        LOG.error("tsfile-common BytesUtils: cannot convert an integer {} to a byte array, "
+        LOG.error(
+            "tsfile-common BytesUtils: cannot convert an integer {} to a byte array, "
                 + "pos {}, width {}",
-            srcNum, pos, width, e);
+            srcNum,
+            pos,
+            width,
+            e);
       }
-
     }
   }
 
@@ -136,7 +142,9 @@ public class BytesUtils {
    * @return integer
    */
   public static int bytesToInt(byte[] bytes) {
-    return bytes[3] & 0xFF | (bytes[2] & 0xFF) << 8 | (bytes[1] & 0xFF) << 16
+    return bytes[3] & 0xFF
+        | (bytes[2] & 0xFF) << 8
+        | (bytes[1] & 0xFF) << 16
         | (bytes[0] & 0xFF) << 24;
   }
 
@@ -378,8 +386,7 @@ public class BytesUtils {
   }
 
   /**
-   * boolean convert to byte array, then write four bytes to parameter desc start from
-   * index:offset.
+   * boolean convert to byte array, then write four bytes to parameter desc start from index:offset.
    *
    * @param x input boolean
    * @param desc byte array be written
@@ -436,9 +443,10 @@ public class BytesUtils {
 
   /**
    * specify the result array length. then, convert long to Big-Endian byte from low to high. <br>
-   * e.g.<br> the binary presentation of long number 1000L is {6 bytes equal 0000000} 00000011
-   * 11101000<br> if len = 2, it will return byte array :{00000011 11101000}(Big-Endian) if len = 1,
-   * it will return byte array :{11101000}.
+   * e.g.<br>
+   * the binary presentation of long number 1000L is {6 bytes equal 0000000} 00000011 11101000<br>
+   * if len = 2, it will return byte array :{00000011 11101000}(Big-Endian) if len = 1, it will
+   * return byte array :{11101000}.
    *
    * @param num long variable to be converted
    * @param len length of result byte array
@@ -486,10 +494,11 @@ public class BytesUtils {
       } catch (Exception e) {
         LOG.error(
             "tsfile-common BytesUtils: cannot convert a long {} to a byte array, pos {}, width {}",
-            srcNum, pos,
-            width, e);
+            srcNum,
+            pos,
+            width,
+            e);
       }
-
     }
   }
 
@@ -508,8 +517,10 @@ public class BytesUtils {
 
   /**
    * specify the input byte array length. then, convert byte array to long value from low to high.
-   * <br> e.g.<br> the input byte array is {00000011 11101000}. if len = 2, return 1000 if len = 1,
-   * return 232(only calculate the low byte).
+   * <br>
+   * e.g.<br>
+   * the input byte array is {00000011 11101000}. if len = 2, return 1000 if len = 1, return
+   * 232(only calculate the low byte).
    *
    * @param byteNum byte array to be converted
    * @param len length of input byte array to be converted
@@ -642,7 +653,8 @@ public class BytesUtils {
   }
 
   /**
-   * get one bit in input integer. the offset is from low to high and start with 0<br> e.g.<br>
+   * get one bit in input integer. the offset is from low to high and start with 0<br>
+   * e.g.<br>
    * data:1000(00000000 00000000 00000011 11101000), if offset is 4, return 0(111 "0" 1000) if
    * offset is 9, return 1(00000 "1" 1 11101000).
    *
@@ -661,7 +673,8 @@ public class BytesUtils {
 
   /**
    * set one bit in input integer. the offset is from low to high and start with index 0<br>
-   * e.g.<br> data:1000({00000000 00000000 00000011 11101000}), if offset is 4, value is 1, return
+   * e.g.<br>
+   * data:1000({00000000 00000000 00000011 11101000}), if offset is 4, value is 1, return
    * 1016({00000000 00000000 00000011 111 "1" 1000}) if offset is 9, value is 0 return 488({00000000
    * 00000000 000000 "0" 1 11101000}) if offset is 0, value is 0 return 1000(no change).
    *
@@ -680,7 +693,8 @@ public class BytesUtils {
   }
 
   /**
-   * get one bit in input byte. the offset is from low to high and start with 0<br> e.g.<br>
+   * get one bit in input byte. the offset is from low to high and start with 0<br>
+   * e.g.<br>
    * data:16(00010000), if offset is 4, return 1(000 "1" 0000) if offset is 7, return 0("0"
    * 0010000).
    *
@@ -698,7 +712,8 @@ public class BytesUtils {
   }
 
   /**
-   * set one bit in input byte. the offset is from low to high and start with index 0<br> e.g.<br>
+   * set one bit in input byte. the offset is from low to high and start with index 0<br>
+   * e.g.<br>
    * data:16(00010000), if offset is 4, value is 0, return 0({000 "0" 0000}) if offset is 1, value
    * is 1, return 18({00010010}) if offset is 0, value is 0, return 16(no change).
    *
@@ -857,5 +872,4 @@ public class BytesUtils {
     s = (short) (s0 | s1);
     return s;
   }
-
 }

@@ -1,4 +1,25 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package cn.edu.tsinghua.iotdb.benchmark.iotdb011;
+
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -8,15 +29,11 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -25,15 +42,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DoubleIOTDB implements IDatabase {
 
   static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String CREATE_SERIES_SQL =
-      "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
+      "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private static final String ALREADY_KEYWORD = "already exist";
   static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -50,13 +64,17 @@ public class DoubleIOTDB implements IDatabase {
   void initConnection() throws TsdbException {
     try {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
-      connection1 = DriverManager
-          .getConnection(String.format(Constants.URL, config.getHOST(), config.getPORT()),
-              Constants.USER, Constants.PASSWD);
-      connection2 = DriverManager
-          .getConnection(
-              String.format(Constants.URL, config.getANOTHER_HOST(), config.getANOTHER_PORT()),
-              Constants.USER, Constants.PASSWD);
+      connection1 =
+          DriverManager.getConnection(
+              String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0)),
+              Constants.USER,
+              Constants.PASSWD);
+      connection2 =
+          DriverManager.getConnection(
+              String.format(
+                  Constants.URL, config.getANOTHER_HOST().get(0), config.getANOTHER_PORT().get(0)),
+              Constants.USER,
+              Constants.PASSWD);
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
@@ -142,12 +160,18 @@ public class DoubleIOTDB implements IDatabase {
         int sensorIndex = 0;
         for (String sensor : deviceSchema.getSensors()) {
           String dataType = getNextDataType(sensorIndex);
-          String createSeriesSql = String.format(CREATE_SERIES_SQL,
-              Constants.ROOT_SERIES_NAME
-                  + "." + deviceSchema.getGroup()
-                  + "." + deviceSchema.getDevice()
-                  + "." + sensor,
-              dataType, getEncodingType(dataType), config.getCOMPRESSOR());
+          String createSeriesSql =
+              String.format(
+                  CREATE_SERIES_SQL,
+                  Constants.ROOT_SERIES_NAME
+                      + "."
+                      + deviceSchema.getGroup()
+                      + "."
+                      + deviceSchema.getDevice()
+                      + "."
+                      + sensor,
+                  dataType,
+                  getEncodingType(dataType));
           statement.addBatch(createSeriesSql);
           count++;
           sensorIndex++;
@@ -179,7 +203,6 @@ public class DoubleIOTDB implements IDatabase {
     producer.send(batch);
     return new Status(true);
   }
-
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
@@ -292,21 +315,15 @@ public class DoubleIOTDB implements IDatabase {
   String getEncodingType(String dataType) {
     switch (dataType) {
       case "BOOLEAN":
-        return config.getENCODING_BOOLEAN();
       case "INT32":
-        return config.getENCODING_INT32();
       case "INT64":
-        return config.getENCODING_INT64();
       case "FLOAT":
-        return config.getENCODING_FLOAT();
       case "DOUBLE":
-        return config.getENCODING_DOUBLE();
       case "TEXT":
-        return config.getENCODING_TEXT();
+        return "PLAIN";
       default:
         LOGGER.error("Unsupported data type {}.", dataType);
         return null;
     }
   }
 }
-

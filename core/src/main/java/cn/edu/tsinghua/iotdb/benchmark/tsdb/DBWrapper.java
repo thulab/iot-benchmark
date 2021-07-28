@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
@@ -9,30 +28,31 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class DBWrapper implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private IDatabase db;
+
   private static final double NANO_TO_SECOND = 1000000000.0d;
   private static final double NANO_TO_MILLIS = 1000000.0d;
-  private Measurement measurement;
   private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
+
+  private IDatabase db;
+  private Measurement measurement;
   private ITestDataPersistence recorder;
 
+  /**
+   * Use DBFactory to get database
+   *
+   * @param measurement
+   */
   public DBWrapper(Measurement measurement) {
     DBFactory dbFactory = new DBFactory();
     try {
@@ -50,29 +70,9 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
-
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.insertOneBatch(batch);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
-
-      if (status.isOk()) {
-        measureOkOperation(status, operation, batch.pointNum());
-        if (!config.isIS_QUIET_MODE()) {
-          double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-          String formatTimeInMillis = String.format("%.2f", timeInMillis);
-          double throughput = batch.pointNum() * 1000 / timeInMillis;
-          LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
-              Thread.currentThread().getName(), batch.getDeviceSchema().getDevice(),
-              batch.getDeviceSchema().getGroup(), formatTimeInMillis, throughput);
-        }
-      } else {
-        measurement.addFailOperationNum(operation);
-        measurement.addFailPointNum(operation, batch.pointNum());
-        recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
-            status.getException().toString());
-        LOGGER.error("Insert batch failed because", status.getException());
-      }
+      status = measureOneBatch(status, operation, batch, start);
     } catch (DBConnectException ex) {
       throw ex;
     } catch (Exception e) {
@@ -89,29 +89,9 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
-
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.insertOneSensorBatch(batch);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
-
-      if (status.isOk()) {
-        measureOkOperation(status, operation, batch.pointNum());
-        if (!config.isIS_QUIET_MODE()) {
-          double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-          String formatTimeInMillis = String.format("%.2f", timeInMillis);
-          double throughput = batch.pointNum() * 1000 / timeInMillis;
-          LOGGER.info("{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
-              Thread.currentThread().getName(), batch.getDeviceSchema().getDevice(),
-              batch.getDeviceSchema().getGroup(), formatTimeInMillis, throughput);
-        }
-      } else {
-        measurement.addFailOperationNum(operation);
-        measurement.addFailPointNum(operation, batch.pointNum());
-        recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0,
-            status.getException().toString());
-        LOGGER.error("Insert batch failed because", status.getException());
-      }
+      status = measureOneBatch(status, operation, batch, start);
     } catch (DBConnectException ex) {
       throw ex;
     } catch (Exception e) {
@@ -122,32 +102,68 @@ public class DBWrapper implements IDatabase {
     }
     return status;
   }
+
+  /**
+   * Measure one batch
+   *
+   * @param status
+   * @param operation
+   * @param batch
+   * @param start
+   * @return
+   */
+  private Status measureOneBatch(Status status, Operation operation, Batch batch, long start) {
+    long end = System.nanoTime();
+    status.setTimeCost(end - start);
+    if (status.isOk()) {
+      measureOkOperation(status, operation, batch.pointNum());
+      if (!config.isIS_QUIET_MODE()) {
+        double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
+        String formatTimeInMillis = String.format("%.2f", timeInMillis);
+        double throughput = batch.pointNum() * 1000 / timeInMillis;
+        LOGGER.info(
+            "{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
+            Thread.currentThread().getName(),
+            batch.getDeviceSchema().getDevice(),
+            batch.getDeviceSchema().getGroup(),
+            formatTimeInMillis,
+            throughput);
+      }
+    } else {
+      measurement.addFailOperationNum(operation);
+      measurement.addFailPointNum(operation, batch.pointNum());
+      recorder.saveOperationResult(
+          operation.getName(), 0, batch.pointNum(), 0, status.getException().toString());
+      LOGGER.error("Insert batch failed because", status.getException());
+    }
+    return status;
+  }
+
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.preciseQuery(preciseQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
     }
     return status;
   }
-
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     Status status = null;
     Operation operation = Operation.RANGE_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.rangeQuery(rangeQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -155,16 +171,15 @@ public class DBWrapper implements IDatabase {
     return status;
   }
 
-
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.valueRangeQuery(valueRangeQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -177,10 +192,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.aggRangeQuery(aggRangeQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -193,10 +208,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.AGG_VALUE_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.aggValueQuery(aggValueQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -209,10 +224,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.aggRangeValueQuery(aggRangeValueQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -225,10 +240,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.GROUP_BY_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.groupByQuery(groupByQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -241,10 +256,10 @@ public class DBWrapper implements IDatabase {
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;
     try {
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.latestPointQuery(latestPointQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -258,10 +273,10 @@ public class DBWrapper implements IDatabase {
     Operation operation = Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
     try {
       rangeQuery.setDesc(true);
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.rangeQueryOrderByDesc(rangeQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -275,10 +290,10 @@ public class DBWrapper implements IDatabase {
     Operation operation = Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
     try {
       valueRangeQuery.setDesc(true);
-      long st = System.nanoTime();
+      long start = System.nanoTime();
       status = db.valueRangeQueryOrderByDesc(valueRangeQuery);
-      long en = System.nanoTime();
-      status.setTimeCost(en - st);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
       handleQueryOperation(status, operation);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e);
@@ -293,7 +308,16 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public void cleanup() throws TsdbException {
+    // start cleanup database
     db.cleanup();
+    // waiting for deletion of database
+    try {
+      LOGGER.info("Waiting {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      Thread.sleep(config.getINIT_WAIT_TIME());
+    } catch (InterruptedException e) {
+      LOGGER.warn("Failed to wait {}ms for old data deletion.", config.getINIT_WAIT_TIME());
+      throw new TsdbException(e);
+    }
   }
 
   @Override
@@ -307,16 +331,16 @@ public class DBWrapper implements IDatabase {
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     double createSchemaTimeInSecond;
-    long en = 0;
-    long st = 0;
+    long end = 0;
+    long start = 0;
     LOGGER.info("Registering schema...");
     try {
       if (config.isCREATE_SCHEMA()) {
-        st = System.nanoTime();
+        start = System.nanoTime();
         db.registerSchema(schemaList);
-        en = System.nanoTime();
+        end = System.nanoTime();
       }
-      createSchemaTimeInSecond = (en - st) / NANO_TO_SECOND;
+      createSchemaTimeInSecond = (end - start) / NANO_TO_SECOND;
       measurement.setCreateSchemaTime(createSchemaTimeInSecond);
     } catch (Exception e) {
       measurement.setCreateSchemaTime(0);
@@ -324,17 +348,18 @@ public class DBWrapper implements IDatabase {
     }
   }
 
-  private void handleUnexpectedQueryException(Operation operation, Exception e) {
-    measurement.addFailOperationNum(operation);
-    // currently we do not have expected result point number for query
-    LOGGER.error(ERROR_LOG, operation, e);
-    recorder.saveOperationResult(operation.getName(), 0, 0, 0, e.toString());
-  }
-
+  /**
+   * Measure ok operation 1. operation is execute as expected way 2. occurs expected exception
+   *
+   * @param status
+   * @param operation
+   * @param okPointNum
+   */
   private void measureOkOperation(Status status, Operation operation, int okPointNum) {
     double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-    if(latencyInMillis < 0) {
-      LOGGER.warn("Operation {} may have exception since the latency is negative, set it to zero",
+    if (latencyInMillis < 0) {
+      LOGGER.warn(
+          "Operation {} may have exception since the latency is negative, set it to zero",
           operation.getName());
       latencyInMillis = 0;
     }
@@ -344,25 +369,45 @@ public class DBWrapper implements IDatabase {
     recorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, "");
   }
 
+  /**
+   * Handle unexpected exception
+   *
+   * @param status
+   * @param operation
+   */
   private void handleQueryOperation(Status status, Operation operation) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum());
-      if(!config.isIS_QUIET_MODE()) {
+      if (!config.isIS_QUIET_MODE()) {
         double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
         String currentThread = Thread.currentThread().getName();
-        LOGGER
-            .info("{} complete {} with latency ,{}, ms ,{}, result points", currentThread, operation,
-                formatTimeInMillis, status.getQueryResultPointNum());
+        LOGGER.info(
+            "{} complete {} with latency ,{}, ms ,{}, result points",
+            currentThread,
+            operation,
+            formatTimeInMillis,
+            status.getQueryResultPointNum());
       }
     } else {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number for query
-      recorder
-          .saveOperationResult(operation.getName(), 0, 0, 0, status.getException().toString());
+      recorder.saveOperationResult(operation.getName(), 0, 0, 0, status.getException().toString());
     }
   }
 
+  /**
+   * Handle unexpected query exception
+   *
+   * @see DBWrapper
+   * @param operation
+   * @param e
+   */
+  private void handleUnexpectedQueryException(Operation operation, Exception e) {
+    measurement.addFailOperationNum(operation);
+    // currently we do not have expected result point number for query
+    LOGGER.error(ERROR_LOG, operation, e);
+    recorder.saveOperationResult(operation.getName(), 0, 0, 0, e.toString());
+  }
 }
-

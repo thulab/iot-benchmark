@@ -1,13 +1,32 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
+
+import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 
 public class Record {
 
@@ -17,24 +36,6 @@ public class Record {
   public Record(long timestamp, List<Object> recordDataValue) {
     this.timestamp = timestamp;
     this.recordDataValue = recordDataValue;
-  }
-
-  /**
-   * deserialize from input stream
-   *
-   * @param inputStream input stream
-   */
-  public static Record deserialize(ByteArrayInputStream inputStream) throws IOException {
-    long timestamp = ReadWriteIOUtils.readLong(inputStream);
-    return new Record(timestamp, ReadWriteIOUtils.readObjectList(inputStream));
-  }
-
-  @Override
-  public String toString() {
-    return "Record{" +
-        "timestamp=" + timestamp +
-        ", recordDataValue=" + recordDataValue +
-        '}';
   }
 
   public int size() {
@@ -62,6 +63,21 @@ public class Record {
     }
   }
 
+  /**
+   * deserialize from input stream
+   *
+   * @param inputStream input stream
+   */
+  public static Record deserialize(ByteArrayInputStream inputStream) throws IOException {
+    long timestamp = ReadWriteIOUtils.readLong(inputStream);
+    return new Record(timestamp, ReadWriteIOUtils.readObjectList(inputStream));
+  }
+
+  @Override
+  public String toString() {
+    return "Record{" + "timestamp=" + timestamp + ", recordDataValue=" + recordDataValue + '}';
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -82,9 +98,6 @@ public class Record {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(timestamp)
-        .append(recordDataValue)
-        .toHashCode();
+    return new HashCodeBuilder(17, 37).append(timestamp).append(recordDataValue).toHashCode();
   }
 }

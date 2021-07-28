@@ -1,21 +1,41 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class Batch {
 
   private DeviceSchema deviceSchema;
   private List<Record> records;
   private int colIndex = -1;
-  private String colType ;
+  private String colType;
 
   public Batch() {
     records = new LinkedList<>();
@@ -24,38 +44,6 @@ public class Batch {
   public Batch(DeviceSchema deviceSchema, List<Record> records) {
     this.deviceSchema = deviceSchema;
     this.records = records;
-  }
-  
-
-
-  public DeviceSchema getDeviceSchema() {
-    return deviceSchema;
-  }
-
-
-  public void setDeviceSchema(DeviceSchema deviceSchema) {
-    this.deviceSchema = deviceSchema;
-  }
-
-  
-  public void setColIndex(int colIndex) {
-	this.colIndex = colIndex;
-  } 
-  
-  public void setColType(String colType) {
-	this.colType = colType;
-  }  
-
-  public int getColIndex(){
-	return colIndex;
-  }
-  
-  public String getColType(){
-	return colType;
-  }
-  
-  public List<Record> getRecords() {
-    return records;
   }
 
   public void add(long timestamp, List<Object> values) {
@@ -77,12 +65,13 @@ public class Batch {
 
   /**
    * serialize to output stream
+   *
    * @param outputStream output stream
    */
   public void serialize(ByteArrayOutputStream outputStream) throws IOException {
     deviceSchema.serialize(outputStream);
     ReadWriteIOUtils.write(records.size(), outputStream);
-    for(Record record : records){
+    for (Record record : records) {
       record.serialize(outputStream);
     }
   }
@@ -101,6 +90,34 @@ public class Batch {
     }
 
     return new Batch(deviceSchema, records);
+  }
+
+  public DeviceSchema getDeviceSchema() {
+    return deviceSchema;
+  }
+
+  public void setDeviceSchema(DeviceSchema deviceSchema) {
+    this.deviceSchema = deviceSchema;
+  }
+
+  public void setColIndex(int colIndex) {
+    this.colIndex = colIndex;
+  }
+
+  public void setColType(String colType) {
+    this.colType = colType;
+  }
+
+  public int getColIndex() {
+    return colIndex;
+  }
+
+  public String getColType() {
+    return colType;
+  }
+
+  public List<Record> getRecords() {
+    return records;
   }
 
   @Override
@@ -123,18 +140,11 @@ public class Batch {
 
   @Override
   public String toString() {
-		return "Batch{" +
-        "deviceSchema=" + deviceSchema +
-        ", records=" + records +
-        '}';
+    return "Batch{" + "deviceSchema=" + deviceSchema + ", records=" + records + '}';
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(deviceSchema)
-        .append(records)
-        .toHashCode();
+    return new HashCodeBuilder(17, 37).append(deviceSchema).append(records).toHashCode();
   }
 }
-
