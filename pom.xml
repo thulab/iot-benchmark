@@ -12,6 +12,7 @@
     <modules>
         <module>core</module>
         <module>influxdb</module>
+        <module>influxdb-2.0</module>
         <module>kairosdb</module>
         <module>opentsdb</module>
         <module>taosdb</module>
