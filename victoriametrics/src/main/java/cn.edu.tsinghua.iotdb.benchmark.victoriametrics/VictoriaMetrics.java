@@ -229,7 +229,7 @@ public class VictoriaMetrics implements IDatabase {
     int point = 0;
     for(DeviceSchema deviceSchema: deviceSchemas){
       for(String sensor: deviceSchema.getSensors()){
-        StringBuffer url = new StringBuffer(QUERY_URL);
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append(getMatch(deviceSchema.getDevice(), sensor));
         url.append("&start=").append(rangeQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(rangeQuery.getEndTimestamp() / 1000);
