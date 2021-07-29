@@ -30,6 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import com.sun.xml.internal.ws.server.ServerRtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,7 +251,6 @@ public class QuestDB implements IDatabase {
         String table = config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
         String sql = "SELECT " + sensor + " FROM " + table + " where ts = '"
                 + sdf.format(preciseQuery.getTimestamp()) + "'";
-
         int line = 0;
         int queryResultPointNum = 0;
         try(Statement statement = connection.createStatement()){
@@ -276,7 +276,32 @@ public class QuestDB implements IDatabase {
      */
     @Override
     public Status rangeQuery(RangeQuery rangeQuery) {
-        return null;
+        // select * from test_${group}_${device} where ts >= ? and ts <= ?;
+        DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
+        String sensor = targetDevice.getSensors().get(0);
+        String table = config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        String sqlHead = "SELECT " + sensor + " FROM " + table;
+        String sql = addWhereTimeClause(sqlHead,rangeQuery);
+        int line = 0;
+        int queryResultPointNum = 0;
+        try(Statement statement = connection.createStatement()){
+            ResultSet resultSet = statement.executeQuery(sql);
+            line = 0;
+            while(resultSet.next()){
+                line++;
+            }
+            queryResultPointNum = line * config.getQUERY_SENSOR_NUM() * config.getDEVICE_NUMBER();
+            return new Status(true, queryResultPointNum);
+        }catch (SQLException e){
+            e.printStackTrace();
+            return new Status(false, 0, e, e.toString());
+        }
+    }
+
+    private static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
+        String startTime = "" + sdf.format(rangeQuery.getStartTimestamp());
+        String endTime = "" + sdf.format(rangeQuery.getEndTimestamp());
+        return sql + " where ts >= '" + startTime + "' and ts <= '" + endTime + "'";
     }
 
     /**
