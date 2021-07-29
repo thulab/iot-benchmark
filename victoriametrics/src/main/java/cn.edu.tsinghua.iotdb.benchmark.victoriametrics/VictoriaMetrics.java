@@ -236,7 +236,6 @@ public class VictoriaMetrics implements IDatabase {
         try{
           String result = HttpRequestUtil.sendGet(url.toString());
           JSONObject jsonObject = JSONObject.parseObject(result);
-          // get point
           point += ((JSONArray)((JSONObject)jsonObject.get("data")).get("result")).size();
         }catch (Exception e){
           System.out.println("Failed get: " + url.toString());
@@ -244,22 +243,6 @@ public class VictoriaMetrics implements IDatabase {
       }
     }
     return new Status(true, point);
-  }
-
-  /**
-   * get selector
-   *
-   * @param device
-   * @param sensor
-   * @return
-   */
-  private String getMatch(String device, String sensor){
-    StringBuffer params = new StringBuffer();
-    // change { to %7b " to %22 } to %7d
-    params.append("%7b").append("db=%22").append(config.getDB_NAME()).append("%22");
-    params.append(",device=%22").append(device).append("%22");
-    params.append(",sensor=%22").append(sensor).append("%22").append("%7d");
-    return params.toString();
   }
 
   /**
@@ -362,5 +345,21 @@ public class VictoriaMetrics implements IDatabase {
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     LOGGER.warn("Not Supported Query!");
     return null;
+  }
+
+  /**
+   * get selector
+   *
+   * @param device
+   * @param sensor
+   * @return
+   */
+  private String getMatch(String device, String sensor){
+    StringBuffer params = new StringBuffer();
+    // change { to %7b " to %22 } to %7d
+    params.append("%7b").append("db=%22").append(config.getDB_NAME()).append("%22");
+    params.append(",device=%22").append(device).append("%22");
+    params.append(",sensor=%22").append(sensor).append("%22").append("%7d");
+    return params.toString();
   }
 }
