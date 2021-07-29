@@ -29,6 +29,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +45,11 @@ public class VictoriaMetrics implements IDatabase {
   private static final String CREATE_URL =
       URL + "/api/v1/import/prometheus?extra_label=db=" + config.getDB_NAME();
   private static final String DELETE_URL =
-      URL + "/api/v1/admin/tsdb/delete_series?match={db=\"" + config.getDB_NAME() + "\"}";
+      URL + "/api/v1/admin/tsdb/delete_series?match={db=%22" + config.getDB_NAME() + "%22}";
   private static final Random sensorRandom = new Random(1 + config.getDATA_SEED());
-  private static final String QUERY_URL = URL + "/api/v1/query_range?query=test.*_value&";
+  // need to add query
+  private static final String QUERY_URL = URL + "/api/v1/query?query=";
+  private static final String QUERY_RANGE_URL = URL + "/api/v1/query_range?query=";
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
@@ -194,8 +198,22 @@ public class VictoriaMetrics implements IDatabase {
    */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_URL);
+        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append("&").append("time=").append(preciseQuery.getTimestamp() / 1000);
+        try{
+          HttpRequestUtil.sendGet(url.toString());
+          point++;
+        }catch (Exception e){
+          System.out.println("Failed get: " + url.toString());
+        }
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
@@ -207,8 +225,41 @@ public class VictoriaMetrics implements IDatabase {
    */
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_URL);
+        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append("&start=").append(rangeQuery.getStartTimestamp() / 1000);
+        url.append("&end=").append(rangeQuery.getEndTimestamp() / 1000);
+        try{
+          String result = HttpRequestUtil.sendGet(url.toString());
+          JSONObject jsonObject = JSONObject.parseObject(result);
+          // get point
+          point += ((JSONArray)((JSONObject)jsonObject.get("data")).get("result")).size();
+        }catch (Exception e){
+          System.out.println("Failed get: " + url.toString());
+        }
+      }
+    }
+    return new Status(true, point);
+  }
+
+  /**
+   * get selector
+   *
+   * @param device
+   * @param sensor
+   * @return
+   */
+  private String getMatch(String device, String sensor){
+    StringBuffer params = new StringBuffer();
+    // change { to %7b " to %22 } to %7d
+    params.append("%7b").append("db=%22").append(config.getDB_NAME()).append("%22");
+    params.append(",device=%22").append(device).append("%22");
+    params.append(",sensor=%22").append(sensor).append("%22").append("%7d");
+    return params.toString();
   }
 
   /**
