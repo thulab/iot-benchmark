@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.influxdb2;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -197,78 +198,110 @@ public class InfluxDB implements IDatabase {
     return model;
   }
 
-  /** eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time = 1535558405000000000. */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    String sql = getPreciseQuerySql(preciseQuery);
-    return executeQueryAndGetStatus(sql);
+    List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), preciseQuery.getTimestamp() / 1000, preciseQuery.getTimestamp() / 1000 + 1);
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
-  /**
-   * eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time >= 1535558405000000000 AND time
-   * <= 153555800000.
-   */
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
-    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
-    return executeQueryAndGetStatus(sql);
+    List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), rangeQuery.getStartTimestamp() / 1000, rangeQuery.getEndTimestamp() / 1000);
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
-  /**
-   * eg. SELECT s_3 FROM group_0 WHERE ( device = 'd_3' ) AND time >= 1535558420000000000 AND time
-   * <= 153555800000 AND s_3 > -5.0.
-   */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            valueRangeQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            valueRangeQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), valueRangeQuery.getStartTimestamp() / 1000, valueRangeQuery.getEndTimestamp() / 1000);
+        sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + valueRangeQuery.getValueThreshold() + ")";
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
-  /**
-   * eg. SELECT count(s_3) FROM group_4 WHERE ( device = 'd_16' ) AND time >= 1535558410000000000
-   * AND time <=8660000000000.
-   */
+  private String getTimeSQLHeader(String group, String sensor, String device, long start, long end){
+    String sql = "from(bucket: \"" + this.influxDbName + "\")\n" +
+            "  |> range(start: " + start + ", stop:" + end + ")\n" +
+            "  |> filter(fn: (r) => r[\"_measurement\"] == \"" + group + "\")\n" +
+            "  |> filter(fn: (r) => r[\"_field\"] == \"" + sensor + "\")\n" +
+            "  |> filter(fn: (r) => r[\"device\"] == \"" + device + "\")";
+    return sql;
+  }
+
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
-    String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery);
-    return executeQueryAndGetStatus(sql);
+    List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), aggRangeQuery.getStartTimestamp() / 1000, aggRangeQuery.getEndTimestamp() / 1000);
+        sql += "\n  |> " + aggRangeQuery.getAggFun();
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
-  /** eg. SELECT count(s_3) FROM group_3 WHERE ( device = 'd_12' ) AND s_3 > -5.0. */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
-    String sql =
-        addWhereValueClause(
-            aggValueQuery.getDeviceSchema(), aggQuerySqlHead, aggValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sql);
+    List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), Constants.START_TIMESTAMP / 1000, System.currentTimeMillis() / 1000);
+        // note that flux not support without range
+        sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggValueQuery.getValueThreshold() + ")";
+        sql += "\n  |> " + aggValueQuery.getAggFun();
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
-  /**
-   * eg. SELECT count(s_1) FROM group_2 WHERE ( device = 'd_8' ) AND time >= 1535558400000000000 AND
-   * time <= 650000000000 AND s_1 > -5.0.
-   */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    String rangeQueryHead =
-        getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, aggRangeValueQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            aggRangeValueQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            aggRangeValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), aggRangeValueQuery.getStartTimestamp() / 1000, aggRangeValueQuery.getEndTimestamp() / 1000);
+        sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggRangeValueQuery.getValueThreshold() + ")";
+        sql += "\n  |> " + aggRangeValueQuery.getAggFun();
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
   /**
@@ -277,17 +310,34 @@ public class InfluxDB implements IDatabase {
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
-    String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sqlWithGroupBy);
+    List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), groupByQuery.getStartTimestamp() / 1000, groupByQuery.getEndTimestamp() / 1000);
+        sql += "\n  |> integral(unit:" + groupByQuery.getAggFun() +  ")";
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
-  /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
-    return executeQueryAndGetStatus(sql);
+    List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), Constants.START_TIMESTAMP / 1000, System.currentTimeMillis() / 1000);
+        sql += "\n  |> last(column: \"_time\")";
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
   @Override
@@ -301,8 +351,7 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    // LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
-    System.out.println(Thread.currentThread().getName() + " query SQL: " + sql);
+    LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     int cnt = 0;
     List<FluxTable> tables = client.getQueryApi().query(sql);
     for(FluxTable table: tables){
