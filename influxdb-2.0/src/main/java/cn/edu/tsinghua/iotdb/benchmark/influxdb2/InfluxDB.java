@@ -48,7 +48,7 @@ public class InfluxDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
-  private final String token = "ab9nQEU1Om9r-w9brgRNnIEMCkkW3ba108Q_zYdszjj9yuRmqjev_KgE4p-vFDeRCNDQuEqY1Gzlz2AtKWBX-w==";
+  private final String token = config.getTOKEN();
   private final String org = "admin";
 
   private String influxUrl;
@@ -56,10 +56,9 @@ public class InfluxDB implements IDatabase {
   private InfluxDBClient client;
   private WritePrecision writePrecision;
 
-  private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.getTIMESTAMP_PRECISION());
-
   /** constructor. */
   public InfluxDB() {
+    System.out.println(token);
     influxUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
     influxDbName = config.getDB_NAME();
   }

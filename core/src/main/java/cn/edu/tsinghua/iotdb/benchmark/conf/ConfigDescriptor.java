@@ -84,6 +84,7 @@ public class ConfigDescriptor {
         String ports = properties.getProperty("PORT", config.getPORT() + "");
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDB_NAME()));
+        config.setTOKEN(properties.getProperty("TOKEN", config.getTOKEN()));
 
         config.setANOTHER_DB_NAME(
             properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DB_NAME() + ""));
