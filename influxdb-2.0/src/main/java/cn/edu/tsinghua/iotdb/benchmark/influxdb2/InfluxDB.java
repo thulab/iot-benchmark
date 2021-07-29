@@ -25,16 +25,21 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
+import com.influxdb.client.WriteApi;
+import com.influxdb.client.domain.Bucket;
+import com.influxdb.client.domain.Organization;
+import com.influxdb.client.domain.WritePrecision;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class InfluxDB implements IDatabase {
@@ -42,12 +47,13 @@ public class InfluxDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
-  private final String token = "tPm1SFmjInwpkto4rosS-jZxxKinQSUML3CsqmZA6gG_zdxSFPPnCrc9arjhpAq4X-nlvr_0vSoeqsTTmNQTDQ==";
+  private final String token = "ab9nQEU1Om9r-w9brgRNnIEMCkkW3ba108Q_zYdszjj9yuRmqjev_KgE4p-vFDeRCNDQuEqY1Gzlz2AtKWBX-w==";
   private final String org = "admin";
 
   private String influxUrl;
   private String influxDbName;
   private InfluxDBClient client;
+  private WritePrecision writePrecision;
 
   private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.getTIMESTAMP_PRECISION());
 
@@ -61,6 +67,19 @@ public class InfluxDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       client = InfluxDBClientFactory.create(influxUrl, token.toCharArray(), org, influxDbName);
+      switch (config.getTIMESTAMP_PRECISION()){
+        case "ms":
+          writePrecision = WritePrecision.MS;
+          break;
+        case "us":
+          writePrecision = WritePrecision.US;
+          break;
+        case "ns":
+          writePrecision = WritePrecision.NS;
+          break;
+        default:
+          break;
+      }
     } catch (Exception e) {
       LOGGER.error("Initialize InfluxDB failed because ", e);
       throw new TsdbException(e);
@@ -70,7 +89,8 @@ public class InfluxDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     try {
-      client.getBucketsApi().deleteBucket(influxDbName);
+      Bucket bucket = client.getBucketsApi().findBucketByName(influxDbName);
+      client.getBucketsApi().deleteBucket(bucket);
     } catch (Exception e) {
       LOGGER.error("Cleanup InfluxDB failed because ", e);
       throw new TsdbException(e);
@@ -87,9 +107,18 @@ public class InfluxDB implements IDatabase {
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
-      client.getBucketsApi().createBucket(influxDbName, org);
+      List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
+      String orgId = "";
+      for(Organization organization: organizations){
+        if(organization.getName().equals(org)) {
+          orgId = organization.getId();
+          break;
+        }
+      }
+      client.getBucketsApi().createBucket(influxDbName, orgId);
     } catch (Exception e) {
       LOGGER.error("RegisterSchema InfluxDB failed because ", e);
+      e.printStackTrace();
       throw new TsdbException(e);
     }
   }
@@ -97,7 +126,13 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     try {
-
+      WriteApi writeApi = client.getWriteApi();
+      LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
+      List<String> lines = new ArrayList<>();
+      for(InfluxDBModel influxDBModel: influxDBModels){
+        lines.add(influxDBModel.toString());
+      }
+      writeApi.writeRecords(writePrecision, lines);
       return new Status(true);
     } catch (Exception e) {
       e.printStackTrace();
@@ -108,7 +143,58 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status insertOneSensorBatch(Batch batch) {
-    return new Status(true);
+    try {
+      WriteApi writeApi = client.getWriteApi();
+      LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
+      for(InfluxDBModel influxDBModel: influxDBModels){
+        writeApi.writeRecord(writePrecision, influxDBModel.toString());
+      }
+      return new Status(true);
+    } catch (Exception e) {
+      e.printStackTrace();
+      LOGGER.warn(e.getMessage());
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+  private LinkedList<InfluxDBModel> createDataModelByBatch(Batch batch) {
+    DeviceSchema deviceSchema = batch.getDeviceSchema();
+    List<Record> records = batch.getRecords();
+    List<String> sensors = deviceSchema.getSensors();
+    int sensorNum = sensors.size();
+    LinkedList<InfluxDBModel> models = new LinkedList<>();
+
+    for (Record record : records) {
+      if (batch.getColIndex() != -1) {
+        // insert one line
+        InfluxDBModel model =
+                createModel(deviceSchema.getGroup(), deviceSchema.getDevice(),
+                        record, deviceSchema.getSensors());
+        models.addLast(model);
+      } else {
+        // insert align data
+        for (int j = 0; j < sensorNum; j++) {
+          InfluxDBModel model =
+                  createModel(deviceSchema.getGroup(), deviceSchema.getDevice(),
+                          record, deviceSchema.getSensors());
+          models.addLast(model);
+        }
+      }
+    }
+    return models;
+  }
+
+  private InfluxDBModel createModel(String metric, String device, Record record, List<String> sensors){
+    InfluxDBModel model = new InfluxDBModel();
+    model.setMetric(metric);
+    model.setTimestamp(record.getTimestamp());
+
+    model.addTag("device", device);
+
+    for(int i = 0; i < record.getRecordDataValue().size(); i++){
+      model.addField(sensors.get(i), record.getRecordDataValue().get(i));
+    }
+    return model;
   }
 
   /** eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time = 1535558405000000000. */
@@ -215,27 +301,15 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
-
-//    QueryResult results = influxDbInstance.query(new Query(sql, influxDbName));
-//    int cnt = 0;
-//    for (Result result : results.getResults()) {
-//      List<Series> series = result.getSeries();
-//      if (series == null) {
-//        continue;
-//      }
-//      if (result.getError() != null) {
-//        return new Status(false, cnt, new Exception(result.getError()), sql);
-//      }
-//      for (Series serie : series) {
-//        List<List<Object>> values = serie.getValues();
-//        cnt += values.size() * (serie.getColumns().size() - 1);
-//      }
-//    }
-//
-//    LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), cnt);
-//    return new Status(true, cnt);
-    return new Status(true);
+    // LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    System.out.println(Thread.currentThread().getName() + " query SQL: " + sql);
+    int cnt = 0;
+    List<FluxTable> tables = client.getQueryApi().query(sql);
+    for(FluxTable table: tables){
+      List<FluxRecord> fluxRecords = table.getRecords();
+      cnt += fluxRecords.size();
+    }
+    return new Status(true, cnt);
   }
 
   private static String getPreciseQuerySql(PreciseQuery preciseQuery) {
