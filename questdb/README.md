@@ -5,6 +5,13 @@ QuestDB 测试实验报告
 # 测试环境（Docker）
 1. 拉取镜像：`docker pull questdb/questdb`
 2. 启动镜像：`docker run -p 9000:9000  -p 9009:9009  -p 8812:8812  -p 9003:9003  -e QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000  -e QDB_CAIRO_COMMIT_LAG=20000 -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 questdb/questdb`
+3. 服务器部署补充说明，请在启动服务器前，执行如下命令设置变量
+
+```
+export QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000
+export QDB_CAIRO_COMMIT_LAG=20000
+export QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1
+```
 
 # Config文件参数
 [配置文件](config.properties)
