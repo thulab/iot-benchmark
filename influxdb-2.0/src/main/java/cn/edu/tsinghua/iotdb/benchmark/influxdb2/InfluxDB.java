@@ -49,7 +49,7 @@ public class InfluxDB implements IDatabase {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
   private final String token = config.getTOKEN();
-  private final String org = "admin";
+  private final String org = config.getDB_NAME();
 
   private String influxUrl;
   private String influxDbName;
@@ -88,6 +88,12 @@ public class InfluxDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     try {
+      List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
+      for(Organization organization: organizations){
+        if(organization.getName().equals(org)){
+          client.getOrganizationsApi().deleteOrganization(organization);
+        }
+      }
       Bucket bucket = client.getBucketsApi().findBucketByName(influxDbName);
       client.getBucketsApi().deleteBucket(bucket);
     } catch (Exception e) {
@@ -108,11 +114,17 @@ public class InfluxDB implements IDatabase {
     try {
       List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
       String orgId = "";
+      boolean isFind = false;
       for(Organization organization: organizations){
         if(organization.getName().equals(org)) {
           orgId = organization.getId();
+          isFind = true;
           break;
         }
+      }
+      if(!isFind){
+        Organization organization = client.getOrganizationsApi().createOrganization(org);
+        orgId = organization.getId();
       }
       client.getBucketsApi().createBucket(influxDbName, orgId);
     } catch (Exception e) {
