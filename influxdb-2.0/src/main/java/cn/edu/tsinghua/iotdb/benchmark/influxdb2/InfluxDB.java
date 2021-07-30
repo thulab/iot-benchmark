@@ -58,7 +58,6 @@ public class InfluxDB implements IDatabase {
 
   /** constructor. */
   public InfluxDB() {
-    System.out.println(token);
     influxUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
     influxDbName = config.getDB_NAME();
   }
@@ -303,10 +302,6 @@ public class InfluxDB implements IDatabase {
     return new Status(true, result);
   }
 
-  /**
-   * eg. SELECT count(s_3) FROM group_4 WHERE ( device = 'd_16' ) AND time >= 1535558430000000000
-   * AND time <=8680000000000 GROUP BY time(20000ms).
-   */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
@@ -315,7 +310,11 @@ public class InfluxDB implements IDatabase {
       for(String sensor : deviceSchema.getSensors()){
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), groupByQuery.getStartTimestamp() / 1000, groupByQuery.getEndTimestamp() / 1000);
-        sql += "\n  |> integral(unit:" + groupByQuery.getAggFun() +  ")";
+        if(!groupByQuery.getAggFun().endsWith("s")){
+          sql += "\n  |> integral(unit:10s)";
+        }else{
+          sql += "\n  |> integral(unit:" + groupByQuery.getAggFun() +  ")";
+        }
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -341,12 +340,36 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), rangeQuery.getStartTimestamp() / 1000, rangeQuery.getEndTimestamp() / 1000);
+        sql += "\n  |> sort(columns: [\"_time\"], desc: true)";
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
+    int result = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor : deviceSchema.getSensors()){
+        String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
+                deviceSchema.getDevice(), valueRangeQuery.getStartTimestamp() / 1000, valueRangeQuery.getEndTimestamp() / 1000);
+        sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + valueRangeQuery.getValueThreshold() + ")";
+        sql += "\n  |> sort(columns: [\"_time\"], desc: true)";
+
+        Status status = executeQueryAndGetStatus(sql);
+        result += status.getQueryResultPointNum();
+      }
+    }
+    return new Status(true, result);
   }
 
   private Status executeQueryAndGetStatus(String sql) {
