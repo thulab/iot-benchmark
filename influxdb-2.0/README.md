@@ -15,10 +15,7 @@ This project is using iotdb-benchmark to test influxdb 2
 # config
 This is [config.properties](config.properties)
 
-1. 在测试 Q7 时，需要设置QUERY_AGGREGATE_FUN=10s
-2. 在测试 Q4-Q6 时，需要设置QUERY_AGGREGATE_FUN=count()
-3. 不支持 Q9-Q10
-4. [语法参考](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
+1. [语法参考](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
 
 # test result
 ```

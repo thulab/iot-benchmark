@@ -310,11 +310,7 @@ public class InfluxDB implements IDatabase {
       for(String sensor : deviceSchema.getSensors()){
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), groupByQuery.getStartTimestamp() / 1000, groupByQuery.getEndTimestamp() / 1000);
-        if(!groupByQuery.getAggFun().endsWith("s")){
-          sql += "\n  |> integral(unit:10s)";
-        }else{
-          sql += "\n  |> integral(unit:" + groupByQuery.getAggFun() +  ")";
-        }
+        sql += "\n  |> integral(unit:" + groupByQuery.getGranularity() +  "ms)";
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
