@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -40,7 +41,10 @@ import com.influxdb.query.FluxTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 public class InfluxDB implements IDatabase {
@@ -141,7 +145,7 @@ public class InfluxDB implements IDatabase {
       LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
       List<String> lines = new ArrayList<>();
       for(InfluxDBModel influxDBModel: influxDBModels){
-        lines.add(influxDBModel.toString());
+        lines.add(model2write(influxDBModel));
       }
       writeApi.writeRecords(writePrecision, lines);
       return new Status(true);
@@ -154,18 +158,61 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status insertOneSensorBatch(Batch batch) {
-    try {
-      WriteApi writeApi = client.getWriteApi();
-      LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
-      for(InfluxDBModel influxDBModel: influxDBModels){
-        writeApi.writeRecord(writePrecision, influxDBModel.toString());
+    return null;
+  }
+
+  private String model2write(InfluxDBModel influxDBModel){
+    StringBuffer result = new StringBuffer(influxDBModel.getMetric());
+    if (influxDBModel.getTags() != null) {
+      for (Map.Entry<String, String> pair: influxDBModel.getTags().entrySet()) {
+        result.append(",");
+        result.append(pair.getKey());
+        result.append("=");
+        result.append(pair.getValue());
       }
-      return new Status(true);
-    } catch (Exception e) {
-      e.printStackTrace();
-      LOGGER.warn(e.getMessage());
-      return new Status(false, 0, e, e.toString());
     }
+    result.append(" ");
+    if(influxDBModel.getFields() != null){
+      boolean first = true;
+      for(Map.Entry<String, Object> pair: influxDBModel.getFields().entrySet()){
+        if(first){
+          first = false;
+        }else{
+          result.append(",");
+        }
+        result.append(pair.getKey());
+        result.append("=");
+        // get value
+        int index = Integer.parseInt(pair.getKey().split("_")[1]);
+        String type = typeMap(DBUtil.getDataType(index));
+        switch (type){
+          case "BOOLEAN":
+            result.append(((boolean) pair.getValue()) ? "true" : "false");
+            break;
+          case "INT32":
+            result.append((int) pair.getValue());
+            break;
+          case "INT64":
+            result.append((long) pair.getValue()).append("u");
+            break;
+          case "FLOAT":
+            result.append((float) pair.getValue());
+            break;
+          case "DOUBLE":
+            result.append((double) pair.getValue());
+            break;
+          case "TEXT":
+            result.append("\"").append(pair.getValue()).append("\"");
+            break;
+          default:
+            LOGGER.error("Unsupported data type {}, use default data type: BINARY.", type);
+            return "TEXT";
+        }
+      }
+    }
+    result.append(" ");
+    result.append(influxDBModel.getTimestamp());
+    return result.toString();
   }
 
   private LinkedList<InfluxDBModel> createDataModelByBatch(Batch batch) {
@@ -389,15 +436,5 @@ public class InfluxDB implements IDatabase {
       cnt += fluxRecords.size();
     }
     return new Status(true, cnt);
-  }
-
-  private static long getToNanoConst(String timePrecision) {
-    if (timePrecision.equals("ms")) {
-      return 1000000L;
-    } else if (timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1L;
-    }
   }
 }

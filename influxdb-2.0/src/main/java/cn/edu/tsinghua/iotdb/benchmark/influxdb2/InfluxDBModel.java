@@ -43,35 +43,4 @@ public class InfluxDBModel implements Serializable {
   public void addField(String sensor, Object value){
     fields.put(sensor, value);
   }
-
-
-  @Override
-  public String toString() {
-    StringBuffer result = new StringBuffer(metric);
-    if (tags != null) {
-      for (Map.Entry<String, String> pair: tags.entrySet()) {
-        result.append(",");
-        result.append(pair.getKey());
-        result.append("=");
-        result.append(pair.getValue());
-      }
-    }
-    result.append(" ");
-    if(fields != null){
-      boolean first = true;
-      for(Map.Entry<String, Object> pair: fields.entrySet()){
-        if(first){
-          first = false;
-        }else{
-          result.append(",");
-        }
-        result.append(pair.getKey());
-        result.append("=");
-        result.append(pair.getValue());
-      }
-    }
-    result.append(" ");
-    result.append(timestamp);
-    return result.toString();
-  }
 }
