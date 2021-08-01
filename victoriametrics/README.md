@@ -8,8 +8,10 @@ https://hub.docker.com/r/victoriametrics/victoria-metrics/
 
 2. 环境配置过程
     1. `docker pull victoriametrics/victoria-metrics`
-    2. `docker run -it --rm -v /path/to/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 -d --name=victoria victoriametrics/victoria-metrics -retentionPeriod=30 -search.latencyOffset=1s -search.disableCache=true`
+    2. `docker run -it --rm -v /path/to/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 -d --name=victoria victoriametrics/victoria-metrics -retentionPeriod=30 -search.latencyOffset=1s -search.disableCache=true -search.maxPointsPerTimeseries=10000000`
     3. 请格外注意环境配置时的retentionPeriod参数的设计，该参数的单位为月，允许插入的时间序列范围为(当前月-retentionPeriod，当前月)
+3. 查询基于Prometheus的API，参考https://blog.csdn.net/zhouwenjun0820/article/details/105823389
+4. 目前暂时不支持后3种查询
 
 # 配置文件修改(conf/config.properties)
 1. 部分修改如下
@@ -38,14 +40,14 @@ START_TIME=2021-01-01T00:00:00+08:00
 ```
 ----------------------Main Configurations----------------------
 DB_SWITCH: VictoriaMetrics
-OPERATION_PROPORTION: 1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:0:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 0:0:0:0:1:0
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 20
+CLIENT_NUMBER: 5
 GROUP_NUMBER: 20
-DEVICE_NUMBER: 20
-SENSOR_NUMBER: 300
+DEVICE_NUMBER: 5
+SENSOR_NUMBER: 10
 BATCH_SIZE_PER_WRITE: 10
 LOOP: 1000
 POINT_STEP: 5000
@@ -56,31 +58,31 @@ OUT_OF_ORDER_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 71.97 second
+Test elapsed time (not include schema creation): 7.98 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           20000               60000000            0                   0                   833640.66           
-PRECISE_POINT       0                   0                   0                   0                   0.00                
-TIME_RANGE          0                   0                   0                   0                   0.00                
-VALUE_RANGE         0                   0                   0                   0                   0.00                
-AGG_RANGE           0                   0                   0                   0                   0.00                
-AGG_VALUE           0                   0                   0                   0                   0.00                
-AGG_RANGE_VALUE     0                   0                   0                   0                   0.00                
-GROUP_BY            0                   0                   0                   0                   0.00                
+INGESTION           656                 65600               0                   0                   8219.22             
+PRECISE_POINT       607                 606                 0                   0                   75.93               
+TIME_RANGE          648                 648                 0                   0                   81.19               
+VALUE_RANGE         585                 584                 0                   0                   73.17               
+AGG_RANGE           621                 621                 0                   0                   77.81               
+AGG_VALUE           663                 663                 0                   0                   83.07               
+AGG_RANGE_VALUE     589                 588                 0                   0                   73.67               
+GROUP_BY            631                 631                 0                   0                   79.06               
 LATEST_POINT        0                   0                   0                   0                   0.00                
 RANGE_QUERY__DESC   0                   0                   0                   0                   0.00                
 VALUE_RANGE_QUERY__DESC0                   0                   0                   0                   0.00                
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-INGESTION           71.37       4.00        46.23       55.84       67.03       82.35       99.28       113.04      155.83      368.31      417.49      71858.81    
-PRECISE_POINT       0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-TIME_RANGE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-VALUE_RANGE         0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-AGG_RANGE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-AGG_VALUE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-AGG_RANGE_VALUE     0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-GROUP_BY            0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+INGESTION           9.00        0.60        1.56        3.18        7.63        12.97       17.59       21.19       32.27       54.21       51.73       1284.82     
+PRECISE_POINT       5.22        0.32        0.69        1.26        3.49        7.83        12.15       14.46       19.72       81.00       59.97       706.73      
+TIME_RANGE          5.87        0.34        0.76        1.31        3.63        8.59        13.65       17.23       28.87       70.56       60.09       893.48      
+VALUE_RANGE         7.39        0.48        1.11        2.25        5.90        11.13       15.36       18.32       24.86       54.86       48.68       974.18      
+AGG_RANGE           5.57        0.34        0.72        1.27        3.65        8.38        12.71       14.46       24.51       69.00       60.58       790.19      
+AGG_VALUE           10.80       2.28        3.39        5.41        9.54        13.88       17.21       20.44       43.49       102.02      102.00      1570.65     
+AGG_RANGE_VALUE     7.52        0.42        1.05        2.10        6.01        10.93       15.90       19.59       25.29       56.10       46.80       987.32      
+GROUP_BY            10.46       2.27        3.35        4.89        9.27        14.35       17.97       21.80       31.93       55.90       55.28       1357.55     
 LATEST_POINT        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 RANGE_QUERY__DESC   0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 VALUE_RANGE_QUERY__DESC0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        

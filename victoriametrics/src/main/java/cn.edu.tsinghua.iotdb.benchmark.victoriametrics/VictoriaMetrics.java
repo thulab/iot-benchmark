@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -190,8 +191,8 @@ public class VictoriaMetrics implements IDatabase {
   }
 
   /**
-   * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where
-   * time = ? and device in ?
+   * Query data of one or multiple sensors at a precise timestamp.
+   * /api/v1/query?query={db="test", device="d_1", sensor="s_0"}&time=1609430405
    *
    * @param preciseQuery universal precise query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -205,20 +206,15 @@ public class VictoriaMetrics implements IDatabase {
         StringBuffer url = new StringBuffer(QUERY_URL);
         url.append(getMatch(deviceSchema.getDevice(), sensor));
         url.append("&").append("time=").append(preciseQuery.getTimestamp() / 1000);
-        try{
-          HttpRequestUtil.sendGet(url.toString());
-          point++;
-        }catch (Exception e){
-          System.out.println("Failed get: " + url.toString());
-        }
+        point += queryAndGetPoint(url.toString());
       }
     }
     return new Status(true, point);
   }
 
   /**
-   * Query data of one or multiple sensors in a time range. e.g. select v1... from data where time
-   * >= ? and time <= ? and device in ?
+   * Query data of one or multiple sensors in a time range.
+   * /api/v1/query_range?query={db="test", device="d_1", sensor="s_0"}&start=1609431250&end=1609431500
    *
    * @param rangeQuery universal range query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -233,60 +229,89 @@ public class VictoriaMetrics implements IDatabase {
         url.append(getMatch(deviceSchema.getDevice(), sensor));
         url.append("&start=").append(rangeQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(rangeQuery.getEndTimestamp() / 1000);
-        try{
-          String result = HttpRequestUtil.sendGet(url.toString());
-          JSONObject jsonObject = JSONObject.parseObject(result);
-          point += ((JSONArray)((JSONObject)jsonObject.get("data")).get("result")).size();
-        }catch (Exception e){
-          System.out.println("Failed get: " + url.toString());
-        }
+        point += queryAndGetPoint(url.toString());
       }
     }
     return new Status(true, point);
   }
 
   /**
-   * Query data of one or multiple sensors in a time range with a value filter. e.g. select v1...
-   * from data where time >= ? and time <= ? and v1 > ? and device in ?
+   * Query data of one or multiple sensors in a time range with a value filter
+   * /api/v1/query_range?query={db="test", device="d_1", sensor="s_0"}>0&start=1609431250&end=1609431500
    *
    * @param valueRangeQuery contains universal range query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append("%3E").append(valueRangeQuery.getValueThreshold());
+        url.append("&start=").append(valueRangeQuery.getStartTimestamp() / 1000);
+        url.append("&end=").append(valueRangeQuery.getEndTimestamp() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
    * Query aggregated data of one or multiple sensors in a time range using aggregation function.
-   * e.g. select func(v1)... from data where device in ? and time >= ? and time <= ?
+   * /api/v1/query_range?query=count({db="test", device="d_1", sensor="s_0"})&start=1609431250&end=1609431500
    *
    * @param aggRangeQuery contains universal aggregation query with time filter parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append(aggRangeQuery.getAggFun()).append("%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%29");
+        url.append("&start=").append(aggRangeQuery.getStartTimestamp() / 1000);
+        url.append("&end=").append(aggRangeQuery.getEndTimestamp() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
    * Query aggregated data of one or multiple sensors in the whole time range. e.g. select
    * func(v1)... from data where device in ? and value > ?
+   * /api/v1/query_range?query=count({db="test", device="d_1", sensor="s_0"})&start=[start write time]&end=[now]
    *
    * @param aggValueQuery contains universal aggregation query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append(aggValueQuery.getAggFun()).append("%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%29");
+        url.append("&start=").append(Constants.START_TIMESTAMP / 1000);
+        url.append("&end=").append(System.currentTimeMillis() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
    * Query aggregated data of one or multiple sensors with both time and value filters. e.g. select
    * func(v1)... from data where device in ? and time >= ? and time <= ? and value > ?
+   * /api/v1/query_range?query=count({db="test", device="d_1", sensor="s_0"}>0)&start=1609431250&end=1609431500
    *
    * @param aggRangeValueQuery contains universal aggregation query with time and value filters
    *     parameters
@@ -294,22 +319,45 @@ public class VictoriaMetrics implements IDatabase {
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append(aggRangeValueQuery.getAggFun()).append("%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%3E");
+        url.append(aggRangeValueQuery.getValueThreshold()).append("%29");
+        url.append("&start=").append(aggRangeValueQuery.getStartTimestamp() / 1000);
+        url.append("&end=").append(aggRangeValueQuery.getEndTimestamp() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
-   * Query aggregated group-by-time data of one or multiple sensors within a time range. e.g. SELECT
-   * max(s_0), max(s_1) FROM group_0, group_1 WHERE ( device = ’d_3’ OR device = ’d_8’) AND time >=
-   * 2010-01-01 12:00:00 AND time <= 2010-01-01 12:10:00 GROUP BY time(60000ms)
+   * Query aggregated group-by-time data of one or multiple sensors within a time range.
+   * api/v1/query_range?query=count({db="test", device="d_1", sensor="s_0"}[1ms]>0)&start=[start write time]&end=[now]
    *
    * @param groupByQuery contains universal group by query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
+    int point = 0;
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(String sensor: deviceSchema.getSensors()){
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append(groupByQuery.getAggFun()).append("%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%5B");
+        url.append(groupByQuery.getGranularity()).append("ms%5D").append("%29");
+        url.append("&start=").append(Constants.START_TIMESTAMP / 1000);
+        url.append("&end=").append(System.currentTimeMillis() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
@@ -361,5 +409,23 @@ public class VictoriaMetrics implements IDatabase {
     params.append(",device=%22").append(device).append("%22");
     params.append(",sensor=%22").append(sensor).append("%22").append("%7d");
     return params.toString();
+  }
+
+  /**
+   * 执行查询并返回结果
+   * @param url
+   * @return
+   */
+  private int queryAndGetPoint(String url){
+    int point = 0;
+    try{
+      String result = HttpRequestUtil.sendGet(url);
+      JSONObject jsonObject = JSONObject.parseObject(result);
+      point += ((JSONArray)((JSONObject)jsonObject.get("data")).get("result")).size();
+      return point;
+    }catch (Exception e){
+      System.out.println("Failed get: " + url);
+    }
+    return 0;
   }
 }
