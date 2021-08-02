@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +63,7 @@ public class SingleNodeJDBCConnection {
         Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable =
             config.isENABLE_THRIFT_COMPRESSION();
-        connections[i] = DriverManager.getConnection(urls[i], Constants.USER, Constants.PASSWD);
+        connections[i] = DriverManager.getConnection(urls[i], config.getUSERNAME(), config.getPASSWORD());
       } catch (Exception e) {
         LOGGER.error("Initialize IoTDB failed because ", e);
         throw new TsdbException(e);

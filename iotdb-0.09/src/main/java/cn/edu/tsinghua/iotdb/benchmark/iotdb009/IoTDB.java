@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb009;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
@@ -60,8 +59,8 @@ public class IoTDB implements IDatabase {
       connection =
           DriverManager.getConnection(
               String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
-              Constants.USER,
-              Constants.PASSWD);
+              config.getUSERNAME(),
+              config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);

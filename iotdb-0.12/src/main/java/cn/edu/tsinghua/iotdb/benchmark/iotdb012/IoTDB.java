@@ -115,7 +115,8 @@ public class IoTDB implements IDatabase {
           metaSession =
                   new Session(
                           config.getHOST().get(i), config.getPORT().get(i),
-                          Constants.USER, Constants.PASSWD);
+                          config.getUSERNAME(),
+                          config.getPASSWORD());
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
 
           registerStorageGroups(metaSession, schemaList);

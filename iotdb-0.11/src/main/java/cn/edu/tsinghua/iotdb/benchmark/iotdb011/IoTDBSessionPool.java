@@ -77,8 +77,8 @@ public class IoTDBSessionPool implements IDatabase {
         new SessionPool(
             config.getHOST().get(0),
             Integer.parseInt(config.getPORT().get(0)),
-            Constants.USER,
-            Constants.PASSWD,
+            config.getUSERNAME(),
+            config.getPASSWORD(),
             config.getIOTDB_SESSION_POOL_SIZE());
     isInit = true;
   }

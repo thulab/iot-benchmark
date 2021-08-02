@@ -26,8 +26,6 @@ public class Constants {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   public static final long START_TIMESTAMP =
       TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
-  public static final String USER = "root";
-  public static final String PASSWD = "root";
   public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
   public static final String BENCHMARK_CONF = "benchmark-conf";
 

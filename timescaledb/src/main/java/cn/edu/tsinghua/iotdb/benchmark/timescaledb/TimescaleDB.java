@@ -47,8 +47,6 @@ public class TimescaleDB implements IDatabase {
   private static final String dropTable = "DROP TABLE %s;";
   private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
-  private static final String POSTGRESQL_USER = "postgres";
-  private static final String POSTGRESQL_PASSWD = "postgres";
 
   public TimescaleDB() {
     config = ConfigDescriptor.getInstance().getConfig();
@@ -59,6 +57,7 @@ public class TimescaleDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       Class.forName(POSTGRESQL_JDBC_NAME);
+      // default username=postgres and password=postgres
       connection =
           DriverManager.getConnection(
               String.format(
@@ -66,8 +65,8 @@ public class TimescaleDB implements IDatabase {
                   config.getHOST().get(0),
                   config.getPORT().get(0),
                   config.getDB_NAME()),
-              POSTGRESQL_USER,
-              POSTGRESQL_PASSWD);
+                  config.getUSERNAME(),
+                  config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize TimescaleDB failed because ", e);
       throw new TsdbException(e);

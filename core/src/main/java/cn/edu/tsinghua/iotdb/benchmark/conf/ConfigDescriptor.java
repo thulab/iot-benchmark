@@ -83,6 +83,8 @@ public class ConfigDescriptor {
         config.setHOST(Arrays.asList(hosts.split(",")));
         String ports = properties.getProperty("PORT", config.getPORT() + "");
         config.setPORT(Arrays.asList(ports.split(",")));
+        config.setUSERNAME(properties.getProperty("USERNAME", config.getUSERNAME()));
+        config.setPASSWORD(properties.getProperty("PASSWORD", config.getPASSWORD()));
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDB_NAME()));
 
         config.setANOTHER_DB_NAME(
