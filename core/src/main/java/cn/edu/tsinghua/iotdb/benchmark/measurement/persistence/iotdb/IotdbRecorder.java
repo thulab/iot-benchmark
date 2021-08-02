@@ -52,8 +52,8 @@ public class IotdbRecorder implements ITestDataPersistence {
   private static final String PROJECT_ID =
       String.format(
           "%s_%s", config.getREMARK(), projectDateFormat.format(new java.util.Date(EXP_TIME)));
-  private static final String PATH_PREFIX = "root." + config.getDB_NAME();
-  private static final String INSERT_SQL_PREFIX = "INSERT_INTO " + PATH_PREFIX;
+  private static final String PATH_PREFIX = "root." + config.getTEST_DATA_STORE_DB();
+  private static final String INSERT_SQL_PREFIX = "INSERT INTO " + PATH_PREFIX;
   private static final String OPERATION_RESULT_PREFIX = INSERT_SQL_PREFIX + "." + PROJECT_ID + ".";
   private static final String INSERT_SQL_STR1 = ") values(";
   private static final String INSERT_SQL_STR2 = "(timestamp";
