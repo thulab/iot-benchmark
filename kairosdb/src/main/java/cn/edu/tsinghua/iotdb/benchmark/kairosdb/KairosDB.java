@@ -24,7 +24,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.utils.HttpRequest;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
