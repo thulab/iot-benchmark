@@ -19,15 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
-import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.session.Session;
-import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
@@ -37,16 +30,18 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.session.Session;
+import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -82,13 +77,11 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void cleanup() {
-    for (int i = 0; i < config.getHOST().size(); i++) {
-      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-        statement.execute(DELETE_SERIES_SQL);
-        LOGGER.info("Finish clean data!");
-      } catch (Exception e) {
-        LOGGER.warn("No Data to Clean!");
-      }
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      statement.execute(DELETE_SERIES_SQL);
+      LOGGER.info("Finish clean data!");
+    } catch (Exception e) {
+      LOGGER.warn("No Data to Clean!");
     }
   }
 
@@ -109,30 +102,50 @@ public class IoTDB implements IDatabase {
     // therefore, we use session to create time series in batch.
 
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      for(int i = 0; i < config.getHOST().size(); i++) {
-        Session metaSession = null;
-        try {
-          metaSession =
-                  new Session(
-                          config.getHOST().get(i), config.getPORT().get(i),
-                          config.getUSERNAME(),
-                          config.getPASSWORD());
-          metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
+      Map<Session, List<DeviceSchema>> sessionListMap = new HashMap<>();
 
-          registerStorageGroups(metaSession, schemaList);
-          registerTimeseries(metaSession, schemaList);
+        try {
+          if(!config.isIS_ALL_NODES_VISIBLE()) {
+            Session metaSession = new Session(
+                            config.getHOST().get(0), config.getPORT().get(0),
+                            config.getUSERNAME(),
+                            config.getPASSWORD());
+            metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
+            sessionListMap.put(metaSession, schemaList);
+          }else{
+            int sessionNumber = config.getHOST().size();
+            List<Session> keys = new ArrayList<>();
+            for(int i = 0; i < sessionNumber; i++){
+              Session metaSession = new Session(
+                              config.getHOST().get(i), config.getPORT().get(i),
+                              config.getUSERNAME(),
+                              config.getPASSWORD());
+              metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
+              keys.add(metaSession);
+              sessionListMap.put(metaSession, schemaList);
+            }
+            for(int i = 0; i < schemaList.size(); i++){
+              sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
+            }
+          }
+          for(Map.Entry<Session, List<DeviceSchema>> pair: sessionListMap.entrySet()){
+            registerStorageGroups(pair.getKey(), pair.getValue());
+            registerTimeseries(pair.getKey(), pair.getValue());
+          }
         } catch (Exception e) {
           throw new TsdbException(e);
         } finally {
-          if (metaSession != null) {
-            try {
-              metaSession.close();
-            } catch (IoTDBConnectionException e) {
-              LOGGER.error("Schema-register session cannot be closed: {}", e.getMessage());
+          if(sessionListMap.size() != 0){
+            Set<Session> sessions = sessionListMap.keySet();
+            for(Session session: sessions){
+              try {
+                session.close();
+              } catch (IoTDBConnectionException e) {
+                LOGGER.error("Schema-register session cannot be closed: {}", e.getMessage());
+              }
             }
           }
         }
-      }
     }
   }
 
