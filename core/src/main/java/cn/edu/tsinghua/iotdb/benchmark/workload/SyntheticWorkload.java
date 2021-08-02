@@ -264,29 +264,31 @@ public class SyntheticWorkload implements IWorkload {
    */
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
-    // 插入到前面的个数(含)
-    long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
-    long beforeOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE();
-    long startOffset = beforeOffset - config.getMAX_K();
-    if (startOffset < 0) {
-      startOffset = 0;
+    int moveOffset = config.getMAX_K() % config.getBATCH_SIZE_PER_WRITE();
+    if(moveOffset == 0){
+      moveOffset = 1;
     }
-    // 乱序部分步长
-    long beforeStep = (barrier == 0) ? 0 : (beforeOffset - startOffset) / barrier;
-    // 正序部分步长
-    long afterStep =
-        config.getBATCH_SIZE_PER_WRITE() / (config.getBATCH_SIZE_PER_WRITE() - barrier);
-
-    long stepOffset;
-    for (long batchOffset = 0; batchOffset <= barrier; batchOffset++) {
-      stepOffset = startOffset + beforeStep * batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
+    // like circular array
+    int barrier = (int)(config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
+    // out of order batch
+    long targetBatch;
+    if(loopIndex >= moveOffset){
+      targetBatch = loopIndex - moveOffset;
+    }else{
+      targetBatch = loopIndex - moveOffset + config.getLOOP();
     }
-    for (long batchOffset = barrier + 1;
-        batchOffset < config.getBATCH_SIZE_PER_WRITE();
-        batchOffset++) {
-      stepOffset = beforeOffset + afterStep * (batchOffset - barrier);
-      addOneRowIntoBatch(batch, stepOffset);
+    if(targetBatch > config.getLOOP()){
+      LOGGER.warn("Error loop");
+    }
+    // add out of order data
+    for(int i = 0; i < barrier; i++){
+      long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, offset);
+    }
+    // add in order data
+    for(int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++){
+      long offset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, offset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
