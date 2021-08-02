@@ -382,7 +382,11 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = new ArrayList<>();
+    while(queryDevices.size() == 0){
+      queryDevices = getQueryDeviceSchemaList();
+      queryDevices = removeSpecificSensor(queryDevices);
+    }
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(
@@ -438,6 +442,33 @@ public class SyntheticWorkload implements IWorkload {
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_AGGREGATE_FUN());
+  }
+
+  /**
+   * remove boolean and text when query has clause like "value > ？"
+   * @param deviceSchemas
+   * @return
+   */
+  private List<DeviceSchema> removeSpecificSensor(List<DeviceSchema> deviceSchemas){
+    List<Integer> sensorIndexs = new ArrayList<>();
+    for(int i = 0; i < config.getSENSOR_NUMBER(); i++){
+      String type = DBUtil.getDataType(i);
+      if(type.equals("TEXT") || type.equals("BOOLEAN")){
+        sensorIndexs.add(i);
+      }
+    }
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      for(Integer index: sensorIndexs){
+        deviceSchema.getSensors().remove("s_" + index);
+      }
+    }
+    List<DeviceSchema> result = new ArrayList<>();
+    for(DeviceSchema deviceSchema: deviceSchemas){
+      if(deviceSchema.getSensors().size() != 0){
+        result.add(deviceSchema);
+      }
+    }
+    return result;
   }
 
   private static long getTimestampConst(String timePrecision) {
