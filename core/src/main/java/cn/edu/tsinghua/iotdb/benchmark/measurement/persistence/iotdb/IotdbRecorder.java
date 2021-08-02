@@ -42,6 +42,7 @@ public class IotdbRecorder implements ITestDataPersistence {
   private static final Logger LOGGER = LoggerFactory.getLogger(IotdbRecorder.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  private static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
   private static final SimpleDateFormat projectDateFormat =
       new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
   private static final long EXP_TIME = System.currentTimeMillis();
@@ -51,7 +52,7 @@ public class IotdbRecorder implements ITestDataPersistence {
   private static final String PROJECT_ID =
       String.format(
           "%s_%s", config.getREMARK(), projectDateFormat.format(new java.util.Date(EXP_TIME)));
-  private static final String PATH_PREFIX = Constants.ROOT_SERIES_NAME;
+  private static final String PATH_PREFIX = "root." + config.getDB_NAME();
   private static final String INSERT_SQL_PREFIX = "INSERT_INTO " + PATH_PREFIX;
   private static final String OPERATION_RESULT_PREFIX = INSERT_SQL_PREFIX + "." + PROJECT_ID + ".";
   private static final String INSERT_SQL_STR1 = ") values(";
@@ -86,7 +87,7 @@ public class IotdbRecorder implements ITestDataPersistence {
       connection =
           DriverManager.getConnection(
               String.format(
-                  Constants.URL, config.getTEST_DATA_STORE_IP(), config.getTEST_DATA_STORE_PORT()),
+                  JDBC_URL, config.getTEST_DATA_STORE_IP(), config.getTEST_DATA_STORE_PORT()),
               config.getTEST_DATA_STORE_USER(),
               config.getTEST_DATA_STORE_PW());
       initSchema();

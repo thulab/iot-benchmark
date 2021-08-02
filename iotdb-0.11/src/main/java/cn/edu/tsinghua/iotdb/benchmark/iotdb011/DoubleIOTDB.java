@@ -46,11 +46,15 @@ import java.util.Set;
 public class DoubleIOTDB implements IDatabase {
 
   static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
+  static Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
+  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
+
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private static final String ALREADY_KEYWORD = "already exist";
-  static Config config = ConfigDescriptor.getInstance().getConfig();
+
   Connection connection1;
   Connection connection2;
   private BatchProducer producer;
@@ -66,13 +70,13 @@ public class DoubleIOTDB implements IDatabase {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection1 =
           DriverManager.getConnection(
-              String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0)),
+              String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
               Constants.USER,
               Constants.PASSWD);
       connection2 =
           DriverManager.getConnection(
               String.format(
-                  Constants.URL, config.getANOTHER_HOST().get(0), config.getANOTHER_PORT().get(0)),
+                  JDBC_URL, config.getANOTHER_HOST().get(0), config.getANOTHER_PORT().get(0)),
               Constants.USER,
               Constants.PASSWD);
     } catch (Exception e) {
@@ -144,7 +148,7 @@ public class DoubleIOTDB implements IDatabase {
     try (Statement statement = connection1.createStatement()) {
       for (String group : groups) {
         statement.addBatch(
-            String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+            String.format(SET_STORAGE_GROUP_SQL, ROOT_SERIES_NAME + "." + group));
       }
       statement.executeBatch();
       statement.clearBatch();
@@ -163,7 +167,7 @@ public class DoubleIOTDB implements IDatabase {
           String createSeriesSql =
               String.format(
                   CREATE_SERIES_SQL,
-                  Constants.ROOT_SERIES_NAME
+                  ROOT_SERIES_NAME
                       + "."
                       + deviceSchema.getGroup()
                       + "."

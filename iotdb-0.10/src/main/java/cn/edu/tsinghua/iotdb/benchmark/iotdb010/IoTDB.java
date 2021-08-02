@@ -44,6 +44,8 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
+  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
@@ -62,7 +64,7 @@ public class IoTDB implements IDatabase {
 
       connection =
           DriverManager.getConnection(
-              String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0)),
+              String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
               Constants.USER,
               Constants.PASSWD);
     } catch (Exception e) {
@@ -102,7 +104,7 @@ public class IoTDB implements IDatabase {
         try (Statement statement = connection.createStatement()) {
           for (String group : groups) {
             statement.addBatch(
-                String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+                String.format(SET_STORAGE_GROUP_SQL, ROOT_SERIES_NAME + "." + group));
           }
           statement.executeBatch();
           statement.clearBatch();
@@ -123,7 +125,7 @@ public class IoTDB implements IDatabase {
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
-                    Constants.ROOT_SERIES_NAME
+                    ROOT_SERIES_NAME
                         + "."
                         + deviceSchema.getGroup()
                         + "."
@@ -352,7 +354,7 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
-        .append(Constants.ROOT_SERIES_NAME)
+        .append(ROOT_SERIES_NAME)
         .append(".")
         .append(deviceSchema.getGroup())
         .append(".")
@@ -418,7 +420,7 @@ public class IoTDB implements IDatabase {
 
   // convert deviceSchema to the format: root.group_1.d_1
   private String getDevicePath(DeviceSchema deviceSchema) {
-    return Constants.ROOT_SERIES_NAME
+    return ROOT_SERIES_NAME
         + "."
         + deviceSchema.getGroup()
         + "."

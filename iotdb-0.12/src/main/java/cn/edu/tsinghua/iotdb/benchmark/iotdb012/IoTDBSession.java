@@ -81,7 +81,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecord(Batch batch) {
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."
@@ -112,7 +112,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecords(Batch batch) {
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."

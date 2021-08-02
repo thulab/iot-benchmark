@@ -26,16 +26,10 @@ public class Constants {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   public static final long START_TIMESTAMP =
       TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
-  public static final String URL = "jdbc:iotdb://%s:%s/";
   public static final String USER = "root";
   public static final String PASSWD = "root";
-  public static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
   public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
   public static final String BENCHMARK_CONF = "benchmark-conf";
-  public static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
-  public static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
-  public static final String POSTGRESQL_USER = "postgres";
-  public static final String POSTGRESQL_PASSWD = "postgres";
 
   /** Different insert mode */
   public static final String INSERT_USE_JDBC = "JDBC";

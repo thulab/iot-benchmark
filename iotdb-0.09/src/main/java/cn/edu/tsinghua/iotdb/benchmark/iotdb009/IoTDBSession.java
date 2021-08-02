@@ -73,7 +73,7 @@ public class IoTDBSession extends IoTDB {
       sensorIndex++;
     }
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."

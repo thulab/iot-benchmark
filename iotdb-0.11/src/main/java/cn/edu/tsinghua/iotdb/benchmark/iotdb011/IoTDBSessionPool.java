@@ -58,6 +58,7 @@ public class IoTDBSessionPool implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
   private static final String ALREADY_KEYWORD = "already";
   private volatile boolean isInit = false;
 
@@ -102,7 +103,7 @@ public class IoTDBSessionPool implements IDatabase {
         }
         // register storage groups
         for (String group : groups) {
-          pool.setStorageGroup(Constants.ROOT_SERIES_NAME + "." + group);
+          pool.setStorageGroup(ROOT_SERIES_NAME + "." + group);
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         // ignore if already has the time series
@@ -122,7 +123,7 @@ public class IoTDBSessionPool implements IDatabase {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
             paths.add(
-                Constants.ROOT_SERIES_NAME
+                    ROOT_SERIES_NAME
                     + "."
                     + deviceSchema.getGroup()
                     + "."
@@ -189,7 +190,7 @@ public class IoTDBSessionPool implements IDatabase {
       sensorIndex++;
     }
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."
@@ -264,7 +265,7 @@ public class IoTDBSessionPool implements IDatabase {
       sensorIndex++;
     }
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."
@@ -453,7 +454,7 @@ public class IoTDBSessionPool implements IDatabase {
 
   // convert deviceSchema to the format: root.group_1.d_1
   private String getDevicePath(DeviceSchema deviceSchema) {
-    return Constants.ROOT_SERIES_NAME
+    return ROOT_SERIES_NAME
         + "."
         + deviceSchema.getGroup()
         + "."
