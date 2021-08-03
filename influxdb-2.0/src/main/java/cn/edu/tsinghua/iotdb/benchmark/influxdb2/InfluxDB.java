@@ -295,6 +295,10 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for(DeviceSchema deviceSchema: deviceSchemas){
       for(String sensor : deviceSchema.getSensors()){
+        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
+        if(type.equals("TEXT") || type.equals("BOOLEAN")){
+          continue;
+        }
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), valueRangeQuery.getStartTimestamp() / 1000, valueRangeQuery.getEndTimestamp() / 1000);
         sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + valueRangeQuery.getValueThreshold() + ")";
@@ -336,6 +340,10 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for(DeviceSchema deviceSchema: deviceSchemas){
       for(String sensor : deviceSchema.getSensors()){
+        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
+        if(type.equals("TEXT") || type.equals("BOOLEAN")){
+          continue;
+        }
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), Constants.START_TIMESTAMP / 1000, System.currentTimeMillis() / 1000);
         // note that flux not support without range
@@ -354,6 +362,10 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for(DeviceSchema deviceSchema: deviceSchemas){
       for(String sensor : deviceSchema.getSensors()){
+        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
+        if(type.equals("TEXT") || type.equals("BOOLEAN")){
+          continue;
+        }
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), aggRangeValueQuery.getStartTimestamp() / 1000, aggRangeValueQuery.getEndTimestamp() / 1000);
         sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggRangeValueQuery.getValueThreshold() + ")";
@@ -419,6 +431,10 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for(DeviceSchema deviceSchema: deviceSchemas){
       for(String sensor : deviceSchema.getSensors()){
+        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
+        if(type.equals("TEXT") || type.equals("BOOLEAN")){
+          continue;
+        }
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), valueRangeQuery.getStartTimestamp() / 1000, valueRangeQuery.getEndTimestamp() / 1000);
         sql += "\n  |> filter(fn: (r) => r[\"_value\"] > " + valueRangeQuery.getValueThreshold() + ")";
