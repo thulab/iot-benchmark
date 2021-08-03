@@ -92,17 +92,17 @@ public class InfluxDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     try {
-      List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
-      for(Organization organization: organizations){
-        if(organization.getName().equals(org)){
-          client.getOrganizationsApi().deleteOrganization(organization);
-        }
-      }
       Bucket bucket = client.getBucketsApi().findBucketByName(influxDbName);
       if(bucket == null){
         LOGGER.warn("No bucket to clear!");
       }else{
         client.getBucketsApi().deleteBucket(bucket);
+      }
+      List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
+      for(Organization organization: organizations){
+        if(organization.getName().equals(org)){
+          client.getOrganizationsApi().deleteOrganization(organization);
+        }
       }
     } catch (Exception e) {
       LOGGER.error("Cleanup InfluxDB failed because ", e);
@@ -197,7 +197,7 @@ public class InfluxDB implements IDatabase {
             result.append((int) pair.getValue());
             break;
           case "INT64":
-            result.append((long) pair.getValue()).append("u");
+            result.append((long) pair.getValue());
             break;
           case "FLOAT":
             result.append((float) pair.getValue());
@@ -383,6 +383,10 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for(DeviceSchema deviceSchema: deviceSchemas){
       for(String sensor : deviceSchema.getSensors()){
+        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
+        if(type.equals("TEXT") || type.equals("BOOLEAN")){
+          continue;
+        }
         String sql = getTimeSQLHeader(deviceSchema.getGroup(), sensor,
                 deviceSchema.getDevice(), groupByQuery.getStartTimestamp() / 1000, groupByQuery.getEndTimestamp() / 1000);
         sql += "\n  |> integral(unit:" + groupByQuery.getGranularity() +  "ms)";
