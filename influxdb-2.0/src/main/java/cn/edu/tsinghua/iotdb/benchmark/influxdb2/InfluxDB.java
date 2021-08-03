@@ -99,7 +99,11 @@ public class InfluxDB implements IDatabase {
         }
       }
       Bucket bucket = client.getBucketsApi().findBucketByName(influxDbName);
-      client.getBucketsApi().deleteBucket(bucket);
+      if(bucket == null){
+        LOGGER.warn("No bucket to clear!");
+      }else{
+        client.getBucketsApi().deleteBucket(bucket);
+      }
     } catch (Exception e) {
       LOGGER.error("Cleanup InfluxDB failed because ", e);
       throw new TsdbException(e);
