@@ -122,7 +122,7 @@ public class IoTDB implements IDatabase {
                               config.getPASSWORD());
               metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
               keys.add(metaSession);
-              sessionListMap.put(metaSession, schemaList);
+              sessionListMap.put(metaSession, new ArrayList<>());
             }
             for(int i = 0; i < schemaList.size(); i++){
               sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
