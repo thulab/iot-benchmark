@@ -85,6 +85,7 @@ public class Constants {
 
   public static final String DB_DOUBLE_IOT = "DoubleIoTDB";
   public static final String DB_INFLUX = "InfluxDB";
+  public static final String DB_INFLUX_2 = "InfluxDB-2.0";
   public static final String DB_OPENTS = "OpenTSDB";
   public static final String DB_CTS = "CTSDB";
   public static final String DB_KAIROS = "KairosDB";
@@ -138,6 +139,8 @@ public class Constants {
   public static final String IOTDB009_SESSION_CLASS =
       "cn.edu.tsinghua.iotdb.benchmark.iotdb009.IoTDBSession";
   public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.influxdb.InfluxDB";
+  public static final String INFLUXDB2_CLASS = "cn.edu.tsinghua.iotdb.benchmark.influxdb2.InfluxDB";
+
   public static final String FAKEDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tsdb.fakedb.FakeDB";
   public static final String KAIROSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.kairosdb.KairosDB";
   public static final String OPENTSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.opentsdb.OpenTSDB";
