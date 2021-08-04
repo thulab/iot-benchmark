@@ -1,52 +1,54 @@
-# IoTDB-Benchmark
+# 1. IoTDB-Benchmark
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
-# Table of Contents
+# 2. Table of Contents
 
 <!-- MarkdownTOC autolink="true" -->
 
-- [Overview](#overview)
-- [Main Features](#main-features)
-- [Prerequisites](#prerequisites)
-- [Build](#build)
-- [Quick Start](#quick-start)
-- [Data Ingestion Test](#data-ingestion-test)
-		- [Configure](#configure)
-		- [Start \(Without Server System Information Recording\)](#start-without-server-system-information-recording)
-		- [Execute](#execute)
-- [Other Cases](#other-cases)
-	- [Query Test](#query-test)
-		- [Configure](#configure-1)
-		- [Start \(Without Server System Information Recording\)](#start-without-server-system-information-recording-1)
-		- [Execute](#execute-1)
-	- [Test IoTDB With Server System Information Recording](#test-iotdb-with-server-system-information-recording)
-		- [Configure](#configure-2)
-		- [Start \(With Server System Information Recording\)](#start-with-server-system-information-recording)
-	- [Test InfluxDB](#test-influxdb)
-		- [Configure](#configure-3)
-		- [Start](#start)
-	- [Perform Multiple Tests Automatically](#perform-multiple-tests-automatically)
-		- [Configure](#configure-4)
-		- [Start](#start-1)
-	- [Test Data Persistence](#test-data-persistence)
-- [Related Article](#related-article)
+- [1. IoTDB-Benchmark](#1-iotdb-benchmark)
+- [2. Table of Contents](#2-table-of-contents)
+- [3. Overview](#3-overview)
+- [4. Main Features](#4-main-features)
+- [5. Prerequisites](#5-prerequisites)
+- [6. Build](#6-build)
+- [7. Quick Start](#7-quick-start)
+	- [7.1. Data Ingestion Test](#71-data-ingestion-test)
+		- [7.1.1. Configure](#711-configure)
+		- [7.1.2. Start (Without Server System Information Recording)](#712-start-without-server-system-information-recording)
+		- [7.1.3. Execute](#713-execute)
+- [8. Other Cases](#8-other-cases)
+	- [8.1. Query Test](#81-query-test)
+		- [8.1.1. Configure](#811-configure)
+		- [8.1.2. Start (Without Server System Information Recording)](#812-start-without-server-system-information-recording)
+		- [8.1.3. Execute](#813-execute)
+	- [8.2. Test IoTDB With Server System Information Recording](#82-test-iotdb-with-server-system-information-recording)
+		- [8.2.1. Configure](#821-configure)
+		- [8.2.2. Start (With Server System Information Recording)](#822-start-with-server-system-information-recording)
+	- [8.3. Test InfluxDB](#83-test-influxdb)
+	- [8.4. Test InfluxDB 2.0](#84-test-influxdb-20)
+	- [8.5. Perform Multiple Tests Automatically](#85-perform-multiple-tests-automatically)
+		- [8.5.1. Configure](#851-configure)
+		- [8.5.2. Start](#852-start)
+	- [8.6. Test Data Persistence](#86-test-data-persistence)
+- [9. Related Article](#9-related-article)
 
 <!-- /MarkdownTOC -->
 
-# Overview
+# 3. Overview
 
 IoTDB-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
 
 Databases currently supported:
 
 + IoTDB
-+ InfluxDB
++ InfluxDB v1.x
++ InfluxDB v2.0
 + KairosDB
 + TimescaleDB
 + OpenTSDB
 
-# Main Features
+# 4. Main Features
 
 IoTDB-benchmark's features are as following:
 
@@ -55,18 +57,18 @@ IoTDB-benchmark's features are as following:
 3. Supporting storing testing information and results for further query or analysis.
 4. Integration with Tableau to visualize the test result.
 
-# Prerequisites
+# 5. Prerequisites
 
 To use IoTDB-benchmark, you need to have:
 
 1. Java 8
 2. Maven
-3. Apache IoTDB >= v0.8.0 ([https://github.com/apache/incubator-iotdb](https://github.com/apache/incubator-iotdb))
+3. Apache IoTDB >= v0.8.0 ([https://github.com/apache/incubator-iotdb](https://github.com/apache/incubator-iotdb))，now mainly supported IoTDB v0.12
 4. InfluxDB >= 1.3.7
 5. other database system under test
 6. sysstat (If you want to record system information of DB-server during test)
 
-# Build
+# 6. Build
 
 You can build IoTDB-benchmark using Maven:
 
@@ -75,15 +77,15 @@ mvn clean package -Dmaven.test.skip=true
 ```
 This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-After, for example, you can go to `/iotdb-benchmark/iotdb-0.11/target/iotdb-0.11-0.0.1` to run benchmark script. The default 'VERSION' is '0.11.0'. If you want to run a database of other version, go to the `/iotdb-benchmark/{database-name}/target/{database-name}` and don't forget to change `VERSION` in `config.properties` to which you want to test.
+After, for example, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1` to run benchmark script. The default 'DB_SWTICH' is 'IoTDB-012-SESSION_BY_TABLET' which means this benchmark is testing IoTDB v0.12 in SESSION_BY_TABLET insert mode. If you want to run a database of other version, go to the `/iotdb-benchmark/{database-name}/target/{database-name}` and don't forget to change `DB_SWITCH` in `config.properties` to which you want to test.
 
-# Quick Start
+# 7. Quick Start
 
 This short guide will walk you through the basic process of using IoTDB-benchmark.
 
-## Data Ingestion Test
+## 7.1. Data Ingestion Test
 
-### Configure
+### 7.1.1. Configure
 
 Before starting any new test case, you need to config the configuration files ```config.properties``` first which is in ```iotdb-benchmark/conf```. For your convenience, we have already set the default config for the following demonstration.
 
@@ -102,7 +104,7 @@ edit the corresponding parameters in the ```conf/config.properties``` file as fo
 ```
 HOST=127.0.0.1
 PORT=6667
-DB_SWITCH=IoTDB011
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
@@ -114,16 +116,10 @@ POINT_STEP=5000
 LOOP=1000
 ```
 
-Currently, we have multiple ingestion modes for IoTDB v0.9.x. Specifically, jdbc mode(ingestion using jdbc) and session mode(ingestion using session).
+Currently, we have multiple ingestion modes for IoTDB. Specifically, jdbc mode(ingestion using jdbc) and session mode(ingestion using session).
 You can specify it in the following parameter of the ```conf/config.properties``` file.
 
-```
-INSERT_MODE=session
-```
-> NOTE:
-Other irrelevant parameters are omitted. You can just set as default. We will cover them later in other cases.
-
-### Start (Without Server System Information Recording)
+### 7.1.2. Start (Without Server System Information Recording)
 
 Before running the test, you need to open the IoTDB service.
 
@@ -133,7 +129,7 @@ Running the startup script, currently we only support Unix/OS X system:
 > ./benchmark.sh
 ```
 
-### Execute 
+### 7.1.3. Execute 
 
 Now after launching the test, you will see testing information rolling like following: 
 
@@ -160,9 +156,9 @@ BATCH_SIZE: 100
 LOOP: 100
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
-IS_OVERFLOW: false
-OVERFLOW_MODE: 0
-OVERFLOW_RATIO: 0.5
+IS_OUT_OF_ORDER=false
+OUT_OF_ORDER_MODE=1
+OUT_OF_ORDER_RATIO=0.5
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 1.72 second
@@ -209,11 +205,11 @@ All these information will be logged in ```iotdb-benchmark/logs``` directory on 
 
 Till now, we have already complete the writing test case without server information recording. For more advanced usage of IoTDB-benchmark, please follow the ```Other Case``` instruction.
 
-# Other Cases
+# 8. Other Cases
 
-## Query Test
+## 8.1. Query Test
 
-### Configure
+### 8.1.1. Configure
 
 Edit the corresponding parameters in the ```conf/config.properties``` file as following:
 
@@ -221,7 +217,7 @@ Edit the corresponding parameters in the ```conf/config.properties``` file as fo
 ### Main Data Ingestion and Query Shared Parameters
 HOST=127.0.0.1
 PORT=6667
-DB_SWITCH=IoTDB
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=0:1:2:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -245,7 +241,7 @@ STEP_SIZE=1
 # the time range interval of time range query condition
 QUERY_INTERVAL=250000
 # the aggregation granularity of group-by (down-sampling) query
-TIME_UNIT=20000
+GROUP_BY_TIME_UNIT=20000
 ```
 
 > NOTE:
@@ -253,7 +249,7 @@ TIME_UNIT=20000
 > Usually the query test is performed after the data ingestion test. Of course you can add ingestion operation at the same time by setting ```OPERATION_PROPORTION=INGEST:1:2:1:1:1:1:1:1:1:1``` as long as ```INGEST``` is not zero, since the parameter ```OPERATION_PROPORTION``` is to control the proportion of different operations including ingestion and query operations.
 
 
-### Start (Without Server System Information Recording)
+### 8.1.2. Start (Without Server System Information Recording)
 
 Running the startup script: 
 
@@ -261,7 +257,7 @@ Running the startup script:
 > ./benchmark.sh
 ```
 
-### Execute 
+### 8.1.3. Execute 
 
 Now after launching the test, you will see testing information rolling like following: 
 
@@ -288,9 +284,9 @@ BATCH_SIZE: 100
 LOOP: 100
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
-IS_OVERFLOW: false
-OVERFLOW_MODE: 0
-OVERFLOW_RATIO: 0.5
+IS_OUT_OF_ORDER=false
+OUT_OF_ORDER_MODE=1
+OUT_OF_ORDER_RATIO=0.5
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 0.00 second
@@ -325,25 +321,24 @@ LATEST_POINT        14.03       1.81        2.49        3.46        5.84        
 >
 > When okOperation is smaller than 1000 or 100, the quantiles P99 and P999 may even bigger than MAX because we use the T-Digest Algorithm which uses interpolation in that scenario. 
 
-## Test IoTDB With Server System Information Recording
+## 8.2. Test IoTDB With Server System Information Recording
 
-### Configure
+### 8.2.1. Configure
 
 If you are using IoTDB-benchmark for the first time, you neet to config testing related environment in startup scripts 'benchmark'.
 Suppose your IoTDB server IP is 192.168.130.9 and your test client server which installed IoTDB-benchmark has authorized ssh access to the IoTDB server.
 Current version of information recording is dependent on iostat. Please make sure iostat is installed in IoTDB server.
 
 Configure ```conf/config.properties```
-Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are INTERVAL, DB_DATA_PATH and TEST_DATA_PERSISTENCE like:
+Suppose you are using the same parameters as in Quick Start case. The new parameters you should add are MONITOR_INTERVAL and TEST_DATA_PERSISTENCE like:
 
 ```
-INTERVAL=0
-DB_DATA_PATH=/home/liurui
+MONITOR_INTERVAL=0
 TEST_DATA_PERSISTENCE=CSV
 ```
 
 INTERVAL=0 means the server information recording with the minimal interval 2 seconds. If you set INTERVAL=n then the interval will be n+2 seconds since the recording process require least 2 seconds. You may want to set the INTERVAL longer when conducting long testing.
-DB_DATA_PATH is the directory where to touch the file 'log_stop_flag' to stop the recording process. Therefore it has to be accessible by IoTDB-benchmark. It is also the data directory of IoTDB. TEST_DATA_PERSISTENCE=CSV means the test results save as a CSV file.
+TEST_DATA_PERSISTENCE=CSV means the test results save as a CSV file.
 
 Configure ```conf/clientSystemInfo.properties ```
 
@@ -355,7 +350,7 @@ TEST_DATA_PERSISTENCE=CSV
 + DB_DATA_PATH: The directory where to touch the file 'log_stop_flag' to stop the recording process. 
 + TEST_DATA_PERSISTENCE: This parameter is used to set the format of the test data.
 
-### Start (With Server System Information Recording)
+### 8.2.2. Start (With Server System Information Recording)
 
 After configuring the first-time test environment, you can just launch the test by startup script:
 
@@ -367,39 +362,17 @@ The system information will be logged in 'iotdb-benchmark/logs' on DB-server.
 
 The test results will be saved in the path 'data / csvOutput' in CSV format
 
-## Test InfluxDB 
+## 8.3. Test InfluxDB 
+[See more details](influxdb)
 
-If you followed the cases above, this will be very easy.
+## 8.4. Test InfluxDB 2.0
+[See more details](influxdb-2.0)
 
-### Configure
-
-Configure 'config.properties'
-Suppose you are using the same parameters as in Quick Start case. The only parameter you should change is DB_SWITCH and there are two new parameters:
-
-```
-DB_SWITCH=InfluxDB
-DB_URL=http://127.0.0.1:8086
-DB_NAME=test
-```
-
-> NOTE:
-The benchmark can automatically initial database(if ```IS_DELETE_DATA=true```), then there is no need for executing SQL like ```drop database test```.
-
-### Start 
-
-After configuring the first-time test environment, you can just launch the test by startup script:
-
-```
-> ./benchmark.sh
-```
-
-Then one test process is on going.
-
-## Perform Multiple Tests Automatically
+## 8.5. Perform Multiple Tests Automatically
 
 Usually a single test is meaningless unless it is compared with other test results. Therefore we provide a interface to execute multiple tests by one launch.
 
-### Configure
+### 8.5.1. Configure
 
 Configure 'routine'
 Each line of this file should be the parameters each test process will change(otherwise it becomes replication test). For example, the 'routine' file is:
@@ -415,7 +388,7 @@ Then it will serially execute 3 test process with LOOP parameter are 10, 20 and 
 > NOTE:
 You can change multiple parameters in each test with format like 'LOOP=20 DEVICE_NUMBER=10 TEST', unnecessary space is not allowed. The key word 'TEST' means a new test begins. If you change different parameters, the changed parameters will remain in next tests.
 
-### Start 
+### 8.5.2. Start 
 
 After configuring the file 'routine', you also need to modify rep-benchmark.sh and dea-benchmark.sh. You need to change cli-benchmark.sh to benchmark.sh
 
@@ -447,7 +420,7 @@ In this case, if you want to know what is going on, you can check the log inform
 > tail -f log_info.log
 ```
 
-## Test Data Persistence
+## 8.6. Test Data Persistence
 
 IoTDB-benchmark can automatically store test information into database for further analysis. 
 
@@ -464,7 +437,7 @@ TEST_DATA_STORE_PW=root
 
 If you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```.
 
-# Related Article
+# 9. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304
