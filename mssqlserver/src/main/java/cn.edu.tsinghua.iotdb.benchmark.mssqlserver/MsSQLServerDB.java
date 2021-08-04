@@ -39,9 +39,8 @@ public class MsSQLServerDB implements IDatabase {
     private static final String DBPASSWORD = "12345678";
     private static final SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
 
-
     //数据库连接
-    public static Connection connection = null;
+    public Connection connection = null;
 
     private static final String CREATE_TABLE = "CREATE TABLE [" + config.getDB_NAME() + "]\n" +
             "([pk_fk_Id] [bigint] NOT NULL,\n" +
