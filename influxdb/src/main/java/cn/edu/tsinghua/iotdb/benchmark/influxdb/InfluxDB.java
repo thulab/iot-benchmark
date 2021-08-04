@@ -255,12 +255,27 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
+    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
+    sql = addDescClause(sql);
+    return executeQueryAndGetStatus(sql);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
+    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
+    String sqlWithValueFilter =
+            addWhereValueClause(
+                    valueRangeQuery.getDeviceSchema(),
+                    sqlWithTimeFilter,
+                    valueRangeQuery.getValueThreshold());
+    sqlWithValueFilter = addDescClause(sqlWithValueFilter);
+    return executeQueryAndGetStatus(sqlWithValueFilter);
+  }
+
+  private String addDescClause(String sql){
+    return sql + " ORDER BY time DESC";
   }
 
   private InfluxDataModel createDataModel(
