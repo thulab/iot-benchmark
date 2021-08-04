@@ -95,6 +95,9 @@ public class Config {
   /** The name of database to use, and the prefix of group, eg.IoTDB root.{DB_NAME} */
   private String DB_NAME = "_test";
 
+  /** In some database, it will need token to access, such as InfluxDB 2.0 */
+  private String TOKEN = "token";
+
   // 初始化：分布式数据库
   /** 是否都可见，如果可见就可以向其他node发送 Whether access all nodes, rather than just one coordinator */
   private boolean IS_ALL_NODES_VISIBLE = false;
@@ -1298,5 +1301,13 @@ public class Config {
 
   public void setPASSWORD(String PASSWORD) {
     this.PASSWORD = PASSWORD;
+  }
+
+  public String getTOKEN() {
+    return TOKEN;
+  }
+
+  public void setTOKEN(String TOKEN) {
+    this.TOKEN = TOKEN;
   }
 }

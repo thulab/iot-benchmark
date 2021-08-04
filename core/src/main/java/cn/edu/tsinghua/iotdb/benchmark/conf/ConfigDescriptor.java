@@ -86,6 +86,7 @@ public class ConfigDescriptor {
         config.setUSERNAME(properties.getProperty("USERNAME", config.getUSERNAME()));
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getPASSWORD()));
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDB_NAME()));
+        config.setTOKEN(properties.getProperty("TOKEN", config.getTOKEN()));
 
         config.setANOTHER_DB_NAME(
             properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DB_NAME() + ""));
