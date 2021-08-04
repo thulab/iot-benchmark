@@ -363,10 +363,10 @@ The system information will be logged in 'iotdb-benchmark/logs' on DB-server.
 The test results will be saved in the path 'data / csvOutput' in CSV format
 
 ## 8.3. Test InfluxDB 
-[See more details](influxdb/README.md)
+[See more details](influxdb)
 
 ## 8.4. Test InfluxDB 2.0
-[See more details](influxdb-2.0/README.md)
+[See more details](influxdb-2.0)
 
 ## 8.5. Perform Multiple Tests Automatically
 
