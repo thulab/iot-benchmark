@@ -1,13 +1,23 @@
 package cn.edu.tsinghua.iotdb.benchmark.mssqlserver;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -17,13 +27,47 @@ import java.util.List;
  **/
 
 public class MsSQLServerDB implements IDatabase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
+    private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    private static final String DBURL = "jdbc:sqlserver://" +
+            config.getHOST().get(0) + ":" + config.getPORT().get(0) +
+            ";DataBaseName=" + config.getDB_NAME();
+    // TODO remove after fix/core merge
+    private static final String DBUSER = "test";
+    private static final String DBPASSWORD = "12345678";
+    private static final SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+
+
+    //数据库连接
+    public static Connection connection = null;
+
+    private static final String CREATE_TABLE = "CREATE TABLE [" + config.getDB_NAME() + "]\n" +
+            "([pk_fk_Id] [bigint] NOT NULL,\n" +
+            "[pk_TimeStamp] [datetime2](7) NOT NULL,\n" +
+            "[Value] [float] NULL,\n" +
+            "CONSTRAINT PK_test PRIMARY KEY CLUSTERED\n" +
+            "([pk_fk_Id] ASC,\n" +
+            "[pk_TimeStamp] ASC\n" +
+            ") WITH (IGNORE_DUP_KEY = ON) ON [PRIMARY]\n" +
+            ")ON [PRIMARY]";
+
+    private static final String DELETE_TABLE = "drop table " + config.getDB_NAME();
     /**
      * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
      * client thread.
      */
     @Override
     public void init() throws TsdbException {
-
+        try {
+            Class.forName(DBDRIVER);
+            connection = DriverManager.getConnection(DBURL, DBUSER, DBPASSWORD);
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.warn("Connect Error!");
+            throw new TsdbException("Connect Error!", e);
+        }
     }
 
     /**
@@ -32,7 +76,14 @@ public class MsSQLServerDB implements IDatabase {
      */
     @Override
     public void cleanup() throws TsdbException {
-
+        try{
+            Statement statement = connection.createStatement();
+            statement.execute(DELETE_TABLE);
+            statement.close();
+        }catch (SQLException sqlException){
+            LOGGER.warn("No need to clean!");
+            throw new TsdbException("No need to clean!", sqlException);
+        }
     }
 
     /**
@@ -40,7 +91,13 @@ public class MsSQLServerDB implements IDatabase {
      */
     @Override
     public void close() throws TsdbException {
-
+        if(connection != null){
+            try{
+                connection.close();
+            }catch (SQLException sqlException){
+                throw new TsdbException("Failed to close", sqlException);
+            }
+        }
     }
 
     /**
@@ -50,7 +107,13 @@ public class MsSQLServerDB implements IDatabase {
      */
     @Override
     public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-
+        try{
+            Statement statement = connection.createStatement();
+            statement.execute(CREATE_TABLE);
+            statement.close();
+        }catch (SQLException sqlException){
+            LOGGER.warn("Failed to register", sqlException);
+        }
     }
 
     /**
@@ -63,7 +126,35 @@ public class MsSQLServerDB implements IDatabase {
      */
     @Override
     public Status insertOneBatch(Batch batch) throws DBConnectException {
-        return null;
+        DeviceSchema deviceSchema = batch.getDeviceSchema();
+        List<String> sensors = deviceSchema.getSensors();
+        long groupNow = Long.parseLong(deviceSchema.getGroup().replace(config.getDB_NAME(), ""));
+        long deviceNow = Long.parseLong(deviceSchema.getDevice().split("_")[1]);
+        long idPredix =
+                config.getSENSOR_NUMBER() * config.getDEVICE_NUMBER() *
+                        (deviceNow + config.getGROUP_NUMBER() * groupNow);
+        try{
+            Statement statement = connection.createStatement();
+            for(Record record: batch.getRecords()){
+                String time = format.format(record.getTimestamp());
+                List<Object> values = record.getRecordDataValue();
+                for(int i = 0 ; i < values.size(); i++){
+                    long sensorNow = i + idPredix;
+                    StringBuffer sql = new StringBuffer("INSERT INTO ").append(config.getDB_NAME()).append(" values (");
+                    sql.append(sensorNow).append(",");
+                    sql.append("'").append(time).append("',");
+                    sql.append(values.get(i)).append(")");
+                    statement.addBatch(sql.toString());
+                }
+            }
+            statement.executeBatch();
+            statement.close();
+            return new Status(true);
+        }catch (SQLException e){
+            e.printStackTrace();
+            LOGGER.error("Write batch failed");
+            return new Status(false, 0, e, e.getMessage());
+        }
     }
 
     /**
