@@ -65,10 +65,12 @@ public class MySqlRecorder implements ITestDataPersistence {
 
   private static final String PROJECT_ID =
       String.format(
-          "%s_%s_%s",
+          "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE(),
           config.getDB_SWITCH().split("-")[0],
+          config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
+
 
   private static final String COMMENT =
       String.format(
