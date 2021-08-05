@@ -83,14 +83,6 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public void cleanup() {}
-
-  @Override
-  public void close() {
-    //    pool.close();
-  }
-
-  @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     int count = 0;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
