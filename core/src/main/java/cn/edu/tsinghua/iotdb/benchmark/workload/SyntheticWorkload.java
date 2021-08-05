@@ -264,29 +264,31 @@ public class SyntheticWorkload implements IWorkload {
    */
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
-    // 插入到前面的个数(含)
-    long barrier = (long) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
-    long beforeOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE();
-    long startOffset = beforeOffset - config.getMAX_K();
-    if (startOffset < 0) {
-      startOffset = 0;
+    int moveOffset = config.getMAX_K() % config.getBATCH_SIZE_PER_WRITE();
+    if(moveOffset == 0){
+      moveOffset = 1;
     }
-    // 乱序部分步长
-    long beforeStep = (barrier == 0) ? 0 : (beforeOffset - startOffset) / barrier;
-    // 正序部分步长
-    long afterStep =
-        config.getBATCH_SIZE_PER_WRITE() / (config.getBATCH_SIZE_PER_WRITE() - barrier);
-
-    long stepOffset;
-    for (long batchOffset = 0; batchOffset <= barrier; batchOffset++) {
-      stepOffset = startOffset + beforeStep * batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
+    // like circular array
+    int barrier = (int)(config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
+    // out of order batch
+    long targetBatch;
+    if(loopIndex >= moveOffset){
+      targetBatch = loopIndex - moveOffset;
+    }else{
+      targetBatch = loopIndex - moveOffset + config.getLOOP();
     }
-    for (long batchOffset = barrier + 1;
-        batchOffset < config.getBATCH_SIZE_PER_WRITE();
-        batchOffset++) {
-      stepOffset = beforeOffset + afterStep * (batchOffset - barrier);
-      addOneRowIntoBatch(batch, stepOffset);
+    if(targetBatch > config.getLOOP()){
+      LOGGER.warn("Error loop");
+    }
+    // add out of order data
+    for(int i = 0; i < barrier; i++){
+      long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, offset);
+    }
+    // add in order data
+    for(int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++){
+      long offset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, offset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -323,7 +325,13 @@ public class SyntheticWorkload implements IWorkload {
     batch.add(currentTimestamp, values);
   }
 
-  private List<DeviceSchema> getQueryDeviceSchemaList() throws WorkloadException {
+  /**
+   * 返回设备列表
+   * @param typeAllow true: 允许 boolean 和 text类型进入
+   * @return
+   * @throws WorkloadException
+   */
+  private List<DeviceSchema> getQueryDeviceSchemaList(boolean typeAllow) throws WorkloadException {
     checkQuerySchemaParams();
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> clientDevicesIndex = new ArrayList<>();
@@ -331,13 +339,24 @@ public class SyntheticWorkload implements IWorkload {
       clientDevicesIndex.add(m);
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
-    for (int m = 0; m < config.getQUERY_DEVICE_NUM(); m++) {
+    for (int m = 0; queryDevices.size() < config.getQUERY_DEVICE_NUM() 
+            && m < config.getDEVICE_NUMBER(); m++) {
       DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
       List<String> sensors = deviceSchema.getSensors();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();
-      for (int i = 0; i < config.getQUERY_SENSOR_NUM(); i++) {
+      for (int i = 0; querySensors.size() < config.getQUERY_SENSOR_NUM()
+              && i < config.getSENSOR_NUMBER(); i++) {
+        if(!typeAllow){
+          String type = DBUtil.getDataType(Integer.parseInt(sensors.get(i).split("_")[1]));
+          if(type.equals("BOOLEAN") || type.equals("TEXT")){
+            continue;
+          }
+        }
         querySensors.add(sensors.get(i));
+      }
+      if(querySensors.size() != config.getQUERY_SENSOR_NUM()){
+        continue;
       }
       deviceSchema.setSensors(querySensors);
       queryDevices.add(deviceSchema);
@@ -365,14 +384,14 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public PreciseQuery getPreciseQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
     long timestamp = getQueryStartTimestamp();
     return new PreciseQuery(queryDevices, timestamp);
   }
 
   @Override
   public RangeQuery getRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
@@ -380,7 +399,7 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(
@@ -389,7 +408,8 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(
+            config.getQUERY_AGGREGATE_FUN().startsWith("count"));
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(
@@ -398,14 +418,14 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public AggValueQuery getAggValueQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
     return new AggValueQuery(
         queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
   }
 
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeValueQuery(
@@ -418,7 +438,7 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public GroupByQuery getGroupByQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(
@@ -431,7 +451,7 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList();
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(

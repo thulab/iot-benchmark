@@ -19,18 +19,16 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.write.record.Tablet;
-
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +47,8 @@ public class IoTDBSession extends IoTDBSessionBase {
         new Session(
             config.getHOST().get(0),
             Integer.valueOf(config.getPORT().get(0)),
-            Constants.USER,
-            Constants.PASSWD,
+            config.getUSERNAME(),
+            config.getPASSWORD(),
             true);
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
@@ -81,7 +79,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecord(Batch batch) {
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."
@@ -112,7 +110,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecords(Batch batch) {
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."

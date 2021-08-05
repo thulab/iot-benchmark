@@ -19,11 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.kafka.BatchProducer;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -31,6 +28,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +49,8 @@ public class DoubleIOTDB implements IDatabase {
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
   private static final String ALREADY_KEYWORD = "already exist";
   static Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
+  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
   Connection connection1;
   Connection connection2;
   private BatchProducer producer;
@@ -66,15 +66,15 @@ public class DoubleIOTDB implements IDatabase {
       Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
       connection1 =
           DriverManager.getConnection(
-              String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0)),
-              Constants.USER,
-              Constants.PASSWD);
+              String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
+                  config.getUSERNAME(),
+                  config.getPASSWORD());
       connection2 =
           DriverManager.getConnection(
               String.format(
-                  Constants.URL, config.getANOTHER_HOST().get(0), config.getANOTHER_PORT().get(0)),
-              Constants.USER,
-              Constants.PASSWD);
+                  JDBC_URL, config.getANOTHER_HOST().get(0), config.getANOTHER_PORT().get(0)),
+                  config.getUSERNAME(),
+                  config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
@@ -144,7 +144,7 @@ public class DoubleIOTDB implements IDatabase {
     try (Statement statement = connection1.createStatement()) {
       for (String group : groups) {
         statement.addBatch(
-            String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+            String.format(SET_STORAGE_GROUP_SQL, ROOT_SERIES_NAME + "." + group));
       }
       statement.executeBatch();
       statement.clearBatch();
@@ -163,7 +163,7 @@ public class DoubleIOTDB implements IDatabase {
           String createSeriesSql =
               String.format(
                   CREATE_SERIES_SQL,
-                  Constants.ROOT_SERIES_NAME
+                  ROOT_SERIES_NAME
                       + "."
                       + deviceSchema.getGroup()
                       + "."
