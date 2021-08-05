@@ -83,6 +83,21 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
+  public void cleanup() {
+    try{
+      pool.deleteTimeseries("root." + config.getDB_NAME());
+    }catch (Exception e){
+      e.printStackTrace();
+      LOGGER.warn("Clean up failed!");
+    }
+  }
+
+  @Override
+  public void close() {
+    //    pool.close();
+  }
+
+  @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     int count = 0;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
