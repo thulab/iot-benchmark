@@ -13,10 +13,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -126,12 +123,7 @@ public class MsSQLServerDB implements IDatabase {
     @Override
     public Status insertOneBatch(Batch batch) throws DBConnectException {
         DeviceSchema deviceSchema = batch.getDeviceSchema();
-        List<String> sensors = deviceSchema.getSensors();
-        long groupNow = Long.parseLong(deviceSchema.getGroup().replace(config.getDB_NAME(), ""));
-        long deviceNow = Long.parseLong(deviceSchema.getDevice().split("_")[1]);
-        long idPredix =
-                config.getSENSOR_NUMBER() * config.getDEVICE_NUMBER() *
-                        (deviceNow + config.getGROUP_NUMBER() * groupNow);
+        long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         try{
             Statement statement = connection.createStatement();
             for(Record record: batch.getRecords()){
@@ -166,124 +158,338 @@ public class MsSQLServerDB implements IDatabase {
      */
     @Override
     public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-        return null;
+        DeviceSchema deviceSchema = batch.getDeviceSchema();
+        long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+        try{
+            Statement statement = connection.createStatement();
+            for(Record record: batch.getRecords()){
+                String time = format.format(record.getTimestamp());
+                List<Object> values = record.getRecordDataValue();
+                long sensorNow = batch.getColIndex() + idPredix;
+                StringBuffer sql = new StringBuffer("INSERT INTO ").append(config.getDB_NAME()).append(" values (");
+                sql.append(sensorNow).append(",");
+                sql.append("'").append(time).append("',");
+                sql.append(values.get(batch.getColIndex())).append(")");
+                statement.addBatch(sql.toString());
+            }
+            statement.executeBatch();
+            statement.close();
+            return new Status(true);
+        }catch (SQLException e){
+            e.printStackTrace();
+            LOGGER.error("Write batch failed");
+            return new Status(false, 0, e, e.getMessage());
+        }
     }
 
     /**
-     * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where
-     * time = ? and device in ?
-     *
-     * @param preciseQuery universal precise query condition parameters
-     * @return status which contains successfully executed flag, error message and so on.
+     * 获取标识Id
+     * @param group
+     * @param device
+     * @param sensor
+     * @return
      */
+    private long getId(String group, String device, String sensor){
+        long groupNow = Long.parseLong(group.replace(config.getDB_NAME(), ""));
+        long deviceNow = Long.parseLong(device.split("_")[1]);
+        long sensorNow = 0;
+        if(sensor != null){
+            sensorNow = Long.parseLong(sensor.split("_")[1]);
+        }
+        return config.getSENSOR_NUMBER() * config.getDEVICE_NUMBER() *
+                (deviceNow + config.getGROUP_NUMBER() * groupNow) + sensorNow;
+    }
+
     @Override
     public Status preciseQuery(PreciseQuery preciseQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
+        String time = format.format(preciseQuery.getTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(idPrefix);
+                sql = addTimeClause(sql, time);
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query data of one or multiple sensors in a time range. e.g. select v1... from data where time
-     * >= ? and time <= ? and device in ?
-     *
-     * @param rangeQuery universal range query condition parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status rangeQuery(RangeQuery rangeQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
+        String startTime = format.format(rangeQuery.getStartTimestamp());
+        String endTime = format.format(rangeQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query data of one or multiple sensors in a time range with a value filter. e.g. select v1...
-     * from data where time >= ? and time <= ? and v1 > ? and device in ?
-     *
-     * @param valueRangeQuery contains universal range query with value filter parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
+        String startTime = format.format(valueRangeQuery.getStartTimestamp());
+        String endTime = format.format(valueRangeQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query aggregated data of one or multiple sensors in a time range using aggregation function.
-     * e.g. select func(v1)... from data where device in ? and time >= ? and time <= ?
-     *
-     * @param aggRangeQuery contains universal aggregation query with time filter parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
+        String startTime = format.format(aggRangeQuery.getStartTimestamp());
+        String endTime = format.format(aggRangeQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(aggRangeQuery.getAggFun(), idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query aggregated data of one or multiple sensors in the whole time range. e.g. select
-     * func(v1)... from data where device in ? and value > ?
-     *
-     * @param aggValueQuery contains universal aggregation query with value filter parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status aggValueQuery(AggValueQuery aggValueQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(aggValueQuery.getAggFun(), idPrefix);
+                sql = addValueClause(sql, aggValueQuery.getValueThreshold());
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query aggregated data of one or multiple sensors with both time and value filters. e.g. select
-     * func(v1)... from data where device in ? and time >= ? and time <= ? and value > ?
-     *
-     * @param aggRangeValueQuery contains universal aggregation query with time and value filters
-     *                           parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
+        String startTime = format.format(aggRangeValueQuery.getStartTimestamp());
+        String endTime = format.format(aggRangeValueQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(aggRangeValueQuery.getAggFun(), idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                sql = addValueClause(sql, aggRangeValueQuery.getValueThreshold());
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query aggregated group-by-time data of one or multiple sensors within a time range. e.g. SELECT
-     * max(s_0), max(s_1) FROM group_0, group_1 WHERE ( device = ’d_3’ OR device = ’d_8’) AND time >=
-     * 2010-01-01 12:00:00 AND time <= 2010-01-01 12:10:00 GROUP BY time(60000ms)
-     *
-     * @param groupByQuery contains universal group by query condition parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status groupByQuery(GroupByQuery groupByQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
+        String startTime = format.format(groupByQuery.getStartTimestamp());
+        String endTime = format.format(groupByQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader("max", idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                sql = addGroupByClause(sql, groupByQuery.getGranularity());
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * Query the latest(max-timestamp) data of one or multiple sensors. e.g. select time, v1... where
-     * device = ? and time = max(time)
-     *
-     * @param latestPointQuery contains universal latest point query condition parameters
-     * @return status which contains successfully executed flag, error message and so on.
-     */
     @Override
     public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = "select * from " + config.getDB_NAME()
+                        + ", (select max(pk_TimeStamp) as target from ms where pk_fk_Id / " + config.getSENSOR_NUMBER()
+                        + " = " + idPrefix +  ") as m" + " where pk_fk_Id / " + config.getSENSOR_NUMBER()
+                        + " = " + idPrefix + " and pk_TimeStamp = m.target";
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * similar to rangeQuery, but order by time desc.
-     *
-     * @param rangeQuery
-     */
     @Override
     public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
+        String startTime = format.format(rangeQuery.getStartTimestamp());
+        String endTime = format.format(rangeQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                sql = addOrderClause(sql);
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
 
-    /**
-     * similar to rangeQuery, but order by time desc.
-     *
-     * @param valueRangeQuery
-     */
     @Override
     public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-        return null;
+        List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
+        String startTime = format.format(valueRangeQuery.getStartTimestamp());
+        String endTime = format.format(valueRangeQuery.getEndTimestamp());
+        try{
+            Statement statement = connection.createStatement();
+            int result = 0;
+            for (DeviceSchema deviceSchema : deviceSchemas) {
+                long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+                String sql = getHeader(idPrefix);
+                sql = addTimeClause(sql, startTime, endTime);
+                sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
+                sql = addOrderClause(sql);
+                ResultSet resultSet = statement.executeQuery(sql);
+                while(resultSet.next()){
+                    result++;
+                }
+            }
+            statement.close();
+            return new Status(true, result);
+        }catch (SQLException sqlException){
+            sqlException.printStackTrace();
+            LOGGER.error("preciseQuery Error!");
+            return new Status(false, 0, sqlException, sqlException.getMessage());
+        }
     }
+
+    private String getHeader(long device){
+        return "SELECT * from " + config.getDB_NAME() + " where pk_fk_Id/" + config.getSENSOR_NUMBER() + "=" + device;
+    }
+
+    private String getHeader(String aggFun, long device){
+        return "SELECT " + aggFun + "(value) from " + config.getDB_NAME()
+                + " where pk_fk_Id/" + config.getSENSOR_NUMBER() + "=" + device;
+    }
+
+    private String addTimeClause(String sql, String time){
+        return sql + " and pk_TimeStamp = '" + time + "'";
+    }
+
+    private String addTimeClause(String sql, String startTime, String endTime){
+        return sql + " and pk_TimeStamp >= '" + startTime + "' and pk_TimeStamp <= '" +  endTime + "'";
+    }
+
+    private String addValueClause(String sql, double value){
+        return sql + " and value > " + value;
+    }
+
+    private String addGroupByClause(String sql, long granularity){
+        return sql + " group by datediff(ss,'1970-01-01', pk_TimeStamp) /  " + granularity;
+    }
+
+    private String addOrderClause(String sql){
+        return sql + " order by pk_TimeStamp desc";
+    }
+
 }
