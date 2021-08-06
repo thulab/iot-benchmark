@@ -48,6 +48,7 @@ public class IoTDB implements IDatabase {
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
+  private static final String DELETE_SERIES_SQL = "delete timeseries root." + config.getDB_NAME();
   private Connection connection;
   private static final String ALREADY_KEYWORD = "already";
 
@@ -74,7 +75,12 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void cleanup() {
-    // currently no implementation
+    try (Statement statement = connection.createStatement()) {
+      statement.execute(DELETE_SERIES_SQL);
+      LOGGER.info("Finish clean data!");
+    } catch (Exception e) {
+      LOGGER.warn("No Data to Clean!");
+    }
   }
 
   @Override
