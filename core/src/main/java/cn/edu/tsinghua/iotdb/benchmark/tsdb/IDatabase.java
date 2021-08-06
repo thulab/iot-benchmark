@@ -116,7 +116,8 @@ public interface IDatabase {
 
   /**
    * Query aggregated data of one or multiple sensors in the whole time range. e.g. select
-   * func(v1)... from data where device in ? and value > ?
+   * func(v1)... from data where device in ? and value > ? if value's type not support >, then
+   * should ignore
    *
    * @param aggValueQuery contains universal aggregation query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -125,7 +126,8 @@ public interface IDatabase {
 
   /**
    * Query aggregated data of one or multiple sensors with both time and value filters. e.g. select
-   * func(v1)... from data where device in ? and time >= ? and time <= ? and value > ?
+   * func(v1)... from data where device in ? and time >= ? and time <= ? and value > ? if value's
+   * type not support >, then should ignore
    *
    * @param aggRangeValueQuery contains universal aggregation query with time and value filters
    *     parameters

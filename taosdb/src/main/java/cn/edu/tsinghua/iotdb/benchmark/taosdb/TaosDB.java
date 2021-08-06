@@ -42,8 +42,6 @@ public class TaosDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(TaosDB.class);
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String URL_TAOS = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
-  private static final String USER = "root";
-  private static final String PASSWD = "taosdata";
   private static final String CREATE_DATABASE = "create database if not exists %s";
   private static final String SUPER_TABLE = "super";
   private static final String TEST_DB = "ZC";
@@ -65,7 +63,11 @@ public class TaosDB implements IDatabase {
       connection =
           DriverManager.getConnection(
               String.format(
-                  URL_TAOS, config.getHOST().get(0), config.getPORT().get(0), USER, PASSWD));
+                  URL_TAOS,
+                  config.getHOST().get(0),
+                  config.getPORT().get(0),
+                  config.getUSERNAME(),
+                  config.getPASSWORD()));
       LOGGER.info("init success.");
     } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();
