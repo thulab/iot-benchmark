@@ -11,6 +11,17 @@ QuestDB 测试实验报告
 export QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000
 export QDB_CAIRO_COMMIT_LAG=20000
 export QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1
+export QBD_SHARED_WORKER_COUNT=10
+export QDB_PG_WORKER_COUNT=0
+```
+
+```conf
+cairo.max.uncommitted.rows=100000
+cairo.commit.lag=20000
+cairo.parallel.index.threshold=100000
+line.tcp.maintenance.job.interval=1
+shared.worker.count=10
+pg.worker.count=0
 ```
 
 # Config文件参数
