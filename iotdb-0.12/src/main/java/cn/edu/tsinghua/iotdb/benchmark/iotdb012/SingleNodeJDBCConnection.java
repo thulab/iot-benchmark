@@ -49,7 +49,8 @@ public class SingleNodeJDBCConnection {
       urls = new String[nodeSize];
       List<String> clusterHosts = config.getHOST();
       for (int i = 0; i < nodeSize; i++) {
-        String jdbcUrl = String.format(Constants.URL, config.getHOST().get(i), config.getPORT().get(i));
+        String jdbcUrl =
+            String.format(Constants.URL, config.getHOST().get(i), config.getPORT().get(i));
         urls[i] = jdbcUrl;
       }
     } else {
