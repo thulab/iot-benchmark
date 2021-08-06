@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -189,7 +188,6 @@ public class QuestDB implements IDatabase {
       tableName.append(deviceSchema.getGroup());
       tableName.append("_");
       tableName.append(deviceSchema.getDevice());
-      List<String> insertSQLs = new ArrayList<>();
       for (Record record : batch.getRecords()) {
         StringBuffer insertSQL = new StringBuffer(INSERT_SQL);
         insertSQL.append(tableName);
@@ -218,7 +216,6 @@ public class QuestDB implements IDatabase {
           }
         }
         insertSQL.append(")");
-        insertSQLs.add(insertSQL.toString());
         statement.addBatch(insertSQL.toString());
       }
       statement.executeBatch();
