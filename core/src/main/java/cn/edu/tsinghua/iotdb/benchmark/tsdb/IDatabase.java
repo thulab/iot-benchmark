@@ -88,8 +88,8 @@ public interface IDatabase {
   Status preciseQuery(PreciseQuery preciseQuery);
 
   /**
-   * Query data of one or multiple sensors in a time range.
-   * e.g. select v1... from data where time >= ? and time <= ? and device in ?
+   * Query data of one or multiple sensors in a time range. e.g. select v1... from data where time
+   * >= ? and time <= ? and device in ?
    *
    * @param rangeQuery universal range query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -97,8 +97,8 @@ public interface IDatabase {
   Status rangeQuery(RangeQuery rangeQuery);
 
   /**
-   * Query data of one or multiple sensors in a time range with a value filter.
-   * e.g. select v1... from data where time >= ? and time <= ? and v1 > ? and device in ?
+   * Query data of one or multiple sensors in a time range with a value filter. e.g. select v1...
+   * from data where time >= ? and time <= ? and v1 > ? and device in ?
    *
    * @param valueRangeQuery contains universal range query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -115,9 +115,9 @@ public interface IDatabase {
   Status aggRangeQuery(AggRangeQuery aggRangeQuery);
 
   /**
-   * Query aggregated data of one or multiple sensors in the whole time range.
-   * e.g. select func(v1)... from data where device in ? and value > ?
-   * if value's type not support >, then should ignore
+   * Query aggregated data of one or multiple sensors in the whole time range. e.g. select
+   * func(v1)... from data where device in ? and value > ? if value's type not support >, then
+   * should ignore
    *
    * @param aggValueQuery contains universal aggregation query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -125,9 +125,9 @@ public interface IDatabase {
   Status aggValueQuery(AggValueQuery aggValueQuery);
 
   /**
-   * Query aggregated data of one or multiple sensors with both time and value filters.
-   * e.g. select func(v1)... from data where device in ? and time >= ? and time <= ? and value > ?
-   * if value's type not support >, then should ignore
+   * Query aggregated data of one or multiple sensors with both time and value filters. e.g. select
+   * func(v1)... from data where device in ? and time >= ? and time <= ? and value > ? if value's
+   * type not support >, then should ignore
    *
    * @param aggRangeValueQuery contains universal aggregation query with time and value filters
    *     parameters
@@ -136,10 +136,9 @@ public interface IDatabase {
   Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery);
 
   /**
-   * Query aggregated group-by-time data of one or multiple sensors within a time range.
-   * e.g. SELECT max(s_0), max(s_1) FROM group_0, group_1 WHERE ( device = ’d_3’ OR
-   * device = ’d_8’) AND time >= 2010-01-01 12:00:00 AND time <= 2010-01-01 12:10:00
-   * GROUP BY time(60000ms)
+   * Query aggregated group-by-time data of one or multiple sensors within a time range. e.g. SELECT
+   * max(s_0), max(s_1) FROM group_0, group_1 WHERE ( device = ’d_3’ OR device = ’d_8’) AND time >=
+   * 2010-01-01 12:00:00 AND time <= 2010-01-01 12:10:00 GROUP BY time(60000ms)
    *
    * @param groupByQuery contains universal group by query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
@@ -147,8 +146,8 @@ public interface IDatabase {
   Status groupByQuery(GroupByQuery groupByQuery);
 
   /**
-   * Query the latest(max-timestamp) data of one or multiple sensors.
-   * e.g. select time, v1... where device = ? and time = max(time)
+   * Query the latest(max-timestamp) data of one or multiple sensors. e.g. select time, v1... where
+   * device = ? and time = max(time)
    *
    * @param latestPointQuery contains universal latest point query condition parameters
    * @return status which contains successfully executed flag, error message and so on.

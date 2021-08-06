@@ -63,7 +63,8 @@ public class SingleNodeJDBCConnection {
         Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable =
             config.isENABLE_THRIFT_COMPRESSION();
-        connections[i] = DriverManager.getConnection(urls[i], config.getUSERNAME(), config.getPASSWORD());
+        connections[i] =
+            DriverManager.getConnection(urls[i], config.getUSERNAME(), config.getPASSWORD());
       } catch (Exception e) {
         LOGGER.error("Initialize IoTDB failed because ", e);
         throw new TsdbException(e);

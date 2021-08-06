@@ -64,8 +64,8 @@ public class IoTDB implements IDatabase {
       connection =
           DriverManager.getConnection(
               String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
-                  config.getUSERNAME(),
-                  config.getPASSWORD());
+              config.getUSERNAME(),
+              config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
@@ -460,11 +460,7 @@ public class IoTDB implements IDatabase {
 
   // convert deviceSchema to the format: root.group_1.d_1
   private String getDevicePath(DeviceSchema deviceSchema) {
-    return ROOT_SERIES_NAME
-        + "."
-        + deviceSchema.getGroup()
-        + "."
-        + deviceSchema.getDevice();
+    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {

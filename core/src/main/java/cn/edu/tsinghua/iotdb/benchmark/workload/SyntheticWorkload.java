@@ -265,28 +265,28 @@ public class SyntheticWorkload implements IWorkload {
   private Batch getLocalOutOfOrderBatch(DeviceSchema deviceSchema, long loopIndex) {
     Batch batch = new Batch();
     int moveOffset = config.getMAX_K() % config.getBATCH_SIZE_PER_WRITE();
-    if(moveOffset == 0){
+    if (moveOffset == 0) {
       moveOffset = 1;
     }
     // like circular array
-    int barrier = (int)(config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
+    int barrier = (int) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
     // out of order batch
     long targetBatch;
-    if(loopIndex >= moveOffset){
+    if (loopIndex >= moveOffset) {
       targetBatch = loopIndex - moveOffset;
-    }else{
+    } else {
       targetBatch = loopIndex - moveOffset + config.getLOOP();
     }
-    if(targetBatch > config.getLOOP()){
+    if (targetBatch > config.getLOOP()) {
       LOGGER.warn("Error loop");
     }
     // add out of order data
-    for(int i = 0; i < barrier; i++){
+    for (int i = 0; i < barrier; i++) {
       long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
       addOneRowIntoBatch(batch, offset);
     }
     // add in order data
-    for(int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++){
+    for (int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
       long offset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
       addOneRowIntoBatch(batch, offset);
     }
@@ -327,6 +327,7 @@ public class SyntheticWorkload implements IWorkload {
 
   /**
    * 返回设备列表
+   *
    * @param typeAllow true: 允许 boolean 和 text类型进入
    * @return
    * @throws WorkloadException
@@ -339,23 +340,25 @@ public class SyntheticWorkload implements IWorkload {
       clientDevicesIndex.add(m);
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
-    for (int m = 0; queryDevices.size() < config.getQUERY_DEVICE_NUM() 
-            && m < config.getDEVICE_NUMBER(); m++) {
+    for (int m = 0;
+        queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < config.getDEVICE_NUMBER();
+        m++) {
       DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
       List<String> sensors = deviceSchema.getSensors();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();
-      for (int i = 0; querySensors.size() < config.getQUERY_SENSOR_NUM()
-              && i < config.getSENSOR_NUMBER(); i++) {
-        if(!typeAllow){
+      for (int i = 0;
+          querySensors.size() < config.getQUERY_SENSOR_NUM() && i < config.getSENSOR_NUMBER();
+          i++) {
+        if (!typeAllow) {
           String type = DBUtil.getDataType(Integer.parseInt(sensors.get(i).split("_")[1]));
-          if(type.equals("BOOLEAN") || type.equals("TEXT")){
+          if (type.equals("BOOLEAN") || type.equals("TEXT")) {
             continue;
           }
         }
         querySensors.add(sensors.get(i));
       }
-      if(querySensors.size() != config.getQUERY_SENSOR_NUM()){
+      if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
         continue;
       }
       deviceSchema.setSensors(querySensors);
@@ -408,8 +411,8 @@ public class SyntheticWorkload implements IWorkload {
 
   @Override
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(
-            config.getQUERY_AGGREGATE_FUN().startsWith("count"));
+    List<DeviceSchema> queryDevices =
+        getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(

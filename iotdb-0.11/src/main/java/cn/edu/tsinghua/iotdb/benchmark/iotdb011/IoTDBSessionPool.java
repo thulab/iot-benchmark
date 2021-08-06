@@ -33,7 +33,6 @@ import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
@@ -123,7 +122,7 @@ public class IoTDBSessionPool implements IDatabase {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
             paths.add(
-                    ROOT_SERIES_NAME
+                ROOT_SERIES_NAME
                     + "."
                     + deviceSchema.getGroup()
                     + "."
@@ -454,11 +453,7 @@ public class IoTDBSessionPool implements IDatabase {
 
   // convert deviceSchema to the format: root.group_1.d_1
   private String getDevicePath(DeviceSchema deviceSchema) {
-    return ROOT_SERIES_NAME
-        + "."
-        + deviceSchema.getGroup()
-        + "."
-        + deviceSchema.getDevice();
+    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
   }
 
   private Status executeQueryAndGetStatus(String sql) {
