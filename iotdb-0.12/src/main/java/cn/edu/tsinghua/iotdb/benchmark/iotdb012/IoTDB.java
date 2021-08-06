@@ -108,13 +108,15 @@ public class IoTDB implements IDatabase {
     // therefore, we use session to create time series in batch.
 
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      for(int i = 0; i < config.getHOST().size(); i++) {
+      for (int i = 0; i < config.getHOST().size(); i++) {
         Session metaSession = null;
         try {
           metaSession =
-                  new Session(
-                          config.getHOST().get(i), config.getPORT().get(i),
-                          Constants.USER, Constants.PASSWD);
+              new Session(
+                  config.getHOST().get(i),
+                  config.getPORT().get(i),
+                  Constants.USER,
+                  Constants.PASSWD);
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
 
           registerStorageGroups(metaSession, schemaList);

@@ -148,5 +148,6 @@ public class Constants {
   public static final String TIMESCALEDB_CLASS =
       "cn.edu.tsinghua.iotdb.benchmark.timescaledb.TimescaleDB";
   public static final String TAOSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.taosdb.TaosDB";
-  public static final String VICTORIAMETRICS = "cn.edu.tsinghua.iotdb.benchmark.victoriametrics.VictoriaMetrics";
+  public static final String VICTORIAMETRICS =
+      "cn.edu.tsinghua.iotdb.benchmark.victoriametrics.VictoriaMetrics";
 }

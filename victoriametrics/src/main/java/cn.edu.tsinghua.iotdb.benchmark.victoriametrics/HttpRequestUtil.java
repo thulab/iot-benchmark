@@ -15,7 +15,7 @@ public class HttpRequestUtil {
    * @param url
    * @return
    */
-  public static String sendGet(String url) throws Exception{
+  public static String sendGet(String url) throws Exception {
     StringBuffer result = new StringBuffer();
     BufferedReader in = null;
     try {
