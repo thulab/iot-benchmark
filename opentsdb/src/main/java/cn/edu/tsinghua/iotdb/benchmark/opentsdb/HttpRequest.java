@@ -28,7 +28,6 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /** From https://www.cnblogs.com/zhuawang/archive/2012/12/08/2809380.html */
-
 public class HttpRequest {
   /**
    * 向指定URL发送GET方法的请求

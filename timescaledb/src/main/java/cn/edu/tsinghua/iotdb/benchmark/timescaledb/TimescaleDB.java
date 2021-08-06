@@ -65,8 +65,8 @@ public class TimescaleDB implements IDatabase {
                   config.getHOST().get(0),
                   config.getPORT().get(0),
                   config.getDB_NAME()),
-                  config.getUSERNAME(),
-                  config.getPASSWORD());
+              config.getUSERNAME(),
+              config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize TimescaleDB failed because ", e);
       throw new TsdbException(e);

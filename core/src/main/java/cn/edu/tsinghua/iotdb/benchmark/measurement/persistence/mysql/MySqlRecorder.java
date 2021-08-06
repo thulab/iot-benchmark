@@ -49,7 +49,6 @@ public class MySqlRecorder implements ITestDataPersistence {
   private static final SimpleDateFormat projectDateFormat =
       new SimpleDateFormat("yyyy_MM_dd_hh_mm");
 
-
   private static final String URL_TEMPLATE =
       "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
   private static final String URL =
@@ -70,7 +69,6 @@ public class MySqlRecorder implements ITestDataPersistence {
           config.getDB_SWITCH().split("-")[0],
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
-
 
   private static final String COMMENT =
       String.format(
@@ -152,7 +150,9 @@ public class MySqlRecorder implements ITestDataPersistence {
                 + PROJECT_ID
                 + "(id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, recordTime varchar(50),"
                 + " clientName varchar(50), operation varchar(50), okPoint INTEGER, failPoint INTEGER,"
-                + " latency DOUBLE, rate DOUBLE, remark varchar(1000))AUTO_INCREMENT = 1 COMMENT = \"" + COMMENT + "\";");
+                + " latency DOUBLE, rate DOUBLE, remark varchar(1000))AUTO_INCREMENT = 1 COMMENT = \""
+                + COMMENT
+                + "\";");
         LOGGER.info("Table {} create success!", PROJECT_ID);
       }
     } catch (SQLException e) {

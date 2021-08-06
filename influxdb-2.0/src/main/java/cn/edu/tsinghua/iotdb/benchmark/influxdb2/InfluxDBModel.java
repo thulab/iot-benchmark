@@ -36,11 +36,11 @@ public class InfluxDBModel implements Serializable {
     return fields;
   }
 
-  public void addTag(String tag, String value){
+  public void addTag(String tag, String value) {
     tags.put(tag, value);
   }
 
-  public void addField(String sensor, Object value){
+  public void addField(String sensor, Object value) {
     fields.put(sensor, value);
   }
 }
