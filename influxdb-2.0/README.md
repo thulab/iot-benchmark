@@ -14,7 +14,7 @@ This project is using iotdb-benchmark to test influxdb 2
 
 # config
 1. This is [config.properties](config.properties)
-2. This is [config.yaml for InfluxDB v2.0](config.yaml)
+2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.0/reference/config-options/#query-concurrency
 3. [语法参考](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
 
 # test result
