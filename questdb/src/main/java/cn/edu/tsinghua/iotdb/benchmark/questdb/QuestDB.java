@@ -92,6 +92,7 @@ public class QuestDB implements IDatabase {
       }
       statement.executeBatch();
       statement.close();
+      LOGGER.info("Clean up!");
     } catch (SQLException e) {
       LOGGER.error("Failed to cleanup!");
       throw new TsdbException("Failed to cleanup!", e);
@@ -143,6 +144,7 @@ public class QuestDB implements IDatabase {
           }
           // 声明主要的部分
           create.append(") timestamp(ts) ");
+          create.append("PARTITION BY DAY WITH maxUncommittedRows=250000, commitLag=240s");
           statement.addBatch(create.toString());
         }
         statement.executeBatch();

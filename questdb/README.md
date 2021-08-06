@@ -1,6 +1,7 @@
 QuestDB 测试实验报告
 ---
 1. 请注意：QuestDB的CLIENT_NUMBER需要在启动时完成配置(与pg.net.active.connection.limit相关)！
+2. 请注意：Sensor数量收到QuestDB的影响，不能过多，推荐控制在100及以内
 
 # 测试环境（Docker）
 1. 拉取镜像：`docker pull questdb/questdb`
@@ -18,7 +19,6 @@ export QDB_PG_WORKER_COUNT=0
 ```conf
 cairo.max.uncommitted.rows=100000
 cairo.commit.lag=20000
-cairo.parallel.index.threshold=100000
 line.tcp.maintenance.job.interval=1
 shared.worker.count=10
 pg.worker.count=0
