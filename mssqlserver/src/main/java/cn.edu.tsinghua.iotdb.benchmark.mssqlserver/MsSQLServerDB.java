@@ -30,28 +30,25 @@ public class MsSQLServerDB implements IDatabase {
           + config.getPORT().get(0)
           + ";DataBaseName="
           + config.getDB_NAME();
-  // TODO remove after fix/core merge
-  private static final String DBUSER = "test";
-  private static final String DBPASSWORD = "12345678";
+  private static final String DBUSER = config.getUSERNAME();
+  private static final String DBPASSWORD = config.getPASSWORD();
   private static final SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
 
-  // 数据库连接
   public Connection connection = null;
 
   private static final String CREATE_TABLE =
       "CREATE TABLE ["
-          + config.getDB_NAME()
-          + "]\n"
+          + "%s_%s]\n"
           + "([pk_fk_Id] [bigint] NOT NULL,\n"
           + "[pk_TimeStamp] [datetime2](7) NOT NULL,\n"
-          + "[Value] [float] NULL,\n"
+          + "[Value] [%s] NULL,\n"
           + "CONSTRAINT PK_test PRIMARY KEY CLUSTERED\n"
           + "([pk_fk_Id] ASC,\n"
           + "[pk_TimeStamp] ASC\n"
           + ") WITH (IGNORE_DUP_KEY = ON) ON [PRIMARY]\n"
           + ")ON [PRIMARY]";
 
-  private static final String DELETE_TABLE = "drop table " + config.getDB_NAME();
+  private static final String DELETE_TABLE = "drop table if exists %s_%s";
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
    * client thread.
@@ -515,5 +512,32 @@ public class MsSQLServerDB implements IDatabase {
 
   private String addOrderClause(String sql) {
     return sql + " order by pk_TimeStamp desc";
+  }
+
+  /**
+   * map the given type string name to the name in the target DB
+   *
+   * @param iotdbType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
+   * @return
+   */
+  @Override
+  public String typeMap(String iotdbType) {
+    switch (iotdbType) {
+      case "BOOLEAN":
+        return "bit";
+      case "INT32":
+        return "int";
+      case "INT64":
+        return "bigint";
+      case "FLOAT":
+        return "float";
+      case "DOUBLE":
+        return "double";
+      case "TEXT":
+        return "text";
+      default:
+        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+        return "text";
+    }
   }
 }
