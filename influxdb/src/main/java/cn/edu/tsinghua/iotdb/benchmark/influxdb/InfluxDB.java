@@ -266,15 +266,15 @@ public class InfluxDB implements IDatabase {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
     String sqlWithValueFilter =
-            addWhereValueClause(
-                    valueRangeQuery.getDeviceSchema(),
-                    sqlWithTimeFilter,
-                    valueRangeQuery.getValueThreshold());
+        addWhereValueClause(
+            valueRangeQuery.getDeviceSchema(),
+            sqlWithTimeFilter,
+            valueRangeQuery.getValueThreshold());
     sqlWithValueFilter = addDescClause(sqlWithValueFilter);
     return executeQueryAndGetStatus(sqlWithValueFilter);
   }
 
-  private String addDescClause(String sql){
+  private String addDescClause(String sql) {
     return sql + " ORDER BY time DESC";
   }
 

@@ -87,6 +87,11 @@ public class Config {
   /** The port of database server */
   private List<String> PORT = Arrays.asList("6667");
 
+  /** The user name of database to use */
+  private String USERNAME = "root";
+  /** The password of user */
+  private String PASSWORD = "root";
+
   /** The name of database to use, and the prefix of group, eg.IoTDB root.{DB_NAME} */
   private String DB_NAME = "_test";
 
@@ -1280,6 +1285,22 @@ public class Config {
 
   public void setSENSOR_FUNCTION(Map<String, FunctionParam> SENSOR_FUNCTION) {
     this.SENSOR_FUNCTION = SENSOR_FUNCTION;
+  }
+
+  public String getUSERNAME() {
+    return USERNAME;
+  }
+
+  public void setUSERNAME(String USERNAME) {
+    this.USERNAME = USERNAME;
+  }
+
+  public String getPASSWORD() {
+    return PASSWORD;
+  }
+
+  public void setPASSWORD(String PASSWORD) {
+    this.PASSWORD = PASSWORD;
   }
 
   public String getTOKEN() {

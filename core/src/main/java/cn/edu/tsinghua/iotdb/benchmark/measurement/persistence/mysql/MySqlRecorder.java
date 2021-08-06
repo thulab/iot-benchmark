@@ -47,7 +47,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   private static final SimpleDateFormat dateFormat =
       new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
   private static final SimpleDateFormat projectDateFormat =
-      new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss_SSS");
+      new SimpleDateFormat("yyyy_MM_dd_hh_mm_SSS");
 
   private static final String URL_TEMPLATE =
       "jdbc:mysql://%s:%s/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF8&useSSL=false&rewriteBatchedStatements=true";
@@ -65,8 +65,16 @@ public class MySqlRecorder implements ITestDataPersistence {
   private static final String PROJECT_ID =
       String.format(
           "%s_%s_%s_%s",
+          config.getBENCHMARK_WORK_MODE().substring(0, 5),
+          config.getDB_SWITCH().split("-")[0].substring(0, 5),
+          config.getREMARK(),
+          projectDateFormat.format(new java.util.Date(EXP_TIME)));
+
+  private static final String COMMENT =
+      String.format(
+          "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE(),
-          config.getDB_SWITCH(),
+          config.getDB_SWITCH().replace('-', '_'),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
 
@@ -142,7 +150,9 @@ public class MySqlRecorder implements ITestDataPersistence {
                 + PROJECT_ID
                 + "(id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, recordTime varchar(50),"
                 + " clientName varchar(50), operation varchar(50), okPoint INTEGER, failPoint INTEGER,"
-                + " latency DOUBLE, rate DOUBLE, remark varchar(1000))AUTO_INCREMENT = 1;");
+                + " latency DOUBLE, rate DOUBLE, remark varchar(1000))AUTO_INCREMENT = 1 COMMENT = \""
+                + COMMENT
+                + "\";");
         LOGGER.info("Table {} create success!", PROJECT_ID);
       }
     } catch (SQLException e) {

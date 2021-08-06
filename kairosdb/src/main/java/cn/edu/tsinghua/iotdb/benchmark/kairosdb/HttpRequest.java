@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.utils;
+package cn.edu.tsinghua.iotdb.benchmark.kairosdb;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,14 +28,13 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /** From https://www.cnblogs.com/zhuawang/archive/2012/12/08/2809380.html */
-// TODO to be remove
 public class HttpRequest {
   /**
    * 向指定URL发送GET方法的请求
    *
    * @param url 发送请求的URL
    * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
-   * @return URL 所代表远程资源的响应结果
+   * @return JDBC_URL 所代表远程资源的响应结果
    */
   public static String sendGet(String url, String param) throws IOException {
     String result = "";
@@ -82,9 +81,9 @@ public class HttpRequest {
   }
 
   /**
-   * 向指定 URL 发送POST方法的请求
+   * 向指定 JDBC_URL 发送POST方法的请求
    *
-   * @param url 发送请求的 URL
+   * @param url 发送请求的 JDBC_URL
    * @param param 请求参数，请求参数应该是 name1=value1&name2=value2 的形式。
    * @return 所代表远程资源的响应结果
    */
