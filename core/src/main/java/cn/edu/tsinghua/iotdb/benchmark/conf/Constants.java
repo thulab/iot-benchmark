@@ -140,5 +140,6 @@ public class Constants {
   public static final String TIMESCALEDB_CLASS =
       "cn.edu.tsinghua.iotdb.benchmark.timescaledb.TimescaleDB";
   public static final String TAOSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.taosdb.TaosDB";
-  public static final String MSSQLSERVER_CLASS = "cn.edu.tsinghua.iotdb.benchmark.mssqlserver.MsSQLServerDB";
+  public static final String MSSQLSERVER_CLASS =
+      "cn.edu.tsinghua.iotdb.benchmark.mssqlserver.MsSQLServerDB";
 }
