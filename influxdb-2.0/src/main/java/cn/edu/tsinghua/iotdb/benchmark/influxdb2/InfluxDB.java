@@ -144,7 +144,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     int retryNumber = 3;
-    while(retryNumber > 0){
+    while (retryNumber > 0) {
       try {
         WriteApi writeApi = client.getWriteApi();
         LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
@@ -157,9 +157,9 @@ public class InfluxDB implements IDatabase {
       } catch (Exception e) {
         LOGGER.warn(e.getMessage());
         retryNumber--;
-        try{
+        try {
           Thread.sleep(10000);
-        }catch (InterruptedException interruptedException){
+        } catch (InterruptedException interruptedException) {
           LOGGER.warn("Sleep failed");
         }
       }
