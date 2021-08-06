@@ -374,8 +374,19 @@ public class VictoriaMetrics implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
+    int point = 0;
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      for (String sensor : deviceSchema.getSensors()) {
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append("max_over_time%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%29");
+        url.append("&start=").append(Constants.START_TIMESTAMP / 1000);
+        url.append("&end=").append(System.currentTimeMillis() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
@@ -385,8 +396,20 @@ public class VictoriaMetrics implements IDatabase {
    */
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
+    int point = 0;
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      for (String sensor : deviceSchema.getSensors()) {
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append("sort_desc%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append("%29");
+        url.append("&start=").append(rangeQuery.getStartTimestamp() / 1000);
+        url.append("&end=").append(rangeQuery.getEndTimestamp() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
@@ -396,8 +419,21 @@ public class VictoriaMetrics implements IDatabase {
    */
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    LOGGER.warn("Not Supported Query!");
-    return null;
+    List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
+    int point = 0;
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      for (String sensor : deviceSchema.getSensors()) {
+        StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
+        url.append("sort_desc%28");
+        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append("%3E").append(valueRangeQuery.getValueThreshold());
+        url.append("%29");
+        url.append("&start=").append(valueRangeQuery.getStartTimestamp() / 1000);
+        url.append("&end=").append(valueRangeQuery.getEndTimestamp() / 1000);
+        point += queryAndGetPoint(url.toString());
+      }
+    }
+    return new Status(true, point);
   }
 
   /**
