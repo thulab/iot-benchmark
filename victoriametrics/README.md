@@ -11,7 +11,6 @@ https://hub.docker.com/r/victoriametrics/victoria-metrics/
     2. `docker run -it --rm -v /path/to/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 -d --name=victoria victoriametrics/victoria-metrics -retentionPeriod=30 -search.latencyOffset=1s -search.disableCache=true -search.maxPointsPerTimeseries=10000000`
     3. 请格外注意环境配置时的retentionPeriod参数的设计，该参数的单位为月，允许插入的时间序列范围为(当前月-retentionPeriod，当前月)
 3. 查询基于Prometheus的API，参考https://blog.csdn.net/zhouwenjun0820/article/details/105823389
-4. 目前暂时不支持后3种查询
 
 # 配置文件修改(conf/config.properties)
 1. 部分修改如下
