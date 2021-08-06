@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.timescaledb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -46,6 +45,8 @@ public class TimescaleDB implements IDatabase {
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
+  private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
+  private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
   public TimescaleDB() {
     config = ConfigDescriptor.getInstance().getConfig();
@@ -55,16 +56,17 @@ public class TimescaleDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      Class.forName(Constants.POSTGRESQL_JDBC_NAME);
+      Class.forName(POSTGRESQL_JDBC_NAME);
+      // default username=postgres and password=postgres
       connection =
           DriverManager.getConnection(
               String.format(
-                  Constants.POSTGRESQL_URL,
+                  POSTGRESQL_URL,
                   config.getHOST().get(0),
                   config.getPORT().get(0),
                   config.getDB_NAME()),
-              Constants.POSTGRESQL_USER,
-              Constants.POSTGRESQL_PASSWD);
+              config.getUSERNAME(),
+              config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize TimescaleDB failed because ", e);
       throw new TsdbException(e);

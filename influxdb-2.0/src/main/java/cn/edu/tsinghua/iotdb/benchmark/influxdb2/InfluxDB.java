@@ -311,10 +311,6 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (String sensor : deviceSchema.getSensors()) {
-        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
-        if (type.equals("TEXT") || type.equals("BOOLEAN")) {
-          continue;
-        }
         String sql =
             getTimeSQLHeader(
                 deviceSchema.getGroup(),
@@ -381,10 +377,6 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (String sensor : deviceSchema.getSensors()) {
-        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
-        if (type.equals("TEXT") || type.equals("BOOLEAN")) {
-          continue;
-        }
         String sql =
             getTimeSQLHeader(
                 deviceSchema.getGroup(),
@@ -409,24 +401,24 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (String sensor : deviceSchema.getSensors()) {
-        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
-        if (type.equals("TEXT") || type.equals("BOOLEAN")) {
-          continue;
+        try {
+          String sql =
+              getTimeSQLHeader(
+                  deviceSchema.getGroup(),
+                  sensor,
+                  deviceSchema.getDevice(),
+                  aggRangeValueQuery.getStartTimestamp() / 1000,
+                  aggRangeValueQuery.getEndTimestamp() / 1000);
+          sql +=
+              "\n  |> filter(fn: (r) => r[\"_value\"] > "
+                  + aggRangeValueQuery.getValueThreshold()
+                  + ")";
+          sql += "\n  |> " + aggRangeValueQuery.getAggFun();
+          Status status = executeQueryAndGetStatus(sql);
+          result += status.getQueryResultPointNum();
+        } catch (Exception e) {
+          e.printStackTrace();
         }
-        String sql =
-            getTimeSQLHeader(
-                deviceSchema.getGroup(),
-                sensor,
-                deviceSchema.getDevice(),
-                aggRangeValueQuery.getStartTimestamp() / 1000,
-                aggRangeValueQuery.getEndTimestamp() / 1000);
-        sql +=
-            "\n  |> filter(fn: (r) => r[\"_value\"] > "
-                + aggRangeValueQuery.getValueThreshold()
-                + ")";
-        sql += "\n  |> " + aggRangeValueQuery.getAggFun();
-        Status status = executeQueryAndGetStatus(sql);
-        result += status.getQueryResultPointNum();
       }
     }
     return new Status(true, result);
@@ -438,10 +430,6 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (String sensor : deviceSchema.getSensors()) {
-        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
-        if (type.equals("TEXT") || type.equals("BOOLEAN")) {
-          continue;
-        }
         String sql =
             getTimeSQLHeader(
                 deviceSchema.getGroup(),
@@ -505,10 +493,6 @@ public class InfluxDB implements IDatabase {
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (String sensor : deviceSchema.getSensors()) {
-        String type = DBUtil.getDataType(Integer.parseInt(sensor.split("_")[1]));
-        if (type.equals("TEXT") || type.equals("BOOLEAN")) {
-          continue;
-        }
         String sql =
             getTimeSQLHeader(
                 deviceSchema.getGroup(),
