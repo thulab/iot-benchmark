@@ -83,7 +83,14 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public void cleanup() {}
+  public void cleanup() {
+    try{
+      pool.deleteTimeseries("root." + config.getDB_NAME());
+    }catch (Exception e){
+      e.printStackTrace();
+      LOGGER.warn("Clean up failed!");
+    }
+  }
 
   @Override
   public void close() {
