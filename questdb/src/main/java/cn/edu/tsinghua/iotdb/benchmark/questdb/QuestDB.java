@@ -45,17 +45,14 @@ public class QuestDB implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final String URL_QUEST = "jdbc:postgresql://%s:%s/qdb";
 
-  private static final String USERNAME = "admin";
-  private static final String PWD = "quest";
   private static final String SSLMODE = "disable";
 
   private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS ";
   private static final String INSERT_SQL = "INSERT INTO ";
-  private static final String SELECT_SQL = "select * from " + config.getDB_NAME();
   private static final String DROP_TABLE = "DROP TABLE ";
   private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-  private Connection connection;
+  private Connection connection = null;
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
@@ -65,14 +62,13 @@ public class QuestDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       Properties properties = new Properties();
-      properties.setProperty("user", USERNAME);
-      properties.setProperty("password", PWD);
+      properties.setProperty("user", config.getUSERNAME());
+      properties.setProperty("password", config.getPASSWORD());
       properties.setProperty("sslmode", SSLMODE);
       connection =
           DriverManager.getConnection(
               String.format(URL_QUEST, config.getHOST().get(0), config.getPORT().get(0)),
               properties);
-      LOGGER.info("init success.");
     } catch (SQLException e) {
       e.printStackTrace();
       LOGGER.error("Failed to init database");
@@ -124,7 +120,6 @@ public class QuestDB implements IDatabase {
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      // TODO check the maximum of sensor_number
       try (Statement statement = connection.createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
           StringBuffer create = new StringBuffer(CREATE_TABLE);
@@ -210,9 +205,11 @@ public class QuestDB implements IDatabase {
             case "INT":
               insertSQL.append(",").append((int) value);
               break;
-            case "FLOAT":
+            case "LONG":
+              insertSQL.append(",").append((long) value);
+              break;
             case "DOUBLE":
-              insertSQL.append(",").append((double) value);
+              insertSQL.append(",").append(Double.parseDouble(String.valueOf(value)));
               break;
             case "STRING":
             default:
@@ -243,7 +240,6 @@ public class QuestDB implements IDatabase {
    */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-
     DeviceSchema targetDevice = preciseQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
@@ -452,7 +448,7 @@ public class QuestDB implements IDatabase {
     List<String> sensors = targetDevice.getSensors();
     String table =
         config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sql = "SELECT last(" + sensors.get(0) + ")" + " FROM " + table;
+    String sql = "SELECT " + sensors.get(0) + " FROM " + table + " LATEST BY " + sensors.get(0);
     return executeQueryAndGetStatus(sql);
   }
 
@@ -535,8 +531,9 @@ public class QuestDB implements IDatabase {
       case "BOOLEAN":
         return "BOOLEAN";
       case "INT32":
-      case "INT64":
         return "INT";
+      case "INT64":
+        return "LONG";
       case "FLOAT":
       case "DOUBLE":
         return "DOUBLE";
