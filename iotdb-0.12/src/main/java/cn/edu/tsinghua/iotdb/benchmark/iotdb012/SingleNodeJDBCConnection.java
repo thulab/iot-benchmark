@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ public class SingleNodeJDBCConnection {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SingleNodeJDBCConnection.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
   private Connection[] connections;
   private AtomicInteger currConnectionIndex = new AtomicInteger(0);
 
@@ -49,13 +49,12 @@ public class SingleNodeJDBCConnection {
       urls = new String[nodeSize];
       List<String> clusterHosts = config.getHOST();
       for (int i = 0; i < nodeSize; i++) {
-        String jdbcUrl =
-            String.format(Constants.URL, config.getHOST().get(i), config.getPORT().get(i));
+        String jdbcUrl = String.format(JDBC_URL, config.getHOST().get(i), config.getPORT().get(i));
         urls[i] = jdbcUrl;
       }
     } else {
       urls = new String[nodeSize];
-      urls[0] = String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0));
+      urls[0] = String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0));
     }
     connections = new Connection[nodeSize];
 
@@ -64,7 +63,8 @@ public class SingleNodeJDBCConnection {
         Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable =
             config.isENABLE_THRIFT_COMPRESSION();
-        connections[i] = DriverManager.getConnection(urls[i], Constants.USER, Constants.PASSWD);
+        connections[i] =
+            DriverManager.getConnection(urls[i], config.getUSERNAME(), config.getPASSWORD());
       } catch (Exception e) {
         LOGGER.error("Initialize IoTDB failed because ", e);
         throw new TsdbException(e);

@@ -30,7 +30,6 @@ import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
@@ -52,7 +51,10 @@ public class IoTDBSession extends IoTDB {
     super();
     session =
         new Session(
-            config.getHOST().get(0), config.getPORT().get(0), Constants.USER, Constants.PASSWD);
+            config.getHOST().get(0),
+            config.getPORT().get(0),
+            config.getUSERNAME(),
+            config.getPASSWORD());
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
@@ -93,7 +95,7 @@ public class IoTDBSession extends IoTDB {
       sensorIndex++;
     }
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."

@@ -27,7 +27,6 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
@@ -60,8 +59,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
           new SessionPool(
               config.getHOST().get(i),
               Integer.parseInt(config.getPORT().get(i)),
-              Constants.USER,
-              Constants.PASSWD,
+              config.getUSERNAME(),
+              config.getPASSWORD(),
               MAX_SESSION_CONNECTION_PER_CLIENT,
               config.isENABLE_THRIFT_COMPRESSION(),
               true);
@@ -71,7 +70,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecord(Batch batch) {
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."
@@ -106,7 +105,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   public Status insertOneBatchByRecords(Batch batch) {
     List<String> deviceIds = new ArrayList<>();
     String deviceId =
-        Constants.ROOT_SERIES_NAME
+        ROOT_SERIES_NAME
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."

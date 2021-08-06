@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb011;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
@@ -29,23 +28,12 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,9 +43,12 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
+  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
+  private static final String DELETE_SERIES_SQL = "delete timeseries root." + config.getDB_NAME();
   private Connection connection;
   private static final String ALREADY_KEYWORD = "already";
 
@@ -73,9 +64,9 @@ public class IoTDB implements IDatabase {
 
       connection =
           DriverManager.getConnection(
-              String.format(Constants.URL, config.getHOST().get(0), config.getPORT().get(0)),
-              Constants.USER,
-              Constants.PASSWD);
+              String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
+              config.getUSERNAME(),
+              config.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
@@ -84,7 +75,12 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void cleanup() {
-    // currently no implementation
+    try (Statement statement = connection.createStatement()) {
+      statement.execute(DELETE_SERIES_SQL);
+      LOGGER.info("Finish clean data!");
+    } catch (Exception e) {
+      LOGGER.warn("No Data to Clean!");
+    }
   }
 
   @Override
@@ -113,7 +109,7 @@ public class IoTDB implements IDatabase {
         try (Statement statement = connection.createStatement()) {
           for (String group : groups) {
             statement.addBatch(
-                String.format(SET_STORAGE_GROUP_SQL, Constants.ROOT_SERIES_NAME + "." + group));
+                String.format(SET_STORAGE_GROUP_SQL, ROOT_SERIES_NAME + "." + group));
           }
           statement.executeBatch();
           statement.clearBatch();
@@ -134,7 +130,7 @@ public class IoTDB implements IDatabase {
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
-                    Constants.ROOT_SERIES_NAME
+                    ROOT_SERIES_NAME
                         + "."
                         + deviceSchema.getGroup()
                         + "."
@@ -374,7 +370,7 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
-        .append(Constants.ROOT_SERIES_NAME)
+        .append(ROOT_SERIES_NAME)
         .append(".")
         .append(deviceSchema.getGroup())
         .append(".")
@@ -407,7 +403,7 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
-        .append(Constants.ROOT_SERIES_NAME)
+        .append(ROOT_SERIES_NAME)
         .append(".")
         .append(deviceSchema.getGroup())
         .append(".")
@@ -470,11 +466,7 @@ public class IoTDB implements IDatabase {
 
   // convert deviceSchema to the format: root.group_1.d_1
   private String getDevicePath(DeviceSchema deviceSchema) {
-    return Constants.ROOT_SERIES_NAME
-        + "."
-        + deviceSchema.getGroup()
-        + "."
-        + deviceSchema.getDevice();
+    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
