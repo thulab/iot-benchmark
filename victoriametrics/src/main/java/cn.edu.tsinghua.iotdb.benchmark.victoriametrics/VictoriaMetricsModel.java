@@ -66,9 +66,9 @@ public class VictoriaMetricsModel implements Serializable {
     }
     String type = DBUtil.getDataType(Integer.parseInt(tags.get("sensor").split("_")[1]));
     result.append("} ");
-    if(type.equals("BOOLEAN")){
-      result.append((boolean) value? 1 : 0);
-    }else{
+    if (type.equals("BOOLEAN")) {
+      result.append((boolean) value ? 1 : 0);
+    } else {
       result.append(value);
     }
     result.append(" ");

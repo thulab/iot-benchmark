@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 
-/** @Author stormbroken Create by 2021/07/27 @Version 1.0 */
 public class HttpRequestUtil {
   /**
    * Send Get Request to target URL
