@@ -444,6 +444,12 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
+        List<String> search = new ArrayList<>();
+        for (String sensor : deviceSchema.getSensors()) {
+          long sensorId = idPrefix + Integer.parseInt(sensor.split("_")[1]);
+          search.add(String.valueOf(sensorId));
+        }
+        String ids = String.join(",", search);
         for (String type : TYPES) {
           String sysType = typeMap(type);
           String sql =
@@ -455,16 +461,12 @@ public class MsSQLServerDB implements IDatabase {
                   + config.getDB_NAME()
                   + "_"
                   + sysType
-                  + " where pk_fk_Id / "
-                  + config.getSENSOR_NUMBER()
-                  + " = "
-                  + idPrefix
-                  + ") as m"
-                  + " where pk_fk_Id / "
-                  + config.getSENSOR_NUMBER()
-                  + " = "
-                  + idPrefix
-                  + " and pk_TimeStamp = m.target";
+                  + " where pk_fk_Id in ("
+                  + ids
+                  + ")) as m"
+                  + " where pk_fk_Id in ( "
+                  + ids
+                  + ") and pk_TimeStamp = m.target";
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
             result++;
