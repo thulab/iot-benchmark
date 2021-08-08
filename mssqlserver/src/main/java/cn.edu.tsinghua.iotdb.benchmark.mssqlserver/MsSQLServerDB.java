@@ -544,7 +544,7 @@ public class MsSQLServerDB implements IDatabase {
   private String getHeader(long device, List<String> sensors, String sysType) {
     List<String> search = new ArrayList<>();
     for (String sensor : sensors) {
-      long sensorId = device * config.getSENSOR_NUMBER() + Integer.parseInt(sensor.split("_")[1]);
+      long sensorId = device + Integer.parseInt(sensor.split("_")[1]);
       search.add(String.valueOf(sensorId));
     }
 
@@ -557,7 +557,7 @@ public class MsSQLServerDB implements IDatabase {
   private String getHeader(String aggFun, List<String> sensors, long device, String sysType) {
     List<String> search = new ArrayList<>();
     for (String sensor : sensors) {
-      long sensorId = device * config.getSENSOR_NUMBER() + Integer.parseInt(sensor.split("_")[1]);
+      long sensorId = device + Integer.parseInt(sensor.split("_")[1]);
       search.add(String.valueOf(sensorId));
     }
     String target = "value";
