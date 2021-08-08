@@ -236,7 +236,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, sysType);
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, time);
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -265,7 +265,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, sysType);
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -294,7 +294,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : VALUE_TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, sysType);
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery(sql);
@@ -328,7 +328,8 @@ public class MsSQLServerDB implements IDatabase {
         }
         for (String type : types) {
           String sysType = typeMap(type);
-          String sql = getHeader(aggRangeQuery.getAggFun(), idPrefix, sysType);
+          String sql =
+              getHeader(aggRangeQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
           sql = addTimeClause(sql, startTime, endTime);
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -355,7 +356,8 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : VALUE_TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(aggValueQuery.getAggFun(), idPrefix, sysType);
+          String sql =
+              getHeader(aggValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
           sql = addValueClause(sql, aggValueQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -384,7 +386,9 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : VALUE_TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(aggRangeValueQuery.getAggFun(), idPrefix, sysType);
+          String sql =
+              getHeader(
+                  aggRangeValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addValueClause(sql, aggRangeValueQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery(sql);
@@ -414,7 +418,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : VALUE_TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader("max", idPrefix, sysType);
+          String sql = getHeader("max", deviceSchema.getSensors(), idPrefix, sysType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addGroupByClause(sql, groupByQuery.getGranularity());
           ResultSet resultSet = statement.executeQuery(sql);
@@ -488,7 +492,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, sysType);
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addOrderClause(sql);
           ResultSet resultSet = statement.executeQuery(sql);
@@ -518,7 +522,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (String type : VALUE_TYPES) {
           String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, sysType);
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
           sql = addOrderClause(sql);
@@ -537,34 +541,35 @@ public class MsSQLServerDB implements IDatabase {
     }
   }
 
-  private String getHeader(long device, String sysType) {
-    return "SELECT * from "
-        + config.getDB_NAME()
-        + "_"
-        + sysType
-        + " where pk_fk_Id/"
-        + config.getSENSOR_NUMBER()
-        + "="
-        + device;
+  private String getHeader(long device, List<String> sensors, String sysType) {
+    List<String> search = new ArrayList<>();
+    for (String sensor : sensors) {
+      long sensorId = device * config.getSENSOR_NUMBER() + Integer.parseInt(sensor.split("_")[1]);
+      search.add(String.valueOf(sensorId));
+    }
+
+    StringBuilder stringBuilder = new StringBuilder("SELECT * from ");
+    stringBuilder.append(config.getDB_NAME()).append("_").append(sysType);
+    stringBuilder.append(" where pk_fk_Id in (").append(String.join(",", search)).append(")");
+    return stringBuilder.toString();
   }
 
-  private String getHeader(String aggFun, long device, String sysType) {
+  private String getHeader(String aggFun, List<String> sensors, long device, String sysType) {
+    List<String> search = new ArrayList<>();
+    for (String sensor : sensors) {
+      long sensorId = device * config.getSENSOR_NUMBER() + Integer.parseInt(sensor.split("_")[1]);
+      search.add(String.valueOf(sensorId));
+    }
     String target = "value";
     if (aggFun.startsWith("count")) {
       target = "*";
     }
-    return "SELECT "
-        + aggFun
-        + "("
-        + target
-        + ") from "
-        + config.getDB_NAME()
-        + "_"
-        + sysType
-        + " where pk_fk_Id/"
-        + config.getSENSOR_NUMBER()
-        + "="
-        + device;
+
+    StringBuilder stringBuilder =
+        new StringBuilder("SELECT ").append(aggFun).append("(").append(target).append(") from ");
+    stringBuilder.append(config.getDB_NAME()).append("_").append(sysType);
+    stringBuilder.append(" where pk_fk_Id in (").append(String.join(",", search)).append(")");
+    return stringBuilder.toString();
   }
 
   private String addTimeClause(String sql, String time) {
