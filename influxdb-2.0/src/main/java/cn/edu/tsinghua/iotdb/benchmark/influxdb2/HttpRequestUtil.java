@@ -58,7 +58,8 @@ public class HttpRequestUtil {
    * @param contentType
    * @return
    */
-  public static String sendPost(String url, String body, String contentType, String token) throws Exception {
+  public static String sendPost(String url, String body, String contentType, String token)
+      throws Exception {
     PrintWriter out = null;
     BufferedReader in = null;
     StringBuffer result = new StringBuffer();

@@ -63,8 +63,13 @@ public class InfluxDB implements IDatabase {
   public InfluxDB() {
     influxUrl = "http://" + config.getHOST().get(0) + ":" + config.getPORT().get(0);
     influxDbName = config.getDB_NAME();
-    CREATE_URL = String.format(CREATE_URL, config.getHOST().get(0) + ":" + config.getPORT().get(0),
-            org, influxDbName, config.getTIMESTAMP_PRECISION());
+    CREATE_URL =
+        String.format(
+            CREATE_URL,
+            config.getHOST().get(0) + ":" + config.getPORT().get(0),
+            org,
+            influxDbName,
+            config.getTIMESTAMP_PRECISION());
   }
 
   @Override
@@ -145,20 +150,18 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-      try {
-        LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
-        List<String> lines = new ArrayList<>();
-        for (InfluxDBModel influxDBModel : influxDBModels) {
-          lines.add(model2write(influxDBModel));
-        }
-        HttpRequestUtil.sendPost(
-                CREATE_URL, String.join("\n", lines),
-                "text/plain; version=0.0.4; charset=utf-8", token);
-        return new Status(true);
-      } catch (Exception e) {
-        e.printStackTrace();
-        return new Status(false, 0, e, e.getMessage());
+    try {
+      LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
+      List<String> lines = new ArrayList<>();
+      for (InfluxDBModel influxDBModel : influxDBModels) {
+        lines.add(model2write(influxDBModel));
       }
+      HttpRequestUtil.sendPost(
+          CREATE_URL, String.join("\n", lines), "text/plain; version=0.0.4; charset=utf-8", token);
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.getMessage());
+    }
   }
 
   @Override
