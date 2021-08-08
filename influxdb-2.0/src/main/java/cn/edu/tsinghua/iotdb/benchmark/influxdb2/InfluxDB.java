@@ -143,29 +143,19 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    int retryNumber = 3;
-    while (retryNumber > 0) {
       try {
         WriteApi writeApi = client.getWriteApi();
         LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
         List<String> lines = new ArrayList<>();
         for (InfluxDBModel influxDBModel : influxDBModels) {
-          lines.add(model2write(influxDBModel));
+          System.out.println(model2write(influxDBModel));
         }
         writeApi.writeRecords(writePrecision, lines);
         return new Status(true);
-      } catch (Exception e) {
+      } catch (Exception e) { // text/plain; version=0.0.4; charset=utf-8
         LOGGER.warn(e.getMessage());
-        retryNumber--;
-        try {
-          Thread.sleep(10000);
-        } catch (InterruptedException interruptedException) {
-          LOGGER.warn("Sleep failed");
-        }
+        return new Status(false, 0);
       }
-    }
-    LOGGER.error("Batch write Failed!");
-    return new Status(false, 0);
   }
 
   @Override
