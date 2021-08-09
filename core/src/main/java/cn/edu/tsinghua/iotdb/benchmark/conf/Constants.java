@@ -85,6 +85,7 @@ public class Constants {
   public static final String DB_FAKE = "FakeDB";
   public static final String DB_TAOSDB = "TaosDB";
   public static final String DB_MSSQLSERVER = "MSSQLSERVER";
+  public static final String DB_VICTORIAMETRICS = "VictoriaMetrics";
 
   /** Special DB_SWITCH */
   public static final String BENCHMARK_IOTDB = "App";
@@ -142,4 +143,6 @@ public class Constants {
   public static final String TAOSDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.taosdb.TaosDB";
   public static final String MSSQLSERVER_CLASS =
       "cn.edu.tsinghua.iotdb.benchmark.mssqlserver.MsSQLServerDB";
+  public static final String VICTORIAMETRICS =
+      "cn.edu.tsinghua.iotdb.benchmark.victoriametrics.VictoriaMetrics";
 }
