@@ -65,6 +65,7 @@ public class QuestDB implements IDatabase {
       properties.setProperty("user", config.getUSERNAME());
       properties.setProperty("password", config.getPASSWORD());
       properties.setProperty("sslmode", SSLMODE);
+      properties.setProperty("gssEncMode", "disable");
       connection =
           DriverManager.getConnection(
               String.format(URL_QUEST, config.getHOST().get(0), config.getPORT().get(0)),
