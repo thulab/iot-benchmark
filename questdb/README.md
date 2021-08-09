@@ -17,6 +17,7 @@ export QDB_PG_WORKER_COUNT=0
 export QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20
 ```
 
+4. 如果你使用conf/server.conf方式配置，请务必从根目录启动QuestDB(即启动命令为`./bin/questdb.sh start`)，否则配置会失败
 ```conf
 cairo.max.uncommitted.rows=100000
 cairo.commit.lag=20000
