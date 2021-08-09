@@ -79,3 +79,5 @@ RANGE_QUERY__DESC   4.79        0.60        2.15        3.38        4.47        
 VALUE_RANGE_QUERY__DESC4.99        0.65        2.39        3.62        4.69        6.09        7.57        9.35        11.65       13.86       13.41       567.92      
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
+
+Addition: When deploy to server, you may meet connection attempted failed bug, relates: https://github.com/pgjdbc/pgjdbc/issues/1871
