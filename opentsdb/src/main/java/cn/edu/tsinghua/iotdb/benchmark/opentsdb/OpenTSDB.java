@@ -293,7 +293,7 @@ public class OpenTSDB implements IDatabase {
       sensorList.add(sensor);
     }
     Collections.shuffle(sensorList, sensorRandom);
-
+    // group2device
     Map<String, List<String>> metric2devices = new HashMap<>();
     for (DeviceSchema d : devices) {
       String m = d.getGroup();

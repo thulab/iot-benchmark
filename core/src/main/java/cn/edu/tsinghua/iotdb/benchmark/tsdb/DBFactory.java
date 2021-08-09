@@ -115,6 +115,9 @@ public class DBFactory {
         case Constants.DB_QUESTDB:
           dbClass = Constants.QUESTDB_CLASS;
           break;
+        case Constants.DB_VICTORIAMETRICS:
+          dbClass = Constants.VICTORIAMETRICS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }
