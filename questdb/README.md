@@ -5,26 +5,18 @@ QuestDB 测试实验报告
 
 # 测试环境（Docker）
 1. 拉取镜像：`docker pull questdb/questdb`
-2. 启动镜像：`docker run --rm -p 9000:9000  -p 9009:9009  -p 8812:8812  -p 9003:9003  -e QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000  -e QDB_CAIRO_COMMIT_LAG=20000 -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 -e QBD_SHARED_WORKER_COUNT=10 -e QDB_PG_WORKER_COUNT=0 -e QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20 --name=questdb questdb/questdb`
+2. 启动镜像：`docker run --rm -p 9000:9000  -p 9009:9009  -p 8812:8812  -p 9003:9003  -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 -e QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20 --name=questdb questdb/questdb`
 3. 服务器部署补充说明，请在启动服务器前，执行如下命令设置，更多参考：https://questdb.io/docs/reference/configuration#postgres-wire-protocol
 
 ```
-export QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000
-export QDB_CAIRO_COMMIT_LAG=20000
 export QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1
-export QBD_SHARED_WORKER_COUNT=20
-export QDB_PG_WORKER_COUNT=0
 export QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20
 ```
 
 4. 如果你使用配置文件：conf/server.conf的方式，对应配置文件的位置为/usr/local/var/questdb/conf/server.conf或$HOME/.questdb/conf/server.conf, 对其中如下参数进行修改
 
 ```conf
-cairo.max.uncommitted.rows=100000
-cairo.commit.lag=20000
 line.tcp.maintenance.job.interval=1
-shared.worker.count=20
-pg.worker.count=0
 pg.net.active.connection.limit=20
 ```
 
