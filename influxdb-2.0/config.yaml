@@ -1,0 +1,8 @@
+http-read-header-timeout: 0s
+query-concurrency: 100
+query-initial-memory-bytes: 104857600
+query-memory-bytes: 104857600
+query-max-memory-bytes: 10485760000
+query-queue-size: 100
+nats-max-payload-bytes: 1073741824
+storage-cache-max-memory-size: 2147483648

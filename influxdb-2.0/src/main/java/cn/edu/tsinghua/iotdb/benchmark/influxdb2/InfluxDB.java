@@ -32,7 +32,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.WriteApi;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
 import com.influxdb.client.domain.WritePrecision;
@@ -53,6 +52,7 @@ public class InfluxDB implements IDatabase {
 
   private final String token = config.getTOKEN();
   private final String org = config.getDB_NAME();
+  private String CREATE_URL = "http://%s/api/v2/write?org=%s&bucket=%s&precision=%s";
 
   private String influxUrl;
   private String influxDbName;
@@ -61,8 +61,15 @@ public class InfluxDB implements IDatabase {
 
   /** constructor. */
   public InfluxDB() {
-    influxUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
+    influxUrl = "http://" + config.getHOST().get(0) + ":" + config.getPORT().get(0);
     influxDbName = config.getDB_NAME();
+    CREATE_URL =
+        String.format(
+            CREATE_URL,
+            config.getHOST().get(0) + ":" + config.getPORT().get(0),
+            org,
+            influxDbName,
+            config.getTIMESTAMP_PRECISION());
   }
 
   @Override
@@ -144,18 +151,16 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     try {
-      WriteApi writeApi = client.getWriteApi();
       LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
       List<String> lines = new ArrayList<>();
       for (InfluxDBModel influxDBModel : influxDBModels) {
         lines.add(model2write(influxDBModel));
       }
-      writeApi.writeRecords(writePrecision, lines);
+      HttpRequestUtil.sendPost(
+          CREATE_URL, String.join("\n", lines), "text/plain; version=0.0.4; charset=utf-8", token);
       return new Status(true);
     } catch (Exception e) {
-      e.printStackTrace();
-      LOGGER.warn(e.getMessage());
-      return new Status(false, 0, e, e.toString());
+      return new Status(false, 0, e, e.getMessage());
     }
   }
 

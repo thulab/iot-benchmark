@@ -2,6 +2,8 @@ Benchmark influxdb
 ---
 This project is using iotdb-benchmark to test influxdb 2
 
+Notice, default config of influxdb2 is not support too many write in a short time.
+
 # environment
 1. influxdb: 2.0.7
 
@@ -13,9 +15,9 @@ This project is using iotdb-benchmark to test influxdb 2
     4. bucket: admin
 
 # config
-This is [config.properties](config.properties)
-
-1. [语法参考](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
+1. This is [config.properties](config.properties)
+2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.0/reference/config-options/
+3. [语法参考](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
 
 # test result
 ```
