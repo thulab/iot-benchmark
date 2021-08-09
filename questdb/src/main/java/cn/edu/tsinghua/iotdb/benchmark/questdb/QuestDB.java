@@ -60,6 +60,7 @@ public class QuestDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
+      Class.forName("org.postgresql.Driver");
       Properties properties = new Properties();
       properties.setProperty("user", config.getUSERNAME());
       properties.setProperty("password", config.getPASSWORD());
@@ -68,7 +69,7 @@ public class QuestDB implements IDatabase {
           DriverManager.getConnection(
               String.format(URL_QUEST, config.getHOST().get(0), config.getPORT().get(0)),
               properties);
-    } catch (SQLException e) {
+    } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();
       LOGGER.error("Failed to init database");
       throw new TsdbException("Failed to init database, maybe there is too much connections", e);
