@@ -146,7 +146,7 @@ public class QuestDB implements IDatabase {
           }
           // 声明主要的部分
           create.append(") timestamp(ts) ");
-          create.append("PARTITION BY DAY WITH maxUncommittedRows=250000, commitLag=240s");
+          create.append("PARTITION BY MONTH WITH maxUncommittedRows=250000, commitLag=240s");
           statement.addBatch(create.toString());
         }
         statement.executeBatch();
