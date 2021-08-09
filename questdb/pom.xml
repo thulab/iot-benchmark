@@ -20,14 +20,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.questdb</groupId>
-            <artifactId>questdb-jdk8</artifactId>
-            <version>6.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.16</version>
+            <version>42.2.22</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
