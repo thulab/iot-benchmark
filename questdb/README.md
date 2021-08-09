@@ -1,11 +1,11 @@
 QuestDB 测试实验报告
 ---
-1. 请注意：QuestDB的CLIENT_NUMBER需要在启动时完成配置(与pg.net.active.connection.limit相关)！
+1. 请注意：QuestDB的CLIENT_NUMBER需要在启动时完成配置(小于等于pg.net.active.connection.limit)！
 2. 请注意：Sensor数量收到QuestDB的影响，不能过多，推荐控制在100及以内
 
 # 测试环境（Docker）
 1. 拉取镜像：`docker pull questdb/questdb`
-2. 启动镜像：`docker run --rm -p 9000:9000  -p 9009:9009  -p 8812:8812  -p 9003:9003  -e QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000  -e QDB_CAIRO_COMMIT_LAG=20000 -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 -e QBD_SHARED_WORKER_COUNT=10 -e QDB_PG_WORKER_COUNT=0 --name=questdb questdb/questdb`
+2. 启动镜像：`docker run --rm -p 9000:9000  -p 9009:9009  -p 8812:8812  -p 9003:9003  -e QDB_CAIRO_MAX_UNCOMMITTED_ROWS=100000  -e QDB_CAIRO_COMMIT_LAG=20000 -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 -e QBD_SHARED_WORKER_COUNT=10 -e QDB_PG_WORKER_COUNT=0 -e QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20 --name=questdb questdb/questdb`
 3. 服务器部署补充说明，请在启动服务器前，执行如下命令设置，更多参考：https://questdb.io/docs/reference/configuration#postgres-wire-protocol
 
 ```
@@ -14,6 +14,7 @@ export QDB_CAIRO_COMMIT_LAG=20000
 export QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1
 export QBD_SHARED_WORKER_COUNT=10
 export QDB_PG_WORKER_COUNT=0
+export QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20
 ```
 
 ```conf
@@ -22,6 +23,7 @@ cairo.commit.lag=20000
 line.tcp.maintenance.job.interval=1
 shared.worker.count=10
 pg.worker.count=0
+pg.net.active.connection.limit=20
 ```
 
 # Config文件参数
