@@ -297,6 +297,7 @@ public class MySqlRecorder implements ITestDataPersistence {
         case Constants.DB_OPENTS:
         case Constants.DB_KAIROS:
         case Constants.DB_CTS:
+        case Constants.DB_MSSQLSERVER:
           String host = config.getHOST() + ":" + config.getPORT();
           sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'ServerIP'", "'" + host + "'");
           statement.addBatch(sql);

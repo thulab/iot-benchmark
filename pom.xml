@@ -22,6 +22,7 @@
         <module>iotdb-0.11</module>
         <module>iotdb-0.10</module>
         <module>iotdb-0.09</module>
+        <module>mssqlserver</module>
     </modules>
 
     <properties>
