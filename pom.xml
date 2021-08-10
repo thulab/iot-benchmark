@@ -24,6 +24,7 @@
         <module>iotdb-0.10</module>
         <module>iotdb-0.09</module>
         <module>mssqlserver</module>
+        <module>sqlite</module>
     </modules>
 
     <properties>

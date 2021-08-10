@@ -87,6 +87,7 @@ public class Constants {
   public static final String DB_QUESTDB = "QuestDB";
   public static final String DB_MSSQLSERVER = "MSSQLSERVER";
   public static final String DB_VICTORIAMETRICS = "VictoriaMetrics";
+  public static final String DB_SQLITE = "SQLite";
 
   /** Special DB_SWITCH */
   public static final String BENCHMARK_IOTDB = "App";
@@ -147,4 +148,5 @@ public class Constants {
   public static final String VICTORIAMETRICS =
       "cn.edu.tsinghua.iotdb.benchmark.victoriametrics.VictoriaMetrics";
   public static final String QUESTDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.questdb.QuestDB";
+  public static final String SQLITE_CLASS = "cn.edu.tsinghua.iotdb.benchmark.sqlite.SqliteDB";
 }

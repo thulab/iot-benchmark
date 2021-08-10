@@ -10,8 +10,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mssqlserver</artifactId>
-    <name>Benchmark MS SQL Server</name>
+    <artifactId>sqlite</artifactId>
+    <name>Benchmark SQLite</name>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -43,12 +43,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>${org.slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>6.2.0.jre8</version>
-            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
