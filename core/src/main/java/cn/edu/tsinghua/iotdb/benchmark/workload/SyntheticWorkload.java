@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class SyntheticWorkload implements IWorkload {
+public class SyntheticWorkload implements IGenerateWorkload {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();

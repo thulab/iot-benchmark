@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.IGenerateWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -44,7 +44,7 @@ public abstract class BaseClient extends Client implements Runnable {
   protected static final Logger LOGGER = LoggerFactory.getLogger(BaseClient.class);
 
   private final OperationController operationController;
-  private final IWorkload syntheticWorkload;
+  private final IGenerateWorkload syntheticWorkload;
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
   private final DataSchema dataSchema = DataSchema.getInstance();
@@ -52,7 +52,7 @@ public abstract class BaseClient extends Client implements Runnable {
   private long loopIndex;
 
   public BaseClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IWorkload workload) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IGenerateWorkload workload) {
     super(id, countDownLatch, barrier);
     syntheticWorkload = workload;
     singletonWorkload = SingletonWorkload.getInstance();

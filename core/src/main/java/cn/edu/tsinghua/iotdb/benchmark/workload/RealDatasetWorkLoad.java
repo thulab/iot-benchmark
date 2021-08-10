@@ -39,7 +39,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RealDatasetWorkLoad implements IWorkload {
+public class RealDatasetWorkLoad implements IGenerateWorkload {
 
   private BasicReader reader;
 
