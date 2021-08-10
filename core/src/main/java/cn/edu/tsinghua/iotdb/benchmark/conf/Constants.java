@@ -84,6 +84,7 @@ public class Constants {
   public static final String DB_TIMESCALE = "TimescaleDB";
   public static final String DB_FAKE = "FakeDB";
   public static final String DB_TAOSDB = "TaosDB";
+  public static final String DB_QUESTDB = "QuestDB";
   public static final String DB_MSSQLSERVER = "MSSQLSERVER";
   public static final String DB_VICTORIAMETRICS = "VictoriaMetrics";
 
@@ -145,4 +146,5 @@ public class Constants {
       "cn.edu.tsinghua.iotdb.benchmark.mssqlserver.MsSQLServerDB";
   public static final String VICTORIAMETRICS =
       "cn.edu.tsinghua.iotdb.benchmark.victoriametrics.VictoriaMetrics";
+  public static final String QUESTDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.questdb.QuestDB";
 }
