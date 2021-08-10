@@ -39,7 +39,11 @@ public class ReddReader extends BasicReader {
 
   @Override
   public void init() {
-    String[] items = new File(currentFile).getAbsolutePath().split("/");
+    String separator = File.separator;
+    if(separator.equals("\\")){
+      separator = "\\\\";
+    }
+    String[] items = new File(currentFile).getAbsolutePath().split(separator);
     currentDeviceId =
         items[items.length - 2] + "_" + items[items.length - 1].replaceAll("\\.dat", "");
     deviceSchema =

@@ -148,7 +148,11 @@ public abstract class BasicReader {
     switch (config.getDATA_SET()) {
       case REDD:
         for (String currentFile : files) {
-          String[] items = currentFile.split("/");
+          String separator = File.separator;
+          if(separator.equals("\\")){
+            separator = "\\\\";
+          }
+          String[] items = currentFile.split(separator);
           String deviceId =
               items[items.length - 2] + "_" + items[items.length - 1].replaceAll("\\.dat", "");
           if (!devices.contains(deviceId)) {
