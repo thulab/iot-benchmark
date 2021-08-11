@@ -72,6 +72,10 @@ public class IotdbRecorder implements ITestDataPersistence {
 
   private long count = 0;
 
+  private static int threadID = 0;
+  private int myID = 0;
+  public static boolean initSchema = false;
+
   public IotdbRecorder() {
     try {
       InetAddress localhost = InetAddress.getLocalHost();
@@ -90,7 +94,13 @@ public class IotdbRecorder implements ITestDataPersistence {
                   JDBC_URL, config.getTEST_DATA_STORE_IP(), config.getTEST_DATA_STORE_PORT()),
               config.getTEST_DATA_STORE_USER(),
               config.getTEST_DATA_STORE_PW());
-      initSchema();
+      synchronized (this) {
+        if (!initSchema) {
+          initSchema();
+          initSchema = true;
+        }
+      }
+      this.setThreadID();
       globalStatement = connection.createStatement();
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
@@ -203,6 +213,7 @@ public class IotdbRecorder implements ITestDataPersistence {
   public void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap) {
     try (Statement statement = connection.createStatement()) {
       long currTime = System.currentTimeMillis();
+      currTime = currTime * 1000000;
       StringBuilder builder =
           new StringBuilder(INSERT_SQL_PREFIX)
               .append(".")
@@ -231,6 +242,7 @@ public class IotdbRecorder implements ITestDataPersistence {
       String operation, int okPoint, int failPoint, double latency, String remark) {
     StringBuilder builder = new StringBuilder(OPERATION_RESULT_PREFIX);
     long currTime = System.currentTimeMillis();
+    currTime = currTime * 1000000 + this.getThreadID();
     builder.append(operation).append(INSERT_SQL_STR2);
     for (SingleTestMetrics metrics : SingleTestMetrics.values()) {
       builder.append(",").append(metrics.getName());
@@ -251,7 +263,8 @@ public class IotdbRecorder implements ITestDataPersistence {
     builder.append(".").append(operation).append(INSERT_SQL_STR2);
     builder.append(",").append(key);
     builder.append(INSERT_SQL_STR1);
-    builder.append(EXP_TIME);
+    long currTime = EXP_TIME * 1000000;
+    builder.append(currTime);
     builder.append(",").append(value);
     addBatch(builder);
   }
@@ -273,6 +286,16 @@ public class IotdbRecorder implements ITestDataPersistence {
   @Override
   public void saveTestConfig() {
     // TODO save config into IoTDB
+  }
+
+  public void setThreadID() {
+    synchronized (this) {
+      myID = threadID++;
+    }
+  }
+
+  public int getThreadID() {
+    return myID;
   }
 
   @Override
