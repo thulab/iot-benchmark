@@ -40,7 +40,7 @@ public class ReddReader extends BasicReader {
   @Override
   public void init() {
     String separator = File.separator;
-    if(separator.equals("\\")){
+    if (separator.equals("\\")) {
       separator = "\\\\";
     }
     String[] items = new File(currentFile).getAbsolutePath().split(separator);

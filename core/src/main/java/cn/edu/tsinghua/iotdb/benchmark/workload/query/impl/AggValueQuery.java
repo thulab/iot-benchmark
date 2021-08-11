@@ -50,9 +50,9 @@ public class AggValueQuery extends AggRangeQuery {
   }
 
   public AggValueQuery(
+      List<DeviceSchema> deviceSchema,
       long startTime,
       long endTime,
-      List<DeviceSchema> deviceSchema,
       String aggFun,
       double valueThreshold) {
     super(deviceSchema, startTime, endTime, aggFun);

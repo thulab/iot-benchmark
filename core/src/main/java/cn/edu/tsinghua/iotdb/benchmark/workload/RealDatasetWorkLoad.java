@@ -144,9 +144,9 @@ public class RealDatasetWorkLoad implements IGenerateWorkload {
   @Override
   public AggValueQuery getAggValueQuery() {
     return new AggValueQuery(
+        deviceSchemaList,
         startTime,
         endTime,
-        deviceSchemaList,
         config.getQUERY_AGGREGATE_FUN(),
         config.getQUERY_LOWER_VALUE());
   }

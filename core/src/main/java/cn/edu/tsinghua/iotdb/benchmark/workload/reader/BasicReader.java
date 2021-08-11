@@ -149,7 +149,7 @@ public abstract class BasicReader {
       case REDD:
         for (String currentFile : files) {
           String separator = File.separator;
-          if(separator.equals("\\")){
+          if (separator.equals("\\")) {
             separator = "\\\\";
           }
           String[] items = currentFile.split(separator);
