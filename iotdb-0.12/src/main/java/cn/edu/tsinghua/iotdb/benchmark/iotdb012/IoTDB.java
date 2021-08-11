@@ -188,7 +188,7 @@ public class IoTDB implements IDatabase {
         tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
-        compressionTypes.add(Enum.valueOf(CompressionType.class, "UNCOMPRESSED"));
+        compressionTypes.add(Enum.valueOf(CompressionType.class, "SNAPPY"));
         if (++count % createSchemaBatchNum == 0) {
           registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
         }
