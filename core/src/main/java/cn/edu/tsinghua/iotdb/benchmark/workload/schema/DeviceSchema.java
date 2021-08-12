@@ -70,23 +70,9 @@ public class DeviceSchema implements Cloneable {
   }
 
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
-    int thisDeviceGroupIndex = calGroupId(deviceId);
+    int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
     group = Constants.GROUP_NAME_PREFIX + thisDeviceGroupIndex;
     sensors.addAll(config.getSENSOR_CODES());
-  }
-
-  int calGroupId(int deviceId) throws WorkloadException {
-    switch (config.getSG_STRATEGY()) {
-      case Constants.MOD_SG_ASSIGN_MODE:
-        return deviceId % config.getGROUP_NUMBER();
-      case Constants.HASH_SG_ASSIGN_MODE:
-        return (deviceId + "").hashCode() % config.getGROUP_NUMBER();
-      case Constants.DIV_SG_ASSIGN_MODE:
-        int devicePerGroup = config.getDEVICE_NUMBER() / config.getGROUP_NUMBER();
-        return (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
-      default:
-        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
-    }
   }
 
   public String getDevice() {
@@ -143,7 +129,6 @@ public class DeviceSchema implements Cloneable {
     result.device = ReadWriteIOUtils.readString(inputStream);
     result.sensors = ReadWriteIOUtils.readStringList(inputStream);
     result.deviceId = ReadWriteIOUtils.readInt(inputStream);
-
     return result;
   }
 
