@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -41,6 +42,7 @@ public class VictoriaMetrics implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String URL = config.getHOST().get(0) + ":" + config.getPORT().get(0);
   private static final String CREATE_URL =
@@ -184,6 +186,7 @@ public class VictoriaMetrics implements IDatabase {
     model.setMetric(metric);
     model.setTimestamp(timestamp);
     model.setValue(value);
+    model.setType(baseDataSchema.getSensorType(device, sensor));
     Map<String, String> tags = new HashMap<>();
     tags.put("device", device);
     tags.put("sensor", sensor);

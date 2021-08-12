@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DeviceSchema implements Cloneable {
@@ -40,53 +38,34 @@ public class DeviceSchema implements Cloneable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   /** prefix of device name */
-  private static final String DEVICE_NAME_PREFIX = "d_";
+
   /** Each device belongs to one group, i.e. database */
   private String group;
-  /** Id of device */
+  /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
-  /** Sensor ids of device */
+  /** Names of sensors from this device, e.g. ["s_0", "s_1", ..., "s_n"] */
   private List<String> sensors;
   /** Only used for synthetic data set */
   private int deviceId;
 
   public DeviceSchema() {}
 
-  public DeviceSchema(int deviceId) {
+  public DeviceSchema(int deviceId, List<String> sensors) {
     this.deviceId = deviceId;
-    this.device = DEVICE_NAME_PREFIX + deviceId;
-    sensors = new ArrayList<>();
+    this.device = MetaUtil.getDeviceName(deviceId);
+    this.sensors = sensors;
     try {
-      createEvenlyAllocDeviceSchema();
+      int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
+      this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
     } catch (WorkloadException e) {
       LOGGER.error("Create device schema failed.", e);
     }
   }
 
   public DeviceSchema(String group, String device, List<String> sensors) {
-    this.group = config.getDB_NAME() + "_" + group;
-    this.device = DEVICE_NAME_PREFIX + device;
+    this.group = MetaUtil.getGroupName(group);
+    this.device = MetaUtil.getDeviceName(device);
     this.sensors = sensors;
-  }
-
-  private void createEvenlyAllocDeviceSchema() throws WorkloadException {
-    int thisDeviceGroupIndex = calGroupId(deviceId);
-    group = config.getDB_NAME() + thisDeviceGroupIndex;
-    sensors.addAll(config.getSENSOR_CODES());
-  }
-
-  int calGroupId(int deviceId) throws WorkloadException {
-    switch (config.getSG_STRATEGY()) {
-      case Constants.MOD_SG_ASSIGN_MODE:
-        return deviceId % config.getGROUP_NUMBER();
-      case Constants.HASH_SG_ASSIGN_MODE:
-        return (deviceId + "").hashCode() % config.getGROUP_NUMBER();
-      case Constants.DIV_SG_ASSIGN_MODE:
-        int devicePerGroup = config.getDEVICE_NUMBER() / config.getGROUP_NUMBER();
-        return (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
-      default:
-        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
-    }
   }
 
   public String getDevice() {
@@ -143,7 +122,6 @@ public class DeviceSchema implements Cloneable {
     result.device = ReadWriteIOUtils.readString(inputStream);
     result.sensors = ReadWriteIOUtils.readStringList(inputStream);
     result.deviceId = ReadWriteIOUtils.readInt(inputStream);
-
     return result;
   }
 

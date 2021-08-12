@@ -41,7 +41,7 @@ public class SyntheticWorkloadTest {
     config.setIS_REGULAR_FREQUENCY(false);
     SyntheticWorkload syntheticWorkload = new SyntheticWorkload(1);
     for (int i = 0; i < 3; i++) {
-      Batch batch = syntheticWorkload.getOneBatch(new DeviceSchema(1), i);
+      Batch batch = syntheticWorkload.getOneBatch(new DeviceSchema(1, config.getSENSOR_CODES()), i);
       long old = 0;
       for (Record record : batch.getRecords()) {
         // 检查map里timestamp获取到的是否是按序的
