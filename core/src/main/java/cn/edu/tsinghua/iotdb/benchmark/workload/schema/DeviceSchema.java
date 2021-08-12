@@ -40,10 +40,10 @@ public class DeviceSchema implements Cloneable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   /** prefix of device name */
-  private static final String DEVICE_NAME_PREFIX = "d_";
+
   /** Each device belongs to one group, i.e. database */
   private String group;
-  /** Id of device */
+  /** Id of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
   /** Sensor ids of device */
   private List<String> sensors;
@@ -54,7 +54,7 @@ public class DeviceSchema implements Cloneable {
 
   public DeviceSchema(int deviceId) {
     this.deviceId = deviceId;
-    this.device = DEVICE_NAME_PREFIX + deviceId;
+    this.device = Constants.DEVICE_NAME_PREFIX + deviceId;
     sensors = new ArrayList<>();
     try {
       createEvenlyAllocDeviceSchema();
@@ -64,14 +64,14 @@ public class DeviceSchema implements Cloneable {
   }
 
   public DeviceSchema(String group, String device, List<String> sensors) {
-    this.group = config.getDB_NAME() + "_" + group;
-    this.device = DEVICE_NAME_PREFIX + device;
+    this.group = Constants.GROUP_NAME_PREFIX + group;
+    this.device = Constants.DEVICE_NAME_PREFIX + device;
     this.sensors = sensors;
   }
 
   private void createEvenlyAllocDeviceSchema() throws WorkloadException {
     int thisDeviceGroupIndex = calGroupId(deviceId);
-    group = config.getDB_NAME() + thisDeviceGroupIndex;
+    group = Constants.GROUP_NAME_PREFIX + thisDeviceGroupIndex;
     sensors.addAll(config.getSENSOR_CODES());
   }
 

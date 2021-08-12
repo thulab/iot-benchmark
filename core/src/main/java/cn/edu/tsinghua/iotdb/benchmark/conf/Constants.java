@@ -99,6 +99,11 @@ public class Constants {
   public static final String MODE_QUERY_WITH_REAL_DATASET = "queryWithRealDataSet";
   public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
   public static final String MODE_SERVER_MODE = "serverMODE";
+
+  /** constant of device */
+  public static final String DEVICE_NAME_PREFIX = "d_";
+  public static final String GROUP_NAME_PREFIX = "g_";
+
   /** support test data persistence */
   public static final String TDP_NONE = "None";
 

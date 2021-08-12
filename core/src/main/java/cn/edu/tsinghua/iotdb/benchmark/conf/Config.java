@@ -92,7 +92,7 @@ public class Config {
   /** The password of user */
   private String PASSWORD = "root";
 
-  /** The name of database to use, and the prefix of group, eg.IoTDB root.{DB_NAME} */
+  /** The name of database to use, eg.IoTDB root.{DB_NAME} */
   private String DB_NAME = "_test";
 
   /** In some database, it will need token to access, such as InfluxDB 2.0 */
