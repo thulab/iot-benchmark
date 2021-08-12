@@ -4,12 +4,12 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +23,7 @@ import java.util.List;
 public class MsSQLServerDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
   private static final String DBURL =
@@ -139,7 +140,8 @@ public class MsSQLServerDB implements IDatabase {
         String time = format.format(record.getTimestamp());
         List<Object> values = record.getRecordDataValue();
         for (int i = 0; i < values.size(); i++) {
-          statement.addBatch(getOneLine(idPredix, i, time, values.get(i)));
+          statement.addBatch(
+              getOneLine(idPredix, i, time, values.get(i), deviceSchema.getDevice()));
         }
       }
       statement.executeBatch();
@@ -151,9 +153,10 @@ public class MsSQLServerDB implements IDatabase {
     }
   }
 
-  private String getOneLine(long idPredix, int sensorIndex, String time, Object value) {
+  private String getOneLine(
+      long idPredix, int sensorIndex, String time, Object value, String device) {
     long sensorNow = sensorIndex + idPredix;
-    String sysType = typeMap(DBUtil.getDataType(sensorIndex));
+    String sysType = typeMap(baseDataSchema.getSensorType(device, sensorIndex));
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")
             .append(config.getDB_NAME() + "_" + sysType)
@@ -192,7 +195,12 @@ public class MsSQLServerDB implements IDatabase {
         String time = format.format(record.getTimestamp());
         List<Object> values = record.getRecordDataValue();
         statement.addBatch(
-            getOneLine(idPredix, batch.getColIndex(), time, values.get(batch.getColIndex())));
+            getOneLine(
+                idPredix,
+                batch.getColIndex(),
+                time,
+                values.get(batch.getColIndex()),
+                deviceSchema.getDevice()));
       }
       statement.executeBatch();
       statement.close();

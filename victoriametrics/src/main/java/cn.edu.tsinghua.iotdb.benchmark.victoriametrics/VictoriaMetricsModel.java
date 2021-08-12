@@ -1,17 +1,15 @@
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-/** @Author stormbroken Create by 2021/07/27 @Version 1.0 */
 public class VictoriaMetricsModel implements Serializable {
   private static final long serialVersionUID = 1L;
   private String metric;
   private long timestamp;
   private Object value;
+  private String type;
   private Map<String, String> tags = new HashMap<String, String>();
 
   public String getMetric() {
@@ -46,6 +44,14 @@ public class VictoriaMetricsModel implements Serializable {
     this.tags = tags;
   }
 
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
   @Override
   public String toString() {
     StringBuffer result = new StringBuffer(metric);
@@ -64,7 +70,6 @@ public class VictoriaMetricsModel implements Serializable {
         result.append("\"");
       }
     }
-    String type = DBUtil.getDataType(Integer.parseInt(tags.get("sensor").split("_")[1]));
     result.append("} ");
     if (type.equals("BOOLEAN")) {
       result.append((boolean) value ? 1 : 0);

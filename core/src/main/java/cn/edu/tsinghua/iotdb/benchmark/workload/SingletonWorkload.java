@@ -59,7 +59,8 @@ public class SingletonWorkload {
 
   private Batch getOrderedBatch() {
     long curLoop = insertLoop.getAndIncrement();
-    DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER());
+    DeviceSchema deviceSchema =
+        new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER(), config.getSENSOR_CODES());
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       long stepOffset =
@@ -89,7 +90,7 @@ public class SingletonWorkload {
   private Batch getDistOutOfOrderBatch() {
     long curLoop = insertLoop.getAndIncrement();
     int deviceIndex = (int) (curLoop % config.getDEVICE_NUMBER());
-    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex);
+    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex, config.getSENSOR_CODES());
 
     Batch batch = new Batch();
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);

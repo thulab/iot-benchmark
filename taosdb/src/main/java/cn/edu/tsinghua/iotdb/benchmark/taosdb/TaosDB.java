@@ -22,13 +22,14 @@ package cn.edu.tsinghua.iotdb.benchmark.taosdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,8 @@ import java.util.List;
 public class TaosDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TaosDB.class);
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String URL_TAOS = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
   private static final String CREATE_DATABASE = "create database if not exists %s";
@@ -110,7 +113,8 @@ public class TaosDB implements IDatabase {
         StringBuilder superSql = new StringBuilder();
         int sensorIndex = 0;
         for (String sensor : config.getSENSOR_CODES()) {
-          String dataType = typeMap(DBUtil.getDataType(sensorIndex));
+          String dataType =
+              typeMap(baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensorIndex));
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
           } else {
@@ -212,7 +216,7 @@ public class TaosDB implements IDatabase {
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (typeMap(DBUtil.getDataType(sensorIndex))) {
+      switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex))) {
         case "BOOL":
           builder.append(",").append((boolean) value);
           break;
@@ -246,7 +250,7 @@ public class TaosDB implements IDatabase {
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = colIndex;
     Object value = values.get(0);
-    switch (typeMap(DBUtil.getDataType(sensorIndex))) {
+    switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex))) {
       case "BOOL":
         builder.append(",").append((boolean) value);
         break;

@@ -100,10 +100,14 @@ public class Constants {
   public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
   public static final String MODE_SERVER_MODE = "serverMODE";
 
-  /** constant of device */
-  public static final String DEVICE_NAME_PREFIX = "d_";
-
+  /** name prefix of group */
   public static final String GROUP_NAME_PREFIX = "g_";
+  /** name prefix of device */
+  public static final String DEVICE_NAME_PREFIX = "d_";
+  /** name prefix of sensor */
+  public static final String SENSOR_NAME_PREFIX = "s_";
+  /** default type of sensor, which is TEXT in iotdb type */
+  public static final String DEFAULT_TYPE = "TEXT";
 
   /** support test data persistence */
   public static final String TDP_NONE = "None";

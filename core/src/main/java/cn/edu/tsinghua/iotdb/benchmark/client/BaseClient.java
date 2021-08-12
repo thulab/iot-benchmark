@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
@@ -221,7 +220,7 @@ public abstract class BaseClient extends Client implements Runnable {
                 Batch batch =
                     syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
                 batch.setColIndex(colIndex);
-                String colType = DBUtil.getDataType(colIndex);
+                String colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), colIndex);
                 batch.setColType(colType);
                 dbWrapper.insertOneSensorBatch(batch);
                 colIndex++;

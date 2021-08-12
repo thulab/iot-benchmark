@@ -7,7 +7,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @Author stormbroken Create by 2021/08/12 @Version 1.0 */
 public class MetaUtil {
 
   private static Logger LOGGER = LoggerFactory.getLogger(MetaUtil.class);
@@ -32,5 +31,18 @@ public class MetaUtil {
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
+  }
+
+  /** Get Format Name */
+  public static String getGroupName(Object groupId) {
+    return Constants.GROUP_NAME_PREFIX + groupId;
+  }
+
+  public static String getDeviceName(Object deviceId) {
+    return Constants.DEVICE_NAME_PREFIX + deviceId;
+  }
+
+  public static String getSensorName(Object sensorId) {
+    return Constants.SENSOR_NAME_PREFIX + sensorId;
   }
 }

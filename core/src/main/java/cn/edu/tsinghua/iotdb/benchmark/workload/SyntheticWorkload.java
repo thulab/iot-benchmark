@@ -27,11 +27,11 @@ import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +49,8 @@ public class SyntheticWorkload implements IWorkload {
 
   private final Map<DeviceSchema, Long> maxTimestampIndexMap;
   private final Map<Operation, Long> operationLoops;
+
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private final Random queryDeviceRandom;
   private static final Random random = new Random(config.getDATA_SEED());
@@ -89,12 +91,13 @@ public class SyntheticWorkload implements IWorkload {
       int sensorIndex = 0;
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.getSENSOR_CODES().get(j);
+        String sensorType = baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
           long currentTimestamp = getCurrentTimestamp(i);
           Object value;
-          if (DBUtil.getDataType(sensorIndex).equals("TEXT")) {
+          if (sensorType.equals("TEXT")) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
             StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
             for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
@@ -105,7 +108,7 @@ public class SyntheticWorkload implements IWorkload {
             // not TEXT case
             FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
             Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
-            switch (DBUtil.getDataType(sensorIndex)) {
+            switch (sensorType) {
               case "BOOLEAN":
                 value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
                 break;
@@ -343,7 +346,8 @@ public class SyntheticWorkload implements IWorkload {
     for (int m = 0;
         queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < config.getDEVICE_NUMBER();
         m++) {
-      DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m));
+      DeviceSchema deviceSchema =
+          new DeviceSchema(clientDevicesIndex.get(m), config.getSENSOR_CODES());
       List<String> sensors = deviceSchema.getSensors();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();
@@ -351,7 +355,9 @@ public class SyntheticWorkload implements IWorkload {
           querySensors.size() < config.getQUERY_SENSOR_NUM() && i < config.getSENSOR_NUMBER();
           i++) {
         if (!typeAllow) {
-          String type = DBUtil.getDataType(Integer.parseInt(sensors.get(i).split("_")[1]));
+          String type =
+              baseDataSchema.getSensorType(
+                  deviceSchema.getDevice(), Integer.parseInt(sensors.get(i).split("_")[1]));
           if (type.equals("BOOLEAN") || type.equals("TEXT")) {
             continue;
           }
