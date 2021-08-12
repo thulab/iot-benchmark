@@ -30,6 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -529,18 +530,18 @@ public class QuestDB implements IDatabase {
    * @return
    */
   @Override
-  public String typeMap(String iotdbType) {
+  public String typeMap(Type iotdbType) {
     switch (iotdbType) {
-      case "BOOLEAN":
+      case BOOLEAN:
         return "BOOLEAN";
-      case "INT32":
+      case INT32:
         return "INT";
-      case "INT64":
+      case INT64:
         return "LONG";
-      case "FLOAT":
-      case "DOUBLE":
+      case FLOAT:
+      case DOUBLE:
         return "DOUBLE";
-      case "TEXT":
+      case TEXT:
         return "STRING";
       default:
         LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);

@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -35,7 +36,7 @@ public class Batch {
   private DeviceSchema deviceSchema;
   private List<Record> records;
   private int colIndex = -1;
-  private String colType;
+  private Type colType;
 
   public Batch() {
     records = new LinkedList<>();
@@ -104,7 +105,7 @@ public class Batch {
     this.colIndex = colIndex;
   }
 
-  public void setColType(String colType) {
+  public void setColType(Type colType) {
     this.colType = colType;
   }
 
@@ -112,7 +113,7 @@ public class Batch {
     return colIndex;
   }
 
-  public String getColType() {
+  public Type getColType() {
     return colType;
   }
 

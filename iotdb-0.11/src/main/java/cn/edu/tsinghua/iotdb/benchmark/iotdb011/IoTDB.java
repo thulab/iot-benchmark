@@ -30,6 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +128,7 @@ public class IoTDB implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            String dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex);
+            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -161,14 +162,14 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getEncodingType(String dataType) {
+  String getEncodingType(Type dataType) {
     switch (dataType) {
-      case "BOOLEAN":
-      case "INT32":
-      case "INT64":
-      case "FLOAT":
-      case "DOUBLE":
-      case "TEXT":
+      case BOOLEAN:
+      case INT32:
+      case INT64:
+      case FLOAT:
+      case DOUBLE:
+      case TEXT:
         return "PLAIN";
       default:
         LOGGER.error("Unsupported data type {}.", dataType);
@@ -195,7 +196,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = connection.createStatement()) {
-      String colType = batch.getColType();
+      Type colType = batch.getColType();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
@@ -385,7 +386,7 @@ public class IoTDB implements IDatabase {
     int sensorIndex = 0;
     for (Object value : values) {
       switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex)) {
-        case "TEXT":
+        case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;
         default:
@@ -400,7 +401,7 @@ public class IoTDB implements IDatabase {
   }
 
   public static String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, Object value, String colType) {
+      DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
@@ -416,7 +417,7 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     switch (colType) {
-      case "TEXT":
+      case TEXT:
         builder.append(",").append("'").append(value).append("'");
         break;
       default:

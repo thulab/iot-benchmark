@@ -30,6 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -528,19 +529,19 @@ public class TaosDB implements IDatabase {
   }
 
   @Override
-  public String typeMap(String iotdbType) {
+  public String typeMap(Type iotdbType) {
     switch (iotdbType) {
-      case "BOOLEAN":
+      case BOOLEAN:
         return "BOOL";
-      case "INT32":
+      case INT32:
         return "INT";
-      case "INT64":
+      case INT64:
         return "BIGINT";
-      case "FLOAT":
+      case FLOAT:
         return "FLOAT";
-      case "DOUBLE":
+      case DOUBLE:
         return "DOUBLE";
-      case "TEXT":
+      case TEXT:
         return "BINARY";
       default:
         LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);

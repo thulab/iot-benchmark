@@ -35,7 +35,7 @@ public class DataSchema extends BaseDataSchema {
 
   @Override
   protected void createDataSchema() {
-    Map<String, String> sensorTypes = getSensorTypes();
+    Map<String, Type> sensorTypes = getSensorTypes();
     List<String> sensors = new ArrayList<>(sensorTypes.keySet());
     int eachClientDeviceNum;
     if (config.getCLIENT_NUMBER() != 0) {
@@ -63,13 +63,10 @@ public class DataSchema extends BaseDataSchema {
     }
   }
 
-  private Map<String, String> getSensorTypes() {
+  private Map<String, Type> getSensorTypes() {
     double[] probabilities = generateProbabilities();
-    Map<String, String> sensors = new HashMap<>();
+    Map<String, Type> sensors = new HashMap<>();
     for (int sensorIndex = 0; sensorIndex < config.getSENSOR_NUMBER(); sensorIndex++) {
-      // TODO refactor to enum
-      List<String> type =
-          new ArrayList<>(Arrays.asList("BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"));
       double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
       int i;
       for (i = 1; i <= 6; i++) {
@@ -78,7 +75,7 @@ public class DataSchema extends BaseDataSchema {
         }
       }
       String sensorName = MetaUtil.getSensorName(sensorIndex);
-      sensors.put(sensorName, type.get(i - 1));
+      sensors.put(sensorName, Type.getType(i));
     }
     return sensors;
   }

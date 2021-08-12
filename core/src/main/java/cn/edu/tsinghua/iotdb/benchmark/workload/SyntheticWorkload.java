@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,13 +92,13 @@ public class SyntheticWorkload implements IWorkload {
       int sensorIndex = 0;
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.getSENSOR_CODES().get(j);
-        String sensorType = baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor);
+        Type sensorType = baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
           long currentTimestamp = getCurrentTimestamp(i);
           Object value;
-          if (sensorType.equals("TEXT")) {
+          if (sensorType == Type.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
             StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
             for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
@@ -109,19 +110,19 @@ public class SyntheticWorkload implements IWorkload {
             FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
             Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
             switch (sensorType) {
-              case "BOOLEAN":
+              case BOOLEAN:
                 value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
                 break;
-              case "INT32":
+              case INT32:
                 value = number.intValue();
                 break;
-              case "INT64":
+              case INT64:
                 value = number.longValue();
                 break;
-              case "FLOAT":
+              case FLOAT:
                 value = (float) (Math.round(number.floatValue()));
                 break;
-              case "DOUBLE":
+              case DOUBLE:
                 value = (double) Math.round(number.doubleValue());
                 break;
               default:
@@ -355,10 +356,10 @@ public class SyntheticWorkload implements IWorkload {
           querySensors.size() < config.getQUERY_SENSOR_NUM() && i < config.getSENSOR_NUMBER();
           i++) {
         if (!typeAllow) {
-          String type =
+          Type type =
               baseDataSchema.getSensorType(
                   deviceSchema.getDevice(), Integer.parseInt(sensors.get(i).split("_")[1]));
-          if (type.equals("BOOLEAN") || type.equals("TEXT")) {
+          if (type == Type.BOOLEAN || type == Type.TEXT) {
             continue;
           }
         }

@@ -1,6 +1,5 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,7 @@ public abstract class BaseDataSchema {
   /** Store DeviceSchema for each client */
   protected static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
   /** Type map for each sensors, mapping rule: device(e.g. d_0) -> sensor (e.g. s_0) -> type */
-  protected static final Map<String, Map<String, String>> TYPE_MAPPING = new HashMap<>();
+  protected static final Map<String, Map<String, Type>> TYPE_MAPPING = new HashMap<>();
   /** The singleton of BaseDataSchema */
   private static BaseDataSchema baseDataSchema;
 
@@ -44,7 +43,7 @@ public abstract class BaseDataSchema {
    * @param sensor
    * @param type
    */
-  public void addSensorType(String device, String sensor, String type) {
+  public void addSensorType(String device, String sensor, Type type) {
     if (!TYPE_MAPPING.containsKey(device)) {
       TYPE_MAPPING.put(device, new HashMap<>());
     }
@@ -57,10 +56,11 @@ public abstract class BaseDataSchema {
    * @param device
    * @param types
    */
-  public void addSensorType(String device, Map<String, String> types) {
+  public void addSensorType(String device, Map<String, Type> types) {
     TYPE_MAPPING.put(device, types);
   }
 
+  // TODO modify hard code
   /**
    * Get sensor type of one sensor
    *
@@ -68,7 +68,7 @@ public abstract class BaseDataSchema {
    * @param sensorId
    * @return default: Constants.DEFAULT_TYPE;
    */
-  public String getSensorType(String device, int sensorId) {
+  public Type getSensorType(String device, int sensorId) {
     String sensorName = MetaUtil.getSensorName(sensorId);
     return getSensorType(device, sensorName);
   }
@@ -80,12 +80,12 @@ public abstract class BaseDataSchema {
    * @param sensor
    * @return default: Constants.DEFAULT_TYPE;
    */
-  public String getSensorType(String device, String sensor) {
+  public Type getSensorType(String device, String sensor) {
     try {
       return TYPE_MAPPING.get(device).get(sensor);
     } catch (Exception exception) {
       LOGGER.warn(String.format("Unknown type for device: %s, sensor: %s", device, sensor));
-      return Constants.DEFAULT_TYPE;
+      return Type.TEXT;
     }
   }
 
@@ -95,7 +95,7 @@ public abstract class BaseDataSchema {
    * @param device
    * @return empty
    */
-  public Map<String, String> getSensorType(String device) {
+  public Map<String, Type> getSensorType(String device) {
     try {
       return TYPE_MAPPING.get(device);
     } catch (Exception e) {

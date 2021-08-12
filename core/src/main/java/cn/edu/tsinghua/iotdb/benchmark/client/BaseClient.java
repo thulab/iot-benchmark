@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -220,7 +221,7 @@ public abstract class BaseClient extends Client implements Runnable {
                 Batch batch =
                     syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
                 batch.setColIndex(colIndex);
-                String colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), colIndex);
+                Type colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), colIndex);
                 batch.setColType(colType);
                 dbWrapper.insertOneSensorBatch(batch);
                 colIndex++;
