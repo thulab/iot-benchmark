@@ -55,7 +55,7 @@ public class DeviceSchema implements Cloneable {
   public DeviceSchema(int deviceId) {
     this.deviceId = deviceId;
     this.device = Constants.DEVICE_NAME_PREFIX + deviceId;
-    sensors = new ArrayList<>();
+    this.sensors = new ArrayList<>();
     try {
       createEvenlyAllocDeviceSchema();
     } catch (WorkloadException e) {

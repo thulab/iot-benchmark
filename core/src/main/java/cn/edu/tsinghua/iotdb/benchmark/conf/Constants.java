@@ -102,6 +102,7 @@ public class Constants {
 
   /** constant of device */
   public static final String DEVICE_NAME_PREFIX = "d_";
+
   public static final String GROUP_NAME_PREFIX = "g_";
 
   /** support test data persistence */

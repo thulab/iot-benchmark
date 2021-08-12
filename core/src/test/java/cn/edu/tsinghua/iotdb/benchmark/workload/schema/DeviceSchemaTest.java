@@ -38,5 +38,4 @@ public class DeviceSchemaTest {
   public void tearDown() {
     ConfigDescriptor.getInstance().getConfig().setSG_STRATEGY(strategy);
   }
-
 }
