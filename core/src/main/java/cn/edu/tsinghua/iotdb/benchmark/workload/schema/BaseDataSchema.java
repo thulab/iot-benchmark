@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

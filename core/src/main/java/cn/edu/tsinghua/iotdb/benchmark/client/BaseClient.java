@@ -20,8 +20,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.IGenerateWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;

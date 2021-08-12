@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -39,8 +38,8 @@ public class GeolifeReader extends BasicReader {
   private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-hh:mm:ss");
   private DeviceSchema deviceSchema;
 
-  public GeolifeReader(Config config, List<String> files) {
-    super(config, files);
+  public GeolifeReader(List<String> files) {
+    super(files);
   }
 
   private Record convertToRecord(String line) {

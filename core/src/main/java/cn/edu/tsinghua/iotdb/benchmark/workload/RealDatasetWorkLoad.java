@@ -57,16 +57,16 @@ public class RealDatasetWorkLoad implements IGenerateWorkload {
   public RealDatasetWorkLoad(List<String> files, Config config) {
     switch (config.getDATA_SET()) {
       case TDRIVE:
-        reader = new TDriveReader(config, files);
+        reader = new TDriveReader(files);
         break;
       case REDD:
-        reader = new ReddReader(config, files);
+        reader = new ReddReader(files);
         break;
       case GEOLIFE:
-        reader = new GeolifeReader(config, files);
+        reader = new GeolifeReader(files);
         break;
       case NOAA:
-        reader = new NOAAReader(config, files);
+        reader = new NOAAReader(files);
         break;
       default:
         throw new RuntimeException(config.getDATA_SET() + " not supported");

@@ -29,7 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

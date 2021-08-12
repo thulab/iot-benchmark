@@ -20,6 +20,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
@@ -35,8 +37,8 @@ import java.util.Set;
 
 public abstract class BasicReader {
 
-  private static final Logger logger = LoggerFactory.getLogger(BasicReader.class);
-  protected Config config;
+  private static final Logger LOGGER = LoggerFactory.getLogger(BasicReader.class);
+  protected Config config = ConfigDescriptor.getInstance().getConfig();
   private final List<String> files;
   protected BufferedReader reader;
   protected List<String> cachedLines;
@@ -46,8 +48,7 @@ public abstract class BasicReader {
   protected String currentFile;
   protected String currentDeviceId;
 
-  public BasicReader(Config config, List<String> files) {
-    this.config = config;
+  public BasicReader(List<String> files) {
     this.files = files;
     cachedLines = new ArrayList<>();
   }
@@ -62,12 +63,12 @@ public abstract class BasicReader {
       try {
         reader = new BufferedReader(new FileReader(files.get(currentFileIndex)));
         currentFile = files.get(currentFileIndex);
-        logger.info("start to read {}-th file {}", currentFileIndex, currentFile);
+        LOGGER.info("start to read {}-th file {}", currentFileIndex, currentFile);
         init();
         hasInit = true;
       } catch (Exception e) {
         e.printStackTrace();
-        logger.error("meet exception when init file: {}", currentFile);
+        LOGGER.error("meet exception when init file: {}", currentFile);
       }
     }
 
@@ -90,7 +91,7 @@ public abstract class BasicReader {
           if (cachedLines.isEmpty()) {
             if (currentFileIndex < files.size() - 1) {
               currentFile = files.get(currentFileIndex++);
-              logger.info("start to read {}-th file {}", currentFileIndex, currentFile);
+              LOGGER.info("start to read {}-th file {}", currentFileIndex, currentFile);
               reader.close();
               reader = new BufferedReader(new FileReader(currentFile));
               init();
@@ -116,7 +117,7 @@ public abstract class BasicReader {
         }
       }
     } catch (Exception ignore) {
-      logger.error("read file {} failed", currentFile);
+      LOGGER.error("read file {} failed", currentFile);
       ignore.printStackTrace();
       return false;
     }
@@ -158,7 +159,7 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
+                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
@@ -169,7 +170,7 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
+                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
@@ -181,7 +182,7 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
+                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
@@ -193,13 +194,14 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(calGroupIdStr(deviceId, groupNum), deviceId, config.getFIELDS()));
+                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
       default:
         throw new RuntimeException(config.getDATA_SET() + " is not support");
     }
+    // register
     return deviceSchemaList;
   }
 

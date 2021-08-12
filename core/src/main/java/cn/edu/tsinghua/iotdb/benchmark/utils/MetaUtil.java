@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
+package cn.edu.tsinghua.iotdb.benchmark.utils;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -31,6 +31,20 @@ public class MetaUtil {
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
+  }
+
+  /**
+   * Get group name by device str
+   * @param deviceId
+   * @return
+   * @throws WorkloadException
+   */
+  public static String getGroupNameByDeviceStr(String deviceId){
+    int group = deviceId.hashCode();
+    if(group < 0){
+      group = -group;
+    }
+    return String.valueOf(group % config.getGROUP_NUMBER());
   }
 
   /** Get Format Name */

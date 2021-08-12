@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -39,8 +38,8 @@ public class NOAAReader extends BasicReader {
   private DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
   private DeviceSchema deviceSchema;
 
-  public NOAAReader(Config config, List<String> files) {
-    super(config, files);
+  public NOAAReader(List<String> files) {
+    super(files);
   }
 
   @Override

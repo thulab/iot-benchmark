@@ -153,6 +153,8 @@ public class App {
 
     Collections.sort(files);
 
+    // TODO register schema into BaseDataSchema
+
     List<DeviceSchema> deviceSchemaList = BasicReader.getDeviceSchemaList(files, config);
 
     Measurement measurement = new Measurement();

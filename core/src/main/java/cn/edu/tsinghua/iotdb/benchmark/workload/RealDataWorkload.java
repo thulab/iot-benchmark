@@ -27,16 +27,16 @@ public class RealDataWorkload implements IRealDataWorkload {
     // Precise should do the same thing to read files
     switch (config.getDATA_SET()) {
       case TDRIVE:
-        basicReader = new TDriveReader(config, files);
+        basicReader = new TDriveReader(files);
         break;
       case REDD:
-        basicReader = new ReddReader(config, files);
+        basicReader = new ReddReader(files);
         break;
       case GEOLIFE:
-        basicReader = new GeolifeReader(config, files);
+        basicReader = new GeolifeReader(files);
         break;
       case NOAA:
-        basicReader = new NOAAReader(config, files);
+        basicReader = new NOAAReader(files);
         break;
       default:
         throw new RuntimeException(config.getDATA_SET() + " not supported");

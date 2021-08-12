@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -33,8 +32,8 @@ public class ReddReader extends BasicReader {
 
   private DeviceSchema deviceSchema;
 
-  public ReddReader(Config config, List<String> files) {
-    super(config, files);
+  public ReddReader(List<String> files) {
+    super(files);
   }
 
   @Override

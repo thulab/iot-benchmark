@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -42,8 +41,8 @@ public class TDriveReader extends BasicReader {
   private DeviceSchema deviceSchema;
   private List<String> sensors = new ArrayList<>();
 
-  public TDriveReader(Config config, List<String> files) {
-    super(config, files);
+  public TDriveReader(List<String> files) {
+    super(files);
     sensors.add("longitude");
     sensors.add("latitude");
   }
