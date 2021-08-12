@@ -25,7 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.IWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public abstract class BaseClient extends Client implements Runnable {
   private final IWorkload syntheticWorkload;
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
-  private final DataSchema dataSchema = DataSchema.getInstance();
+  private final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   private long loopIndex;
 
@@ -190,7 +190,7 @@ public abstract class BaseClient extends Client implements Runnable {
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
         try {
-          List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+          List<DeviceSchema> schemas = baseDataSchema.getClientBindSchema().get(clientThreadId);
           for (DeviceSchema deviceSchema : schemas) {
             if (deviceSchema.getDeviceId() < actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
@@ -207,7 +207,7 @@ public abstract class BaseClient extends Client implements Runnable {
       } else {
         // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
         try {
-          List<DeviceSchema> schemas = dataSchema.getClientBindSchema().get(clientThreadId);
+          List<DeviceSchema> schemas = baseDataSchema.getClientBindSchema().get(clientThreadId);
           DeviceSchema sensorSchema = null;
           List<String> sensorList = new ArrayList<String>();
           for (DeviceSchema deviceSchema : schemas) {

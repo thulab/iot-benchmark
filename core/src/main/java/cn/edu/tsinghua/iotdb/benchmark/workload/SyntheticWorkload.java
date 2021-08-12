@@ -30,7 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,7 @@ public class SyntheticWorkload implements IWorkload {
 
   public SyntheticWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
-    for (DeviceSchema schema : DataSchema.getInstance().getClientBindSchema().get(clientId)) {
+    for (DeviceSchema schema : BaseDataSchema.getInstance().getClientBindSchema().get(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);
     }
     queryDeviceRandom = new Random(config.getQUERY_SEED() + clientId);

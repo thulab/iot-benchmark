@@ -8,10 +8,10 @@ import java.util.Map;
 public abstract class BaseDataSchema {
   /** Store DeviceSchema for each client */
   protected static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
-
-  public Map<Integer, List<DeviceSchema>> getClientBindSchema() {
-    return CLIENT_BIND_SCHEMA;
-  }
+  /** Type map for each sensors, mapping rule: device(e.g. d_0) -> sensor (e.g. s_0) -> type */
+  protected static final Map<String, Map<String, String>> TYPE_MAPPING = new HashMap<>();
+  /** The singleton of BaseDataSchema */
+  private static BaseDataSchema baseDataSchema;
 
   protected BaseDataSchema() {
     createDataSchema();
@@ -19,11 +19,32 @@ public abstract class BaseDataSchema {
 
   protected abstract void createDataSchema();
 
-  public static DataSchema getInstance() {
-    return DataSchemaHolder.INSTANCE;
+  /**
+   * Getter
+   */
+
+  public Map<Integer, List<DeviceSchema>> getClientBindSchema() {
+    return CLIENT_BIND_SCHEMA;
   }
 
-  private static class DataSchemaHolder {
-    private static final DataSchema INSTANCE = new DataSchema();
+  public Map<String, Map<String, String>> getTypeMapping(){
+    return TYPE_MAPPING;
   }
+
+  /**
+   * Singleton
+   */
+
+  public static BaseDataSchema getInstance() {
+    if(baseDataSchema == null){
+      synchronized (BaseDataSchema.class){
+        if(baseDataSchema ==null){
+          // TODO modify by Configuration
+          baseDataSchema = new DataSchema();
+        }
+      }
+    }
+    return baseDataSchema;
+  }
+
 }

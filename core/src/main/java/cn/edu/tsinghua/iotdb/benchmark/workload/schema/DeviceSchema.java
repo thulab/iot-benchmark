@@ -43,9 +43,9 @@ public class DeviceSchema implements Cloneable {
 
   /** Each device belongs to one group, i.e. database */
   private String group;
-  /** Id of device, e.g. DEVICE_NAME_PREFIX + deviceId */
+  /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
-  /** Sensor ids of device */
+  /** Names of sensors from this device, e.g. ["s_0", "s_1", ..., "s_n"] */
   private List<String> sensors;
   /** Only used for synthetic data set */
   private int deviceId;

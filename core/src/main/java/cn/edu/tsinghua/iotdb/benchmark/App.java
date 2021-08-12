@@ -32,7 +32,7 @@ import cn.edu.tsinghua.iotdb.benchmark.syslog.*;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,9 +99,9 @@ public class App {
         }
       }
       try {
-        DataSchema dataSchema = DataSchema.getInstance();
+        BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
         List<DeviceSchema> schemaList = new ArrayList<>();
-        for (List<DeviceSchema> schemas : dataSchema.getClientBindSchema().values()) {
+        for (List<DeviceSchema> schemas : baseDataSchema.getClientBindSchema().values()) {
           schemaList.addAll(schemas);
         }
         dbWrapper.registerSchema(schemaList);
