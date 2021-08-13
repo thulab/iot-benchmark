@@ -204,8 +204,4 @@ public abstract class BasicReader {
     // register
     return deviceSchemaList;
   }
-
-  protected static String calGroupIdStr(String deviceId, int groupNum) {
-    return String.valueOf(deviceId.hashCode() % groupNum);
-  }
 }

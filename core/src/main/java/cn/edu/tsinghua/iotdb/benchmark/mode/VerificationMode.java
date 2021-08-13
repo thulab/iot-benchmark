@@ -1,30 +1,36 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.RealDatasetClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.RealDataClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.workload.RealDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TestWithRealDataSetMode extends BaseMode{
+/**
+ * @Author stormbroken
+ * Create by 2021/08/13
+ * @Version 1.0
+ **/
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestWithRealDataSetMode.class);
+public class VerificationMode extends BaseMode{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VerificationMode.class);
     private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
     /**
      * Start benchmark
@@ -34,23 +40,8 @@ public class TestWithRealDataSetMode extends BaseMode{
         // getBATCH_SIZE() is points number in this mode
         config.setBATCH_SIZE_PER_WRITE(config.getBATCH_SIZE_PER_WRITE() / config.getFIELDS().size());
 
-        File dirFile = new File(config.getFILE_PATH());
-        if (!dirFile.exists()) {
-            LOGGER.error("{} does not exit", config.getFILE_PATH());
-            return;
-        }
-
-        LOGGER.info("use dataset: {}", config.getDATA_SET());
-
-        List<String> files = new ArrayList<>();
-        getAllFiles(config.getFILE_PATH(), files);
-        LOGGER.info("total files: {}", files.size());
-
-        Collections.sort(files);
-
         // TODO register schema into BaseDataSchema
-
-        List<DeviceSchema> deviceSchemaList = BasicReader.getDeviceSchemaList(files, config);
+        List<DeviceSchema> deviceSchemaList = baseDataSchema.getAllDeviceSchema();
 
         Measurement measurement = new Measurement();
         DBWrapper dbWrapper = new DBWrapper(measurement);
@@ -84,17 +75,6 @@ public class TestWithRealDataSetMode extends BaseMode{
         }
         CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
-        List<List<String>> threadFiles = new ArrayList<>();
-        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-            threadFiles.add(new ArrayList<>());
-        }
-
-        for (int i = 0; i < files.size(); i++) {
-            String filePath = files.get(i);
-            int thread = i % config.getCLIENT_NUMBER();
-            threadFiles.get(thread).add(filePath);
-        }
-
         // create getCLIENT_NUMBER() client threads to do the workloads
         List<Measurement> threadsMeasurements = new ArrayList<>();
         List<Client> clients = new ArrayList<>();
@@ -102,24 +82,10 @@ public class TestWithRealDataSetMode extends BaseMode{
         long st = System.nanoTime();
         ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
         for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-            Client client = new RealDatasetClient(i, downLatch, config, threadFiles.get(i), barrier);
+            Client client = new RealDataClient(i, downLatch, barrier, new RealDataWorkload(i));
             clients.add(client);
             executorService.submit(client);
         }
         finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
-    }
-
-    private static void getAllFiles(String strPath, List<String> files) {
-        File f = new File(strPath);
-        if (f.isDirectory()) {
-            File[] fs = f.listFiles();
-            assert fs != null;
-            for (File f1 : fs) {
-                String fsPath = f1.getAbsolutePath();
-                getAllFiles(fsPath, files);
-            }
-        } else if (f.isFile()) {
-            files.add(f.getAbsolutePath());
-        }
     }
 }

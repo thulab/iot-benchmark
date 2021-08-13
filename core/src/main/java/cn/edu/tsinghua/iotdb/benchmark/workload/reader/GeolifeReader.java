@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -75,7 +76,7 @@ public class GeolifeReader extends BasicReader {
     }
     deviceSchema =
         new DeviceSchema(
-            calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()),
+            MetaUtil.getGroupNameByDeviceStr(currentDeviceId),
             currentDeviceId,
             config.getFIELDS());
   }

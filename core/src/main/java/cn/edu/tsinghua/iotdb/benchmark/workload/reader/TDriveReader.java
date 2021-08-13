@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -52,7 +53,7 @@ public class TDriveReader extends BasicReader {
     currentDeviceId = new File(currentFile).getName().replaceAll("\\.txt", "");
     deviceSchema =
         new DeviceSchema(
-            calGroupIdStr(currentDeviceId, config.getGROUP_NUMBER()), currentDeviceId, sensors);
+                MetaUtil.getGroupNameByDeviceStr(currentDeviceId), currentDeviceId, sensors);
   }
 
   @Override
