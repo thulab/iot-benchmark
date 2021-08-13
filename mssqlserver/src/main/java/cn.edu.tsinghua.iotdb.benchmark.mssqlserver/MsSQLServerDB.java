@@ -109,7 +109,7 @@ public class MsSQLServerDB implements IDatabase {
     try {
       Statement statement = connection.createStatement();
       for (Type type : Type.values()) {
-        if(type == Type.DOUBLE){
+        if (type == Type.DOUBLE) {
           continue;
         }
         String sysType = typeMap(type);

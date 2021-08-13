@@ -28,7 +28,8 @@ public class RealDataSetQueryClient extends Client implements Runnable {
     service.scheduleAtFixedRate(
         () -> {
           LOGGER.info(
-              "{} {} % RealDataWorkload is done.", currentThread, (batchIndex * 1.0 / config.getLOOP()) * 100);
+              "{} {} % RealDataWorkload is done.",
+              currentThread, (batchIndex * 1.0 / config.getLOOP()) * 100);
         },
         1,
         config.getLOG_PRINT_INTERVAL(),
