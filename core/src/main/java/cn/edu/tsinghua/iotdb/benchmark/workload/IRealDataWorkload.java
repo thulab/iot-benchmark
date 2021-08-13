@@ -1,9 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-
-import java.util.List;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
 /** IRealDataWorkload is a workload using for real data */
 public interface IRealDataWorkload extends IWorkLoad {
@@ -16,9 +14,10 @@ public interface IRealDataWorkload extends IWorkLoad {
   Batch getOneBatch() throws WorkloadException;
 
   /**
-   * Return device schemas generate from real data
+   * Return a verified Query
    *
    * @return
+   * @throws WorkloadException
    */
-  List<DeviceSchema> getDeviceSchema();
+  VerificationQuery getVerifiedQuery() throws WorkloadException;
 }

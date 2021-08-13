@@ -301,6 +301,27 @@ public class DBWrapper implements IDatabase {
     return status;
   }
 
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    Status status = null;
+    Operation operation = Operation.VERIFICATION_QUERY;
+    try {
+      long start = System.nanoTime();
+      status = db.verificationQuery(verificationQuery);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
+      handleQueryOperation(status, operation);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e);
+    }
+    return status;
+  }
+
   @Override
   public void init() throws TsdbException {
     db.init();

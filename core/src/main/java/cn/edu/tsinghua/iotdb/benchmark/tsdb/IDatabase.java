@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -153,6 +154,12 @@ public interface IDatabase {
 
   /** similar to rangeQuery, but order by time desc. */
   Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery);
+
+  /** Using in verification */
+  default Status verificationQuery(VerificationQuery verificationQuery){
+    WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
+    return new Status(false, 0, workloadException, workloadException.getMessage());
+  };
 
   /**
    * map the given type string name to the name in the target DB

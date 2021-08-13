@@ -1,7 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.RealDataClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.RealDataSetQueryClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.RealDataSetWriteClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
@@ -66,6 +67,13 @@ public class VerificationMode extends BaseMode {
         LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
       }
     }
+    LOGGER.info("Write Real Data!");
+    write(measurement);
+    LOGGER.info("Query Real Data!");
+    check(measurement);
+  }
+
+  private void write(Measurement measurement){
     CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
     // create getCLIENT_NUMBER() client threads to do the workloads
@@ -75,7 +83,24 @@ public class VerificationMode extends BaseMode {
     long st = System.nanoTime();
     ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = new RealDataClient(i, downLatch, barrier, new RealDataWorkload(i));
+      Client client = new RealDataSetWriteClient(i, downLatch, barrier, new RealDataWorkload(i));
+      clients.add(client);
+      executorService.submit(client);
+    }
+    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+  }
+
+  private void check(Measurement measurement){
+    CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+
+    // create getCLIENT_NUMBER() client threads to do the workloads
+    List<Measurement> threadsMeasurements = new ArrayList<>();
+    List<Client> clients = new ArrayList<>();
+    CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+    long st = System.nanoTime();
+    ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+      Client client = new RealDataSetQueryClient(i, downLatch, barrier, new RealDataWorkload(i));
       clients.add(client);
       executorService.submit(client);
     }

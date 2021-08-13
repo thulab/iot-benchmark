@@ -630,4 +630,39 @@ public class IoTDB implements IDatabase {
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
   }
+
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    // TODO
+    DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    int result = 0;
+    for(Record record: verificationQuery.getRecords()){
+      String sql = getSimpleQuerySqlHead(deviceSchemas);
+      sql += " WHERE time = " + record.getTimestamp();
+      try(Statement statement = ioTDBConnection.getConnection().createStatement()){
+        ResultSet resultSet = statement.executeQuery(sql);
+        resultSet.next();
+        List<Object> records = record.getRecordDataValue();
+        for(int i = 0; i < record.getRecordDataValue().size(); i++){
+          String value = resultSet.getString(i + 2);
+          String target = String.valueOf(records.get(i));
+          if(!value.equals(target)){
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + records + " but was: " + target);
+          }else{
+            result++;
+          }
+        }
+      }catch (Exception e){
+        LOGGER.error("Query Error: " + sql);
+      }
+    }
+    return new Status(true, result);
+  }
 }

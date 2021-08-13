@@ -8,19 +8,17 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
-public class RealDataClient extends Client implements Runnable {
-  protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataClient.class);
+public class RealDataSetWriteClient extends Client implements Runnable {
+  protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataSetWriteClient.class);
 
-  private final OperationController operationController;
   private final IRealDataWorkload realDataWorkload;
   private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   private long batchIndex = 0;
 
-  public RealDataClient(
+  public RealDataSetWriteClient(
       int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IRealDataWorkload workload) {
     super(id, countDownLatch, barrier);
     realDataWorkload = workload;
-    operationController = new OperationController(id);
   }
 
   @Override
