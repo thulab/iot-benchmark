@@ -50,9 +50,6 @@ public class App {
       case Constants.MODE_TEST_WITH_DEFAULT_PATH:
         baseMode = new TestWithDefaultPathMode();
         break;
-      case Constants.MODE_QUERY_WITH_REAL_DATASET:
-        baseMode = new QueryWithRealDataSetMode();
-        break;
       case Constants.MODE_SERVER_MODE:
         baseMode = new ServerMode();
         break;
