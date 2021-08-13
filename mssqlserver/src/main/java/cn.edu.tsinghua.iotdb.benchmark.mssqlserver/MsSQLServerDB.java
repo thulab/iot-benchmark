@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.mssqlserver;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -108,6 +109,9 @@ public class MsSQLServerDB implements IDatabase {
     try {
       Statement statement = connection.createStatement();
       for (Type type : Type.values()) {
+        if(type == Type.DOUBLE){
+          continue;
+        }
         String sysType = typeMap(type);
         statement.execute(
             String.format(CREATE_TABLE, config.getDB_NAME(), sysType, sysType, sysType));
@@ -229,7 +233,7 @@ public class MsSQLServerDB implements IDatabase {
    * @return
    */
   private long getId(String group, String device, String sensor) {
-    long groupNow = Long.parseLong(group.replace(config.getDB_NAME(), ""));
+    long groupNow = Long.parseLong(group.replace(Constants.GROUP_NAME_PREFIX, ""));
     long deviceNow = Long.parseLong(device.split("_")[1]);
     long sensorNow = 0;
     if (sensor != null) {
