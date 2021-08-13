@@ -128,7 +128,7 @@ public class IoTDB implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex);
+            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -383,9 +383,11 @@ public class IoTDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
+    List<String> sensors = deviceSchema.getSensors();
+
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex)) {
+      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;

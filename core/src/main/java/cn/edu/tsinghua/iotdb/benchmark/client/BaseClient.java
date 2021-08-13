@@ -221,7 +221,7 @@ public abstract class BaseClient extends Client implements Runnable {
                 Batch batch =
                     syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
                 batch.setColIndex(colIndex);
-                Type colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), colIndex);
+                Type colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
                 batch.setColType(colType);
                 dbWrapper.insertOneSensorBatch(batch);
                 colIndex++;

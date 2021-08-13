@@ -2,7 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
-import cn.edu.tsinghua.iotdb.benchmark.client.QueryRealDatasetClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
@@ -13,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 public class QueryWithRealDataSetMode extends BaseMode{
@@ -40,13 +37,13 @@ public class QueryWithRealDataSetMode extends BaseMode{
         List<Client> clients = new ArrayList<>();
         CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
         long st = System.nanoTime();
-        ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
-        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-            Client client = new QueryRealDatasetClient(i, downLatch, barrier, config);
-            clients.add(client);
-            executorService.submit(client);
-        }
-        finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+//        ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+//        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+//            Client client = new QueryRealDatasetClient(i, downLatch, barrier, config);
+//            clients.add(client);
+//            executorService.submit(client);
+//        }
+//        finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
     }
 
     /**

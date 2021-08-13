@@ -2,12 +2,13 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /** @Author stormbroken Create by 2021/08/10 @Version 1.0 */
@@ -19,12 +20,12 @@ public class RealDataWorkload implements IRealDataWorkload {
   /**
    * Init reader of real dataset write test
    *
-   * @param files real dataset files
    */
-  public RealDataWorkload(List<String> files) {
+  public RealDataWorkload(int threadId) {
     // file -> device
     // a file -> a batch
     // Precise should do the same thing to read files
+    List<String> files = MetaUtil.getThreadFiles().get(threadId);
     switch (config.getDATA_SET()) {
       case TDRIVE:
         basicReader = new TDriveReader(files);
@@ -42,7 +43,7 @@ public class RealDataWorkload implements IRealDataWorkload {
         throw new RuntimeException(config.getDATA_SET() + " not supported");
     }
     // init deviceSchemaList
-    deviceSchemaList = new ArrayList<>();
+    deviceSchemaList = BaseDataSchema.getInstance().getThreadDeviceSchema(threadId);
   }
 
   /**

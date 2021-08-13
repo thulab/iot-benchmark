@@ -139,7 +139,7 @@ public class QuestDB implements IDatabase {
           List<String> sensors = deviceSchema.getSensors();
           for (int index = 0; index < sensors.size(); index++) {
             String dataType =
-                typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), index));
+                typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(index)));
             create.append(sensors.get(index));
             create.append(" ");
             create.append(dataType);
@@ -195,6 +195,7 @@ public class QuestDB implements IDatabase {
       tableName.append(deviceSchema.getGroup());
       tableName.append("_");
       tableName.append(deviceSchema.getDevice());
+      List<String> sensors = batch.getDeviceSchema().getSensors();
       for (Record record : batch.getRecords()) {
         StringBuffer insertSQL = new StringBuffer(INSERT_SQL);
         insertSQL.append(tableName);
@@ -203,7 +204,7 @@ public class QuestDB implements IDatabase {
         insertSQL.append("'");
         for (int i = 0; i < record.getRecordDataValue().size(); i++) {
           Object value = record.getRecordDataValue().get(i);
-          switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), i))) {
+          switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(i)))) {
             case "BOOLEAN":
               insertSQL.append(",").append((boolean) value);
               break;

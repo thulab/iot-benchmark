@@ -443,7 +443,7 @@ public class TimescaleDB implements IDatabase {
           .append(", ")
           .append(sensors.get(i))
           .append(" ")
-          .append(typeMap(baseDataSchema.getSensorType(device, i)))
+          .append(typeMap(baseDataSchema.getSensorType(device, sensors.get(i))))
           .append(" NULL");
     }
     sqlBuilder.append(");");

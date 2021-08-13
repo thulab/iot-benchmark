@@ -59,7 +59,7 @@ public class IotdbRecorder implements ITestDataPersistence {
   private static final String INSERT_SQL_STR2 = "(timestamp";
 
   private static final String ENCODING = "PLAIN";
-  private static final String COMPRESS = "UNCOMPRESSED";
+  private static final String COMPRESS = "SNAPPY";
   private static final String DOUBLE_TYPE = "DOUBLE";
   private static final int SEND_TO_IOTDB_BATCH_SIZE = 1000;
 

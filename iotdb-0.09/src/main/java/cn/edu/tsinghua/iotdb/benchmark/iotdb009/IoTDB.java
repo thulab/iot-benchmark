@@ -115,9 +115,8 @@ public class IoTDB implements IDatabase {
       // create time series
       try (Statement statement = connection.createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
-          int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex);
+            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -132,7 +131,6 @@ public class IoTDB implements IDatabase {
                     getEncodingType(dataType));
             statement.addBatch(createSeriesSql);
             count++;
-            sensorIndex++;
             if (count % 5000 == 0) {
               statement.executeBatch();
               statement.clearBatch();
@@ -351,8 +349,9 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     int sensorIndex = 0;
+    List<String> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex)) {
+      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;

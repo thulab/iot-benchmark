@@ -138,11 +138,11 @@ public class IoTDBSessionPool implements IDatabase {
                     + deviceSchema.getDevice()
                     + "."
                     + sensor);
-            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex);
+            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             dataTypes.add(TSDataType.valueOf(dataType.name));
             encodings.add(TSEncoding.valueOf(getEncodingType(dataType)));
             // TODO remove when [IOTDB-1518] is solved(not supported null)
-            compressors.add(CompressionType.valueOf("UNCOMPRESSED"));
+            compressors.add(CompressionType.valueOf("SNAPPY"));
             count++;
             sensorIndex++;
             if (count % 5000 == 0) {
@@ -190,7 +190,7 @@ public class IoTDBSessionPool implements IDatabase {
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
       Type dataType =
-          baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensorIndex);
+          baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
@@ -208,6 +208,7 @@ public class IoTDBSessionPool implements IDatabase {
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
 
+    List<String> sensors = batch.getDeviceSchema().getSensors();
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
       Record record = batch.getRecords().get(recordIndex);
@@ -217,7 +218,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensorIndex)) {
+        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] = (boolean) record.getRecordDataValue().get(recordValueIndex);
@@ -282,6 +283,7 @@ public class IoTDBSessionPool implements IDatabase {
     Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
+    List<String> sensors = batch.getDeviceSchema().getSensors();
 
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
@@ -292,7 +294,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensorIndex)) {
+        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] =

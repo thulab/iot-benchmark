@@ -7,10 +7,13 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class MetaUtil {
 
   private static Logger LOGGER = LoggerFactory.getLogger(MetaUtil.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static List<List<String>> THREAD_FILES;
 
   /**
    * Calculate GroupId(integer) from device according to SG_STRATEGY
@@ -58,5 +61,13 @@ public class MetaUtil {
 
   public static String getSensorName(Object sensorId) {
     return Constants.SENSOR_NAME_PREFIX + sensorId;
+  }
+
+  public static List<List<String>> getThreadFiles() {
+    return THREAD_FILES;
+  }
+
+  public static void setThreadFiles(List<List<String>> threadFiles) {
+    THREAD_FILES = threadFiles;
   }
 }

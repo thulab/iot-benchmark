@@ -38,6 +38,7 @@ public class DataSchema extends BaseDataSchema {
   protected void createDataSchema() {
     Map<String, Type> sensorTypes = getSensorTypes();
     List<String> sensors = new ArrayList<>(sensorTypes.keySet());
+    Collections.sort(sensors);
     int eachClientDeviceNum;
     if (config.getCLIENT_NUMBER() != 0) {
       eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();

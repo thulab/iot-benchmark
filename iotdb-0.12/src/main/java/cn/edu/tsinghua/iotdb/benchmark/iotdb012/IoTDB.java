@@ -186,11 +186,11 @@ public class IoTDB implements IDatabase {
       int sensorIndex = 0;
       for (String sensor : deviceSchema.getSensors()) {
         paths.add(getSensorPath(deviceSchema, sensor));
-        Type datatype = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex);
+        Type datatype = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
         tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
-        compressionTypes.add(Enum.valueOf(CompressionType.class, "UNCOMPRESSED"));
+        compressionTypes.add(Enum.valueOf(CompressionType.class, "SNAPPY"));
         if (++count % createSchemaBatchNum == 0) {
           registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
         }
@@ -610,8 +610,9 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     int sensorIndex = 0;
+    List<String> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex)) {
+      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case BOOLEAN:
         case INT32:
         case INT64:

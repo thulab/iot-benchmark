@@ -358,7 +358,7 @@ public class SyntheticWorkload implements IGenerateWorkload {
         if (!typeAllow) {
           Type type =
               baseDataSchema.getSensorType(
-                  deviceSchema.getDevice(), Integer.parseInt(sensors.get(i).split("_")[1]));
+                  deviceSchema.getDevice(), sensors.get(i));
           if (type == Type.BOOLEAN || type == Type.TEXT) {
             continue;
           }

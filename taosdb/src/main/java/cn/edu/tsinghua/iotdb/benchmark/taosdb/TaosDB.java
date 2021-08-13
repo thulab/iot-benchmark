@@ -115,7 +115,7 @@ public class TaosDB implements IDatabase {
         int sensorIndex = 0;
         for (String sensor : config.getSENSOR_CODES()) {
           String dataType =
-              typeMap(baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensorIndex));
+              typeMap(baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor));
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
           } else {
@@ -215,9 +215,10 @@ public class TaosDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append(" ('");
     builder.append(sdf.format(new Date(timestamp))).append("'");
+    List<String> sensors = deviceSchema.getSensors();
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex))) {
+      switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
         case "BOOL":
           builder.append(",").append((boolean) value);
           break;
@@ -251,7 +252,8 @@ public class TaosDB implements IDatabase {
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = colIndex;
     Object value = values.get(0);
-    switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensorIndex))) {
+    String sensor = deviceSchema.getSensors().get(sensorIndex);
+    switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor))) {
       case "BOOL":
         builder.append(",").append((boolean) value);
         break;

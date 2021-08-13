@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
-public abstract class RealDataClient extends Client implements Runnable {
+public class RealDataClient extends Client implements Runnable {
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataClient.class);
 
   private final OperationController operationController;

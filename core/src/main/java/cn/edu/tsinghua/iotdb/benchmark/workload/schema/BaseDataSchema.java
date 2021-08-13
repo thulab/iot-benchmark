@@ -1,9 +1,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
-import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,8 @@ import java.util.Map;
 public abstract class BaseDataSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BaseDataSchema.class);
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
   /** Store DeviceSchema for each client */
   protected static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
   /** Type map for each sensors, mapping rule: device(e.g. d_0) -> sensor (e.g. s_0) -> type */
@@ -62,23 +67,12 @@ public abstract class BaseDataSchema {
   }
 
   // TODO modify hard code
-  /**
-   * Get sensor type of one sensor
-   *
-   * @param device
-   * @param sensorId
-   * @return default: Constants.DEFAULT_TYPE;
-   */
-  public Type getSensorType(String device, int sensorId) {
-    String sensorName = MetaUtil.getSensorName(sensorId);
-    return getSensorType(device, sensorName);
-  }
 
   /**
    * Get sensor type of one sensor
    *
    * @param device
-   * @param sensor
+   * @param sensor name e.g. s_0
    * @return default: Constants.DEFAULT_TYPE;
    */
   public Type getSensorType(String device, String sensor) {
@@ -88,6 +82,29 @@ public abstract class BaseDataSchema {
       LOGGER.warn(String.format("Unknown type for device: %s, sensor: %s", device, sensor));
       return Type.TEXT;
     }
+  }
+
+  /**
+   * Get Thread Device Schema
+   *
+   * @param threadId
+   * @return
+   */
+  public List<DeviceSchema> getThreadDeviceSchema(int threadId){
+    return CLIENT_BIND_SCHEMA.get(threadId);
+  }
+
+  /**
+   * Get All Device Schema
+   *
+   * @return
+   */
+  public List<DeviceSchema> getAllDeviceSchema(){
+    List<DeviceSchema> deviceSchemaList = new ArrayList<>();
+    for(Map.Entry<Integer, List<DeviceSchema>> schema: CLIENT_BIND_SCHEMA.entrySet()){
+      deviceSchemaList.addAll(schema.getValue());
+    }
+    return deviceSchemaList;
   }
 
   /**
@@ -110,8 +127,11 @@ public abstract class BaseDataSchema {
     if (baseDataSchema == null) {
       synchronized (BaseDataSchema.class) {
         if (baseDataSchema == null) {
-          // TODO modify by Configuration
-          baseDataSchema = new DataSchema();
+          if(config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)){
+            baseDataSchema = new RealDataSchema();
+          }else{
+            baseDataSchema = new DataSchema();
+          }
         }
       }
     }
