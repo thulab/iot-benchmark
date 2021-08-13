@@ -159,7 +159,8 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
+                new DeviceSchema(
+                    MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
@@ -170,7 +171,8 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
+                new DeviceSchema(
+                    MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
@@ -182,7 +184,8 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
+                new DeviceSchema(
+                    MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;
@@ -194,7 +197,8 @@ public abstract class BasicReader {
           if (!devices.contains(deviceId)) {
             devices.add(deviceId);
             deviceSchemaList.add(
-                new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
+                new DeviceSchema(
+                    MetaUtil.getGroupNameByDeviceStr(deviceId), deviceId, config.getFIELDS()));
           }
         }
         break;

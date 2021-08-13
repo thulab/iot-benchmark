@@ -33,7 +33,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.management.Sensor;
 
 import java.sql.*;
 import java.util.HashSet;

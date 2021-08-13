@@ -137,7 +137,13 @@ public class MsSQLServerDB implements IDatabase {
         List<Object> values = record.getRecordDataValue();
         for (int i = 0; i < values.size(); i++) {
           statement.addBatch(
-              getOneLine(idPredix, i, time, values.get(i), deviceSchema.getDevice(), deviceSchema.getSensors()));
+              getOneLine(
+                  idPredix,
+                  i,
+                  time,
+                  values.get(i),
+                  deviceSchema.getDevice(),
+                  deviceSchema.getSensors()));
         }
       }
       statement.executeBatch();
@@ -150,7 +156,12 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   private String getOneLine(
-      long idPredix, int sensorIndex, String time, Object value, String device, List<String> sensors) {
+      long idPredix,
+      int sensorIndex,
+      String time,
+      Object value,
+      String device,
+      List<String> sensors) {
     long sensorNow = sensorIndex + idPredix;
     String sysType = typeMap(baseDataSchema.getSensorType(device, sensors.get(sensorIndex)));
     StringBuffer sql =
@@ -196,7 +207,8 @@ public class MsSQLServerDB implements IDatabase {
                 batch.getColIndex(),
                 time,
                 values.get(batch.getColIndex()),
-                deviceSchema.getDevice(), deviceSchema.getSensors()));
+                deviceSchema.getDevice(),
+                deviceSchema.getSensors()));
       }
       statement.executeBatch();
       statement.close();

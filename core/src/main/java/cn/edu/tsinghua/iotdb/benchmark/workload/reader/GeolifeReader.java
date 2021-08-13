@@ -76,9 +76,7 @@ public class GeolifeReader extends BasicReader {
     }
     deviceSchema =
         new DeviceSchema(
-            MetaUtil.getGroupNameByDeviceStr(currentDeviceId),
-            currentDeviceId,
-            config.getFIELDS());
+            MetaUtil.getGroupNameByDeviceStr(currentDeviceId), currentDeviceId, config.getFIELDS());
   }
 
   @Override

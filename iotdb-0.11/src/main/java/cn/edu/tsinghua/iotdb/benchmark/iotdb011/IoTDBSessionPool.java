@@ -189,8 +189,7 @@ public class IoTDBSessionPool implements IDatabase {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      Type dataType =
-          baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+      Type dataType = baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
@@ -218,7 +217,8 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+        switch (baseDataSchema.getSensorType(
+            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] = (boolean) record.getRecordDataValue().get(recordValueIndex);
@@ -294,7 +294,8 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+        switch (baseDataSchema.getSensorType(
+            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] =

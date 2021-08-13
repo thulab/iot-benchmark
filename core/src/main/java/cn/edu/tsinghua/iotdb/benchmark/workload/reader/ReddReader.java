@@ -48,9 +48,7 @@ public class ReddReader extends BasicReader {
         items[items.length - 2] + "_" + items[items.length - 1].replaceAll("\\.dat", "");
     deviceSchema =
         new DeviceSchema(
-                MetaUtil.getGroupNameByDeviceStr(currentDeviceId),
-            currentDeviceId,
-            config.getFIELDS());
+            MetaUtil.getGroupNameByDeviceStr(currentDeviceId), currentDeviceId, config.getFIELDS());
   }
 
   @Override

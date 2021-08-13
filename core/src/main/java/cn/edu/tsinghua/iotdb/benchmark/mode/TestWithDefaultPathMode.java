@@ -23,63 +23,61 @@ import java.util.concurrent.Executors;
 
 public class TestWithDefaultPathMode extends BaseMode {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestWithDefaultPathMode.class);
-    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Logger LOGGER = LoggerFactory.getLogger(TestWithDefaultPathMode.class);
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-    /**
-     * Start benchmark
-     */
-    @Override
-    public void run() {
-        PersistenceFactory persistenceFactory = new PersistenceFactory();
-        ITestDataPersistence recorder = persistenceFactory.getPersistence();
-        recorder.saveTestConfig();
+  /** Start benchmark */
+  @Override
+  public void run() {
+    PersistenceFactory persistenceFactory = new PersistenceFactory();
+    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    recorder.saveTestConfig();
 
-        Measurement measurement = new Measurement();
-        DBWrapper dbWrapper = new DBWrapper(measurement);
-        // register schema if needed
+    Measurement measurement = new Measurement();
+    DBWrapper dbWrapper = new DBWrapper(measurement);
+    // register schema if needed
+    try {
+      dbWrapper.init();
+      if (config.isIS_DELETE_DATA()) {
         try {
-            dbWrapper.init();
-            if (config.isIS_DELETE_DATA()) {
-                try {
-                    dbWrapper.cleanup();
-                } catch (TsdbException e) {
-                    LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
-                }
-            }
-            try {
-                BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-                List<DeviceSchema> schemaList = new ArrayList<>();
-                for (List<DeviceSchema> schemas : baseDataSchema.getClientBindSchema().values()) {
-                    schemaList.addAll(schemas);
-                }
-                dbWrapper.registerSchema(schemaList);
-            } catch (TsdbException e) {
-                LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
-            }
+          dbWrapper.cleanup();
         } catch (TsdbException e) {
-            LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
-        } finally {
-            try {
-                dbWrapper.close();
-            } catch (TsdbException e) {
-                LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
-            }
+          LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
         }
-        // create getCLIENT_NUMBER() client threads to do the workloads
-        List<Measurement> threadsMeasurements = new ArrayList<>();
-        List<Client> clients = new ArrayList<>();
-        CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-        CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
-        long st = 0;
-        ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
-        LOGGER.info("Generating workload buffer...");
-        for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-            SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
-            clients.add(client);
-            st = System.nanoTime();
-            executorService.submit(client);
+      }
+      try {
+        BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+        List<DeviceSchema> schemaList = new ArrayList<>();
+        for (List<DeviceSchema> schemas : baseDataSchema.getClientBindSchema().values()) {
+          schemaList.addAll(schemas);
         }
-        finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+        dbWrapper.registerSchema(schemaList);
+      } catch (TsdbException e) {
+        LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
+      }
+    } catch (TsdbException e) {
+      LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
+    } finally {
+      try {
+        dbWrapper.close();
+      } catch (TsdbException e) {
+        LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
+      }
     }
+    // create getCLIENT_NUMBER() client threads to do the workloads
+    List<Measurement> threadsMeasurements = new ArrayList<>();
+    List<Client> clients = new ArrayList<>();
+    CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+    CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+    long st = 0;
+    ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+    LOGGER.info("Generating workload buffer...");
+    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+      SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
+      clients.add(client);
+      st = System.nanoTime();
+      executorService.submit(client);
+    }
+    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+  }
 }

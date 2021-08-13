@@ -178,7 +178,8 @@ public class InfluxDB implements IDatabase {
         result.append("=");
         // get value
         String type =
-            typeMap(baseDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
+            typeMap(
+                baseDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
         switch (type) {
           case "BOOLEAN":
             result.append(((boolean) pair.getValue()) ? "true" : "false");

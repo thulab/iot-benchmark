@@ -17,10 +17,7 @@ public class RealDataWorkload implements IRealDataWorkload {
   private List<DeviceSchema> deviceSchemaList;
   private BasicReader basicReader;
 
-  /**
-   * Init reader of real dataset write test
-   *
-   */
+  /** Init reader of real dataset write test */
   public RealDataWorkload(int threadId) {
     // file -> device
     // a file -> a batch

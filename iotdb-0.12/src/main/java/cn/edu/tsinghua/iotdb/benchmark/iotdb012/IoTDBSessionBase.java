@@ -55,8 +55,7 @@ public class IoTDBSessionBase extends IoTDB {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      Type dataType =
-          baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+      Type dataType = baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
@@ -84,7 +83,8 @@ public class IoTDBSessionBase extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+        switch (baseDataSchema.getSensorType(
+            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] =
@@ -119,7 +119,8 @@ public class IoTDBSessionBase extends IoTDB {
     return tablet;
   }
 
-  public List<TSDataType> constructDataTypes(String device, List<String> sensors, int recordValueSize) {
+  public List<TSDataType> constructDataTypes(
+      String device, List<String> sensors, int recordValueSize) {
     List<TSDataType> dataTypes = new ArrayList<>();
     for (int sensorIndex = 0; sensorIndex < recordValueSize; sensorIndex++) {
       switch (baseDataSchema.getSensorType(device, sensors.get(sensorIndex))) {

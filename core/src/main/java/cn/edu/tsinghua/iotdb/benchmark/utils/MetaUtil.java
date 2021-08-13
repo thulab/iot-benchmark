@@ -38,13 +38,14 @@ public class MetaUtil {
 
   /**
    * Get group name by device str
+   *
    * @param deviceId
    * @return
    * @throws WorkloadException
    */
-  public static String getGroupNameByDeviceStr(String deviceId){
+  public static String getGroupNameByDeviceStr(String deviceId) {
     int group = deviceId.hashCode();
-    if(group < 0){
+    if (group < 0) {
       group = -group;
     }
     return String.valueOf(group % config.getGROUP_NUMBER());

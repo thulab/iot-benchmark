@@ -80,7 +80,9 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       long timestamp = record.getTimestamp();
       List<TSDataType> dataTypes =
           constructDataTypes(
-              batch.getDeviceSchema().getDevice(), batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
+              batch.getDeviceSchema().getDevice(),
+              batch.getDeviceSchema().getSensors(),
+              record.getRecordDataValue().size());
       try {
         sessions[currSession].insertRecord(
             deviceId,
@@ -123,8 +125,9 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       valuesList.add(record.getRecordDataValue());
       typesList.add(
           constructDataTypes(
-              batch.getDeviceSchema().getDevice(), batch.getDeviceSchema().getSensors(),
-                  record.getRecordDataValue().size()));
+              batch.getDeviceSchema().getDevice(),
+              batch.getDeviceSchema().getSensors(),
+              record.getRecordDataValue().size()));
     }
 
     future =

@@ -90,7 +90,7 @@ public abstract class BaseDataSchema {
    * @param threadId
    * @return
    */
-  public List<DeviceSchema> getThreadDeviceSchema(int threadId){
+  public List<DeviceSchema> getThreadDeviceSchema(int threadId) {
     return CLIENT_BIND_SCHEMA.get(threadId);
   }
 
@@ -99,9 +99,9 @@ public abstract class BaseDataSchema {
    *
    * @return
    */
-  public List<DeviceSchema> getAllDeviceSchema(){
+  public List<DeviceSchema> getAllDeviceSchema() {
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-    for(Map.Entry<Integer, List<DeviceSchema>> schema: CLIENT_BIND_SCHEMA.entrySet()){
+    for (Map.Entry<Integer, List<DeviceSchema>> schema : CLIENT_BIND_SCHEMA.entrySet()) {
       deviceSchemaList.addAll(schema.getValue());
     }
     return deviceSchemaList;
@@ -127,9 +127,9 @@ public abstract class BaseDataSchema {
     if (baseDataSchema == null) {
       synchronized (BaseDataSchema.class) {
         if (baseDataSchema == null) {
-          if(config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)){
+          if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)) {
             baseDataSchema = new RealDataSchema();
-          }else{
+          } else {
             baseDataSchema = new DataSchema();
           }
         }

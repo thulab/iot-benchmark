@@ -24,12 +24,12 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -218,7 +218,8 @@ public class TaosDB implements IDatabase {
     List<String> sensors = deviceSchema.getSensors();
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
+      switch (typeMap(
+          baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
         case "BOOL":
           builder.append(",").append((boolean) value);
           break;

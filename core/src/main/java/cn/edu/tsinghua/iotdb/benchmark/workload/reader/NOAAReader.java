@@ -49,9 +49,7 @@ public class NOAAReader extends BasicReader {
     currentDeviceId = splitStrings[0] + "_" + splitStrings[1];
     deviceSchema =
         new DeviceSchema(
-                MetaUtil.getGroupNameByDeviceStr(currentDeviceId),
-            currentDeviceId,
-            config.getFIELDS());
+            MetaUtil.getGroupNameByDeviceStr(currentDeviceId), currentDeviceId, config.getFIELDS());
 
     // skip first line, which is the metadata
     reader.readLine();

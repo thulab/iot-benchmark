@@ -27,11 +27,11 @@ import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -356,9 +356,7 @@ public class SyntheticWorkload implements IGenerateWorkload {
           querySensors.size() < config.getQUERY_SENSOR_NUM() && i < config.getSENSOR_NUMBER();
           i++) {
         if (!typeAllow) {
-          Type type =
-              baseDataSchema.getSensorType(
-                  deviceSchema.getDevice(), sensors.get(i));
+          Type type = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(i));
           if (type == Type.BOOLEAN || type == Type.TEXT) {
             continue;
           }

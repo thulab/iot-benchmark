@@ -53,7 +53,7 @@ public class TDriveReader extends BasicReader {
     currentDeviceId = new File(currentFile).getName().replaceAll("\\.txt", "");
     deviceSchema =
         new DeviceSchema(
-                MetaUtil.getGroupNameByDeviceStr(currentDeviceId), currentDeviceId, sensors);
+            MetaUtil.getGroupNameByDeviceStr(currentDeviceId), currentDeviceId, sensors);
   }
 
   @Override
