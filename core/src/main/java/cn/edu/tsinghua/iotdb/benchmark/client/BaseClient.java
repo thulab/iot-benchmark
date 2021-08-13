@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IGenerateWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.IGenerateDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -44,7 +44,7 @@ public abstract class BaseClient extends Client implements Runnable {
   protected static final Logger LOGGER = LoggerFactory.getLogger(BaseClient.class);
 
   private final OperationController operationController;
-  private final IGenerateWorkload syntheticWorkload;
+  private final IGenerateDataWorkload syntheticWorkload;
   private final SingletonWorkload singletonWorkload;
   private long insertLoopIndex;
   private final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
@@ -52,7 +52,7 @@ public abstract class BaseClient extends Client implements Runnable {
   private long loopIndex;
 
   public BaseClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IGenerateWorkload workload) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IGenerateDataWorkload workload) {
     super(id, countDownLatch, barrier);
     syntheticWorkload = workload;
     singletonWorkload = SingletonWorkload.getInstance();
@@ -183,7 +183,8 @@ public abstract class BaseClient extends Client implements Runnable {
   /**
    * Do Ingestion Operation
    *
-   * @param actualDeviceFloor @Return when connect failed return false
+   * @param actualDeviceFloor
+   * @Return when connect failed return false
    */
   private boolean ingestionOperation(double actualDeviceFloor) {
     if (config.isIS_CLIENT_BIND()) {

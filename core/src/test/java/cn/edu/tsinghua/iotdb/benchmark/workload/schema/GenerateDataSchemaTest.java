@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
-public class DataSchemaTest {
+public class GenerateDataSchemaTest {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
   @Test
@@ -43,7 +43,7 @@ public class DataSchemaTest {
     int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
     int deviceNumEachClient = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
     config.initDeviceCodes();
-    BaseDataSchema dataSchema = DataSchema.getInstance();
+    BaseDataSchema dataSchema = GenerateDataSchema.getInstance();
     Map<Integer, List<DeviceSchema>> client2Schema = dataSchema.getClientBindSchema();
     for (int clientId : client2Schema.keySet()) {
       int deviceNumInClient = client2Schema.get(clientId).size();

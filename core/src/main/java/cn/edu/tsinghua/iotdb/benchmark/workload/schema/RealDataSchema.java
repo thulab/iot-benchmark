@@ -2,17 +2,18 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
-/** @Author stormbroken Create by 2021/08/12 @Version 1.0 */
 public class RealDataSchema extends BaseDataSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RealDataSchema.class);
@@ -20,20 +21,32 @@ public class RealDataSchema extends BaseDataSchema {
   /** Create Data Schema for each device */
   @Override
   protected void createDataSchema() {
-    File dirFile = new File(config.getFILE_PATH());
-    if (!dirFile.exists()) {
-      LOGGER.error("{} does not exit", config.getFILE_PATH());
+    Path path = Paths.get(config.getFILE_PATH());
+    if (!Files.exists(path)) {
+      LOGGER.error("{} dataset does not exit", config.getFILE_PATH());
       return;
     }
 
-    LOGGER.info("use dataset: {}", config.getDATA_SET());
-
     List<String> files = new ArrayList<>();
     getAllFiles(config.getFILE_PATH(), files);
-    LOGGER.info("total files: {}", files.size());
+    LOGGER.info("Total files: {}", files.size());
     Collections.sort(files);
 
-    List<DeviceSchema> deviceSchemaList = BasicReader.getDeviceSchemaList(files, config);
+    Map<String, Map<String, Type>> deviceSchemaMap = BasicReader.getDeviceSchemaList();
+    List<DeviceSchema> deviceSchemaList = new ArrayList<>();
+    for(Map.Entry<String, Map<String, Type>> device: deviceSchemaMap.entrySet()){
+      String deviceName = device.getKey();
+      List<String> sensors = new ArrayList<>(device.getValue().keySet());
+      sensors.sort(new Comparator<String>() {
+        @Override
+        public int compare(String o1, String o2) {
+          return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, "")) - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
+        }
+      });
+      DeviceSchema deviceSchema = new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceName), deviceName, sensors);
+      addSensorType(MetaUtil.getDeviceName(deviceName), device.getValue());
+      deviceSchemaList.add(deviceSchema);
+    }
 
     // Split into Thread And store Type
     for (int i = 0; i < deviceSchemaList.size(); i++) {
@@ -43,10 +56,6 @@ public class RealDataSchema extends BaseDataSchema {
         CLIENT_BIND_SCHEMA.put(threadId, new ArrayList<>());
       }
       CLIENT_BIND_SCHEMA.get(threadId).add(deviceSchema);
-      for (String sensor : deviceSchema.getSensors()) {
-        // TODO fix to multi type
-        addSensorType(deviceSchema.getDevice(), sensor, Type.DOUBLE);
-      }
     }
 
     // Split Files into Thread
@@ -73,7 +82,10 @@ public class RealDataSchema extends BaseDataSchema {
         getAllFiles(fsPath, files);
       }
     } else if (f.isFile()) {
-      files.add(f.getAbsolutePath());
+      if(!f.getAbsolutePath().contains(Constants.SCHEMA_PATH)
+              && !f.getAbsolutePath().contains(Constants.INFO_PATH)){
+        files.add(f.getAbsolutePath());
+      }
     }
   }
 }

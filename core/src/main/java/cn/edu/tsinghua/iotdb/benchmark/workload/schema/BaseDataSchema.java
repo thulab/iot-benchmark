@@ -85,6 +85,20 @@ public abstract class BaseDataSchema {
   }
 
   /**
+   * Get DeviceSchema by device
+   * @param device
+   * @return
+   */
+  public DeviceSchema getDeviceSchema(String device){
+    for(DeviceSchema deviceSchema: getAllDeviceSchema()){
+      if(deviceSchema.getDevice().equals(device)){
+        return deviceSchema;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Get Thread Device Schema
    *
    * @param threadId
@@ -130,7 +144,7 @@ public abstract class BaseDataSchema {
           if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)) {
             baseDataSchema = new RealDataSchema();
           } else {
-            baseDataSchema = new DataSchema();
+            baseDataSchema = new GenerateDataSchema();
           }
         }
       }

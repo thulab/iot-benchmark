@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +29,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /** Data Schema for generate data */
-public class DataSchema extends BaseDataSchema {
+public class GenerateDataSchema extends BaseDataSchema {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataSchema.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Integer TYPE_NUMBER = 6;
 
@@ -38,7 +39,12 @@ public class DataSchema extends BaseDataSchema {
   protected void createDataSchema() {
     Map<String, Type> sensorTypes = getSensorTypes();
     List<String> sensors = new ArrayList<>(sensorTypes.keySet());
-    Collections.sort(sensors);
+    sensors.sort(new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+        return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, "")) - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
+      }
+    });
     int eachClientDeviceNum;
     if (config.getCLIENT_NUMBER() != 0) {
       eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();

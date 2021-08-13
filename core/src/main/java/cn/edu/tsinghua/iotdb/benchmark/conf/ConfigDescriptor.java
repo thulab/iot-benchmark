@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,6 @@ public class ConfigDescriptor {
     config.initDeviceCodes();
     config.initSensorCodes();
     config.initSensorFunction();
-    config.initRealDataSetSchema();
   }
 
   public static ConfigDescriptor getInstance() {
@@ -149,24 +147,6 @@ public class ConfigDescriptor {
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
-
-        String dataset = properties.getProperty("DATA_SET", "REDD");
-        switch (dataset) {
-          case "GEOLIFE":
-            config.setDATA_SET(DataSet.GEOLIFE);
-            break;
-          case "REDD":
-            config.setDATA_SET(DataSet.REDD);
-            break;
-          case "TDRIVE":
-            config.setDATA_SET(DataSet.TDRIVE);
-            break;
-          case "NOAA":
-            config.setDATA_SET(DataSet.NOAA);
-            break;
-          default:
-            throw new RuntimeException("not support dataset: " + dataset);
-        }
 
         config.setDEVICE_NUMBER(
             Integer.parseInt(

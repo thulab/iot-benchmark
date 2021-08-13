@@ -31,9 +31,6 @@ public class VerificationMode extends BaseMode {
   /** Start benchmark */
   @Override
   public void run() {
-    // getBATCH_SIZE() is points number in this mode
-    config.setBATCH_SIZE_PER_WRITE(config.getBATCH_SIZE_PER_WRITE() / config.getFIELDS().size());
-
     List<DeviceSchema> deviceSchemaList = baseDataSchema.getAllDeviceSchema();
 
     Measurement measurement = new Measurement();

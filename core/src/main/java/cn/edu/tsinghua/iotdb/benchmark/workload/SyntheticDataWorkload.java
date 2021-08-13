@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class SyntheticWorkload implements IGenerateWorkload {
+public class SyntheticDataWorkload implements IGenerateDataWorkload {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticWorkload.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticDataWorkload.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private static final Random timestampRandom = new Random(config.getDATA_SEED());
@@ -67,7 +67,7 @@ public class SyntheticWorkload implements IGenerateWorkload {
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
 
-  public SyntheticWorkload(int clientId) {
+  public SyntheticDataWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
     for (DeviceSchema schema : BaseDataSchema.getInstance().getClientBindSchema().get(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);

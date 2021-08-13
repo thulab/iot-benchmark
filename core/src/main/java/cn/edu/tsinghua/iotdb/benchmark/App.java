@@ -50,6 +50,9 @@ public class App {
       case Constants.MODE_TEST_WITH_DEFAULT_PATH:
         baseMode = new TestWithDefaultPathMode();
         break;
+      case Constants.MODE_GENERATE:
+        baseMode = new GenerateDataMode();
+        break;
       case Constants.MODE_SERVER_MODE:
         baseMode = new ServerMode();
         break;
