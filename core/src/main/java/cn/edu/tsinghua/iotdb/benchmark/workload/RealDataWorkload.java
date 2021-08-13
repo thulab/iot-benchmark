@@ -14,9 +14,7 @@ public class RealDataWorkload implements IRealDataWorkload {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private BasicReader basicReader;
 
-  /**
-   * Init reader of real dataset write test
-   */
+  /** Init reader of real dataset write test */
   public RealDataWorkload(int threadId) {
     // file -> device
     // a file -> a batch
@@ -64,7 +62,7 @@ public class RealDataWorkload implements IRealDataWorkload {
   @Override
   public VerificationQuery getVerifiedQuery() throws WorkloadException {
     Batch batch = getOneBatch();
-    if(batch == null){
+    if (batch == null) {
       return null;
     }
     return new VerificationQuery(batch);

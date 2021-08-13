@@ -34,7 +34,6 @@ public class VerificationMode extends BaseMode {
     // getBATCH_SIZE() is points number in this mode
     config.setBATCH_SIZE_PER_WRITE(config.getBATCH_SIZE_PER_WRITE() / config.getFIELDS().size());
 
-    // TODO register schema into BaseDataSchema
     List<DeviceSchema> deviceSchemaList = baseDataSchema.getAllDeviceSchema();
 
     Measurement measurement = new Measurement();
@@ -73,7 +72,7 @@ public class VerificationMode extends BaseMode {
     check(measurement);
   }
 
-  private void write(Measurement measurement){
+  private void write(Measurement measurement) {
     CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
     // create getCLIENT_NUMBER() client threads to do the workloads
@@ -90,7 +89,7 @@ public class VerificationMode extends BaseMode {
     finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
   }
 
-  private void check(Measurement measurement){
+  private void check(Measurement measurement) {
     CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
     // create getCLIENT_NUMBER() client threads to do the workloads

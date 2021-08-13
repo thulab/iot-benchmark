@@ -156,7 +156,7 @@ public interface IDatabase {
   Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery);
 
   /** Using in verification */
-  default Status verificationQuery(VerificationQuery verificationQuery){
+  default Status verificationQuery(VerificationQuery verificationQuery) {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
   };
