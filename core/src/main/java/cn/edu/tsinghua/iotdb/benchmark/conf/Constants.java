@@ -95,12 +95,14 @@ public class Constants {
 
   /** different running mode */
   public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
+
   public static final String MODE_GENERATE = "generateDataMode";
   public static final String MODE_VERIFICATION = "verificationMode";
   public static final String MODE_SERVER_MODE = "serverMODE";
 
   /** Properties when generate data */
   public static final String SCHEMA_PATH = "schema.txt";
+
   public static final String INFO_PATH = "info.txt";
 
   /** name prefix of group */
@@ -119,6 +121,7 @@ public class Constants {
 
   /** device and storage group assignment */
   public static final String MOD_SG_ASSIGN_MODE = "mod";
+
   public static final String HASH_SG_ASSIGN_MODE = "hash";
   public static final String DIV_SG_ASSIGN_MODE = "div";
 

@@ -39,12 +39,14 @@ public class GenerateDataSchema extends BaseDataSchema {
   protected void createDataSchema() {
     Map<String, Type> sensorTypes = getSensorTypes();
     List<String> sensors = new ArrayList<>(sensorTypes.keySet());
-    sensors.sort(new Comparator<String>() {
-      @Override
-      public int compare(String o1, String o2) {
-        return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, "")) - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
-      }
-    });
+    sensors.sort(
+        new Comparator<String>() {
+          @Override
+          public int compare(String o1, String o2) {
+            return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, ""))
+                - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
+          }
+        });
     int eachClientDeviceNum;
     if (config.getCLIENT_NUMBER() != 0) {
       eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();

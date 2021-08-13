@@ -86,12 +86,13 @@ public abstract class BaseDataSchema {
 
   /**
    * Get DeviceSchema by device
+   *
    * @param device
    * @return
    */
-  public DeviceSchema getDeviceSchema(String device){
-    for(DeviceSchema deviceSchema: getAllDeviceSchema()){
-      if(deviceSchema.getDevice().equals(device)){
+  public DeviceSchema getDeviceSchema(String device) {
+    for (DeviceSchema deviceSchema : getAllDeviceSchema()) {
+      if (deviceSchema.getDevice().equals(device)) {
         return deviceSchema;
       }
     }

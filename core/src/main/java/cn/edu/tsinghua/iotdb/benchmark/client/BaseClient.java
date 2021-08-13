@@ -52,7 +52,10 @@ public abstract class BaseClient extends Client implements Runnable {
   private long loopIndex;
 
   public BaseClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IGenerateDataWorkload workload) {
+      int id,
+      CountDownLatch countDownLatch,
+      CyclicBarrier barrier,
+      IGenerateDataWorkload workload) {
     super(id, countDownLatch, barrier);
     syntheticWorkload = workload;
     singletonWorkload = SingletonWorkload.getInstance();
@@ -183,8 +186,7 @@ public abstract class BaseClient extends Client implements Runnable {
   /**
    * Do Ingestion Operation
    *
-   * @param actualDeviceFloor
-   * @Return when connect failed return false
+   * @param actualDeviceFloor @Return when connect failed return false
    */
   private boolean ingestionOperation(double actualDeviceFloor) {
     if (config.isIS_CLIENT_BIND()) {

@@ -1253,99 +1253,218 @@ public class Config {
 
   @Override
   public String toString() {
-    return  "IS_DELETE_DATA=" + IS_DELETE_DATA +
-            "\nINIT_WAIT_TIME=" + INIT_WAIT_TIME +
-            "\nNET_DEVICE='" + NET_DEVICE + '\'' +
-            "\nLOOP=" + LOOP +
-            "\nBENCHMARK_WORK_MODE='" + BENCHMARK_WORK_MODE + '\'' +
-            "\nBENCHMARK_CLUSTER=" + BENCHMARK_CLUSTER +
-            "\nBENCHMARK_INDEX=" + BENCHMARK_INDEX +
-            "\nFIRST_DEVICE_INDEX=" + FIRST_DEVICE_INDEX +
-            "\nDB_SWITCH='" + DB_SWITCH + '\'' +
-            "\nHOST=" + HOST +
-            "\nPORT=" + PORT +
-            "\nUSERNAME='" + USERNAME + '\'' +
-            "\nPASSWORD='" + PASSWORD + '\'' +
-            "\nDB_NAME='" + DB_NAME + '\'' +
-            "\nTOKEN='" + TOKEN + '\'' +
-            "\nIS_ALL_NODES_VISIBLE=" + IS_ALL_NODES_VISIBLE +
-            "\nIOTDB_DATA_DIR=" + IOTDB_DATA_DIR +
-            "\nIOTDB_WAL_DIR=" + IOTDB_WAL_DIR +
-            "\nIOTDB_SYSTEM_DIR=" + IOTDB_SYSTEM_DIR +
-            "\nSEQUENCE_DIR=" + SEQUENCE_DIR +
-            "\nUNSEQUENCE_DIR=" + UNSEQUENCE_DIR +
-            "\nENABLE_DOUBLE_INSERT=" + ENABLE_DOUBLE_INSERT +
-            "\nANOTHER_HOST=" + ANOTHER_HOST +
-            "\nANOTHER_PORT=" + ANOTHER_PORT +
-            "\nANOTHER_DB_NAME='" + ANOTHER_DB_NAME + '\'' +
-            "\nKAFKA_LOCATION='" + KAFKA_LOCATION + '\'' +
-            "\nZOOKEEPER_LOCATION='" + ZOOKEEPER_LOCATION + '\'' +
-            "\nTOPIC_NAME='" + TOPIC_NAME + '\'' +
-            "\nPOINT_STEP=" + POINT_STEP +
-            "\nTIMESTAMP_PRECISION='" + TIMESTAMP_PRECISION + '\'' +
-            "\nSTRING_LENGTH=" + STRING_LENGTH +
-            "\nINSERT_DATATYPE_PROPORTION='" + INSERT_DATATYPE_PROPORTION + '\'' +
-            "\nFILE_PATH='" + FILE_PATH + '\'' +
-            "\nDEVICE_NUMBER=" + DEVICE_NUMBER +
-            "\nREAL_INSERT_RATE=" + REAL_INSERT_RATE +
-            "\nSENSOR_NUMBER=" + SENSOR_NUMBER +
-            "\nIS_SENSOR_TS_ALIGNMENT=" + IS_SENSOR_TS_ALIGNMENT +
-            "\nIS_CLIENT_BIND=" + IS_CLIENT_BIND +
-            "\nCLIENT_NUMBER=" + CLIENT_NUMBER +
-            "\nLINE_RATIO=" + LINE_RATIO +
-            "\nSIN_RATIO=" + SIN_RATIO +
-            "\nSQUARE_RATIO=" + SQUARE_RATIO +
-            "\nRANDOM_RATIO=" + RANDOM_RATIO +
-            "\nCONSTANT_RATIO=" + CONSTANT_RATIO +
-            "\nDATA_SEED=" + DATA_SEED +
-            "\nENABLE_THRIFT_COMPRESSION=" + ENABLE_THRIFT_COMPRESSION +
-            "\nSG_STRATEGY='" + SG_STRATEGY + '\'' +
-            "\nGROUP_NUMBER=" + GROUP_NUMBER +
-            "\nIOTDB_SESSION_POOL_SIZE=" + IOTDB_SESSION_POOL_SIZE +
-            "\nOP_INTERVAL=" + OP_INTERVAL +
-            "\nWRITE_OPERATION_TIMEOUT_MS=" + WRITE_OPERATION_TIMEOUT_MS +
-            "\nREAD_OPERATION_TIMEOUT_MS=" + READ_OPERATION_TIMEOUT_MS +
-            "\nBATCH_SIZE_PER_WRITE=" + BATCH_SIZE_PER_WRITE +
-            "\nCREATE_SCHEMA=" + CREATE_SCHEMA +
-            "\nSTART_TIME='" + START_TIME + '\'' +
-            "\nIS_OUT_OF_ORDER=" + IS_OUT_OF_ORDER +
-            "\nOUT_OF_ORDER_MODE=" + OUT_OF_ORDER_MODE +
-            "\nOUT_OF_ORDER_RATIO=" + OUT_OF_ORDER_RATIO +
-            "\nIS_REGULAR_FREQUENCY=" + IS_REGULAR_FREQUENCY +
-            "\nLAMBDA=" + LAMBDA +
-            "\nMAX_K=" + MAX_K +
-            "\nSTEP_SIZE=" + STEP_SIZE +
-            "\nOPERATION_PROPORTION='" + OPERATION_PROPORTION + '\'' +
-            "\nQUERY_SENSOR_NUM=" + QUERY_SENSOR_NUM +
-            "\nQUERY_DEVICE_NUM=" + QUERY_DEVICE_NUM +
-            "\nQUERY_AGGREGATE_FUN='" + QUERY_AGGREGATE_FUN + '\'' +
-            "\nQUERY_INTERVAL=" + QUERY_INTERVAL +
-            "\nQUERY_LOWER_VALUE=" + QUERY_LOWER_VALUE +
-            "\nGROUP_BY_TIME_UNIT=" + GROUP_BY_TIME_UNIT +
-            "\nQUERY_SEED=" + QUERY_SEED +
-            "\nQUERY_LIMIT_N=" + QUERY_LIMIT_N +
-            "\nQUERY_LIMIT_OFFSET=" + QUERY_LIMIT_OFFSET +
-            "\nQUERY_SLIMIT_N=" + QUERY_SLIMIT_N +
-            "\nQUERY_SLIMIT_OFFSET=" + QUERY_SLIMIT_OFFSET +
-            "\nREAL_DATASET_QUERY_START_TIME=" + REAL_DATASET_QUERY_START_TIME +
-            "\nREAL_DATASET_QUERY_STOP_TIME=" + REAL_DATASET_QUERY_STOP_TIME +
-            "\nWORKLOAD_BUFFER_SIZE=" + WORKLOAD_BUFFER_SIZE +
-            "\nTEST_DATA_PERSISTENCE='" + TEST_DATA_PERSISTENCE + '\'' +
-            "\nMONITOR_INTERVAL=" + MONITOR_INTERVAL +
-            "\nIS_QUIET_MODE=" + IS_QUIET_MODE +
-            "\nLOG_PRINT_INTERVAL=" + LOG_PRINT_INTERVAL +
-            "\nTEST_DATA_STORE_IP='" + TEST_DATA_STORE_IP + '\'' +
-            "\nTEST_DATA_STORE_PORT='" + TEST_DATA_STORE_PORT + '\'' +
-            "\nTEST_DATA_STORE_DB='" + TEST_DATA_STORE_DB + '\'' +
-            "\nTEST_DATA_STORE_USER='" + TEST_DATA_STORE_USER + '\'' +
-            "\nTEST_DATA_STORE_PW='" + TEST_DATA_STORE_PW + '\'' +
-            "\nREMARK='" + REMARK + '\'' +
-            "\nMYSQL_REAL_INSERT_RATE=" + MYSQL_REAL_INSERT_RATE +
-            "\nCSV_OUTPUT=" + CSV_OUTPUT +
-            "\nCURRENT_CSV_LINE=" + CURRENT_CSV_LINE +
-            "\nCSV_MAX_LINE=" + CSV_MAX_LINE +
-            "\nCSV_FILE_SPLIT=" + CSV_FILE_SPLIT +
-            "\nDEVICE_CODES=" + DEVICE_CODES +
-            "\nSENSOR_CODES=" + SENSOR_CODES;
+    return "IS_DELETE_DATA="
+        + IS_DELETE_DATA
+        + "\nINIT_WAIT_TIME="
+        + INIT_WAIT_TIME
+        + "\nNET_DEVICE='"
+        + NET_DEVICE
+        + '\''
+        + "\nLOOP="
+        + LOOP
+        + "\nBENCHMARK_WORK_MODE='"
+        + BENCHMARK_WORK_MODE
+        + '\''
+        + "\nBENCHMARK_CLUSTER="
+        + BENCHMARK_CLUSTER
+        + "\nBENCHMARK_INDEX="
+        + BENCHMARK_INDEX
+        + "\nFIRST_DEVICE_INDEX="
+        + FIRST_DEVICE_INDEX
+        + "\nDB_SWITCH='"
+        + DB_SWITCH
+        + '\''
+        + "\nHOST="
+        + HOST
+        + "\nPORT="
+        + PORT
+        + "\nUSERNAME='"
+        + USERNAME
+        + '\''
+        + "\nPASSWORD='"
+        + PASSWORD
+        + '\''
+        + "\nDB_NAME='"
+        + DB_NAME
+        + '\''
+        + "\nTOKEN='"
+        + TOKEN
+        + '\''
+        + "\nIS_ALL_NODES_VISIBLE="
+        + IS_ALL_NODES_VISIBLE
+        + "\nIOTDB_DATA_DIR="
+        + IOTDB_DATA_DIR
+        + "\nIOTDB_WAL_DIR="
+        + IOTDB_WAL_DIR
+        + "\nIOTDB_SYSTEM_DIR="
+        + IOTDB_SYSTEM_DIR
+        + "\nSEQUENCE_DIR="
+        + SEQUENCE_DIR
+        + "\nUNSEQUENCE_DIR="
+        + UNSEQUENCE_DIR
+        + "\nENABLE_DOUBLE_INSERT="
+        + ENABLE_DOUBLE_INSERT
+        + "\nANOTHER_HOST="
+        + ANOTHER_HOST
+        + "\nANOTHER_PORT="
+        + ANOTHER_PORT
+        + "\nANOTHER_DB_NAME='"
+        + ANOTHER_DB_NAME
+        + '\''
+        + "\nKAFKA_LOCATION='"
+        + KAFKA_LOCATION
+        + '\''
+        + "\nZOOKEEPER_LOCATION='"
+        + ZOOKEEPER_LOCATION
+        + '\''
+        + "\nTOPIC_NAME='"
+        + TOPIC_NAME
+        + '\''
+        + "\nPOINT_STEP="
+        + POINT_STEP
+        + "\nTIMESTAMP_PRECISION='"
+        + TIMESTAMP_PRECISION
+        + '\''
+        + "\nSTRING_LENGTH="
+        + STRING_LENGTH
+        + "\nINSERT_DATATYPE_PROPORTION='"
+        + INSERT_DATATYPE_PROPORTION
+        + '\''
+        + "\nFILE_PATH='"
+        + FILE_PATH
+        + '\''
+        + "\nDEVICE_NUMBER="
+        + DEVICE_NUMBER
+        + "\nREAL_INSERT_RATE="
+        + REAL_INSERT_RATE
+        + "\nSENSOR_NUMBER="
+        + SENSOR_NUMBER
+        + "\nIS_SENSOR_TS_ALIGNMENT="
+        + IS_SENSOR_TS_ALIGNMENT
+        + "\nIS_CLIENT_BIND="
+        + IS_CLIENT_BIND
+        + "\nCLIENT_NUMBER="
+        + CLIENT_NUMBER
+        + "\nLINE_RATIO="
+        + LINE_RATIO
+        + "\nSIN_RATIO="
+        + SIN_RATIO
+        + "\nSQUARE_RATIO="
+        + SQUARE_RATIO
+        + "\nRANDOM_RATIO="
+        + RANDOM_RATIO
+        + "\nCONSTANT_RATIO="
+        + CONSTANT_RATIO
+        + "\nDATA_SEED="
+        + DATA_SEED
+        + "\nENABLE_THRIFT_COMPRESSION="
+        + ENABLE_THRIFT_COMPRESSION
+        + "\nSG_STRATEGY='"
+        + SG_STRATEGY
+        + '\''
+        + "\nGROUP_NUMBER="
+        + GROUP_NUMBER
+        + "\nIOTDB_SESSION_POOL_SIZE="
+        + IOTDB_SESSION_POOL_SIZE
+        + "\nOP_INTERVAL="
+        + OP_INTERVAL
+        + "\nWRITE_OPERATION_TIMEOUT_MS="
+        + WRITE_OPERATION_TIMEOUT_MS
+        + "\nREAD_OPERATION_TIMEOUT_MS="
+        + READ_OPERATION_TIMEOUT_MS
+        + "\nBATCH_SIZE_PER_WRITE="
+        + BATCH_SIZE_PER_WRITE
+        + "\nCREATE_SCHEMA="
+        + CREATE_SCHEMA
+        + "\nSTART_TIME='"
+        + START_TIME
+        + '\''
+        + "\nIS_OUT_OF_ORDER="
+        + IS_OUT_OF_ORDER
+        + "\nOUT_OF_ORDER_MODE="
+        + OUT_OF_ORDER_MODE
+        + "\nOUT_OF_ORDER_RATIO="
+        + OUT_OF_ORDER_RATIO
+        + "\nIS_REGULAR_FREQUENCY="
+        + IS_REGULAR_FREQUENCY
+        + "\nLAMBDA="
+        + LAMBDA
+        + "\nMAX_K="
+        + MAX_K
+        + "\nSTEP_SIZE="
+        + STEP_SIZE
+        + "\nOPERATION_PROPORTION='"
+        + OPERATION_PROPORTION
+        + '\''
+        + "\nQUERY_SENSOR_NUM="
+        + QUERY_SENSOR_NUM
+        + "\nQUERY_DEVICE_NUM="
+        + QUERY_DEVICE_NUM
+        + "\nQUERY_AGGREGATE_FUN='"
+        + QUERY_AGGREGATE_FUN
+        + '\''
+        + "\nQUERY_INTERVAL="
+        + QUERY_INTERVAL
+        + "\nQUERY_LOWER_VALUE="
+        + QUERY_LOWER_VALUE
+        + "\nGROUP_BY_TIME_UNIT="
+        + GROUP_BY_TIME_UNIT
+        + "\nQUERY_SEED="
+        + QUERY_SEED
+        + "\nQUERY_LIMIT_N="
+        + QUERY_LIMIT_N
+        + "\nQUERY_LIMIT_OFFSET="
+        + QUERY_LIMIT_OFFSET
+        + "\nQUERY_SLIMIT_N="
+        + QUERY_SLIMIT_N
+        + "\nQUERY_SLIMIT_OFFSET="
+        + QUERY_SLIMIT_OFFSET
+        + "\nREAL_DATASET_QUERY_START_TIME="
+        + REAL_DATASET_QUERY_START_TIME
+        + "\nREAL_DATASET_QUERY_STOP_TIME="
+        + REAL_DATASET_QUERY_STOP_TIME
+        + "\nWORKLOAD_BUFFER_SIZE="
+        + WORKLOAD_BUFFER_SIZE
+        + "\nTEST_DATA_PERSISTENCE='"
+        + TEST_DATA_PERSISTENCE
+        + '\''
+        + "\nMONITOR_INTERVAL="
+        + MONITOR_INTERVAL
+        + "\nIS_QUIET_MODE="
+        + IS_QUIET_MODE
+        + "\nLOG_PRINT_INTERVAL="
+        + LOG_PRINT_INTERVAL
+        + "\nTEST_DATA_STORE_IP='"
+        + TEST_DATA_STORE_IP
+        + '\''
+        + "\nTEST_DATA_STORE_PORT='"
+        + TEST_DATA_STORE_PORT
+        + '\''
+        + "\nTEST_DATA_STORE_DB='"
+        + TEST_DATA_STORE_DB
+        + '\''
+        + "\nTEST_DATA_STORE_USER='"
+        + TEST_DATA_STORE_USER
+        + '\''
+        + "\nTEST_DATA_STORE_PW='"
+        + TEST_DATA_STORE_PW
+        + '\''
+        + "\nREMARK='"
+        + REMARK
+        + '\''
+        + "\nMYSQL_REAL_INSERT_RATE="
+        + MYSQL_REAL_INSERT_RATE
+        + "\nCSV_OUTPUT="
+        + CSV_OUTPUT
+        + "\nCURRENT_CSV_LINE="
+        + CURRENT_CSV_LINE
+        + "\nCSV_MAX_LINE="
+        + CSV_MAX_LINE
+        + "\nCSV_FILE_SPLIT="
+        + CSV_FILE_SPLIT
+        + "\nDEVICE_CODES="
+        + DEVICE_CODES
+        + "\nSENSOR_CODES="
+        + SENSOR_CODES;
   }
 }

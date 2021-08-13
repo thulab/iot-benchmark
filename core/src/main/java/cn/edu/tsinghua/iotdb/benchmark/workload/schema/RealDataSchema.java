@@ -34,16 +34,19 @@ public class RealDataSchema extends BaseDataSchema {
 
     Map<String, Map<String, Type>> deviceSchemaMap = BasicReader.getDeviceSchemaList();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-    for(Map.Entry<String, Map<String, Type>> device: deviceSchemaMap.entrySet()){
+    for (Map.Entry<String, Map<String, Type>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();
       List<String> sensors = new ArrayList<>(device.getValue().keySet());
-      sensors.sort(new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-          return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, "")) - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
-        }
-      });
-      DeviceSchema deviceSchema = new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceName), deviceName, sensors);
+      sensors.sort(
+          new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+              return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, ""))
+                  - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
+            }
+          });
+      DeviceSchema deviceSchema =
+          new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceName), deviceName, sensors);
       addSensorType(MetaUtil.getDeviceName(deviceName), device.getValue());
       deviceSchemaList.add(deviceSchema);
     }
@@ -82,8 +85,8 @@ public class RealDataSchema extends BaseDataSchema {
         getAllFiles(fsPath, files);
       }
     } else if (f.isFile()) {
-      if(!f.getAbsolutePath().contains(Constants.SCHEMA_PATH)
-              && !f.getAbsolutePath().contains(Constants.INFO_PATH)){
+      if (!f.getAbsolutePath().contains(Constants.SCHEMA_PATH)
+          && !f.getAbsolutePath().contains(Constants.INFO_PATH)) {
         files.add(f.getAbsolutePath());
       }
     }

@@ -52,11 +52,11 @@ public abstract class BasicReader {
   }
 
   public boolean hasNextBatch() {
-    if(currentFileIndex < files.size()){
-      try{
+    if (currentFileIndex < files.size()) {
+      try {
         currentFileName = files.get(currentFileIndex);
         bufferedReader = new BufferedReader(new FileReader(currentFileName));
-      }catch (IOException ioException){
+      } catch (IOException ioException) {
         LOGGER.error("Failed to read " + files.get(currentFileIndex));
       }
       currentFileIndex++;
@@ -75,23 +75,23 @@ public abstract class BasicReader {
    */
   public static Map<String, Map<String, Type>> getDeviceSchemaList() {
     Path path = Paths.get(config.getFILE_PATH(), Constants.SCHEMA_PATH);
-    if(!Files.exists(path) || !Files.isRegularFile(path)){
+    if (!Files.exists(path) || !Files.isRegularFile(path)) {
       LOGGER.error("Failed to find schema file in " + path.getFileName().toString());
       System.exit(2);
     }
     Map<String, Map<String, Type>> result = new HashMap<>();
-    try{
+    try {
       List<String> schemaLines = Files.readAllLines(path);
-      for(String schemaLine: schemaLines){
-        if(schemaLine.trim().length() != 0){
+      for (String schemaLine : schemaLines) {
+        if (schemaLine.trim().length() != 0) {
           String line[] = schemaLine.split(" ");
-          if(!result.containsKey(line[0])){
+          if (!result.containsKey(line[0])) {
             result.put(line[0], new HashMap<>());
           }
           result.get(line[0]).put(line[1], Type.getType(Integer.valueOf(line[2])));
         }
       }
-    }catch (IOException exception){
+    } catch (IOException exception) {
       LOGGER.error("Failed to init register");
     }
 
