@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.*;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 
-public class IotdbRecorder implements ITestDataPersistence {
+public class IotdbRecorder extends TestDataPersistence {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IotdbRecorder.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -238,7 +238,7 @@ public class IotdbRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveOperationResult(
+  protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark) {
     StringBuilder builder = new StringBuilder(OPERATION_RESULT_PREFIX);
     long currTime = System.currentTimeMillis();
@@ -258,7 +258,7 @@ public class IotdbRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveResult(String operation, String key, String value) {
+  protected void saveResult(String operation, String key, String value) {
     StringBuilder builder = new StringBuilder(INSERT_SQL_PREFIX);
     builder.append(".").append(operation).append(INSERT_SQL_STR2);
     builder.append(",").append(key);

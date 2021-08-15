@@ -322,6 +322,10 @@ public class Config {
   private String TEST_DATA_STORE_USER = "";
   /** The password of user */
   private String TEST_DATA_STORE_PW = "";
+  /** The write time out of database */
+  private long TEST_DATA_WRITE_TIME_OUT = 300000;
+  /** The max connection of database */
+  private int TEST_DATA_MAX_CONNECTION = 1;
   /**
    * The remark of experiment which will be stored into mysql as part of table name (Notice that no
    * .) rename to TEST_DATA_STORE_REMARK
@@ -1249,6 +1253,22 @@ public class Config {
 
   public void setTOKEN(String TOKEN) {
     this.TOKEN = TOKEN;
+  }
+
+  public long getTEST_DATA_WRITE_TIME_OUT() {
+    return TEST_DATA_WRITE_TIME_OUT;
+  }
+
+  public void setTEST_DATA_WRITE_TIME_OUT(long TEST_DATA_WRITE_TIME_OUT) {
+    this.TEST_DATA_WRITE_TIME_OUT = TEST_DATA_WRITE_TIME_OUT;
+  }
+
+  public int getTEST_DATA_MAX_CONNECTION() {
+    return TEST_DATA_MAX_CONNECTION;
+  }
+
+  public void setTEST_DATA_MAX_CONNECTION(int TEST_DATA_MAX_CONNECTION) {
+    this.TEST_DATA_MAX_CONNECTION = TEST_DATA_MAX_CONNECTION;
   }
 
   @Override

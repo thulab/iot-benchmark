@@ -5,7 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -30,7 +30,7 @@ public class TestWithDefaultPathMode extends BaseMode {
   @Override
   public void run() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    TestDataPersistence recorder = persistenceFactory.getPersistence();
     recorder.saveTestConfig();
 
     Measurement measurement = new Measurement();

@@ -25,7 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.Metric;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalOperationResult;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalResult;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import com.clearspring.analytics.stream.quantile.TDigest;
 import org.slf4j.Logger;
@@ -156,15 +156,15 @@ public class Measurement {
   /** Show measurements and record according to TEST_DATA_PERSISTENCE */
   public void showMeasurements() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
     System.out.println(
         "Test elapsed time (not include schema creation): "
             + String.format("%.2f", elapseTime)
             + " second");
-    recorder.saveResult("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
-    recorder.saveResult("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
+    recorder.saveResultAsync("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
+    recorder.saveResultAsync("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
     System.out.println(
         "----------------------------------------------------------Result Matrix----------------------------------------------------------");
@@ -192,29 +192,29 @@ public class Measurement {
           failPointNumMap.get(operation),
           throughput);
 
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.OK_OPERATION_NUM.getName(),
           "" + okOperationNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.OK_POINT_NUM.getName(),
           "" + okPointNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.FAIL_OPERATION_NUM.getName(),
           "" + failOperationNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.FAIL_POINT_NUM.getName(),
           "" + failPointNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
     }
     System.out.println(
         "---------------------------------------------------------------------------------------------------------------------------------");
 
-    recorder.close();
+    recorder.closeAsync();
   }
 
   /** Show Config of test */
@@ -242,7 +242,7 @@ public class Measurement {
   /** Show metrics of test */
   public void showMetrics() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(
         "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
     System.out.printf(RESULT_ITEM, "Operation");
@@ -255,13 +255,13 @@ public class Measurement {
       for (Metric metric : Metric.values()) {
         String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
         System.out.printf(LATENCY_ITEM, metricResult);
-        recorder.saveResult(operation.toString(), metric.name, metricResult);
+        recorder.saveResultAsync(operation.toString(), metric.name, metricResult);
       }
       System.out.println();
     }
     System.out.println(
         "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    recorder.close();
+    recorder.closeAsync();
   }
 
   /** output measurement to csv */

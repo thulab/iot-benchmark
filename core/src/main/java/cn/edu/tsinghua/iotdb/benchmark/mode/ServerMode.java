@@ -3,7 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.mode;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.syslog.*;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class ServerMode extends BaseMode {
   @Override
   public void run() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    TestDataPersistence recorder = persistenceFactory.getPersistence();
     recorder.saveTestConfig();
 
     float abnormalValue = -1;

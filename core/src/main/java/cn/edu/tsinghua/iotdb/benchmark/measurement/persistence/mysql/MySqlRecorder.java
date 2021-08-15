@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 
-public class MySqlRecorder implements ITestDataPersistence {
+public class MySqlRecorder extends TestDataPersistence {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MySqlRecorder.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -193,7 +193,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveOperationResult(
+  protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark) {
     if (config.IncrementAndGetCURRENT_CSV_LINE() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
       double rate = 0;
@@ -268,7 +268,7 @@ public class MySqlRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveResult(String operation, String key, String value) {
+  protected void saveResult(String operation, String key, String value) {
     String sql = String.format(SAVE_RESULT, PROJECT_ID, operation, key, value);
     try {
       statement.executeUpdate(sql);

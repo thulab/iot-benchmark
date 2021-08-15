@@ -25,7 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
@@ -46,7 +46,7 @@ public class DBWrapper implements IDatabase {
 
   private IDatabase db;
   private Measurement measurement;
-  private ITestDataPersistence recorder;
+  private TestDataPersistence recorder;
 
   /**
    * Use DBFactory to get database
@@ -78,7 +78,7 @@ public class DBWrapper implements IDatabase {
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0, e.toString());
+      recorder.saveOperationResultAsync(operation.getName(), 0, batch.pointNum(), 0, e.toString());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
@@ -97,7 +97,7 @@ public class DBWrapper implements IDatabase {
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResult(operation.getName(), 0, batch.pointNum(), 0, e.toString());
+      recorder.saveOperationResultAsync(operation.getName(), 0, batch.pointNum(), 0, e.toString());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
@@ -132,7 +132,7 @@ public class DBWrapper implements IDatabase {
     } else {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResult(
+      recorder.saveOperationResultAsync(
           operation.getName(), 0, batch.pointNum(), 0, status.getException().toString());
       LOGGER.error("Insert batch failed because", status.getException());
     }
@@ -345,7 +345,7 @@ public class DBWrapper implements IDatabase {
   public void close() throws TsdbException {
     db.close();
     if (recorder != null) {
-      recorder.close();
+      recorder.closeAsync();
     }
   }
 
@@ -387,7 +387,7 @@ public class DBWrapper implements IDatabase {
     measurement.addOperationLatency(operation, latencyInMillis);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
-    recorder.saveOperationResult(operation.getName(), okPointNum, 0, latencyInMillis, "");
+    recorder.saveOperationResultAsync(operation.getName(), okPointNum, 0, latencyInMillis, "");
   }
 
   /**
@@ -414,7 +414,7 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number for query
-      recorder.saveOperationResult(operation.getName(), 0, 0, 0, status.getException().toString());
+      recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, status.getException().toString());
     }
   }
 
@@ -429,6 +429,6 @@ public class DBWrapper implements IDatabase {
     measurement.addFailOperationNum(operation);
     // currently we do not have expected result point number for query
     LOGGER.error(ERROR_LOG, operation, e);
-    recorder.saveOperationResult(operation.getName(), 0, 0, 0, e.toString());
+    recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, e.toString());
   }
 }

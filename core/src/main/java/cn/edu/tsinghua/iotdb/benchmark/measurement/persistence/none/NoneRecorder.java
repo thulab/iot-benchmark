@@ -20,11 +20,11 @@
 package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.none;
 
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 
 import java.util.Map;
 
-public class NoneRecorder implements ITestDataPersistence {
+public class NoneRecorder extends TestDataPersistence {
 
   @Override
   public void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap) {
@@ -37,13 +37,13 @@ public class NoneRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveOperationResult(
+  protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark) {
     // DO nothing
   }
 
   @Override
-  public void saveResult(String operation, String key, String value) {
+  protected void saveResult(String operation, String key, String value) {
     // DO nothing
   }
 

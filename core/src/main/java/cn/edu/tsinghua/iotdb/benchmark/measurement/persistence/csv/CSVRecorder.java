@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class CSVRecorder implements ITestDataPersistence {
+public class CSVRecorder extends TestDataPersistence {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CSVRecorder.class);
 
@@ -247,7 +247,7 @@ public class CSVRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveOperationResult(
+  protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark) {
     if (config.isCSV_FILE_SPLIT()) {
       if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
@@ -332,7 +332,7 @@ public class CSVRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveResult(String operation, String key, String value) {
+  protected void saveResult(String operation, String key, String value) {
     String line = String.format(",%s,%s,%s,%s", projectID, operation, key, value);
     try {
       finalResultWriter.append(line);
