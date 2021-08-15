@@ -25,8 +25,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.Metric;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalOperationResult;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalResult;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import com.clearspring.analytics.stream.quantile.TDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,7 +163,8 @@ public class Measurement {
         "Test elapsed time (not include schema creation): "
             + String.format("%.2f", elapseTime)
             + " second");
-    recorder.saveResultAsync("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
+    recorder.saveResultAsync(
+        "total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
     recorder.saveResultAsync("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
     System.out.println(

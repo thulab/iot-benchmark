@@ -92,7 +92,9 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       int sensorIndex = 0;
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.getSENSOR_CODES().get(j);
-        Type sensorType = baseDataSchema.getSensorType(MetaUtil.getDeviceName(config.getFIRST_DEVICE_INDEX()), sensor);
+        Type sensorType =
+            baseDataSchema.getSensorType(
+                MetaUtil.getDeviceName(config.getFIRST_DEVICE_INDEX()), sensor);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic

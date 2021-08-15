@@ -331,10 +331,14 @@ public class ConfigDescriptor {
         config.setTEST_DATA_STORE_PW(
             properties.getProperty("TEST_DATA_STORE_PW", config.getTEST_DATA_STORE_PW()));
         config.setTEST_DATA_WRITE_TIME_OUT(
-                Integer.parseInt(properties.getProperty("TEST_DATA_WRITE_TIME_OUT", config.getTEST_DATA_WRITE_TIME_OUT() + "")));
+            Integer.parseInt(
+                properties.getProperty(
+                    "TEST_DATA_WRITE_TIME_OUT", config.getTEST_DATA_WRITE_TIME_OUT() + "")));
         config.setTEST_DATA_MAX_CONNECTION(
-                Integer.parseInt(properties.getProperty("TEST_DATA_MAX_CONNECTION", config.getTEST_DATA_MAX_CONNECTION() + "")));
-        if(config.getTEST_DATA_PERSISTENCE().equals("CSV")){
+            Integer.parseInt(
+                properties.getProperty(
+                    "TEST_DATA_MAX_CONNECTION", config.getTEST_DATA_MAX_CONNECTION() + "")));
+        if (config.getTEST_DATA_PERSISTENCE().equals("CSV")) {
           config.setTEST_DATA_MAX_CONNECTION(1);
         }
 

@@ -16,13 +16,12 @@ public class MetaUtil {
   private static List<List<String>> THREAD_FILES;
 
   /**
-   * Used under cluster mode of benchmark
-   * TODO do
+   * Used under cluster mode of benchmark TODO do
    *
    * @param deviceId
    * @return
    */
-  public static int getDeviceId(int deviceId){
+  public static int getDeviceId(int deviceId) {
     return config.getFIRST_DEVICE_INDEX() + deviceId;
   }
 

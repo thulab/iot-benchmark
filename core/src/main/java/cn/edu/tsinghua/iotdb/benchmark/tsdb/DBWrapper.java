@@ -25,8 +25,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
@@ -414,7 +414,8 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number for query
-      recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, status.getException().toString());
+      recorder.saveOperationResultAsync(
+          operation.getName(), 0, 0, 0, status.getException().toString());
     }
   }
 
