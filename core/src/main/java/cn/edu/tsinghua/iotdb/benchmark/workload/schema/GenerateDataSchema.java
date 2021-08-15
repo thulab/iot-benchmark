@@ -62,14 +62,14 @@ public class GenerateDataSchema extends BaseDataSchema {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int j = 0; j < eachClientDeviceNum; j++) {
         deviceSchemaList.add(new DeviceSchema(config.getDEVICE_CODES().get(deviceId++), sensors));
+        addSensorType(MetaUtil.getDeviceName(MetaUtil.getDeviceId(deviceId - 1)), sensorTypes);
       }
       // The part that cannot be divided equally is given to clients with a smaller number.
       if (clientId < mod) {
         deviceSchemaList.add(new DeviceSchema(config.getDEVICE_CODES().get(deviceId++), sensors));
+        addSensorType(MetaUtil.getDeviceName(MetaUtil.getDeviceId(deviceId - 1)), sensorTypes);
       }
       CLIENT_BIND_SCHEMA.put(clientId, deviceSchemaList);
-      // register
-      addSensorType(MetaUtil.getDeviceName(MetaUtil.getDeviceId(deviceId - 1)), sensorTypes);
     }
   }
 

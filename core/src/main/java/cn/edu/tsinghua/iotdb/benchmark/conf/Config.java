@@ -451,6 +451,8 @@ public class Config {
     }
   }
 
+  // TODO remove following
+
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
     for (int i = 0; i < SENSOR_NUMBER; i++) {
