@@ -69,7 +69,7 @@ public class GenerateDataSchema extends BaseDataSchema {
       }
       CLIENT_BIND_SCHEMA.put(clientId, deviceSchemaList);
       // register
-      addSensorType(MetaUtil.getDeviceName(deviceId - 1), sensorTypes);
+      addSensorType(MetaUtil.getDeviceName(MetaUtil.getDeviceId(deviceId - 1)), sensorTypes);
     }
   }
 

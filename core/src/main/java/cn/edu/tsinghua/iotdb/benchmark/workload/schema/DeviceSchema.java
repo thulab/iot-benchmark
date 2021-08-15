@@ -52,7 +52,7 @@ public class DeviceSchema implements Cloneable {
   public DeviceSchema() {}
 
   public DeviceSchema(int deviceId, List<String> sensors) {
-    this.deviceId = deviceId;
+    this.deviceId = MetaUtil.getDeviceId(deviceId);
     this.device = MetaUtil.getDeviceName(deviceId);
     this.sensors = sensors;
     try {

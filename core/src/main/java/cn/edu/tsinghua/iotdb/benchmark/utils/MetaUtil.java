@@ -16,6 +16,17 @@ public class MetaUtil {
   private static List<List<String>> THREAD_FILES;
 
   /**
+   * Used under cluster mode of benchmark
+   * TODO do
+   *
+   * @param deviceId
+   * @return
+   */
+  public static int getDeviceId(int deviceId){
+    return config.getFIRST_DEVICE_INDEX() + deviceId;
+  }
+
+  /**
    * Calculate GroupId(integer) from device according to SG_STRATEGY
    *
    * @param deviceId
