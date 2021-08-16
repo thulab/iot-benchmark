@@ -190,7 +190,7 @@ public class GenerateDataClient implements Runnable {
         Files.createDirectories(dirFile);
       }
       Path dataFile =
-          Paths.get(FileUtils.union(config.getFILE_PATH(), device, "batch_" + loopIndex + ".txt"));
+          Paths.get(FileUtils.union(config.getFILE_PATH(), device, "batch_" + insertLoopIndex + ".txt"));
       Files.createFile(dataFile);
       List<String> sensors = batch.getDeviceSchema().getSensors();
       String sensorLine = String.join(" ", sensors);
@@ -199,8 +199,12 @@ public class GenerateDataClient implements Runnable {
       for (Record record : batch.getRecords()) {
         StringBuilder line = new StringBuilder(String.valueOf(record.getTimestamp()));
         for (String sensor : sensors) {
-          int index = Integer.valueOf(sensor.split("_")[1]);
-          line.append(" ").append(record.getRecordDataValue().get(index));
+          if(batch.getColIndex() != -1){
+            line.append(" ").append(record.getRecordDataValue().get(0));
+          }else{
+            int index = Integer.valueOf(sensor.split("_")[1]);
+            line.append(" ").append(record.getRecordDataValue().get(index));
+          }
         }
         line.append("\n");
         Files.write(

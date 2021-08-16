@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GenerateReader extends BasicReader {
@@ -48,15 +49,20 @@ public class GenerateReader extends BasicReader {
       separator = "\\\\";
     }
     String[] url = currentFileName.split(separator);
-    String device = MetaUtil.getDeviceName(url[url.length - 2]);
-    DeviceSchema deviceSchema = baseDataSchema.getDeviceSchema(device);
-    List<String> sensors = deviceSchema.getSensors();
+    String originDevice = url[url.length - 2];
+    String device = MetaUtil.getDeviceName(originDevice);
+    DeviceSchema deviceSchema = null;
+    List<String> sensors = null;
     List<Record> records = new ArrayList<>();
     try {
       String line = "";
       boolean firstLine = true;
       while ((line = bufferedReader.readLine()) != null) {
         if (firstLine) {
+          int firstIndex = line.indexOf(" ");
+          line = line.substring(firstIndex + 1);
+          sensors = new ArrayList<>(Arrays.asList(line.split(" ")));
+          deviceSchema = new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(originDevice), originDevice, sensors);
           firstLine = false;
           continue;
         }

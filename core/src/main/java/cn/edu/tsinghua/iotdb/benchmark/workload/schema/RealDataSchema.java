@@ -37,6 +37,8 @@ public class RealDataSchema extends BaseDataSchema {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RealDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
+  
   /** Create Data Schema for each device */
   @Override
   protected void createDataSchema() {
@@ -92,6 +94,8 @@ public class RealDataSchema extends BaseDataSchema {
       threadFiles.get(thread).add(filePath);
     }
     MetaUtil.setThreadFiles(threadFiles);
+    // set up loop
+    this.loopPerClient = files.size() / config.getCLIENT_NUMBER();
   }
 
   private static void getAllFiles(String strPath, List<String> files) {

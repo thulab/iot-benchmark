@@ -27,16 +27,18 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.*;
 
 public class RealDataSetQueryClient extends Client implements Runnable {
-  protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataSetWriteClient.class);
+  protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataSetQueryClient.class);
 
   private final IRealDataWorkload realDataWorkload;
   private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   private long batchIndex = 0;
+  private long loop = 1;
 
   public RealDataSetQueryClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IRealDataWorkload workload) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IRealDataWorkload workload, long loop) {
     super(id, countDownLatch, barrier);
-    realDataWorkload = workload;
+    this.realDataWorkload = workload;
+    this.loop = loop;
   }
 
   @Override
@@ -48,7 +50,7 @@ public class RealDataSetQueryClient extends Client implements Runnable {
         () -> {
           LOGGER.info(
               "{} {} % RealDataWorkload is done.",
-              currentThread, (batchIndex * 1.0 / config.getLOOP()) * 100);
+              currentThread, (batchIndex * 1.0 / loop) * 100);
         },
         1,
         config.getLOG_PRINT_INTERVAL(),

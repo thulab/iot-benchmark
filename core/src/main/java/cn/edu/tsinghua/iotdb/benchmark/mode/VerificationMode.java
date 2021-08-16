@@ -114,8 +114,10 @@ public class VerificationMode extends BaseMode {
     CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
     long st = System.nanoTime();
     ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+    long loop = baseDataSchema.getLoopPerClient();
+
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = new RealDataSetQueryClient(i, downLatch, barrier, new RealDataWorkload(i));
+      Client client = new RealDataSetQueryClient(i, downLatch, barrier, new RealDataWorkload(i), loop);
       clients.add(client);
       executorService.submit(client);
     }

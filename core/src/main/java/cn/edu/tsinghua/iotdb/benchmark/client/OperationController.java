@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -93,6 +94,11 @@ public class OperationController {
     String[] split = config.getOPERATION_PROPORTION().split(":");
     if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
+    }
+    if(!config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)){
+      split[11] = "0";
+    }else{
+      split[11] = "1";
     }
     double[] proportions = new double[Operation.values().length];
     double sum = 0;
