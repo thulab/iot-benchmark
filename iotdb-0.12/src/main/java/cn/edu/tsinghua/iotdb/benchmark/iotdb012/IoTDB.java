@@ -276,13 +276,12 @@ public class IoTDB implements IDatabase {
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       Type colType = batch.getColType();
-      int colIndex = batch.getColIndex();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
                 batch.getDeviceSchema(),
                 record.getTimestamp(),
-                record.getRecordDataValue().get(colIndex),
+                record.getRecordDataValue().get(0),
                 colType);
         statement.addBatch(sql);
       }

@@ -210,7 +210,7 @@ public class MsSQLServerDB implements IDatabase {
                 idPredix,
                 batch.getColIndex(),
                 time,
-                values.get(batch.getColIndex()),
+                values.get(0),
                 deviceSchema.getDevice(),
                 deviceSchema.getSensors()));
       }

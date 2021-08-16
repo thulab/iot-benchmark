@@ -202,7 +202,7 @@ public class IoTDB implements IDatabase {
             getInsertOneBatchSql(
                 batch.getDeviceSchema(),
                 record.getTimestamp(),
-                record.getRecordDataValue().get(batch.getColIndex()),
+                record.getRecordDataValue().get(0),
                 colType);
         statement.addBatch(sql);
       }
