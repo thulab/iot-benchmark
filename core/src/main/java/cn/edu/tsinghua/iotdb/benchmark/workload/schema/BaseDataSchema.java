@@ -53,7 +53,6 @@ public abstract class BaseDataSchema {
   protected abstract void createDataSchema();
 
   /** Getter */
-
   public static Map<Integer, List<DeviceSchema>> getClientBindSchema() {
     return CLIENT_BIND_SCHEMA;
   }

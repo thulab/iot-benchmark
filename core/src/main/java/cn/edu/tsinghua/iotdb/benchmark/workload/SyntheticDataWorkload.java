@@ -367,7 +367,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m), querySensors);
       queryDevices.add(deviceSchema);
     }
-    if(queryDevices.size() == 0){
+    if (queryDevices.size() == 0) {
       LOGGER.error("Not Suitable DeviceSchema");
       throw new WorkloadException("No Suitable DeviceSchema");
     }
@@ -419,7 +419,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices =
-            getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
+        getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(
