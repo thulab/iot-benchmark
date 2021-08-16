@@ -121,6 +121,9 @@ public class DBFactory {
         case Constants.DB_VICTORIAMETRICS:
           dbClass = Constants.VICTORIAMETRICS;
           break;
+        case Constants.DB_SQLITE:
+          dbClass = Constants.SQLITE_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }
