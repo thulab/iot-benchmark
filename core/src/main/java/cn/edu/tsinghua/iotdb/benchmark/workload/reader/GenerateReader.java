@@ -62,7 +62,9 @@ public class GenerateReader extends BasicReader {
           int firstIndex = line.indexOf(" ");
           line = line.substring(firstIndex + 1);
           sensors = new ArrayList<>(Arrays.asList(line.split(" ")));
-          deviceSchema = new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(originDevice), originDevice, sensors);
+          deviceSchema =
+              new DeviceSchema(
+                  MetaUtil.getGroupNameByDeviceStr(originDevice), originDevice, sensors);
           firstLine = false;
           continue;
         }

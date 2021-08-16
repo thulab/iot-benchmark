@@ -365,11 +365,14 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
         }
         querySensors.add(sensors.get(i));
       }
-      if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
+      if (querySensors.size() == 0) {
         continue;
       }
       deviceSchema.setSensors(querySensors);
       queryDevices.add(deviceSchema);
+    }
+    if(queryDevices.size() == 0){
+      LOGGER.warn("No Suitable Device to query");
     }
     return queryDevices;
   }

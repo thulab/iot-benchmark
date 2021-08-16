@@ -78,7 +78,13 @@ public class DBWrapper implements IDatabase {
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResultAsync(operation.getName(), 0, batch.pointNum(), 0, e.toString());
+      recorder.saveOperationResultAsync(
+          operation.getName(),
+          0,
+          batch.pointNum(),
+          0,
+          e.toString(),
+          batch.getDeviceSchema().getDevice());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
@@ -97,7 +103,13 @@ public class DBWrapper implements IDatabase {
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResultAsync(operation.getName(), 0, batch.pointNum(), 0, e.toString());
+      recorder.saveOperationResultAsync(
+          operation.getName(),
+          0,
+          batch.pointNum(),
+          0,
+          e.toString(),
+          batch.getDeviceSchema().getDevice());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
@@ -116,7 +128,7 @@ public class DBWrapper implements IDatabase {
     long end = System.nanoTime();
     status.setTimeCost(end - start);
     if (status.isOk()) {
-      measureOkOperation(status, operation, batch.pointNum());
+      measureOkOperation(status, operation, batch.pointNum(), batch.getDeviceSchema().getDevice());
       if (!config.isIS_QUIET_MODE()) {
         double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
@@ -133,7 +145,12 @@ public class DBWrapper implements IDatabase {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
       recorder.saveOperationResultAsync(
-          operation.getName(), 0, batch.pointNum(), 0, status.getException().toString());
+          operation.getName(),
+          0,
+          batch.pointNum(),
+          0,
+          status.getException().toString(),
+          batch.getDeviceSchema().getDevice());
       LOGGER.error("Insert batch failed because", status.getException());
     }
     return status;
@@ -143,14 +160,18 @@ public class DBWrapper implements IDatabase {
   public Status preciseQuery(PreciseQuery preciseQuery) {
     Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
+    String device = "No Device";
+    if (preciseQuery.getDeviceSchema().size() > 0) {
+      device = preciseQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.preciseQuery(preciseQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -159,14 +180,18 @@ public class DBWrapper implements IDatabase {
   public Status rangeQuery(RangeQuery rangeQuery) {
     Status status = null;
     Operation operation = Operation.RANGE_QUERY;
+    String device = "No Device";
+    if (rangeQuery.getDeviceSchema().size() > 0) {
+      device = rangeQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.rangeQuery(rangeQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -175,14 +200,18 @@ public class DBWrapper implements IDatabase {
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY;
+    String device = "No Device";
+    if (valueRangeQuery.getDeviceSchema().size() > 0) {
+      device = valueRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.valueRangeQuery(valueRangeQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -191,14 +220,18 @@ public class DBWrapper implements IDatabase {
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_QUERY;
+    String device = "No Device";
+    if (aggRangeQuery.getDeviceSchema().size() > 0) {
+      device = aggRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.aggRangeQuery(aggRangeQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -207,14 +240,18 @@ public class DBWrapper implements IDatabase {
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     Status status = null;
     Operation operation = Operation.AGG_VALUE_QUERY;
+    String device = "No Device";
+    if (aggValueQuery.getDeviceSchema().size() > 0) {
+      device = aggValueQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.aggValueQuery(aggValueQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -223,14 +260,18 @@ public class DBWrapper implements IDatabase {
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
+    String device = "No Device";
+    if (aggRangeValueQuery.getDeviceSchema().size() > 0) {
+      device = aggRangeValueQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.aggRangeValueQuery(aggRangeValueQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -239,14 +280,18 @@ public class DBWrapper implements IDatabase {
   public Status groupByQuery(GroupByQuery groupByQuery) {
     Status status = null;
     Operation operation = Operation.GROUP_BY_QUERY;
+    String device = "No Device";
+    if (groupByQuery.getDeviceSchema().size() > 0) {
+      device = groupByQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.groupByQuery(groupByQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -255,14 +300,18 @@ public class DBWrapper implements IDatabase {
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;
+    String device = "No Device";
+    if (latestPointQuery.getDeviceSchema().size() > 0) {
+      device = latestPointQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       long start = System.nanoTime();
       status = db.latestPointQuery(latestPointQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -271,15 +320,19 @@ public class DBWrapper implements IDatabase {
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     Status status = null;
     Operation operation = Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
+    String device = "No Device";
+    if (rangeQuery.getDeviceSchema().size() > 0) {
+      device = rangeQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       rangeQuery.setDesc(true);
       long start = System.nanoTime();
       status = db.rangeQueryOrderByDesc(rangeQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -288,15 +341,19 @@ public class DBWrapper implements IDatabase {
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
+    String device = "No Device";
+    if (valueRangeQuery.getDeviceSchema().size() > 0) {
+      device = valueRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
     try {
       valueRangeQuery.setDesc(true);
       long start = System.nanoTime();
       status = db.valueRangeQueryOrderByDesc(valueRangeQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -310,14 +367,15 @@ public class DBWrapper implements IDatabase {
   public Status verificationQuery(VerificationQuery verificationQuery) {
     Status status = null;
     Operation operation = Operation.VERIFICATION_QUERY;
+    String device = verificationQuery.getDeviceSchema().getDevice();
     try {
       long start = System.nanoTime();
       status = db.verificationQuery(verificationQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
-      handleQueryOperation(status, operation);
+      handleQueryOperation(status, operation, device);
     } catch (Exception e) {
-      handleUnexpectedQueryException(operation, e);
+      handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
@@ -375,8 +433,10 @@ public class DBWrapper implements IDatabase {
    * @param status
    * @param operation
    * @param okPointNum
+   * @param device
    */
-  private void measureOkOperation(Status status, Operation operation, int okPointNum) {
+  private void measureOkOperation(
+      Status status, Operation operation, int okPointNum, String device) {
     double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
     if (latencyInMillis < 0) {
       LOGGER.warn(
@@ -387,7 +447,8 @@ public class DBWrapper implements IDatabase {
     measurement.addOperationLatency(operation, latencyInMillis);
     measurement.addOkOperationNum(operation);
     measurement.addOkPointNum(operation, okPointNum);
-    recorder.saveOperationResultAsync(operation.getName(), okPointNum, 0, latencyInMillis, "");
+    recorder.saveOperationResultAsync(
+        operation.getName(), okPointNum, 0, latencyInMillis, "", device);
   }
 
   /**
@@ -396,9 +457,9 @@ public class DBWrapper implements IDatabase {
    * @param status
    * @param operation
    */
-  private void handleQueryOperation(Status status, Operation operation) {
+  private void handleQueryOperation(Status status, Operation operation, String device) {
     if (status.isOk()) {
-      measureOkOperation(status, operation, status.getQueryResultPointNum());
+      measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
       if (!config.isIS_QUIET_MODE()) {
         double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
@@ -415,7 +476,7 @@ public class DBWrapper implements IDatabase {
       measurement.addFailOperationNum(operation);
       // currently we do not have expected result point number for query
       recorder.saveOperationResultAsync(
-          operation.getName(), 0, 0, 0, status.getException().toString());
+          operation.getName(), 0, 0, 0, status.getException().toString(), device);
     }
   }
 
@@ -426,10 +487,10 @@ public class DBWrapper implements IDatabase {
    * @param operation
    * @param e
    */
-  private void handleUnexpectedQueryException(Operation operation, Exception e) {
+  private void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
     measurement.addFailOperationNum(operation);
     // currently we do not have expected result point number for query
     LOGGER.error(ERROR_LOG, operation, e);
-    recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, e.toString());
+    recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, e.toString(), device);
   }
 }

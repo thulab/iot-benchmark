@@ -54,9 +54,10 @@ public abstract class TestDataPersistence {
    * @param failPoint failPoint of operation
    * @param latency latency of operation
    * @param remark remark of operation
+   * @param device
    */
   protected abstract void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark);
+      String operation, int okPoint, int failPoint, double latency, String remark, String device);
 
   /**
    * Save result of operation
@@ -77,11 +78,11 @@ public abstract class TestDataPersistence {
    * @param remark remark of operation
    */
   public void saveOperationResultAsync(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     future =
         service.submit(
             () -> {
-              saveOperationResult(operation, okPoint, failPoint, latency, remark);
+              saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
             });
     try {
       future.get(config.getTEST_DATA_WRITE_TIME_OUT(), TimeUnit.MILLISECONDS);

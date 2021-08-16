@@ -194,7 +194,7 @@ public class MySqlRecorder extends TestDataPersistence {
 
   @Override
   protected void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.IncrementAndGetCURRENT_CSV_LINE() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
       double rate = 0;
       if (latency > 0) {
@@ -205,15 +205,7 @@ public class MySqlRecorder extends TestDataPersistence {
       String mysqlSql =
           String.format(
               "insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')",
-              PROJECT_ID,
-              time,
-              Thread.currentThread().getName(),
-              operation,
-              okPoint,
-              failPoint,
-              latency,
-              rate,
-              remark);
+              PROJECT_ID, time, device, operation, okPoint, failPoint, latency, rate, remark);
       // check whether the connection is valid
       try {
         if (!connection.isValid(TIME_OUT)) {
@@ -259,9 +251,7 @@ public class MySqlRecorder extends TestDataPersistence {
           LOGGER.error("Test if MySQL connection is valid failed", ex);
         }
         LOGGER.error(
-            "{} save saveInsertProcess info into mysql failed! Error：{}",
-            Thread.currentThread().getName(),
-            e.getMessage());
+            "{} save saveInsertProcess info into mysql failed! Error：{}", device, e.getMessage());
         LOGGER.error("{}", mysqlSql);
       }
     }

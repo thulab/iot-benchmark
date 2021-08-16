@@ -95,9 +95,9 @@ public class OperationController {
     if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }
-    if(!config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)){
+    if (!config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)) {
       split[11] = "0";
-    }else{
+    } else {
       split[11] = "1";
     }
     double[] proportions = new double[Operation.values().length];

@@ -248,24 +248,25 @@ public class CSVRecorder extends TestDataPersistence {
 
   @Override
   protected void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.isCSV_FILE_SPLIT()) {
       if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
         reentrantLock.lock();
         try {
-          createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark);
+          createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark, device);
         } finally {
           reentrantLock.unlock();
         }
       } else {
-        insert(operation, okPoint, failPoint, latency, remark);
+        insert(operation, okPoint, failPoint, latency, remark, device);
       }
     } else {
-      insert(operation, okPoint, failPoint, latency, remark);
+      insert(operation, okPoint, failPoint, latency, remark, device);
     }
   }
 
-  private void insert(String operation, int okPoint, int failPoint, double latency, String remark) {
+  private void insert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     double rate = 0;
     if (latency > 0) {
       // unit: points/second
@@ -275,14 +276,7 @@ public class CSVRecorder extends TestDataPersistence {
     String line =
         String.format(
             ",%s,%s,%s,%d,%d,%f,%f,%s\n",
-            time,
-            Thread.currentThread().getName(),
-            operation,
-            okPoint,
-            failPoint,
-            latency,
-            rate,
-            remark);
+            time, device, operation, okPoint, failPoint, latency, rate, remark);
 
     // when create a new file writer, old file may be closed.
     int count = 0;
@@ -302,7 +296,7 @@ public class CSVRecorder extends TestDataPersistence {
   }
 
   private void createNewCsvOrInsert(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
       FileWriter newProjectWriter = null;
       if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
@@ -327,7 +321,7 @@ public class CSVRecorder extends TestDataPersistence {
       }
       config.resetCURRENT_CSV_LINE();
     } else {
-      insert(operation, okPoint, failPoint, latency, remark);
+      insert(operation, okPoint, failPoint, latency, remark, device);
     }
   }
 

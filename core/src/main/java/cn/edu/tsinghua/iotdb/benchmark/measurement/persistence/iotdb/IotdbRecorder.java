@@ -239,7 +239,7 @@ public class IotdbRecorder extends TestDataPersistence {
 
   @Override
   protected void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     StringBuilder builder = new StringBuilder(OPERATION_RESULT_PREFIX);
     long currTime = System.currentTimeMillis();
     currTime = currTime * 1000000 + this.getThreadID();
@@ -249,7 +249,7 @@ public class IotdbRecorder extends TestDataPersistence {
     }
     builder.append(INSERT_SQL_STR1);
     builder.append(currTime);
-    builder.append(",'").append(Thread.currentThread().getName()).append("'");
+    builder.append(",'").append(device).append("'");
     builder.append(",").append(okPoint);
     builder.append(",").append(failPoint);
     builder.append(",").append(latency);

@@ -42,6 +42,7 @@ public abstract class BaseDataSchema {
   protected static final Map<String, Map<String, Type>> TYPE_MAPPING = new HashMap<>();
   /** The singleton of BaseDataSchema */
   private static BaseDataSchema baseDataSchema;
+
   protected long loopPerClient = 1;
 
   protected BaseDataSchema() {

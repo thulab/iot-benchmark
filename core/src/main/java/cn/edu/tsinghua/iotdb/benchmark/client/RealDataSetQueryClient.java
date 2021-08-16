@@ -35,7 +35,11 @@ public class RealDataSetQueryClient extends Client implements Runnable {
   private long loop = 1;
 
   public RealDataSetQueryClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IRealDataWorkload workload, long loop) {
+      int id,
+      CountDownLatch countDownLatch,
+      CyclicBarrier barrier,
+      IRealDataWorkload workload,
+      long loop) {
     super(id, countDownLatch, barrier);
     this.realDataWorkload = workload;
     this.loop = loop;
@@ -49,8 +53,7 @@ public class RealDataSetQueryClient extends Client implements Runnable {
     service.scheduleAtFixedRate(
         () -> {
           LOGGER.info(
-              "{} {} % RealDataWorkload is done.",
-              currentThread, (batchIndex * 1.0 / loop) * 100);
+              "{} {} % RealDataWorkload is done.", currentThread, (batchIndex * 1.0 / loop) * 100);
         },
         1,
         config.getLOG_PRINT_INTERVAL(),
