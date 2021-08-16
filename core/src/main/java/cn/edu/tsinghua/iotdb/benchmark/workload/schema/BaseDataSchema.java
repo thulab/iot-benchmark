@@ -54,12 +54,7 @@ public abstract class BaseDataSchema {
 
   /** Getter */
 
-  /**
-   * Get Device Schema for each client
-   *
-   * @return
-   */
-  public Map<Integer, List<DeviceSchema>> getClientBindSchema() {
+  public static Map<Integer, List<DeviceSchema>> getClientBindSchema() {
     return CLIENT_BIND_SCHEMA;
   }
 

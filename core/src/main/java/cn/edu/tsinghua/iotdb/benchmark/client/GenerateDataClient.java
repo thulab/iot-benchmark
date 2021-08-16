@@ -127,7 +127,7 @@ public class GenerateDataClient implements Runnable {
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
         try {
-          List<DeviceSchema> schemas = baseDataSchema.getClientBindSchema().get(clientThreadId);
+          List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
           for (DeviceSchema deviceSchema : schemas) {
             if (deviceSchema.getDeviceId() < actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
@@ -141,7 +141,7 @@ public class GenerateDataClient implements Runnable {
       } else {
         // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
         try {
-          List<DeviceSchema> schemas = baseDataSchema.getClientBindSchema().get(clientThreadId);
+          List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
           DeviceSchema sensorSchema = null;
           List<String> sensorList = new ArrayList<String>();
           for (DeviceSchema deviceSchema : schemas) {

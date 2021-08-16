@@ -69,7 +69,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
 
   public SyntheticDataWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
-    for (DeviceSchema schema : BaseDataSchema.getInstance().getClientBindSchema().get(clientId)) {
+    for (DeviceSchema schema : BaseDataSchema.getInstance().getThreadDeviceSchema(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);
     }
     queryDeviceRandom = new Random(config.getQUERY_SEED() + clientId);
@@ -89,7 +89,6 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
       workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
-      int sensorIndex = 0;
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.getSENSOR_CODES().get(j);
         Type sensorType =
@@ -134,7 +133,6 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
           }
           workloadValues[j][i] = value;
         }
-        sensorIndex++;
       }
     } else {
       LOGGER.info("According to OPERATION_PROPORTION, there is no need to write");
@@ -330,7 +328,6 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
         workloadValues[colIndex][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     batch.add(currentTimestamp, values);
   }
-
   /**
    * 返回设备列表
    *
@@ -347,32 +344,32 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
     for (int m = 0;
-        queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < config.getDEVICE_NUMBER();
+        queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < clientDevicesIndex.size();
         m++) {
-      DeviceSchema deviceSchema =
-          new DeviceSchema(clientDevicesIndex.get(m), config.getSENSOR_CODES());
-      List<String> sensors = deviceSchema.getSensors();
+      String device = MetaUtil.getDeviceName(MetaUtil.getDeviceId(clientDevicesIndex.get(m)));
+      List<String> sensors = config.getSENSOR_CODES();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();
       for (int i = 0;
-          querySensors.size() < config.getQUERY_SENSOR_NUM() && i < config.getSENSOR_NUMBER();
+          querySensors.size() < config.getQUERY_SENSOR_NUM() && i < sensors.size();
           i++) {
         if (!typeAllow) {
-          Type type = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(i));
+          Type type = baseDataSchema.getSensorType(device, sensors.get(i));
           if (type == Type.BOOLEAN || type == Type.TEXT) {
             continue;
           }
         }
         querySensors.add(sensors.get(i));
       }
-      if (querySensors.size() == 0) {
+      if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
         continue;
       }
-      deviceSchema.setSensors(querySensors);
+      DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m), querySensors);
       queryDevices.add(deviceSchema);
     }
-    if (queryDevices.size() == 0) {
-      LOGGER.warn("No Suitable Device to query");
+    if(queryDevices.size() == 0){
+      LOGGER.error("Not Suitable DeviceSchema");
+      throw new WorkloadException("No Suitable DeviceSchema");
     }
     return queryDevices;
   }
@@ -422,7 +419,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices =
-        getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
+            getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(

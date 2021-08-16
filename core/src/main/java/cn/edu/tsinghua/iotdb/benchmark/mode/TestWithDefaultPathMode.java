@@ -66,10 +66,7 @@ public class TestWithDefaultPathMode extends BaseMode {
       }
       try {
         BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-        List<DeviceSchema> schemaList = new ArrayList<>();
-        for (List<DeviceSchema> schemas : baseDataSchema.getClientBindSchema().values()) {
-          schemaList.addAll(schemas);
-        }
+        List<DeviceSchema> schemaList = baseDataSchema.getAllDeviceSchema();
         dbWrapper.registerSchema(schemaList);
       } catch (TsdbException e) {
         LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);

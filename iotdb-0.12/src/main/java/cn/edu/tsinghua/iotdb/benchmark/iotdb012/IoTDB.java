@@ -472,7 +472,6 @@ public class IoTDB implements IDatabase {
     }
 
     builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
   }
 
