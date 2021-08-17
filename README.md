@@ -135,8 +135,8 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ···
-2019-10-15 19:36:36,405 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-2 89.00% syntheticWorkload is done. 
-2019-10-15 19:36:36,405 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-7 86.00% syntheticWorkload is done. 
+2019-10-15 19:36:36,405 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient:48 - pool-1-thread-2 89.00% syntheticWorkload is done. 
+2019-10-15 19:36:36,405 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient:48 - pool-1-thread-7 86.00% syntheticWorkload is done. 
 ···
 ```
 
@@ -263,8 +263,8 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ···
-2019-10-15 20:02:16,141 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-19 97.40% syntheticWorkload is done. 
-2019-10-15 20:02:16,141 INFO  cn.edu.tsinghua.iotdb.benchmark.client.BaseClient:48 - pool-1-thread-2 97.10% syntheticWorkload is done. 
+2019-10-15 20:02:16,141 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient:48 - pool-1-thread-19 97.40% syntheticWorkload is done. 
+2019-10-15 20:02:16,141 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient:48 - pool-1-thread-2 97.10% syntheticWorkload is done. 
 ···
 ```
 

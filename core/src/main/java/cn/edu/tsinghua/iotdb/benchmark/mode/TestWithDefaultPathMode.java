@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.SyntheticClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.generate.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;

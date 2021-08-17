@@ -19,13 +19,13 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -39,16 +39,6 @@ public class OperationControllerTest {
 
   @After
   public void after() {}
-
-  @Test
-  public void testResolveOperationProportion() {
-    config.setOPERATION_PROPORTION("1:1:0:1:0:1:0:1:0:0:0");
-    Double[] expectedProbability = {0.2, 0.2, 0.0, 0.2, 0.0, 0.2, 0.0, 0.2, 0.0, 0.0, 0.0};
-    List<Double> proportion = operationController.resolveOperationProportion();
-    for (int i = 0; i < proportion.size(); i++) {
-      assertEquals(expectedProbability[i], proportion.get(i));
-    }
-  }
 
   @Test
   public void testGetNextOperationType() {

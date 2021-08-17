@@ -19,12 +19,12 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.GenerateDataClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
@@ -60,14 +60,13 @@ public class GenerateDataMode extends BaseMode {
     }
 
     // create getCLIENT_NUMBER() client threads to do the workloads
-    List<GenerateDataClient> clients = new ArrayList<>();
+    List<Client> clients = new ArrayList<>();
     CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
     CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
     ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
     LOGGER.info("Generating workload buffer...");
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      GenerateDataClient client =
-          new GenerateDataClient(i, downLatch, barrier, new SyntheticDataWorkload(i));
+      Client client = new GenerateDataClient(i, downLatch, barrier);
       clients.add(client);
       executorService.submit(client);
     }

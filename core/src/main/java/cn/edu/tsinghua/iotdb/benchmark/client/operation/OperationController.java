@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.client;
+package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -34,12 +34,12 @@ public class OperationController {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private Random random;
 
-  OperationController(int seed) {
+  public OperationController(int seed) {
     random = new Random(seed);
   }
 
   /** @return Operation the next operation for client to execute */
-  Operation getNextOperationType() {
+  public Operation getNextOperationType() {
     List<Double> proportion = resolveOperationProportion();
     // p contains cumulative probability
     double[] p = new double[Operation.values().length + 1];
@@ -89,7 +89,7 @@ public class OperationController {
    *
    * @return
    */
-  List<Double> resolveOperationProportion() {
+  private List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
     String[] split = config.getOPERATION_PROPORTION().split(":");
     if (split.length != Operation.values().length) {

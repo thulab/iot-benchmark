@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.measurement.enums;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 
 import java.util.EnumMap;
 import java.util.Map;

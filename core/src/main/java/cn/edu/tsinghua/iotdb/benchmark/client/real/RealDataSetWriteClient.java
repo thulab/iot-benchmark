@@ -17,42 +17,23 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.client;
+package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IRealDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
 
-public class RealDataSetWriteClient extends Client implements Runnable {
-  protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataSetWriteClient.class);
-
-  private final IRealDataWorkload realDataWorkload;
-  private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-  private long batchIndex = 0;
+public class RealDataSetWriteClient extends RealBaseClient {
 
   public RealDataSetWriteClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, IRealDataWorkload workload) {
-    super(id, countDownLatch, barrier);
-    realDataWorkload = workload;
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
+    super(id, countDownLatch, barrier, loop);
   }
 
+  /** Do Operations */
   @Override
-  void doTest() {
-    String currentThread = Thread.currentThread().getName();
-
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          LOGGER.info("{} {} batch RealDataWorkload is done.", currentThread, batchIndex);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
-
+  protected void doOperations() {
     while (true) {
       try {
         Batch batch = realDataWorkload.getOneBatch();
@@ -60,14 +41,12 @@ public class RealDataSetWriteClient extends Client implements Runnable {
           break;
         }
         dbWrapper.insertOneBatch(batch);
-        batchIndex++;
+        loopIndex++;
       } catch (DBConnectException e) {
         LOGGER.error("Failed to insert one batch data because ", e);
       } catch (Exception e) {
         LOGGER.error("Failed to insert one batch data because ", e);
       }
     }
-
-    service.shutdown();
   }
 }

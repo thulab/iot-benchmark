@@ -17,16 +17,29 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.client;
+package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
+public enum Operation {
+  INGESTION("INGESTION"),
+  PRECISE_QUERY("PRECISE_POINT"),
+  RANGE_QUERY("TIME_RANGE"),
+  VALUE_RANGE_QUERY("VALUE_RANGE"),
+  AGG_RANGE_QUERY("AGG_RANGE"),
+  AGG_VALUE_QUERY("AGG_VALUE"),
+  AGG_RANGE_VALUE_QUERY("AGG_RANGE_VALUE"),
+  GROUP_BY_QUERY("GROUP_BY"),
+  LATEST_POINT_QUERY("LATEST_POINT"),
+  RANGE_QUERY_ORDER_BY_TIME_DESC("RANGE_QUERY__DESC"),
+  VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC("VALUE_RANGE_QUERY__DESC"),
+  VERIFICATION_QUERY("VERIFICATION_QUERY");
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
+  public String getName() {
+    return name;
+  }
 
-public class SyntheticClient extends BaseClient {
+  String name;
 
-  public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
+  Operation(String name) {
+    this.name = name;
   }
 }

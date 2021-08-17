@@ -17,20 +17,14 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.client;
+package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IGenerateDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,73 +34,22 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
-public class GenerateDataClient implements Runnable {
-  private static final Logger LOGGER = LoggerFactory.getLogger(BaseClient.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+public class GenerateDataClient extends GenerateBaseClient {
 
-  private final CountDownLatch countDownLatch;
-  private final CyclicBarrier barrier;
-
-  private int clientThreadId;
-
-  private final IGenerateDataWorkload syntheticWorkload;
-  private final SingletonWorkload singletonWorkload;
-  private long insertLoopIndex;
-  private final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-  private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-  private long loopIndex;
-
-  public GenerateDataClient(
-      int id,
-      CountDownLatch countDownLatch,
-      CyclicBarrier barrier,
-      IGenerateDataWorkload workload) {
-    this.clientThreadId = id;
-    this.countDownLatch = countDownLatch;
-    this.barrier = barrier;
-    syntheticWorkload = workload;
-    singletonWorkload = SingletonWorkload.getInstance();
-    insertLoopIndex = 0;
+  public GenerateDataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
   }
 
-  /** Run for generate Data */
+  /**
+   * Do Operations
+   *
+   * @param actualDeviceFloor
+   */
   @Override
-  public void run() {
-    try {
-      try {
-        // wait for that all clients start test simultaneously
-        barrier.await();
-
-        generate();
-
-      } catch (Exception e) {
-        LOGGER.error("Unexpected error: ", e);
-      }
-    } finally {
-      countDownLatch.countDown();
-    }
-  }
-
-  void generate() {
-    String currentThread = Thread.currentThread().getName();
-    // actualDeviceFloor equals to device number when REAL_INSERT_RATE = 1
-    // actualDeviceFloor = device_number * first_device_index(The first index of this benchmark)
-    //                   + device_number * real_insert_rate(Actual number of devices generated)
-    double actualDeviceFloor =
-        config.getDEVICE_NUMBER() * config.getFIRST_DEVICE_INDEX()
-            + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
-
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
-          LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
+  protected void doOperations(double actualDeviceFloor) {
     loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       // According to the probabilities (proportion) of operations.
@@ -114,7 +57,6 @@ public class GenerateDataClient implements Runnable {
         break loop;
       }
     }
-    service.shutdown();
   }
 
   /**

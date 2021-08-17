@@ -17,48 +17,23 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.client;
+package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.IRealDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
-public class RealDataSetQueryClient extends Client implements Runnable {
-  protected static final Logger LOGGER = LoggerFactory.getLogger(RealDataSetQueryClient.class);
-
-  private final IRealDataWorkload realDataWorkload;
-  private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-  private long batchIndex = 0;
-  private long loop = 1;
+public class RealDataSetQueryClient extends RealBaseClient {
 
   public RealDataSetQueryClient(
-      int id,
-      CountDownLatch countDownLatch,
-      CyclicBarrier barrier,
-      IRealDataWorkload workload,
-      long loop) {
-    super(id, countDownLatch, barrier);
-    this.realDataWorkload = workload;
-    this.loop = loop;
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
+    super(id, countDownLatch, barrier, loop);
   }
 
+  /** Do Operations */
   @Override
-  void doTest() {
-    String currentThread = Thread.currentThread().getName();
-
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          LOGGER.info(
-              "{} {} % RealDataWorkload is done.", currentThread, (batchIndex * 1.0 / loop) * 100);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
-
+  protected void doOperations() {
     while (true) {
       try {
         VerificationQuery verificationQuery = realDataWorkload.getVerifiedQuery();
@@ -66,12 +41,10 @@ public class RealDataSetQueryClient extends Client implements Runnable {
           break;
         }
         dbWrapper.verificationQuery(verificationQuery);
-        batchIndex++;
+        loopIndex++;
       } catch (Exception e) {
         LOGGER.error("Failed to insert one batch data because ", e);
       }
     }
-
-    service.shutdown();
   }
 }

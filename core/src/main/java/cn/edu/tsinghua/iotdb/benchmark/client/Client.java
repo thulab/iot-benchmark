@@ -83,5 +83,5 @@ public abstract class Client implements Runnable {
   }
 
   /** Do test */
-  abstract void doTest();
+  protected abstract void doTest();
 }

@@ -17,76 +17,43 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.client;
+package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IGenerateDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
-/**
- * Responsible for writing and querying artificial data, and querying real data Write and query are
- * executed according to the proportion of OPERATION_PROPORTION. The specific query and written data
- * are determined by workload.
- */
-public abstract class BaseClient extends Client implements Runnable {
+public class SyntheticClient extends GenerateBaseClient {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(BaseClient.class);
-
+  /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
-  private final IGenerateDataWorkload syntheticWorkload;
-  private final SingletonWorkload singletonWorkload;
-  private long insertLoopIndex;
-  private final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-  private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-  private long loopIndex;
 
-  public BaseClient(
-      int id,
-      CountDownLatch countDownLatch,
-      CyclicBarrier barrier,
-      IGenerateDataWorkload workload) {
-    super(id, countDownLatch, barrier);
-    syntheticWorkload = workload;
-    singletonWorkload = SingletonWorkload.getInstance();
-    operationController = new OperationController(id);
-    insertLoopIndex = 0;
+  public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
+    this.operationController = new OperationController(id);
   }
 
+  /**
+   * Do Operations
+   *
+   * @param actualDeviceFloor
+   */
   @Override
-  void doTest() {
-    String currentThread = Thread.currentThread().getName();
-    // actualDeviceFloor equals to device number when REAL_INSERT_RATE = 1
-    // actualDeviceFloor = device_number * first_device_index(The first index of this benchmark)
-    //                   + device_number * real_insert_rate(Actual number of devices generated)
-    double actualDeviceFloor =
-        config.getDEVICE_NUMBER() * config.getFIRST_DEVICE_INDEX()
-            + config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE();
-
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
-          LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
+  protected void doOperations(double actualDeviceFloor) {
     long start = 0;
     loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
-      // According to the probabilities (proportion) of operations.
       Operation operation = operationController.getNextOperationType();
       if (config.getOP_INTERVAL() > 0) {
         start = System.currentTimeMillis();
@@ -181,7 +148,6 @@ public abstract class BaseClient extends Client implements Runnable {
         }
       }
     }
-    service.shutdown();
   }
 
   /**

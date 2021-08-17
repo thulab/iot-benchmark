@@ -20,14 +20,13 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.RealDataSetQueryClient;
-import cn.edu.tsinghua.iotdb.benchmark.client.RealDataSetWriteClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetQueryClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetWriteClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.RealDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
@@ -95,10 +94,11 @@ public class VerificationMode extends BaseMode {
     List<Measurement> threadsMeasurements = new ArrayList<>();
     List<Client> clients = new ArrayList<>();
     CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+    long loop = config.getLOOP() / config.getCLIENT_NUMBER();
     long st = System.nanoTime();
     ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = new RealDataSetWriteClient(i, downLatch, barrier, new RealDataWorkload(i));
+      Client client = new RealDataSetWriteClient(i, downLatch, barrier, loop);
       clients.add(client);
       executorService.submit(client);
     }
@@ -117,8 +117,7 @@ public class VerificationMode extends BaseMode {
     long loop = baseDataSchema.getLoopPerClient();
 
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client =
-          new RealDataSetQueryClient(i, downLatch, barrier, new RealDataWorkload(i), loop);
+      Client client = new RealDataSetQueryClient(i, downLatch, barrier, loop);
       clients.add(client);
       executorService.submit(client);
     }
