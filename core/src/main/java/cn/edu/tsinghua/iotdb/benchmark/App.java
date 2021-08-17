@@ -52,8 +52,11 @@ public class App {
       case GENERATE_DATA:
         baseMode = new GenerateDataMode();
         break;
-      case VERIFICATION:
-        baseMode = new VerificationMode();
+      case VERIFICATION_WRITE:
+        baseMode = new VerificationWriteMode();
+        break;
+      case VERIFICATION_QUERY:
+        baseMode = new VerificationQueryMode();
         break;
       case SERVER:
         baseMode = new ServerMode();

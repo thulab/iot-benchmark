@@ -100,7 +100,8 @@ public class OperationController {
     if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }
-    if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.VERIFICATION) {
+    if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.VERIFICATION_QUERY
+        && config.getBENCHMARK_WORK_MODE() != BenchmarkMode.VERIFICATION_WRITE) {
       split[11] = "0";
     } else {
       split[11] = "1";

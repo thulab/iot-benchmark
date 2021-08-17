@@ -157,7 +157,8 @@ public abstract class BaseDataSchema {
     if (baseDataSchema == null) {
       synchronized (BaseDataSchema.class) {
         if (baseDataSchema == null) {
-          if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION) {
+          if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_QUERY
+              || config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_WRITE) {
             baseDataSchema = new RealDataSchema();
           } else {
             baseDataSchema = new GenerateDataSchema();

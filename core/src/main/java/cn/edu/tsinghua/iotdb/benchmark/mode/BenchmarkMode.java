@@ -6,7 +6,8 @@ import org.slf4j.LoggerFactory;
 public enum BenchmarkMode {
   TEST_WITH_DEFAULT_PATH("testWithDefaultPath"),
   GENERATE_DATA("generateDataMode"),
-  VERIFICATION("verificationMode"),
+  VERIFICATION_WRITE("verificationWriteMode"),
+  VERIFICATION_QUERY("verificationQueryMode"),
   SERVER("serverMODE");
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BenchmarkMode.class);
