@@ -24,8 +24,6 @@ import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,20 +45,6 @@ public class VerificationQueryMode extends BaseMode {
   @Override
   public void run() {
     Measurement measurement = new Measurement();
-    DBWrapper dbWrapper = new DBWrapper(measurement);
-    // register schema if needed
-    try {
-      LOGGER.info("start to init database {}", config.getNET_DEVICE());
-      dbWrapper.init();
-    } catch (TsdbException e) {
-      LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
-    } finally {
-      try {
-        dbWrapper.close();
-      } catch (TsdbException e) {
-        LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
-      }
-    }
     CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
     // create getCLIENT_NUMBER() client threads to do the workloads

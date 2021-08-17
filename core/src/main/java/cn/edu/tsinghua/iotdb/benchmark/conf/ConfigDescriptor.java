@@ -295,16 +295,6 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "QUERY_SLIMIT_OFFSET", config.getQUERY_SLIMIT_OFFSET() + "")));
-        config.setREAL_DATASET_QUERY_START_TIME(
-            Long.parseLong(
-                properties.getProperty(
-                    "REAL_DATASET_QUERY_START_TIME",
-                    config.getREAL_DATASET_QUERY_START_TIME() + "")));
-        config.setREAL_DATASET_QUERY_STOP_TIME(
-            Long.parseLong(
-                properties.getProperty(
-                    "REAL_DATASET_QUERY_STOP_TIME",
-                    config.getREAL_DATASET_QUERY_STOP_TIME() + "")));
 
         config.setWORKLOAD_BUFFER_SIZE(
             Integer.parseInt(

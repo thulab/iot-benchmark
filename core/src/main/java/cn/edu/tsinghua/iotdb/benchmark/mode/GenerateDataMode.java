@@ -50,8 +50,6 @@ public class GenerateDataMode extends BaseMode {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
-  private static final double NANO_TO_SECOND = 1000000000.0d;
-
   /** Start benchmark */
   @Override
   public void run() {
@@ -111,7 +109,7 @@ public class GenerateDataMode extends BaseMode {
       Path infoPath = Paths.get(FileUtils.union(config.getFILE_PATH(), Constants.INFO_PATH));
       Files.createFile(infoPath);
       Files.write(
-          infoPath, config.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
+          infoPath, config.toInfoText().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
       return true;
     } catch (IOException ioException) {
       ioException.printStackTrace();

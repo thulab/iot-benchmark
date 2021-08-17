@@ -47,7 +47,7 @@ public abstract class Client implements Runnable {
     this.barrier = barrier;
     clientThreadId = id;
     measurement = new Measurement();
-    dbWrapper = new DBWrapper(measurement);
+    initDBWrapper();
   }
 
   /**
@@ -58,7 +58,9 @@ public abstract class Client implements Runnable {
   public void run() {
     try {
       try {
-        dbWrapper.init();
+        if(dbWrapper != null){
+          dbWrapper.init();
+        }
         // wait for that all clients start test simultaneously
         barrier.await();
 
@@ -68,7 +70,9 @@ public abstract class Client implements Runnable {
         LOGGER.error("Unexpected error: ", e);
       } finally {
         try {
-          dbWrapper.close();
+          if(dbWrapper != null){
+            dbWrapper.close();
+          }
         } catch (TsdbException e) {
           LOGGER.error("Close {} error: ", config.getDB_SWITCH(), e);
         }
@@ -84,4 +88,9 @@ public abstract class Client implements Runnable {
 
   /** Do test */
   protected abstract void doTest();
+
+  /** Init DBWrapper */
+  protected void initDBWrapper(){
+    dbWrapper = new DBWrapper(measurement);
+  }
 }

@@ -152,4 +152,9 @@ public class GenerateDataClient extends GenerateBaseClient {
       LOGGER.error("Write batch Error!" + batch.toString());
     }
   }
+
+  @Override
+  protected void initDBWrapper() {
+    dbWrapper = null;
+  }
 }
