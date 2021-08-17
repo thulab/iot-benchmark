@@ -86,7 +86,7 @@ public abstract class BaseDataSchema {
   /**
    * Get sensor type of one sensor
    *
-   * @param device
+   * @param device name e.g. g_0
    * @param sensor name e.g. s_0
    * @return default: Constants.DEFAULT_TYPE;
    */

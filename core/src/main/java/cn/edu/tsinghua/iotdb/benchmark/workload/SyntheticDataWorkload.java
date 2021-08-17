@@ -339,14 +339,18 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     checkQuerySchemaParams();
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> clientDevicesIndex = new ArrayList<>();
-    for (int m = 0; m < config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE(); m++) {
-      clientDevicesIndex.add(MetaUtil.getDeviceId(m));
+    for (int m = config.getFIRST_DEVICE_INDEX();
+        m
+            < config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE()
+                + config.getFIRST_DEVICE_INDEX();
+        m++) {
+      clientDevicesIndex.add(m);
     }
     Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
     for (int m = 0;
         queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < clientDevicesIndex.size();
         m++) {
-      String device = MetaUtil.getDeviceName(MetaUtil.getDeviceId(clientDevicesIndex.get(m)));
+      String device = MetaUtil.getDeviceName(clientDevicesIndex.get(m));
       List<String> sensors = config.getSENSOR_CODES();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();

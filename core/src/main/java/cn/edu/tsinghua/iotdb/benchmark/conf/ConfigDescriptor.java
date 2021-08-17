@@ -40,7 +40,6 @@ public class ConfigDescriptor {
     // load properties and call init methods
     loadProps();
     config.initInnerFunction();
-    config.initDeviceCodes();
     config.initSensorCodes();
     config.initSensorFunction();
   }

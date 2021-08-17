@@ -51,8 +51,12 @@ public class DeviceSchema implements Cloneable {
 
   public DeviceSchema() {}
 
+  /**
+   * @param deviceId e.g. FIRST_DEVICE_INDEX + device
+   * @param sensors
+   */
   public DeviceSchema(int deviceId, List<String> sensors) {
-    this.deviceId = MetaUtil.getDeviceId(deviceId);
+    this.deviceId = deviceId;
     this.device = MetaUtil.getDeviceName(deviceId);
     this.sensors = sensors;
     try {

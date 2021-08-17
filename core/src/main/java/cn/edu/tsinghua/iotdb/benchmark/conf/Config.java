@@ -346,8 +346,6 @@ public class Config {
   /** Whether split result into different csv file */
   private boolean CSV_FILE_SPLIT = true;
 
-  /** Device ID */
-  private List<Integer> DEVICE_CODES = new ArrayList<>();
   /** Sensor number */
   private List<String> SENSOR_CODES = new ArrayList<>();
   /** Built-in function parameters */
@@ -458,13 +456,6 @@ public class Config {
     for (int i = 0; i < SENSOR_NUMBER; i++) {
       String sensorCode = "s_" + i;
       SENSOR_CODES.add(sensorCode);
-    }
-  }
-
-  /** According to the number of devices, initialize the device number */
-  public void initDeviceCodes() {
-    for (int i = FIRST_DEVICE_INDEX; i < DEVICE_NUMBER + FIRST_DEVICE_INDEX; i++) {
-      DEVICE_CODES.add(i);
     }
   }
 
@@ -1189,14 +1180,6 @@ public class Config {
     this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
   }
 
-  public List<Integer> getDEVICE_CODES() {
-    return DEVICE_CODES;
-  }
-
-  public void setDEVICE_CODES(List<Integer> DEVICE_CODES) {
-    this.DEVICE_CODES = DEVICE_CODES;
-  }
-
   public List<String> getSENSOR_CODES() {
     return SENSOR_CODES;
   }
@@ -1484,8 +1467,6 @@ public class Config {
         + CSV_MAX_LINE
         + "\nCSV_FILE_SPLIT="
         + CSV_FILE_SPLIT
-        + "\nDEVICE_CODES="
-        + DEVICE_CODES
         + "\nSENSOR_CODES="
         + SENSOR_CODES;
   }
