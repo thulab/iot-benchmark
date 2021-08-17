@@ -29,69 +29,6 @@ public class Constants {
   public static final String CONSOLE_PREFIX = "IotDB-benchmark>";
   public static final String BENCHMARK_CONF = "benchmark-conf";
 
-  /** Different insert mode */
-  public static final String INSERT_USE_JDBC = "JDBC";
-
-  public static final String INSERT_USE_SESSION_TABLET = "SESSION_BY_TABLET";
-  public static final String INSERT_USE_SESSION_RECORD = "SESSION_BY_RECORD";
-  public static final String INSERT_USE_SESSION_RECORDS = "SESSION_BY_RECORDS";
-  public static final String INSERT_USE_SESSION = "SESSION";
-  public static final String INSERT_USE_SESSION_POOL = "SESSION_POOL";
-
-  /** Different version of mode */
-  public static final String VERSION_09 = "09";
-
-  public static final String VERSION_010 = "010";
-  public static final String VERSION_011 = "011";
-  public static final String VERSION_012 = "012";
-
-  /** Support Name Of DB_SWITCH */
-  public static final String DB_IOT = "IoTDB";
-
-  /** v 0.12.0 */
-  public static final String DB_IOT_012_JDBC = DB_IOT + "-" + VERSION_012 + "-" + INSERT_USE_JDBC;
-
-  public static final String DB_IOT_012_SESSION_BY_TABLET =
-      DB_IOT + "-" + VERSION_012 + "-" + INSERT_USE_SESSION_TABLET;
-  public static final String DB_IOT_012_SESSION_BY_RECORD =
-      DB_IOT + "-" + VERSION_012 + "-" + INSERT_USE_SESSION_RECORD;
-  public static final String DB_IOT_012_SESSION_BY_RECORDS =
-      DB_IOT + "-" + VERSION_012 + "-" + INSERT_USE_SESSION_RECORDS;
-  /** v 0.11.0 */
-  public static final String DB_IOT_011_JDBC = DB_IOT + "-" + VERSION_011 + "-" + INSERT_USE_JDBC;
-
-  public static final String DB_IOT_011_SESSION_POOL =
-      DB_IOT + "-" + VERSION_011 + "-" + INSERT_USE_SESSION_POOL;
-  public static final String DB_IOT_011_SESSION =
-      DB_IOT + "-" + VERSION_011 + "-" + INSERT_USE_SESSION;
-  /** v 0.10.0 */
-  public static final String DB_IOT_010_JDBC = DB_IOT + "-" + VERSION_010 + "-" + INSERT_USE_JDBC;
-
-  public static final String DB_IOT_010_SESSION =
-      DB_IOT + "-" + VERSION_010 + "-" + INSERT_USE_SESSION;
-  /** v 0.9.0 */
-  public static final String DB_IOT_09_JDBC = DB_IOT + "-" + VERSION_09 + "-" + INSERT_USE_JDBC;
-
-  public static final String DB_IOT_09_SESSION =
-      DB_IOT + "-" + VERSION_09 + "-" + INSERT_USE_SESSION;
-
-  public static final String DB_DOUBLE_IOT = "DoubleIoTDB";
-  public static final String DB_INFLUX = "InfluxDB";
-  public static final String DB_INFLUX_2 = "InfluxDB-2.0";
-  public static final String DB_OPENTS = "OpenTSDB";
-  public static final String DB_CTS = "CTSDB";
-  public static final String DB_KAIROS = "KairosDB";
-  public static final String DB_TIMESCALE = "TimescaleDB";
-  public static final String DB_FAKE = "FakeDB";
-  public static final String DB_TAOSDB = "TaosDB";
-  public static final String DB_QUESTDB = "QuestDB";
-  public static final String DB_MSSQLSERVER = "MSSQLSERVER";
-  public static final String DB_VICTORIAMETRICS = "VictoriaMetrics";
-  public static final String DB_SQLITE = "SQLite";
-
-  /** Special DB_SWITCH */
-  public static final String BENCHMARK_IOTDB = "App";
-
   public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 
   /** Properties when generate data */

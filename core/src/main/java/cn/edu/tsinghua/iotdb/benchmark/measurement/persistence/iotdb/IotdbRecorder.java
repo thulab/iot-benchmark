@@ -214,14 +214,14 @@ public class IotdbRecorder extends TestDataPersistence {
     try (Statement statement = connection.createStatement()) {
       long currTime = System.currentTimeMillis();
       currTime = currTime * 1000000;
-      StringBuilder builder =
-          new StringBuilder(INSERT_SQL_PREFIX)
+      StringBuffer builder =
+          new StringBuffer(INSERT_SQL_PREFIX)
               .append(".")
               .append(localName)
               .append(".")
               .append(PROJECT_ID)
               .append(INSERT_SQL_STR2);
-      StringBuilder valueBuilder = new StringBuilder(INSERT_SQL_STR1).append(currTime);
+      StringBuffer valueBuilder = new StringBuffer(INSERT_SQL_STR1).append(currTime);
       for (Map.Entry entry : systemMetricsMap.entrySet()) {
         builder.append(",").append(entry.getKey());
         if (entry.getValue() == null) {
@@ -240,7 +240,7 @@ public class IotdbRecorder extends TestDataPersistence {
   @Override
   protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    StringBuilder builder = new StringBuilder(OPERATION_RESULT_PREFIX);
+    StringBuffer builder = new StringBuffer(OPERATION_RESULT_PREFIX);
     long currTime = System.currentTimeMillis();
     currTime = currTime * 1000000 + this.getThreadID();
     builder.append(operation).append(INSERT_SQL_STR2);
@@ -259,7 +259,7 @@ public class IotdbRecorder extends TestDataPersistence {
 
   @Override
   protected void saveResult(String operation, String key, String value) {
-    StringBuilder builder = new StringBuilder(INSERT_SQL_PREFIX);
+    StringBuffer builder = new StringBuffer(INSERT_SQL_PREFIX);
     builder.append(".").append(operation).append(INSERT_SQL_STR2);
     builder.append(",").append(key);
     builder.append(INSERT_SQL_STR1);
@@ -269,7 +269,7 @@ public class IotdbRecorder extends TestDataPersistence {
     addBatch(builder);
   }
 
-  private void addBatch(StringBuilder builder) {
+  private void addBatch(StringBuffer builder) {
     builder.append(")");
     try {
       globalStatement.addBatch(builder.toString());

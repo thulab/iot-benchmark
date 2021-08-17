@@ -20,6 +20,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +79,7 @@ public class ConfigDescriptor {
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
 
-        config.setDB_SWITCH(properties.getProperty("DB_SWITCH", config.getDB_SWITCH()));
+        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
         String hosts = properties.getProperty("HOST", config.getHOST() + "");
         config.setHOST(Arrays.asList(hosts.split(",")));
         String ports = properties.getProperty("PORT", config.getPORT() + "");
@@ -129,8 +131,8 @@ public class ConfigDescriptor {
           case "ms":
             break;
           case "us":
-            if (!config.getDB_SWITCH().contains(Constants.DB_IOT)
-                && !config.getDB_SWITCH().equals(Constants.DB_INFLUX)) {
+            if (config.getDB_SWITCH().getType() != DBType.IoTDB
+                && config.getDB_SWITCH().getType() != DBType.InfluxDB) {
               throw new RuntimeException(
                   "The database " + config.getDB_SWITCH() + " can't use microsecond precision");
             }

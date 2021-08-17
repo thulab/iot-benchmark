@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.syslog;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +40,8 @@ public class FileSize {
   private static final float ABNORMAL_VALUE = -1;
 
   private FileSize() {
-    switch (config.getDB_SWITCH().split("-")[0]) {
-      case Constants.DB_IOT:
-      case Constants.BENCHMARK_IOTDB:
+    switch (config.getDB_SWITCH().getType()) {
+      case IoTDB:
         break;
       default:
         log.error("unsupported db name: {}", config.getDB_SWITCH());

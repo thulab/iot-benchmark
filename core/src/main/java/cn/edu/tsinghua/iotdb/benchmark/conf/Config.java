@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBSwitch;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -76,7 +77,7 @@ public class Config {
    * for example, 09, 10, 11, 12 insert mode: JDBC, SESSION_BY_TABLET, SESSION_BY_RECORD,
    * SESSION_BY_RECORDS, SESSION_BY_POOL
    */
-  private String DB_SWITCH = "IoTDB-012-JDBC";
+  private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_012_JDBC;
 
   // 初始化：被测数据库参数
   /**
@@ -541,11 +542,11 @@ public class Config {
     this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
   }
 
-  public String getDB_SWITCH() {
+  public DBSwitch getDB_SWITCH() {
     return DB_SWITCH;
   }
 
-  public void setDB_SWITCH(String DB_SWITCH) {
+  public void setDB_SWITCH(DBSwitch DB_SWITCH) {
     this.DB_SWITCH = DB_SWITCH;
   }
 

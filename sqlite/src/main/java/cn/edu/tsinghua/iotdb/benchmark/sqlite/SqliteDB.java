@@ -4,13 +4,15 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ import java.util.List;
 public class SqliteDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(SqliteDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   private static final String URL = "jdbc:sqlite:" + config.getDB_NAME() + ".db";
 
   private static final List<String> TYPES =
@@ -120,7 +123,9 @@ public class SqliteDB implements IDatabase {
       for (Record record : batch.getRecords()) {
         List<Object> values = record.getRecordDataValue();
         for (int i = 0; i < values.size(); i++) {
-          statement.addBatch(getOneLine(idPredix, i, record.getTimestamp(), values.get(i)));
+          statement.addBatch(
+              getOneLine(
+                  idPredix, i, record.getTimestamp(), values.get(i), deviceSchema.getDevice()));
         }
       }
       statement.executeBatch();
@@ -153,7 +158,8 @@ public class SqliteDB implements IDatabase {
                 idPredix,
                 batch.getColIndex(),
                 record.getTimestamp(),
-                values.get(batch.getColIndex())));
+                values.get(batch.getColIndex()),
+                deviceSchema.getDevice()));
       }
       statement.executeBatch();
       statement.close();
@@ -165,9 +171,10 @@ public class SqliteDB implements IDatabase {
     }
   }
 
-  private String getOneLine(long idPredix, int sensorIndex, long time, Object value) {
+  private String getOneLine(
+      long idPredix, int sensorIndex, long time, Object value, String device) {
     long sensorNow = sensorIndex + idPredix;
-    String type = DBUtil.getDataType(sensorIndex);
+    Type type = baseDataSchema.getSensorType(device, MetaUtil.getSensorName(sensorIndex));
     String sysType = typeMap(type);
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")
@@ -575,16 +582,16 @@ public class SqliteDB implements IDatabase {
    * @return
    */
   @Override
-  public String typeMap(String iotdbType) {
+  public String typeMap(Type iotdbType) {
     switch (iotdbType) {
-      case "BOOLEAN":
-      case "INT32":
-      case "INT64":
+      case BOOLEAN:
+      case INT32:
+      case INT64:
         return "INTEGER";
-      case "FLOAT":
-      case "DOUBLE":
+      case FLOAT:
+      case DOUBLE:
         return "REAL";
-      case "TEXT":
+      case TEXT:
         return "TEXT";
       default:
         LOGGER.error("Error Type: " + iotdbType);

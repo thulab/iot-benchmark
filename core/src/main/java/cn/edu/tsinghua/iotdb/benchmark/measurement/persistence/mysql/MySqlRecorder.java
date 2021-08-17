@@ -67,7 +67,7 @@ public class MySqlRecorder extends TestDataPersistence {
       String.format(
           "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE().mode.substring(0, 5),
-          config.getDB_SWITCH().split("-")[0].substring(0, 5),
+          config.getDB_SWITCH().getType().toString().split("-")[0].substring(0, 5),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
 
@@ -75,7 +75,7 @@ public class MySqlRecorder extends TestDataPersistence {
       String.format(
           "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE(),
-          config.getDB_SWITCH().replace('-', '_'),
+          config.getDB_SWITCH().getType().toString().replace('-', '_'),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
 
@@ -276,19 +276,24 @@ public class MySqlRecorder extends TestDataPersistence {
         sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'MODE'", "'DEFAULT_TEST_MODE'");
         statement.addBatch(sql);
       }
-      switch (config.getDB_SWITCH().split("-")[0].trim()) {
-        case Constants.DB_IOT:
-        case Constants.DB_TIMESCALE:
+      switch (config.getDB_SWITCH().getType()) {
+        case IoTDB:
+        case TimescaleDB:
           sql =
               String.format(
                   SAVE_CONFIG, "'" + PROJECT_ID + "'", "'ServerIP'", "'" + config.getHOST() + "'");
           statement.addBatch(sql);
           break;
-        case Constants.DB_INFLUX:
-        case Constants.DB_OPENTS:
-        case Constants.DB_KAIROS:
-        case Constants.DB_CTS:
-        case Constants.DB_MSSQLSERVER:
+        case InfluxDB:
+        case OpenTSDB:
+        case CTSDB:
+        case KairosDB:
+        case FakeDB:
+        case TaosDB:
+        case QuestDB:
+        case MSSQLSERVER:
+        case VictoriaMetrics:
+        case SQLite:
           String host = config.getHOST() + ":" + config.getPORT();
           sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'ServerIP'", "'" + host + "'");
           statement.addBatch(sql);

@@ -169,7 +169,7 @@ public class Measurement {
 
     System.out.println(
         "----------------------------------------------------------Result Matrix----------------------------------------------------------");
-    StringBuilder format = new StringBuilder();
+    StringBuffer format = new StringBuffer();
     for (int i = 0; i < 6; i++) {
       format.append(RESULT_ITEM);
     }
@@ -301,7 +301,7 @@ public class Measurement {
       String currentTime = sdf.format(date);
 
       // Formatting current Operations
-      StringBuilder fileNameSB = new StringBuilder();
+      StringBuffer fileNameSB = new StringBuffer();
       String[] operations = config.getOPERATION_PROPORTION().split(":");
 
       for (int i = 0; i < operations.length; i++) {

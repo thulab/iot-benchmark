@@ -135,7 +135,7 @@ public class GenerateDataClient extends GenerateBaseClient {
       sensorLine = "Sensor " + sensorLine + "\n";
       Files.write(dataFile, sensorLine.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
       for (Record record : batch.getRecords()) {
-        StringBuilder line = new StringBuilder(String.valueOf(record.getTimestamp()));
+        StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
         for (String sensor : sensors) {
           if (batch.getColIndex() != -1) {
             line.append(" ").append(record.getRecordDataValue().get(0));

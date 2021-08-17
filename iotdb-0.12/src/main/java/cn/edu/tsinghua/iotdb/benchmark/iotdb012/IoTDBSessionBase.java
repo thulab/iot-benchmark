@@ -25,8 +25,8 @@ import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBInsertMode;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
@@ -149,17 +149,16 @@ public class IoTDBSessionBase extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    String[] params = config.getDB_SWITCH().split("-");
-    String insert_mode = params[params.length - 1];
-    switch (insert_mode) {
-      case Constants.INSERT_USE_SESSION_TABLET:
+    DBInsertMode insertMode = config.getDB_SWITCH().getInsertMode();
+    switch (insertMode) {
+      case INSERT_USE_SESSION_TABLET:
         return insertOneBatchByTablet(batch);
-      case Constants.INSERT_USE_SESSION_RECORD:
+      case INSERT_USE_SESSION_RECORD:
         return insertOneBatchByRecord(batch);
-      case Constants.INSERT_USE_SESSION_RECORDS:
+      case INSERT_USE_SESSION_RECORDS:
         return insertOneBatchByRecords(batch);
       default:
-        throw new IllegalStateException("Unexpected INSERT_MODE value: " + insert_mode);
+        throw new IllegalStateException("Unexpected INSERT_MODE value: " + insertMode);
     }
   }
 }

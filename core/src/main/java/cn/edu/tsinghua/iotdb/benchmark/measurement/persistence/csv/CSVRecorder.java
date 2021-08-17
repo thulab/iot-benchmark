@@ -197,20 +197,26 @@ public class CSVRecorder extends TestDataPersistence {
 
   @Override
   public void saveTestConfig() {
-    StringBuilder str = new StringBuilder();
+    StringBuffer str = new StringBuffer();
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       str.append(String.format(FOUR, projectID, "MODE", "DEFAULT_TEST_MODE"));
     }
 
-    switch (config.getDB_SWITCH().split("-")[0].trim()) {
-      case Constants.DB_IOT:
-      case Constants.DB_TIMESCALE:
+    switch (config.getDB_SWITCH().getType()) {
+      case IoTDB:
+      case TimescaleDB:
         str.append(String.format(FOUR, projectID, "ServerIP", config.getHOST().get(0)));
         break;
-      case Constants.DB_INFLUX:
-      case Constants.DB_OPENTS:
-      case Constants.DB_KAIROS:
-      case Constants.DB_CTS:
+      case InfluxDB:
+      case OpenTSDB:
+      case CTSDB:
+      case KairosDB:
+      case FakeDB:
+      case TaosDB:
+      case QuestDB:
+      case MSSQLSERVER:
+      case VictoriaMetrics:
+      case SQLite:
         str.append(
             String.format(FOUR, projectID, "ServerIP", config.getHOST() + ":" + config.getPORT()));
         break;

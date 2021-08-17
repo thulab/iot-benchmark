@@ -101,7 +101,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
           Object value;
           if (sensorType == Type.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
-            StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
+            StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
             for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
               builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
             }
