@@ -20,10 +20,10 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IGenerateDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IGenerateDataWorkload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

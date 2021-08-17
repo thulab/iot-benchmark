@@ -58,7 +58,7 @@ public abstract class Client implements Runnable {
   public void run() {
     try {
       try {
-        if(dbWrapper != null){
+        if (dbWrapper != null) {
           dbWrapper.init();
         }
         // wait for that all clients start test simultaneously
@@ -70,7 +70,7 @@ public abstract class Client implements Runnable {
         LOGGER.error("Unexpected error: ", e);
       } finally {
         try {
-          if(dbWrapper != null){
+          if (dbWrapper != null) {
             dbWrapper.close();
           }
         } catch (TsdbException e) {
@@ -90,7 +90,7 @@ public abstract class Client implements Runnable {
   protected abstract void doTest();
 
   /** Init DBWrapper */
-  protected void initDBWrapper(){
+  protected void initDBWrapper() {
     dbWrapper = new DBWrapper(measurement);
   }
 }
