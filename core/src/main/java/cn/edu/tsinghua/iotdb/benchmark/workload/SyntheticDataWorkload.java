@@ -286,7 +286,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       LOGGER.warn("Error loop");
     }
     // add out of order data
-    for (int i = 0; i < barrier; i++) {
+    for (int i = barrier - 1; i >= 0; i--) {
       long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
       addOneRowIntoBatch(batch, offset);
     }
