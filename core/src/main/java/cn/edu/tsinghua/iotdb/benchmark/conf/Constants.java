@@ -94,13 +94,6 @@ public class Constants {
 
   public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 
-  /** different running mode */
-  public static final String MODE_TEST_WITH_DEFAULT_PATH = "testWithDefaultPath";
-
-  public static final String MODE_GENERATE = "generateDataMode";
-  public static final String MODE_VERIFICATION = "verificationMode";
-  public static final String MODE_SERVER_MODE = "serverMODE";
-
   /** Properties when generate data */
   public static final String SCHEMA_PATH = "schema.txt";
 

@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +147,7 @@ public class CSVRecorder extends TestDataPersistence {
       String firstLine = "id,projectID,operation,result_key,result_value\n";
       serverInfoWriter.append(firstLine);
     }
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
         && projectWriter != null) {
       String firstLine =
           "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
@@ -197,7 +198,7 @@ public class CSVRecorder extends TestDataPersistence {
   @Override
   public void saveTestConfig() {
     StringBuilder str = new StringBuilder();
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       str.append(String.format(FOUR, projectID, "MODE", "DEFAULT_TEST_MODE"));
     }
 
@@ -220,7 +221,7 @@ public class CSVRecorder extends TestDataPersistence {
     str.append(String.format(FOUR, projectID, "DB_SWITCH", config.getDB_SWITCH()));
     str.append(String.format(FOUR, projectID, "CLIENT_NUMBER", config.getCLIENT_NUMBER()));
     str.append(String.format(FOUR, projectID, "LOOP", config.getLOOP()));
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       str.append(String.format(FOUR, projectID, "GROUP_NUMBER", config.getGROUP_NUMBER()));
       str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
       str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
@@ -299,7 +300,7 @@ public class CSVRecorder extends TestDataPersistence {
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
       FileWriter newProjectWriter = null;
-      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
         String firstLine =
             "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
         try {

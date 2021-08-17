@@ -22,9 +22,9 @@ package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.iotdb;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.*;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,11 +109,11 @@ public class IotdbRecorder extends TestDataPersistence {
 
   private void initSchema() {
     // create time series
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       initSingleTestMetrics();
       initResultMetrics();
     }
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_SERVER_MODE)) {
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.SERVER) {
       initSystemMetrics();
     }
   }

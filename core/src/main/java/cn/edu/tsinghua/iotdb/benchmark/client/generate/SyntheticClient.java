@@ -24,7 +24,6 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
@@ -50,92 +49,56 @@ public class SyntheticClient extends GenerateBaseClient {
    * @param actualDeviceFloor
    */
   @Override
-  protected void doOperations(double actualDeviceFloor) {
+  protected void doOperations(int actualDeviceFloor) {
     long start = 0;
-    loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       Operation operation = operationController.getNextOperationType();
       if (config.getOP_INTERVAL() > 0) {
         start = System.currentTimeMillis();
       }
-      switch (operation) {
-        case INGESTION:
-          if (!ingestionOperation(actualDeviceFloor)) {
-            break loop;
-          }
+      if (operation == Operation.INGESTION) {
+        if (!ingestionOperation(actualDeviceFloor)) {
           break;
-        case PRECISE_QUERY:
-          try {
-            dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery());
-          } catch (Exception e) {
-            LOGGER.error("Failed to do precise query because ", e);
+        }
+      } else {
+        try {
+          switch (operation) {
+            case PRECISE_QUERY:
+              dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery());
+              break;
+            case RANGE_QUERY:
+              dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery());
+              break;
+            case VALUE_RANGE_QUERY:
+              dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
+              break;
+            case AGG_RANGE_QUERY:
+              dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
+              break;
+            case AGG_VALUE_QUERY:
+              dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
+              break;
+            case AGG_RANGE_VALUE_QUERY:
+              dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
+              break;
+            case GROUP_BY_QUERY:
+              dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
+              break;
+            case LATEST_POINT_QUERY:
+              dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
+              break;
+            case RANGE_QUERY_ORDER_BY_TIME_DESC:
+              dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery());
+              break;
+            case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
+              dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery());
+              break;
+            default:
+              LOGGER.error("Unsupported operation type {}", operation);
           }
-          break;
-        case RANGE_QUERY:
-          try {
-            dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery());
-          } catch (Exception e) {
-            LOGGER.error("Failed to do range query because ", e);
-          }
-          break;
-        case VALUE_RANGE_QUERY:
-          try {
-            dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
-          } catch (WorkloadException e) {
-            LOGGER.error("Failed to do range query with value filter because ", e);
-          }
-          break;
-        case AGG_RANGE_QUERY:
-          try {
-            dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
-          } catch (WorkloadException e) {
-            LOGGER.error("Failed to do aggregation range query because ", e);
-          }
-          break;
-        case AGG_VALUE_QUERY:
-          try {
-            dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
-          } catch (WorkloadException e) {
-            LOGGER.error("Failed to do aggregation query with value filter because ", e);
-          }
-          break;
-        case AGG_RANGE_VALUE_QUERY:
-          try {
-            dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
-          } catch (WorkloadException e) {
-            LOGGER.error("Failed to do aggregation range query with value filter because ", e);
-          }
-          break;
-        case GROUP_BY_QUERY:
-          try {
-            dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
-          } catch (WorkloadException e) {
-            LOGGER.error("Failed to do group by query because ", e);
-          }
-          break;
-        case LATEST_POINT_QUERY:
-          try {
-            dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
-          } catch (WorkloadException e) {
-            LOGGER.error("Failed to do latest point query because ", e);
-          }
-          break;
-        case RANGE_QUERY_ORDER_BY_TIME_DESC:
-          try {
-            dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery());
-          } catch (Exception e) {
-            LOGGER.error("Failed to do range query order by time desc because ", e);
-          }
-          break;
-        case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-          try {
-            dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery());
-          } catch (Exception e) {
-            LOGGER.error("Failed to do range query order by time desc because ", e);
-          }
-          break;
-        default:
-          LOGGER.error("Unsupported operation type {}", operation);
+        } catch (Exception e) {
+          LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
+        }
       }
       if (config.getOP_INTERVAL() > 0) {
         long elapsed = System.currentTimeMillis() - start;
@@ -155,33 +118,25 @@ public class SyntheticClient extends GenerateBaseClient {
    *
    * @param actualDeviceFloor @Return when connect failed return false
    */
-  private boolean ingestionOperation(double actualDeviceFloor) {
-    if (config.isIS_CLIENT_BIND()) {
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-        try {
-          List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
+  private boolean ingestionOperation(int actualDeviceFloor) {
+    try {
+      if (config.isIS_CLIENT_BIND()) {
+        List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
+        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
+          // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
           for (DeviceSchema deviceSchema : schemas) {
-            if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
               dbWrapper.insertOneBatch(batch);
             }
           }
-        } catch (DBConnectException e) {
-          LOGGER.error("Failed to insert one batch data because ", e);
-          return false;
-        } catch (Exception e) {
-          LOGGER.error("Failed to insert one batch data because ", e);
-        }
-        insertLoopIndex++;
-      } else {
-        // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
-        try {
-          List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
+          insertLoopIndex++;
+        } else {
+          // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
           DeviceSchema sensorSchema = null;
           List<String> sensorList = new ArrayList<String>();
           for (DeviceSchema deviceSchema : schemas) {
-            if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               for (String sensor : deviceSchema.getSensors()) {
                 int colIndex = Integer.parseInt(sensor.replace(Constants.SENSOR_NAME_PREFIX, ""));
                 sensorList = new ArrayList<String>();
@@ -198,27 +153,19 @@ public class SyntheticClient extends GenerateBaseClient {
               }
             }
           }
-        } catch (DBConnectException e) {
-          LOGGER.error("Failed to insert one batch data because ", e);
-          return false;
-        } catch (Exception e) {
-          LOGGER.error("Failed to insert one batch data because ", e);
         }
-      }
-    } else {
-      // IS_CLIENT_BIND = false
-      // not in use
-      try {
+      } else {
+        // IS_CLIENT_BIND = false
         Batch batch = singletonWorkload.getOneBatch();
-        if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
+        if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
           dbWrapper.insertOneBatch(batch);
         }
-      } catch (DBConnectException e) {
-        LOGGER.error("Failed to insert one batch data because ", e);
-        return false;
-      } catch (Exception e) {
-        LOGGER.error("Failed to insert one batch data because ", e);
       }
+    } catch (DBConnectException e) {
+      LOGGER.error("Failed to insert one batch data because ", e);
+      return false;
+    } catch (Exception e) {
+      LOGGER.error("Failed to insert one batch data because ", e);
     }
     return true;
   }

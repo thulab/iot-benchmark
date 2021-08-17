@@ -30,9 +30,13 @@ import java.util.concurrent.*;
 public abstract class RealBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
+  /** RealDataWorkload */
   protected final IRealDataWorkload realDataWorkload;
+  /** Log related */
   protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+  /** Loop index while write or query */
   protected long loopIndex;
+  /** Total loop of write or query */
   protected long loop;
 
   public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
@@ -51,7 +55,7 @@ public abstract class RealBaseClient extends Client implements Runnable {
     service.scheduleAtFixedRate(
         () -> {
           String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
-          LOGGER.info("{} {}% batch RealDataWorkload is done.", currentThread, percent);
+          LOGGER.info("{} {}% realDataWorkload is done.", currentThread, percent);
         },
         1,
         config.getLOG_PRINT_INTERVAL(),

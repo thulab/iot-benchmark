@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.conf;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -59,7 +60,7 @@ public class Config {
    * (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this
    * parameter)
    */
-  private String BENCHMARK_WORK_MODE = "";
+  private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
   /** Whether use benchmark in cluster * */
   private boolean BENCHMARK_CLUSTER = false;
@@ -508,11 +509,11 @@ public class Config {
     this.LOOP = LOOP;
   }
 
-  public String getBENCHMARK_WORK_MODE() {
+  public BenchmarkMode getBENCHMARK_WORK_MODE() {
     return BENCHMARK_WORK_MODE;
   }
 
-  public void setBENCHMARK_WORK_MODE(String BENCHMARK_WORK_MODE) {
+  public void setBENCHMARK_WORK_MODE(BenchmarkMode BENCHMARK_WORK_MODE) {
     this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
   }
 

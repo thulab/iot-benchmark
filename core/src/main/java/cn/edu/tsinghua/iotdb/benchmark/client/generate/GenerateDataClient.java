@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
+/** This client is using by GenerateMode */
 public class GenerateDataClient extends GenerateBaseClient {
 
   public GenerateDataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
@@ -49,10 +50,9 @@ public class GenerateDataClient extends GenerateBaseClient {
    * @param actualDeviceFloor
    */
   @Override
-  protected void doOperations(double actualDeviceFloor) {
+  protected void doOperations(int actualDeviceFloor) {
     loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
-      // According to the probabilities (proportion) of operations.
       if (!doGenerate(actualDeviceFloor)) {
         break loop;
       }
@@ -64,30 +64,25 @@ public class GenerateDataClient extends GenerateBaseClient {
    *
    * @param actualDeviceFloor @Return when connect failed return false
    */
-  private boolean doGenerate(double actualDeviceFloor) {
-    if (config.isIS_CLIENT_BIND()) {
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-        try {
-          List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
+  private boolean doGenerate(int actualDeviceFloor) {
+    try {
+      if (config.isIS_CLIENT_BIND()) {
+        List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
+        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
+          // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
           for (DeviceSchema deviceSchema : schemas) {
-            if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
               writeBatch(batch);
             }
           }
-        } catch (Exception e) {
-          LOGGER.error("Failed to insert one batch data because ", e);
-        }
-        insertLoopIndex++;
-      } else {
-        // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
-        try {
-          List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
+          insertLoopIndex++;
+        } else {
+          // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
           DeviceSchema sensorSchema = null;
           List<String> sensorList = new ArrayList<String>();
           for (DeviceSchema deviceSchema : schemas) {
-            if (deviceSchema.getDeviceId() < actualDeviceFloor) {
+            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               int colIndex = 0;
               for (String sensor : deviceSchema.getSensors()) {
                 sensorList = new ArrayList<String>();
@@ -105,26 +100,26 @@ public class GenerateDataClient extends GenerateBaseClient {
               }
             }
           }
-        } catch (Exception e) {
-          LOGGER.error("Failed to insert one batch data because ", e);
         }
-      }
-    } else {
-      // IS_CLIENT_BIND = false
-      // not in use
-      try {
+      } else {
+        // IS_CLIENT_BIND = false
         Batch batch = singletonWorkload.getOneBatch();
-        if (batch.getDeviceSchema().getDeviceId() < actualDeviceFloor) {
+        if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
           writeBatch(batch);
         }
-      } catch (Exception e) {
-        LOGGER.error("Failed to insert one batch data because ", e);
       }
+    } catch (Exception e) {
+      LOGGER.error("Failed to insert one batch data because ", e);
     }
     return true;
   }
 
-  void writeBatch(Batch batch) {
+  /**
+   * Write batch into file
+   *
+   * @param batch
+   */
+  private void writeBatch(Batch batch) {
     String device = batch.getDeviceSchema().getDevice();
     try {
       Path dirFile = Paths.get(FileUtils.union(config.getFILE_PATH(), device));

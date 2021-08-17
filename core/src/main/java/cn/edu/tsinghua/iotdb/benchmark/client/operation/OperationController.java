@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -38,7 +38,12 @@ public class OperationController {
     random = new Random(seed);
   }
 
-  /** @return Operation the next operation for client to execute */
+  /**
+   * Get next Operation type, using by {@link
+   * cn.edu.tsinghua.iotdb.benchmark.client.generate.SyntheticClient}
+   *
+   * @return Operation the next operation for client to execute
+   */
   public Operation getNextOperationType() {
     List<Double> proportion = resolveOperationProportion();
     // p contains cumulative probability
@@ -95,7 +100,7 @@ public class OperationController {
     if (split.length != Operation.values().length) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }
-    if (!config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)) {
+    if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.VERIFICATION) {
       split[11] = "0";
     } else {
       split[11] = "1";

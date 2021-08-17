@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public class MySqlRecorder extends TestDataPersistence {
   private static final String PROJECT_ID =
       String.format(
           "%s_%s_%s_%s",
-          config.getBENCHMARK_WORK_MODE().substring(0, 5),
+          config.getBENCHMARK_WORK_MODE().mode.substring(0, 5),
           config.getDB_SWITCH().split("-")[0].substring(0, 5),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
@@ -112,7 +113,7 @@ public class MySqlRecorder extends TestDataPersistence {
   /** Check whether the table is created, if not then create */
   private void initTable() {
     try {
-      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_SERVER_MODE)) {
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.SERVER) {
         if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
           statement.executeUpdate(
               "create table SERVER_MODE_"
@@ -143,7 +144,7 @@ public class MySqlRecorder extends TestDataPersistence {
                 + " result_value VARCHAR(150))AUTO_INCREMENT = 1;");
         LOGGER.info("Table FINAL_RESULT create success!");
       }
-      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
           && !hasTable(PROJECT_ID)) {
         statement.executeUpdate(
             "create table "
@@ -271,7 +272,7 @@ public class MySqlRecorder extends TestDataPersistence {
   public void saveTestConfig() {
     String sql = "";
     try {
-      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
         sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'MODE'", "'DEFAULT_TEST_MODE'");
         statement.addBatch(sql);
       }
@@ -315,7 +316,7 @@ public class MySqlRecorder extends TestDataPersistence {
           String.format(
               SAVE_CONFIG, "'" + PROJECT_ID + "'", "'LOOP'", "'" + config.getLOOP() + "'");
       statement.addBatch(sql);
-      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
         sql =
             String.format(
                 SAVE_CONFIG,

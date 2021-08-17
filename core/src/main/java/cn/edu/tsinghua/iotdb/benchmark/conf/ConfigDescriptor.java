@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,8 @@ public class ConfigDescriptor {
                 properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME() + "")));
         config.setNET_DEVICE(properties.getProperty("NET_DEVICE", config.getNET_DEVICE()));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
-        config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
+        config.setBENCHMARK_WORK_MODE(
+            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
 
         config.setDB_SWITCH(properties.getProperty("DB_SWITCH", config.getDB_SWITCH()));
         String hosts = properties.getProperty("HOST", config.getHOST() + "");

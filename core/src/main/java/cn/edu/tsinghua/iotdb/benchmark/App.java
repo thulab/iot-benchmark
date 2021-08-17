@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.csv.CSVShutdownHook;
 import cn.edu.tsinghua.iotdb.benchmark.mode.*;
 import org.slf4j.Logger;
@@ -46,18 +45,18 @@ public class App {
     Runtime.getRuntime().addShutdownHook(new CSVShutdownHook());
     Config config = ConfigDescriptor.getInstance().getConfig();
     BaseMode baseMode = null;
-    switch (config.getBENCHMARK_WORK_MODE().trim()) {
-      case Constants.MODE_TEST_WITH_DEFAULT_PATH:
+    switch (config.getBENCHMARK_WORK_MODE()) {
+      case TEST_WITH_DEFAULT_PATH:
         baseMode = new TestWithDefaultPathMode();
         break;
-      case Constants.MODE_GENERATE:
+      case GENERATE_DATA:
         baseMode = new GenerateDataMode();
         break;
-      case Constants.MODE_SERVER_MODE:
-        baseMode = new ServerMode();
-        break;
-      case Constants.MODE_VERIFICATION:
+      case VERIFICATION:
         baseMode = new VerificationMode();
+        break;
+      case SERVER:
+        baseMode = new ServerMode();
         break;
       default:
         throw new SQLException("Unsupported mode:" + config.getBENCHMARK_WORK_MODE());

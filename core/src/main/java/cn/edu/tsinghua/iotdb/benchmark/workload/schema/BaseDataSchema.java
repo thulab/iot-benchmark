@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,7 +157,7 @@ public abstract class BaseDataSchema {
     if (baseDataSchema == null) {
       synchronized (BaseDataSchema.class) {
         if (baseDataSchema == null) {
-          if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_VERIFICATION)) {
+          if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION) {
             baseDataSchema = new RealDataSchema();
           } else {
             baseDataSchema = new GenerateDataSchema();
