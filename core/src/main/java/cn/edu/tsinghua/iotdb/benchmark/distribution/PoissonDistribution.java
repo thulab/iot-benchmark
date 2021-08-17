@@ -26,23 +26,28 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
+/** Only be used under IS_OUT_OF_ORDER=true and OUT_OF_ORDER_MODE=1 */
 public class PoissonDistribution {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PoissonDistribution.class);
-
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  /** Lambda in basic model */
   private static final double BASIC_MODEL_LAMBDA = 10;
+  /** Boundary of lambda */
+  private static final int LAMBDA_BOUNDARY = 500;
+  /** MaxK in basic model */
   private static final int BASIC_MODEL_MAX_K = 25;
-
+  /** Get random Double */
   private final Random random;
-
-  private double lambdaConfig;
-  private int deltaKindsConfig;
+  /** Lambda in config */
+  private double lambda;
+  /** MaxK in config */
+  private int maxK;
 
   public PoissonDistribution(Random ran) {
     this.random = ran;
-    this.lambdaConfig = config.getLAMBDA();
-    this.deltaKindsConfig = config.getMAX_K();
+    this.lambda = config.getLAMBDA();
+    this.maxK = config.getMAX_K();
   }
 
   /**
@@ -54,11 +59,12 @@ public class PoissonDistribution {
     int nextDelta = 0;
     int kInUse = BASIC_MODEL_MAX_K;
     double lambdaInUse = BASIC_MODEL_LAMBDA;
-    if (lambdaConfig < 500) {
-      kInUse = this.deltaKindsConfig;
-      lambdaInUse = this.lambdaConfig;
+    if (lambda < LAMBDA_BOUNDARY) {
+      kInUse = this.maxK;
+      lambdaInUse = this.lambda;
     }
     double rand = random.nextDouble();
+    // Probability array
     double[] p = new double[kInUse];
     double sum = 0;
     for (int i = 0; i < kInUse - 1; i++) {
@@ -66,25 +72,27 @@ public class PoissonDistribution {
       sum += p[i];
     }
     p[kInUse - 1] = 1 - sum;
+    // Range array
     double[] range = new double[kInUse + 1];
     range[0] = 0;
     for (int i = 0; i < kInUse; i++) {
       range[i + 1] = range[i] + p[i];
     }
+    // get nextDelta
     for (int i = 0; i < kInUse; i++) {
       nextDelta++;
       if (isBetween(rand, range[i], range[i + 1])) {
         break;
       }
     }
-    if (lambdaConfig >= 500) {
+    if (lambda >= LAMBDA_BOUNDARY) {
       double step;
       if (nextDelta <= BASIC_MODEL_LAMBDA) {
-        step = lambdaConfig / BASIC_MODEL_LAMBDA;
+        step = lambda / BASIC_MODEL_LAMBDA;
       } else {
-        step = (deltaKindsConfig - lambdaConfig) / (BASIC_MODEL_MAX_K - BASIC_MODEL_LAMBDA);
+        step = (maxK - lambda) / (BASIC_MODEL_MAX_K - BASIC_MODEL_LAMBDA);
       }
-      nextDelta = (int) (lambdaConfig + ((nextDelta - BASIC_MODEL_LAMBDA) * step));
+      nextDelta = (int) (lambda + ((nextDelta - BASIC_MODEL_LAMBDA) * step));
     }
     if (nextDelta < 0) {
       LOGGER.warn("Poisson next delta <= 0");
@@ -112,11 +120,11 @@ public class PoissonDistribution {
     return a > b && a < c;
   }
 
-  public void setLambdaConfig(double lambdaConfig) {
-    this.lambdaConfig = lambdaConfig;
+  public void setLambda(double lambda) {
+    this.lambda = lambda;
   }
 
-  public void setDeltaKindsConfig(int deltaKindsConfig) {
-    this.deltaKindsConfig = deltaKindsConfig;
+  public void setMaxK(int maxK) {
+    this.maxK = maxK;
   }
 }
