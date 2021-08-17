@@ -107,7 +107,7 @@ public class GenerateDataSchema extends BaseDataSchema {
     String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (split.length != TYPE_NUMBER) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-      System.exit(1);
+      System.exit(0);
     }
     double sum = 0;
     for (int i = 0; i < TYPE_NUMBER; i++) {

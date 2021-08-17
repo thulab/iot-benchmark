@@ -33,9 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class BasicReader {
 
@@ -74,10 +72,14 @@ public abstract class BasicReader {
    * @return device schema list to register
    */
   public static Map<String, Map<String, Type>> getDeviceSchemaList() {
+    if (!checkDataSet()) {
+      LOGGER.error("Different configs need to be fixed");
+      System.exit(0);
+    }
     Path path = Paths.get(config.getFILE_PATH(), Constants.SCHEMA_PATH);
     if (!Files.exists(path) || !Files.isRegularFile(path)) {
       LOGGER.error("Failed to find schema file in " + path.getFileName().toString());
-      System.exit(2);
+      System.exit(0);
     }
     Map<String, Map<String, Type>> result = new HashMap<>();
     try {
@@ -96,5 +98,37 @@ public abstract class BasicReader {
     }
 
     return result;
+  }
+
+  private static boolean checkDataSet() {
+    Path path = Paths.get(config.getFILE_PATH(), Constants.INFO_PATH);
+    if (!Files.exists(path) || !Files.isRegularFile(path)) {
+      return false;
+    }
+    try {
+      List<String> configs = Files.readAllLines(path);
+      List<String> nowConfigs = new ArrayList<>(Arrays.asList(config.toInfoText().split("\n")));
+      Map<String, String> differs = new HashMap<>();
+      for (int i = 0; i < nowConfigs.size(); i++) {
+        String configValue = configs.get(i);
+        String nowConfigValue = nowConfigs.get(i);
+        if (!nowConfigValue.equals(configValue)) {
+          differs.put(configValue, nowConfigValue);
+        }
+      }
+      for (Map.Entry<String, String> differ : differs.entrySet()) {
+        LOGGER.error(
+            "The config in dataSet is "
+                + differ.getKey()
+                + " but now config is "
+                + differ.getValue());
+      }
+      if (differs.size() != 0) {
+        return false;
+      }
+    } catch (IOException exception) {
+      LOGGER.error("Failed to check config");
+    }
+    return true;
   }
 }
