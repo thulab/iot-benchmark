@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

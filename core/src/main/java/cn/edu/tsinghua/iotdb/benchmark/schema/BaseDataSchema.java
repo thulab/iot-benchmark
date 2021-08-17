@@ -17,11 +17,12 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
+package cn.edu.tsinghua.iotdb.benchmark.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

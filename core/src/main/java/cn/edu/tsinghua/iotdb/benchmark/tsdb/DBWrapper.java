@@ -29,7 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactor
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.workload.IRealDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IRealDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.RealDataWorkload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

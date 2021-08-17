@@ -23,8 +23,8 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

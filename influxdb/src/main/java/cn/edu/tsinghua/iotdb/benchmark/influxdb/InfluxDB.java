@@ -27,7 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import okhttp3.OkHttpClient.Builder;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;

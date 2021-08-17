@@ -17,44 +17,24 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
+package cn.edu.tsinghua.iotdb.benchmark.tsdb.enums;
 
-public enum Type {
-  BOOLEAN(1, "BOOLEAN"),
-  INT32(2, "INT32"),
-  INT64(3, "INT64"),
-  FLOAT(4, "FLOAT"),
-  DOUBLE(5, "DOUBLE"),
-  TEXT(6, "TEXT");
+public enum DBInsertMode {
+  INSERT_USE_JDBC("JDBC"),
+  INSERT_USE_SESSION("SESSION"),
+  INSERT_USE_SESSION_TABLET("SESSION_BY_TABLET"),
+  INSERT_USE_SESSION_RECORD("SESSION_BY_RECORD"),
+  INSERT_USE_SESSION_RECORDS("SESSION_BY_RECORDS"),
+  INSERT_USE_SESSION_POOL("SESSION_POOL");
 
-  public int index;
-  public String name;
+  String insertType;
 
-  Type(int index, String name) {
-    this.index = index;
-    this.name = name;
-  }
-
-  public static Type[] getValueTypes() {
-    Type type[] = new Type[4];
-    for (int i = 1; i < 5; i++) {
-      type[i - 1] = Type.values()[i];
-    }
-    return type;
-  }
-
-  public static Type getType(int index) {
-    for (Type type : Type.values()) {
-      if (type.index == index) {
-        return type;
-      }
-    }
-    // default type
-    return Type.TEXT;
+  DBInsertMode(String insertType) {
+    this.insertType = insertType;
   }
 
   @Override
   public String toString() {
-    return name;
+    return insertType;
   }
 }

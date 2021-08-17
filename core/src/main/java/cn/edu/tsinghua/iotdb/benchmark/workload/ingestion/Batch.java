@@ -20,8 +20,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
 
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

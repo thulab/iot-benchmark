@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.mode;
+package cn.edu.tsinghua.iotdb.benchmark.mode.enums;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

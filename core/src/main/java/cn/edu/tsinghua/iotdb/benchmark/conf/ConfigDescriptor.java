@@ -19,9 +19,9 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
-import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBSwitch;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBType;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

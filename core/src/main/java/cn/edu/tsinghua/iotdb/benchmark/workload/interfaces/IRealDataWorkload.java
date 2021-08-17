@@ -17,24 +17,27 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.tsdb;
+package cn.edu.tsinghua.iotdb.benchmark.workload.interfaces;
 
-public enum DBInsertMode {
-  INSERT_USE_JDBC("JDBC"),
-  INSERT_USE_SESSION("SESSION"),
-  INSERT_USE_SESSION_TABLET("SESSION_BY_TABLET"),
-  INSERT_USE_SESSION_RECORD("SESSION_BY_RECORD"),
-  INSERT_USE_SESSION_RECORDS("SESSION_BY_RECORDS"),
-  INSERT_USE_SESSION_POOL("SESSION_POOL");
+import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
-  String insertType;
+/** IRealDataWorkload is a workload using for real data */
+public interface IRealDataWorkload extends IWorkLoad {
+  /**
+   * Return a batch from real data return null if there is no data
+   *
+   * @return
+   * @throws WorkloadException
+   */
+  Batch getOneBatch() throws WorkloadException;
 
-  DBInsertMode(String insertType) {
-    this.insertType = insertType;
-  }
-
-  @Override
-  public String toString() {
-    return insertType;
-  }
+  /**
+   * Return a verified Query
+   *
+   * @return
+   * @throws WorkloadException
+   */
+  VerificationQuery getVerifiedQuery() throws WorkloadException;
 }

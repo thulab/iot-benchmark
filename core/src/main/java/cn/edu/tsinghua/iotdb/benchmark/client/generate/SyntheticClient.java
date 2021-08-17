@@ -25,8 +25,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 
 import java.util.ArrayList;
 import java.util.List;

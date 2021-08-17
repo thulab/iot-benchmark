@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.tsdb;
+package cn.edu.tsinghua.iotdb.benchmark.tsdb.enums;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -17,11 +17,10 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
+package cn.edu.tsinghua.iotdb.benchmark.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.utils.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.apache.commons.lang3.builder.EqualsBuilder;

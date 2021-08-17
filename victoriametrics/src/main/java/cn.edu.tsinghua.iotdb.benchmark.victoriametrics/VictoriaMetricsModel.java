@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 
 import java.io.Serializable;
 import java.util.HashMap;

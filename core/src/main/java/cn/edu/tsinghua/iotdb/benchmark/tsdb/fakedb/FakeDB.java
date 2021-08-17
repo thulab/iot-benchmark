@@ -31,7 +31,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 
 import java.util.List;
 

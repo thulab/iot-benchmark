@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 
 import java.util.List;
 

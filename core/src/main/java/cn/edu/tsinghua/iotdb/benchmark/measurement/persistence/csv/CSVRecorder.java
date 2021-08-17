@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
-import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

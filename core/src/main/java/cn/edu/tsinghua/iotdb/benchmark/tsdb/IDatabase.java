@@ -24,8 +24,8 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 
 import java.util.List;
 

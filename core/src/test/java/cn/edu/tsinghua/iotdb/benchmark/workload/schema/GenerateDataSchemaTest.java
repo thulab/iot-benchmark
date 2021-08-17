@@ -21,6 +21,9 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.GenerateDataSchema;
 import org.junit.Assert;
 import org.junit.Test;
 

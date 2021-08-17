@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 
 import java.util.List;
 

@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

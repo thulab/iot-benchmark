@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.tsdb;
+package cn.edu.tsinghua.iotdb.benchmark.tsdb.enums;
 
 public enum DBType {
   IoTDB("IoTDB"),

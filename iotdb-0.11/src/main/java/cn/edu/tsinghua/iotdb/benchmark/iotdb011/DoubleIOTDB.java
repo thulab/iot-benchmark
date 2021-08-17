@@ -29,8 +29,8 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

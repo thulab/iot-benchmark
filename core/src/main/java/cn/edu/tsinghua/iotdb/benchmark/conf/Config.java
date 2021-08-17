@@ -22,8 +22,8 @@ package cn.edu.tsinghua.iotdb.benchmark.conf;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
-import cn.edu.tsinghua.iotdb.benchmark.mode.BenchmarkMode;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
