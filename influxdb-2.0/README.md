@@ -1,4 +1,4 @@
-Benchmark influxdb
+Benchmark influxdb 2.0
 ---
 This project is using iotdb-benchmark to test influxdb 2
 
