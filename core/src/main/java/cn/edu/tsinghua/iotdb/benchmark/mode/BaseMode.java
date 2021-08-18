@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
@@ -51,12 +52,13 @@ public abstract class BaseMode {
    * @param clients
    */
   protected static void finalMeasure(
-      ExecutorService executorService,
-      CountDownLatch downLatch,
-      Measurement measurement,
-      List<Measurement> threadsMeasurements,
-      long st,
-      List<Client> clients) {
+          ExecutorService executorService,
+          CountDownLatch downLatch,
+          Measurement measurement,
+          List<Measurement> threadsMeasurements,
+          long st,
+          List<Client> clients,
+          List<Operation> operations) {
     executorService.shutdown();
 
     try {
@@ -77,11 +79,11 @@ public abstract class BaseMode {
       measurement.mergeMeasurement(m);
     }
     // must call calculateMetrics() before using the Metrics
-    measurement.calculateMetrics();
+    measurement.calculateMetrics(operations);
     // output results
     measurement.showConfigs();
-    measurement.showMeasurements();
-    measurement.showMetrics();
+    measurement.showMeasurements(operations);
+    measurement.showMetrics(operations);
     if (config.isCSV_OUTPUT()) {
       measurement.outputCSV();
     }

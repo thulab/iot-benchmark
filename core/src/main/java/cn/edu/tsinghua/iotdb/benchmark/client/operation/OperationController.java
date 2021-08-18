@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -46,16 +45,17 @@ public class OperationController {
    */
   public Operation getNextOperationType() {
     List<Double> proportion = resolveOperationProportion();
+    List<Operation> operations = Operation.getNormalOperation();
     // p contains cumulative probability
-    double[] p = new double[Operation.values().length + 1];
+    double[] p = new double[operations.size() + 1];
     p[0] = 0.0;
-    for (int i = 1; i <= Operation.values().length; i++) {
+    for (int i = 1; i <= operations.size(); i++) {
       p[i] = p[i - 1] + proportion.get(i - 1);
     }
     // use random to getNextOperationType
     double rand = random.nextDouble();
     int i;
-    for (i = 1; i <= Operation.values().length; i++) {
+    for (i = 1; i <= Operation.getNormalOperation().size(); i++) {
       if (rand >= p[i - 1] && rand <= p[i]) {
         break;
       }
@@ -97,16 +97,10 @@ public class OperationController {
   private List<Double> resolveOperationProportion() {
     List<Double> proportion = new ArrayList<>();
     String[] split = config.getOPERATION_PROPORTION().split(":");
-    if (split.length != Operation.values().length) {
+    if (split.length != Operation.getNormalOperation().size()) {
       LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
     }
-    if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.VERIFICATION_QUERY
-        && config.getBENCHMARK_WORK_MODE() != BenchmarkMode.VERIFICATION_WRITE) {
-      split[11] = "0";
-    } else {
-      split[11] = "1";
-    }
-    double[] proportions = new double[Operation.values().length];
+    double[] proportions = new double[Operation.getNormalOperation().size()];
     double sum = 0;
     for (int i = 0; i < split.length; i++) {
       proportions[i] = Double.parseDouble(split[i]);

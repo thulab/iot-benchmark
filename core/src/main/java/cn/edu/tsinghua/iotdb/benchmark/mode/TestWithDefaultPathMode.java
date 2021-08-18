@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.client.generate.SyntheticClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
@@ -94,6 +95,6 @@ public class TestWithDefaultPathMode extends BaseMode {
       st = System.nanoTime();
       executorService.submit(client);
     }
-    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients, Operation.getNormalOperation());
   }
 }

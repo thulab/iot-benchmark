@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public class Measurement {
@@ -110,8 +111,8 @@ public class Measurement {
   }
 
   /** Calculate metrics of each operation */
-  public void calculateMetrics() {
-    for (Operation operation : Operation.values()) {
+  public void calculateMetrics(List<Operation> operations) {
+    for (Operation operation : operations) {
       double avgLatency;
       if (okOperationNumMap.get(operation) != 0) {
         avgLatency = operationLatencySumAllClient.get(operation) / okOperationNumMap.get(operation);
@@ -154,7 +155,7 @@ public class Measurement {
   }
 
   /** Show measurements and record according to TEST_DATA_PERSISTENCE */
-  public void showMeasurements() {
+  public void showMeasurements(List<Operation> operations) {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(Thread.currentThread().getName() + " measurements:");
@@ -182,7 +183,7 @@ public class Measurement {
         "failOperation",
         "failPoint",
         "throughput(point/s)");
-    for (Operation operation : Operation.values()) {
+    for (Operation operation : operations) {
       String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
       System.out.printf(
           format.toString(),
@@ -241,7 +242,7 @@ public class Measurement {
   }
 
   /** Show metrics of test */
-  public void showMetrics() {
+  public void showMetrics(List<Operation> operations) {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(
@@ -251,7 +252,7 @@ public class Measurement {
       System.out.printf(LATENCY_ITEM, metric.name);
     }
     System.out.println();
-    for (Operation operation : Operation.values()) {
+    for (Operation operation : operations) {
       System.out.printf(RESULT_ITEM, operation.getName());
       for (Metric metric : Metric.values()) {
         String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));

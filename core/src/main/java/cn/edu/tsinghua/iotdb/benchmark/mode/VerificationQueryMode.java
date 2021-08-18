@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -60,6 +62,6 @@ public class VerificationQueryMode extends BaseMode {
       clients.add(client);
       executorService.submit(client);
     }
-    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients);
+    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients, new ArrayList<>(Arrays.asList(Operation.VERIFICATION_QUERY)));
   }
 }

@@ -19,6 +19,9 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum Operation {
   INGESTION("INGESTION"),
   PRECISE_QUERY("PRECISE_POINT"),
@@ -41,5 +44,15 @@ public enum Operation {
 
   Operation(String name) {
     this.name = name;
+  }
+
+  public static List<Operation> getNormalOperation(){
+    List<Operation> operations = new ArrayList<>();
+    for(Operation operation: Operation.values()){
+      if(operation != Operation.VERIFICATION_QUERY){
+        operations.add(operation);
+      }
+    }
+    return operations;
   }
 }
