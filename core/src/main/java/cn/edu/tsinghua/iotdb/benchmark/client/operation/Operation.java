@@ -46,10 +46,10 @@ public enum Operation {
     this.name = name;
   }
 
-  public static List<Operation> getNormalOperation(){
+  public static List<Operation> getNormalOperation() {
     List<Operation> operations = new ArrayList<>();
-    for(Operation operation: Operation.values()){
-      if(operation != Operation.VERIFICATION_QUERY){
+    for (Operation operation : Operation.values()) {
+      if (operation != Operation.VERIFICATION_QUERY) {
         operations.add(operation);
       }
     }

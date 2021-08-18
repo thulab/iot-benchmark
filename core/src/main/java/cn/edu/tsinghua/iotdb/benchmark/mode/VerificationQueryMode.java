@@ -62,6 +62,13 @@ public class VerificationQueryMode extends BaseMode {
       clients.add(client);
       executorService.submit(client);
     }
-    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients, new ArrayList<>(Arrays.asList(Operation.VERIFICATION_QUERY)));
+    finalMeasure(
+        executorService,
+        downLatch,
+        measurement,
+        threadsMeasurements,
+        st,
+        clients,
+        new ArrayList<>(Arrays.asList(Operation.VERIFICATION_QUERY)));
   }
 }

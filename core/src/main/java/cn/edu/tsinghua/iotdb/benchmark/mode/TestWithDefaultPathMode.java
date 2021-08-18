@@ -95,6 +95,13 @@ public class TestWithDefaultPathMode extends BaseMode {
       st = System.nanoTime();
       executorService.submit(client);
     }
-    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients, Operation.getNormalOperation());
+    finalMeasure(
+        executorService,
+        downLatch,
+        measurement,
+        threadsMeasurements,
+        st,
+        clients,
+        Operation.getNormalOperation());
   }
 }

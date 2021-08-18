@@ -52,13 +52,13 @@ public abstract class BaseMode {
    * @param clients
    */
   protected static void finalMeasure(
-          ExecutorService executorService,
-          CountDownLatch downLatch,
-          Measurement measurement,
-          List<Measurement> threadsMeasurements,
-          long st,
-          List<Client> clients,
-          List<Operation> operations) {
+      ExecutorService executorService,
+      CountDownLatch downLatch,
+      Measurement measurement,
+      List<Measurement> threadsMeasurements,
+      long st,
+      List<Client> clients,
+      List<Operation> operations) {
     executorService.shutdown();
 
     try {

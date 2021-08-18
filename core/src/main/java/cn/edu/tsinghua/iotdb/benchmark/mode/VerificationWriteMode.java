@@ -95,6 +95,13 @@ public class VerificationWriteMode extends BaseMode {
       clients.add(client);
       executorService.submit(client);
     }
-    finalMeasure(executorService, downLatch, measurement, threadsMeasurements, st, clients, new ArrayList<>(Arrays.asList(Operation.INGESTION)));
+    finalMeasure(
+        executorService,
+        downLatch,
+        measurement,
+        threadsMeasurements,
+        st,
+        clients,
+        new ArrayList<>(Arrays.asList(Operation.INGESTION)));
   }
 }
