@@ -26,6 +26,7 @@ iotdb-benchmark.iws
 *.tar
 
 ./conf/*.properties
+**/routine
 /target/
 
 data
