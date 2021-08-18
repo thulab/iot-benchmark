@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.sqlite;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
@@ -182,13 +183,13 @@ public class SqliteDB implements IDatabase {
             .append(" values (");
     sql.append(sensorNow).append(",");
     sql.append(time).append(",");
-    if (type.equals("BOOLEAN")) {
+    if (type == Type.BOOLEAN) {
       if ((boolean) value) {
         sql.append("1").append(")");
       } else {
         sql.append("0").append(")");
       }
-    } else if (type.equals("TEXT")) {
+    } else if (type == Type.TEXT) {
       sql.append("'").append(value).append("')");
     } else {
       sql.append(value).append(")");
@@ -205,7 +206,7 @@ public class SqliteDB implements IDatabase {
    * @return
    */
   private long getId(String group, String device, String sensor) {
-    long groupNow = Long.parseLong(group.replace(config.getDB_NAME(), ""));
+    long groupNow = Long.parseLong(group.replace(Constants.GROUP_NAME_PREFIX, ""));
     long deviceNow = Long.parseLong(device.split("_")[1]);
     long sensorNow = 0;
     if (sensor != null) {
