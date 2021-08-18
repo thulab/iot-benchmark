@@ -14,8 +14,8 @@ Benchmark victoriaMetrics
 1. [Demo config](config.properties)
 
 # test result
-1. 查看全部数据结果：`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}"}`
-2. 查看部分数据结果：`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}", device="xxx", sensor="xxx"}`
+1. View all data results：`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}"}`
+2. View some data results：`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}", device="xxx", sensor="xxx"}`
 
 ```
 ----------------------Main Configurations----------------------
