@@ -48,7 +48,7 @@ public class VictoriaMetrics implements IDatabase {
   private static final String CREATE_URL =
       URL + "/api/v1/import/prometheus?extra_label=db=" + config.getDB_NAME();
   private static final String DELETE_URL =
-      URL + "/api/v1/admin/tsdb/delete_series?match={db=%22" + config.getDB_NAME() + "%22}";
+      URL + "/api/v1/admin/tsdb/delete_series?match%5B%5D=%7Bdb=%22" + config.getDB_NAME() + "%22%7D";
   private static final Random sensorRandom = new Random(1 + config.getDATA_SEED());
   // need to add query
   private static final String QUERY_URL = URL + "/api/v1/query?query=";
