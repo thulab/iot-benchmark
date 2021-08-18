@@ -23,20 +23,14 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.csv.CSVShutdownHook;
 import cn.edu.tsinghua.iotdb.benchmark.mode.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 
 public class App {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
-
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
-
   public static void main(String[] args) throws SQLException {
     if (args == null || args.length == 0) {
-      args = new String[] {"-cf", "conf/config.properties"};
+      args = new String[] {"-cf", "configuration/conf/config.properties"};
     }
     CommandCli cli = new CommandCli();
     if (!cli.init(args)) {
