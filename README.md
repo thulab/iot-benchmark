@@ -653,22 +653,22 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 
 # 7. Test Other Database(Part)
 
-## 7.1. 测试 InfluxDB v1.x
+## 7.1. Test InfluxDB v1.x
 [Quick Start](influxdb/README.md)
 
-## 7.2. 测试 InfluxDB v2.0
+## 7.2. Test InfluxDB v2.0
 [Quick Start](influxdb-2.0/README.md)
 
-## 7.3. 测试 Microsoft SQL Server
+## 7.3. Test Microsoft SQL Server
 [Quick Start](mssqlserver/README.md)
 
-## 7.4. 测试 QuestDB
+## 7.4. Test QuestDB
 [Quick Start](questdb/README.md)
 
-## 7.5. 测试 SQLite
+## 7.5. Test SQLite
 [Quick Start](sqlite/README.md)
 
-## 7.6. 测试 Victoriametrics
+## 7.6. Test Victoriametrics
 [Quick Start](victoriametrics/README.md)
 
 
