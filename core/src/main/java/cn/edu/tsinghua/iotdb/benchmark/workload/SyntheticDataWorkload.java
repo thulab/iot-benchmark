@@ -351,25 +351,27 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     for (int m = 0;
         queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < clientDevicesIndex.size();
         m++) {
-      String device = MetaUtil.getDeviceName(clientDevicesIndex.get(m));
+      int deviceId = clientDevicesIndex.get(m);
+      String device = MetaUtil.getDeviceName(deviceId);
       List<String> sensors = config.getSENSOR_CODES();
       Collections.shuffle(sensors, queryDeviceRandom);
       List<String> querySensors = new ArrayList<>();
       for (int i = 0;
           querySensors.size() < config.getQUERY_SENSOR_NUM() && i < sensors.size();
           i++) {
+        String sensor = sensors.get(i);
         if (!typeAllow) {
-          Type type = baseDataSchema.getSensorType(device, sensors.get(i));
+          Type type = baseDataSchema.getSensorType(device, sensor);
           if (type == Type.BOOLEAN || type == Type.TEXT) {
             continue;
           }
         }
-        querySensors.add(sensors.get(i));
+        querySensors.add(sensor);
       }
       if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
         continue;
       }
-      DeviceSchema deviceSchema = new DeviceSchema(clientDevicesIndex.get(m), querySensors);
+      DeviceSchema deviceSchema = new DeviceSchema(deviceId, querySensors);
       queryDevices.add(deviceSchema);
     }
     if (queryDevices.size() == 0) {

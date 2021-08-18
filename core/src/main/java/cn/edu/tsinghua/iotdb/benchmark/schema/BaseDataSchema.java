@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Base of DataSchema */
 public abstract class BaseDataSchema {
@@ -38,9 +39,10 @@ public abstract class BaseDataSchema {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   /** Store DeviceSchema for each client */
-  protected static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA = new HashMap<>();
+  protected static final Map<Integer, List<DeviceSchema>> CLIENT_BIND_SCHEMA =
+      new ConcurrentHashMap<>();
   /** Type map for each sensors, mapping rule: device(e.g. d_0) -> sensor (e.g. s_0) -> type */
-  protected static final Map<String, Map<String, Type>> TYPE_MAPPING = new HashMap<>();
+  protected static final Map<String, Map<String, Type>> TYPE_MAPPING = new ConcurrentHashMap<>();
   /** The singleton of BaseDataSchema */
   private static BaseDataSchema baseDataSchema;
 
