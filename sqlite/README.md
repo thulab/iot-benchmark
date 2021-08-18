@@ -1,4 +1,4 @@
-Benchmark for SQLite
+Benchmark SQLite
 ---
 
 # SQLite
