@@ -196,11 +196,11 @@ LOOP=1000
 测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
 
 ```
-···
+...
 19:09:18.719 [pool-33-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-10 14.60% syntheticWorkload is done.
 19:09:18.719 [pool-27-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-8 11.70% syntheticWorkload is done.
 19:09:18.719 [pool-42-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-13 7.50% syntheticWorkload is done.
-···
+...
 ```
 
 当测试结束后，最后会显示出本次测试的统计信息，如下所示：
@@ -333,11 +333,11 @@ GROUP_BY_TIME_UNIT=20000
 测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
 
 ```
-···
+...
 19:11:17.059 [pool-33-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-10 86.10% syntheticWorkload is done.
 19:11:17.059 [pool-21-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-6 87.70% syntheticWorkload is done.
 19:11:17.059 [pool-48-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-15 75.00% syntheticWorkload is done.
-···
+...
 ```
 
 当测试结束后，最后会显示出本次测试的统计信息，如下所示：

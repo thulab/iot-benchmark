@@ -147,11 +147,11 @@ Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and r
 Now after launching the test, you will see testing information rolling like following: 
 
 ```
-···
+...
 19:09:18.719 [pool-33-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-10 14.60% syntheticWorkload is done.
 19:09:18.719 [pool-27-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-8 11.70% syntheticWorkload is done.
 19:09:18.719 [pool-42-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-13 7.50% syntheticWorkload is done.
-···
+...
 ```
 
 When test is done, the last output of the test information will be like following: 
@@ -284,11 +284,11 @@ Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and r
 Now after launching the test, you will see testing information rolling like following: 
 
 ```
-···
+...
 19:11:17.059 [pool-33-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-10 86.10% syntheticWorkload is done.
 19:11:17.059 [pool-21-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-6 87.70% syntheticWorkload is done.
 19:11:17.059 [pool-48-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-4-thread-15 75.00% syntheticWorkload is done.
-···
+...
 ```
 
 When test is done, the last testing information will be like the following: 
