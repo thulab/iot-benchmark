@@ -19,14 +19,14 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Operation;
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.Metric;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalOperationResult;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.TotalResult;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import com.clearspring.analytics.stream.quantile.TDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public class Measurement {
@@ -110,8 +111,8 @@ public class Measurement {
   }
 
   /** Calculate metrics of each operation */
-  public void calculateMetrics() {
-    for (Operation operation : Operation.values()) {
+  public void calculateMetrics(List<Operation> operations) {
+    for (Operation operation : operations) {
       double avgLatency;
       if (okOperationNumMap.get(operation) != 0) {
         avgLatency = operationLatencySumAllClient.get(operation) / okOperationNumMap.get(operation);
@@ -154,21 +155,22 @@ public class Measurement {
   }
 
   /** Show measurements and record according to TEST_DATA_PERSISTENCE */
-  public void showMeasurements() {
+  public void showMeasurements(List<Operation> operations) {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(Thread.currentThread().getName() + " measurements:");
     System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
     System.out.println(
         "Test elapsed time (not include schema creation): "
             + String.format("%.2f", elapseTime)
             + " second");
-    recorder.saveResult("total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
-    recorder.saveResult("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
+    recorder.saveResultAsync(
+        "total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
+    recorder.saveResultAsync("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
     System.out.println(
         "----------------------------------------------------------Result Matrix----------------------------------------------------------");
-    StringBuilder format = new StringBuilder();
+    StringBuffer format = new StringBuffer();
     for (int i = 0; i < 6; i++) {
       format.append(RESULT_ITEM);
     }
@@ -181,7 +183,7 @@ public class Measurement {
         "failOperation",
         "failPoint",
         "throughput(point/s)");
-    for (Operation operation : Operation.values()) {
+    for (Operation operation : operations) {
       String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
       System.out.printf(
           format.toString(),
@@ -192,29 +194,29 @@ public class Measurement {
           failPointNumMap.get(operation),
           throughput);
 
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.OK_OPERATION_NUM.getName(),
           "" + okOperationNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.OK_POINT_NUM.getName(),
           "" + okPointNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.FAIL_OPERATION_NUM.getName(),
           "" + failOperationNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(),
           TotalOperationResult.FAIL_POINT_NUM.getName(),
           "" + failPointNumMap.get(operation));
-      recorder.saveResult(
+      recorder.saveResultAsync(
           operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
     }
     System.out.println(
         "---------------------------------------------------------------------------------------------------------------------------------");
 
-    recorder.close();
+    recorder.closeAsync();
   }
 
   /** Show Config of test */
@@ -240,9 +242,9 @@ public class Measurement {
   }
 
   /** Show metrics of test */
-  public void showMetrics() {
+  public void showMetrics(List<Operation> operations) {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
-    ITestDataPersistence recorder = persistenceFactory.getPersistence();
+    TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(
         "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
     System.out.printf(RESULT_ITEM, "Operation");
@@ -250,18 +252,18 @@ public class Measurement {
       System.out.printf(LATENCY_ITEM, metric.name);
     }
     System.out.println();
-    for (Operation operation : Operation.values()) {
+    for (Operation operation : operations) {
       System.out.printf(RESULT_ITEM, operation.getName());
       for (Metric metric : Metric.values()) {
         String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
         System.out.printf(LATENCY_ITEM, metricResult);
-        recorder.saveResult(operation.toString(), metric.name, metricResult);
+        recorder.saveResultAsync(operation.toString(), metric.name, metricResult);
       }
       System.out.println();
     }
     System.out.println(
         "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-    recorder.close();
+    recorder.closeAsync();
   }
 
   /** output measurement to csv */
@@ -300,7 +302,7 @@ public class Measurement {
       String currentTime = sdf.format(date);
 
       // Formatting current Operations
-      StringBuilder fileNameSB = new StringBuilder();
+      StringBuffer fileNameSB = new StringBuffer();
       String[] operations = config.getOPERATION_PROPORTION().split(":");
 
       for (int i = 0; i < operations.length; i++) {

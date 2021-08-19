@@ -23,8 +23,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,12 +59,13 @@ public class SingletonWorkload {
 
   private Batch getOrderedBatch() {
     long curLoop = insertLoop.getAndIncrement();
-    DeviceSchema deviceSchema = new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER());
+    DeviceSchema deviceSchema =
+        new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER(), config.getSENSOR_CODES());
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       long stepOffset =
           (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
+      SyntheticDataWorkload.addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;
@@ -89,7 +90,7 @@ public class SingletonWorkload {
   private Batch getDistOutOfOrderBatch() {
     long curLoop = insertLoop.getAndIncrement();
     int deviceIndex = (int) (curLoop % config.getDEVICE_NUMBER());
-    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex);
+    DeviceSchema deviceSchema = new DeviceSchema(deviceIndex, config.getSENSOR_CODES());
 
     Batch batch = new Batch();
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
@@ -104,7 +105,7 @@ public class SingletonWorkload {
         // generate normal increasing timestamp
         stepOffset = deviceMaxTimeIndexMap.get(deviceIndex).getAndIncrement();
       }
-      SyntheticWorkload.addOneRowIntoBatch(batch, stepOffset);
+      SyntheticDataWorkload.addOneRowIntoBatch(batch, stepOffset);
     }
     batch.setDeviceSchema(deviceSchema);
     return batch;

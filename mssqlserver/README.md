@@ -1,15 +1,15 @@
-Microsoft SQL Server
+Benchmark Microsoft SQL Server
 ---
 
-# 配置环境
+# environment
 1. MS SQL 2016 SP2 standard version
-2. 访问软件：Microsoft SQL Server Management(HSSM)
+2. Access software：Microsoft SQL Server Management(HSSM)
 
-# 前置条件
-1. MS SQL Server必须开放1433端口
-2. MS SQL Server必须允许通过TCP/IP访问
-3. MS SQL Server中必须已经预先创建和DB_NAME保持一致的Database，使用sqlcmd：`create database ${DB_NAME}`
-4. MS SQL Server中必须已经存在test用户，密码为12345678，并且拥有DB_NAME对应数据库的对应权限，创建命令(授予全部权限)如下：
+# preconditions
+1. MS SQL Server must open port 1433
+2. MS SQL Server must allow access via TCP/IP
+3. In MS SQL Server, a database consistent with DB_NAME must have been created in advance, use sqlcmd: `create database ${DB_NAME}`
+4. The user test must already exist in MS SQL Server, the password is 12345678, and the database corresponding to DB_NAME must have the corresponding permissions. The creation command (granting all permissions) is as follows:
 
 ```
 USE [master]
@@ -34,60 +34,60 @@ ALTER SERVER ROLE [sysadmin] ADD MEMBER [test]
 GO
 ```
 
-5. 在数据库的properties中的Security选项卡中设置server authentication设置为SQL Server and xxx(允许通过用户名和密码访问)
+5. Set the server authentication setting to SQL Server and xxx in the Security tab in the properties of the database (allowing access by user name and password)
 
-# 样例测试config文件
-[样例测试Config文件详情](config.properties)
+# config
+[Demo config](config.properties)
 
-# 样例测试结果
+# test result
 ```
 ----------------------Main Configurations----------------------
 DB_SWITCH: MSSQLSERVER
 OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
 ENABLE_THRIFT_COMPRESSION: false
-INSERT_DATATYPE_PROPORTION: 0:0:0:0:1:0
+INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
 CLIENT_NUMBER: 5
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 5
-SENSOR_NUMBER: 10
+SENSOR_NUMBER: 100
 BATCH_SIZE_PER_WRITE: 10
 LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 1
+OUT_OF_ORDER_MODE: 0
 OUT_OF_ORDER_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:
-Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 20.35 second
+Create schema cost 0.02 second
+Test elapsed time (not include schema creation): 41.12 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           478                 47800               0                   0                   2348.97             
-PRECISE_POINT       462                 870                 0                   0                   42.75               
-TIME_RANGE          438                 37958               0                   0                   1865.32             
-VALUE_RANGE         483                 44077               0                   0                   2166.02             
-AGG_RANGE           425                 425                 0                   0                   20.89               
-AGG_VALUE           460                 460                 0                   0                   22.61               
-AGG_RANGE_VALUE     431                 431                 0                   0                   21.18               
-GROUP_BY            473                 90                  0                   0                   4.42                
-LATEST_POINT        459                 773                 0                   0                   37.99               
-RANGE_QUERY__DESC   433                 36849               0                   0                   1810.82             
-VALUE_RANGE_QUERY__DESC458                 38707               0                   0                   1902.13             
+INGESTION           478                 478000              0                   0                   11624.09            
+PRECISE_POINT       462                 101                 0                   0                   2.46                
+TIME_RANGE          438                 22583               0                   0                   549.18              
+VALUE_RANGE         483                 28549               0                   0                   694.26              
+AGG_RANGE           425                 2550                0                   0                   62.01               
+AGG_VALUE           460                 1840                0                   0                   44.75               
+AGG_RANGE_VALUE     431                 1724                0                   0                   41.92               
+GROUP_BY            473                 670                 0                   0                   16.29               
+LATEST_POINT        459                 622                 0                   0                   15.13               
+RANGE_QUERY_DESC    433                 22805               0                   0                   554.58              
+VALUE_RANGE_QUERY_DESC458                 27189               0                   0                   661.19              
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-INGESTION           43.19       21.57       31.41       37.18       41.98       47.09       53.85       58.26       75.06       204.86      203.77      4462.05     
-PRECISE_POINT       18.18       2.09        6.08        12.58       18.61       24.03       27.70       29.62       33.45       91.28       73.51       1797.75     
-TIME_RANGE          18.60       1.81        6.75        13.53       19.22       24.27       27.42       29.27       34.15       37.45       37.24       1959.17     
-VALUE_RANGE         19.57       2.07        8.95        13.37       19.63       24.86       29.16       31.62       35.40       212.23      156.51      2123.29     
-AGG_RANGE           18.90       1.98        7.51        13.24       19.63       24.90       29.11       30.96       33.92       39.33       38.15       1991.18     
-AGG_VALUE           19.93       2.16        6.16        13.60       20.45       26.39       31.17       34.14       37.85       48.58       46.07       1969.33     
-AGG_RANGE_VALUE     18.63       2.02        7.30        13.07       18.57       24.45       28.23       30.23       34.10       245.30      182.78      1753.60     
-GROUP_BY            16.39       5.10        9.53        12.49       15.44       18.81       21.98       23.79       37.48       162.25      142.00      1724.70     
-LATEST_POINT        12.13       2.27        4.80        6.63        10.22       14.60       21.68       28.01       43.38       81.18       73.06       1230.08     
-RANGE_QUERY__DESC   13.20       3.91        7.49        10.17       12.97       16.08       18.44       20.34       23.38       61.84       50.82       1220.04     
-VALUE_RANGE_QUERY__DESC15.94       3.04        8.36        11.20       14.23       17.72       20.31       24.83       73.69       155.70      152.34      1607.59     
+INGESTION           328.01      125.89      267.19      279.30      306.17      346.51      398.88      452.22      822.86      1149.90     1113.72     33317.36    
+PRECISE_POINT       2.74        0.97        2.05        2.28        2.52        2.80        3.34        3.91        9.29        20.78       18.40       273.56      
+TIME_RANGE          3.06        1.37        2.27        2.53        2.80        3.18        3.63        4.19        7.29        34.54       30.13       302.97      
+VALUE_RANGE         2.10        0.85        1.52        1.72        1.90        2.20        2.53        2.91        5.88        34.05       27.18       236.07      
+AGG_RANGE           2.96        1.32        2.15        2.40        2.71        3.05        3.42        3.99        6.31        28.60       27.65       285.49      
+AGG_VALUE           2.12        0.69        1.31        1.49        1.84        2.23        2.63        3.07        8.87        25.64       25.54       231.55      
+AGG_RANGE_VALUE     2.06        0.86        1.55        1.71        1.90        2.10        2.38        2.80        6.15        18.99       17.62       194.84      
+GROUP_BY            22.05       5.35        14.10       15.93       17.69       19.71       24.62       58.67       122.97      162.91      156.56      2179.26     
+LATEST_POINT        35.01       1.48        19.41       22.87       26.08       30.38       69.80       109.93      167.11      247.34      239.67      3681.73     
+RANGE_QUERY_DESC    3.19        1.35        2.23        2.56        2.89        3.29        3.73        4.23        11.27       38.03       33.73       308.78      
+VALUE_RANGE_QUERY_DESC2.22        0.74        1.55        1.76        1.99        2.24        2.75        3.67        10.17       16.05       14.87       216.73      
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```

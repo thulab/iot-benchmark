@@ -23,13 +23,14 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public class QuestDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(QuestDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   private static final String URL_QUEST = "jdbc:postgresql://%s:%s/qdb";
 
   private static final String SSLMODE = "disable";
@@ -136,7 +138,8 @@ public class QuestDB implements IDatabase {
           // 添加传感器
           List<String> sensors = deviceSchema.getSensors();
           for (int index = 0; index < sensors.size(); index++) {
-            String dataType = typeMap(DBUtil.getDataType(index));
+            String dataType =
+                typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(index)));
             create.append(sensors.get(index));
             create.append(" ");
             create.append(dataType);
@@ -192,6 +195,7 @@ public class QuestDB implements IDatabase {
       tableName.append(deviceSchema.getGroup());
       tableName.append("_");
       tableName.append(deviceSchema.getDevice());
+      List<String> sensors = batch.getDeviceSchema().getSensors();
       for (Record record : batch.getRecords()) {
         StringBuffer insertSQL = new StringBuffer(INSERT_SQL);
         insertSQL.append(tableName);
@@ -200,7 +204,7 @@ public class QuestDB implements IDatabase {
         insertSQL.append("'");
         for (int i = 0; i < record.getRecordDataValue().size(); i++) {
           Object value = record.getRecordDataValue().get(i);
-          switch (typeMap(DBUtil.getDataType(i))) {
+          switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(i)))) {
             case "BOOLEAN":
               insertSQL.append(",").append((boolean) value);
               break;
@@ -527,18 +531,18 @@ public class QuestDB implements IDatabase {
    * @return
    */
   @Override
-  public String typeMap(String iotdbType) {
+  public String typeMap(Type iotdbType) {
     switch (iotdbType) {
-      case "BOOLEAN":
+      case BOOLEAN:
         return "BOOLEAN";
-      case "INT32":
+      case INT32:
         return "INT";
-      case "INT64":
+      case INT64:
         return "LONG";
-      case "FLOAT":
-      case "DOUBLE":
+      case FLOAT:
+      case DOUBLE:
         return "DOUBLE";
-      case "TEXT":
+      case TEXT:
         return "STRING";
       default:
         LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);

@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.syslog;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class OpenFileStatistics {
   private static final String[] cmds = {"/bin/bash", "-c", ""};
 
   private OpenFileStatistics() {
-    pid = getPID(config.getDB_SWITCH());
+    pid = getPID(config.getDB_SWITCH().getType());
   }
 
   public static final OpenFileStatistics getInstance() {
@@ -54,26 +54,23 @@ public class OpenFileStatistics {
    * @param
    * @return int, pid
    */
-  public int getPID(String dbName) {
+  public int getPID(DBType dbType) {
     int pid = -1;
     Process pro1;
     Runtime r = Runtime.getRuntime();
     String filter = "";
-    switch (dbName.split("-")[0]) {
-      case Constants.DB_IOT:
+    switch (dbType) {
+      case IoTDB:
         filter = "IOTDB_HOME";
         break;
-      case Constants.DB_INFLUX:
+      case InfluxDB:
         filter = "/usr/bin/influxd";
         break;
-      case Constants.DB_KAIROS:
+      case KairosDB:
         filter = "kairosdb";
         break;
-      case Constants.DB_TIMESCALE:
+      case TimescaleDB:
         filter = "postgresql";
-        break;
-      case Constants.BENCHMARK_IOTDB:
-        filter = "../conf/config.properties";
         break;
     }
     try {
@@ -122,21 +119,18 @@ public class OpenFileStatistics {
     int walsNum = 0;
 
     String filter = "";
-    switch (config.getDB_SWITCH().split("-")[0]) {
-      case Constants.DB_IOT:
+    switch (config.getDB_SWITCH().getType()) {
+      case IoTDB:
         filter = "/data/";
         break;
-      case Constants.DB_INFLUX:
+      case InfluxDB:
         filter = ".influxdb";
         break;
-      case Constants.DB_KAIROS:
+      case KairosDB:
         filter = "kairosdb";
         break;
-      case Constants.DB_TIMESCALE:
+      case TimescaleDB:
         filter = "postgresql";
-        break;
-      case Constants.BENCHMARK_IOTDB:
-        filter = "iotdb-benchmark";
         break;
       default:
         throw new SQLException("unsupported db name :" + config.getDB_SWITCH());
@@ -212,7 +206,7 @@ public class OpenFileStatistics {
     ArrayList<Integer> list = null;
     // if pid is not valid then try again
     if (!(pid > 0)) {
-      pid = getPID(config.getDB_SWITCH());
+      pid = getPID(config.getDB_SWITCH().getType());
     }
     if (pid > 0) {
       // if pid is valid, then statistic
@@ -245,7 +239,7 @@ public class OpenFileStatistics {
   }
 
   public int getPid() {
-    return getPID(config.getDB_SWITCH());
+    return getPID(config.getDB_SWITCH().getType());
   }
 
   private static class OpenFileStatisticsHolder {

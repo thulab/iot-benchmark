@@ -32,46 +32,46 @@
     </dependencySets>
     <fileSets>
         <fileSet>
-            <directory>${maven.multiModuleProjectDirectory}/bin/</directory>
+            <directory>${maven.multiModuleProjectDirectory}/configuration/bin/</directory>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
-            <directory>${maven.multiModuleProjectDirectory}/conf/</directory>
+            <directory>${maven.multiModuleProjectDirectory}/configuration/conf/</directory>
             <outputDirectory>conf</outputDirectory>
         </fileSet>
     </fileSets>
     <files>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/benchmark_consumer.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark_consumer.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/cli-benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/cli-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/dae-benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/dae-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/rep-benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/rep-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/ser-benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/ser-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/ser_cli-benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/ser_cli-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/routine</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/routine</source>
         </file>
         <file>
             <source>${maven.multiModuleProjectDirectory}/LICENSE</source>

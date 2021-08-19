@@ -2,27 +2,29 @@ package cn.edu.tsinghua.iotdb.benchmark.mssqlserver;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MsSQLServerDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
   private static final String DBURL =
@@ -35,10 +37,6 @@ public class MsSQLServerDB implements IDatabase {
   private static final String DBUSER = config.getUSERNAME();
   private static final String DBPASSWORD = config.getPASSWORD();
   private static final SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
-  private static final List<String> TYPES =
-      new ArrayList<>(Arrays.asList("BOOLEAN", "INT32", "INT64", "FLOAT", "TEXT"));
-  private static final List<String> VALUE_TYPES =
-      new ArrayList<>(Arrays.asList("INT32", "INT64", "FLOAT"));
 
   public Connection connection = null;
 
@@ -79,7 +77,7 @@ public class MsSQLServerDB implements IDatabase {
   public void cleanup() throws TsdbException {
     try {
       Statement statement = connection.createStatement();
-      for (String type : TYPES) {
+      for (Type type : Type.values()) {
         statement.execute(String.format(DELETE_TABLE, config.getDB_NAME(), typeMap(type)));
       }
       statement.close();
@@ -110,7 +108,10 @@ public class MsSQLServerDB implements IDatabase {
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       Statement statement = connection.createStatement();
-      for (String type : TYPES) {
+      for (Type type : Type.values()) {
+        if (type == Type.DOUBLE) {
+          continue;
+        }
         String sysType = typeMap(type);
         statement.execute(
             String.format(CREATE_TABLE, config.getDB_NAME(), sysType, sysType, sysType));
@@ -139,7 +140,14 @@ public class MsSQLServerDB implements IDatabase {
         String time = format.format(record.getTimestamp());
         List<Object> values = record.getRecordDataValue();
         for (int i = 0; i < values.size(); i++) {
-          statement.addBatch(getOneLine(idPredix, i, time, values.get(i)));
+          statement.addBatch(
+              getOneLine(
+                  idPredix,
+                  i,
+                  time,
+                  values.get(i),
+                  deviceSchema.getDevice(),
+                  deviceSchema.getSensors()));
         }
       }
       statement.executeBatch();
@@ -151,9 +159,15 @@ public class MsSQLServerDB implements IDatabase {
     }
   }
 
-  private String getOneLine(long idPredix, int sensorIndex, String time, Object value) {
+  private String getOneLine(
+      long idPredix,
+      int sensorIndex,
+      String time,
+      Object value,
+      String device,
+      List<String> sensors) {
     long sensorNow = sensorIndex + idPredix;
-    String sysType = typeMap(DBUtil.getDataType(sensorIndex));
+    String sysType = typeMap(baseDataSchema.getSensorType(device, sensors.get(sensorIndex)));
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")
             .append(config.getDB_NAME() + "_" + sysType)
@@ -192,7 +206,13 @@ public class MsSQLServerDB implements IDatabase {
         String time = format.format(record.getTimestamp());
         List<Object> values = record.getRecordDataValue();
         statement.addBatch(
-            getOneLine(idPredix, batch.getColIndex(), time, values.get(batch.getColIndex())));
+            getOneLine(
+                idPredix,
+                batch.getColIndex(),
+                time,
+                values.get(0),
+                deviceSchema.getDevice(),
+                deviceSchema.getSensors()));
       }
       statement.executeBatch();
       statement.close();
@@ -213,7 +233,7 @@ public class MsSQLServerDB implements IDatabase {
    * @return
    */
   private long getId(String group, String device, String sensor) {
-    long groupNow = Long.parseLong(group.replace(config.getDB_NAME(), ""));
+    long groupNow = Long.parseLong(group.replace(Constants.GROUP_NAME_PREFIX, ""));
     long deviceNow = Long.parseLong(device.split("_")[1]);
     long sensorNow = 0;
     if (sensor != null) {
@@ -234,7 +254,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : TYPES) {
+        for (Type type : Type.values()) {
           String sysType = typeMap(type);
           String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, time);
@@ -263,7 +283,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : TYPES) {
+        for (Type type : Type.values()) {
           String sysType = typeMap(type);
           String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
@@ -292,7 +312,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (Type type : Type.getValueTypes()) {
           String sysType = typeMap(type);
           String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
@@ -322,11 +342,11 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        List<String> types = VALUE_TYPES;
+        Type[] types = Type.getValueTypes();
         if (aggRangeQuery.getAggFun().startsWith("count")) {
-          types = TYPES;
+          types = Type.values();
         }
-        for (String type : types) {
+        for (Type type : types) {
           String sysType = typeMap(type);
           String sql =
               getHeader(aggRangeQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
@@ -354,7 +374,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (Type type : Type.getValueTypes()) {
           String sysType = typeMap(type);
           String sql =
               getHeader(aggValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
@@ -384,7 +404,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (Type type : Type.getValueTypes()) {
           String sysType = typeMap(type);
           String sql =
               getHeader(
@@ -416,7 +436,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (Type type : Type.getValueTypes()) {
           String sysType = typeMap(type);
           String sql = getHeader("max", deviceSchema.getSensors(), idPrefix, sysType);
           sql = addTimeClause(sql, startTime, endTime);
@@ -450,7 +470,7 @@ public class MsSQLServerDB implements IDatabase {
           search.add(String.valueOf(sensorId));
         }
         String ids = String.join(",", search);
-        for (String type : TYPES) {
+        for (Type type : Type.values()) {
           String sysType = typeMap(type);
           String sql =
               "select * from "
@@ -492,7 +512,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : TYPES) {
+        for (Type type : Type.values()) {
           String sysType = typeMap(type);
           String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
@@ -522,7 +542,7 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (Type type : Type.getValueTypes()) {
           String sysType = typeMap(type);
           String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
           sql = addTimeClause(sql, startTime, endTime);
@@ -601,18 +621,18 @@ public class MsSQLServerDB implements IDatabase {
    * @return
    */
   @Override
-  public String typeMap(String iotdbType) {
+  public String typeMap(Type iotdbType) {
     switch (iotdbType) {
-      case "BOOLEAN":
+      case BOOLEAN:
         return "bit";
-      case "INT32":
+      case INT32:
         return "int";
-      case "INT64":
+      case INT64:
         return "bigint";
-      case "FLOAT":
-      case "DOUBLE":
+      case FLOAT:
+      case DOUBLE:
         return "float";
-      case "TEXT":
+      case TEXT:
         return "text";
       default:
         LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);

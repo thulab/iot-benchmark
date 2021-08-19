@@ -23,18 +23,17 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
-import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import org.slf4j.Logger;
@@ -49,6 +48,7 @@ public class InfluxDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private final String token = config.getTOKEN();
   private final String org = config.getDB_NAME();
@@ -57,7 +57,6 @@ public class InfluxDB implements IDatabase {
   private String influxUrl;
   private String influxDbName;
   private InfluxDBClient client;
-  private WritePrecision writePrecision;
 
   /** constructor. */
   public InfluxDB() {
@@ -76,19 +75,6 @@ public class InfluxDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       client = InfluxDBClientFactory.create(influxUrl, token.toCharArray(), org, influxDbName);
-      switch (config.getTIMESTAMP_PRECISION()) {
-        case "ms":
-          writePrecision = WritePrecision.MS;
-          break;
-        case "us":
-          writePrecision = WritePrecision.US;
-          break;
-        case "ns":
-          writePrecision = WritePrecision.NS;
-          break;
-        default:
-          break;
-      }
     } catch (Exception e) {
       LOGGER.error("Initialize InfluxDB failed because ", e);
       throw new TsdbException(e);
@@ -191,8 +177,9 @@ public class InfluxDB implements IDatabase {
         result.append(pair.getKey());
         result.append("=");
         // get value
-        int index = Integer.parseInt(pair.getKey().split("_")[1]);
-        String type = typeMap(DBUtil.getDataType(index));
+        String type =
+            typeMap(
+                baseDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
         switch (type) {
           case "BOOLEAN":
             result.append(((boolean) pair.getValue()) ? "true" : "false");

@@ -22,13 +22,14 @@ package cn.edu.tsinghua.iotdb.benchmark.timescaledb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,7 @@ public class TimescaleDB implements IDatabase {
   private static String tableName;
   private static Config config;
   private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   // chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
@@ -123,7 +125,9 @@ public class TimescaleDB implements IDatabase {
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try (Statement statement = connection.createStatement()) {
-      String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
+      String pgsql =
+          getCreateTableSql(
+              schemaList.get(0).getDevice(), tableName, schemaList.get(0).getSensors());
       statement.execute(pgsql);
       LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
       statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
@@ -431,7 +435,7 @@ public class TimescaleDB implements IDatabase {
    *
    * @return create table SQL String
    */
-  private String getCreateTableSql(String tableName, List<String> sensors) {
+  private String getCreateTableSql(String device, String tableName, List<String> sensors) {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
     sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
     for (int i = 0; i < sensors.size(); i++) {
@@ -439,7 +443,7 @@ public class TimescaleDB implements IDatabase {
           .append(", ")
           .append(sensors.get(i))
           .append(" ")
-          .append(typeMap(DBUtil.getDataType(i)))
+          .append(typeMap(baseDataSchema.getSensorType(device, sensors.get(i))))
           .append(" NULL");
     }
     sqlBuilder.append(");");
@@ -497,19 +501,19 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public String typeMap(String iotdbType) {
+  public String typeMap(Type iotdbType) {
     switch (iotdbType) {
-      case "BOOLEAN":
+      case BOOLEAN:
         return "BOOLEAN";
-      case "INT32":
+      case INT32:
         return "INT";
-      case "INT64":
+      case INT64:
         return "BIGINT";
-      case "FLOAT":
+      case FLOAT:
         return "FLOAT";
-      case "DOUBLE":
+      case DOUBLE:
         return "DOUBLE PRECISION";
-      case "TEXT":
+      case TEXT:
         return "TEXT";
       default:
         LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);

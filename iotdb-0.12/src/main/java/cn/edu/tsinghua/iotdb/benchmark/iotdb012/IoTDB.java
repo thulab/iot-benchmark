@@ -29,13 +29,14 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
+  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
@@ -184,14 +186,15 @@ public class IoTDB implements IDatabase {
       int sensorIndex = 0;
       for (String sensor : deviceSchema.getSensors()) {
         paths.add(getSensorPath(deviceSchema, sensor));
-        String datatype = DBUtil.getDataType(sensorIndex++);
-        tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype));
+        Type datatype = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+        tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
         compressionTypes.add(Enum.valueOf(CompressionType.class, "SNAPPY"));
         if (++count % createSchemaBatchNum == 0) {
           registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
         }
+        sensorIndex++;
       }
     }
     if (!paths.isEmpty()) {
@@ -227,14 +230,14 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getEncodingType(String dataType) {
+  String getEncodingType(Type dataType) {
     switch (dataType) {
-      case "BOOLEAN":
-      case "INT32":
-      case "INT64":
-      case "FLOAT":
-      case "DOUBLE":
-      case "TEXT":
+      case BOOLEAN:
+      case INT32:
+      case INT64:
+      case FLOAT:
+      case DOUBLE:
+      case TEXT:
         return "PLAIN";
       default:
         LOGGER.error("Unsupported data type {}.", dataType);
@@ -272,14 +275,13 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      String colType = batch.getColType();
-      int colIndex = batch.getColIndex();
+      Type colType = batch.getColType();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
                 batch.getDeviceSchema(),
                 record.getTimestamp(),
-                record.getRecordDataValue().get(colIndex),
+                record.getRecordDataValue().get(0),
                 colType);
         statement.addBatch(sql);
       }
@@ -445,7 +447,7 @@ public class IoTDB implements IDatabase {
   }
 
   public static String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, Object value, String colType) {
+      DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
@@ -461,7 +463,7 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     switch (colType) {
-      case "TEXT":
+      case TEXT:
         builder.append(",").append("'").append(value).append("'");
         break;
       default:
@@ -470,7 +472,6 @@ public class IoTDB implements IDatabase {
     }
 
     builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
   }
 
@@ -607,16 +608,17 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     int sensorIndex = 0;
+    List<String> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      switch (DBUtil.getDataType(sensorIndex)) {
-        case "BOOLEAN":
-        case "INT32":
-        case "INT64":
-        case "FLOAT":
-        case "DOUBLE":
+      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+        case BOOLEAN:
+        case INT32:
+        case INT64:
+        case FLOAT:
+        case DOUBLE:
           builder.append(",").append(value);
           break;
-        case "TEXT":
+        case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;
       }
@@ -625,5 +627,40 @@ public class IoTDB implements IDatabase {
     builder.append(")");
     LOGGER.debug("getInsertOneBatchSql: {}", builder);
     return builder.toString();
+  }
+
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    // TODO
+    DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    int result = 0;
+    for (Record record : verificationQuery.getRecords()) {
+      String sql = getSimpleQuerySqlHead(deviceSchemas);
+      sql += " WHERE time = " + record.getTimestamp();
+      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+        ResultSet resultSet = statement.executeQuery(sql);
+        resultSet.next();
+        List<Object> records = record.getRecordDataValue();
+        for (int i = 0; i < record.getRecordDataValue().size(); i++) {
+          String value = resultSet.getString(i + 2);
+          String target = String.valueOf(records.get(i));
+          if (!value.equals(target)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + records + " but was: " + target);
+          } else {
+            result++;
+          }
+        }
+      } catch (Exception e) {
+        LOGGER.error("Query Error: " + sql);
+      }
+    }
+    return new Status(true, result);
   }
 }

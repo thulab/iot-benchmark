@@ -33,7 +33,7 @@ public class PersistenceFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceFactory.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  public ITestDataPersistence getPersistence() {
+  public TestDataPersistence getPersistence() {
     switch (config.getTEST_DATA_PERSISTENCE()) {
       case Constants.TDP_NONE:
         return new NoneRecorder();

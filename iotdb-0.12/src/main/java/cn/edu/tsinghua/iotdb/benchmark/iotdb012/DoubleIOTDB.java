@@ -25,11 +25,12 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.kafka.BatchProducer;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,7 +160,7 @@ public class DoubleIOTDB implements IDatabase {
       for (DeviceSchema deviceSchema : schemaList) {
         int sensorIndex = 0;
         for (String sensor : deviceSchema.getSensors()) {
-          String dataType = getNextDataType(sensorIndex);
+          Type dataType = getNextDataType(sensorIndex);
           String createSeriesSql =
               String.format(
                   CREATE_SERIES_SQL,
@@ -254,7 +255,7 @@ public class DoubleIOTDB implements IDatabase {
     return null;
   }
 
-  String getNextDataType(int sensorIndex) {
+  Type getNextDataType(int sensorIndex) {
     List<Double> proportion = resolveDataTypeProportion();
     double[] p = new double[TSDataType.values().length + 1];
     p[0] = 0.0;
@@ -272,20 +273,20 @@ public class DoubleIOTDB implements IDatabase {
     }
     switch (i) {
       case 1:
-        return "BOOLEAN";
+        return Type.BOOLEAN;
       case 2:
-        return "INT32";
+        return Type.INT32;
       case 3:
-        return "INT64";
+        return Type.INT64;
       case 4:
-        return "FLOAT";
+        return Type.FLOAT;
       case 5:
-        return "DOUBLE";
+        return Type.DOUBLE;
       case 6:
-        return "TEXT";
+        return Type.TEXT;
       default:
         LOGGER.error("Unsupported data type {}, use default data type: TEXT.", i);
-        return "TEXT";
+        return Type.TEXT;
     }
   }
 
@@ -312,14 +313,14 @@ public class DoubleIOTDB implements IDatabase {
     return proportion;
   }
 
-  String getEncodingType(String dataType) {
+  String getEncodingType(Type dataType) {
     switch (dataType) {
-      case "BOOLEAN":
-      case "INT32":
-      case "INT64":
-      case "FLOAT":
-      case "DOUBLE":
-      case "TEXT":
+      case BOOLEAN:
+      case INT32:
+      case INT64:
+      case FLOAT:
+      case DOUBLE:
+      case TEXT:
         return "PLAIN";
       default:
         LOGGER.error("Unsupported data type {}.", dataType);

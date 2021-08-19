@@ -23,7 +23,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.ITestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class CSVRecorder implements ITestDataPersistence {
+public class CSVRecorder extends TestDataPersistence {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CSVRecorder.class);
 
@@ -146,7 +147,7 @@ public class CSVRecorder implements ITestDataPersistence {
       String firstLine = "id,projectID,operation,result_key,result_value\n";
       serverInfoWriter.append(firstLine);
     }
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
         && projectWriter != null) {
       String firstLine =
           "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
@@ -196,20 +197,26 @@ public class CSVRecorder implements ITestDataPersistence {
 
   @Override
   public void saveTestConfig() {
-    StringBuilder str = new StringBuilder();
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+    StringBuffer str = new StringBuffer();
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       str.append(String.format(FOUR, projectID, "MODE", "DEFAULT_TEST_MODE"));
     }
 
-    switch (config.getDB_SWITCH().split("-")[0].trim()) {
-      case Constants.DB_IOT:
-      case Constants.DB_TIMESCALE:
+    switch (config.getDB_SWITCH().getType()) {
+      case IoTDB:
+      case TimescaleDB:
         str.append(String.format(FOUR, projectID, "ServerIP", config.getHOST().get(0)));
         break;
-      case Constants.DB_INFLUX:
-      case Constants.DB_OPENTS:
-      case Constants.DB_KAIROS:
-      case Constants.DB_CTS:
+      case InfluxDB:
+      case OpenTSDB:
+      case CTSDB:
+      case KairosDB:
+      case FakeDB:
+      case TaosDB:
+      case QuestDB:
+      case MSSQLSERVER:
+      case VictoriaMetrics:
+      case SQLite:
         str.append(
             String.format(FOUR, projectID, "ServerIP", config.getHOST() + ":" + config.getPORT()));
         break;
@@ -220,7 +227,7 @@ public class CSVRecorder implements ITestDataPersistence {
     str.append(String.format(FOUR, projectID, "DB_SWITCH", config.getDB_SWITCH()));
     str.append(String.format(FOUR, projectID, "CLIENT_NUMBER", config.getCLIENT_NUMBER()));
     str.append(String.format(FOUR, projectID, "LOOP", config.getLOOP()));
-    if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       str.append(String.format(FOUR, projectID, "GROUP_NUMBER", config.getGROUP_NUMBER()));
       str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
       str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
@@ -247,25 +254,26 @@ public class CSVRecorder implements ITestDataPersistence {
   }
 
   @Override
-  public void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+  protected void saveOperationResult(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.isCSV_FILE_SPLIT()) {
       if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
         reentrantLock.lock();
         try {
-          createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark);
+          createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark, device);
         } finally {
           reentrantLock.unlock();
         }
       } else {
-        insert(operation, okPoint, failPoint, latency, remark);
+        insert(operation, okPoint, failPoint, latency, remark, device);
       }
     } else {
-      insert(operation, okPoint, failPoint, latency, remark);
+      insert(operation, okPoint, failPoint, latency, remark, device);
     }
   }
 
-  private void insert(String operation, int okPoint, int failPoint, double latency, String remark) {
+  private void insert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     double rate = 0;
     if (latency > 0) {
       // unit: points/second
@@ -275,14 +283,7 @@ public class CSVRecorder implements ITestDataPersistence {
     String line =
         String.format(
             ",%s,%s,%s,%d,%d,%f,%f,%s\n",
-            time,
-            Thread.currentThread().getName(),
-            operation,
-            okPoint,
-            failPoint,
-            latency,
-            rate,
-            remark);
+            time, device, operation, okPoint, failPoint, latency, rate, remark);
 
     // when create a new file writer, old file may be closed.
     int count = 0;
@@ -302,10 +303,10 @@ public class CSVRecorder implements ITestDataPersistence {
   }
 
   private void createNewCsvOrInsert(
-      String operation, int okPoint, int failPoint, double latency, String remark) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
       FileWriter newProjectWriter = null;
-      if (config.getBENCHMARK_WORK_MODE().equals(Constants.MODE_TEST_WITH_DEFAULT_PATH)) {
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
         String firstLine =
             "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
         try {
@@ -327,12 +328,12 @@ public class CSVRecorder implements ITestDataPersistence {
       }
       config.resetCURRENT_CSV_LINE();
     } else {
-      insert(operation, okPoint, failPoint, latency, remark);
+      insert(operation, okPoint, failPoint, latency, remark, device);
     }
   }
 
   @Override
-  public void saveResult(String operation, String key, String value) {
+  protected void saveResult(String operation, String key, String value) {
     String line = String.format(",%s,%s,%s,%s", projectID, operation, key, value);
     try {
       finalResultWriter.append(line);

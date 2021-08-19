@@ -1,0 +1,128 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package cn.edu.tsinghua.iotdb.benchmark.measurement.persistence;
+
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.concurrent.*;
+
+public abstract class TestDataPersistence {
+
+  protected static final Logger LOGGER = LoggerFactory.getLogger(TestDataPersistence.class);
+  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected ExecutorService service =
+      Executors.newFixedThreadPool(config.getTEST_DATA_MAX_CONNECTION());
+  protected Future<?> future;
+
+  /**
+   * Store system resources metrics data
+   *
+   * @param systemMetricsMap System resources metrics to be stored
+   */
+  public abstract void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap);
+
+  /** Save config of test */
+  public abstract void saveTestConfig();
+
+  /**
+   * Save measurement result of operation
+   *
+   * @param operation which type of operation
+   * @param okPoint okPoint of operation
+   * @param failPoint failPoint of operation
+   * @param latency latency of operation
+   * @param remark remark of operation
+   * @param device
+   */
+  protected abstract void saveOperationResult(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device);
+
+  /**
+   * Save result of operation
+   *
+   * @param operation
+   * @param key
+   * @param value
+   */
+  protected abstract void saveResult(String operation, String key, String value);
+
+  /**
+   * Save measurement result of operation async
+   *
+   * @param operation which type of operation
+   * @param okPoint okPoint of operation
+   * @param failPoint failPoint of operation
+   * @param latency latency of operation
+   * @param remark remark of operation
+   */
+  public void saveOperationResultAsync(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    future =
+        service.submit(
+            () -> {
+              saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
+            });
+    try {
+      future.get(config.getTEST_DATA_WRITE_TIME_OUT(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      future.cancel(true);
+      LOGGER.error(
+          String.format(
+              "Record Error! Operation:%s, OkPoint:%d, FailPoint:%d, Latency:%f, Remark:%s.",
+              operation, okPoint, failPoint, latency, remark));
+    }
+  }
+
+  /**
+   * Save result of operation Async
+   *
+   * @param operation
+   * @param key
+   * @param value
+   */
+  public void saveResultAsync(String operation, String key, String value) {
+    future =
+        service.submit(
+            () -> {
+              saveResult(operation, key, value);
+            });
+    try {
+      future.get(config.getTEST_DATA_WRITE_TIME_OUT(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      future.cancel(true);
+      LOGGER.error(
+          String.format(
+              "Save Result Error! Operation:%s, Key:%s, Value:%s.", operation, key, value));
+    }
+  }
+
+  /** Close record */
+  protected abstract void close();
+
+  public void closeAsync() {
+    close();
+    service.shutdown();
+  }
+}

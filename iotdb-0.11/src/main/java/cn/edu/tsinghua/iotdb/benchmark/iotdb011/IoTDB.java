@@ -23,13 +23,14 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
   protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
@@ -126,7 +128,7 @@ public class IoTDB implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            String dataType = DBUtil.getDataType(sensorIndex);
+            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -160,14 +162,14 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getEncodingType(String dataType) {
+  String getEncodingType(Type dataType) {
     switch (dataType) {
-      case "BOOLEAN":
-      case "INT32":
-      case "INT64":
-      case "FLOAT":
-      case "DOUBLE":
-      case "TEXT":
+      case BOOLEAN:
+      case INT32:
+      case INT64:
+      case FLOAT:
+      case DOUBLE:
+      case TEXT:
         return "PLAIN";
       default:
         LOGGER.error("Unsupported data type {}.", dataType);
@@ -194,13 +196,13 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = connection.createStatement()) {
-      String colType = batch.getColType();
+      Type colType = batch.getColType();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
                 batch.getDeviceSchema(),
                 record.getTimestamp(),
-                record.getRecordDataValue().get(batch.getColIndex()),
+                record.getRecordDataValue().get(0),
                 colType);
         statement.addBatch(sql);
       }
@@ -381,10 +383,12 @@ public class IoTDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
+    List<String> sensors = deviceSchema.getSensors();
+
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (DBUtil.getDataType(sensorIndex)) {
-        case "TEXT":
+      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+        case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;
         default:
@@ -399,7 +403,7 @@ public class IoTDB implements IDatabase {
   }
 
   public static String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, Object value, String colType) {
+      DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
@@ -415,7 +419,7 @@ public class IoTDB implements IDatabase {
     builder.append(") values(");
     builder.append(timestamp);
     switch (colType) {
-      case "TEXT":
+      case TEXT:
         builder.append(",").append("'").append(value).append("'");
         break;
       default:

@@ -31,7 +31,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
@@ -66,11 +66,11 @@ public class IoTDBSession extends IoTDB {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      String dataType = DBUtil.getDataType(sensorIndex);
+      Type dataType = baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
-              Enum.valueOf(TSDataType.class, dataType),
+              Enum.valueOf(TSDataType.class, dataType.name),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
       sensorIndex++;
     }
@@ -83,6 +83,7 @@ public class IoTDBSession extends IoTDB {
     RowBatch tablet = new RowBatch(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
+    List<String> sensors = batch.getDeviceSchema().getSensors();
 
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.batchSize++;
@@ -93,30 +94,31 @@ public class IoTDBSession extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (DBUtil.getDataType(sensorIndex)) {
-          case "BOOLEAN":
+        switch (baseDataSchema.getSensorType(
+            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+          case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] =
                 (boolean) (record.getRecordDataValue().get(recordValueIndex));
             break;
-          case "INT32":
+          case INT32:
             int[] sensorsInt = (int[]) values[recordValueIndex];
             sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
             break;
-          case "INT64":
+          case INT64:
             long[] sensorsLong = (long[]) values[recordValueIndex];
             sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
             break;
-          case "FLOAT":
+          case FLOAT:
             float[] sensorsFloat = (float[]) values[recordValueIndex];
             sensorsFloat[recordIndex] = (float) (record.getRecordDataValue().get(recordValueIndex));
             break;
-          case "DOUBLE":
+          case DOUBLE:
             double[] sensorsDouble = (double[]) values[recordValueIndex];
             sensorsDouble[recordIndex] =
                 (double) (record.getRecordDataValue().get(recordValueIndex));
             break;
-          case "TEXT":
+          case TEXT:
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
             sensorsText[recordIndex] =
                 Binary.valueOf((String) (record.getRecordDataValue().get(recordValueIndex)));

@@ -32,8 +32,8 @@ public class PoissonDistributionTest {
   public void testGetNextPoissonDelta() {
     ArrayList<Integer> list = new ArrayList<>();
     PoissonDistribution poissonDistribution = new PoissonDistribution(new Random(100));
-    poissonDistribution.setDeltaKindsConfig(10);
-    poissonDistribution.setLambdaConfig(5.0);
+    poissonDistribution.setMaxK(10);
+    poissonDistribution.setLambda(5.0);
     for (int i = 0; i < 10; i++) {
       list.add(poissonDistribution.getNextPoissonDelta());
     }

@@ -24,12 +24,13 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
@@ -41,13 +42,16 @@ public class VictoriaMetrics implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String URL = config.getHOST().get(0) + ":" + config.getPORT().get(0);
   private static final String CREATE_URL =
       URL + "/api/v1/import/prometheus?extra_label=db=" + config.getDB_NAME();
   private static final String DELETE_URL =
-      URL + "/api/v1/admin/tsdb/delete_series?match={db=%22" + config.getDB_NAME() + "%22}";
-  private static final Random sensorRandom = new Random(1 + config.getDATA_SEED());
+      URL
+          + "/api/v1/admin/tsdb/delete_series?match%5B%5D=%7Bdb=%22"
+          + config.getDB_NAME()
+          + "%22%7D";
   // need to add query
   private static final String QUERY_URL = URL + "/api/v1/query?query=";
   private static final String QUERY_RANGE_URL = URL + "/api/v1/query_range?query=";
@@ -184,6 +188,7 @@ public class VictoriaMetrics implements IDatabase {
     model.setMetric(metric);
     model.setTimestamp(timestamp);
     model.setValue(value);
+    model.setType(baseDataSchema.getSensorType(device, sensor));
     Map<String, String> tags = new HashMap<>();
     tags.put("device", device);
     tags.put("sensor", sensor);

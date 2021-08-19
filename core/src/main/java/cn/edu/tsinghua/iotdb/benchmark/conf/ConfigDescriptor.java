@@ -19,7 +19,9 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.reader.DataSet;
+import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +43,8 @@ public class ConfigDescriptor {
     // load properties and call init methods
     loadProps();
     config.initInnerFunction();
-    config.initDeviceCodes();
     config.initSensorCodes();
     config.initSensorFunction();
-    config.initRealDataSetSchema();
   }
 
   public static ConfigDescriptor getInstance() {
@@ -56,7 +56,8 @@ public class ConfigDescriptor {
   }
 
   private void loadProps() {
-    String url = System.getProperty(Constants.BENCHMARK_CONF, "conf/config.properties");
+    String url =
+        System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf/config.properties");
     if (url != null) {
       InputStream inputStream;
       try {
@@ -76,9 +77,10 @@ public class ConfigDescriptor {
                 properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME() + "")));
         config.setNET_DEVICE(properties.getProperty("NET_DEVICE", config.getNET_DEVICE()));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
-        config.setBENCHMARK_WORK_MODE(properties.getProperty("BENCHMARK_WORK_MODE", ""));
+        config.setBENCHMARK_WORK_MODE(
+            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
 
-        config.setDB_SWITCH(properties.getProperty("DB_SWITCH", config.getDB_SWITCH()));
+        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
         String hosts = properties.getProperty("HOST", config.getHOST() + "");
         config.setHOST(Arrays.asList(hosts.split(",")));
         String ports = properties.getProperty("PORT", config.getPORT() + "");
@@ -130,8 +132,8 @@ public class ConfigDescriptor {
           case "ms":
             break;
           case "us":
-            if (!config.getDB_SWITCH().contains(Constants.DB_IOT)
-                && !config.getDB_SWITCH().equals(Constants.DB_INFLUX)) {
+            if (config.getDB_SWITCH().getType() != DBType.IoTDB
+                && config.getDB_SWITCH().getType() != DBType.InfluxDB) {
               throw new RuntimeException(
                   "The database " + config.getDB_SWITCH() + " can't use microsecond precision");
             }
@@ -149,24 +151,6 @@ public class ConfigDescriptor {
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
-
-        String dataset = properties.getProperty("DATA_SET", "REDD");
-        switch (dataset) {
-          case "GEOLIFE":
-            config.setDATA_SET(DataSet.GEOLIFE);
-            break;
-          case "REDD":
-            config.setDATA_SET(DataSet.REDD);
-            break;
-          case "TDRIVE":
-            config.setDATA_SET(DataSet.TDRIVE);
-            break;
-          case "NOAA":
-            config.setDATA_SET(DataSet.NOAA);
-            break;
-          default:
-            throw new RuntimeException("not support dataset: " + dataset);
-        }
 
         config.setDEVICE_NUMBER(
             Integer.parseInt(
@@ -312,16 +296,6 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "QUERY_SLIMIT_OFFSET", config.getQUERY_SLIMIT_OFFSET() + "")));
-        config.setREAL_DATASET_QUERY_START_TIME(
-            Long.parseLong(
-                properties.getProperty(
-                    "REAL_DATASET_QUERY_START_TIME",
-                    config.getREAL_DATASET_QUERY_START_TIME() + "")));
-        config.setREAL_DATASET_QUERY_STOP_TIME(
-            Long.parseLong(
-                properties.getProperty(
-                    "REAL_DATASET_QUERY_STOP_TIME",
-                    config.getREAL_DATASET_QUERY_STOP_TIME() + "")));
 
         config.setWORKLOAD_BUFFER_SIZE(
             Integer.parseInt(
@@ -350,6 +324,18 @@ public class ConfigDescriptor {
             properties.getProperty("TEST_DATA_STORE_USER", config.getTEST_DATA_STORE_USER()));
         config.setTEST_DATA_STORE_PW(
             properties.getProperty("TEST_DATA_STORE_PW", config.getTEST_DATA_STORE_PW()));
+        config.setTEST_DATA_WRITE_TIME_OUT(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TEST_DATA_WRITE_TIME_OUT", config.getTEST_DATA_WRITE_TIME_OUT() + "")));
+        config.setTEST_DATA_MAX_CONNECTION(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TEST_DATA_MAX_CONNECTION", config.getTEST_DATA_MAX_CONNECTION() + "")));
+        if (config.getTEST_DATA_PERSISTENCE().equals("CSV")) {
+          config.setTEST_DATA_MAX_CONNECTION(1);
+        }
+
         config.setREMARK(properties.getProperty("REMARK", "-"));
         config.setMYSQL_REAL_INSERT_RATE(
             Double.parseDouble(

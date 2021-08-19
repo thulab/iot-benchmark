@@ -32,12 +32,6 @@ public class Status {
   /** errorMessage is our self-defined message used to logged, it can be error SQL or anything */
   private String errorMessage;
 
-  public Status(boolean isOk, Exception exception, String errorMessage) {
-    this.isOk = isOk;
-    this.exception = exception;
-    this.errorMessage = errorMessage;
-  }
-
   public Status(boolean isOk) {
     this.isOk = isOk;
   }
@@ -45,6 +39,12 @@ public class Status {
   public Status(boolean isOk, int queryResultPointNum) {
     this.isOk = isOk;
     this.queryResultPointNum = queryResultPointNum;
+  }
+
+  public Status(boolean isOk, Exception exception, String errorMessage) {
+    this.isOk = isOk;
+    this.exception = exception;
+    this.errorMessage = errorMessage;
   }
 
   public Status(boolean isOk, int queryResultPointNum, Exception exception, String errorMessage) {

@@ -19,7 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 
 import java.util.List;
 
@@ -27,10 +28,18 @@ public class PreciseQuery {
 
   private List<DeviceSchema> deviceSchema;
   private long timestamp;
+  private List<List<Record>> records;
 
   public PreciseQuery(List<DeviceSchema> deviceSchema, long timestamp) {
     this.deviceSchema = deviceSchema;
     this.timestamp = timestamp;
+    this.records = null;
+  }
+
+  public PreciseQuery(List<DeviceSchema> deviceSchema, long timestamp, List<List<Record>> records) {
+    this.deviceSchema = deviceSchema;
+    this.timestamp = timestamp;
+    this.records = records;
   }
 
   public List<DeviceSchema> getDeviceSchema() {
@@ -39,5 +48,13 @@ public class PreciseQuery {
 
   public long getTimestamp() {
     return timestamp;
+  }
+
+  public List<List<Record>> getRecords() {
+    return records;
+  }
+
+  public void setRecords(List<List<Record>> records) {
+    this.records = records;
   }
 }
