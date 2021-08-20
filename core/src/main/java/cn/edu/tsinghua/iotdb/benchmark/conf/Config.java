@@ -203,6 +203,9 @@ public class Config {
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
 
+  // 被测系统是MS SQL Server时的参数
+  private String COMPRESSION = "NONE";
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_INTERVAL, then execute next operations
@@ -1236,6 +1239,14 @@ public class Config {
 
   public void setTEST_DATA_MAX_CONNECTION(int TEST_DATA_MAX_CONNECTION) {
     this.TEST_DATA_MAX_CONNECTION = TEST_DATA_MAX_CONNECTION;
+  }
+
+  public String getCOMPRESSION() {
+    return COMPRESSION;
+  }
+
+  public void setCOMPRESSION(String COMPRESSION) {
+    this.COMPRESSION = COMPRESSION;
   }
 
   public String toInfoText() {
