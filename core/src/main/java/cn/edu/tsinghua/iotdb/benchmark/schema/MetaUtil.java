@@ -40,7 +40,9 @@ public class MetaUtil {
         return (deviceId + "").hashCode() % config.getGROUP_NUMBER();
       case Constants.DIV_SG_ASSIGN_MODE:
         int devicePerGroup = config.getDEVICE_NUMBER() / config.getGROUP_NUMBER();
-        return (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
+        return devicePerGroup == 0
+            ? deviceId
+            : (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
