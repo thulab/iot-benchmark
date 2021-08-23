@@ -9,19 +9,20 @@
         <version>0.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>influxdb</artifactId>
-    <name>Benchmark Influxdb</name>
+
+    <artifactId>verification</artifactId>
+    <name>Benchmark verification</name>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
             <artifactId>core</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.influxdb</groupId>
-            <artifactId>influxdb-java</artifactId>
-            <version>2.7</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -76,4 +77,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
