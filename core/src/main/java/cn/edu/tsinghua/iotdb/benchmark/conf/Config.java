@@ -116,8 +116,6 @@ public class Config {
   private List<String> UNSEQUENCE_DIR = new ArrayList<>();
 
   // 双写模式：目前双写要求相同类型数据库 需要配置第二数据库 + Kafka
-  /** Whether insert into another database in the same time */
-  private boolean ENABLE_DOUBLE_INSERT = false;
   /** The host of another database server */
   private List<String> ANOTHER_HOST = Arrays.asList("127.0.0.1");
   /** The port of another database server */
@@ -619,30 +617,6 @@ public class Config {
 
   public void setUNSEQUENCE_DIR(List<String> UNSEQUENCE_DIR) {
     this.UNSEQUENCE_DIR = UNSEQUENCE_DIR;
-  }
-
-  public boolean isENABLE_DOUBLE_INSERT() {
-    return ENABLE_DOUBLE_INSERT;
-  }
-
-  public void setENABLE_DOUBLE_INSERT(boolean ENABLE_DOUBLE_INSERT) {
-    this.ENABLE_DOUBLE_INSERT = ENABLE_DOUBLE_INSERT;
-  }
-
-  public List<String> getANOTHER_HOST() {
-    return ANOTHER_HOST;
-  }
-
-  public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
-    this.ANOTHER_HOST = ANOTHER_HOST;
-  }
-
-  public List<String> getANOTHER_PORT() {
-    return ANOTHER_PORT;
-  }
-
-  public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
-    this.ANOTHER_PORT = ANOTHER_PORT;
   }
 
   public String getANOTHER_DB_NAME() {

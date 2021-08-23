@@ -45,11 +45,7 @@ public class DBFactory {
       switch (config.getDB_SWITCH()) {
           // IoTDB 0.12
         case DB_IOT_012_JDBC:
-          if (config.isENABLE_DOUBLE_INSERT()) {
-            dbClass = Constants.IOTDB012_DOUBLE_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB012_JDBC_CLASS;
-          }
+          dbClass = Constants.IOTDB012_JDBC_CLASS;
           break;
         case DB_IOT_012_SESSION_BY_TABLET:
         case DB_IOT_012_SESSION_BY_RECORD:
@@ -62,11 +58,7 @@ public class DBFactory {
           break;
           // IoTDB 0.11
         case DB_IOT_011_JDBC:
-          if (config.isENABLE_DOUBLE_INSERT()) {
-            dbClass = Constants.IOTDB011_DOUBLE_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB011_JDBC_CLASS;
-          }
+          dbClass = Constants.IOTDB011_JDBC_CLASS;
           break;
         case DB_IOT_011_SESSION_POOL:
           // use reflect to obtain a singleton of SessionPool

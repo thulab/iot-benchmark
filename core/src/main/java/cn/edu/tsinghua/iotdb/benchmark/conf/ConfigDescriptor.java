@@ -108,15 +108,6 @@ public class ConfigDescriptor {
           config.getUNSEQUENCE_DIR().add(data_ + "/unsequence");
         }
 
-        config.setENABLE_DOUBLE_INSERT(
-            Boolean.parseBoolean(
-                properties.getProperty(
-                    "ENABLE_DOUBLE_INSERT", config.isENABLE_DOUBLE_INSERT() + "")));
-        String anotherHost = properties.getProperty("ANOTHER_HOST", config.getANOTHER_HOST() + "");
-        config.setANOTHER_HOST(Arrays.asList(anotherHost.split(",")));
-        String anotherPort = properties.getProperty("ANOTHER_PORT", config.getANOTHER_PORT() + "");
-        config.setANOTHER_PORT(Arrays.asList(anotherPort.split(",")));
-
         config.setKAFKA_LOCATION(
             properties.getProperty("KAFKA_LOCATION", config.getKAFKA_LOCATION() + ""));
         config.setZOOKEEPER_LOCATION(
