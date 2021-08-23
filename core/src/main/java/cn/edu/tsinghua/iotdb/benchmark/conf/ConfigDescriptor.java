@@ -219,6 +219,8 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "IOTDB_SESSION_POOL_SIZE", config.getIOTDB_SESSION_POOL_SIZE() + "")));
 
+        config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
+
         config.setOP_INTERVAL(
             Long.parseLong(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL() + "")));
         if (config.getOP_INTERVAL() == -1L) {

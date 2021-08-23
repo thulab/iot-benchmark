@@ -113,13 +113,25 @@ public class MsSQLServerDB implements IDatabase {
           continue;
         }
         String sysType = typeMap(type);
-        statement.execute(
-            String.format(CREATE_TABLE, config.getDB_NAME(), sysType, sysType, sysType));
+        String createSQL =
+            String.format(CREATE_TABLE, config.getDB_NAME(), sysType, sysType, sysType);
+        createSQL = addCompress(createSQL);
+        statement.execute(createSQL);
       }
       statement.close();
     } catch (SQLException sqlException) {
       LOGGER.warn("Failed to register", sqlException);
     }
+  }
+
+  /**
+   * Add compress to table
+   *
+   * @param sql
+   * @return
+   */
+  private String addCompress(String sql) {
+    return sql + "\nWith (DATA_COMPRESSION = " + config.getCOMPRESSION() + ")";
   }
 
   /**
