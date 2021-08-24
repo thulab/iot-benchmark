@@ -56,7 +56,7 @@ public class DBWrapper implements IDatabase {
   public DBWrapper(Measurement measurement) {
     DBFactory dbFactory = new DBFactory();
     try {
-      db = dbFactory.getDatabase();
+      db = dbFactory.getDatabase(config.getDB_SWITCH());
     } catch (Exception e) {
       LOGGER.error("Failed to get database because", e);
     }

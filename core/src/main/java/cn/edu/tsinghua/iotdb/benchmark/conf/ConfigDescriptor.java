@@ -90,9 +90,12 @@ public class ConfigDescriptor {
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getTOKEN()));
 
+        config.setIS_DOUBLE_WRITE(Boolean.parseBoolean(properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
         config.setANOTHER_DB_SWITCH(DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", "")));
-        config.setANOTHER_HOST(properties.getProperty("ANOTHER_HOST", config.getANOTHER_HOST()));
-        config.setANOTHER_PORT(properties.getProperty("ANOTHER_PORT", config.getANOTHER_PORT()));
+        String anotherHosts = properties.getProperty("ANOTHER_HOST", config.getANOTHER_HOST() + "");
+        config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
+        String anotherPorts = properties.getProperty("ANOTHER_PORT", config.getANOTHER_PORT() + "");
+        config.setANOTHER_PORT(Arrays.asList(anotherPorts.split(",")));
         config.setANOTHER_USERNAME(properties.getProperty("ANOTHER_USERNAME", config.getANOTHER_USERNAME()));
         config.setANOTHER_PASSWORD(properties.getProperty("ANOTHER_PASSWORD", config.getANOTHER_PASSWORD()));
         config.setANOTHER_DB_NAME(properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DB_NAME()));

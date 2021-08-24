@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,10 +40,10 @@ public class DBFactory {
    * @return
    * @throws SQLException
    */
-  public IDatabase getDatabase() throws SQLException {
+  public IDatabase getDatabase(DBSwitch dbSwitch) throws SQLException {
     String dbClass = "";
     try {
-      switch (config.getDB_SWITCH()) {
+      switch (dbSwitch) {
           // IoTDB 0.12
         case DB_IOT_012_JDBC:
           dbClass = Constants.IOTDB012_JDBC_CLASS;
