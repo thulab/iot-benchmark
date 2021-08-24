@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -56,9 +57,9 @@ public class InfluxDB implements IDatabase {
   private static final long TIMESTAMP_TO_NANO = getToNanoConst(config.getTIMESTAMP_PRECISION());
 
   /** constructor. */
-  public InfluxDB() {
-    influxUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
-    influxDbName = config.getDB_NAME();
+  public InfluxDB(DBConfig dbConfig) {
+    influxUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
+    influxDbName = dbConfig.getDB_NAME();
   }
 
   @Override

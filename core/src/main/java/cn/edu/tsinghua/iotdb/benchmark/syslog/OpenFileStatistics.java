@@ -41,7 +41,7 @@ public class OpenFileStatistics {
   private static final String[] cmds = {"/bin/bash", "-c", ""};
 
   private OpenFileStatistics() {
-    pid = getPID(config.getDB_SWITCH().getType());
+    pid = getPID(config.getDbConfig().getDB_SWITCH().getType());
   }
 
   public static final OpenFileStatistics getInstance() {
@@ -119,7 +119,7 @@ public class OpenFileStatistics {
     int walsNum = 0;
 
     String filter = "";
-    switch (config.getDB_SWITCH().getType()) {
+    switch (config.getDbConfig().getDB_SWITCH().getType()) {
       case IoTDB:
         filter = "/data/";
         break;
@@ -133,7 +133,7 @@ public class OpenFileStatistics {
         filter = "postgresql";
         break;
       default:
-        throw new SQLException("unsupported db name :" + config.getDB_SWITCH());
+        throw new SQLException("unsupported db name :" + config.getDbConfig().getDB_SWITCH());
     }
     Process pro = null;
     Runtime r = Runtime.getRuntime();
@@ -206,7 +206,7 @@ public class OpenFileStatistics {
     ArrayList<Integer> list = null;
     // if pid is not valid then try again
     if (!(pid > 0)) {
-      pid = getPID(config.getDB_SWITCH().getType());
+      pid = getPID(config.getDbConfig().getDB_SWITCH().getType());
     }
     if (pid > 0) {
       // if pid is valid, then statistic
@@ -239,7 +239,7 @@ public class OpenFileStatistics {
   }
 
   public int getPid() {
-    return getPID(config.getDB_SWITCH().getType());
+    return getPID(config.getDbConfig().getDB_SWITCH().getType());
   }
 
   private static class OpenFileStatisticsHolder {

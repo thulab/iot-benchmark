@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -26,7 +27,7 @@ public class SqliteDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(SqliteDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-  private static final String URL = "jdbc:sqlite:" + config.getDB_NAME() + ".db";
+  private static final String URL = "jdbc:sqlite:%s.db";
 
   private static final List<String> TYPES =
       new ArrayList<>(Arrays.asList("INTEGER", "REAL", "TEXT"));
@@ -42,6 +43,12 @@ public class SqliteDB implements IDatabase {
           + ")";
 
   private Connection connection;
+  private DBConfig dbConfig;
+
+  public SqliteDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+  }
+
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
    * client thread.
@@ -50,7 +57,7 @@ public class SqliteDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       Class.forName("org.sqlite.JDBC");
-      connection = DriverManager.getConnection(URL);
+      connection = DriverManager.getConnection(String.format(URL, dbConfig.getDB_NAME()));
     } catch (Exception e) {
       LOGGER.error(e.getClass().getName() + ": " + e.getMessage());
       throw new TsdbException("Failed to init: ", e);
@@ -65,7 +72,7 @@ public class SqliteDB implements IDatabase {
   public void cleanup() throws TsdbException {
     try (Statement statement = connection.createStatement()) {
       for (String type : TYPES) {
-        String tableName = config.getDB_NAME() + "_" + type;
+        String tableName = dbConfig.getDB_NAME() + "_" + type;
         statement.execute("DROP TABLE IF EXISTS " + tableName);
       }
       LOGGER.info("Finish Clean up!");
@@ -97,7 +104,7 @@ public class SqliteDB implements IDatabase {
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try (Statement statement = connection.createStatement()) {
       for (String type : TYPES) {
-        String create = String.format(CREATE_TABLE, config.getDB_NAME(), type, type, type);
+        String create = String.format(CREATE_TABLE, dbConfig.getDB_NAME(), type, type, type);
         statement.execute(create);
       }
       LOGGER.info("Finish Register!");
@@ -179,7 +186,7 @@ public class SqliteDB implements IDatabase {
     String sysType = typeMap(type);
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")
-            .append(config.getDB_NAME() + "_" + sysType)
+            .append(dbConfig.getDB_NAME() + "_" + sysType)
             .append(" values (");
     sql.append(sensorNow).append(",");
     sql.append(time).append(",");
@@ -438,11 +445,11 @@ public class SqliteDB implements IDatabase {
         for (String type : TYPES) {
           String sql =
               "select * from "
-                  + config.getDB_NAME()
+                  + dbConfig.getDB_NAME()
                   + "_"
                   + type
                   + ", (select max(pk_TimeStamp) as target from "
-                  + config.getDB_NAME()
+                  + dbConfig.getDB_NAME()
                   + "_"
                   + type
                   + " where pk_fk_Id in ("
@@ -533,7 +540,7 @@ public class SqliteDB implements IDatabase {
     }
 
     StringBuilder stringBuilder = new StringBuilder("SELECT * from ");
-    stringBuilder.append(config.getDB_NAME()).append("_").append(sysType);
+    stringBuilder.append(dbConfig.getDB_NAME()).append("_").append(sysType);
     stringBuilder.append(" where pk_fk_Id in (").append(String.join(",", search)).append(")");
     return stringBuilder.toString();
   }
@@ -551,7 +558,7 @@ public class SqliteDB implements IDatabase {
 
     StringBuilder stringBuilder =
         new StringBuilder("SELECT ").append(aggFun).append("(").append(target).append(") from ");
-    stringBuilder.append(config.getDB_NAME()).append("_").append(sysType);
+    stringBuilder.append(dbConfig.getDB_NAME()).append("_").append(sysType);
     stringBuilder.append(" where pk_fk_Id in (").append(String.join(",", search)).append(")");
     return stringBuilder.toString();
   }

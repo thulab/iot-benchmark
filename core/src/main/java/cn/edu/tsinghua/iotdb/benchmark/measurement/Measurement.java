@@ -222,7 +222,7 @@ public class Measurement {
   /** Show Config of test */
   public void showConfigs() {
     System.out.println("----------------------Main Configurations----------------------");
-    System.out.println("DB_SWITCH: " + config.getDB_SWITCH());
+    System.out.println("DB_SWITCH: " + config.getDbConfig().getDB_SWITCH());
     System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
     System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
     System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());
@@ -344,7 +344,7 @@ public class Measurement {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
         bw.write("Main Configurations");
         bw.newLine();
-        bw.write("DB_SWITCH," + config.getDB_SWITCH());
+        bw.write("DB_SWITCH," + config.getDbConfig().getDB_SWITCH());
         bw.newLine();
         bw.write("OPERATION_PROPORTION," + config.getOPERATION_PROPORTION());
         bw.newLine();

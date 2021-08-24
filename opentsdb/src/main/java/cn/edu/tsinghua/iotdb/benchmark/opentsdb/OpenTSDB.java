@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -49,9 +50,9 @@ public class OpenTSDB implements IDatabase {
   private final int backScanTime = 24;
 
   /** constructor. */
-  public OpenTSDB() {
+  public OpenTSDB(DBConfig dbConfig) {
     sensorRandom = new Random(1 + config.getQUERY_SEED());
-    String openUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0);
+    String openUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
     writeUrl = openUrl + "/api/put?summary ";
     queryUrl = openUrl + "/api/query";
   }

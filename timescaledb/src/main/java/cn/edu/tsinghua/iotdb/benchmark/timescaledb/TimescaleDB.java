@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -40,7 +41,7 @@ public class TimescaleDB implements IDatabase {
 
   private Connection connection;
   private static String tableName;
-  private static Config config;
+  private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   // chunk_time_interval=7d
@@ -50,9 +51,11 @@ public class TimescaleDB implements IDatabase {
   private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
-  public TimescaleDB() {
-    config = ConfigDescriptor.getInstance().getConfig();
-    tableName = config.getDB_NAME();
+  private DBConfig dbConfig;
+
+  public TimescaleDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    tableName = dbConfig.getDB_NAME();
   }
 
   @Override
@@ -64,11 +67,11 @@ public class TimescaleDB implements IDatabase {
           DriverManager.getConnection(
               String.format(
                   POSTGRESQL_URL,
-                  config.getHOST().get(0),
-                  config.getPORT().get(0),
-                  config.getDB_NAME()),
-              config.getUSERNAME(),
-              config.getPASSWORD());
+                  dbConfig.getHOST().get(0),
+                  dbConfig.getPORT().get(0),
+                  dbConfig.getDB_NAME()),
+              dbConfig.getUSERNAME(),
+              dbConfig.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize TimescaleDB failed because ", e);
       throw new TsdbException(e);

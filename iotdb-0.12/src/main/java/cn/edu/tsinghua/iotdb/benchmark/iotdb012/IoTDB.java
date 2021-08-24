@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -52,25 +53,30 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
+  protected final String ROOT_SERIES_NAME;
   protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  private static final String DELETE_SERIES_SQL = "delete timeseries root." + config.getDB_NAME();
   private static final String ALREADY_KEYWORD = "already";
+  private final String DELETE_SERIES_SQL;
 
   protected SingleNodeJDBCConnection ioTDBConnection;
   protected ExecutorService service;
   protected Future<?> future;
+  protected DBConfig dbConfig;
 
-  public IoTDB() {}
+  public IoTDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
+    DELETE_SERIES_SQL = "delete timeseries root." + dbConfig.getDB_NAME();
+  }
 
   @Override
   public void init() throws TsdbException {
     try {
-      ioTDBConnection = new SingleNodeJDBCConnection();
+      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
       ioTDBConnection.init();
       this.service = Executors.newSingleThreadExecutor();
     } catch (Exception e) {
@@ -111,22 +117,22 @@ public class IoTDB implements IDatabase {
         if (!config.isIS_ALL_NODES_VISIBLE()) {
           Session metaSession =
               new Session(
-                  config.getHOST().get(0),
-                  config.getPORT().get(0),
-                  config.getUSERNAME(),
-                  config.getPASSWORD());
+                  dbConfig.getHOST().get(0),
+                  dbConfig.getPORT().get(0),
+                  dbConfig.getUSERNAME(),
+                  dbConfig.getPASSWORD());
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, schemaList);
         } else {
-          int sessionNumber = config.getHOST().size();
+          int sessionNumber = dbConfig.getHOST().size();
           List<Session> keys = new ArrayList<>();
           for (int i = 0; i < sessionNumber; i++) {
             Session metaSession =
                 new Session(
-                    config.getHOST().get(i),
-                    config.getPORT().get(i),
-                    config.getUSERNAME(),
-                    config.getPASSWORD());
+                    dbConfig.getHOST().get(i),
+                    dbConfig.getPORT().get(i),
+                    dbConfig.getUSERNAME(),
+                    dbConfig.getPASSWORD());
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
             sessionListMap.put(metaSession, new ArrayList<>());
@@ -446,7 +452,7 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
-  public static String getInsertOneBatchSql(
+  public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
     StringBuilder builder = new StringBuilder();
     builder
@@ -591,7 +597,7 @@ public class IoTDB implements IDatabase {
     return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
-  public static String getInsertOneBatchSql(
+  public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder

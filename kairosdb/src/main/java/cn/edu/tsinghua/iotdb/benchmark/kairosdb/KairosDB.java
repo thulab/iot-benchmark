@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -49,28 +50,30 @@ import java.util.*;
 public class KairosDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KairosDB.class);
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
   private String writeUrl;
   private HttpClient client;
-  private Config config;
+  private DBConfig dbConfig;
 
   private static final String GROUP_STR = "group";
   private static final String DEVICE_STR = "device";
 
-  public KairosDB() {
-    config = ConfigDescriptor.getInstance().getConfig();
-    writeUrl = config.getHOST().get(0) + ":" + config.getPORT().get(0) + "/api/v1/datapoints";
+  public KairosDB(DBConfig dbConfig) {
+    writeUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0) + "/api/v1/datapoints";
+    this.dbConfig = dbConfig;
   }
 
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient(config.getHOST() + ":" + config.getPORT());
+      client = new HttpClient(dbConfig.getHOST() + ":" + dbConfig.getPORT());
     } catch (MalformedURLException e) {
       throw new TsdbException(
           "Init KairosDB client failed, the url is "
-              + config.getHOST()
+              + dbConfig.getHOST()
               + ":"
-              + config.getPORT()
+              + dbConfig.getPORT()
               + ". Message is "
               + e.getMessage());
     }

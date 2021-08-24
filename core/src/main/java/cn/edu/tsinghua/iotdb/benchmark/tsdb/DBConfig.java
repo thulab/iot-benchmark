@@ -26,77 +26,79 @@ import java.util.List;
 
 /** Hold all configuration of database */
 public class DBConfig {
-    /** The database to use, format: {name of database}{-version}{-insert mode} name of database, for more, in README.md */
-    private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_012_SESSION_BY_TABLET;
-    /** The host of database server for IoTDB */
-    private List<String> HOST = Arrays.asList("127.0.0.1");
-    /** The port of database server */
-    private List<String> PORT = Arrays.asList("6667");
-    /** The user name of database to use */
-    private String USERNAME = "root";
-    /** The password of user */
-    private String PASSWORD = "root";
-    /** The name of database to use, eg.IoTDB root.{DB_NAME} */
-    private String DB_NAME = "_test";
-    /** In some database, it will need token to access, such as InfluxDB 2.0 */
-    private String TOKEN = "token";
+  /**
+   * The database to use, format: {name of database}{-version}{-insert mode} name of database, for
+   * more, in README.md
+   */
+  private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_012_SESSION_BY_TABLET;
+  /** The host of database server for IoTDB */
+  private List<String> HOST = Arrays.asList("127.0.0.1");
+  /** The port of database server */
+  private List<String> PORT = Arrays.asList("6667");
+  /** The user name of database to use */
+  private String USERNAME = "root";
+  /** The password of user */
+  private String PASSWORD = "root";
+  /** The name of database to use, eg.IoTDB root.{DB_NAME} */
+  private String DB_NAME = "_test";
+  /** In some database, it will need token to access, such as InfluxDB 2.0 */
+  private String TOKEN = "token";
 
-    public DBConfig() {
-    }
+  public DBConfig() {}
 
-    public DBSwitch getDB_SWITCH() {
-        return DB_SWITCH;
-    }
+  public DBSwitch getDB_SWITCH() {
+    return DB_SWITCH;
+  }
 
-    public void setDB_SWITCH(DBSwitch DB_SWITCH) {
-        this.DB_SWITCH = DB_SWITCH;
-    }
+  public void setDB_SWITCH(DBSwitch DB_SWITCH) {
+    this.DB_SWITCH = DB_SWITCH;
+  }
 
-    public List<String> getHOST() {
-        return HOST;
-    }
+  public List<String> getHOST() {
+    return HOST;
+  }
 
-    public void setHOST(List<String> HOST) {
-        this.HOST = HOST;
-    }
+  public void setHOST(List<String> HOST) {
+    this.HOST = HOST;
+  }
 
-    public List<String> getPORT() {
-        return PORT;
-    }
+  public List<String> getPORT() {
+    return PORT;
+  }
 
-    public void setPORT(List<String> PORT) {
-        this.PORT = PORT;
-    }
+  public void setPORT(List<String> PORT) {
+    this.PORT = PORT;
+  }
 
-    public String getUSERNAME() {
-        return USERNAME;
-    }
+  public String getUSERNAME() {
+    return USERNAME;
+  }
 
-    public void setUSERNAME(String USERNAME) {
-        this.USERNAME = USERNAME;
-    }
+  public void setUSERNAME(String USERNAME) {
+    this.USERNAME = USERNAME;
+  }
 
-    public String getPASSWORD() {
-        return PASSWORD;
-    }
+  public String getPASSWORD() {
+    return PASSWORD;
+  }
 
-    public void setPASSWORD(String PASSWORD) {
-        this.PASSWORD = PASSWORD;
-    }
+  public void setPASSWORD(String PASSWORD) {
+    this.PASSWORD = PASSWORD;
+  }
 
-    public String getDB_NAME() {
-        return DB_NAME;
-    }
+  public String getDB_NAME() {
+    return DB_NAME;
+  }
 
-    public void setDB_NAME(String DB_NAME) {
-        this.DB_NAME = DB_NAME;
-    }
+  public void setDB_NAME(String DB_NAME) {
+    this.DB_NAME = DB_NAME;
+  }
 
-    public String getTOKEN() {
-        return TOKEN;
-    }
+  public String getTOKEN() {
+    return TOKEN;
+  }
 
-    public void setTOKEN(String TOKEN) {
-        this.TOKEN = TOKEN;
-    }
+  public void setTOKEN(String TOKEN) {
+    this.TOKEN = TOKEN;
+  }
 }

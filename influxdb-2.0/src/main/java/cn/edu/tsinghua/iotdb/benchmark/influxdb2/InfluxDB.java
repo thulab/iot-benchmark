@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -50,8 +51,8 @@ public class InfluxDB implements IDatabase {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
-  private final String token = config.getTOKEN();
-  private final String org = config.getDB_NAME();
+  private final String token;
+  private final String org;
   private String CREATE_URL = "http://%s/api/v2/write?org=%s&bucket=%s&precision=%s";
 
   private String influxUrl;
@@ -59,13 +60,15 @@ public class InfluxDB implements IDatabase {
   private InfluxDBClient client;
 
   /** constructor. */
-  public InfluxDB() {
-    influxUrl = "http://" + config.getHOST().get(0) + ":" + config.getPORT().get(0);
-    influxDbName = config.getDB_NAME();
+  public InfluxDB(DBConfig dbConfig) {
+    influxUrl = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
+    influxDbName = dbConfig.getDB_NAME();
+    token = dbConfig.getTOKEN();
+    org = dbConfig.getDB_NAME();
     CREATE_URL =
         String.format(
             CREATE_URL,
-            config.getHOST().get(0) + ":" + config.getPORT().get(0),
+            dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0),
             org,
             influxDbName,
             config.getTIMESTAMP_PRECISION());

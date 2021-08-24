@@ -67,7 +67,7 @@ public class MySqlRecorder extends TestDataPersistence {
       String.format(
           "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE().mode.substring(0, 5),
-          config.getDB_SWITCH().getType().toString().split("-")[0].substring(0, 5),
+          config.getDbConfig().getDB_SWITCH().getType().toString().split("-")[0].substring(0, 5),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
 
@@ -75,7 +75,7 @@ public class MySqlRecorder extends TestDataPersistence {
       String.format(
           "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE(),
-          config.getDB_SWITCH().getType().toString().replace('-', '_'),
+          config.getDbConfig().getDB_SWITCH().getType().toString().replace('-', '_'),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
 
@@ -276,12 +276,15 @@ public class MySqlRecorder extends TestDataPersistence {
         sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'MODE'", "'DEFAULT_TEST_MODE'");
         statement.addBatch(sql);
       }
-      switch (config.getDB_SWITCH().getType()) {
+      switch (config.getDbConfig().getDB_SWITCH().getType()) {
         case IoTDB:
         case TimescaleDB:
           sql =
               String.format(
-                  SAVE_CONFIG, "'" + PROJECT_ID + "'", "'ServerIP'", "'" + config.getHOST() + "'");
+                  SAVE_CONFIG,
+                  "'" + PROJECT_ID + "'",
+                  "'ServerIP'",
+                  "'" + config.getDbConfig().getHOST() + "'");
           statement.addBatch(sql);
           break;
         case InfluxDB:
@@ -294,12 +297,12 @@ public class MySqlRecorder extends TestDataPersistence {
         case MSSQLSERVER:
         case VictoriaMetrics:
         case SQLite:
-          String host = config.getHOST() + ":" + config.getPORT();
+          String host = config.getDbConfig().getHOST() + ":" + config.getDbConfig().getPORT();
           sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'ServerIP'", "'" + host + "'");
           statement.addBatch(sql);
           break;
         default:
-          throw new SQLException("unsupported database " + config.getDB_SWITCH());
+          throw new SQLException("unsupported database " + config.getDbConfig().getDB_SWITCH());
       }
       sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'CLIENT'", "'" + localName + "'");
       statement.addBatch(sql);
@@ -308,7 +311,7 @@ public class MySqlRecorder extends TestDataPersistence {
               SAVE_CONFIG,
               "'" + PROJECT_ID + "'",
               "'DB_SWITCH'",
-              "'" + config.getDB_SWITCH() + "'");
+              "'" + config.getDbConfig().getDB_SWITCH() + "'");
       statement.addBatch(sql);
       sql =
           String.format(

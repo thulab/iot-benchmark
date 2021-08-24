@@ -38,6 +38,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -52,19 +53,20 @@ import java.util.List;
 import java.util.Set;
 
 public class IoTDBSessionPool implements IDatabase {
-
-  private static SessionPool pool;
-
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
-  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
+  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  protected final String ROOT_SERIES_NAME;
+  protected DBConfig dbConfig;
+
   private static final String ALREADY_KEYWORD = "already";
+  private static SessionPool pool;
   private volatile boolean isInit = false;
 
-  private IoTDBSessionPool() {
-    init();
+  public IoTDBSessionPool(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
   }
 
   @Override
@@ -76,10 +78,10 @@ public class IoTDBSessionPool implements IDatabase {
     org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable = config.isENABLE_THRIFT_COMPRESSION();
     pool =
         new SessionPool(
-            config.getHOST().get(0),
-            Integer.parseInt(config.getPORT().get(0)),
-            config.getUSERNAME(),
-            config.getPASSWORD(),
+            dbConfig.getHOST().get(0),
+            Integer.parseInt(dbConfig.getPORT().get(0)),
+            dbConfig.getUSERNAME(),
+            dbConfig.getPASSWORD(),
             config.getIOTDB_SESSION_POOL_SIZE());
     isInit = true;
   }
@@ -87,7 +89,7 @@ public class IoTDBSessionPool implements IDatabase {
   @Override
   public void cleanup() {
     try {
-      pool.deleteTimeseries("root." + config.getDB_NAME());
+      pool.deleteTimeseries("root." + dbConfig.getDB_NAME());
     } catch (Exception e) {
       e.printStackTrace();
       LOGGER.warn("Clean up failed!");
@@ -557,15 +559,5 @@ public class IoTDBSessionPool implements IDatabase {
       builder.append(", ").append(querySensors.get(i));
     }
     return addFromClause(devices, builder);
-  }
-
-  public static IoTDBSessionPool getInstance() {
-    return IoTDBSessionPoolHolder.INSTANCE;
-  }
-
-  /** singleton pattern. */
-  private static class IoTDBSessionPoolHolder {
-
-    private static final IoTDBSessionPool INSTANCE = new IoTDBSessionPool();
   }
 }

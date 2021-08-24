@@ -27,6 +27,7 @@ import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
@@ -35,8 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IoTDBSessionBase extends IoTDB {
-  public IoTDBSessionBase() {
-    super();
+  public IoTDBSessionBase(DBConfig dbConfig) {
+    super(dbConfig);
   }
 
   public Status insertOneBatchByTablet(Batch batch) {
@@ -149,7 +150,7 @@ public class IoTDBSessionBase extends IoTDB {
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    DBInsertMode insertMode = config.getDB_SWITCH().getInsertMode();
+    DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
     switch (insertMode) {
       case INSERT_USE_SESSION_TABLET:
         return insertOneBatchByTablet(batch);

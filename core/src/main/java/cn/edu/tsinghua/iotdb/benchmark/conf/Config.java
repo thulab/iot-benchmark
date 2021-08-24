@@ -1151,112 +1151,56 @@ public class Config {
   }
 
   /** Wrapper method */
-  public DBSwitch getDB_SWITCH() {
-    return dbConfig.getDB_SWITCH();
-  }
-
   public void setDB_SWITCH(DBSwitch DB_SWITCH) {
     this.dbConfig.setDB_SWITCH(DB_SWITCH);
-  }
-
-  public List<String> getHOST() {
-    return dbConfig.getHOST();
   }
 
   public void setHOST(List<String> HOST) {
     this.dbConfig.setHOST(HOST);
   }
 
-  public List<String> getPORT() {
-    return dbConfig.getPORT();
-  }
-
   public void setPORT(List<String> PORT) {
     this.dbConfig.setPORT(PORT);
-  }
-
-  public String getDB_NAME() {
-    return dbConfig.getDB_NAME();
   }
 
   public void setDB_NAME(String DB_NAME) {
     this.dbConfig.setDB_NAME(DB_NAME);
   }
 
-  public String getUSERNAME() {
-    return dbConfig.getUSERNAME();
-  }
-
   public void setUSERNAME(String USERNAME) {
     this.dbConfig.setUSERNAME(USERNAME);
-  }
-
-  public String getPASSWORD() {
-    return dbConfig.getPASSWORD();
   }
 
   public void setPASSWORD(String PASSWORD) {
     this.dbConfig.setPASSWORD(PASSWORD);
   }
 
-  public String getTOKEN() {
-    return dbConfig.getTOKEN();
-  }
-
   public void setTOKEN(String TOKEN) {
     this.dbConfig.setTOKEN(TOKEN);
-  }
-
-  public DBSwitch getANOTHER_DB_SWITCH() {
-    return ANOTHER_DBConfig.getDB_SWITCH();
   }
 
   public void setANOTHER_DB_SWITCH(DBSwitch ANOTHER_DBConfig_SWITCH) {
     this.ANOTHER_DBConfig.setDB_SWITCH(ANOTHER_DBConfig_SWITCH);
   }
 
-  public List<String> getANOTHER_HOST() {
-    return ANOTHER_DBConfig.getHOST();
-  }
-
   public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
     this.ANOTHER_DBConfig.setHOST(ANOTHER_HOST);
-  }
-
-  public List<String> getANOTHER_PORT() {
-    return ANOTHER_DBConfig.getPORT();
   }
 
   public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
     this.ANOTHER_DBConfig.setPORT(ANOTHER_PORT);
   }
 
-  public String getANOTHER_USERNAME() {
-    return ANOTHER_DBConfig.getUSERNAME();
-  }
-
   public void setANOTHER_USERNAME(String ANOTHER_USERNAME) {
     this.ANOTHER_DBConfig.setUSERNAME(ANOTHER_USERNAME);
-  }
-
-  public String getANOTHER_PASSWORD() {
-    return ANOTHER_DBConfig.getPASSWORD();
   }
 
   public void setANOTHER_PASSWORD(String ANOTHER_PASSWORD) {
     this.ANOTHER_DBConfig.setPASSWORD(ANOTHER_PASSWORD);
   }
 
-  public String getANOTHER_DB_NAME() {
-    return ANOTHER_DBConfig.getDB_NAME();
-  }
-
   public void setANOTHER_DB_NAME(String ANOTHER_DBConfig_NAME) {
     this.ANOTHER_DBConfig.setDB_NAME(ANOTHER_DBConfig_NAME);
-  }
-
-  public String getANOTHER_TOKEN() {
-    return ANOTHER_DBConfig.getTOKEN();
   }
 
   public void setANOTHER_TOKEN(String ANOTHER_TOKEN) {
@@ -1266,7 +1210,7 @@ public class Config {
   public boolean isIS_DOUBLE_WRITE() {
     return IS_DOUBLE_WRITE;
   }
-  
+
   public String toInfoText() {
     return "LOOP="
         + LOOP

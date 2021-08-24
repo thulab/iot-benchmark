@@ -43,6 +43,7 @@ public abstract class TestDataPersistence {
    */
   public abstract void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap);
 
+  // TODO pass DBConfig
   /** Save config of test */
   public abstract void saveTestConfig();
 

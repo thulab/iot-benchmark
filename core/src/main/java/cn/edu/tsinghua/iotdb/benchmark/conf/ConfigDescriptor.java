@@ -81,26 +81,38 @@ public class ConfigDescriptor {
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
 
         config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
-        String hosts = properties.getProperty("HOST", config.getHOST() + "");
+        String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
         config.setHOST(Arrays.asList(hosts.split(",")));
-        String ports = properties.getProperty("PORT", config.getPORT() + "");
+        String ports = properties.getProperty("PORT", config.getDbConfig().getPORT() + "");
         config.setPORT(Arrays.asList(ports.split(",")));
-        config.setUSERNAME(properties.getProperty("USERNAME", config.getUSERNAME()));
-        config.setPASSWORD(properties.getProperty("PASSWORD", config.getPASSWORD()));
-        config.setDB_NAME(properties.getProperty("DB_NAME", config.getDB_NAME()));
-        config.setTOKEN(properties.getProperty("TOKEN", config.getTOKEN()));
+        config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
+        config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
+        config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
+        config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
 
-        config.setIS_DOUBLE_WRITE(Boolean.parseBoolean(properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
-        config.setANOTHER_DB_SWITCH(DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", "")));
-        String anotherHosts = properties.getProperty("ANOTHER_HOST", config.getANOTHER_HOST() + "");
-        config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
-        String anotherPorts = properties.getProperty("ANOTHER_PORT", config.getANOTHER_PORT() + "");
-        config.setANOTHER_PORT(Arrays.asList(anotherPorts.split(",")));
-        config.setANOTHER_USERNAME(properties.getProperty("ANOTHER_USERNAME", config.getANOTHER_USERNAME()));
-        config.setANOTHER_PASSWORD(properties.getProperty("ANOTHER_PASSWORD", config.getANOTHER_PASSWORD()));
-        config.setANOTHER_DB_NAME(properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DB_NAME()));
-        config.setANOTHER_TOKEN(properties.getProperty("ANOTHER_TOKEN", config.getANOTHER_TOKEN()));
-
+        config.setIS_DOUBLE_WRITE(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
+        if (config.isIS_DOUBLE_WRITE()) {
+          config.setANOTHER_DB_SWITCH(
+              DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", "")));
+          String anotherHosts =
+              properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
+          config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
+          String anotherPorts =
+              properties.getProperty("ANOTHER_PORT", config.getANOTHER_DBConfig().getPORT() + "");
+          config.setANOTHER_PORT(Arrays.asList(anotherPorts.split(",")));
+          config.setANOTHER_USERNAME(
+              properties.getProperty(
+                  "ANOTHER_USERNAME", config.getANOTHER_DBConfig().getUSERNAME()));
+          config.setANOTHER_PASSWORD(
+              properties.getProperty(
+                  "ANOTHER_PASSWORD", config.getANOTHER_DBConfig().getPASSWORD()));
+          config.setANOTHER_DB_NAME(
+              properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DBConfig().getDB_NAME()));
+          config.setANOTHER_TOKEN(
+              properties.getProperty("ANOTHER_TOKEN", config.getANOTHER_DBConfig().getTOKEN()));
+        }
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
         config.setIOTDB_DATA_DIR(Arrays.asList(dataDir.split(",")));
@@ -128,10 +140,12 @@ public class ConfigDescriptor {
           case "ms":
             break;
           case "us":
-            if (config.getDB_SWITCH().getType() != DBType.IoTDB
-                && config.getDB_SWITCH().getType() != DBType.InfluxDB) {
+            if (config.getDbConfig().getDB_SWITCH().getType() != DBType.IoTDB
+                && config.getDbConfig().getDB_SWITCH().getType() != DBType.InfluxDB) {
               throw new RuntimeException(
-                  "The database " + config.getDB_SWITCH() + " can't use microsecond precision");
+                  "The database "
+                      + config.getDbConfig().getDB_SWITCH()
+                      + " can't use microsecond precision");
             }
             break;
           default:
@@ -186,9 +200,9 @@ public class ConfigDescriptor {
           config.setFIRST_DEVICE_INDEX(0);
         }
         config.setIS_ALL_NODES_VISIBLE(
-                Boolean.parseBoolean(
-                        properties.getProperty(
-                                "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
 
         config.setLINE_RATIO(
             Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO() + "")));

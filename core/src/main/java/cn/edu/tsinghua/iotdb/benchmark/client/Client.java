@@ -74,7 +74,7 @@ public abstract class Client implements Runnable {
             dbWrapper.close();
           }
         } catch (TsdbException e) {
-          LOGGER.error("Close {} error: ", config.getDB_SWITCH(), e);
+          LOGGER.error("Close {} error: ", config.getDbConfig().getDB_SWITCH(), e);
         }
       }
     } finally {

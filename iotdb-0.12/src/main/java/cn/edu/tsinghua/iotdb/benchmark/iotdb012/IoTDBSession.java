@@ -28,6 +28,7 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
@@ -42,30 +43,15 @@ public class IoTDBSession extends IoTDBSessionBase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private final Session session;
 
-  public IoTDBSession() {
-    super();
+  public IoTDBSession(DBConfig dbConfig) {
+    super(dbConfig);
     session =
         new Session(
-            config.getHOST().get(0),
-            Integer.valueOf(config.getPORT().get(0)),
-            config.getUSERNAME(),
-            config.getPASSWORD(),
+            dbConfig.getHOST().get(0),
+            Integer.valueOf(dbConfig.getPORT().get(0)),
+            dbConfig.getUSERNAME(),
+            dbConfig.getPASSWORD(),
             true);
-    try {
-      if (config.isENABLE_THRIFT_COMPRESSION()) {
-        session.open(true);
-      } else {
-        session.open();
-      }
-    } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to add session", e);
-    }
-  }
-
-  /** for double IoTDB */
-  public IoTDBSession(String host, String port, String user, String password) {
-    super();
-    session = new Session(host, Integer.valueOf(port), user, password, true);
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
