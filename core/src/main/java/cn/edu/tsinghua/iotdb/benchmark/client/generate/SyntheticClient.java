@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
@@ -63,40 +64,61 @@ public class SyntheticClient extends GenerateBaseClient {
         }
       } else {
         try {
+          List<Status> statuses = new ArrayList<>();
           for (DBWrapper dbWrapper : dbWrappers) {
             switch (operation) {
               case PRECISE_QUERY:
-                dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery());
+                statuses.add(dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery()));
                 break;
               case RANGE_QUERY:
-                dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery());
+                statuses.add(dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery()));
                 break;
               case VALUE_RANGE_QUERY:
-                dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
+                statuses.add(dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery()));
                 break;
               case AGG_RANGE_QUERY:
-                dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
+                statuses.add(dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery()));
                 break;
               case AGG_VALUE_QUERY:
-                dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
+                statuses.add(dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery()));
                 break;
               case AGG_RANGE_VALUE_QUERY:
-                dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
+                statuses.add(
+                    dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery()));
                 break;
               case GROUP_BY_QUERY:
-                dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
+                statuses.add(dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery()));
                 break;
               case LATEST_POINT_QUERY:
-                dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
+                statuses.add(dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery()));
                 break;
               case RANGE_QUERY_ORDER_BY_TIME_DESC:
-                dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery());
+                statuses.add(dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery()));
                 break;
               case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-                dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery());
+                statuses.add(
+                    dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery()));
                 break;
               default:
                 LOGGER.error("Unsupported operation type {}", operation);
+            }
+          }
+          if (statuses.size() >= 2) {
+            // check
+            Status status1 = statuses.get(0);
+            Status status2 = statuses.get(1);
+            if (status1.isOk() && status2.isOk()) {
+              if (status1.getQueryResultPointNum() != status2.getQueryResultPointNum()) {
+                LOGGER.warn(
+                    "Not same query result point: "
+                        + config.getDbConfig().getDB_SWITCH()
+                        + ": "
+                        + status1.getQueryResultPointNum()
+                        + " and "
+                        + config.getANOTHER_DBConfig().getDB_SWITCH()
+                        + ": "
+                        + status2.getQueryResultPointNum());
+              }
             }
           }
         } catch (Exception e) {
