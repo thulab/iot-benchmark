@@ -90,12 +90,14 @@ public class ConfigDescriptor {
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getTOKEN()));
 
-        config.setANOTHER_DB_NAME(
-            properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DB_NAME() + ""));
-        config.setIS_ALL_NODES_VISIBLE(
-            Boolean.parseBoolean(
-                properties.getProperty(
-                    "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
+        config.setANOTHER_DB_SWITCH(DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", "")));
+        config.setANOTHER_HOST(properties.getProperty("ANOTHER_HOST", config.getANOTHER_HOST()));
+        config.setANOTHER_PORT(properties.getProperty("ANOTHER_PORT", config.getANOTHER_PORT()));
+        config.setANOTHER_USERNAME(properties.getProperty("ANOTHER_USERNAME", config.getANOTHER_USERNAME()));
+        config.setANOTHER_PASSWORD(properties.getProperty("ANOTHER_PASSWORD", config.getANOTHER_PASSWORD()));
+        config.setANOTHER_DB_NAME(properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DB_NAME()));
+        config.setANOTHER_TOKEN(properties.getProperty("ANOTHER_TOKEN", config.getANOTHER_TOKEN()));
+
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
         config.setIOTDB_DATA_DIR(Arrays.asList(dataDir.split(",")));
@@ -180,6 +182,10 @@ public class ConfigDescriptor {
         } else {
           config.setFIRST_DEVICE_INDEX(0);
         }
+        config.setIS_ALL_NODES_VISIBLE(
+                Boolean.parseBoolean(
+                        properties.getProperty(
+                                "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
 
         config.setLINE_RATIO(
             Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO() + "")));

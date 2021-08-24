@@ -72,10 +72,7 @@ public class Config {
 
   // 初始化：数据库信息
   /**
-   * The database to use, format: {name of database}{-version}{-insert mode} name of database:
-   * IoTDB, InfluxDB, OpenTSDB, CTSDB, KairosDB, TimescaleDB, FakeDB, TaosDB ... version: take iotdb
-   * for example, 09, 10, 11, 12 insert mode: JDBC, SESSION_BY_TABLET, SESSION_BY_RECORD,
-   * SESSION_BY_RECORDS, SESSION_BY_POOL
+   * The database to use, format: {name of database}{-version}{-insert mode} name of database, for more, in README.md
    */
   private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_012_JDBC;
 
@@ -115,13 +112,26 @@ public class Config {
   /** The unsequence dirs of IoTDB */
   private List<String> UNSEQUENCE_DIR = new ArrayList<>();
 
-  // 双写模式：目前双写要求相同类型数据库 需要配置第二数据库 + Kafka
+  // 双写模式
   /** The host of another database server */
-  private List<String> ANOTHER_HOST = Arrays.asList("127.0.0.1");
-  /** The port of another database server */
-  private List<String> ANOTHER_PORT = Arrays.asList("6668");
-  /** The name of another database */
+  /**
+   * The database to use, format: {name of database}{-version}{-insert mode} name of database, for more, in README.md
+   */
+  private DBSwitch ANOTHER_DB_SWITCH = DBSwitch.DB_INFLUX;
+  /**
+   * The host of database server for IoTDB
+   */
+  private String ANOTHER_HOST = "127.0.0.1";
+  /** The port of database server */
+  private String ANOTHER_PORT = "6667";
+  /** The user name of database to use */
+  private String ANOTHER_USERNAME = "root";
+  /** The password of user */
+  private String ANOTHER_PASSWORD = "root";
+  /** The name of database to use, eg.IoTDB root.{DB_NAME} */
   private String ANOTHER_DB_NAME = "_test";
+  /** In some database, it will need token to access, such as InfluxDB 2.0 */
+  private String ANOTHER_TOKEN = "token";
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -617,14 +627,6 @@ public class Config {
 
   public void setUNSEQUENCE_DIR(List<String> UNSEQUENCE_DIR) {
     this.UNSEQUENCE_DIR = UNSEQUENCE_DIR;
-  }
-
-  public String getANOTHER_DB_NAME() {
-    return ANOTHER_DB_NAME;
-  }
-
-  public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
-    this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
   }
 
   public String getKAFKA_LOCATION() {
@@ -1221,6 +1223,62 @@ public class Config {
 
   public void setCOMPRESSION(String COMPRESSION) {
     this.COMPRESSION = COMPRESSION;
+  }
+
+  public DBSwitch getANOTHER_DB_SWITCH() {
+    return ANOTHER_DB_SWITCH;
+  }
+
+  public void setANOTHER_DB_SWITCH(DBSwitch ANOTHER_DB_SWITCH) {
+    this.ANOTHER_DB_SWITCH = ANOTHER_DB_SWITCH;
+  }
+
+  public String getANOTHER_HOST() {
+    return ANOTHER_HOST;
+  }
+
+  public void setANOTHER_HOST(String ANOTHER_HOST) {
+    this.ANOTHER_HOST = ANOTHER_HOST;
+  }
+
+  public String getANOTHER_PORT() {
+    return ANOTHER_PORT;
+  }
+
+  public void setANOTHER_PORT(String ANOTHER_PORT) {
+    this.ANOTHER_PORT = ANOTHER_PORT;
+  }
+
+  public String getANOTHER_USERNAME() {
+    return ANOTHER_USERNAME;
+  }
+
+  public void setANOTHER_USERNAME(String ANOTHER_USERNAME) {
+    this.ANOTHER_USERNAME = ANOTHER_USERNAME;
+  }
+
+  public String getANOTHER_PASSWORD() {
+    return ANOTHER_PASSWORD;
+  }
+
+  public void setANOTHER_PASSWORD(String ANOTHER_PASSWORD) {
+    this.ANOTHER_PASSWORD = ANOTHER_PASSWORD;
+  }
+
+  public String getANOTHER_DB_NAME() {
+    return ANOTHER_DB_NAME;
+  }
+
+  public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
+    this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
+  }
+
+  public String getANOTHER_TOKEN() {
+    return ANOTHER_TOKEN;
+  }
+
+  public void setANOTHER_TOKEN(String ANOTHER_TOKEN) {
+    this.ANOTHER_TOKEN = ANOTHER_TOKEN;
   }
 
   public String toInfoText() {
