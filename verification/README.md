@@ -8,6 +8,27 @@ Verification
 # config
 [Demo config](config.properties)
 
+其中需要配置
+
+```
+################ Benchmark：双写模式 ####################
+IS_DOUBLE_WRITE=true
+# 另一个写入的数据库，目前的格式为{name}{-version}{-insert mode}(注意-号)其全部参考值参见README文件
+ANOTHER_DB_SWITCH=InfluxDB
+# 另一个写入的数据库的主机
+ANOTHER_HOST=http://127.0.0.1
+# 另一个写入的数据库的端口
+ANOTHER_PORT=8086
+# 另一个写入的数据库的用户名
+ANOTHER_USERNAME=root
+# 另一个写入的数据库的密码，如果为多个数据库，则要求保持一致
+ANOTHER_PASSWORD=root
+# 另一个写入的数据库的名称
+ANOTHER_DB_NAME=test
+# 另一个数据库认证使用的Token，目前仅限于InfluxDB 2.0使用
+ANOTHER_TOKEN=token
+```
+
 # test result
 
 ```
