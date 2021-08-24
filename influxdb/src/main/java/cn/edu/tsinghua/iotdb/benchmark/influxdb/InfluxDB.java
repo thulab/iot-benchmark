@@ -315,7 +315,9 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
 
     QueryResult results = influxDbInstance.query(new Query(sql, influxDbName));
     int cnt = 0;
@@ -332,8 +334,9 @@ public class InfluxDB implements IDatabase {
         cnt += values.size() * (serie.getColumns().size() - 1);
       }
     }
-
-    LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), cnt);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), cnt);
+    }
     return new Status(true, cnt);
   }
 

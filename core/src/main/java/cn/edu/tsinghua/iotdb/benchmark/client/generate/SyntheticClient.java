@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 
@@ -62,39 +63,41 @@ public class SyntheticClient extends GenerateBaseClient {
         }
       } else {
         try {
-          switch (operation) {
-            case PRECISE_QUERY:
-              dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery());
-              break;
-            case RANGE_QUERY:
-              dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery());
-              break;
-            case VALUE_RANGE_QUERY:
-              dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
-              break;
-            case AGG_RANGE_QUERY:
-              dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
-              break;
-            case AGG_VALUE_QUERY:
-              dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
-              break;
-            case AGG_RANGE_VALUE_QUERY:
-              dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
-              break;
-            case GROUP_BY_QUERY:
-              dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
-              break;
-            case LATEST_POINT_QUERY:
-              dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
-              break;
-            case RANGE_QUERY_ORDER_BY_TIME_DESC:
-              dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery());
-              break;
-            case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-              dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery());
-              break;
-            default:
-              LOGGER.error("Unsupported operation type {}", operation);
+          for (DBWrapper dbWrapper : dbWrappers) {
+            switch (operation) {
+              case PRECISE_QUERY:
+                dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery());
+                break;
+              case RANGE_QUERY:
+                dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery());
+                break;
+              case VALUE_RANGE_QUERY:
+                dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery());
+                break;
+              case AGG_RANGE_QUERY:
+                dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery());
+                break;
+              case AGG_VALUE_QUERY:
+                dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery());
+                break;
+              case AGG_RANGE_VALUE_QUERY:
+                dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery());
+                break;
+              case GROUP_BY_QUERY:
+                dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery());
+                break;
+              case LATEST_POINT_QUERY:
+                dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery());
+                break;
+              case RANGE_QUERY_ORDER_BY_TIME_DESC:
+                dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery());
+                break;
+              case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
+                dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery());
+                break;
+              default:
+                LOGGER.error("Unsupported operation type {}", operation);
+            }
           }
         } catch (Exception e) {
           LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
@@ -127,7 +130,9 @@ public class SyntheticClient extends GenerateBaseClient {
           for (DeviceSchema deviceSchema : schemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-              dbWrapper.insertOneBatch(batch);
+              for (DBWrapper dbWrapper : dbWrappers) {
+                dbWrapper.insertOneBatch(batch);
+              }
             }
           }
           insertLoopIndex++;
@@ -148,7 +153,9 @@ public class SyntheticClient extends GenerateBaseClient {
                 batch.setColIndex(colIndex);
                 Type colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
                 batch.setColType(colType);
-                dbWrapper.insertOneSensorBatch(batch);
+                for (DBWrapper dbWrapper : dbWrappers) {
+                  dbWrapper.insertOneSensorBatch(batch);
+                }
                 insertLoopIndex++;
               }
             }
@@ -158,7 +165,9 @@ public class SyntheticClient extends GenerateBaseClient {
         // IS_CLIENT_BIND = false
         Batch batch = singletonWorkload.getOneBatch();
         if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
-          dbWrapper.insertOneBatch(batch);
+          for (DBWrapper dbWrapper : dbWrappers) {
+            dbWrapper.insertOneBatch(batch);
+          }
         }
       }
     } catch (DBConnectException e) {

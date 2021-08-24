@@ -222,7 +222,12 @@ public class Measurement {
   /** Show Config of test */
   public void showConfigs() {
     System.out.println("----------------------Main Configurations----------------------");
-    System.out.println("DB_SWITCH: " + config.getDbConfig().getDB_SWITCH());
+    System.out.println(
+        "DB_SWITCH: "
+            + config.getDbConfig().getDB_SWITCH()
+            + ((config.isIS_DOUBLE_WRITE())
+                ? "," + config.getANOTHER_DBConfig().getDB_SWITCH()
+                : ""));
     System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
     System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
     System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());

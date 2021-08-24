@@ -27,6 +27,8 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -40,14 +42,14 @@ public abstract class Client implements Runnable {
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected Measurement measurement;
   protected int clientThreadId;
-  protected DBWrapper dbWrapper;
+  protected List<DBWrapper> dbWrappers = new ArrayList<>();
 
   public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     clientThreadId = id;
     measurement = new Measurement();
-    initDBWrapper();
+    initDBWrappers();
   }
 
   /**
@@ -58,7 +60,7 @@ public abstract class Client implements Runnable {
   public void run() {
     try {
       try {
-        if (dbWrapper != null) {
+        for (DBWrapper dbWrapper : dbWrappers) {
           dbWrapper.init();
         }
         // wait for that all clients start test simultaneously
@@ -70,7 +72,7 @@ public abstract class Client implements Runnable {
         LOGGER.error("Unexpected error: ", e);
       } finally {
         try {
-          if (dbWrapper != null) {
+          for (DBWrapper dbWrapper : dbWrappers) {
             dbWrapper.close();
           }
         } catch (TsdbException e) {
@@ -90,7 +92,10 @@ public abstract class Client implements Runnable {
   protected abstract void doTest();
 
   /** Init DBWrapper */
-  protected void initDBWrapper() {
-    dbWrapper = new DBWrapper(measurement);
+  protected void initDBWrappers() {
+    dbWrappers.add(new DBWrapper(config.getDbConfig(), measurement));
+    if (config.isIS_DOUBLE_WRITE()) {
+      dbWrappers.add(new DBWrapper(config.getANOTHER_DBConfig(), measurement));
+    }
   }
 }

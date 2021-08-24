@@ -51,12 +51,13 @@ public class DBWrapper implements IDatabase {
   /**
    * Use DBFactory to get database
    *
+   * @param dbConfig
    * @param measurement
    */
-  public DBWrapper(Measurement measurement) {
+  public DBWrapper(DBConfig dbConfig, Measurement measurement) {
     DBFactory dbFactory = new DBFactory();
     try {
-      db = dbFactory.getDatabase(config.getDbConfig());
+      db = dbFactory.getDatabase(dbConfig);
     } catch (Exception e) {
       LOGGER.error("Failed to get database because", e);
     }
