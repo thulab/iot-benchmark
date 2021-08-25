@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
+import java.util.List;
+
 public class Status {
 
   /** Whether is ok */
@@ -31,6 +33,8 @@ public class Status {
   private Exception exception;
   /** errorMessage is our self-defined message used to logged, it can be error SQL or anything */
   private String errorMessage;
+  /** results */
+  private List<List<String>> records;
 
   public Status(boolean isOk) {
     this.isOk = isOk;
@@ -39,6 +43,12 @@ public class Status {
   public Status(boolean isOk, int queryResultPointNum) {
     this.isOk = isOk;
     this.queryResultPointNum = queryResultPointNum;
+  }
+
+  public Status(boolean isOk, int queryResultPointNum, List<List<String>> records) {
+    this.isOk = isOk;
+    this.queryResultPointNum = queryResultPointNum;
+    this.records = records;
   }
 
   public Status(boolean isOk, Exception exception, String errorMessage) {
@@ -72,6 +82,10 @@ public class Status {
 
   public String getErrorMessage() {
     return errorMessage;
+  }
+
+  public List<List<String>> getRecords() {
+    return records;
   }
 
   public boolean isOk() {

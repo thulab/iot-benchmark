@@ -93,6 +93,8 @@ public class Config {
   private boolean IS_DOUBLE_WRITE = false;
   /** Another configuration of db */
   private DBConfig ANOTHER_DBConfig = new DBConfig();
+  /** Whether run verification when double write */
+  private boolean IS_VERIFICATION = false;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -1209,6 +1211,14 @@ public class Config {
 
   public boolean isIS_DOUBLE_WRITE() {
     return IS_DOUBLE_WRITE;
+  }
+
+  public boolean isIS_VERIFICATION() {
+    return IS_VERIFICATION;
+  }
+
+  public void setIS_VERIFICATION(boolean IS_VERIFICATION) {
+    this.IS_VERIFICATION = IS_VERIFICATION;
   }
 
   public String toInfoText() {

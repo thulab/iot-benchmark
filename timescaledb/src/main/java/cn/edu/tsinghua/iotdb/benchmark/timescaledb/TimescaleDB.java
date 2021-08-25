@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.timescaledb;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
@@ -107,25 +108,8 @@ public class TimescaleDB implements IDatabase {
   }
 
   /**
-   * Map the data schema concepts as follow:
-   *
-   * <ul>
-   *   <li>DB_NAME -> table name
-   *   <li>storage group name -> a field in table
-   *   <li>device name -> a field in table
-   *   <li>sensors -> fields in table
-   * </ul>
-   *
-   * <p>Reference link: https://docs.timescale.com/v1.0/getting-started/creating-hypertables -- We
-   * start by creating a regular SQL table
-   *
-   * <p><code>
-   * CREATE TABLE conditions ( time        TIMESTAMPTZ       NOT NULL, location    TEXT
-   * NOT NULL, temperature DOUBLE PRECISION  NULL, humidity    DOUBLE PRECISION  NULL );
-   * </code> -- This creates a hypertable that is partitioned by time using the values in the `time`
-   * column.
-   *
-   * <p><code>SELECT create_hypertable('conditions', 'time');</code>
+   * Map the data schema concepts as follow: DB_NAME(table name), storage group name(table field)
+   * device name(table field), sensors(table fields)
    */
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
@@ -193,7 +177,7 @@ public class TimescaleDB implements IDatabase {
     int sensorNum = preciseQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(preciseQuery.getDeviceSchema());
     builder.append(" AND time = ").append(preciseQuery.getTimestamp());
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.PRECISE_QUERY);
   }
 
   /**
@@ -207,7 +191,7 @@ public class TimescaleDB implements IDatabase {
     int sensorNum = rangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, rangeQuery);
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.RANGE_QUERY);
   }
 
   /**
@@ -221,7 +205,7 @@ public class TimescaleDB implements IDatabase {
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     addWhereValueClause(
         valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.VALUE_RANGE_QUERY);
   }
 
   /**
@@ -237,7 +221,7 @@ public class TimescaleDB implements IDatabase {
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     addWhereTimeClause(builder, aggRangeQuery);
     builder.append("GROUP BY device");
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.AGG_RANGE_QUERY);
   }
 
   /**
@@ -253,7 +237,7 @@ public class TimescaleDB implements IDatabase {
     addWhereValueClause(
         aggValueQuery.getDeviceSchema(), builder, aggValueQuery.getValueThreshold());
     builder.append(" GROUP BY device");
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.AGG_VALUE_QUERY);
   }
 
   /**
@@ -272,7 +256,7 @@ public class TimescaleDB implements IDatabase {
     addWhereValueClause(
         aggRangeValueQuery.getDeviceSchema(), builder, aggRangeValueQuery.getValueThreshold());
     builder.append("GROUP BY device");
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.AGG_RANGE_VALUE_QUERY);
   }
 
   /**
@@ -291,7 +275,7 @@ public class TimescaleDB implements IDatabase {
             groupByQuery.getGranularity());
     addWhereTimeClause(builder, groupByQuery);
     builder.append(" GROUP BY time, device");
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.GROUP_BY_QUERY);
   }
 
   /**
@@ -308,7 +292,7 @@ public class TimescaleDB implements IDatabase {
     int sensorNum = latestPointQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(latestPointQuery.getDeviceSchema());
     builder.append("ORDER BY time DESC LIMIT 1");
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.LATEST_POINT_QUERY);
   }
 
   @Override
@@ -317,7 +301,8 @@ public class TimescaleDB implements IDatabase {
     StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, rangeQuery);
     addOrderByClause(builder);
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(
+        builder.toString(), sensorNum, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   @Override
@@ -327,10 +312,11 @@ public class TimescaleDB implements IDatabase {
     addWhereValueClause(
         valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
     addOrderByClause(builder);
-    return executeQueryAndGetStatus(builder.toString(), sensorNum);
+    return executeQueryAndGetStatus(
+        builder.toString(), sensorNum, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
-  private Status executeQueryAndGetStatus(String sql, int sensorNum) {
+  private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     }
@@ -490,8 +476,8 @@ public class TimescaleDB implements IDatabase {
       builder.append(",'").append(value).append("'");
     }
     builder.append(")");
-    if(!config.isIS_QUIET_MODE()){
-        LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }
     return builder.toString();
   }
@@ -517,8 +503,8 @@ public class TimescaleDB implements IDatabase {
     builder.append(",'").append(value).append("'");
 
     builder.append(")");
-    if(!config.isIS_QUIET_MODE()){
-        LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }
     return builder.toString();
   }

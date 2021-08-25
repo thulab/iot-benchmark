@@ -112,6 +112,9 @@ public class ConfigDescriptor {
               properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DBConfig().getDB_NAME()));
           config.setANOTHER_TOKEN(
               properties.getProperty("ANOTHER_TOKEN", config.getANOTHER_DBConfig().getTOKEN()));
+          config.setIS_VERIFICATION(
+              Boolean.parseBoolean(
+                  properties.getProperty("IS_VERIFICATION", config.isIS_VERIFICATION() + "")));
         }
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
