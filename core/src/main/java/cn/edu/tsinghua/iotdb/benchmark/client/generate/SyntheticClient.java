@@ -104,22 +104,7 @@ public class SyntheticClient extends GenerateBaseClient {
             }
           }
           if (statuses.size() >= 2) {
-            // check
-            Status status1 = statuses.get(0);
-            Status status2 = statuses.get(1);
-            if (status1.isOk() && status2.isOk()) {
-              if (status1.getQueryResultPointNum() != status2.getQueryResultPointNum()) {
-                LOGGER.warn(
-                    "Not same query result point: "
-                        + config.getDbConfig().getDB_SWITCH()
-                        + ": "
-                        + status1.getQueryResultPointNum()
-                        + " and "
-                        + config.getANOTHER_DBConfig().getDB_SWITCH()
-                        + ": "
-                        + status2.getQueryResultPointNum());
-              }
-            }
+            // TODO wait for check
           }
         } catch (Exception e) {
           LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
