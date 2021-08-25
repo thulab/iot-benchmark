@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,46 +66,63 @@ public class SyntheticClient extends GenerateBaseClient {
       } else {
         try {
           List<Status> statuses = new ArrayList<>();
+          Query query = null;
           for (DBWrapper dbWrapper : dbWrappers) {
             switch (operation) {
               case PRECISE_QUERY:
-                statuses.add(dbWrapper.preciseQuery(syntheticWorkload.getPreciseQuery()));
+                query = syntheticWorkload.getPreciseQuery();
+                statuses.add(dbWrapper.preciseQuery((PreciseQuery) query));
                 break;
               case RANGE_QUERY:
-                statuses.add(dbWrapper.rangeQuery(syntheticWorkload.getRangeQuery()));
+                query = syntheticWorkload.getRangeQuery();
+                statuses.add(dbWrapper.rangeQuery((RangeQuery) query));
                 break;
               case VALUE_RANGE_QUERY:
-                statuses.add(dbWrapper.valueRangeQuery(syntheticWorkload.getValueRangeQuery()));
+                query = syntheticWorkload.getValueRangeQuery();
+                statuses.add(dbWrapper.valueRangeQuery((ValueRangeQuery) query));
                 break;
               case AGG_RANGE_QUERY:
-                statuses.add(dbWrapper.aggRangeQuery(syntheticWorkload.getAggRangeQuery()));
+                query = syntheticWorkload.getAggRangeQuery();
+                statuses.add(dbWrapper.aggRangeQuery((AggRangeQuery) query));
                 break;
               case AGG_VALUE_QUERY:
-                statuses.add(dbWrapper.aggValueQuery(syntheticWorkload.getAggValueQuery()));
+                query = syntheticWorkload.getAggValueQuery();
+                statuses.add(dbWrapper.aggValueQuery((AggValueQuery) query));
                 break;
               case AGG_RANGE_VALUE_QUERY:
-                statuses.add(
-                    dbWrapper.aggRangeValueQuery(syntheticWorkload.getAggRangeValueQuery()));
+                query = syntheticWorkload.getAggRangeValueQuery();
+                statuses.add(dbWrapper.aggRangeValueQuery((AggRangeValueQuery) query));
                 break;
               case GROUP_BY_QUERY:
-                statuses.add(dbWrapper.groupByQuery(syntheticWorkload.getGroupByQuery()));
+                query = syntheticWorkload.getGroupByQuery();
+                statuses.add(dbWrapper.groupByQuery((GroupByQuery) query));
                 break;
               case LATEST_POINT_QUERY:
-                statuses.add(dbWrapper.latestPointQuery(syntheticWorkload.getLatestPointQuery()));
+                query = syntheticWorkload.getLatestPointQuery();
+                statuses.add(dbWrapper.latestPointQuery((LatestPointQuery) query));
                 break;
               case RANGE_QUERY_ORDER_BY_TIME_DESC:
-                statuses.add(dbWrapper.rangeQueryOrderByDesc(syntheticWorkload.getRangeQuery()));
+                query = syntheticWorkload.getRangeQuery();
+                statuses.add(dbWrapper.rangeQueryOrderByDesc((RangeQuery) query));
                 break;
               case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-                statuses.add(
-                    dbWrapper.valueRangeQueryOrderByDesc(syntheticWorkload.getValueRangeQuery()));
+                query = syntheticWorkload.getValueRangeQuery();
+                statuses.add(dbWrapper.valueRangeQueryOrderByDesc((ValueRangeQuery) query));
                 break;
               default:
                 LOGGER.error("Unsupported operation type {}", operation);
             }
           }
-          if (statuses.size() >= 2) {
-            // TODO wait for check
+          if (config.isIS_VERIFICATION()) {
+            Status status1 = statuses.get(0);
+            Status status2 = statuses.get(1);
+            if (status1.getRecords() != null && status2.getRecords() != null) {
+              int point1 = status1.getQueryResultPointNum();
+              int point2 = status2.getQueryResultPointNum();
+              if (point1 != point2) {
+                LOGGER.error(query.getClass().getSimpleName() + " DB1 point: " + point1 + " and DB2 point: " + point2 + " " + query.getQueryAttrs());
+              }
+            }
           }
         } catch (Exception e) {
           LOGGER.error("Failed to do " + operation.getName() + " query because ", e);

@@ -49,16 +49,6 @@ public class AggValueQuery extends AggRangeQuery {
     this.valueThreshold = valueThreshold;
   }
 
-  public AggValueQuery(
-      List<DeviceSchema> deviceSchema,
-      long startTime,
-      long endTime,
-      String aggFun,
-      double valueThreshold) {
-    super(deviceSchema, startTime, endTime, aggFun);
-    this.valueThreshold = valueThreshold;
-  }
-
   public double getValueThreshold() {
     return valueThreshold;
   }
@@ -73,5 +63,15 @@ public class AggValueQuery extends AggRangeQuery {
     } else {
       return 1000000L;
     }
+  }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    return super.getQueryAttrs();
   }
 }

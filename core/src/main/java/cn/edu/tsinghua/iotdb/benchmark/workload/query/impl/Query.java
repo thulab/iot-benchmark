@@ -19,24 +19,11 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-
-import java.util.List;
-
-public class LatestPointQuery extends AggRangeQuery {
-
-  public LatestPointQuery(
-      List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp, String aggFun) {
-    super(deviceSchema, startTimestamp, endTimestamp, aggFun);
-  }
-
+public abstract class Query {
   /**
    * get attributes of query
    *
    * @return
    */
-  @Override
-  public StringBuilder getQueryAttrs() {
-    return super.getQueryAttrs();
-  }
+  public abstract StringBuilder getQueryAttrs();
 }

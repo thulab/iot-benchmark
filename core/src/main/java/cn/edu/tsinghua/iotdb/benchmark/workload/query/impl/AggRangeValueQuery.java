@@ -40,4 +40,16 @@ public class AggRangeValueQuery extends AggRangeQuery {
   public double getValueThreshold() {
     return valueThreshold;
   }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    StringBuilder stringBuilder = super.getQueryAttrs();
+    stringBuilder.append(" valueThreshold=").append(valueThreshold);
+    return stringBuilder;
+  }
 }

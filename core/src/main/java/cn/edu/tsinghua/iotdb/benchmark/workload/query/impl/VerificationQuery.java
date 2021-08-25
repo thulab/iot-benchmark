@@ -6,7 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 
 import java.util.List;
 
-public class VerificationQuery {
+public class VerificationQuery extends Query {
   private DeviceSchema deviceSchema;
   private List<Record> records;
 
@@ -21,5 +21,18 @@ public class VerificationQuery {
 
   public List<Record> getRecords() {
     return records;
+  }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("deviceSchema=").append(deviceSchema);
+    stringBuilder.append(" records=").append(records);
+    return stringBuilder;
   }
 }
