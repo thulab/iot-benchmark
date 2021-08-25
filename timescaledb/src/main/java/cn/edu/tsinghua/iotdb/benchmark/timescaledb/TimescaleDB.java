@@ -325,13 +325,13 @@ public class TimescaleDB implements IDatabase {
     int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     addWhereValueClause(
-            valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
+        valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
     addOrderByClause(builder);
     return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
-    if(!config.isIS_QUIET_MODE()){
+    if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     }
     int line = 0;
@@ -442,7 +442,7 @@ public class TimescaleDB implements IDatabase {
     builder.append(")");
   }
 
-  private static void addOrderByClause(StringBuilder builder){
+  private static void addOrderByClause(StringBuilder builder) {
     builder.append(" ORDER BY time DESC");
   }
 
