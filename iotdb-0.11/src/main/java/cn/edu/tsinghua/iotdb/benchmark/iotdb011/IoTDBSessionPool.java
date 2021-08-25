@@ -98,7 +98,7 @@ public class IoTDBSessionPool implements IDatabase {
 
   @Override
   public void close() {
-    if(pool != null){
+    if (pool != null) {
       pool.close();
       pool = null;
     }

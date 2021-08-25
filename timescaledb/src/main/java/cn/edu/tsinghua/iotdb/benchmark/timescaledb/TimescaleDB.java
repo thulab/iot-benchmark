@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TimescaleDB implements IDatabase {
@@ -320,16 +321,32 @@ public class TimescaleDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     }
+    List<List<String>> records = new ArrayList<>();
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
+          if (config.isIS_VERIFICATION()) {
+            List<String> record = new ArrayList<>();
+            for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+              if (resultSet.getString(i) != null) {
+                record.add(resultSet.getString(i));
+              } else {
+                record.add(resultSet.getLong(i) + "");
+              }
+            }
+            records.add(record);
+          }
         }
       }
       queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
-      return new Status(true, queryResultPointNum);
+      if (config.isIS_VERIFICATION()) {
+        return new Status(true, queryResultPointNum, records);
+      } else {
+        return new Status(true, queryResultPointNum);
+      }
     } catch (Exception e) {
       return new Status(false, queryResultPointNum, e, sql);
     }
