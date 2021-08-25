@@ -58,15 +58,17 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   private static final Random random = new Random(config.getDATA_SEED());
   private static final Random dataRandom = new Random(config.getDATA_SEED());
 
-  /**
-   * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
-   * each sensor is stored for rapid generation according to the law
-   */
-  private static final Object[][] workloadValues = initWorkloadValues();
+
 
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+  /**
+   * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
+   * each sensor is stored for rapid generation according to the law
+   * this must after timeStampConst
+   */
+  private static final Object[][] workloadValues = initWorkloadValues();
 
   public SyntheticDataWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
