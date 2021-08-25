@@ -490,7 +490,9 @@ public class TimescaleDB implements IDatabase {
       builder.append(",'").append(value).append("'");
     }
     builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    if(!config.isIS_QUIET_MODE()){
+        LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    }
     return builder.toString();
   }
 
@@ -515,7 +517,9 @@ public class TimescaleDB implements IDatabase {
     builder.append(",'").append(value).append("'");
 
     builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    if(!config.isIS_QUIET_MODE()){
+        LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    }
     return builder.toString();
   }
 
