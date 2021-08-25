@@ -575,41 +575,41 @@ public class IoTDB implements IDatabase {
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-        List<List<String>> records = new ArrayList<>();
-        future =
-            service.submit(
-                () -> {
-                  try {
-                    try (ResultSet resultSet = statement.executeQuery(sql)) {
-                      while (resultSet.next()) {
-                        line.getAndIncrement();
-                        if (config.isIS_VERIFICATION()) {
-                          List<String> record = new ArrayList<>();
-                          for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                            if (resultSet.getString(i) != null) {
-                              record.add(resultSet.getString(i));
-                            } else {
-                              record.add(resultSet.getLong(i) + "");
-                            }
+      List<List<String>> records = new ArrayList<>();
+      future =
+          service.submit(
+              () -> {
+                try {
+                  try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    while (resultSet.next()) {
+                      line.getAndIncrement();
+                      if (config.isIS_VERIFICATION()) {
+                        List<String> record = new ArrayList<>();
+                        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                          if (resultSet.getString(i) != null) {
+                            record.add(resultSet.getString(i));
+                          } else {
+                            record.add(resultSet.getLong(i) + "");
                           }
-                          records.add(record);
                         }
+                        records.add(record);
                       }
                     }
-                  } catch (SQLException e) {
-                    LOGGER.error("exception occurred when execute query={}", sql, e);
                   }
-                  queryResultPointNum.set(
-                      line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
-                });
+                } catch (SQLException e) {
+                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                }
+                queryResultPointNum.set(
+                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+              });
 
-        try {
-          future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-          future.cancel(true);
-          return new Status(false, queryResultPointNum.get(), e, sql);
-        }
-        return new Status(true, queryResultPointNum.get(), records);
+      try {
+        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        future.cancel(true);
+        return new Status(false, queryResultPointNum.get(), e, sql);
+      }
+      return new Status(true, queryResultPointNum.get(), records);
     } catch (Exception e) {
       return new Status(false, queryResultPointNum.get(), e, sql);
     } catch (Throwable t) {
