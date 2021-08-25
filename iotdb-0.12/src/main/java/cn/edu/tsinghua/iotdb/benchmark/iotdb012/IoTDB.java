@@ -609,7 +609,11 @@ public class IoTDB implements IDatabase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      return new Status(true, queryResultPointNum.get(), records);
+      if (config.isIS_VERIFICATION()) {
+        return new Status(true, queryResultPointNum.get(), records);
+      } else {
+        return new Status(true, queryResultPointNum.get());
+      }
     } catch (Exception e) {
       return new Status(false, queryResultPointNum.get(), e, sql);
     } catch (Throwable t) {

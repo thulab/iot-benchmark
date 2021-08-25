@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
@@ -175,5 +176,15 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
 
     return new Status(true);
+  }
+
+  @Override
+  public void close() throws TsdbException {
+    super.close();
+    for (SessionPool sessionPool : sessions) {
+      if (sessionPool != null) {
+        sessionPool.close();
+      }
+    }
   }
 }

@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb011;
 
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -141,6 +142,19 @@ public class IoTDBSession extends IoTDB {
       return new Status(false, 0, e, e.toString());
     } catch (IoTDBConnectionException e) {
       throw new DBConnectException(e.getMessage());
+    }
+  }
+
+  @Override
+  public void close() throws TsdbException {
+    super.close();
+    try {
+      if (session != null) {
+        session.close();
+      }
+    } catch (IoTDBConnectionException ioTDBConnectionException) {
+      LOGGER.error("Failed to close session.");
+      throw new TsdbException(ioTDBConnectionException);
     }
   }
 }
