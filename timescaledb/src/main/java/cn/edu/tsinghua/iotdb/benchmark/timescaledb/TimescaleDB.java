@@ -39,18 +39,20 @@ import java.util.List;
 
 public class TimescaleDB implements IDatabase {
 
-  private Connection connection;
-  private static String tableName;
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger LOGGER = LoggerFactory.getLogger(TimescaleDB.class);
+
+  private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
+  private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
+
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   // chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
-  private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
-  private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
+  private static String tableName;
+  private Connection connection;
   private DBConfig dbConfig;
 
   public TimescaleDB(DBConfig dbConfig) {
@@ -311,16 +313,27 @@ public class TimescaleDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    int sensorNum = rangeQuery.getDeviceSchema().get(0).getSensors().size();
+    StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
+    addWhereTimeClause(builder, rangeQuery);
+    addOrderByClause(builder);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
+    StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
+    addWhereValueClause(
+            valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
+    addOrderByClause(builder);
+    return executeQueryAndGetStatus(builder.toString(), sensorNum);
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum) {
-    LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
+    if(!config.isIS_QUIET_MODE()){
+      LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
+    }
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
@@ -329,7 +342,6 @@ public class TimescaleDB implements IDatabase {
           line++;
         }
       }
-
       queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (Exception e) {
@@ -428,6 +440,10 @@ public class TimescaleDB implements IDatabase {
       }
     }
     builder.append(")");
+  }
+
+  private static void addOrderByClause(StringBuilder builder){
+    builder.append(" ORDER BY time DESC");
   }
 
   /**

@@ -137,6 +137,7 @@ mvn clean package -Dmaven.test.skip=true
 |       QuestDB        |  v6.0.7  |     questdb     |                                                   QuestDB                                                   |
 | Microsoft SQL Server | 2016 SP2 |   mssqlserver   |                                                 MSSQLSERVER                                                 |
 |   VictoriaMetrics    | v1.64.0  | victoriametrics |                                               VictoriaMetrics                                               |
+|     TimescaleDB      |          |   timescaledb   |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |     sqlite      |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |    opentsdb     |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |    kairosdb     |                                                  KairosDB                                                   |

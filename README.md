@@ -88,6 +88,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |       QuestDB        |  v6.0.7  |          questdb          |                                                   QuestDB                                                   |
 | Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                 |
 |   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                               |
+|     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |         opentsdb          |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
