@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
@@ -307,7 +308,7 @@ public class IoTDB implements IDatabase {
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String strTime = preciseQuery.getTimestamp() + "";
     String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
   }
 
   /**
@@ -324,7 +325,7 @@ public class IoTDB implements IDatabase {
             rangeQuery.getDeviceSchema(),
             rangeQuery.getStartTimestamp(),
             rangeQuery.getEndTimestamp());
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY);
   }
 
   /**
@@ -337,7 +338,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery);
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
   }
 
   /**
@@ -354,7 +355,7 @@ public class IoTDB implements IDatabase {
     String sql =
         addWhereTimeClause(
             aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
   }
 
   /**
@@ -373,7 +374,7 @@ public class IoTDB implements IDatabase {
             + getValueFilterClause(
                     aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
                 .substring(4);
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
   }
 
   /**
@@ -396,7 +397,7 @@ public class IoTDB implements IDatabase {
     sql +=
         getValueFilterClause(
             aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
   }
 
   /**
@@ -416,7 +417,7 @@ public class IoTDB implements IDatabase {
             groupByQuery.getStartTimestamp(),
             groupByQuery.getEndTimestamp(),
             groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
   /**
@@ -428,7 +429,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return executeQueryAndGetStatus(aggQuerySqlHead);
+    return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
   }
 
   /**
@@ -446,7 +447,7 @@ public class IoTDB implements IDatabase {
                 rangeQuery.getStartTimestamp(),
                 rangeQuery.getEndTimestamp())
             + " order by time desc";
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -459,7 +460,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
-    return executeQueryAndGetStatus(sql);
+    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -568,14 +569,14 @@ public class IoTDB implements IDatabase {
     return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
   }
 
-  protected Status executeQueryAndGetStatus(String sql) {
+  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      List<List<String>> records = new ArrayList<>();
+      List<List<Object>> records = new ArrayList<>();
       future =
           service.submit(
               () -> {
@@ -584,13 +585,18 @@ public class IoTDB implements IDatabase {
                     while (resultSet.next()) {
                       line.getAndIncrement();
                       if (config.isIS_VERIFICATION()) {
-                        List<String> record = new ArrayList<>();
+                        List<Object> record = new ArrayList<>();
                         for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                          if (resultSet.getString(i) != null) {
-                            record.add(resultSet.getString(i));
-                          } else {
-                            record.add(resultSet.getLong(i) + "");
+                          switch (operation){
+                            case LATEST_POINT_QUERY:
+                              if(i == 2){
+                                continue;
+                              }
+                              break;
+                            default:
+                              break;
                           }
+                          record.add(resultSet.getObject(i));
                         }
                         records.add(record);
                       }
@@ -602,7 +608,6 @@ public class IoTDB implements IDatabase {
                 queryResultPointNum.set(
                     line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
               });
-
       try {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {

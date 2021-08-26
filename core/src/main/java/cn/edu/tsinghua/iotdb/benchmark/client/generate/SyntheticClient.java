@@ -33,6 +33,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -41,6 +42,7 @@ public class SyntheticClient extends GenerateBaseClient {
 
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
+  private static final double THRESHOLD = 0.0000001D;
 
   public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
@@ -109,6 +111,7 @@ public class SyntheticClient extends GenerateBaseClient {
           if (config.isIS_VERIFICATION() && statuses.size() >= 2) {
             Status status1 = statuses.get(0);
             Status status2 = statuses.get(1);
+            boolean isError = false;
             if (status1 != null
                 && status2 != null
                 && status1.getRecords() != null
@@ -116,21 +119,36 @@ public class SyntheticClient extends GenerateBaseClient {
               int point1 = status1.getQueryResultPointNum();
               int point2 = status2.getQueryResultPointNum();
               if (point1 != point2) {
-                LOGGER.error(
-                    query.getClass().getSimpleName()
-                        + " DB1 point: "
-                        + point1
-                        + " and DB2 point: "
-                        + point2
-                        + "\n"
-                        + config.getDbConfig().getDB_SWITCH()
-                        + ":"
-                        + status1.getSql()
-                        + "\n"
-                        + config.getANOTHER_DBConfig().getDB_SWITCH()
-                        + ":"
-                        + status2.getSql());
+                isError = true;
+              }else if(point1 != 0){
+                List<List<Object>> records1 = status1.getRecords();
+                List<List<Object>> records2 = status2.getRecords();
+                boolean needSort = true;
+                if(query instanceof RangeQuery){
+                  if(((RangeQuery) query).isDesc()){
+                    needSort = false;
+                  }
+                }
+                if(needSort){
+                  Collections.sort(records1, new RecordComparator());
+                  Collections.sort(records2, new RecordComparator());
+                }
+                // 顺序比较
+                for(int i = 0; i < point1; i++){
+                  List<Object> record1 = records1.get(i);
+                  List<Object> record2 = records2.get(i);
+                  for(int j = 0; j < record1.size(); j++){
+                    String r1 = String.valueOf(record1.get(j));
+                    String r2 = String.valueOf(record2.get(j));
+                    if(!r1.equals(r2)){
+                      isError = true;
+                    }
+                  }
+                }
               }
+            }
+            if(isError){
+              doErrorLog(query.getClass().getSimpleName(), status1, status2);
             }
           }
         } catch (Exception e) {
@@ -148,6 +166,23 @@ public class SyntheticClient extends GenerateBaseClient {
         }
       }
     }
+  }
+
+  private void doErrorLog(String queryName, Status status1, Status status2) {
+    LOGGER.error(
+        queryName
+            + " DB1 point: "
+            + status1.getQueryResultPointNum()
+            + " and DB2 point: "
+            + status2.getQueryResultPointNum()
+            + "\n"
+            + config.getDbConfig().getDB_SWITCH()
+            + ":"
+            + status1.getSql()
+            + "\n"
+            + config.getANOTHER_DBConfig().getDB_SWITCH()
+            + ":"
+            + status2.getSql());
   }
 
   private Query getQuery(Operation operation) throws WorkloadException {

@@ -36,7 +36,7 @@ public class Status {
   /** SQL */
   private String sql;
   /** results */
-  private List<List<String>> records;
+  private List<List<Object>> records;
 
   public Status(boolean isOk) {
     this.isOk = isOk;
@@ -47,7 +47,7 @@ public class Status {
     this.queryResultPointNum = queryResultPointNum;
   }
 
-  public Status(boolean isOk, int queryResultPointNum, String sql, List<List<String>> records) {
+  public Status(boolean isOk, int queryResultPointNum, String sql, List<List<Object>> records) {
     this.isOk = isOk;
     this.queryResultPointNum = queryResultPointNum;
     this.sql = sql;
@@ -87,7 +87,7 @@ public class Status {
     return errorMessage;
   }
 
-  public List<List<String>> getRecords() {
+  public List<List<Object>> getRecords() {
     return records;
   }
 
