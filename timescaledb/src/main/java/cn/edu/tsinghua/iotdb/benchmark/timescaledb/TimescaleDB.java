@@ -203,6 +203,7 @@ public class TimescaleDB implements IDatabase {
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
+    addWhereTimeClause(builder, valueRangeQuery);
     addWhereValueClause(
         valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
     return executeQueryAndGetStatus(builder.toString(), sensorNum);
@@ -225,7 +226,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   /**
-   * eg. SELECT device, count(s_2) FROM tutorial WHERE (device='d_2') AND (s_2>10) GROUP BY device.
+   * eg. SELECT time, count(s_2) FROM tutorial WHERE (device='d_2') AND (s_2>10) GROUP BY device.
    *
    * @param aggValueQuery contains universal aggregation query with value filter parameters
    */
@@ -241,7 +242,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   /**
-   * eg. SELECT device, count(s_2) FROM tutorial WHERE (device='d_2') AND (time >= 1535558400000 and
+   * eg. SELECT time, count(s_2) FROM tutorial WHERE (device='d_2') AND (time >= 1535558400000 and
    * time <= 1535558650000) AND (s_2>10) GROUP BY device.
    *
    * @param aggRangeValueQuery contains universal aggregation query with time and value filters
@@ -310,6 +311,7 @@ public class TimescaleDB implements IDatabase {
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
+    addWhereTimeClause(builder, valueRangeQuery);
     addWhereValueClause(
         valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
     addOrderByClause(builder);
@@ -424,12 +426,12 @@ public class TimescaleDB implements IDatabase {
   }
 
   /**
-   * 创建查询语句--(不带有聚合函数的查询) . SELECT time, device, cpu FROM metrics WHERE (device='d_1' OR
+   * 创建查询语句--(不带有聚合函数的查询) . SELECT time, cpu FROM metrics WHERE (device='d_1' OR
    * device='d_2').
    */
   private StringBuilder getSampleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
-    builder.append("SELECT time, device");
+    builder.append("SELECT time");
     addFunSensor(null, builder, devices.get(0).getSensors());
 
     builder.append(" FROM ").append(tableName);
@@ -464,7 +466,11 @@ public class TimescaleDB implements IDatabase {
    */
   private static void addWhereTimeClause(StringBuilder builder, RangeQuery rangeQuery) {
     builder.append(" AND (time >= ").append(rangeQuery.getStartTimestamp());
-    builder.append(" and time < ").append(rangeQuery.getEndTimestamp()).append(") ");
+    if(rangeQuery instanceof GroupByQuery){
+      builder.append(" and time < ").append(rangeQuery.getEndTimestamp()).append(") ");
+    }else{
+      builder.append(" and time <= ").append(rangeQuery.getEndTimestamp()).append(") ");
+    }
   }
 
   /**
