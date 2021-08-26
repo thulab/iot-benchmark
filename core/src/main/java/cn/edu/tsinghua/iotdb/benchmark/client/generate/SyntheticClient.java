@@ -28,6 +28,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
@@ -66,57 +67,52 @@ public class SyntheticClient extends GenerateBaseClient {
       } else {
         try {
           List<Status> statuses = new ArrayList<>();
-          Query query = null;
+          Query query = getQuery(operation);
           for (DBWrapper dbWrapper : dbWrappers) {
+            Status status = null;
             switch (operation) {
               case PRECISE_QUERY:
-                query = syntheticWorkload.getPreciseQuery();
-                statuses.add(dbWrapper.preciseQuery((PreciseQuery) query));
+                status = dbWrapper.preciseQuery((PreciseQuery) query);
                 break;
               case RANGE_QUERY:
-                query = syntheticWorkload.getRangeQuery();
-                statuses.add(dbWrapper.rangeQuery((RangeQuery) query));
+                status = dbWrapper.rangeQuery((RangeQuery) query);
                 break;
               case VALUE_RANGE_QUERY:
-                query = syntheticWorkload.getValueRangeQuery();
-                statuses.add(dbWrapper.valueRangeQuery((ValueRangeQuery) query));
+                status = dbWrapper.valueRangeQuery((ValueRangeQuery) query);
                 break;
               case AGG_RANGE_QUERY:
-                query = syntheticWorkload.getAggRangeQuery();
-                statuses.add(dbWrapper.aggRangeQuery((AggRangeQuery) query));
+                status = dbWrapper.aggRangeQuery((AggRangeQuery) query);
                 break;
               case AGG_VALUE_QUERY:
-                query = syntheticWorkload.getAggValueQuery();
-                statuses.add(dbWrapper.aggValueQuery((AggValueQuery) query));
+                status = dbWrapper.aggValueQuery((AggValueQuery) query);
                 break;
               case AGG_RANGE_VALUE_QUERY:
-                query = syntheticWorkload.getAggRangeValueQuery();
-                statuses.add(dbWrapper.aggRangeValueQuery((AggRangeValueQuery) query));
+                status = dbWrapper.aggRangeValueQuery((AggRangeValueQuery) query);
                 break;
               case GROUP_BY_QUERY:
-                query = syntheticWorkload.getGroupByQuery();
-                statuses.add(dbWrapper.groupByQuery((GroupByQuery) query));
+                status = dbWrapper.groupByQuery((GroupByQuery) query);
                 break;
               case LATEST_POINT_QUERY:
-                query = syntheticWorkload.getLatestPointQuery();
-                statuses.add(dbWrapper.latestPointQuery((LatestPointQuery) query));
+                status = dbWrapper.latestPointQuery((LatestPointQuery) query);
                 break;
               case RANGE_QUERY_ORDER_BY_TIME_DESC:
-                query = syntheticWorkload.getRangeQuery();
-                statuses.add(dbWrapper.rangeQueryOrderByDesc((RangeQuery) query));
+                status = dbWrapper.rangeQueryOrderByDesc((RangeQuery) query);
                 break;
               case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-                query = syntheticWorkload.getValueRangeQuery();
-                statuses.add(dbWrapper.valueRangeQueryOrderByDesc((ValueRangeQuery) query));
+                status = dbWrapper.valueRangeQueryOrderByDesc((ValueRangeQuery) query);
                 break;
               default:
                 LOGGER.error("Unsupported operation type {}", operation);
             }
+            statuses.add(status);
           }
-          if (config.isIS_VERIFICATION()) {
+          if (config.isIS_VERIFICATION() && statuses.size() >= 2) {
             Status status1 = statuses.get(0);
             Status status2 = statuses.get(1);
-            if (status1.getRecords() != null && status2.getRecords() != null) {
+            if (status1 != null
+                && status2 != null
+                && status1.getRecords() != null
+                && status2.getRecords() != null) {
               int point1 = status1.getQueryResultPointNum();
               int point2 = status2.getQueryResultPointNum();
               if (point1 != point2) {
@@ -146,6 +142,46 @@ public class SyntheticClient extends GenerateBaseClient {
         }
       }
     }
+  }
+
+  private Query getQuery(Operation operation) throws WorkloadException {
+    Query query = null;
+    switch (operation) {
+      case PRECISE_QUERY:
+        query = syntheticWorkload.getPreciseQuery();
+        break;
+      case RANGE_QUERY:
+        query = syntheticWorkload.getRangeQuery();
+        break;
+      case VALUE_RANGE_QUERY:
+        query = syntheticWorkload.getValueRangeQuery();
+        break;
+      case AGG_RANGE_QUERY:
+        query = syntheticWorkload.getAggRangeQuery();
+        break;
+      case AGG_VALUE_QUERY:
+        query = syntheticWorkload.getAggValueQuery();
+        break;
+      case AGG_RANGE_VALUE_QUERY:
+        query = syntheticWorkload.getAggRangeValueQuery();
+        break;
+      case GROUP_BY_QUERY:
+        query = syntheticWorkload.getGroupByQuery();
+        break;
+      case LATEST_POINT_QUERY:
+        query = syntheticWorkload.getLatestPointQuery();
+        break;
+      case RANGE_QUERY_ORDER_BY_TIME_DESC:
+        query = syntheticWorkload.getRangeQuery();
+        break;
+      case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
+        query = syntheticWorkload.getValueRangeQuery();
+        break;
+      default:
+        LOGGER.error("Unsupported operation type {}", operation);
+        query = syntheticWorkload.getPreciseQuery();
+    }
+    return query;
   }
 
   /**
