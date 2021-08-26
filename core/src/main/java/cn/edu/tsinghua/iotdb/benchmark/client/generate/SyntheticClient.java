@@ -42,6 +42,7 @@ public class SyntheticClient extends GenerateBaseClient {
 
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
+
   private static final double THRESHOLD = 0.0000001D;
 
   public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
@@ -120,34 +121,34 @@ public class SyntheticClient extends GenerateBaseClient {
               int point2 = status2.getQueryResultPointNum();
               if (point1 != point2) {
                 isError = true;
-              }else if(point1 != 0){
+              } else if (point1 != 0) {
                 List<List<Object>> records1 = status1.getRecords();
                 List<List<Object>> records2 = status2.getRecords();
                 boolean needSort = true;
-                if(query instanceof RangeQuery){
-                  if(((RangeQuery) query).isDesc()){
+                if (query instanceof RangeQuery) {
+                  if (((RangeQuery) query).isDesc()) {
                     needSort = false;
                   }
                 }
-                if(needSort){
+                if (needSort) {
                   Collections.sort(records1, new RecordComparator());
                   Collections.sort(records2, new RecordComparator());
                 }
                 // 顺序比较
-                for(int i = 0; i < point1; i++){
+                for (int i = 0; i < point1; i++) {
                   List<Object> record1 = records1.get(i);
                   List<Object> record2 = records2.get(i);
-                  for(int j = 0; j < record1.size(); j++){
+                  for (int j = 0; j < record1.size(); j++) {
                     String r1 = String.valueOf(record1.get(j));
                     String r2 = String.valueOf(record2.get(j));
-                    if(!r1.equals(r2)){
+                    if (!r1.equals(r2)) {
                       isError = true;
                     }
                   }
                 }
               }
             }
-            if(isError){
+            if (isError) {
               doErrorLog(query.getClass().getSimpleName(), status1, status2);
             }
           }

@@ -305,7 +305,8 @@ public class TimescaleDB implements IDatabase {
     StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, rangeQuery);
     addOrderByClause(builder);
-    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
+    return executeQueryAndGetStatus(
+        builder.toString(), sensorNum, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   @Override
@@ -316,7 +317,8 @@ public class TimescaleDB implements IDatabase {
     addWhereValueClause(
         valueRangeQuery.getDeviceSchema(), builder, valueRangeQuery.getValueThreshold());
     addOrderByClause(builder);
-    return executeQueryAndGetStatus(builder.toString(), sensorNum, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
+    return executeQueryAndGetStatus(
+        builder.toString(), sensorNum, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -371,11 +373,11 @@ public class TimescaleDB implements IDatabase {
           if (config.isIS_VERIFICATION()) {
             List<Object> record = new ArrayList<>();
             for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-              switch (operation){
+              switch (operation) {
                 case AGG_RANGE_QUERY:
                 case AGG_VALUE_QUERY:
                 case AGG_RANGE_VALUE_QUERY:
-                  if(i == 1){
+                  if (i == 1) {
                     continue;
                   }
                   break;

@@ -24,15 +24,15 @@ import java.util.List;
 
 public class RecordComparator implements Comparator<List<Object>> {
 
-    @Override
-    public int compare(List<Object> o1, List<Object> o2) {
-        Object object1 = o1.get(0);
-        Object object2 = o2.get(0);
-        if(object1 instanceof Integer){
-            return (Integer) object1 - (Integer) object2;
-        }else if(object1 instanceof Long){
-            return Integer.parseInt(((Long) object1 - (Long) object2)+"");
-        }
-        return 0;
+  @Override
+  public int compare(List<Object> o1, List<Object> o2) {
+    Object object1 = o1.get(0);
+    Object object2 = o2.get(0);
+    if (object1 instanceof Integer) {
+      return (Integer) object1 - (Integer) object2;
+    } else if (object1 instanceof Long) {
+      return Integer.parseInt(((Long) object1 - (Long) object2) + "");
     }
+    return 0;
+  }
 }

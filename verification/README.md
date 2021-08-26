@@ -2,8 +2,7 @@ Benchmark for Verification
 ---
 
 # environment
-1. IoTDB v0.12
-2. TimescaleDB
+目前仅仅支持IoTDB v0.12和TimescaleDB进行正确性验证
 
 # 相关模式
 1. testWithDefaultPath 使用benchmark生成数据集后正确性验证。

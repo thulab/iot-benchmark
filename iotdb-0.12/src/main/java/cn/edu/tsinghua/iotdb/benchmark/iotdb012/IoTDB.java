@@ -19,13 +19,13 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
@@ -587,9 +587,9 @@ public class IoTDB implements IDatabase {
                       if (config.isIS_VERIFICATION()) {
                         List<Object> record = new ArrayList<>();
                         for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                          switch (operation){
+                          switch (operation) {
                             case LATEST_POINT_QUERY:
-                              if(i == 2){
+                              if (i == 2) {
                                 continue;
                               }
                               break;
