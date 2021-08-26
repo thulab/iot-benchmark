@@ -157,6 +157,7 @@ public interface IDatabase {
 
   /** Using in verification */
   default Status verificationQuery(VerificationQuery verificationQuery) {
+    // TODO Optimize way to check
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
   };

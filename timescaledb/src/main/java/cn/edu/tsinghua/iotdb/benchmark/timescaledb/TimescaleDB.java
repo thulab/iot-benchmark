@@ -317,6 +317,40 @@ public class TimescaleDB implements IDatabase {
         builder.toString(), sensorNum, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    int result = 0;
+    for (Record record : verificationQuery.getRecords()) {
+      String sql = getSampleQuerySqlHead(deviceSchemas).append(" AND time = ").append(record.getTimestamp()).toString();
+      try (Statement statement = connection.createStatement()) {
+        ResultSet resultSet = statement.executeQuery(sql);
+        resultSet.next();
+        List<Object> records = record.getRecordDataValue();
+        for (int i = 0; i < record.getRecordDataValue().size(); i++) {
+          String testRecord = String.valueOf(records.get(i));
+          String value = String.valueOf(resultSet.getObject(i + 3));
+          if (!value.equals(testRecord)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + testRecord);
+          } else {
+            result++;
+          }
+        }
+      } catch (Exception e) {
+        LOGGER.error(e.getMessage());
+        LOGGER.error("Query Error: " + sql);
+      }
+    }
+    return new Status(true, result);
+  }
+
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);

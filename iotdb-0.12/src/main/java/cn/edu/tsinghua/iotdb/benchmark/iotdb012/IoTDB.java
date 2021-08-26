@@ -666,7 +666,6 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) {
-    // TODO
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -682,7 +681,7 @@ public class IoTDB implements IDatabase {
           String value = resultSet.getString(i + 2);
           String target = String.valueOf(records.get(i));
           if (!value.equals(target)) {
-            LOGGER.error("Using SQL: " + sql + ",Expected:" + records + " but was: " + target);
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
           } else {
             result++;
           }
