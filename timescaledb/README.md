@@ -4,7 +4,7 @@ Benchmark for timescaleDB
 # environment
 1. use docker:
     1. run timescaleDB:`docker run -it --rm -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=postgres timescale/timescaledb:latest-pg12`
-       1. username:postgres, password:123456
+       1. username:postgres, password:postgres
        2. default username and password: postgres
     2. access timescaleDB:`docker exec -it timescaledb psql -U postgres`
 2. more details: https://hub.docker.com/r/timescale/timescaledb/
