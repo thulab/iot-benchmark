@@ -120,7 +120,14 @@ public class SyntheticClient extends GenerateBaseClient {
               int point1 = status1.getQueryResultPointNum();
               int point2 = status2.getQueryResultPointNum();
               if (point1 != point2) {
-                LOGGER.error(query.getClass().getSimpleName() + " DB1 point: " + point1 + " and DB2 point: " + point2 + " " + query.getQueryAttrs());
+                LOGGER.error(
+                    query.getClass().getSimpleName()
+                        + " DB1 point: "
+                        + point1
+                        + " and DB2 point: "
+                        + point2
+                        + " "
+                        + query.getQueryAttrs());
               }
             }
           }

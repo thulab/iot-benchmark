@@ -329,7 +329,11 @@ public class TimescaleDB implements IDatabase {
     deviceSchemas.add(deviceSchema);
     int result = 0;
     for (Record record : verificationQuery.getRecords()) {
-      String sql = getSampleQuerySqlHead(deviceSchemas).append(" AND time = ").append(record.getTimestamp()).toString();
+      String sql =
+          getSampleQuerySqlHead(deviceSchemas)
+              .append(" AND time = ")
+              .append(record.getTimestamp())
+              .toString();
       try (Statement statement = connection.createStatement()) {
         ResultSet resultSet = statement.executeQuery(sql);
         resultSet.next();
