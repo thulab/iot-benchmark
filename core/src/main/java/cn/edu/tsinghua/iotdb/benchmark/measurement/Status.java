@@ -33,6 +33,8 @@ public class Status {
   private Exception exception;
   /** errorMessage is our self-defined message used to logged, it can be error SQL or anything */
   private String errorMessage;
+  /** SQL */
+  private String sql;
   /** results */
   private List<List<String>> records;
 
@@ -45,9 +47,10 @@ public class Status {
     this.queryResultPointNum = queryResultPointNum;
   }
 
-  public Status(boolean isOk, int queryResultPointNum, List<List<String>> records) {
+  public Status(boolean isOk, int queryResultPointNum, String sql, List<List<String>> records) {
     this.isOk = isOk;
     this.queryResultPointNum = queryResultPointNum;
+    this.sql = sql;
     this.records = records;
   }
 
@@ -86,6 +89,10 @@ public class Status {
 
   public List<List<String>> getRecords() {
     return records;
+  }
+
+  public String getSql() {
+    return sql;
   }
 
   public boolean isOk() {

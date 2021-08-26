@@ -122,8 +122,14 @@ public class SyntheticClient extends GenerateBaseClient {
                         + point1
                         + " and DB2 point: "
                         + point2
-                        + " "
-                        + query.getQueryAttrs());
+                        + "\n"
+                        + config.getDbConfig().getDB_SWITCH()
+                        + ":"
+                        + status1.getSql()
+                        + "\n"
+                        + config.getANOTHER_DBConfig().getDB_SWITCH()
+                        + ":"
+                        + status2.getSql());
               }
             }
           }

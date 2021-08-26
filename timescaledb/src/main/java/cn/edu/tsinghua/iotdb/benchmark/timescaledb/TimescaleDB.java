@@ -268,11 +268,13 @@ public class TimescaleDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     int sensorNum = groupByQuery.getDeviceSchema().get(0).getSensors().size();
+    long offset = groupByQuery.getStartTimestamp() % groupByQuery.getGranularity();
     StringBuilder builder =
         getGroupByQuerySqlHead(
             groupByQuery.getDeviceSchema(),
             groupByQuery.getAggFun(),
-            groupByQuery.getGranularity());
+            groupByQuery.getGranularity(),
+            offset);
     addWhereTimeClause(builder, groupByQuery);
     builder.append(" GROUP BY sampleTime");
     return executeQueryAndGetStatus(builder.toString(), sensorNum);
@@ -378,7 +380,7 @@ public class TimescaleDB implements IDatabase {
       }
       queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
       if (config.isIS_VERIFICATION()) {
-        return new Status(true, queryResultPointNum, records);
+        return new Status(true, queryResultPointNum, sql, records);
       } else {
         return new Status(true, queryResultPointNum);
       }
@@ -404,9 +406,15 @@ public class TimescaleDB implements IDatabase {
    * metrics WHERE (device='d_1' OR device='d_2').
    */
   private StringBuilder getGroupByQuerySqlHead(
-      List<DeviceSchema> devices, String aggFun, long timeUnit) {
+      List<DeviceSchema> devices, String aggFun, long timeUnit, long offset) {
     StringBuilder builder = new StringBuilder();
-    builder.append("SELECT time_bucket(").append(timeUnit).append(", time) AS sampleTime");
+
+    builder
+        .append("SELECT time_bucket(")
+        .append(timeUnit)
+        .append(", time, ")
+        .append(offset)
+        .append(") AS sampleTime");
 
     addFunSensor(aggFun, builder, devices.get(0).getSensors());
 
@@ -456,7 +464,7 @@ public class TimescaleDB implements IDatabase {
    */
   private static void addWhereTimeClause(StringBuilder builder, RangeQuery rangeQuery) {
     builder.append(" AND (time >= ").append(rangeQuery.getStartTimestamp());
-    builder.append(" and time <= ").append(rangeQuery.getEndTimestamp()).append(") ");
+    builder.append(" and time < ").append(rangeQuery.getEndTimestamp()).append(") ");
   }
 
   /**

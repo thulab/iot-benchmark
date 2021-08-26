@@ -610,7 +610,7 @@ public class IoTDB implements IDatabase {
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
       if (config.isIS_VERIFICATION()) {
-        return new Status(true, queryResultPointNum.get(), records);
+        return new Status(true, queryResultPointNum.get(), sql, records);
       } else {
         return new Status(true, queryResultPointNum.get());
       }
