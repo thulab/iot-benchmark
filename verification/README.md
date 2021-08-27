@@ -28,4 +28,5 @@ Benchmark for Verification and Double-Write
 3. 最后使用verificationQueryMode查询两个数据库中数据集（点查询），相关配置文件为[generate query config](conf/generate-query.properties)
 
 # 双写模式
-双写模式仅支持不同数据库之间进行比较，不支持同一个数据库不同版本进行双写
+1. 双写模式仅支持不同数据库之间进行比较，不支持同一个数据库不同版本进行双写
+2. 对于influxdb只支持v2.0+
