@@ -358,7 +358,11 @@ public class InfluxDB implements IDatabase {
                 deviceSchema.getDevice(),
                 aggRangeQuery.getStartTimestamp() / 1000,
                 aggRangeQuery.getEndTimestamp() / 1000);
-        sql += "\n  |> " + aggRangeQuery.getAggFun();
+        String aggFun = aggRangeQuery.getAggFun();
+        if(!aggFun.contains("()")){
+          aggFun += "()";
+        }
+        sql += "\n  |> " + aggFun;
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -382,7 +386,11 @@ public class InfluxDB implements IDatabase {
         // note that flux not support without range
         sql +=
             "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggValueQuery.getValueThreshold() + ")";
-        sql += "\n  |> " + aggValueQuery.getAggFun();
+        String aggFun = aggValueQuery.getAggFun();
+        if(!aggFun.contains("()")){
+          aggFun += "()";
+        }
+        sql += "\n  |> " + aggFun;
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -408,7 +416,11 @@ public class InfluxDB implements IDatabase {
               "\n  |> filter(fn: (r) => r[\"_value\"] > "
                   + aggRangeValueQuery.getValueThreshold()
                   + ")";
-          sql += "\n  |> " + aggRangeValueQuery.getAggFun();
+          String aggFun = aggRangeValueQuery.getAggFun();
+          if(!aggFun.contains("()")){
+            aggFun += "()";
+          }
+          sql += "\n  |> " + aggFun;
           Status status = executeQueryAndGetStatus(sql);
           result += status.getQueryResultPointNum();
         } catch (Exception e) {
