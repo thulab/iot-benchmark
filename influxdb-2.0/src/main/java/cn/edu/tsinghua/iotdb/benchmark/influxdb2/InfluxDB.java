@@ -31,7 +31,6 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
@@ -57,7 +56,7 @@ public class InfluxDB implements IDatabase {
 
   private String influxUrl;
   private String influxDbName;
-  private InfluxDBClient client;
+  private com.influxdb.client.InfluxDBClient client;
 
   /** constructor. */
   public InfluxDB(DBConfig dbConfig) {
@@ -519,7 +518,9 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    if(!config.isIS_QUIET_MODE()){
+      LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
     int cnt = 0;
     List<FluxTable> tables = client.getQueryApi().query(sql);
     for (FluxTable table : tables) {
