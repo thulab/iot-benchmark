@@ -359,7 +359,7 @@ public class InfluxDB implements IDatabase {
                 aggRangeQuery.getStartTimestamp() / 1000,
                 aggRangeQuery.getEndTimestamp() / 1000);
         String aggFun = aggRangeQuery.getAggFun();
-        if(!aggFun.contains("()")){
+        if (!aggFun.contains("()")) {
           aggFun += "()";
         }
         sql += "\n  |> " + aggFun;
@@ -387,7 +387,7 @@ public class InfluxDB implements IDatabase {
         sql +=
             "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggValueQuery.getValueThreshold() + ")";
         String aggFun = aggValueQuery.getAggFun();
-        if(!aggFun.contains("()")){
+        if (!aggFun.contains("()")) {
           aggFun += "()";
         }
         sql += "\n  |> " + aggFun;
@@ -417,7 +417,7 @@ public class InfluxDB implements IDatabase {
                   + aggRangeValueQuery.getValueThreshold()
                   + ")";
           String aggFun = aggRangeValueQuery.getAggFun();
-          if(!aggFun.contains("()")){
+          if (!aggFun.contains("()")) {
             aggFun += "()";
           }
           sql += "\n  |> " + aggFun;
