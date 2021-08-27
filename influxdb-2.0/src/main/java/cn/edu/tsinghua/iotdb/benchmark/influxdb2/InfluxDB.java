@@ -518,7 +518,7 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    if(!config.isIS_QUIET_MODE()){
+    if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
     int cnt = 0;
