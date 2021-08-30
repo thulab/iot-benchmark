@@ -154,7 +154,18 @@ public class InfluxDB implements IDatabase {
 
   @Override
   public Status insertOneSensorBatch(Batch batch) {
-    return null;
+    try {
+      LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
+      List<String> lines = new ArrayList<>();
+      for (InfluxDBModel influxDBModel : influxDBModels) {
+        lines.add(model2write(influxDBModel));
+      }
+      HttpRequestUtil.sendPost(
+          CREATE_URL, String.join("\n", lines), "text/plain; version=0.0.4; charset=utf-8", token);
+      return new Status(true);
+    } catch (Exception e) {
+      return new Status(false, 0, e, e.getMessage());
+    }
   }
 
   private String model2write(InfluxDBModel influxDBModel) {
@@ -216,31 +227,12 @@ public class InfluxDB implements IDatabase {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     List<Record> records = batch.getRecords();
     List<String> sensors = deviceSchema.getSensors();
-    int sensorNum = sensors.size();
     LinkedList<InfluxDBModel> models = new LinkedList<>();
 
     for (Record record : records) {
-      if (batch.getColIndex() != -1) {
-        // insert one line
-        InfluxDBModel model =
-            createModel(
-                deviceSchema.getGroup(),
-                deviceSchema.getDevice(),
-                record,
-                deviceSchema.getSensors());
-        models.addLast(model);
-      } else {
-        // insert align data
-        for (int j = 0; j < sensorNum; j++) {
-          InfluxDBModel model =
-              createModel(
-                  deviceSchema.getGroup(),
-                  deviceSchema.getDevice(),
-                  record,
-                  deviceSchema.getSensors());
-          models.addLast(model);
-        }
-      }
+      InfluxDBModel model =
+          createModel(deviceSchema.getGroup(), deviceSchema.getDevice(), record, sensors);
+      models.addLast(model);
     }
     return models;
   }
