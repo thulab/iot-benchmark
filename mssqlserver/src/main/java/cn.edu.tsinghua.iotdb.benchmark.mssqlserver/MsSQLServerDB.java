@@ -50,7 +50,21 @@ public class MsSQLServerDB implements IDatabase {
           + "([pk_fk_Id] ASC,\n"
           + "[pk_TimeStamp] ASC\n"
           + ") WITH (IGNORE_DUP_KEY = ON) ON [PRIMARY]\n"
-          + ")ON [PRIMARY]";
+          + ")ON [PRIMARY]\n"
+          + "With (DATA_COMPRESSION = %s)";
+  private static final String INSERT_SQL = "Insert into %s values(?,?,?)";
+  private static final String[] SELECT_SQL = {
+    "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp = ?",
+    "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ?",
+    "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? and value > ?",
+    "SELECT * from %s, (select max(pk_TimeStamp) as target from %s where pk_fk_Id in (?)) as m where pk_fk_Id in (?) and pk_TimeStamp=m.target",
+    "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? order by pk_TimeStamp desc",
+    "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? and value > ? order by pk_TimeStamp desc",
+  };
+
+  private PreparedStatement[] insertStatements = new PreparedStatement[6];
+  // first: type second: query index
+  private PreparedStatement[][] queryStatements = new PreparedStatement[6][6];
 
   private static final String DELETE_TABLE = "drop table if exists %s_%s";
   /**
@@ -62,6 +76,22 @@ public class MsSQLServerDB implements IDatabase {
     try {
       Class.forName(DBDRIVER);
       connection = DriverManager.getConnection(DBURL, DBUSER, DBPASSWORD);
+
+      // init preparedStatement
+      for (Type type : Type.values()) {
+        String db = config.getDB_NAME() + "_" + typeMap(type);
+        String insertSql = String.format(INSERT_SQL, db);
+        insertStatements[type.index - 1] = connection.prepareStatement(insertSql);
+        for (int i = 0; i < SELECT_SQL.length; i++) {
+          String query;
+          if (i == 3) {
+            query = String.format(SELECT_SQL[i], db, db);
+          } else {
+            query = String.format(SELECT_SQL[i], db);
+          }
+          queryStatements[type.index - 1][i] = connection.prepareStatement(query);
+        }
+      }
     } catch (Exception e) {
       e.printStackTrace();
       LOGGER.warn("Connect Error!");
@@ -114,24 +144,19 @@ public class MsSQLServerDB implements IDatabase {
         }
         String sysType = typeMap(type);
         String createSQL =
-            String.format(CREATE_TABLE, config.getDB_NAME(), sysType, sysType, sysType);
-        createSQL = addCompress(createSQL);
+            String.format(
+                CREATE_TABLE,
+                config.getDB_NAME(),
+                sysType,
+                sysType,
+                sysType,
+                config.getCOMPRESSION());
         statement.execute(createSQL);
       }
       statement.close();
     } catch (SQLException sqlException) {
       LOGGER.warn("Failed to register", sqlException);
     }
-  }
-
-  /**
-   * Add compress to table
-   *
-   * @param sql
-   * @return
-   */
-  private String addCompress(String sql) {
-    return sql + "\nWith (DATA_COMPRESSION = " + config.getCOMPRESSION() + ")";
   }
 
   /**
@@ -147,57 +172,27 @@ public class MsSQLServerDB implements IDatabase {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
     try {
-      Statement statement = connection.createStatement();
       for (Record record : batch.getRecords()) {
-        String time = format.format(record.getTimestamp());
         List<Object> values = record.getRecordDataValue();
         for (int i = 0; i < values.size(); i++) {
-          statement.addBatch(
-              getOneLine(
-                  idPredix,
-                  i,
-                  time,
-                  values.get(i),
-                  deviceSchema.getDevice(),
-                  deviceSchema.getSensors()));
+          addBatch(
+              idPredix,
+              i,
+              record.getTimestamp(),
+              values.get(i),
+              deviceSchema.getDevice(),
+              deviceSchema.getSensors());
         }
       }
-      statement.executeBatch();
-      statement.close();
+      for (PreparedStatement preparedStatement : insertStatements) {
+        preparedStatement.executeBatch();
+        preparedStatement.clearParameters();
+      }
       return new Status(true);
     } catch (SQLException e) {
       LOGGER.error("Write batch failed");
       return new Status(false, 0, e, e.getMessage());
     }
-  }
-
-  private String getOneLine(
-      long idPredix,
-      int sensorIndex,
-      String time,
-      Object value,
-      String device,
-      List<String> sensors) {
-    long sensorNow = sensorIndex + idPredix;
-    String sysType = typeMap(baseDataSchema.getSensorType(device, sensors.get(sensorIndex)));
-    StringBuffer sql =
-        new StringBuffer("INSERT INTO ")
-            .append(config.getDB_NAME() + "_" + sysType)
-            .append(" values (");
-    sql.append(sensorNow).append(",");
-    sql.append("'").append(time).append("',");
-    if (sysType.equals("bit")) {
-      if ((boolean) value) {
-        sql.append("1").append(")");
-      } else {
-        sql.append("0").append(")");
-      }
-    } else if (sysType.equals("text")) {
-      sql.append("'").append(value).append("')");
-    } else {
-      sql.append(value).append(")");
-    }
-    return sql.toString();
   }
 
   /**
@@ -213,20 +208,21 @@ public class MsSQLServerDB implements IDatabase {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
     try {
-      Statement statement = connection.createStatement();
+      PreparedStatement statement = connection.prepareStatement(INSERT_SQL);
       for (Record record : batch.getRecords()) {
-        String time = format.format(record.getTimestamp());
         List<Object> values = record.getRecordDataValue();
-        statement.addBatch(
-            getOneLine(
-                idPredix,
-                batch.getColIndex(),
-                time,
-                values.get(0),
-                deviceSchema.getDevice(),
-                deviceSchema.getSensors()));
+        addBatch(
+            idPredix,
+            batch.getColIndex(),
+            record.getTimestamp(),
+            values.get(0),
+            deviceSchema.getDevice(),
+            deviceSchema.getSensors());
       }
-      statement.executeBatch();
+      for (PreparedStatement preparedStatement : insertStatements) {
+        preparedStatement.executeBatch();
+        preparedStatement.clearParameters();
+      }
       statement.close();
       return new Status(true);
     } catch (SQLException e) {
@@ -234,6 +230,45 @@ public class MsSQLServerDB implements IDatabase {
       LOGGER.error("Write batch failed");
       return new Status(false, 0, e, e.getMessage());
     }
+  }
+
+  /**
+   * Add Data into batch
+   *
+   * @param idPredix
+   * @param sensorIndex
+   * @param time
+   * @param value
+   * @param device
+   * @param sensors
+   * @throws SQLException
+   */
+  private void addBatch(
+      long idPredix, int sensorIndex, long time, Object value, String device, List<String> sensors)
+      throws SQLException {
+    long sensorNow = sensorIndex + idPredix;
+    Type type = baseDataSchema.getSensorType(device, sensors.get(sensorIndex));
+    String valueStr = "";
+    switch (type) {
+      case BOOLEAN:
+        if ((boolean) value) {
+          valueStr = "1";
+        } else {
+          valueStr = "0";
+        }
+        break;
+      case TEXT:
+        valueStr = "'" + value + "'";
+        break;
+      default:
+        valueStr = String.valueOf(value);
+        break;
+    }
+    PreparedStatement statement = insertStatements[type.index - 1];
+    statement.setLong(1, sensorNow);
+    statement.setDate(2, new Date(time));
+    statement.setString(3, valueStr);
+    statement.addBatch();
   }
 
   /**
@@ -260,23 +295,21 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
-    String time = format.format(preciseQuery.getTimestamp());
+    Date date = new Date(preciseQuery.getTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.values()) {
-          String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
-          sql = addTimeClause(sql, time);
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][0];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, date);
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
@@ -288,28 +321,27 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    String startTime = format.format(rangeQuery.getStartTimestamp());
-    String endTime = format.format(rangeQuery.getEndTimestamp());
+    Date startTime = new Date(rangeQuery.getStartTimestamp());
+    Date endTime = new Date(rangeQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.values()) {
-          String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][1];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("rangeQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -317,29 +349,28 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    String startTime = format.format(valueRangeQuery.getStartTimestamp());
-    String endTime = format.format(valueRangeQuery.getEndTimestamp());
+    Date startTime = new Date(valueRangeQuery.getStartTimestamp());
+    Date endTime = new Date(valueRangeQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.getValueTypes()) {
-          String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][2];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          statement.setDouble(4, valueRangeQuery.getValueThreshold());
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("valueRangeQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -373,7 +404,7 @@ public class MsSQLServerDB implements IDatabase {
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("aggRangeQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -401,7 +432,7 @@ public class MsSQLServerDB implements IDatabase {
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("aggValueQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -433,7 +464,7 @@ public class MsSQLServerDB implements IDatabase {
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("aggRangeValueQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -463,7 +494,7 @@ public class MsSQLServerDB implements IDatabase {
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("groupByQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -472,44 +503,24 @@ public class MsSQLServerDB implements IDatabase {
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        List<String> search = new ArrayList<>();
-        for (String sensor : deviceSchema.getSensors()) {
-          long sensorId = idPrefix + Integer.parseInt(sensor.split("_")[1]);
-          search.add(String.valueOf(sensorId));
-        }
-        String ids = String.join(",", search);
+        String ids = getTargetDevices(idPrefix, deviceSchema.getSensors());
         for (Type type : Type.values()) {
-          String sysType = typeMap(type);
-          String sql =
-              "select * from "
-                  + config.getDB_NAME()
-                  + "_"
-                  + sysType
-                  + ", (select max(pk_TimeStamp) as target from "
-                  + config.getDB_NAME()
-                  + "_"
-                  + sysType
-                  + " where pk_fk_Id in ("
-                  + ids
-                  + ")) as m"
-                  + " where pk_fk_Id in ( "
-                  + ids
-                  + ") and pk_TimeStamp = m.target";
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][3];
+          statement.setString(1, ids);
+          statement.setString(2, ids);
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("latestPointQuery Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -517,29 +528,27 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    String startTime = format.format(rangeQuery.getStartTimestamp());
-    String endTime = format.format(rangeQuery.getEndTimestamp());
+    Date startTime = new Date(rangeQuery.getStartTimestamp());
+    Date endTime = new Date(rangeQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.values()) {
-          String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          sql = addOrderClause(sql);
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][4];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("rangeQueryOrderByDesc Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -547,32 +556,39 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    String startTime = format.format(valueRangeQuery.getStartTimestamp());
-    String endTime = format.format(valueRangeQuery.getEndTimestamp());
+    Date startTime = new Date(valueRangeQuery.getStartTimestamp());
+    Date endTime = new Date(valueRangeQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.getValueTypes()) {
-          String sysType = typeMap(type);
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
-          sql = addOrderClause(sql);
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][5];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          statement.setDouble(4, valueRangeQuery.getValueThreshold());
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("valueRangeQueryOrderByDesc Error!");
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
+  }
+
+  private String getTargetDevices(long device, List<String> sensors) {
+    List<String> search = new ArrayList<>();
+    for (String sensor : sensors) {
+      long sensorId = device + Integer.parseInt(sensor.split("_")[1]);
+      search.add(String.valueOf(sensorId));
+    }
+    return String.join(",", search);
   }
 
   private String getHeader(long device, List<String> sensors, String sysType) {
