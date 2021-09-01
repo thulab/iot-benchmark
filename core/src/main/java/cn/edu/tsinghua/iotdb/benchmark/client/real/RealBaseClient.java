@@ -54,7 +54,8 @@ public abstract class RealBaseClient extends Client implements Runnable {
     // print current progress periodically
     service.scheduleAtFixedRate(
         () -> {
-          String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
+          String percent =
+              String.format("%.2f", (loopIndex + 1) * 100.0D / (loop * config.getDEVICE_NUMBER()));
           LOGGER.info("{} {}% realDataWorkload is done.", currentThread, percent);
         },
         1,
