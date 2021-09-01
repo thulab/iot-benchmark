@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +35,6 @@ public class MsSQLServerDB implements IDatabase {
           + config.getDB_NAME();
   private static final String DBUSER = config.getUSERNAME();
   private static final String DBPASSWORD = config.getPASSWORD();
-  private static final SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
 
   public Connection connection = null;
 
@@ -57,6 +55,10 @@ public class MsSQLServerDB implements IDatabase {
     "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp = ?",
     "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ?",
     "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? and value > ?",
+    "SELECT %s(%s) from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ?",
+    "SELECT %s(%s) from %s where pk_fk_Id in (?) and value > ?",
+    "SELECT %s(%s) from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? and value > ?",
+    "SELECT max(value) from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? group by datediff(ss,'1970-01-01', pk_TimeStamp) / %s",
     "SELECT * from %s, (select max(pk_TimeStamp) as target from %s where pk_fk_Id in (?)) as m where pk_fk_Id in (?) and pk_TimeStamp=m.target",
     "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? order by pk_TimeStamp desc",
     "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? and value > ? order by pk_TimeStamp desc",
@@ -64,7 +66,7 @@ public class MsSQLServerDB implements IDatabase {
 
   private PreparedStatement[] insertStatements = new PreparedStatement[6];
   // first: type second: query index
-  private PreparedStatement[][] queryStatements = new PreparedStatement[6][6];
+  private PreparedStatement[][] queryStatements = new PreparedStatement[6][10];
 
   private static final String DELETE_TABLE = "drop table if exists %s_%s";
   /**
@@ -84,7 +86,15 @@ public class MsSQLServerDB implements IDatabase {
         insertStatements[type.index - 1] = connection.prepareStatement(insertSql);
         for (int i = 0; i < SELECT_SQL.length; i++) {
           String query;
-          if (i == 3) {
+          if (i == 3 || i == 4 || i == 5) {
+            String target = "value";
+            if (config.getQUERY_AGGREGATE_FUN().startsWith("count")) {
+              target = "*";
+            }
+            query = String.format(SELECT_SQL[i], config.getQUERY_AGGREGATE_FUN(), target, db);
+          } else if (i == 6) {
+            query = String.format(SELECT_SQL[i], db, config.getGROUP_BY_TIME_UNIT());
+          } else if (i == 7) {
             query = String.format(SELECT_SQL[i], db, db);
           } else {
             query = String.format(SELECT_SQL[i], db);
@@ -378,10 +388,9 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
-    String startTime = format.format(aggRangeQuery.getStartTimestamp());
-    String endTime = format.format(aggRangeQuery.getEndTimestamp());
+    Date startTime = new Date(aggRangeQuery.getStartTimestamp());
+    Date endTime = new Date(aggRangeQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
@@ -390,17 +399,16 @@ public class MsSQLServerDB implements IDatabase {
           types = Type.values();
         }
         for (Type type : types) {
-          String sysType = typeMap(type);
-          String sql =
-              getHeader(aggRangeQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][3];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
@@ -413,22 +421,19 @@ public class MsSQLServerDB implements IDatabase {
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.getValueTypes()) {
-          String sysType = typeMap(type);
-          String sql =
-              getHeader(aggValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
-          sql = addValueClause(sql, aggValueQuery.getValueThreshold());
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][4];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDouble(2, aggValueQuery.getValueThreshold());
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
@@ -440,27 +445,24 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
-    String startTime = format.format(aggRangeValueQuery.getStartTimestamp());
-    String endTime = format.format(aggRangeValueQuery.getEndTimestamp());
+    Date startTime = new Date(aggRangeValueQuery.getStartTimestamp());
+    Date endTime = new Date(aggRangeValueQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.getValueTypes()) {
-          String sysType = typeMap(type);
-          String sql =
-              getHeader(
-                  aggRangeValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          sql = addValueClause(sql, aggRangeValueQuery.getValueThreshold());
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][5];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          statement.setDouble(4, aggRangeValueQuery.getValueThreshold());
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
@@ -472,25 +474,23 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
-    String startTime = format.format(groupByQuery.getStartTimestamp());
-    String endTime = format.format(groupByQuery.getEndTimestamp());
+    Date startTime = new Date(groupByQuery.getStartTimestamp());
+    Date endTime = new Date(groupByQuery.getEndTimestamp());
     try {
-      Statement statement = connection.createStatement();
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.getValueTypes()) {
-          String sysType = typeMap(type);
-          String sql = getHeader("max", deviceSchema.getSensors(), idPrefix, sysType);
-          sql = addTimeClause(sql, startTime, endTime);
-          sql = addGroupByClause(sql, groupByQuery.getGranularity());
-          ResultSet resultSet = statement.executeQuery(sql);
+          PreparedStatement statement = queryStatements[type.index - 1][6];
+          statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
+          statement.setDate(2, startTime);
+          statement.setDate(3, endTime);
+          ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
           }
         }
       }
-      statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
       sqlException.printStackTrace();
@@ -508,7 +508,7 @@ public class MsSQLServerDB implements IDatabase {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         String ids = getTargetDevices(idPrefix, deviceSchema.getSensors());
         for (Type type : Type.values()) {
-          PreparedStatement statement = queryStatements[type.index - 1][3];
+          PreparedStatement statement = queryStatements[type.index - 1][7];
           statement.setString(1, ids);
           statement.setString(2, ids);
           ResultSet resultSet = statement.executeQuery();
@@ -535,7 +535,7 @@ public class MsSQLServerDB implements IDatabase {
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.values()) {
-          PreparedStatement statement = queryStatements[type.index - 1][4];
+          PreparedStatement statement = queryStatements[type.index - 1][8];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setDate(2, startTime);
           statement.setDate(3, endTime);
@@ -563,7 +563,7 @@ public class MsSQLServerDB implements IDatabase {
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         for (Type type : Type.getValueTypes()) {
-          PreparedStatement statement = queryStatements[type.index - 1][5];
+          PreparedStatement statement = queryStatements[type.index - 1][9];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setDate(2, startTime);
           statement.setDate(3, endTime);
