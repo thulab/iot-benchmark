@@ -344,7 +344,7 @@ public class TimescaleDB implements IDatabase {
         List<Object> records = record.getRecordDataValue();
         for (int i = 0; i < record.getRecordDataValue().size(); i++) {
           String testRecord = String.valueOf(records.get(i));
-          String value = String.valueOf(resultSet.getObject(i + 3));
+          String value = String.valueOf(resultSet.getObject(i + 2));
           if (!value.equals(testRecord)) {
             LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + testRecord);
           } else {
