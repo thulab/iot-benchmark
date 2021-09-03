@@ -63,7 +63,7 @@ public class MsSQLServerDB implements IDatabase {
   private static final String DELETE_TABLE = "drop table if exists %s_%s";
   private DBConfig dbConfig;
 
-  public MsSQLServerDB(DBConfig dbConfig){
+  public MsSQLServerDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
   }
 
@@ -75,12 +75,16 @@ public class MsSQLServerDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       Class.forName(DBDRIVER);
-      connection = DriverManager.getConnection("jdbc:sqlserver://"
-              + dbConfig.getHOST().get(0)
-              + ":"
-              + dbConfig.getPORT().get(0)
-              + ";DataBaseName="
-              + dbConfig.getDB_NAME(), dbConfig.getUSERNAME(), dbConfig.getPASSWORD());
+      connection =
+          DriverManager.getConnection(
+              "jdbc:sqlserver://"
+                  + dbConfig.getHOST().get(0)
+                  + ":"
+                  + dbConfig.getPORT().get(0)
+                  + ";DataBaseName="
+                  + dbConfig.getDB_NAME(),
+              dbConfig.getUSERNAME(),
+              dbConfig.getPASSWORD());
 
       // init preparedStatement
       for (Type type : Type.values()) {
