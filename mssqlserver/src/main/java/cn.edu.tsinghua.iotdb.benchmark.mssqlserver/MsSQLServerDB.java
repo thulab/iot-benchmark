@@ -276,7 +276,7 @@ public class MsSQLServerDB implements IDatabase {
     }
     PreparedStatement statement = insertStatements[type.index - 1];
     statement.setLong(1, sensorNow);
-    statement.setDate(2, new Date(time));
+    statement.setTimestamp(2, new Timestamp(time));
     statement.setString(3, valueStr);
     statement.addBatch();
   }
@@ -305,7 +305,7 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
-    Date date = new Date(preciseQuery.getTimestamp());
+    Timestamp timestamp = new Timestamp(preciseQuery.getTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -313,7 +313,7 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.values()) {
           PreparedStatement statement = queryStatements[type.index - 1][0];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, date);
+          statement.setTimestamp(2, timestamp);
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
@@ -331,8 +331,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    Date startTime = new Date(rangeQuery.getStartTimestamp());
-    Date endTime = new Date(rangeQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(rangeQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(rangeQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -340,8 +340,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.values()) {
           PreparedStatement statement = queryStatements[type.index - 1][1];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
@@ -359,8 +359,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    Date startTime = new Date(valueRangeQuery.getStartTimestamp());
-    Date endTime = new Date(valueRangeQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(valueRangeQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(valueRangeQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -368,8 +368,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.getValueTypes()) {
           PreparedStatement statement = queryStatements[type.index - 1][2];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           statement.setDouble(4, valueRangeQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
@@ -388,8 +388,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
-    Date startTime = new Date(aggRangeQuery.getStartTimestamp());
-    Date endTime = new Date(aggRangeQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(aggRangeQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(aggRangeQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -401,8 +401,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : types) {
           PreparedStatement statement = queryStatements[type.index - 1][3];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
@@ -445,8 +445,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
-    Date startTime = new Date(aggRangeValueQuery.getStartTimestamp());
-    Date endTime = new Date(aggRangeValueQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(aggRangeValueQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(aggRangeValueQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -454,8 +454,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.getValueTypes()) {
           PreparedStatement statement = queryStatements[type.index - 1][5];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           statement.setDouble(4, aggRangeValueQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
@@ -474,8 +474,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
-    Date startTime = new Date(groupByQuery.getStartTimestamp());
-    Date endTime = new Date(groupByQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(groupByQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(groupByQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -483,8 +483,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.getValueTypes()) {
           PreparedStatement statement = queryStatements[type.index - 1][6];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
@@ -528,8 +528,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    Date startTime = new Date(rangeQuery.getStartTimestamp());
-    Date endTime = new Date(rangeQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(rangeQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(rangeQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -537,8 +537,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.values()) {
           PreparedStatement statement = queryStatements[type.index - 1][8];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
             result++;
@@ -556,8 +556,8 @@ public class MsSQLServerDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    Date startTime = new Date(valueRangeQuery.getStartTimestamp());
-    Date endTime = new Date(valueRangeQuery.getEndTimestamp());
+    Timestamp startTime = new Timestamp(valueRangeQuery.getStartTimestamp());
+    Timestamp endTime = new Timestamp(valueRangeQuery.getEndTimestamp());
     try {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -565,8 +565,8 @@ public class MsSQLServerDB implements IDatabase {
         for (Type type : Type.getValueTypes()) {
           PreparedStatement statement = queryStatements[type.index - 1][9];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
-          statement.setDate(2, startTime);
-          statement.setDate(3, endTime);
+          statement.setTimestamp(2, startTime);
+          statement.setTimestamp(3, endTime);
           statement.setDouble(4, valueRangeQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery();
           while (resultSet.next()) {
