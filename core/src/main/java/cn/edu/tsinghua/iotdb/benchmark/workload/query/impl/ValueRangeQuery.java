@@ -26,7 +26,6 @@ import java.util.List;
 public class ValueRangeQuery extends RangeQuery {
 
   private double valueThreshold;
-  private boolean desc = false;
 
   public ValueRangeQuery(
       List<DeviceSchema> deviceSchema,
@@ -41,11 +40,15 @@ public class ValueRangeQuery extends RangeQuery {
     return valueThreshold;
   }
 
-  public void setDesc(boolean desc) {
-    this.desc = desc;
-  }
-
-  public boolean isDesc() {
-    return desc;
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    StringBuilder stringBuilder = super.getQueryAttrs();
+    stringBuilder.append(" valueThreshold=").append(valueThreshold);
+    return stringBuilder;
   }
 }

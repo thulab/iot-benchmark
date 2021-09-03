@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -43,18 +44,24 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
+  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
   protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
-  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
+  protected final String ROOT_SERIES_NAME;
+  protected DBConfig dbConfig;
+
   private static final String CREATE_SERIES_SQL =
       "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s";
   private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  private static final String DELETE_SERIES_SQL = "delete timeseries root." + config.getDB_NAME();
-  private Connection connection;
   private static final String ALREADY_KEYWORD = "already";
+  private final String DELETE_SERIES_SQL;
+  private Connection connection;
 
-  public IoTDB() {}
+  public IoTDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
+    DELETE_SERIES_SQL = "delete timeseries root." + dbConfig.getDB_NAME();
+  }
 
   @Override
   public void init() throws TsdbException {
@@ -66,9 +73,9 @@ public class IoTDB implements IDatabase {
 
       connection =
           DriverManager.getConnection(
-              String.format(JDBC_URL, config.getHOST().get(0), config.getPORT().get(0)),
-              config.getUSERNAME(),
-              config.getPASSWORD());
+              String.format(JDBC_URL, dbConfig.getHOST().get(0), dbConfig.getPORT().get(0)),
+              dbConfig.getUSERNAME(),
+              dbConfig.getPASSWORD());
     } catch (Exception e) {
       LOGGER.error("Initialize IoTDB failed because ", e);
       throw new TsdbException(e);
@@ -367,7 +374,7 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
-  public static String getInsertOneBatchSql(
+  public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder
@@ -402,7 +409,7 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
-  public static String getInsertOneBatchSql(
+  public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
     StringBuilder builder = new StringBuilder();
     builder

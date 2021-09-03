@@ -46,10 +46,12 @@
   - [7.4. 测试 QuestDB](#74-测试-questdb)
   - [7.5. 测试 SQLite](#75-测试-sqlite)
   - [7.6. 测试 Victoriametrics](#76-测试-victoriametrics)
-- [8. 自动执行多项测试](#8-自动执行多项测试)
-  - [8.1. 配置 routine](#81-配置-routine)
-  - [8.2. 开始测试](#82-开始测试)
-- [9. 相关文章](#9-相关文章)
+  - [7.7. 测试 TimeScaleDB](#77-测试-timescaledb)
+- [8. 执行正确性验证](#8-执行正确性验证)
+- [9. 自动执行多项测试](#9-自动执行多项测试)
+  - [9.1. 配置 routine](#91-配置-routine)
+  - [9.2. 开始测试](#92-开始测试)
+- [10. 相关文章](#10-相关文章)
 
 <!-- /TOC -->
 
@@ -128,7 +130,7 @@ mvn clean package -Dmaven.test.skip=true
 
 |        数据库        |   版本   |   对应子项目    |                                                  DB_SWITCH                                                  |
 | :------------------: | :------: | :-------------: | :---------------------------------------------------------------------------------------------------------: |
-|        IoTDB         |   0.12   |   iotdb-0.12    | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLE<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
+|        IoTDB         |   0.12   |   iotdb-0.12    | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |        IoTDB         |   0.11   |   iotdb-0.11    |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                        |
 |        IoTDB         |   0.10   |   iotdb-0.10    |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                     |
 |        IoTDB         |   0.9    |   iotdb-0.09    |                                      IoTDB-09-JDBC<br>IoTDB-09-SESSION                                      |
@@ -137,6 +139,7 @@ mvn clean package -Dmaven.test.skip=true
 |       QuestDB        |  v6.0.7  |     questdb     |                                                   QuestDB                                                   |
 | Microsoft SQL Server | 2016 SP2 |   mssqlserver   |                                                 MSSQLSERVER                                                 |
 |   VictoriaMetrics    | v1.64.0  | victoriametrics |                                               VictoriaMetrics                                               |
+|     TimescaleDB      |          |   timescaledb   |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |     sqlite      |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |    opentsdb     |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |    kairosdb     |                                                  KairosDB                                                   |
@@ -722,11 +725,18 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ## 7.6. 测试 Victoriametrics
 [快速指引](victoriametrics/README.md)
 
-# 8. 自动执行多项测试
+## 7.7. 测试 TimeScaleDB
+[快速指引](timescaledb/README.md)
+
+# 8. 执行正确性验证
+1. 目前正确性验证部分仅支持IoTDB v0.12和TimeScaleDB
+2. [快速指引](verification/README.md)
+
+# 9. 自动执行多项测试
 
 通常，除非与其他测试结果进行比较，否则单个测试是没有意义的。因此，我们提供了一个接口来通过一次启动执行多个测试。
 
-## 8.1. 配置 routine
+## 9.1. 配置 routine
 
 这个文件的每一行应该是每个测试过程会改变的参数（否则就变成复制测试）。例如，"例程"文件是：
 
@@ -741,7 +751,7 @@ LOOP=50 DEVICE_NUMBER=20 TEST
 > 注意：
 > 您可以使用“LOOP=20 DEVICE_NUMBER=10 TEST”等格式更改每个测试中的多个参数，不允许使用不必要的空间。 关键字"TEST"意味着新的测试开始。如果您更改不同的参数，更改后的参数将保留在下一次测试中。
 
-## 8.2. 开始测试
+## 9.2. 开始测试
 
 配置文件routine后，还需要修改rep-benchmark.sh和dea-benchmark.sh。您需要将 cli-benchmark.sh 更改为 benchmark.sh
 
@@ -774,7 +784,7 @@ sh $BENCHMARK_HOME/benchmark.sh
 ```
   
 
-# 9. 相关文章
+# 10. 相关文章
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304

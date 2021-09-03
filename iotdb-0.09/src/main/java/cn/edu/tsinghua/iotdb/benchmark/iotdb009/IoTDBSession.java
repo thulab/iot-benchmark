@@ -32,6 +32,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
@@ -46,14 +48,14 @@ public class IoTDBSession extends IoTDB {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private final Session session;
 
-  public IoTDBSession() {
-    super();
+  public IoTDBSession(DBConfig dbConfig) {
+    super(dbConfig);
     session =
         new Session(
-            config.getHOST().get(0),
-            config.getPORT().get(0),
-            config.getUSERNAME(),
-            config.getPASSWORD());
+            dbConfig.getHOST().get(0),
+            dbConfig.getPORT().get(0),
+            dbConfig.getUSERNAME(),
+            dbConfig.getPASSWORD());
     try {
       session.open();
     } catch (IoTDBSessionException e) {
@@ -134,6 +136,19 @@ public class IoTDBSession extends IoTDB {
     } catch (IoTDBSessionException e) {
       System.out.println("failed!");
       throw new DBConnectException(e.getMessage());
+    }
+  }
+
+  @Override
+  public void close() throws TsdbException {
+    super.close();
+    try {
+      if (session != null) {
+        session.close();
+      }
+    } catch (IoTDBSessionException exception) {
+      LOGGER.error("Failed to close session.");
+      throw new TsdbException(exception);
     }
   }
 }

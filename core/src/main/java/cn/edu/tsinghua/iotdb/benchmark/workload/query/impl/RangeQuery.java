@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 
 import java.util.List;
 
-public class RangeQuery {
+public class RangeQuery extends Query {
 
   private List<DeviceSchema> deviceSchema;
   private long startTimestamp;
@@ -54,5 +54,20 @@ public class RangeQuery {
 
   public boolean isDesc() {
     return desc;
+  }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("deviceSchema=").append(deviceSchema);
+    stringBuilder.append(" startTimeStamp=").append(startTimestamp);
+    stringBuilder.append(" endTimeStamp=").append(endTimestamp);
+    stringBuilder.append(" desc=").append(desc);
+    return stringBuilder;
   }
 }

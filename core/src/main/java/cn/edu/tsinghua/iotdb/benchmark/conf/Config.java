@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 
 import javax.xml.bind.JAXBContext;
@@ -69,39 +70,11 @@ public class Config {
   private int BENCHMARK_INDEX = 0;
   /** Calculated in this way: FIRST_DEVICE_INDEX = BENCHMARK_INDEX * DEVICE_NUMBER */
   private int FIRST_DEVICE_INDEX = 0;
-
-  // 初始化：数据库信息
-  /**
-   * The database to use, format: {name of database}{-version}{-insert mode} name of database:
-   * IoTDB, InfluxDB, OpenTSDB, CTSDB, KairosDB, TimescaleDB, FakeDB, TaosDB ... version: take iotdb
-   * for example, 09, 10, 11, 12 insert mode: JDBC, SESSION_BY_TABLET, SESSION_BY_RECORD,
-   * SESSION_BY_RECORDS, SESSION_BY_POOL
-   */
-  private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_012_JDBC;
-
-  // 初始化：被测数据库参数
-  /**
-   * The host of database server for IoTDB, TimescaleDB: eg. 127.0.0.1 for influxDB, opentsDB,
-   * kairosDB, ctsDB: "http://localhost:8086"
-   */
-  private List<String> HOST = Arrays.asList("127.0.0.1");
-  /** The port of database server */
-  private List<String> PORT = Arrays.asList("6667");
-
-  /** The user name of database to use */
-  private String USERNAME = "root";
-  /** The password of user */
-  private String PASSWORD = "root";
-
-  /** The name of database to use, eg.IoTDB root.{DB_NAME} */
-  private String DB_NAME = "_test";
-
-  /** In some database, it will need token to access, such as InfluxDB 2.0 */
-  private String TOKEN = "token";
-
-  // 初始化：分布式数据库
   /** 是否都可见，如果可见就可以向其他node发送 Whether access all nodes, rather than just one coordinator */
   private boolean IS_ALL_NODES_VISIBLE = false;
+
+  // 初始化：被测数据库配置
+  private DBConfig dbConfig = new DBConfig();
 
   // 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
   /** The data dir of IoTDB (Split by comma) */
@@ -115,15 +88,13 @@ public class Config {
   /** The unsequence dirs of IoTDB */
   private List<String> UNSEQUENCE_DIR = new ArrayList<>();
 
-  // 双写模式：目前双写要求相同类型数据库 需要配置第二数据库 + Kafka
-  /** Whether insert into another database in the same time */
-  private boolean ENABLE_DOUBLE_INSERT = false;
-  /** The host of another database server */
-  private List<String> ANOTHER_HOST = Arrays.asList("127.0.0.1");
-  /** The port of another database server */
-  private List<String> ANOTHER_PORT = Arrays.asList("6668");
-  /** The name of another database */
-  private String ANOTHER_DB_NAME = "_test";
+  // 初始化：双写模式
+  /** whether to operate another database */
+  private boolean IS_DOUBLE_WRITE = false;
+  /** Another configuration of db */
+  private DBConfig ANOTHER_DBConfig = new DBConfig();
+  /** Whether run verification when double write */
+  private boolean IS_VERIFICATION = false;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -541,38 +512,6 @@ public class Config {
     this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
   }
 
-  public DBSwitch getDB_SWITCH() {
-    return DB_SWITCH;
-  }
-
-  public void setDB_SWITCH(DBSwitch DB_SWITCH) {
-    this.DB_SWITCH = DB_SWITCH;
-  }
-
-  public List<String> getHOST() {
-    return HOST;
-  }
-
-  public void setHOST(List<String> HOST) {
-    this.HOST = HOST;
-  }
-
-  public List<String> getPORT() {
-    return PORT;
-  }
-
-  public void setPORT(List<String> PORT) {
-    this.PORT = PORT;
-  }
-
-  public String getDB_NAME() {
-    return DB_NAME;
-  }
-
-  public void setDB_NAME(String DB_NAME) {
-    this.DB_NAME = DB_NAME;
-  }
-
   public boolean isIS_ALL_NODES_VISIBLE() {
     return IS_ALL_NODES_VISIBLE;
   }
@@ -619,38 +558,6 @@ public class Config {
 
   public void setUNSEQUENCE_DIR(List<String> UNSEQUENCE_DIR) {
     this.UNSEQUENCE_DIR = UNSEQUENCE_DIR;
-  }
-
-  public boolean isENABLE_DOUBLE_INSERT() {
-    return ENABLE_DOUBLE_INSERT;
-  }
-
-  public void setENABLE_DOUBLE_INSERT(boolean ENABLE_DOUBLE_INSERT) {
-    this.ENABLE_DOUBLE_INSERT = ENABLE_DOUBLE_INSERT;
-  }
-
-  public List<String> getANOTHER_HOST() {
-    return ANOTHER_HOST;
-  }
-
-  public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
-    this.ANOTHER_HOST = ANOTHER_HOST;
-  }
-
-  public List<String> getANOTHER_PORT() {
-    return ANOTHER_PORT;
-  }
-
-  public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
-    this.ANOTHER_PORT = ANOTHER_PORT;
-  }
-
-  public String getANOTHER_DB_NAME() {
-    return ANOTHER_DB_NAME;
-  }
-
-  public void setANOTHER_DB_NAME(String ANOTHER_DB_NAME) {
-    this.ANOTHER_DB_NAME = ANOTHER_DB_NAME;
   }
 
   public String getKAFKA_LOCATION() {
@@ -1201,30 +1108,6 @@ public class Config {
     this.SENSOR_FUNCTION = SENSOR_FUNCTION;
   }
 
-  public String getUSERNAME() {
-    return USERNAME;
-  }
-
-  public void setUSERNAME(String USERNAME) {
-    this.USERNAME = USERNAME;
-  }
-
-  public String getPASSWORD() {
-    return PASSWORD;
-  }
-
-  public void setPASSWORD(String PASSWORD) {
-    this.PASSWORD = PASSWORD;
-  }
-
-  public String getTOKEN() {
-    return TOKEN;
-  }
-
-  public void setTOKEN(String TOKEN) {
-    this.TOKEN = TOKEN;
-  }
-
   public long getTEST_DATA_WRITE_TIME_OUT() {
     return TEST_DATA_WRITE_TIME_OUT;
   }
@@ -1247,6 +1130,95 @@ public class Config {
 
   public void setCOMPRESSION(String COMPRESSION) {
     this.COMPRESSION = COMPRESSION;
+  }
+
+  public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {
+    this.IS_DOUBLE_WRITE = IS_DOUBLE_WRITE;
+  }
+
+  public DBConfig getDbConfig() {
+    return dbConfig;
+  }
+
+  public void setDbConfig(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+  }
+
+  public DBConfig getANOTHER_DBConfig() {
+    return ANOTHER_DBConfig;
+  }
+
+  public void setANOTHER_DBConfig(DBConfig ANOTHER_DBConfig) {
+    this.ANOTHER_DBConfig = ANOTHER_DBConfig;
+  }
+
+  /** Wrapper method */
+  public void setDB_SWITCH(DBSwitch DB_SWITCH) {
+    this.dbConfig.setDB_SWITCH(DB_SWITCH);
+  }
+
+  public void setHOST(List<String> HOST) {
+    this.dbConfig.setHOST(HOST);
+  }
+
+  public void setPORT(List<String> PORT) {
+    this.dbConfig.setPORT(PORT);
+  }
+
+  public void setDB_NAME(String DB_NAME) {
+    this.dbConfig.setDB_NAME(DB_NAME);
+  }
+
+  public void setUSERNAME(String USERNAME) {
+    this.dbConfig.setUSERNAME(USERNAME);
+  }
+
+  public void setPASSWORD(String PASSWORD) {
+    this.dbConfig.setPASSWORD(PASSWORD);
+  }
+
+  public void setTOKEN(String TOKEN) {
+    this.dbConfig.setTOKEN(TOKEN);
+  }
+
+  public void setANOTHER_DB_SWITCH(DBSwitch ANOTHER_DBConfig_SWITCH) {
+    this.ANOTHER_DBConfig.setDB_SWITCH(ANOTHER_DBConfig_SWITCH);
+  }
+
+  public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
+    this.ANOTHER_DBConfig.setHOST(ANOTHER_HOST);
+  }
+
+  public void setANOTHER_PORT(List<String> ANOTHER_PORT) {
+    this.ANOTHER_DBConfig.setPORT(ANOTHER_PORT);
+  }
+
+  public void setANOTHER_USERNAME(String ANOTHER_USERNAME) {
+    this.ANOTHER_DBConfig.setUSERNAME(ANOTHER_USERNAME);
+  }
+
+  public void setANOTHER_PASSWORD(String ANOTHER_PASSWORD) {
+    this.ANOTHER_DBConfig.setPASSWORD(ANOTHER_PASSWORD);
+  }
+
+  public void setANOTHER_DB_NAME(String ANOTHER_DBConfig_NAME) {
+    this.ANOTHER_DBConfig.setDB_NAME(ANOTHER_DBConfig_NAME);
+  }
+
+  public void setANOTHER_TOKEN(String ANOTHER_TOKEN) {
+    this.ANOTHER_DBConfig.setTOKEN(ANOTHER_TOKEN);
+  }
+
+  public boolean isIS_DOUBLE_WRITE() {
+    return IS_DOUBLE_WRITE;
+  }
+
+  public boolean isIS_VERIFICATION() {
+    return IS_VERIFICATION;
+  }
+
+  public void setIS_VERIFICATION(boolean IS_VERIFICATION) {
+    this.IS_VERIFICATION = IS_VERIFICATION;
   }
 
   public String toInfoText() {

@@ -79,7 +79,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                  |
 | :------------------: | :------: | :-----------------------: | :---------------------------------------------------------------------------------------------------------: |
-|        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLE<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
+|        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |        IoTDB         |   0.11   |        iotdb-0.11         |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                        |
 |        IoTDB         |   0.10   |        iotdb-0.10         |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                     |
 |        IoTDB         |   0.9    |        iotdb-0.09         |                                      IoTDB-09-JDBC<br>IoTDB-09-SESSION                                      |
@@ -88,6 +88,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |       QuestDB        |  v6.0.7  |          questdb          |                                                   QuestDB                                                   |
 | Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                 |
 |   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                               |
+|     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |         opentsdb          |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
@@ -671,13 +672,18 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ## 7.6. Test Victoriametrics
 [Quick Start](victoriametrics/README.md)
 
+## 7.7. Test TimeScaleDB
+[Quick Start](timescaledb/README.md)
 
+# 8. Verification 
+1. Now verification only support IoTDB v0.12 and TimescaleDB
+2. [Quick Start](verification/README.md)
 
-# 8. Perform Multiple Tests Automatically
+# 9. Perform Multiple Tests Automatically
 
 Usually a single test is meaningless unless it is compared with other test results. Therefore we provide a interface to execute multiple tests by one launch.
 
-## 8.1. Configure routine
+## 9.1. Configure routine
 
 Each line of this file should be the parameters each test process will change(otherwise it becomes replication test). For example, the 'routine' file is:
 
@@ -692,7 +698,7 @@ Then it will serially execute 3 test process with LOOP parameter are 10, 20 and 
 > NOTE:
 You can change multiple parameters in each test with format like 'LOOP=20 DEVICE_NUMBER=10 TEST', unnecessary space is not allowed. The key word 'TEST' means a new test begins. If you change different parameters, the changed parameters will remain in next tests.
 
-## 8.2. Start 
+## 9.2. Start 
 
 After configuring the file 'routine', you also need to modify rep-benchmark.sh and dea-benchmark.sh. You need to change cli-benchmark.sh to benchmark.sh
 
@@ -724,7 +730,7 @@ In this case, if you want to know what is going on, you can check the log inform
 > tail -f log_info.log
 ```
 
-# 9. Related Article
+# 10. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304

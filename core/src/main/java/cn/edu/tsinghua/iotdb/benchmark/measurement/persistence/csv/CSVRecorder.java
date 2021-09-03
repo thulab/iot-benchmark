@@ -58,7 +58,7 @@ public class CSVRecorder extends TestDataPersistence {
       String.format(
           "%s_%s_%s_%s",
           config.getBENCHMARK_WORK_MODE(),
-          config.getDB_SWITCH(),
+          config.getDbConfig().getDB_SWITCH(),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
 
@@ -202,10 +202,11 @@ public class CSVRecorder extends TestDataPersistence {
       str.append(String.format(FOUR, projectID, "MODE", "DEFAULT_TEST_MODE"));
     }
 
-    switch (config.getDB_SWITCH().getType()) {
+    switch (config.getDbConfig().getDB_SWITCH().getType()) {
       case IoTDB:
       case TimescaleDB:
-        str.append(String.format(FOUR, projectID, "ServerIP", config.getHOST().get(0)));
+        str.append(
+            String.format(FOUR, projectID, "ServerIP", config.getDbConfig().getHOST().get(0)));
         break;
       case InfluxDB:
       case OpenTSDB:
@@ -218,13 +219,17 @@ public class CSVRecorder extends TestDataPersistence {
       case VictoriaMetrics:
       case SQLite:
         str.append(
-            String.format(FOUR, projectID, "ServerIP", config.getHOST() + ":" + config.getPORT()));
+            String.format(
+                FOUR,
+                projectID,
+                "ServerIP",
+                config.getDbConfig().getHOST() + ":" + config.getDbConfig().getPORT()));
         break;
       default:
-        LOGGER.error("unsupported database " + config.getDB_SWITCH());
+        LOGGER.error("unsupported database " + config.getDbConfig().getDB_SWITCH());
     }
     str.append(String.format(FOUR, projectID, "CLIENT", localName));
-    str.append(String.format(FOUR, projectID, "DB_SWITCH", config.getDB_SWITCH()));
+    str.append(String.format(FOUR, projectID, "DB_SWITCH", config.getDbConfig().getDB_SWITCH()));
     str.append(String.format(FOUR, projectID, "CLIENT_NUMBER", config.getCLIENT_NUMBER()));
     str.append(String.format(FOUR, projectID, "LOOP", config.getLOOP()));
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {

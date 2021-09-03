@@ -47,4 +47,17 @@ public class GroupByQuery extends RangeQuery {
     this.aggFun = aggFun;
     this.granularity = granularity;
   }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    StringBuilder stringBuilder = super.getQueryAttrs();
+    stringBuilder.append(" aggFun=").append(aggFun);
+    stringBuilder.append(" granularity=").append(granularity);
+    return stringBuilder;
+  }
 }
