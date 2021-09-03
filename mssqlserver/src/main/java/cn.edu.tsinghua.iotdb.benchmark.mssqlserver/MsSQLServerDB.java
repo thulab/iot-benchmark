@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -26,15 +27,6 @@ public class MsSQLServerDB implements IDatabase {
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-  private static final String DBURL =
-      "jdbc:sqlserver://"
-          + config.getHOST().get(0)
-          + ":"
-          + config.getPORT().get(0)
-          + ";DataBaseName="
-          + config.getDB_NAME();
-  private static final String DBUSER = config.getUSERNAME();
-  private static final String DBPASSWORD = config.getPASSWORD();
 
   public Connection connection = null;
 
@@ -69,6 +61,12 @@ public class MsSQLServerDB implements IDatabase {
   private PreparedStatement[][] queryStatements = new PreparedStatement[6][10];
 
   private static final String DELETE_TABLE = "drop table if exists %s_%s";
+  private DBConfig dbConfig;
+
+  public MsSQLServerDB(DBConfig dbConfig){
+    this.dbConfig = dbConfig;
+  }
+
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
    * client thread.
@@ -77,11 +75,16 @@ public class MsSQLServerDB implements IDatabase {
   public void init() throws TsdbException {
     try {
       Class.forName(DBDRIVER);
-      connection = DriverManager.getConnection(DBURL, DBUSER, DBPASSWORD);
+      connection = DriverManager.getConnection("jdbc:sqlserver://"
+              + dbConfig.getHOST().get(0)
+              + ":"
+              + dbConfig.getPORT().get(0)
+              + ";DataBaseName="
+              + dbConfig.getDB_NAME(), dbConfig.getUSERNAME(), dbConfig.getPASSWORD());
 
       // init preparedStatement
       for (Type type : Type.values()) {
-        String db = config.getDB_NAME() + "_" + typeMap(type);
+        String db = dbConfig.getDB_NAME() + "_" + typeMap(type);
         String insertSql = String.format(INSERT_SQL, db);
         insertStatements[type.index - 1] = connection.prepareStatement(insertSql);
         for (int i = 0; i < SELECT_SQL.length; i++) {
@@ -118,7 +121,7 @@ public class MsSQLServerDB implements IDatabase {
     try {
       Statement statement = connection.createStatement();
       for (Type type : Type.values()) {
-        statement.execute(String.format(DELETE_TABLE, config.getDB_NAME(), typeMap(type)));
+        statement.execute(String.format(DELETE_TABLE, dbConfig.getDB_NAME(), typeMap(type)));
       }
       statement.close();
     } catch (SQLException sqlException) {
@@ -156,7 +159,7 @@ public class MsSQLServerDB implements IDatabase {
         String createSQL =
             String.format(
                 CREATE_TABLE,
-                config.getDB_NAME(),
+                dbConfig.getDB_NAME(),
                 sysType,
                 sysType,
                 sysType,
@@ -599,7 +602,7 @@ public class MsSQLServerDB implements IDatabase {
     }
 
     StringBuilder stringBuilder = new StringBuilder("SELECT * from ");
-    stringBuilder.append(config.getDB_NAME()).append("_").append(sysType);
+    stringBuilder.append(dbConfig.getDB_NAME()).append("_").append(sysType);
     stringBuilder.append(" where pk_fk_Id in (").append(String.join(",", search)).append(")");
     return stringBuilder.toString();
   }
@@ -617,7 +620,7 @@ public class MsSQLServerDB implements IDatabase {
 
     StringBuilder stringBuilder =
         new StringBuilder("SELECT ").append(aggFun).append("(").append(target).append(") from ");
-    stringBuilder.append(config.getDB_NAME()).append("_").append(sysType);
+    stringBuilder.append(dbConfig.getDB_NAME()).append("_").append(sysType);
     stringBuilder.append(" where pk_fk_Id in (").append(String.join(",", search)).append(")");
     return stringBuilder.toString();
   }
