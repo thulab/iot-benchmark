@@ -522,9 +522,9 @@ public class TimescaleDB implements IDatabase {
           .append(sensors.get(i))
           .append(" ")
           .append(typeMap(baseDataSchema.getSensorType(device, sensors.get(i))))
-          .append(" NULL");
+          .append(" NULL ");
     }
-    sqlBuilder.append(");");
+    sqlBuilder.append(",UNIQUE (time, sGroup, device));");
     return sqlBuilder.toString();
   }
 
@@ -537,8 +537,9 @@ public class TimescaleDB implements IDatabase {
   private String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
+    List<String> sensors = deviceSchema.getSensors();
     builder.append("insert into ").append(tableName).append("(time, sGroup, device");
-    for (String sensor : deviceSchema.getSensors()) {
+    for (String sensor : sensors) {
       builder.append(",").append(sensor);
     }
     builder.append(") values(");
@@ -548,7 +549,11 @@ public class TimescaleDB implements IDatabase {
     for (Object value : values) {
       builder.append(",'").append(value).append("'");
     }
-    builder.append(")");
+    builder.append(") ON CONFLICT(time,sGroup,device) DO UPDATE SET ");
+    builder.append(sensors.get(0)).append("=excluded.").append(sensors.get(0));
+    for (int i = 1; i < sensors.size(); i++) {
+      builder.append(",").append(sensors.get(i)).append("=excluded.").append(sensors.get(i));
+    }
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }
@@ -565,7 +570,7 @@ public class TimescaleDB implements IDatabase {
       DeviceSchema deviceSchema, long timestamp, Object value, int colIndex) {
     StringBuilder builder = new StringBuilder();
     builder
-        .append("insert into ")
+        .append("replace into ")
         .append(tableName)
         .append("(time, sGroup, device,")
         .append(deviceSchema.getSensors().get(colIndex));
