@@ -61,11 +61,10 @@ public class VerificationWriteMode extends BaseMode {
     List<Measurement> threadsMeasurements = new ArrayList<>();
     List<Client> clients = new ArrayList<>();
     CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-    long loop = config.getLOOP() / config.getCLIENT_NUMBER();
     long st = System.nanoTime();
     ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = new RealDataSetWriteClient(i, downLatch, barrier, loop);
+      Client client = new RealDataSetWriteClient(i, downLatch, barrier);
       clients.add(client);
       executorService.submit(client);
     }

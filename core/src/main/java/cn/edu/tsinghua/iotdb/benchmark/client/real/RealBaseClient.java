@@ -39,11 +39,11 @@ public abstract class RealBaseClient extends Client implements Runnable {
   /** Total loop of write or query */
   protected long loop;
 
-  public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
+  public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
     this.realDataWorkload = new RealDataWorkload(id);
     this.loopIndex = 0;
-    this.loop = loop;
+    this.loop = this.realDataWorkload.getBatchNumber();
   }
 
   /** Do test */

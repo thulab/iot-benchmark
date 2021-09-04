@@ -27,9 +27,8 @@ import java.util.concurrent.*;
 
 public class RealDataSetWriteClient extends RealBaseClient {
 
-  public RealDataSetWriteClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
-    super(id, countDownLatch, barrier, loop);
+  public RealDataSetWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
   }
 
   /** Do Operations */

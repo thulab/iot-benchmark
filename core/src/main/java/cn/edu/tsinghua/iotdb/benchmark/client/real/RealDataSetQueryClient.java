@@ -27,9 +27,8 @@ import java.util.concurrent.CyclicBarrier;
 
 public class RealDataSetQueryClient extends RealBaseClient {
 
-  public RealDataSetQueryClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
-    super(id, countDownLatch, barrier, loop);
+  public RealDataSetQueryClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
   }
 
   /** Do Operations */
