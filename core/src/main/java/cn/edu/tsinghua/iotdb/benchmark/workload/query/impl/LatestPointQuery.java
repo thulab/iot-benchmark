@@ -29,4 +29,14 @@ public class LatestPointQuery extends AggRangeQuery {
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp, String aggFun) {
     super(deviceSchema, startTimestamp, endTimestamp, aggFun);
   }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    return super.getQueryAttrs();
+  }
 }

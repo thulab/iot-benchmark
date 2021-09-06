@@ -154,7 +154,7 @@ public class GenerateDataClient extends GenerateBaseClient {
   }
 
   @Override
-  protected void initDBWrapper() {
-    dbWrapper = null;
+  protected void initDBWrappers() {
+    // do nothing
   }
 }

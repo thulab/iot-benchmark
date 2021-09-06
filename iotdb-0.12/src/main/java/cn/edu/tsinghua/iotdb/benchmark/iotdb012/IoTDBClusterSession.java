@@ -28,6 +28,8 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
@@ -47,20 +49,20 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   private int currSession;
   private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
 
-  public IoTDBClusterSession() {
-    super();
+  public IoTDBClusterSession(DBConfig dbConfig) {
+    super(dbConfig);
     createSessions();
   }
 
   private void createSessions() {
-    sessions = new SessionPool[config.getHOST().size()];
+    sessions = new SessionPool[dbConfig.getHOST().size()];
     for (int i = 0; i < sessions.length; i++) {
       sessions[i] =
           new SessionPool(
-              config.getHOST().get(i),
-              Integer.parseInt(config.getPORT().get(i)),
-              config.getUSERNAME(),
-              config.getPASSWORD(),
+              dbConfig.getHOST().get(i),
+              Integer.parseInt(dbConfig.getPORT().get(i)),
+              dbConfig.getUSERNAME(),
+              dbConfig.getPASSWORD(),
               MAX_SESSION_CONNECTION_PER_CLIENT,
               config.isENABLE_THRIFT_COMPRESSION(),
               true);
@@ -174,5 +176,15 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
 
     return new Status(true);
+  }
+
+  @Override
+  public void close() throws TsdbException {
+    super.close();
+    for (SessionPool sessionPool : sessions) {
+      if (sessionPool != null) {
+        sessionPool.close();
+      }
+    }
   }
 }

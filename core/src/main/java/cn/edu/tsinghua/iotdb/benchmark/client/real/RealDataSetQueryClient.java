@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
 import java.util.concurrent.CountDownLatch;
@@ -26,9 +27,8 @@ import java.util.concurrent.CyclicBarrier;
 
 public class RealDataSetQueryClient extends RealBaseClient {
 
-  public RealDataSetQueryClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, long loop) {
-    super(id, countDownLatch, barrier, loop);
+  public RealDataSetQueryClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
   }
 
   /** Do Operations */
@@ -40,7 +40,9 @@ public class RealDataSetQueryClient extends RealBaseClient {
         if (verificationQuery == null) {
           break;
         }
-        dbWrapper.verificationQuery(verificationQuery);
+        for (DBWrapper dbWrapper : dbWrappers) {
+          dbWrapper.verificationQuery(verificationQuery);
+        }
         loopIndex++;
       } catch (Exception e) {
         LOGGER.error("Failed to insert one batch data because ", e);

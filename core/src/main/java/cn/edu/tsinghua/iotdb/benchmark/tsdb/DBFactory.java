@@ -23,8 +23,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.SQLException;
 
 public class DBFactory {
@@ -39,17 +39,13 @@ public class DBFactory {
    * @return
    * @throws SQLException
    */
-  public IDatabase getDatabase() throws SQLException {
+  public IDatabase getDatabase(DBConfig dbConfig) throws SQLException {
     String dbClass = "";
     try {
-      switch (config.getDB_SWITCH()) {
+      switch (dbConfig.getDB_SWITCH()) {
           // IoTDB 0.12
         case DB_IOT_012_JDBC:
-          if (config.isENABLE_DOUBLE_INSERT()) {
-            dbClass = Constants.IOTDB012_DOUBLE_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB012_JDBC_CLASS;
-          }
+          dbClass = Constants.IOTDB012_JDBC_CLASS;
           break;
         case DB_IOT_012_SESSION_BY_TABLET:
         case DB_IOT_012_SESSION_BY_RECORD:
@@ -62,18 +58,11 @@ public class DBFactory {
           break;
           // IoTDB 0.11
         case DB_IOT_011_JDBC:
-          if (config.isENABLE_DOUBLE_INSERT()) {
-            dbClass = Constants.IOTDB011_DOUBLE_JDBC_CLASS;
-          } else {
-            dbClass = Constants.IOTDB011_JDBC_CLASS;
-          }
+          dbClass = Constants.IOTDB011_JDBC_CLASS;
           break;
         case DB_IOT_011_SESSION_POOL:
-          // use reflect to obtain a singleton of SessionPool
-          Class<?> _clazz = Class.forName(Constants.IOTDB011_SESSION_POOL_CLASS);
-          Method _getInstance = _clazz.getMethod("getInstance");
-          Object _handler = _getInstance.invoke(_clazz);
-          return (IDatabase) _handler;
+          dbClass = Constants.IOTDB011_SESSION_POOL_CLASS;
+          break;
         case DB_IOT_011_SESSION:
           dbClass = Constants.IOTDB011_SESSION_CLASS;
           break;
@@ -127,7 +116,9 @@ public class DBFactory {
         default:
           throw new SQLException("didn't support this database");
       }
-      return (IDatabase) Class.forName(dbClass).newInstance();
+      Class<?> databaseClass = Class.forName(dbClass);
+      Constructor<?> constructor = databaseClass.getConstructor(DBConfig.class);
+      return (IDatabase) constructor.newInstance(dbConfig);
     } catch (InstantiationException
         | IllegalAccessException
         | ClassNotFoundException
@@ -135,6 +126,6 @@ public class DBFactory {
         | InvocationTargetException e) {
       e.printStackTrace();
     }
-    throw new SQLException("init database " + config.getDB_SWITCH() + " failed");
+    throw new SQLException("init database " + dbConfig.getDB_SWITCH() + " failed");
   }
 }

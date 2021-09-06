@@ -25,12 +25,12 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
-import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
@@ -50,22 +50,24 @@ public class InfluxDB implements IDatabase {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
-  private final String token = config.getTOKEN();
-  private final String org = config.getDB_NAME();
+  private final String token;
+  private final String org;
   private String CREATE_URL = "http://%s/api/v2/write?org=%s&bucket=%s&precision=%s";
 
   private String influxUrl;
   private String influxDbName;
-  private InfluxDBClient client;
+  private com.influxdb.client.InfluxDBClient client;
 
   /** constructor. */
-  public InfluxDB() {
-    influxUrl = "http://" + config.getHOST().get(0) + ":" + config.getPORT().get(0);
-    influxDbName = config.getDB_NAME();
+  public InfluxDB(DBConfig dbConfig) {
+    influxUrl = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
+    influxDbName = dbConfig.getDB_NAME();
+    token = dbConfig.getTOKEN();
+    org = dbConfig.getDB_NAME();
     CREATE_URL =
         String.format(
             CREATE_URL,
-            config.getHOST().get(0) + ":" + config.getPORT().get(0),
+            dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0),
             org,
             influxDbName,
             config.getTIMESTAMP_PRECISION());
@@ -347,7 +349,11 @@ public class InfluxDB implements IDatabase {
                 deviceSchema.getDevice(),
                 aggRangeQuery.getStartTimestamp() / 1000,
                 aggRangeQuery.getEndTimestamp() / 1000);
-        sql += "\n  |> " + aggRangeQuery.getAggFun();
+        String aggFun = aggRangeQuery.getAggFun();
+        if (!aggFun.contains("()")) {
+          aggFun += "()";
+        }
+        sql += "\n  |> " + aggFun;
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -371,7 +377,11 @@ public class InfluxDB implements IDatabase {
         // note that flux not support without range
         sql +=
             "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggValueQuery.getValueThreshold() + ")";
-        sql += "\n  |> " + aggValueQuery.getAggFun();
+        String aggFun = aggValueQuery.getAggFun();
+        if (!aggFun.contains("()")) {
+          aggFun += "()";
+        }
+        sql += "\n  |> " + aggFun;
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -397,7 +407,11 @@ public class InfluxDB implements IDatabase {
               "\n  |> filter(fn: (r) => r[\"_value\"] > "
                   + aggRangeValueQuery.getValueThreshold()
                   + ")";
-          sql += "\n  |> " + aggRangeValueQuery.getAggFun();
+          String aggFun = aggRangeValueQuery.getAggFun();
+          if (!aggFun.contains("()")) {
+            aggFun += "()";
+          }
+          sql += "\n  |> " + aggFun;
           Status status = executeQueryAndGetStatus(sql);
           result += status.getQueryResultPointNum();
         } catch (Exception e) {
@@ -496,7 +510,9 @@ public class InfluxDB implements IDatabase {
   }
 
   private Status executeQueryAndGetStatus(String sql) {
-    LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
     int cnt = 0;
     List<FluxTable> tables = client.getQueryApi().query(sql);
     for (FluxTable table : tables) {

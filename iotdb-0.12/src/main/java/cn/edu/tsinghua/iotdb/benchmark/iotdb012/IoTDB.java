@@ -25,6 +25,7 @@ import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
@@ -32,6 +33,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -51,26 +53,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
-  static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final String ROOT_SERIES_NAME = "root." + config.getDB_NAME();
-  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-
-  private static final String CREATE_SERIES_SQL =
-      "CREATE TIMESERIES %s WITH DATATYPE=%s,ENCODING=%s,COMPRESSOR=%s";
-  private static final String SET_STORAGE_GROUP_SQL = "SET STORAGE GROUP TO %s";
-  private static final String DELETE_SERIES_SQL = "delete timeseries root." + config.getDB_NAME();
   private static final String ALREADY_KEYWORD = "already";
+  private final String DELETE_SERIES_SQL;
 
+  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  protected final String ROOT_SERIES_NAME;
   protected SingleNodeJDBCConnection ioTDBConnection;
   protected ExecutorService service;
   protected Future<?> future;
+  protected DBConfig dbConfig;
 
-  public IoTDB() {}
+  public IoTDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
+    DELETE_SERIES_SQL = "delete timeseries root." + dbConfig.getDB_NAME();
+  }
 
   @Override
   public void init() throws TsdbException {
     try {
-      ioTDBConnection = new SingleNodeJDBCConnection();
+      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
       ioTDBConnection.init();
       this.service = Executors.newSingleThreadExecutor();
     } catch (Exception e) {
@@ -111,22 +114,22 @@ public class IoTDB implements IDatabase {
         if (!config.isIS_ALL_NODES_VISIBLE()) {
           Session metaSession =
               new Session(
-                  config.getHOST().get(0),
-                  config.getPORT().get(0),
-                  config.getUSERNAME(),
-                  config.getPASSWORD());
+                  dbConfig.getHOST().get(0),
+                  dbConfig.getPORT().get(0),
+                  dbConfig.getUSERNAME(),
+                  dbConfig.getPASSWORD());
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, schemaList);
         } else {
-          int sessionNumber = config.getHOST().size();
+          int sessionNumber = dbConfig.getHOST().size();
           List<Session> keys = new ArrayList<>();
           for (int i = 0; i < sessionNumber; i++) {
             Session metaSession =
                 new Session(
-                    config.getHOST().get(i),
-                    config.getPORT().get(i),
-                    config.getUSERNAME(),
-                    config.getPASSWORD());
+                    dbConfig.getHOST().get(i),
+                    dbConfig.getPORT().get(i),
+                    dbConfig.getUSERNAME(),
+                    dbConfig.getPASSWORD());
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
             sessionListMap.put(metaSession, new ArrayList<>());
@@ -230,32 +233,6 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getEncodingType(Type dataType) {
-    switch (dataType) {
-      case BOOLEAN:
-      case INT32:
-      case INT64:
-      case FLOAT:
-      case DOUBLE:
-      case TEXT:
-        return "PLAIN";
-      default:
-        LOGGER.error("Unsupported data type {}.", dataType);
-        return null;
-    }
-  }
-
-  // convert deviceSchema and sensor to the format: root.group_1.d_1.s_1
-  private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
-    return ROOT_SERIES_NAME
-        + "."
-        + deviceSchema.getGroup()
-        + "."
-        + deviceSchema.getDevice()
-        + "."
-        + sensor;
-  }
-
   @Override
   public Status insertOneBatch(Batch batch) throws DBConnectException {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
@@ -292,161 +269,7 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
-    String sql = getPreciseQuerySql(preciseQuery);
-    return executeQueryAndGetStatus(sql);
-  }
-
-  @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
-    String sql =
-        getRangeQuerySql(
-            rangeQuery.getDeviceSchema(),
-            rangeQuery.getStartTimestamp(),
-            rangeQuery.getEndTimestamp());
-    return executeQueryAndGetStatus(sql);
-  }
-
-  /**
-   * SELECT s_39 FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <= 2010-01-01
-   * 12:30:00 AND root.group_2.d_29.s_39 > 0.0
-   */
-  @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    String sql = getvalueRangeQuerySql(valueRangeQuery);
-    return executeQueryAndGetStatus(sql);
-  }
-
-  /**
-   * SELECT max_value(s_76) FROM root.group_3.d_31 WHERE time >= 2010-01-01 12:00:00 AND time <=
-   * 2010-01-01 12:30:00
-   */
-  @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
-    String sql =
-        addWhereTimeClause(
-            aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
-    return executeQueryAndGetStatus(sql);
-  }
-
-  /** SELECT max_value(s_39) FROM root.group_2.d_29 WHERE root.group_2.d_29.s_39 > 0.0 */
-  @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
-    String sql =
-        aggQuerySqlHead
-            + " WHERE "
-            + getValueFilterClause(
-                    aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
-                .substring(4);
-    return executeQueryAndGetStatus(sql);
-  }
-
-  /**
-   * SELECT max_value(s_39) FROM root.group_2.d_29 WHERE time >= 2010-01-01 12:00:00 AND time <=
-   * 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
-   */
-  @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
-    String sql =
-        addWhereTimeClause(
-            aggQuerySqlHead,
-            aggRangeValueQuery.getStartTimestamp(),
-            aggRangeValueQuery.getEndTimestamp());
-    sql +=
-        getValueFilterClause(
-            aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sql);
-  }
-
-  /**
-   * select aggFun(sensor) from device group by(interval, startTimestamp, [startTimestamp,
-   * endTimestamp]) example: SELECT max_value(s_81) FROM root.group_9.d_92 GROUP BY(600000ms,
-   * 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
-   */
-  @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sql =
-        addGroupByClause(
-            aggQuerySqlHead,
-            groupByQuery.getStartTimestamp(),
-            groupByQuery.getEndTimestamp(),
-            groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sql);
-  }
-
-  /** SELECT last s_76 FROM root.group_3.d_31 */
-  @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return executeQueryAndGetStatus(aggQuerySqlHead);
-  }
-
-  @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    String sql =
-        getRangeQuerySql(
-                rangeQuery.getDeviceSchema(),
-                rangeQuery.getStartTimestamp(),
-                rangeQuery.getEndTimestamp())
-            + " order by time desc";
-    return executeQueryAndGetStatus(sql);
-  }
-
-  @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    String sql = getvalueRangeQuerySql(valueRangeQuery) + " order by time desc";
-    return executeQueryAndGetStatus(sql);
-  }
-
-  private String getLatestPointQuerySql(List<DeviceSchema> devices) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("SELECT last ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0));
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
-    }
-    return addFromClause(devices, builder);
-  }
-
-  private String getvalueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
-    String rangeQuerySql =
-        getRangeQuerySql(
-            valueRangeQuery.getDeviceSchema(),
-            valueRangeQuery.getStartTimestamp(),
-            valueRangeQuery.getEndTimestamp());
-    String valueFilterClause =
-        getValueFilterClause(
-            valueRangeQuery.getDeviceSchema(), (int) valueRangeQuery.getValueThreshold());
-    return rangeQuerySql + valueFilterClause;
-  }
-
-  private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
-    StringBuilder builder = new StringBuilder();
-    for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
-        builder
-            .append(" AND ")
-            .append(getDevicePath(deviceSchema))
-            .append(".")
-            .append(sensor)
-            .append(" > ")
-            .append(valueThreshold);
-      }
-    }
-    return builder.toString();
-  }
-
-  public static String getInsertOneBatchSql(
+  public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
     StringBuilder builder = new StringBuilder();
     builder
@@ -476,10 +299,175 @@ public class IoTDB implements IDatabase {
   }
 
   /**
-   * generate simple query header.
+   * Q1: PreciseQuery SQL: select {sensors} from {devices} where time = {time}
+   *
+   * @param preciseQuery universal precise query condition parameters
+   * @return
+   */
+  @Override
+  public Status preciseQuery(PreciseQuery preciseQuery) {
+    String strTime = preciseQuery.getTimestamp() + "";
+    String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
+    return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
+  }
+
+  /**
+   * Q2: RangeQuery SQL: select {sensors} from {devices} where time >= {startTime} and time <=
+   * {endTime}
+   *
+   * @param rangeQuery universal range query condition parameters
+   * @return
+   */
+  @Override
+  public Status rangeQuery(RangeQuery rangeQuery) {
+    String sql =
+        getRangeQuerySql(
+            rangeQuery.getDeviceSchema(),
+            rangeQuery.getStartTimestamp(),
+            rangeQuery.getEndTimestamp());
+    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY);
+  }
+
+  /**
+   * Q3: ValueRangeQuery SQL: select {sensors} from {devices} where time >= {startTime} and time <=
+   * {endTime} and {sensors} > {value}
+   *
+   * @param valueRangeQuery contains universal range query with value filter parameters
+   * @return
+   */
+  @Override
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+    String sql = getValueRangeQuerySql(valueRangeQuery);
+    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
+  }
+
+  /**
+   * Q4: AggRangeQuery SQL: select {AggFun}({sensors}) from {devices} where time >= {startTime} and
+   * time <= {endTime}
+   *
+   * @param aggRangeQuery contains universal aggregation query with time filter parameters
+   * @return
+   */
+  @Override
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
+    String sql =
+        addWhereTimeClause(
+            aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
+    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
+  }
+
+  /**
+   * Q5: AggValueQuery SQL: select {AggFun}({sensors}) from {devices} where {sensors} > {value}
+   *
+   * @param aggValueQuery contains universal aggregation query with value filter parameters
+   * @return
+   */
+  @Override
+  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
+    String sql =
+        aggQuerySqlHead
+            + " WHERE "
+            + getValueFilterClause(
+                    aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
+                .substring(4);
+    return executeQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
+  }
+
+  /**
+   * Q6: AggRangeValueQuery SQL: select {AggFun}({sensors}) from {devices} where time >= {startTime}
+   * and time <= {endTime} and {sensors} > {value}
+   *
+   * @param aggRangeValueQuery contains universal aggregation query with time and value filters
+   *     parameters
+   * @return
+   */
+  @Override
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
+    String sql =
+        addWhereTimeClause(
+            aggQuerySqlHead,
+            aggRangeValueQuery.getStartTimestamp(),
+            aggRangeValueQuery.getEndTimestamp());
+    sql +=
+        getValueFilterClause(
+            aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
+    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
+  }
+
+  /**
+   * Q7: GroupByQuery SQL: select {AggFun}({sensors}) from {devices} group by ([{start}, {end}],
+   * {Granularity}ms)
+   *
+   * @param groupByQuery contains universal group by query condition parameters
+   * @return
+   */
+  @Override
+  public Status groupByQuery(GroupByQuery groupByQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sql =
+        addGroupByClause(
+            aggQuerySqlHead,
+            groupByQuery.getStartTimestamp(),
+            groupByQuery.getEndTimestamp(),
+            groupByQuery.getGranularity());
+    return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
+  }
+
+  /**
+   * Q8: LatestPointQuery SQL: select last {sensors} from {devices}
+   *
+   * @param latestPointQuery contains universal latest point query condition parameters
+   * @return
+   */
+  @Override
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+    String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+    return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
+  }
+
+  /**
+   * Q9: RangeQuery SQL: select {sensors} from {devices} where time >= {startTime} and time <=
+   * {endTime} order by time desc
+   *
+   * @param rangeQuery universal range query condition parameters
+   * @return
+   */
+  @Override
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+    String sql =
+        getRangeQuerySql(
+                rangeQuery.getDeviceSchema(),
+                rangeQuery.getStartTimestamp(),
+                rangeQuery.getEndTimestamp())
+            + " order by time desc";
+    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
+  }
+
+  /**
+   * Q10: ValueRangeQuery SQL: select {sensors} from {devices} where time >= {startTime} and time <=
+   * {endTime} and {sensors} > {value} order by time desc
+   *
+   * @param valueRangeQuery contains universal range query with value filter parameters
+   * @return
+   */
+  @Override
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+    String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
+    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
+  }
+
+  /**
+   * Generate simple query header.
    *
    * @param devices schema list of query devices
-   * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0.d_1, root.group_1.d_2
+   * @return Simple Query header. e.g. Select sensors from devices
    */
   private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
@@ -503,6 +491,13 @@ public class IoTDB implements IDatabase {
     return addFromClause(devices, builder);
   }
 
+  /**
+   * Add from Clause
+   *
+   * @param devices
+   * @param builder
+   * @return From clause, e.g. FROM devices
+   */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
     builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
@@ -511,70 +506,43 @@ public class IoTDB implements IDatabase {
     return builder.toString();
   }
 
-  // convert deviceSchema to the format: root.group_1.d_1
-  private String getDevicePath(DeviceSchema deviceSchema) {
-    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
+  private String getValueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
+    String rangeQuerySql =
+        getRangeQuerySql(
+            valueRangeQuery.getDeviceSchema(),
+            valueRangeQuery.getStartTimestamp(),
+            valueRangeQuery.getEndTimestamp());
+    String valueFilterClause =
+        getValueFilterClause(
+            valueRangeQuery.getDeviceSchema(), (int) valueRangeQuery.getValueThreshold());
+    return rangeQuerySql + valueFilterClause;
   }
 
-  private String getPreciseQuerySql(PreciseQuery preciseQuery) {
-    String strTime = preciseQuery.getTimestamp() + "";
-    return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
-  }
-
-  private Status executeQueryAndGetStatus(String sql) {
-    if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
-    }
-    //    int line = 0;
-    //    int queryResultPointNum = 0;
-    //    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-    //      try (ResultSet resultSet = statement.executeQuery(sql)) {
-    //        while (resultSet.next()) {
-    //          line++;
-    //        }
-    //      }
-    //      queryResultPointNum = line * config.getQUERY_SENSOR_NUM() *
-    // config.getQUERY_DEVICE_NUM();
-    //      return new Status(true, queryResultPointNum);
-    //    } catch (Exception e) {
-    //      return new Status(false, queryResultPointNum, e, sql);
-    //    } catch (Throwable t) {
-    //      return new Status(false, queryResultPointNum, new Exception(t), sql);
-    //    }
-
-    // current, we use Future to support read time out
-
-    AtomicInteger line = new AtomicInteger();
-    AtomicInteger queryResultPointNum = new AtomicInteger();
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      future =
-          service.submit(
-              () -> {
-                try {
-                  try (ResultSet resultSet = statement.executeQuery(sql)) {
-                    while (resultSet.next()) {
-                      line.getAndIncrement();
-                    }
-                  }
-                } catch (SQLException e) {
-                  LOGGER.error("exception occurred when execute query={}", sql, e);
-                }
-                queryResultPointNum.set(
-                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
-              });
-
-      try {
-        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
-      } catch (InterruptedException | ExecutionException | TimeoutException e) {
-        future.cancel(true);
-        return new Status(false, queryResultPointNum.get(), e, sql);
+  private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
+    StringBuilder builder = new StringBuilder();
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      for (String sensor : deviceSchema.getSensors()) {
+        builder
+            .append(" AND ")
+            .append(getDevicePath(deviceSchema))
+            .append(".")
+            .append(sensor)
+            .append(" > ")
+            .append(valueThreshold);
       }
-      return new Status(true, queryResultPointNum.get());
-    } catch (Exception e) {
-      return new Status(false, queryResultPointNum.get(), e, sql);
-    } catch (Throwable t) {
-      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
     }
+    return builder.toString();
+  }
+
+  private String getLatestPointQuerySql(List<DeviceSchema> devices) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT last ");
+    List<String> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0));
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder.append(", ").append(querySensors.get(i));
+    }
+    return addFromClause(devices, builder);
   }
 
   private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
@@ -591,7 +559,74 @@ public class IoTDB implements IDatabase {
     return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
-  public static String getInsertOneBatchSql(
+  /**
+   * convert deviceSchema to the format
+   *
+   * @param deviceSchema
+   * @return format, e.g. root.group_1.d_1
+   */
+  private String getDevicePath(DeviceSchema deviceSchema) {
+    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
+  }
+
+  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      List<List<Object>> records = new ArrayList<>();
+      future =
+          service.submit(
+              () -> {
+                try {
+                  try (ResultSet resultSet = statement.executeQuery(sql)) {
+                    while (resultSet.next()) {
+                      line.getAndIncrement();
+                      if (config.isIS_VERIFICATION()) {
+                        List<Object> record = new ArrayList<>();
+                        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                          switch (operation) {
+                            case LATEST_POINT_QUERY:
+                              if (i == 2) {
+                                continue;
+                              }
+                              break;
+                            default:
+                              break;
+                          }
+                          record.add(resultSet.getObject(i));
+                        }
+                        records.add(record);
+                      }
+                    }
+                  }
+                } catch (SQLException e) {
+                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                }
+                queryResultPointNum.set(
+                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+              });
+      try {
+        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        future.cancel(true);
+        return new Status(false, queryResultPointNum.get(), e, sql);
+      }
+      if (config.isIS_VERIFICATION()) {
+        return new Status(true, queryResultPointNum.get(), sql, records);
+      } else {
+        return new Status(true, queryResultPointNum.get());
+      }
+    } catch (Exception e) {
+      return new Status(false, queryResultPointNum.get(), e, sql);
+    } catch (Throwable t) {
+      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+    }
+  }
+
+  public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder
@@ -636,7 +671,6 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) {
-    // TODO
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -652,7 +686,7 @@ public class IoTDB implements IDatabase {
           String value = resultSet.getString(i + 2);
           String target = String.valueOf(records.get(i));
           if (!value.equals(target)) {
-            LOGGER.error("Using SQL: " + sql + ",Expected:" + records + " but was: " + target);
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
           } else {
             result++;
           }
@@ -662,5 +696,37 @@ public class IoTDB implements IDatabase {
       }
     }
     return new Status(true, result);
+  }
+
+  String getEncodingType(Type dataType) {
+    switch (dataType) {
+      case BOOLEAN:
+      case INT32:
+      case INT64:
+      case FLOAT:
+      case DOUBLE:
+      case TEXT:
+        return "PLAIN";
+      default:
+        LOGGER.error("Unsupported data type {}.", dataType);
+        return null;
+    }
+  }
+
+  /**
+   * convert deviceSchema and sensor to the format: root.group_1.d_1.s_1
+   *
+   * @param deviceSchema
+   * @param sensor
+   * @return
+   */
+  private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
+    return ROOT_SERIES_NAME
+        + "."
+        + deviceSchema.getGroup()
+        + "."
+        + deviceSchema.getDevice()
+        + "."
+        + sensor;
   }
 }

@@ -40,4 +40,11 @@ public interface IRealDataWorkload extends IWorkLoad {
    * @throws WorkloadException
    */
   VerificationQuery getVerifiedQuery() throws WorkloadException;
+
+  /**
+   * Get batch number of workload
+   *
+   * @return
+   */
+  int getBatchNumber();
 }

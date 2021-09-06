@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -44,17 +45,25 @@ public class VictoriaMetrics implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
-  private static final String URL = config.getHOST().get(0) + ":" + config.getPORT().get(0);
-  private static final String CREATE_URL =
-      URL + "/api/v1/import/prometheus?extra_label=db=" + config.getDB_NAME();
-  private static final String DELETE_URL =
-      URL
-          + "/api/v1/admin/tsdb/delete_series?match%5B%5D=%7Bdb=%22"
-          + config.getDB_NAME()
-          + "%22%7D";
-  // need to add query
-  private static final String QUERY_URL = URL + "/api/v1/query?query=";
-  private static final String QUERY_RANGE_URL = URL + "/api/v1/query_range?query=";
+  private final String URL;
+  private final String CREATE_URL;
+  private final String DELETE_URL;
+  private final String QUERY_URL;
+  private final String QUERY_RANGE_URL;
+  private DBConfig dbConfig;
+
+  public VictoriaMetrics(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    URL = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
+    CREATE_URL = URL + "/api/v1/import/prometheus?extra_label=db=" + dbConfig.getDB_NAME();
+    DELETE_URL =
+        URL
+            + "/api/v1/admin/tsdb/delete_series?match%5B%5D=%7Bdb=%22"
+            + dbConfig.getDB_NAME()
+            + "%22%7D";
+    QUERY_URL = URL + "/api/v1/query?query=";
+    QUERY_RANGE_URL = URL + "/api/v1/query_range?query=";
+  }
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
@@ -452,7 +461,7 @@ public class VictoriaMetrics implements IDatabase {
   private String getMatch(String device, String sensor) {
     StringBuffer params = new StringBuffer();
     // change { to %7b " to %22 } to %7d
-    params.append("%7b").append("db=%22").append(config.getDB_NAME()).append("%22");
+    params.append("%7b").append("db=%22").append(dbConfig.getDB_NAME()).append("%22");
     params.append(",device=%22").append(device).append("%22");
     params.append(",sensor=%22").append(sensor).append("%22").append("%7d");
     return params.toString();

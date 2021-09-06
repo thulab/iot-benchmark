@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -54,10 +55,13 @@ public class TaosDB implements IDatabase {
       "create table if not exists %s (time timestamp, %s) tags(device binary(20))";
   private static final String CREATE_TABLE = "create table if not exists %s using %s tags('%s')";
   private Connection connection;
+  private DBConfig dbConfig;
   private static Config config;
   private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-  public TaosDB() {}
+  public TaosDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+  }
 
   @Override
   public void init() {
@@ -68,10 +72,10 @@ public class TaosDB implements IDatabase {
           DriverManager.getConnection(
               String.format(
                   URL_TAOS,
-                  config.getHOST().get(0),
-                  config.getPORT().get(0),
-                  config.getUSERNAME(),
-                  config.getPASSWORD()));
+                  dbConfig.getHOST().get(0),
+                  dbConfig.getPORT().get(0),
+                  dbConfig.getUSERNAME(),
+                  dbConfig.getPASSWORD()));
       LOGGER.info("init success.");
     } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();

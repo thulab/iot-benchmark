@@ -27,10 +27,6 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,33 +50,11 @@ public class TestWithDefaultPathMode extends BaseMode {
     recorder.saveTestConfig();
 
     Measurement measurement = new Measurement();
-    DBWrapper dbWrapper = new DBWrapper(measurement);
-    // register schema if needed
-    try {
-      dbWrapper.init();
-      if (config.isIS_DELETE_DATA()) {
-        try {
-          dbWrapper.cleanup();
-        } catch (TsdbException e) {
-          LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
-        }
-      }
-      try {
-        BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-        List<DeviceSchema> schemaList = baseDataSchema.getAllDeviceSchema();
-        dbWrapper.registerSchema(schemaList);
-      } catch (TsdbException e) {
-        LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
-      }
-    } catch (TsdbException e) {
-      LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
-    } finally {
-      try {
-        dbWrapper.close();
-      } catch (TsdbException e) {
-        LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
-      }
+    registerSchema(config.getDbConfig(), measurement);
+    if (config.isIS_DOUBLE_WRITE()) {
+      registerSchema(config.getANOTHER_DBConfig(), measurement);
     }
+
     // create getCLIENT_NUMBER() client threads to do the workloads
     List<Measurement> threadsMeasurements = new ArrayList<>();
     List<Client> clients = new ArrayList<>();

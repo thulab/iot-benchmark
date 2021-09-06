@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -53,7 +54,12 @@ public class QuestDB implements IDatabase {
   private static final String DROP_TABLE = "DROP TABLE ";
   private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+  private DBConfig dbConfig;
   private Connection connection = null;
+
+  public QuestDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+  }
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
@@ -64,13 +70,13 @@ public class QuestDB implements IDatabase {
     try {
       Class.forName("org.postgresql.Driver");
       Properties properties = new Properties();
-      properties.setProperty("user", config.getUSERNAME());
-      properties.setProperty("password", config.getPASSWORD());
+      properties.setProperty("user", dbConfig.getUSERNAME());
+      properties.setProperty("password", dbConfig.getPASSWORD());
       properties.setProperty("sslmode", SSLMODE);
       properties.setProperty("gssEncMode", "disable");
       connection =
           DriverManager.getConnection(
-              String.format(URL_QUEST, config.getHOST().get(0), config.getPORT().get(0)),
+              String.format(URL_QUEST, dbConfig.getHOST().get(0), dbConfig.getPORT().get(0)),
               properties);
     } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();
@@ -90,7 +96,7 @@ public class QuestDB implements IDatabase {
       ResultSet resultSet = statement.executeQuery("SHOW TABLES");
       while (resultSet.next()) {
         String table = resultSet.getString(1);
-        if (table.startsWith(config.getDB_NAME())) {
+        if (table.startsWith(dbConfig.getDB_NAME())) {
           statement.addBatch(DROP_TABLE + table + ";");
         }
       }
@@ -128,7 +134,7 @@ public class QuestDB implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           StringBuffer create = new StringBuffer(CREATE_TABLE);
           // 添加表名
-          create.append(config.getDB_NAME());
+          create.append(dbConfig.getDB_NAME());
           create.append("_");
           create.append(deviceSchema.getGroup());
           create.append("_");
@@ -190,7 +196,7 @@ public class QuestDB implements IDatabase {
   private Status insertBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
       DeviceSchema deviceSchema = batch.getDeviceSchema();
-      StringBuffer tableName = new StringBuffer(config.getDB_NAME());
+      StringBuffer tableName = new StringBuffer(dbConfig.getDB_NAME());
       tableName.append("_");
       tableName.append(deviceSchema.getGroup());
       tableName.append("_");
@@ -248,7 +254,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = preciseQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String sqlHead = "SELECT " + sensors.get(0);
     for (int i = 1; i < sensors.size(); i++) {
       sqlHead += ", " + sensors.get(i);
@@ -276,7 +282,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String sqlHead = "SELECT " + sensors.get(0);
     for (int i = 1; i < sensors.size(); i++) {
       sqlHead += ", " + sensors.get(i);
@@ -305,7 +311,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = valueRangeQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String sqlHead = "SELECT " + sensors.get(0);
     for (int i = 1; i < sensors.size(); i++) {
       sqlHead += ", " + sensors.get(i);
@@ -341,7 +347,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = aggRangeQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     aggQuerySqlHead += " FROM " + table;
@@ -368,7 +374,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = aggValueQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
     aggQuerySqlHead += " FROM " + table;
@@ -402,7 +408,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = aggRangeValueQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
     aggQuerySqlHead += " FROM " + table;
@@ -428,7 +434,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = groupByQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
         getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     aggQuerySqlHead += " FROM " + table;
@@ -452,7 +458,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = latestPointQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String sql = "SELECT " + sensors.get(0) + " FROM " + table + " LATEST BY " + sensors.get(0);
     return executeQueryAndGetStatus(sql);
   }
@@ -467,7 +473,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String sqlHead = "SELECT " + sensors.get(0);
     for (int i = 1; i < sensors.size(); i++) {
       sqlHead += ", " + sensors.get(i);
@@ -487,7 +493,7 @@ public class QuestDB implements IDatabase {
     DeviceSchema targetDevice = valueRangeQuery.getDeviceSchema().get(0);
     List<String> sensors = targetDevice.getSensors();
     String table =
-        config.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
+        dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String sqlHead = "SELECT " + sensors.get(0);
     for (int i = 1; i < sensors.size(); i++) {
       sqlHead += ", " + sensors.get(i);

@@ -36,4 +36,16 @@ public class AggRangeQuery extends RangeQuery {
   public String getAggFun() {
     return aggFun;
   }
+
+  /**
+   * get attributes of query
+   *
+   * @return
+   */
+  @Override
+  public StringBuilder getQueryAttrs() {
+    StringBuilder stringBuilder = super.getQueryAttrs();
+    stringBuilder.append(" aggFun=").append(aggFun);
+    return stringBuilder;
+  }
 }

@@ -40,11 +40,11 @@ public class FileSize {
   private static final float ABNORMAL_VALUE = -1;
 
   private FileSize() {
-    switch (config.getDB_SWITCH().getType()) {
+    switch (config.getDbConfig().getDB_SWITCH().getType()) {
       case IoTDB:
         break;
       default:
-        log.error("unsupported db name: {}", config.getDB_SWITCH());
+        log.error("unsupported db name: {}", config.getDbConfig().getDB_SWITCH());
     }
   }
 
