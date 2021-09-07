@@ -94,7 +94,7 @@ public class Config {
   /** Another configuration of db */
   private DBConfig ANOTHER_DBConfig = new DBConfig();
   /** Whether run verification when double write */
-  private boolean IS_VERIFICATION = false;
+  private boolean IS_COMPARISON = false;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -256,7 +256,8 @@ public class Config {
   private long GROUP_BY_TIME_UNIT = QUERY_INTERVAL / 2;
   /** Query random seed */
   private long QUERY_SEED = 1516580959202L;
-  /** Maximum number of output items in conditional query with limit */
+  // TODO check properties
+  /** Maximum number of output items in conditional query with limit TODO check */
   private int QUERY_LIMIT_N = 1;
   /** The offset in conditional query with limit */
   private int QUERY_LIMIT_OFFSET = 0;
@@ -1213,14 +1214,19 @@ public class Config {
     return IS_DOUBLE_WRITE;
   }
 
-  public boolean isIS_VERIFICATION() {
-    return IS_VERIFICATION;
+  public boolean isIS_COMPARISON() {
+    return IS_COMPARISON;
   }
 
-  public void setIS_VERIFICATION(boolean IS_VERIFICATION) {
-    this.IS_VERIFICATION = IS_VERIFICATION;
+  public void setIS_COMPARISON(boolean IS_COMPARISON) {
+    this.IS_COMPARISON = IS_COMPARISON;
   }
 
+  /**
+   * write dataset config to info
+   *
+   * @return
+   */
   public String toInfoText() {
     return "LOOP="
         + LOOP
@@ -1297,5 +1303,92 @@ public class Config {
         + WORKLOAD_BUFFER_SIZE
         + "\nSENSOR_CODES="
         + SENSOR_CODES;
+  }
+
+  /**
+   * get properties from config, one property in one line.
+   *
+   * @return
+   */
+  public String getShowProperties() {
+    StringBuffer properties = new StringBuffer();
+    properties.append("BENCHMARK_WORK_MODE=").append(this.BENCHMARK_WORK_MODE).append("\n");
+    properties.append("DBConfig=").append(this.dbConfig).append("\n");
+    properties.append("DOUBLE_WRITE=").append(this.IS_DOUBLE_WRITE).append("\n");
+    if (this.isIS_DOUBLE_WRITE()) {
+      properties.append("ANOTHER DBConfig=").append(this.ANOTHER_DBConfig).append("\n");
+      properties.append("IS_COMPASSION=").append(this.IS_COMPARISON).append("\n");
+    }
+    properties.append("BENCHMARK_CLUSTER=").append(this.BENCHMARK_CLUSTER).append("\n");
+    if (this.BENCHMARK_CLUSTER) {
+      properties.append("BENCHMARK_INDEX=").append(this.BENCHMARK_INDEX).append("\n");
+      properties.append("FIRST_DEVICE_INDEX=").append(this.FIRST_DEVICE_INDEX).append("\n");
+      properties.append("IS_ALL_NODES_VISIBLE=").append(this.IS_ALL_NODES_VISIBLE).append("\n");
+    }
+    properties.append("OPERATION_PROPORTION=").append(this.OPERATION_PROPORTION).append("\n");
+    properties
+        .append("INSERT_DATATYPE_PROPORTION=")
+        .append(this.INSERT_DATATYPE_PROPORTION)
+        .append("\n");
+    properties.append("IS_DELETE_DATA=").append(this.IS_DELETE_DATA).append("\n");
+    properties.append("CREATE_SCHEMA=").append(this.CREATE_SCHEMA).append("\n");
+    properties.append("IS_CLIENT_BIND=").append(this.IS_CLIENT_BIND).append("\n");
+    properties.append("CLIENT_NUMBER=").append(this.CLIENT_NUMBER).append("\n");
+    properties.append("GROUP_NUMBER=").append(this.GROUP_NUMBER).append("\n");
+    properties.append("SG_STRATEGY=").append(this.SG_STRATEGY).append("\n");
+    properties.append("DEVICE_NUMBER=").append(this.DEVICE_NUMBER).append("\n");
+    properties.append("REAL_INSERT_RATE=").append(this.REAL_INSERT_RATE).append("\n");
+    properties.append("SENSOR_NUMBER=").append(this.SENSOR_NUMBER).append("\n");
+    properties.append("IS_SENSOR_TS_ALIGNMENT=").append(this.IS_SENSOR_TS_ALIGNMENT).append("\n");
+    properties.append("BATCH_SIZE_PER_WRITE=").append(this.BATCH_SIZE_PER_WRITE).append("\n");
+    properties.append("LOOP=").append(this.LOOP).append("\n");
+    properties.append("POINT_STEP=").append(this.POINT_STEP).append("\n");
+    properties.append("OP_INTERVAL=").append(this.OP_INTERVAL).append("\n");
+    properties.append("QUERY_INTERVAL=").append(this.QUERY_INTERVAL).append("\n");
+    properties.append("IS_OUT_OF_ORDER=").append(this.IS_OUT_OF_ORDER).append("\n");
+    properties.append("OUT_OF_ORDER_MODE=").append(this.OUT_OF_ORDER_MODE).append("\n");
+    properties.append("OUT_OF_ORDER_RATIO=").append(this.OUT_OF_ORDER_RATIO).append("\n");
+    properties.append("IS_REGULAR_FREQUENCY=").append(this.IS_REGULAR_FREQUENCY).append("\n");
+    properties.append("START_TIME=").append(this.START_TIME);
+    return properties.toString();
+  }
+
+  /**
+   * get all properties from config, one property in one line.
+   *
+   * @return
+   */
+  public String getAllProperties() {
+    StringBuffer properties = new StringBuffer(getShowProperties()).append("\n");
+    properties.append("TIMESTAMP_PRECISION=").append(this.TIMESTAMP_PRECISION).append("\n");
+    properties.append("STRING_LENGTH=").append(this.STRING_LENGTH).append("\n");
+    properties
+        .append("ENABLE_THRIFT_COMPRESSION=")
+        .append(this.ENABLE_THRIFT_COMPRESSION)
+        .append("\n");
+    properties
+        .append("WRITE_OPERATION_TIMEOUT_MS=")
+        .append(this.WRITE_OPERATION_TIMEOUT_MS)
+        .append("\n");
+    properties
+        .append("READ_OPERATION_TIMEOUT_MS=")
+        .append(this.READ_OPERATION_TIMEOUT_MS)
+        .append("\n");
+    if (this.IS_OUT_OF_ORDER) {
+      properties.append("LAMBDA=").append(this.LAMBDA).append("\n");
+      properties.append("MAX_K=").append(this.MAX_K).append("\n");
+    }
+    properties.append("STEP_SIZE=").append(this.STEP_SIZE).append("\n");
+    properties.append("QUERY_SENSOR_NUM=").append(this.QUERY_SENSOR_NUM).append("\n");
+    properties.append("QUERY_DEVICE_NUM=").append(this.QUERY_DEVICE_NUM).append("\n");
+    properties.append("QUERY_AGGREGATE_FUN=").append(this.QUERY_AGGREGATE_FUN).append("\n");
+    properties.append("QUERY_LOWER_VALUE=").append(this.QUERY_LOWER_VALUE).append("\n");
+    properties.append("QUERY_SEED=").append(this.QUERY_SEED).append("\n");
+    properties.append("QUERY_LIMIT_N=").append(this.QUERY_LIMIT_N).append("\n");
+    properties.append("QUERY_LIMIT_OFFSET=").append(this.QUERY_LIMIT_OFFSET).append("\n");
+    properties.append("QUERY_SLIMIT_N=").append(this.QUERY_SLIMIT_N).append("\n");
+    properties.append("QUERY_SLIMIT_OFFSET=").append(this.QUERY_SLIMIT_OFFSET).append("\n");
+    properties.append("WORKLOAD_BUFFER_SIZE=").append(this.WORKLOAD_BUFFER_SIZE);
+    return properties.toString();
   }
 }

@@ -101,4 +101,29 @@ public class DBConfig {
   public void setTOKEN(String TOKEN) {
     this.TOKEN = TOKEN;
   }
+
+  @Override
+  public String toString() {
+    return "\n"
+        + "  DB_SWITCH="
+        + DB_SWITCH
+        + "\n"
+        + "  HOST="
+        + HOST
+        + "\n"
+        + "  PORT="
+        + PORT
+        + "\n"
+        + "  USERNAME="
+        + USERNAME
+        + "\n"
+        + "  PASSWORD="
+        + PASSWORD
+        + "\n"
+        + "  DB_NAME="
+        + DB_NAME
+        + "\n"
+        + "  TOKEN="
+        + TOKEN;
+  }
 }

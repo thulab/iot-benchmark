@@ -109,7 +109,7 @@ public class SyntheticClient extends GenerateBaseClient {
             }
             statuses.add(status);
           }
-          if (config.isIS_VERIFICATION() && statuses.size() >= 2) {
+          if (config.isIS_COMPARISON() && statuses.size() >= 2) {
             Status status1 = statuses.get(0);
             Status status2 = statuses.get(1);
             boolean isError = false;

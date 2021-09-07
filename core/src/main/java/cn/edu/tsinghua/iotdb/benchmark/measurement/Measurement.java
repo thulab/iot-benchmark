@@ -222,27 +222,7 @@ public class Measurement {
   /** Show Config of test */
   public void showConfigs() {
     System.out.println("----------------------Main Configurations----------------------");
-    System.out.println(
-        "DB_SWITCH: "
-            + config.getDbConfig().getDB_SWITCH()
-            + ((config.isIS_DOUBLE_WRITE())
-                ? "," + config.getANOTHER_DBConfig().getDB_SWITCH()
-                : ""));
-    System.out.println("OPERATION_PROPORTION: " + config.getOPERATION_PROPORTION());
-    System.out.println("ENABLE_THRIFT_COMPRESSION: " + config.isENABLE_THRIFT_COMPRESSION());
-    System.out.println("INSERT_DATATYPE_PROPORTION: " + config.getINSERT_DATATYPE_PROPORTION());
-    System.out.println("IS_CLIENT_BIND: " + config.isIS_CLIENT_BIND());
-    System.out.println("CLIENT_NUMBER: " + config.getCLIENT_NUMBER());
-    System.out.println("GROUP_NUMBER: " + config.getGROUP_NUMBER());
-    System.out.println("DEVICE_NUMBER: " + config.getDEVICE_NUMBER());
-    System.out.println("SENSOR_NUMBER: " + config.getSENSOR_NUMBER());
-    System.out.println("BATCH_SIZE_PER_WRITE: " + config.getBATCH_SIZE_PER_WRITE());
-    System.out.println("LOOP: " + config.getLOOP());
-    System.out.println("POINT_STEP: " + config.getPOINT_STEP());
-    System.out.println("QUERY_INTERVAL: " + config.getQUERY_INTERVAL());
-    System.out.println("IS_OUT_OF_ORDER: " + config.isIS_OUT_OF_ORDER());
-    System.out.println("OUT_OF_ORDER_MODE: " + config.getOUT_OF_ORDER_MODE());
-    System.out.println("OUT_OF_ORDER_RATIO: " + config.getOUT_OF_ORDER_RATIO());
+    System.out.println(config.getShowProperties());
     System.out.println("---------------------------------------------------------------");
   }
 
@@ -348,38 +328,11 @@ public class Measurement {
       try {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
         bw.write("Main Configurations");
-        bw.newLine();
-        bw.write("DB_SWITCH," + config.getDbConfig().getDB_SWITCH());
-        bw.newLine();
-        bw.write("OPERATION_PROPORTION," + config.getOPERATION_PROPORTION());
-        bw.newLine();
-        bw.write("ENABLE_THRIFT_COMPRESSION," + config.isENABLE_THRIFT_COMPRESSION());
-        bw.newLine();
-        bw.write("INSERT_DATATYPE_PROPORTION," + config.getINSERT_DATATYPE_PROPORTION());
-        bw.newLine();
-        bw.write("IS_CLIENT_BIND," + config.isIS_CLIENT_BIND());
-        bw.newLine();
-        bw.write("CLIENT_NUMBER," + config.getCLIENT_NUMBER());
-        bw.newLine();
-        bw.write("GROUP_NUMBER," + config.getGROUP_NUMBER());
-        bw.newLine();
-        bw.write("DEVICE_NUMBER," + config.getDEVICE_NUMBER());
-        bw.newLine();
-        bw.write("SENSOR_NUMBER," + config.getSENSOR_NUMBER());
-        bw.newLine();
-        bw.write("BATCH_SIZE_PER_WRITE," + config.getBATCH_SIZE_PER_WRITE());
-        bw.newLine();
-        bw.write("LOOP," + config.getLOOP());
-        bw.newLine();
-        bw.write("POINT_STEP," + config.getPOINT_STEP());
-        bw.newLine();
-        bw.write("QUERY_INTERVAL," + config.getQUERY_INTERVAL());
-        bw.newLine();
-        bw.write("IS_OUT_OF_ORDER," + config.isIS_OUT_OF_ORDER());
-        bw.newLine();
-        bw.write("OVERFLOW_MODE_ORDER," + config.getOUT_OF_ORDER_MODE());
-        bw.newLine();
-        bw.write("OUT_OF_ORDER_RATIO," + config.getOUT_OF_ORDER_RATIO());
+        String[] properties = config.getAllProperties().split("\n");
+        for (String property : properties) {
+          bw.newLine();
+          bw.write(property.replace("=", ","));
+        }
         bw.close();
       } catch (IOException e) {
         LOGGER.error("Exception occurred during operating buffer writer because: ", e);

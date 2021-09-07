@@ -584,7 +584,7 @@ public class IoTDB implements IDatabase {
                   try (ResultSet resultSet = statement.executeQuery(sql)) {
                     while (resultSet.next()) {
                       line.getAndIncrement();
-                      if (config.isIS_VERIFICATION()) {
+                      if (config.isIS_COMPARISON()) {
                         List<Object> record = new ArrayList<>();
                         for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                           switch (operation) {
@@ -614,7 +614,7 @@ public class IoTDB implements IDatabase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (config.isIS_VERIFICATION()) {
+      if (config.isIS_COMPARISON()) {
         return new Status(true, queryResultPointNum.get(), sql, records);
       } else {
         return new Status(true, queryResultPointNum.get());
