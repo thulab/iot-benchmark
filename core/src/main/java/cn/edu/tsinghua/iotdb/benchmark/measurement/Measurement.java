@@ -36,10 +36,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Measurement {
 
@@ -58,11 +55,12 @@ public class Measurement {
   private final Map<Operation, Long> failPointNumMap;
   private static final String RESULT_ITEM = "%-20s";
   private static final String LATENCY_ITEM = "%-12s";
-  private static final int COMPRESSION = 100;
+  private static final int COMPRESSION = 1000;
 
   static {
     for (Operation operation : Operation.values()) {
-      operationLatencyDigest.put(operation, new TDigest(COMPRESSION));
+      operationLatencyDigest.put(
+          operation, new TDigest(COMPRESSION, new Random(config.getDATA_SEED())));
       operationLatencySumAllClient.put(operation, 0D);
     }
   }
@@ -134,7 +132,7 @@ public class Measurement {
             .put(operation, operationLatencyDigest.get(operation).quantile(0.25));
         Metric.MEDIAN_LATENCY
             .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.5));
+            .put(operation, operationLatencyDigest.get(operation).quantile(0.50));
         Metric.P75_LATENCY
             .getTypeValueMap()
             .put(operation, operationLatencyDigest.get(operation).quantile(0.75));
