@@ -86,6 +86,9 @@ public class ConfigDescriptor {
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+        config.setRESULT_PRECISION(
+            Double.parseDouble(
+                properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
 
         config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");

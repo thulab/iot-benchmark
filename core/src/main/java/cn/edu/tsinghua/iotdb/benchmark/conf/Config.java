@@ -64,6 +64,9 @@ public class Config {
    */
   private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
+  /** Precision of result, unit: % */
+  private double RESULT_PRECISION = 0.1;
+
   /** Whether use benchmark in cluster * */
   private boolean BENCHMARK_CLUSTER = false;
   /** In cluster mode of benchmark, the index of benchmark which will influence index of devices */
@@ -487,6 +490,14 @@ public class Config {
 
   public void setBENCHMARK_WORK_MODE(BenchmarkMode BENCHMARK_WORK_MODE) {
     this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+  }
+
+  public double getRESULT_PRECISION() {
+    return RESULT_PRECISION;
+  }
+
+  public void setRESULT_PRECISION(double RESULT_PRECISION) {
+    this.RESULT_PRECISION = RESULT_PRECISION;
   }
 
   public boolean isBENCHMARK_CLUSTER() {
@@ -1313,6 +1324,7 @@ public class Config {
   public String getShowProperties() {
     StringBuffer properties = new StringBuffer();
     properties.append("BENCHMARK_WORK_MODE=").append(this.BENCHMARK_WORK_MODE).append("\n");
+    properties.append("RESULT_PRECISION=").append(this.RESULT_PRECISION).append("%").append("\n");
     properties.append("DBConfig=").append(this.dbConfig).append("\n");
     properties.append("DOUBLE_WRITE=").append(this.IS_DOUBLE_WRITE).append("\n");
     if (this.isIS_DOUBLE_WRITE()) {
