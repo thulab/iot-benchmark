@@ -454,7 +454,11 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
 
   @Override
   public GroupByQuery getGroupByQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
+    boolean typeAllow = false;
+    if (config.getQUERY_AGGREGATE_FUN().contains("count")) {
+      typeAllow = true;
+    }
+    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(typeAllow);
     long startTimestamp = getQueryStartTimestamp();
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(
