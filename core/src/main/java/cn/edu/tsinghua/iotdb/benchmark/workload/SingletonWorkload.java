@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class SingletonWorkload {
     insertLoop = new AtomicLong(0);
     deviceMaxTimeIndexMap = new ConcurrentHashMap<>();
     for (int i = 0; i < config.getDEVICE_NUMBER(); i++) {
-      deviceMaxTimeIndexMap.put(i, new AtomicLong(0));
+      deviceMaxTimeIndexMap.put(MetaUtil.getDeviceId(i), new AtomicLong(0));
     }
     probTool = new ProbTool();
     poissonRandom = new Random(config.getDATA_SEED());
@@ -60,7 +61,9 @@ public class SingletonWorkload {
   private Batch getOrderedBatch() {
     long curLoop = insertLoop.getAndIncrement();
     DeviceSchema deviceSchema =
-        new DeviceSchema((int) curLoop % config.getDEVICE_NUMBER(), config.getSENSOR_CODES());
+        new DeviceSchema(
+            MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
+            config.getSENSOR_CODES());
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       long stepOffset =
@@ -89,7 +92,7 @@ public class SingletonWorkload {
 
   private Batch getDistOutOfOrderBatch() {
     long curLoop = insertLoop.getAndIncrement();
-    int deviceIndex = (int) (curLoop % config.getDEVICE_NUMBER());
+    int deviceIndex = MetaUtil.getDeviceId((int) (curLoop % config.getDEVICE_NUMBER()));
     DeviceSchema deviceSchema = new DeviceSchema(deviceIndex, config.getSENSOR_CODES());
 
     Batch batch = new Batch();
