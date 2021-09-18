@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.taosdb;
+package cn.edu.tsinghua.iotdb.benchmark.tdengine;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -40,9 +40,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class TaosDB implements IDatabase {
+public class TDengine implements IDatabase {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaosDB.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
@@ -59,7 +59,7 @@ public class TaosDB implements IDatabase {
   private static Config config;
   private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-  public TaosDB(DBConfig dbConfig) {
+  public TDengine(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
     this.testDb = dbConfig.getDB_NAME();
   }

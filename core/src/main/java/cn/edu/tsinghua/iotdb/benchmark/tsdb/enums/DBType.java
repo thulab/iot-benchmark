@@ -28,7 +28,7 @@ public enum DBType {
   KairosDB("KairosDB"),
   TimescaleDB("TimescaleDB"),
   FakeDB("FakeDB"),
-  TaosDB("TaosDB"),
+  TDengine("TDengine"),
   QuestDB("QuestDB"),
   MSSQLSERVER("MSSQLSERVER"),
   VictoriaMetrics("VictoriaMetrics"),
