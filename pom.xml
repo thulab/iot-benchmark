@@ -26,6 +26,7 @@
         <module>mssqlserver</module>
         <module>sqlite</module>
         <module>verification</module>
+        <module>pi</module>
     </modules>
 
     <properties>

@@ -279,6 +279,7 @@ public class MySqlRecorder extends TestDataPersistence {
       switch (config.getDbConfig().getDB_SWITCH().getType()) {
         case IoTDB:
         case TimescaleDB:
+        case PIArchive:
           sql =
               String.format(
                   SAVE_CONFIG,

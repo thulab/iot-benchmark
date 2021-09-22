@@ -205,6 +205,7 @@ public class CSVRecorder extends TestDataPersistence {
     switch (config.getDbConfig().getDB_SWITCH().getType()) {
       case IoTDB:
       case TimescaleDB:
+      case PIArchive:
         str.append(
             String.format(FOUR, projectID, "ServerIP", config.getDbConfig().getHOST().get(0)));
         break;

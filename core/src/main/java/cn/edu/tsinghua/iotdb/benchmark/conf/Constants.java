@@ -88,4 +88,5 @@ public class Constants {
       "cn.edu.tsinghua.iotdb.benchmark.victoriametrics.VictoriaMetrics";
   public static final String QUESTDB_CLASS = "cn.edu.tsinghua.iotdb.benchmark.questdb.QuestDB";
   public static final String SQLITE_CLASS = "cn.edu.tsinghua.iotdb.benchmark.sqlite.SqliteDB";
+  public static final String PI_ARCHIVE_CLASS = "cn.edu.tsinghua.iotdb.benchmark.piarchive.PIArchive";
 }
