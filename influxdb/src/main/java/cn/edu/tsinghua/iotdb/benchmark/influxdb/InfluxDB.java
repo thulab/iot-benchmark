@@ -58,7 +58,7 @@ public class InfluxDB implements IDatabase {
 
   /** constructor. */
   public InfluxDB(DBConfig dbConfig) {
-    influxUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
+    influxUrl = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
     influxDbName = dbConfig.getDB_NAME();
   }
 
