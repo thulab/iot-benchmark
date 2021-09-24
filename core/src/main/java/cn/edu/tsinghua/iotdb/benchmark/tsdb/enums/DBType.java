@@ -30,7 +30,7 @@ public enum DBType {
   FakeDB("FakeDB"),
   TaosDB("TaosDB"),
   QuestDB("QuestDB"),
-  MSSQLSERVER("MSSQLSERVER"),
+  MSSQLSERVER("MsSqlServer"),
   VictoriaMetrics("VictoriaMetrics"),
   SQLite("SQLite");
 
