@@ -128,8 +128,11 @@ public class GenerateDataClient extends GenerateBaseClient {
       }
       Path dataFile =
           Paths.get(
-              FileUtils.union(config.getFILE_PATH(), device, "batch_" + insertLoopIndex + ".csv"));
-      Files.createFile(dataFile);
+              FileUtils.union(
+                  config.getFILE_PATH(), device, "BigBatch_" + (insertLoopIndex / 100) + ".csv"));
+      if (!Files.exists(dataFile)) {
+        Files.createFile(dataFile);
+      }
       List<String> sensors = batch.getDeviceSchema().getSensors();
       String sensorLine = String.join(",", sensors);
       sensorLine = "Sensor," + sensorLine + "\n";

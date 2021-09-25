@@ -129,6 +129,8 @@ public class Config {
   // 测试数据：外部测试数据
   /** The path of file */
   private String FILE_PATH;
+  /** The size of Big Batch */
+  private int BIG_BATCH_SIZE = 10;
 
   // 设备、传感器、客户端相关参数
   /** The number of devices of database */
@@ -1233,6 +1235,14 @@ public class Config {
     this.IS_COMPARISON = IS_COMPARISON;
   }
 
+  public int getBIG_BATCH_SIZE() {
+    return BIG_BATCH_SIZE;
+  }
+
+  public void setBIG_BATCH_SIZE(int BIG_BATCH_SIZE) {
+    this.BIG_BATCH_SIZE = BIG_BATCH_SIZE;
+  }
+
   /**
    * write dataset config to info
    *
@@ -1241,6 +1251,8 @@ public class Config {
   public String toInfoText() {
     return "LOOP="
         + LOOP
+        + "\nBIG_BATCH_SIZE"
+        + BIG_BATCH_SIZE
         + "\nFIRST_DEVICE_INDEX="
         + FIRST_DEVICE_INDEX
         + "\nPOINT_STEP="
