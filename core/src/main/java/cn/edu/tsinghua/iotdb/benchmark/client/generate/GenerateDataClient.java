@@ -129,7 +129,9 @@ public class GenerateDataClient extends GenerateBaseClient {
       Path dataFile =
           Paths.get(
               FileUtils.union(
-                  config.getFILE_PATH(), device, "BigBatch_" + (insertLoopIndex / 100) + ".csv"));
+                  config.getFILE_PATH(),
+                  device,
+                  "BigBatch_" + (insertLoopIndex / config.getBIG_BATCH_SIZE()) + ".csv"));
       if (!Files.exists(dataFile)) {
         Files.createFile(dataFile);
       }

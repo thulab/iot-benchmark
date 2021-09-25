@@ -59,6 +59,9 @@ public abstract class BasicReader {
    */
   public abstract Batch nextBatch();
 
+  /** change the dataFile */
+  protected abstract boolean changeFile();
+
   /**
    * get device schema based on file name and data set type
    *

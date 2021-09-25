@@ -1251,7 +1251,7 @@ public class Config {
   public String toInfoText() {
     return "LOOP="
         + LOOP
-        + "\nBIG_BATCH_SIZE"
+        + "\nBIG_BATCH_SIZE="
         + BIG_BATCH_SIZE
         + "\nFIRST_DEVICE_INDEX="
         + FIRST_DEVICE_INDEX

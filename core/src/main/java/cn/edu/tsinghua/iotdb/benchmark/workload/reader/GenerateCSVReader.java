@@ -47,24 +47,7 @@ public class GenerateCSVReader extends BasicReader {
 
   @Override
   public boolean hasNextBatch() {
-    if (currentFileIndex < files.size()) {
-      try {
-        currentFileName = files.get(currentFileIndex);
-        CSVReader csvReader =
-            new CSVReaderBuilder(
-                    new BufferedReader(
-                        new InputStreamReader(
-                            new FileInputStream(new File(currentFileName)),
-                            StandardCharsets.UTF_8)))
-                .build();
-        iterator = csvReader.iterator();
-      } catch (IOException ioException) {
-        LOGGER.error("Failed to read " + files.get(currentFileIndex));
-      }
-      currentFileIndex++;
-      return true;
-    }
-    return false;
+    return (iterator != null && iterator.hasNext()) || changeFile();
   }
 
   /** convert the cachedLines to Record list */
@@ -82,9 +65,10 @@ public class GenerateCSVReader extends BasicReader {
     List<Record> records = new ArrayList<>();
     try {
       boolean firstLine = true;
-      while (iterator.hasNext()) {
-        String[] items = iterator.next();
+      int lineNumber = 0;
+      while (iterator.hasNext() && lineNumber < config.getBATCH_SIZE_PER_WRITE()) {
         if (firstLine) {
+          String[] items = iterator.next();
           sensors = new ArrayList<>();
           for (int i = 1; i < items.length; i++) {
             sensors.add(items[i]);
@@ -124,10 +108,33 @@ public class GenerateCSVReader extends BasicReader {
         }
         Record record = new Record(timestamp, recordValues);
         records.add(record);
+        lineNumber++;
       }
     } catch (Exception exception) {
-      LOGGER.error("Failed to read file");
+      LOGGER.error("Failed to read file:" + exception.getMessage());
     }
     return new Batch(deviceSchema, records);
+  }
+
+  @Override
+  protected boolean changeFile() {
+    if (currentFileIndex < files.size()) {
+      try {
+        currentFileName = files.get(currentFileIndex);
+        CSVReader csvReader =
+            new CSVReaderBuilder(
+                    new BufferedReader(
+                        new InputStreamReader(
+                            new FileInputStream(new File(currentFileName)),
+                            StandardCharsets.UTF_8)))
+                .build();
+        iterator = csvReader.iterator();
+      } catch (IOException ioException) {
+        LOGGER.error("Failed to read " + files.get(currentFileIndex));
+      }
+      currentFileIndex++;
+      return true;
+    }
+    return false;
   }
 }
