@@ -34,7 +34,7 @@ public class RealDataWorkload implements IRealDataWorkload {
   /** Init reader of real dataset write test */
   public RealDataWorkload(int threadId) {
     List<String> files = MetaUtil.getThreadFiles().get(threadId);
-    basicReader = new GenerateReader(files);
+    basicReader = new GenerateCSVReader(files);
     batchNumber = files.size();
   }
 
