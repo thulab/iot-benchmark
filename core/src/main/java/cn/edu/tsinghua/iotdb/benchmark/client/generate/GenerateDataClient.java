@@ -128,21 +128,26 @@ public class GenerateDataClient extends GenerateBaseClient {
       }
       Path dataFile =
           Paths.get(
-              FileUtils.union(config.getFILE_PATH(), device, "batch_" + insertLoopIndex + ".txt"));
+              FileUtils.union(config.getFILE_PATH(), device, "batch_" + insertLoopIndex + ".csv"));
       Files.createFile(dataFile);
       List<String> sensors = batch.getDeviceSchema().getSensors();
-      String sensorLine = String.join(" ", sensors);
-      sensorLine = "Sensor " + sensorLine + "\n";
+      String sensorLine = String.join(",", sensors);
+      sensorLine = "Sensor," + sensorLine + "\n";
       Files.write(dataFile, sensorLine.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
       for (Record record : batch.getRecords()) {
         StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
         for (String sensor : sensors) {
+          Object value = null;
           if (batch.getColIndex() != -1) {
-            line.append(" ").append(record.getRecordDataValue().get(0));
+            value = record.getRecordDataValue().get(0);
           } else {
             int index = Integer.valueOf(sensor.split("_")[1]);
-            line.append(" ").append(record.getRecordDataValue().get(index));
+            value = record.getRecordDataValue().get(index);
           }
+          if (value instanceof String) {
+            value = "\"" + value + "\"";
+          }
+          line.append(",").append(value);
         }
         line.append("\n");
         Files.write(
