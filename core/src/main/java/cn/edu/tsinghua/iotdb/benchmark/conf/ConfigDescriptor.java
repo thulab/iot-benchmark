@@ -403,6 +403,7 @@ public class ConfigDescriptor {
    */
   private boolean checkConfig() {
     boolean result = true;
+    // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         String[] operations = config.getOPERATION_PROPORTION().split(":");
@@ -446,6 +447,18 @@ public class ConfigDescriptor {
         }
       default:
         break;
+    }
+    // check config
+    String[] op = config.getOPERATION_PROPORTION().split(":");
+    int minOps = 0;
+    for (int i = 0; i < op.length; i++) {
+      if (Double.valueOf(op[i]) > 1e-7) {
+        minOps++;
+      }
+    }
+    if (minOps > config.getLOOP()) {
+      LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
+      result = false;
     }
     return result;
   }
