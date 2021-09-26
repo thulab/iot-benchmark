@@ -212,7 +212,9 @@ public class SyntheticClient extends GenerateBaseClient {
               1,
               config.getLOG_PRINT_INTERVAL(),
               TimeUnit.SECONDS);
-          while (resultSet1.next() && resultSet2.next()) {
+          resultSet1.next();
+          resultSet2.next();
+          while (true) {
             StringBuilder stringBuilder1 = new StringBuilder(resultSet1.getObject(1).toString());
             StringBuilder stringBuilder2 = new StringBuilder(resultSet2.getObject(1).toString());
             // compare
@@ -221,6 +223,19 @@ public class SyntheticClient extends GenerateBaseClient {
               stringBuilder2.append(",").append(resultSet1.getObject(j));
             }
             if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
+              LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
+              LOGGER.error("In DB1 line: " + stringBuilder1);
+              LOGGER.error("In DB2 line: " + stringBuilder2);
+              resultSet1.close();
+              resultSet2.close();
+              return;
+            }
+            boolean b1 = resultSet1.next();
+            boolean b2 = resultSet2.next();
+            if (!b1 | !b2) {
+              if (!b1 & !b2) {
+                break;
+              }
               LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
               LOGGER.error("In DB1 line: " + stringBuilder1);
               LOGGER.error("In DB2 line: " + stringBuilder2);
