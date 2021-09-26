@@ -33,6 +33,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class DBWrapper implements IDatabase {
@@ -372,6 +373,23 @@ public class DBWrapper implements IDatabase {
     try {
       long start = System.nanoTime();
       status = db.verificationQuery(verificationQuery);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
+      handleQueryOperation(status, operation, device);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e, device);
+    }
+    return status;
+  }
+
+  @Override
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    Status status = null;
+    Operation operation = Operation.DEVICE_QUERY;
+    String device = deviceQuery.getDeviceSchema().getDevice();
+    try {
+      long start = System.nanoTime();
+      status = db.deviceQuery(deviceQuery);
       long end = System.nanoTime();
       status.setTimeCost(end - start);
       handleQueryOperation(status, operation, device);

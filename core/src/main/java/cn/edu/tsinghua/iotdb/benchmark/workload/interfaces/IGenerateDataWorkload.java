@@ -116,4 +116,12 @@ public interface IGenerateDataWorkload extends IWorkLoad {
    * @throws WorkloadException
    */
   LatestPointQuery getLatestPointQuery() throws WorkloadException;
+
+  /**
+   * Get device query, Eg. select time, v1... where device = ?
+   *
+   * @return
+   * @throws WorkloadException
+   */
+  DeviceQuery getDeviceQuery() throws WorkloadException;
 }

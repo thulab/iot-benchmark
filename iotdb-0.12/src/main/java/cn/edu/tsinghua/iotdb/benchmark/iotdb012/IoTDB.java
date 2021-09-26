@@ -727,6 +727,22 @@ public class IoTDB implements IDatabase {
     return new Status(true, point);
   }
 
+  @Override
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    StringBuffer sql = new StringBuffer();
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    sql.append(" order by time desc");
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("IoTDB:" + sql);
+    }
+    Statement statement = ioTDBConnection.getConnection().createStatement();
+    ResultSet resultSet = statement.executeQuery(sql.toString());
+    return new Status(true, 0, sql.toString(), resultSet);
+  }
+
   String getEncodingType(Type dataType) {
     switch (dataType) {
       case BOOLEAN:

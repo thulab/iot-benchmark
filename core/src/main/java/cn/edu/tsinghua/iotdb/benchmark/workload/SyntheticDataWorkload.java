@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SyntheticDataWorkload implements IGenerateDataWorkload {
 
@@ -66,6 +67,8 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
    */
   private static final Object[][] workloadValues = initWorkloadValues();
+
+  private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
 
   public SyntheticDataWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
@@ -477,6 +480,16 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_AGGREGATE_FUN());
+  }
+
+  @Override
+  public DeviceQuery getDeviceQuery() throws WorkloadException {
+    Integer deviceId = nowDeviceId.getAndIncrement();
+    if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
+      return null;
+    }
+    DeviceSchema deviceSchema = new DeviceSchema(deviceId, config.getSENSOR_CODES());
+    return new DeviceQuery(deviceSchema);
   }
 
   private static long getTimestampConst(String timePrecision) {

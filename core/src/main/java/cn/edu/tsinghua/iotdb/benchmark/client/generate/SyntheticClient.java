@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
@@ -32,16 +33,24 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.*;
 
 public class SyntheticClient extends GenerateBaseClient {
 
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
+  /** Log related */
+  protected final ScheduledExecutorService pointService =
+      Executors.newSingleThreadScheduledExecutor();
+  /** Number of line of device */
+  private long lineNumber = 0;
+  /** Index of device now */
+  private int deviceId;
 
   private static final double THRESHOLD = 0.0000001D;
 
@@ -57,113 +66,169 @@ public class SyntheticClient extends GenerateBaseClient {
    */
   @Override
   protected void doOperations(int actualDeviceFloor) {
-    long start = 0;
-    for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
-      Operation operation = operationController.getNextOperationType();
-      if (config.getOP_INTERVAL() > 0) {
-        start = System.currentTimeMillis();
-      }
-      if (operation == Operation.INGESTION) {
-        if (!ingestionOperation(actualDeviceFloor)) {
-          break;
+    if (!config.isIS_POINT_COMPARISON()) {
+      long start = 0;
+      for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
+        Operation operation = operationController.getNextOperationType();
+        if (config.getOP_INTERVAL() > 0) {
+          start = System.currentTimeMillis();
         }
-      } else {
-        try {
-          List<Status> statuses = new ArrayList<>();
-          Query query = getQuery(operation);
-          for (DBWrapper dbWrapper : dbWrappers) {
-            Status status = null;
-            switch (operation) {
-              case PRECISE_QUERY:
-                status = dbWrapper.preciseQuery((PreciseQuery) query);
-                break;
-              case RANGE_QUERY:
-                status = dbWrapper.rangeQuery((RangeQuery) query);
-                break;
-              case VALUE_RANGE_QUERY:
-                status = dbWrapper.valueRangeQuery((ValueRangeQuery) query);
-                break;
-              case AGG_RANGE_QUERY:
-                status = dbWrapper.aggRangeQuery((AggRangeQuery) query);
-                break;
-              case AGG_VALUE_QUERY:
-                status = dbWrapper.aggValueQuery((AggValueQuery) query);
-                break;
-              case AGG_RANGE_VALUE_QUERY:
-                status = dbWrapper.aggRangeValueQuery((AggRangeValueQuery) query);
-                break;
-              case GROUP_BY_QUERY:
-                status = dbWrapper.groupByQuery((GroupByQuery) query);
-                break;
-              case LATEST_POINT_QUERY:
-                status = dbWrapper.latestPointQuery((LatestPointQuery) query);
-                break;
-              case RANGE_QUERY_ORDER_BY_TIME_DESC:
-                status = dbWrapper.rangeQueryOrderByDesc((RangeQuery) query);
-                break;
-              case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-                status = dbWrapper.valueRangeQueryOrderByDesc((ValueRangeQuery) query);
-                break;
-              default:
-                LOGGER.error("Unsupported operation type {}", operation);
-            }
-            statuses.add(status);
+        if (operation == Operation.INGESTION) {
+          if (!ingestionOperation(actualDeviceFloor)) {
+            break;
           }
-          if (config.isIS_COMPARISON() && statuses.size() >= 2) {
-            Status status1 = statuses.get(0);
-            Status status2 = statuses.get(1);
-            boolean isError = false;
-            if (status1 != null
-                && status2 != null
-                && status1.getRecords() != null
-                && status2.getRecords() != null) {
-              int point1 = status1.getQueryResultPointNum();
-              int point2 = status2.getQueryResultPointNum();
-              if (point1 != point2) {
-                isError = true;
-              } else if (point1 != 0) {
-                List<List<Object>> records1 = status1.getRecords();
-                List<List<Object>> records2 = status2.getRecords();
-                boolean needSort = true;
-                if (query instanceof RangeQuery) {
-                  if (((RangeQuery) query).isDesc()) {
-                    needSort = false;
+        } else {
+          try {
+            List<Status> statuses = new ArrayList<>();
+            Query query = getQuery(operation);
+            for (DBWrapper dbWrapper : dbWrappers) {
+              Status status = null;
+              switch (operation) {
+                case PRECISE_QUERY:
+                  status = dbWrapper.preciseQuery((PreciseQuery) query);
+                  break;
+                case RANGE_QUERY:
+                  status = dbWrapper.rangeQuery((RangeQuery) query);
+                  break;
+                case VALUE_RANGE_QUERY:
+                  status = dbWrapper.valueRangeQuery((ValueRangeQuery) query);
+                  break;
+                case AGG_RANGE_QUERY:
+                  status = dbWrapper.aggRangeQuery((AggRangeQuery) query);
+                  break;
+                case AGG_VALUE_QUERY:
+                  status = dbWrapper.aggValueQuery((AggValueQuery) query);
+                  break;
+                case AGG_RANGE_VALUE_QUERY:
+                  status = dbWrapper.aggRangeValueQuery((AggRangeValueQuery) query);
+                  break;
+                case GROUP_BY_QUERY:
+                  status = dbWrapper.groupByQuery((GroupByQuery) query);
+                  break;
+                case LATEST_POINT_QUERY:
+                  status = dbWrapper.latestPointQuery((LatestPointQuery) query);
+                  break;
+                case RANGE_QUERY_ORDER_BY_TIME_DESC:
+                  status = dbWrapper.rangeQueryOrderByDesc((RangeQuery) query);
+                  break;
+                case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
+                  status = dbWrapper.valueRangeQueryOrderByDesc((ValueRangeQuery) query);
+                  break;
+                default:
+                  LOGGER.error("Unsupported operation type {}", operation);
+              }
+              statuses.add(status);
+            }
+            if (config.isIS_COMPARISON() && statuses.size() >= 2) {
+              Status status1 = statuses.get(0);
+              Status status2 = statuses.get(1);
+              boolean isError = false;
+              if (status1 != null
+                  && status2 != null
+                  && status1.getRecords() != null
+                  && status2.getRecords() != null) {
+                int point1 = status1.getQueryResultPointNum();
+                int point2 = status2.getQueryResultPointNum();
+                if (point1 != point2) {
+                  isError = true;
+                } else if (point1 != 0) {
+                  List<List<Object>> records1 = status1.getRecords();
+                  List<List<Object>> records2 = status2.getRecords();
+                  boolean needSort = true;
+                  if (query instanceof RangeQuery) {
+                    if (((RangeQuery) query).isDesc()) {
+                      needSort = false;
+                    }
                   }
-                }
-                if (needSort) {
-                  Collections.sort(records1, new RecordComparator());
-                  Collections.sort(records2, new RecordComparator());
-                }
-                // 顺序比较
-                for (int i = 0; i < point1; i++) {
-                  List<Object> record1 = records1.get(i);
-                  List<Object> record2 = records2.get(i);
-                  for (int j = 0; j < record1.size(); j++) {
-                    String r1 = String.valueOf(record1.get(j));
-                    String r2 = String.valueOf(record2.get(j));
-                    if (!r1.equals(r2)) {
-                      isError = true;
+                  if (needSort) {
+                    Collections.sort(records1, new RecordComparator());
+                    Collections.sort(records2, new RecordComparator());
+                  }
+                  // 顺序比较
+                  for (int i = 0; i < point1; i++) {
+                    List<Object> record1 = records1.get(i);
+                    List<Object> record2 = records2.get(i);
+                    for (int j = 0; j < record1.size(); j++) {
+                      String r1 = String.valueOf(record1.get(j));
+                      String r2 = String.valueOf(record2.get(j));
+                      if (!r1.equals(r2)) {
+                        isError = true;
+                      }
                     }
                   }
                 }
               }
+              if (isError) {
+                doErrorLog(query.getClass().getSimpleName(), status1, status2);
+              }
             }
-            if (isError) {
-              doErrorLog(query.getClass().getSimpleName(), status1, status2);
+          } catch (Exception e) {
+            LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
+          }
+        }
+        if (config.getOP_INTERVAL() > 0) {
+          long elapsed = System.currentTimeMillis() - start;
+          if (elapsed < config.getOP_INTERVAL()) {
+            try {
+              Thread.sleep(config.getOP_INTERVAL() - elapsed);
+            } catch (InterruptedException e) {
+              LOGGER.error("Wait for next operation failed because ", e);
             }
           }
-        } catch (Exception e) {
-          LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
         }
       }
-      if (config.getOP_INTERVAL() > 0) {
-        long elapsed = System.currentTimeMillis() - start;
-        if (elapsed < config.getOP_INTERVAL()) {
-          try {
-            Thread.sleep(config.getOP_INTERVAL() - elapsed);
-          } catch (InterruptedException e) {
-            LOGGER.error("Wait for next operation failed because ", e);
+    } else {
+      String currentThread = Thread.currentThread().getName();
+      for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
+        try {
+          DeviceQuery deviceQuery = syntheticWorkload.getDeviceQuery();
+          if (deviceQuery == null) {
+            break;
           }
+          deviceId = deviceQuery.getDeviceSchema().getDeviceId();
+          ResultSet resultSet1 = dbWrappers.get(0).deviceQuery(deviceQuery).getResultSet();
+          ResultSet resultSet2 = dbWrappers.get(1).deviceQuery(deviceQuery).getResultSet();
+          int col1 = resultSet1.getMetaData().getColumnCount();
+          int col2 = resultSet2.getMetaData().getColumnCount();
+          if (col1 != col2) {
+            LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
+            resultSet1.close();
+            resultSet2.close();
+            return;
+          }
+          // print current progress periodically
+          pointService.scheduleAtFixedRate(
+              () -> {
+                String percent =
+                    String.format("%.2f", (lineNumber + 1) * 100.0D / config.getLOOP());
+                LOGGER.info(
+                    "{} {}% syntheticClient for {} is done.",
+                    currentThread, percent, MetaUtil.getDeviceName(deviceId));
+              },
+              1,
+              config.getLOG_PRINT_INTERVAL(),
+              TimeUnit.SECONDS);
+          while (resultSet1.next() && resultSet2.next()) {
+            StringBuilder stringBuilder1 = new StringBuilder(resultSet1.getObject(1).toString());
+            StringBuilder stringBuilder2 = new StringBuilder(resultSet2.getObject(1).toString());
+            // compare
+            for (int j = 2; j <= resultSet1.getMetaData().getColumnCount(); j++) {
+              stringBuilder1.append(",").append(resultSet1.getObject(j));
+              stringBuilder2.append(",").append(resultSet1.getObject(j));
+            }
+            if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
+              LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
+              LOGGER.error("In DB1 line: " + stringBuilder1);
+              LOGGER.error("In DB2 line: " + stringBuilder2);
+              resultSet1.close();
+              resultSet2.close();
+              return;
+            }
+            lineNumber++;
+          }
+          pointService.shutdown();
+        } catch (WorkloadException | SQLException e) {
+          LOGGER.error("Failed to do DEVICE_QUERY because ", e);
         }
       }
     }

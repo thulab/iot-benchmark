@@ -98,6 +98,8 @@ public class Config {
   private DBConfig ANOTHER_DBConfig = new DBConfig();
   /** Whether run verification when double write */
   private boolean IS_COMPARISON = false;
+  /** Whether do point compare */
+  private boolean IS_POINT_COMPARISON = false;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -1243,6 +1245,14 @@ public class Config {
     this.BIG_BATCH_SIZE = BIG_BATCH_SIZE;
   }
 
+  public boolean isIS_POINT_COMPARISON() {
+    return IS_POINT_COMPARISON;
+  }
+
+  public void setIS_POINT_COMPARISON(boolean IS_POINT_COMPARISON) {
+    this.IS_POINT_COMPARISON = IS_POINT_COMPARISON;
+  }
+
   /**
    * write dataset config to info
    *
@@ -1342,6 +1352,7 @@ public class Config {
     if (this.isIS_DOUBLE_WRITE()) {
       properties.append("ANOTHER DBConfig=").append(this.ANOTHER_DBConfig).append("\n");
       properties.append("IS_COMPASSION=").append(this.IS_COMPARISON).append("\n");
+      properties.append("IS_POINT_COMPARISON=").append(this.IS_POINT_COMPARISON).append("\n");
     }
     properties.append("BENCHMARK_CLUSTER=").append(this.BENCHMARK_CLUSTER).append("\n");
     if (this.BENCHMARK_CLUSTER) {

@@ -378,6 +378,21 @@ public class TimescaleDB implements IDatabase {
     return new Status(true, point);
   }
 
+  @Override
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
+    sql.append(" ORDER BY time DESC");
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("TimescaleDB:" + sql);
+    }
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(sql.toString());
+    return new Status(true, 0, sql.toString(), resultSet);
+  }
+
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
