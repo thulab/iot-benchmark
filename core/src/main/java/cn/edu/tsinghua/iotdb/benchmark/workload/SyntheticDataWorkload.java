@@ -391,24 +391,24 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     }
   }
 
-  private long getQueryStartTimestamp() {
-    long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
+  private long getQueryStartTimestamp(Operation operation) {
+    long currentQueryLoop = operationLoops.get(operation);
     long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
-    operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
+    operationLoops.put(operation, currentQueryLoop + 1);
     return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
   }
 
   @Override
   public PreciseQuery getPreciseQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
-    long timestamp = getQueryStartTimestamp();
+    long timestamp = getQueryStartTimestamp(Operation.PRECISE_QUERY);
     return new PreciseQuery(queryDevices, timestamp);
   }
 
   @Override
   public RangeQuery getRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
   }
@@ -416,7 +416,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.VALUE_RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_LOWER_VALUE());
@@ -426,7 +426,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices =
         getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.AGG_RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_AGGREGATE_FUN());
@@ -442,7 +442,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.AGG_RANGE_VALUE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeValueQuery(
         queryDevices,
@@ -459,7 +459,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       typeAllow = true;
     }
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(typeAllow);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.GROUP_BY_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(
         queryDevices,
@@ -472,7 +472,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.LATEST_POINT_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_AGGREGATE_FUN());
