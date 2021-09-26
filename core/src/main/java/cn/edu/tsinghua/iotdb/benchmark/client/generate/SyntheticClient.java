@@ -200,7 +200,11 @@ public class SyntheticClient extends GenerateBaseClient {
           pointService.scheduleAtFixedRate(
               () -> {
                 String percent =
-                    String.format("%.2f", (lineNumber + 1) * 100.0D / config.getLOOP());
+                    String.format(
+                        "%.2f",
+                        (lineNumber + 1)
+                            * 100.0D
+                            / (config.getLOOP() * config.getBATCH_SIZE_PER_WRITE()));
                 LOGGER.info(
                     "{} {}% syntheticClient for {} is done.",
                     currentThread, percent, MetaUtil.getDeviceName(deviceId));
@@ -226,6 +230,7 @@ public class SyntheticClient extends GenerateBaseClient {
             }
             lineNumber++;
           }
+          lineNumber = 0;
           pointService.shutdown();
         } catch (WorkloadException | SQLException e) {
           LOGGER.error("Failed to do DEVICE_QUERY because ", e);
