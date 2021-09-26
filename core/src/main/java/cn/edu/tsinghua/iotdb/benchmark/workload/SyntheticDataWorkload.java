@@ -374,8 +374,9 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       queryDevices.add(deviceSchema);
     }
     if (queryDevices.size() == 0) {
-      LOGGER.error("Not Suitable DeviceSchema");
-      throw new WorkloadException("No Suitable DeviceSchema");
+      LOGGER.warn("There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
+      throw new WorkloadException(
+          "There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
     }
     return queryDevices;
   }
