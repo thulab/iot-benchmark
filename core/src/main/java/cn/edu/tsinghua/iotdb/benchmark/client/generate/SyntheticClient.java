@@ -179,6 +179,22 @@ public class SyntheticClient extends GenerateBaseClient {
       }
     } else {
       String currentThread = Thread.currentThread().getName();
+      // print current progress periodically
+      pointService.scheduleAtFixedRate(
+          () -> {
+            String percent =
+                String.format(
+                    "%.2f",
+                    (lineNumber + 1)
+                        * 100.0D
+                        / (config.getLOOP() * config.getBATCH_SIZE_PER_WRITE()));
+            LOGGER.info(
+                "{} {}% syntheticClient for {} is done.",
+                currentThread, percent, MetaUtil.getDeviceName(deviceId));
+          },
+          1,
+          config.getLOG_PRINT_INTERVAL(),
+          TimeUnit.SECONDS);
       for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
         try {
           DeviceQuery deviceQuery = syntheticWorkload.getDeviceQuery();
@@ -196,22 +212,6 @@ public class SyntheticClient extends GenerateBaseClient {
             resultSet2.close();
             return;
           }
-          // print current progress periodically
-          pointService.scheduleAtFixedRate(
-              () -> {
-                String percent =
-                    String.format(
-                        "%.2f",
-                        (lineNumber + 1)
-                            * 100.0D
-                            / (config.getLOOP() * config.getBATCH_SIZE_PER_WRITE()));
-                LOGGER.info(
-                    "{} {}% syntheticClient for {} is done.",
-                    currentThread, percent, MetaUtil.getDeviceName(deviceId));
-              },
-              1,
-              config.getLOG_PRINT_INTERVAL(),
-              TimeUnit.SECONDS);
           resultSet1.next();
           resultSet2.next();
           while (true) {
@@ -244,11 +244,12 @@ public class SyntheticClient extends GenerateBaseClient {
             lineNumber++;
           }
           lineNumber = 0;
-          pointService.shutdown();
+          LOGGER.info("Finish Device: " + deviceQuery.getDeviceSchema().getDevice());
         } catch (WorkloadException | SQLException e) {
           LOGGER.error("Failed to do DEVICE_QUERY because ", e);
         }
       }
+      pointService.shutdown();
     }
   }
 
