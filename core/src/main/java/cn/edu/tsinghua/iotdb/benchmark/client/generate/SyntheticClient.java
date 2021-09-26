@@ -236,9 +236,7 @@ public class SyntheticClient extends GenerateBaseClient {
               if (!b1 & !b2) {
                 break;
               }
-              LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
-              LOGGER.error("In DB1 line: " + stringBuilder1);
-              LOGGER.error("In DB2 line: " + stringBuilder2);
+              LOGGER.error("DeviceQuery(Different Length):" + deviceQuery.getQueryAttrs());
               resultSet1.close();
               resultSet2.close();
               return;
