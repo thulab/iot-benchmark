@@ -123,5 +123,5 @@ public interface IGenerateDataWorkload extends IWorkLoad {
    * @return
    * @throws WorkloadException
    */
-  DeviceQuery getDeviceQuery() throws WorkloadException;
+  DeviceQuery getDeviceQuery();
 }

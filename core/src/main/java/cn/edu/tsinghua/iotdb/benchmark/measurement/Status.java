@@ -81,6 +81,10 @@ public class Status {
     return queryResultPointNum;
   }
 
+  public void setQueryResultPointNum(int queryResultPointNum) {
+    this.queryResultPointNum = queryResultPointNum;
+  }
+
   public long getTimeCost() {
     return costTime;
   }

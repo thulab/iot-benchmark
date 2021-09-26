@@ -483,7 +483,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   }
 
   @Override
-  public DeviceQuery getDeviceQuery() throws WorkloadException {
+  public DeviceQuery getDeviceQuery() {
     Integer deviceId = nowDeviceId.getAndIncrement();
     if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
       return null;

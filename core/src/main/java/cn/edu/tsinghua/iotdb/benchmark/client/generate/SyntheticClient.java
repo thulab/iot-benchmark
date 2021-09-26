@@ -48,7 +48,7 @@ public class SyntheticClient extends GenerateBaseClient {
   protected final ScheduledExecutorService pointService =
       Executors.newSingleThreadScheduledExecutor();
   /** Number of line of device */
-  private long lineNumber = 0;
+  private int lineNumber = 0;
   /** Index of device now */
   private int deviceId;
 
@@ -196,14 +196,19 @@ public class SyntheticClient extends GenerateBaseClient {
           config.getLOG_PRINT_INTERVAL(),
           TimeUnit.SECONDS);
       for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
+        DeviceQuery deviceQuery = syntheticWorkload.getDeviceQuery();
+        if (deviceQuery == null) {
+          break;
+        }
+        String device = deviceQuery.getDeviceSchema().getDevice();
         try {
-          DeviceQuery deviceQuery = syntheticWorkload.getDeviceQuery();
-          if (deviceQuery == null) {
-            break;
-          }
+          long start = System.nanoTime();
           deviceId = deviceQuery.getDeviceSchema().getDeviceId();
-          ResultSet resultSet1 = dbWrappers.get(0).deviceQuery(deviceQuery).getResultSet();
-          ResultSet resultSet2 = dbWrappers.get(1).deviceQuery(deviceQuery).getResultSet();
+          Status status1 = dbWrappers.get(0).deviceQuery(deviceQuery);
+          Status status2 = dbWrappers.get(1).deviceQuery(deviceQuery);
+          ResultSet resultSet1 = status1.getResultSet();
+          ResultSet resultSet2 = status2.getResultSet();
+          // TODO try to find a better way to get data
           int col1 = resultSet1.getMetaData().getColumnCount();
           int col2 = resultSet2.getMetaData().getColumnCount();
           if (col1 != col2) {
@@ -243,9 +248,23 @@ public class SyntheticClient extends GenerateBaseClient {
             }
             lineNumber++;
           }
+          long end = System.nanoTime();
+          status1.setTimeCost(end - start + status1.getTimeCost());
+          status2.setTimeCost(end - start + status2.getTimeCost());
+          status1.setQueryResultPointNum(lineNumber * col1);
+          status2.setQueryResultPointNum(lineNumber * col2);
+          dbWrappers.get(0).handleQueryOperation(status1, Operation.DEVICE_QUERY, device);
+          dbWrappers.get(1).handleQueryOperation(status2, Operation.DEVICE_QUERY, device);
+          LOGGER.info(
+              "Finish Device: "
+                  + deviceQuery.getDeviceSchema().getDevice()
+                  + " with "
+                  + lineNumber
+                  + " line.");
           lineNumber = 0;
-          LOGGER.info("Finish Device: " + deviceQuery.getDeviceSchema().getDevice());
-        } catch (WorkloadException | SQLException e) {
+        } catch (SQLException e) {
+          dbWrappers.get(0).handleUnexpectedQueryException(Operation.DEVICE_QUERY, e, device);
+          dbWrappers.get(1).handleUnexpectedQueryException(Operation.DEVICE_QUERY, e, device);
           LOGGER.error("Failed to do DEVICE_QUERY because ", e);
         }
       }

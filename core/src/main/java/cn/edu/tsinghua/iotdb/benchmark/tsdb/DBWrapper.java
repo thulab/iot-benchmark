@@ -476,7 +476,7 @@ public class DBWrapper implements IDatabase {
    * @param status
    * @param operation
    */
-  private void handleQueryOperation(Status status, Operation operation, String device) {
+  public void handleQueryOperation(Status status, Operation operation, String device) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
       if (!config.isIS_QUIET_MODE()) {
@@ -506,7 +506,7 @@ public class DBWrapper implements IDatabase {
    * @param operation
    * @param e
    */
-  private void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
+  public void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
     measurement.addFailOperationNum(operation);
     // currently we do not have expected result point number for query
     LOGGER.error(ERROR_LOG, operation, e);
