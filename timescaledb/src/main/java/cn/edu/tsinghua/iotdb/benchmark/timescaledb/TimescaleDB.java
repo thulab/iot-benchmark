@@ -37,7 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TimescaleDB implements IDatabase {
 
@@ -331,32 +333,49 @@ public class TimescaleDB implements IDatabase {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
-    int result = 0;
-    for (Record record : verificationQuery.getRecords()) {
-      String sql =
-          getSampleQuerySqlHead(deviceSchemas)
-              .append(" AND time = ")
-              .append(record.getTimestamp())
-              .toString();
-      try (Statement statement = connection.createStatement()) {
-        ResultSet resultSet = statement.executeQuery(sql);
-        resultSet.next();
-        List<Object> records = record.getRecordDataValue();
-        for (int i = 0; i < record.getRecordDataValue().size(); i++) {
-          String testRecord = String.valueOf(records.get(i));
+
+    List<Record> records = verificationQuery.getRecords();
+    if (records == null || records.size() == 0) {
+      return new Status(false);
+    }
+
+    StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    sql.append(" and (time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    sql.append(")");
+    int point = 0;
+    int line = 0;
+    try (Statement statement = connection.createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql.toString());
+      while (resultSet.next()) {
+        long timeStamp = resultSet.getLong(1);
+        List<Object> values = recordMap.get(timeStamp);
+        for (int i = 0; i < values.size(); i++) {
           String value = String.valueOf(resultSet.getObject(i + 2));
-          if (!value.equals(testRecord)) {
-            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + testRecord);
+          String target = String.valueOf(values.get(i));
+          if (!value.equals(target)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
           } else {
-            result++;
+            point++;
           }
         }
-      } catch (Exception e) {
-        LOGGER.error(e.getMessage());
-        LOGGER.error("Query Error: " + sql);
+        line++;
       }
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql);
+      return new Status(false);
     }
-    return new Status(true, result);
+    if (recordMap.size() != line) {
+      LOGGER.error(
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+    }
+    return new Status(true, point);
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
