@@ -200,7 +200,7 @@ public class PIArchive implements IDatabase {
             + deviceSchema.getSensors().get(0);
     String sql =
         String.format(
-            "SELECT tag, value, time FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s' AND value > '%s'",
+            "SELECT tag, value, time FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s' AND value > %s",
             tagName,
             formatter.format(valueRangeQuery.getStartTimestamp()),
             formatter.format(valueRangeQuery.getEndTimestamp()),
@@ -237,8 +237,8 @@ public class PIArchive implements IDatabase {
             + deviceSchema.getSensors().get(0);
     String sql =
         String.format(
-            "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND value > '%s'",
-            tagName, formatter.format(aggValueQuery.getValueThreshold()));
+            "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND value > %s",
+            tagName, aggValueQuery.getValueThreshold());
     return query(sql);
   }
 
@@ -253,11 +253,11 @@ public class PIArchive implements IDatabase {
             + deviceSchema.getSensors().get(0);
     String sql =
         String.format(
-            "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s' AND value > '%s'",
+            "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s' AND value > %s",
             tagName,
             formatter.format(aggRangeValueQuery.getValueThreshold()),
             formatter.format(aggRangeValueQuery.getStartTimestamp()),
-            formatter.format(aggRangeValueQuery.getEndTimestamp()));
+            aggRangeValueQuery.getEndTimestamp());
     return query(sql);
   }
 
@@ -300,11 +300,12 @@ public class PIArchive implements IDatabase {
             + deviceSchema.getSensors().get(0);
     String sql =
         String.format(
-            "select tag, value, time from piarchive..picomp2 where tag = '%s' AND time >= '%s' AND time <= '%s' AND value > '%s' order by time desc",
+            "select tag, value, time from piarchive..picomp2 where tag = '%s' AND time >= '%s' AND time <= '%s' AND value > %s order by time desc",
             tagName,
             formatter.format(valueRangeQuery.getStartTimestamp()),
             formatter.format(valueRangeQuery.getEndTimestamp()),
-            formatter.format(valueRangeQuery.getValueThreshold()));
+            valueRangeQuery.getValueThreshold()
+        );
     return query(sql);
   }
 
@@ -312,8 +313,13 @@ public class PIArchive implements IDatabase {
     try {
       Statement statement = connection.createStatement();
       ResultSet resultSet = statement.executeQuery(sql);
-      int queryResultPointNum =
-          resultSet.getFetchSize() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
+      int resultLineNum = 0;
+      try {
+        while (resultSet.next()) {
+          resultLineNum ++;
+        }
+      } catch (NoSuchMethodError e) { }
+      int queryResultPointNum = resultLineNum * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (SQLException throwables) {
       throwables.printStackTrace();
