@@ -449,7 +449,6 @@ public class ConfigDescriptor {
           }
         }
         break;
-      case VERIFICATION_WRITE:
       case VERIFICATION_QUERY:
         result &= checkDatabaseVerification(config.getDbConfig());
         if (config.isIS_DOUBLE_WRITE()) {
