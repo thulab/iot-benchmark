@@ -27,7 +27,7 @@ Databases currently supported:
 |       OpenTSDB       |    --    |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
-|        TaosDB        |    --    |                           jdbc                           |
+|        TDengine        |    2.2.0.2    |                           jdbc                           |
 
 # 4. Main Features
 
@@ -92,7 +92,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |         opentsdb          |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
-|        TaosDB        |    --    |          taosdb           |                                                   TaosDB                                                    |
+|        TDengine        |    2.2.0.2    |          TDengine           |                                                   TDengine                                                    |
 
 # 6. Explanation of different operating modes of IoTDB-Benchmark
 
