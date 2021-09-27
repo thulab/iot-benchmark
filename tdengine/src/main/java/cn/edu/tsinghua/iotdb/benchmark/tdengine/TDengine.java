@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.taosdb;
+package cn.edu.tsinghua.iotdb.benchmark.tdengine;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -40,27 +40,28 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class TaosDB implements IDatabase {
+public class TDengine implements IDatabase {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaosDB.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String URL_TAOS = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
   private static final String CREATE_DATABASE = "create database if not exists %s";
   private static final String SUPER_TABLE = "super";
-  private static final String TEST_DB = "ZC";
   private static final String USE_DB = "use %s";
   private static final String CREATE_STABLE =
       "create table if not exists %s (time timestamp, %s) tags(device binary(20))";
   private static final String CREATE_TABLE = "create table if not exists %s using %s tags('%s')";
   private Connection connection;
   private DBConfig dbConfig;
+  private static String testDb;
   private static Config config;
   private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-  public TaosDB(DBConfig dbConfig) {
+  public TDengine(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
+    this.testDb = dbConfig.getDB_NAME();
   }
 
   @Override
@@ -111,8 +112,8 @@ public class TaosDB implements IDatabase {
       // create database
       try {
         Statement statement = connection.createStatement();
-        statement.execute(String.format(CREATE_DATABASE, TEST_DB));
-        statement.execute(String.format(USE_DB, TEST_DB));
+        statement.execute(String.format(CREATE_DATABASE, testDb));
+        statement.execute(String.format(USE_DB, testDb));
 
         // create super table
         StringBuilder superSql = new StringBuilder();
@@ -138,7 +139,7 @@ public class TaosDB implements IDatabase {
 
       // create tables
       try (Statement statement = connection.createStatement()) {
-        statement.execute(String.format(USE_DB, TEST_DB));
+        statement.execute(String.format(USE_DB, testDb));
         for (DeviceSchema deviceSchema : schemaList) {
           statement.execute(
               String.format(
@@ -163,7 +164,7 @@ public class TaosDB implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, TEST_DB));
+      statement.execute(String.format(USE_DB, testDb));
       StringBuilder builder = new StringBuilder();
       DeviceSchema deviceSchema = batch.getDeviceSchema();
       builder.append("insert into ").append(deviceSchema.getDevice()).append(" values ");
@@ -184,7 +185,7 @@ public class TaosDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, TEST_DB));
+      statement.execute(String.format(USE_DB, testDb));
       StringBuilder builder = new StringBuilder();
       DeviceSchema deviceSchema = batch.getDeviceSchema();
       List<String> colList = deviceSchema.getSensors();
@@ -440,7 +441,7 @@ public class TaosDB implements IDatabase {
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, TEST_DB));
+      statement.execute(String.format(USE_DB, testDb));
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
