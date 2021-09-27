@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class SyntheticClient extends GenerateBaseClient {
 
@@ -146,14 +147,21 @@ public class SyntheticClient extends GenerateBaseClient {
                   }
                   // 顺序比较
                   for (int i = 0; i < point1; i++) {
-                    List<Object> record1 = records1.get(i);
-                    List<Object> record2 = records2.get(i);
-                    for (int j = 0; j < record1.size(); j++) {
-                      String r1 = String.valueOf(record1.get(j));
-                      String r2 = String.valueOf(record2.get(j));
-                      if (!r1.equals(r2)) {
-                        isError = true;
-                      }
+                    String firstLine =
+                        String.join(
+                            ",",
+                            records1.get(i).stream()
+                                .map(String::valueOf)
+                                .collect(Collectors.toList()));
+                    String secondLine =
+                        String.join(
+                            ",",
+                            records2.get(i).stream()
+                                .map(String::valueOf)
+                                .collect(Collectors.toList()));
+                    if (!firstLine.equals(secondLine)) {
+                      isError = true;
+                      break;
                     }
                   }
                 }
