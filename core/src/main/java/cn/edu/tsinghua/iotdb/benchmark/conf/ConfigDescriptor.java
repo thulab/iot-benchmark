@@ -20,8 +20,10 @@
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBType;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,10 @@ public class ConfigDescriptor {
     config = new Config();
     // load properties and call init methods
     loadProps();
+    // check properties
+    if (!checkConfig()) {
+      System.exit(1);
+    }
     config.initInnerFunction();
     config.initSensorCodes();
     config.initSensorFunction();
@@ -55,6 +61,7 @@ public class ConfigDescriptor {
     return config;
   }
 
+  /** load properties from config.properties */
   private void loadProps() {
     String url =
         System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf/config.properties");
@@ -79,6 +86,9 @@ public class ConfigDescriptor {
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+        config.setRESULT_PRECISION(
+            Double.parseDouble(
+                properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
 
         config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
@@ -112,9 +122,9 @@ public class ConfigDescriptor {
               properties.getProperty("ANOTHER_DB_NAME", config.getANOTHER_DBConfig().getDB_NAME()));
           config.setANOTHER_TOKEN(
               properties.getProperty("ANOTHER_TOKEN", config.getANOTHER_DBConfig().getTOKEN()));
-          config.setIS_VERIFICATION(
+          config.setIS_COMPARISON(
               Boolean.parseBoolean(
-                  properties.getProperty("IS_VERIFICATION", config.isIS_VERIFICATION() + "")));
+                  properties.getProperty("IS_COMPARISON", config.isIS_COMPARISON() + "")));
         }
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
@@ -384,5 +394,88 @@ public class ConfigDescriptor {
     } else {
       LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);
     }
+  }
+
+  /**
+   * Check validation of config
+   *
+   * @return
+   */
+  private boolean checkConfig() {
+    boolean result = true;
+    // Checking config according to mode
+    switch (config.getBENCHMARK_WORK_MODE()) {
+      case TEST_WITH_DEFAULT_PATH:
+        String[] operations = config.getOPERATION_PROPORTION().split(":");
+        if (Double.valueOf(operations[0]) - 0 < 1e-7) {
+          // no write
+          if (config.isIS_DELETE_DATA()) {
+            LOGGER.warn("Benchmark is doing query, no need to delete data.");
+            config.setIS_DELETE_DATA(false);
+          }
+          if (config.isCREATE_SCHEMA()) {
+            LOGGER.warn("Benchmark is doing query, no need to create schema.");
+            config.setCREATE_SCHEMA(false);
+          }
+        } else {
+          if (!config.isIS_DELETE_DATA()) {
+            LOGGER.info("Benchmark not delete data before writing.");
+          }
+          if (!config.isCREATE_SCHEMA()) {
+            LOGGER.info("Benchmark not create schema before writing.");
+          }
+        }
+        if (config.isIS_DOUBLE_WRITE()) {
+          DBConfig dbConfig = config.getDbConfig();
+          DBConfig anotherConfig = config.getANOTHER_DBConfig();
+          if (dbConfig.getDB_SWITCH() == DBSwitch.DB_INFLUX
+              || anotherConfig.getDB_SWITCH() == DBSwitch.DB_INFLUX) {
+            LOGGER.error("Double write not support influxdb v1.x");
+            result = false;
+          }
+          if (config.isIS_COMPARISON()) {
+            result &= checkDatabaseVerification(dbConfig);
+            result &= checkDatabaseVerification(anotherConfig);
+          }
+        }
+        break;
+      case VERIFICATION_WRITE:
+      case VERIFICATION_QUERY:
+        result &= checkDatabaseVerification(config.getDbConfig());
+        if (config.isIS_DOUBLE_WRITE()) {
+          result &= checkDatabaseVerification(config.getANOTHER_DBConfig());
+        }
+      default:
+        break;
+    }
+    // check config
+    String[] op = config.getOPERATION_PROPORTION().split(":");
+    int minOps = 0;
+    for (int i = 0; i < op.length; i++) {
+      if (Double.valueOf(op[i]) > 1e-7) {
+        minOps++;
+      }
+    }
+    if (minOps > config.getLOOP()) {
+      LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
+      result = false;
+    }
+    return result;
+  }
+
+  /**
+   * Check whether database support verification
+   *
+   * @param dbConfig
+   * @return
+   */
+  private boolean checkDatabaseVerification(DBConfig dbConfig) {
+    if (dbConfig.getDB_SWITCH() != DBSwitch.DB_TIMESCALE
+        && dbConfig.getDB_SWITCH().getType() != DBType.IoTDB
+        && dbConfig.getDB_SWITCH().getVersion() != DBVersion.IOTDB_012) {
+      LOGGER.error("Verification only support between iotdb v0.12 and timescaledb");
+      return false;
+    }
+    return true;
   }
 }

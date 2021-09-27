@@ -47,6 +47,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** this class will create more than one connection. */
@@ -575,6 +576,7 @@ public class IoTDB implements IDatabase {
     }
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
+    AtomicBoolean isOk = new AtomicBoolean(true);
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       List<List<Object>> records = new ArrayList<>();
       future =
@@ -584,7 +586,7 @@ public class IoTDB implements IDatabase {
                   try (ResultSet resultSet = statement.executeQuery(sql)) {
                     while (resultSet.next()) {
                       line.getAndIncrement();
-                      if (config.isIS_VERIFICATION()) {
+                      if (config.isIS_COMPARISON()) {
                         List<Object> record = new ArrayList<>();
                         for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                           switch (operation) {
@@ -604,6 +606,7 @@ public class IoTDB implements IDatabase {
                   }
                 } catch (SQLException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
+                  isOk.set(false);
                 }
                 queryResultPointNum.set(
                     line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
@@ -614,10 +617,15 @@ public class IoTDB implements IDatabase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (config.isIS_VERIFICATION()) {
-        return new Status(true, queryResultPointNum.get(), sql, records);
+      if (isOk.get() == true) {
+        if (config.isIS_COMPARISON()) {
+          return new Status(true, queryResultPointNum.get(), sql, records);
+        } else {
+          return new Status(true, queryResultPointNum.get());
+        }
       } else {
-        return new Status(true, queryResultPointNum.get());
+        return new Status(
+            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
       }
     } catch (Exception e) {
       return new Status(false, queryResultPointNum.get(), e, sql);

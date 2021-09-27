@@ -76,12 +76,12 @@ public enum DBSwitch {
 
   public static DBSwitch getDBType(String dbSwitch) {
     for (DBSwitch db : DBSwitch.values()) {
-      if (db.toString().equals(dbSwitch)) {
+      if (db.toString().equalsIgnoreCase(dbSwitch)) {
         return db;
       }
     }
     DBSwitch db = DBSwitch.DB_IOT_012_SESSION_BY_TABLET;
-    LOGGER.warn("Using default DBType: " + db.toString());
+    LOGGER.warn("Using default DBType: " + db);
     return db;
   }
 
@@ -89,10 +89,10 @@ public enum DBSwitch {
   public String toString() {
     StringBuffer dbType = new StringBuffer(type.toString());
     if (version != null) {
-      dbType.append("-").append(version.toString());
+      dbType.append("-").append(version);
     }
     if (insertMode != null) {
-      dbType.append("-").append(insertMode.toString());
+      dbType.append("-").append(insertMode);
     }
     return dbType.toString();
   }

@@ -370,7 +370,7 @@ public class TimescaleDB implements IDatabase {
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
-          if (config.isIS_VERIFICATION()) {
+          if (config.isIS_COMPARISON()) {
             List<Object> record = new ArrayList<>();
             for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
               switch (operation) {
@@ -391,7 +391,7 @@ public class TimescaleDB implements IDatabase {
         }
       }
       queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
-      if (config.isIS_VERIFICATION()) {
+      if (config.isIS_COMPARISON()) {
         return new Status(true, queryResultPointNum, sql, records);
       } else {
         return new Status(true, queryResultPointNum);
