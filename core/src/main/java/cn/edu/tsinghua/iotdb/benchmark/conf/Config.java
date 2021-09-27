@@ -98,7 +98,7 @@ public class Config {
   private DBConfig ANOTHER_DBConfig = new DBConfig();
   /** Whether run verification when double write */
   private boolean IS_COMPARISON = false;
-  /** Whether do point compare */
+  /** Whether to do point compare */
   private boolean IS_POINT_COMPARISON = false;
 
   // 初始化：Kafka
