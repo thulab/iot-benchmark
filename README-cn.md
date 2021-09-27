@@ -76,7 +76,7 @@ IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进
 |       OpenTSDB       |    --    |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
-|        TaosDB        |    --    |                           jdbc                           |
+|        TDengine        |    2.2.0.2    |                           jdbc                           |
 
 
 # 4. 主要特点
@@ -143,7 +143,7 @@ mvn clean package -Dmaven.test.skip=true
 |        SQLite        |    --    |     sqlite      |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |    opentsdb     |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |    kairosdb     |                                                  KairosDB                                                   |
-|        TaosDB        |    --    |     taosdb      |                                                   TaosDB                                                    |
+|        TDengine        |    2.2.0.2    |     TDengine      |                                                   TDengine                                                    |
 
 # 6. IoTDB-Benchmark的不同运行模式的说明
 

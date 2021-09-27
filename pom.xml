@@ -15,7 +15,7 @@
         <module>influxdb-2.0</module>
         <module>kairosdb</module>
         <module>opentsdb</module>
-        <module>taosdb</module>
+        <module>tdengine</module>
         <module>questdb</module>
         <module>timescaledb</module>
         <module>victoriametrics</module>
