@@ -1239,10 +1239,9 @@ public class Config {
     return BIG_BATCH_SIZE;
   }
 
-  public void setBIG_BATCH_SIZE(int BIG_BATCH_SIZE) {
-    this.BIG_BATCH_SIZE = BIG_BATCH_SIZE;
+  public void setBIG_BATCH_SIZE(int BIG_BATCH_SIZE){
+      this.BIG_BATCH_SIZE = BIG_BATCH_SIZE;
   }
-
   /**
    * write dataset config to info
    *
