@@ -33,6 +33,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class DBWrapper implements IDatabase {
@@ -401,7 +402,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public void close() throws TsdbException {
+  public void close() throws TsdbException, SQLException {
     db.close();
     if (recorder != null) {
       recorder.closeAsync();

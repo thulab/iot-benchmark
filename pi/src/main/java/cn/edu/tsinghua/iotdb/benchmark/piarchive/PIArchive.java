@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.piarchive;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
@@ -9,160 +11,278 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class PIArchive implements IDatabase {
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+    private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+    private static final Config config = ConfigDescriptor.getInstance().getConfig();
+    private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-  private static final String driverClassName = "com.osisoft.jdbc.Driver";
-  private static final Properties properties = new Properties();
-  private static final String url = "jdbc:pioledb://%s/Data Source=%s; Integrated Security=SSPI";
-  private static Connection connection;
-  private static DBConfig dbConfig;
+    private static final String driverClassName = "com.osisoft.jdbc.Driver";
+    private static final Properties properties = new Properties();
+    private static final String url = "jdbc:pioledb://%s/Data Source=%s; Integrated Security=SSPI";
+    private static Connection connection;
+    private static DBConfig dbConfig;
 
-  public PIArchive(DBConfig dbConfig) {
-    this.dbConfig = dbConfig;
-  }
-
-  @Override
-  public void init() throws TsdbException {
-    properties.put("TrustedConnection", "yes");
-    properties.put("ProtocolOrder", "nettcp:5462");
-    properties.put("LogConsole", "True");
-    properties.put("LogLevel", "2");
-
-    try {
-      Class.forName(driverClassName).newInstance();
-      connection =
-          DriverManager.getConnection(
-              String.format(url, dbConfig.getHOST().get(0), "PI"), properties);
-    } catch (Exception ex) {
-      System.err.println(ex);
+    public PIArchive(DBConfig dbConfig) {
+        this.dbConfig = dbConfig;
     }
-  }
 
-  @Override
-  public void cleanup() throws TsdbException {}
+    @Override
+    public void init() throws TsdbException {
+        properties.put("TrustedConnection", "yes");
+        properties.put("ProtocolOrder", "nettcp:5462");
+        properties.put("LogConsole", "True");
+        properties.put("LogLevel", "2");
 
-  @Override
-  public void close() throws TsdbException {}
-
-  @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    for (DeviceSchema deviceSchema : schemaList) {
-      String deviceName = deviceSchema.getDevice();
-      for (String sensor : deviceSchema.getSensors()) {
-        String pointName = deviceName + "_" + sensor;
-        String pointTypex = typeMap(baseDataSchema.getSensorType(deviceName, sensor));
-      }
+        try {
+            Class.forName(driverClassName).newInstance();
+            connection =
+                    DriverManager.getConnection(
+                            String.format(url, dbConfig.getHOST().get(0), "PI"), properties);
+        } catch (Exception ex) {
+            System.err.println(ex);
+        }
     }
-//    // create time series
-//    List<String> paths = new ArrayList<>();
-//    List<TSDataType> tsDataTypes = new ArrayList<>();
-//    List<TSEncoding> tsEncodings = new ArrayList<>();
-//    List<CompressionType> compressionTypes = new ArrayList<>();
-//    int count = 0;
-//    int createSchemaBatchNum = 10000;
-//    for (DeviceSchema deviceSchema : schemaList) {
-//      int sensorIndex = 0;
-//      for (String sensor : deviceSchema.getSensors()) {
-//        paths.add(getSensorPath(deviceSchema, sensor));
-//        Type datatype = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
-//        tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
-//        tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
-//        // TODO remove when [IOTDB-1518] is solved(not supported null)
-//        compressionTypes.add(Enum.valueOf(CompressionType.class, "SNAPPY"));
-//        if (++count % createSchemaBatchNum == 0) {
-//          registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+
+    @Override
+    public void cleanup() throws TsdbException {
+        try {
+            PreparedStatement deleteRecordsStatement = connection.prepareStatement("delete piarchive..picomp2 where tag like 'g_%'");
+            deleteRecordsStatement.execute();
+            PreparedStatement deletePointsStatement = connection.prepareStatement("delete pipoint..classic where tag like 'g_%'");
+            deletePointsStatement.execute();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    @Override
+    public void close() throws TsdbException, SQLException {
+//        if (connection != null) {
+//            connection.close();
 //        }
-//        sensorIndex++;
-//      }
-//    }
-//    if (!paths.isEmpty()) {
-//      registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
-//    }
-  }
-
-  @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
-    return null;
-  }
-
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    return null;
-  }
-
-  @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
-    return null;
-  }
-
-  @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
-    return null;
-  }
-
-  @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return null;
-  }
-
-  @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return null;
-  }
-
-  @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return null;
-  }
-
-  @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return null;
-  }
-
-  @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
-    return null;
-  }
-
-  @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return null;
-  }
-
-  @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
-  }
-
-  @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
-  }
-
-  @Override
-  public String typeMap(Type iotdbType) {
-    switch (iotdbType) {
-      case INT32:
-        return "Int32";
-      case INT64:
-        return "Digital";
-      case FLOAT:
-        return "Float32";
-      case DOUBLE:
-        return "Float64";
-      case BOOLEAN:
-      case TEXT:
-      default:
-        return "String";
     }
-  }
+
+    @Override
+    public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException, SQLException {
+        if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+            PreparedStatement pStatement = connection.prepareStatement("INSERT pipoint..classic (tag, pointtypex, compressing, future) VALUES (?, ?, 0, 1)");
+            for (DeviceSchema deviceSchema : schemaList) {
+                String group = deviceSchema.getGroup();
+                String deviceName = deviceSchema.getDevice();
+                for (String sensor : deviceSchema.getSensors()) {
+                    String pointName = group + "_" + deviceName + "_" + sensor;
+                    String pointTypex = typeMap(baseDataSchema.getSensorType(deviceName, sensor));
+                    pStatement.setString(1, pointName);
+                    pStatement.setString(2, pointTypex);
+                    pStatement.addBatch();
+                }
+            }
+            pStatement.executeBatch();
+            connection.commit();
+            pStatement.clearBatch();
+            pStatement.close();
+        }
+    }
+
+    @Override
+    public Status insertOneBatch(Batch batch) {
+        try (PreparedStatement pStatement = connection.prepareStatement("INSERT piarchive..picomp2 (tag, value, time) VALUES (?, ?, ?)")) {
+            DeviceSchema deviceSchema = batch.getDeviceSchema();
+            ArrayList<String> pointsName = new ArrayList<>();
+            for (String sensor : deviceSchema.getSensors()) {
+                pointsName.add(deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + sensor);
+            }
+            for (Record record : batch.getRecords()) {
+                for (int i = 0; i < record.getRecordDataValue().size(); i++) {
+                    pStatement.setString(1, pointsName.get(i));
+                    pStatement.setString(2, String.valueOf(record.getRecordDataValue().get(i)));
+                    pStatement.setString(3, formatter.format(record.getTimestamp()));
+                    pStatement.addBatch();
+                }
+            }
+            pStatement.executeBatch();
+            connection.commit();
+            pStatement.clearBatch();
+            pStatement.close();
+            return new Status(true);
+        } catch (SQLException e) {
+            System.out.println(e);
+            return new Status(false, 0, e, e.toString());
+        }
+    }
+
+    @Override
+    public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
+        try (PreparedStatement pStatement = connection.prepareStatement("INSERT piarchive..picomp2 (tag, value, time) VALUES (?, ?, ?)")) {
+            DeviceSchema deviceSchema = batch.getDeviceSchema();
+            String pointName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+            for (Record record : batch.getRecords()) {
+                pStatement.setString(1, pointName);
+                pStatement.setString(2, String.valueOf(record.getRecordDataValue().get(0)));
+                pStatement.setString(3, formatter.format(record.getTimestamp()));
+                pStatement.addBatch();
+            }
+            pStatement.executeBatch();
+            connection.commit();
+            pStatement.clearBatch();
+            pStatement.close();
+            return new Status(true);
+        } catch (SQLException e) {
+            System.out.println(e);
+            return new Status(false, 0, e, e.toString());
+        }
+    }
+
+    @Override
+    public Status preciseQuery(PreciseQuery preciseQuery) {
+        DeviceSchema deviceSchema = preciseQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "SELECT tag, value, time FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time = '%s'",
+                tagName,
+                formatter.format(preciseQuery.getTimestamp())
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status rangeQuery(RangeQuery rangeQuery) {
+        DeviceSchema deviceSchema = rangeQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "SELECT tag, value, time FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s'",
+                tagName,
+                formatter.format(rangeQuery.getStartTimestamp()),
+                formatter.format(rangeQuery.getEndTimestamp())
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+        DeviceSchema deviceSchema = valueRangeQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "SELECT tag, value, time FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s' AND value > '%s'",
+                tagName,
+                formatter.format(valueRangeQuery.getStartTimestamp()),
+                formatter.format(valueRangeQuery.getEndTimestamp()),
+                valueRangeQuery.getValueThreshold()
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+        DeviceSchema deviceSchema = aggRangeQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s'",
+                tagName,
+                formatter.format(aggRangeQuery.getStartTimestamp()),
+                formatter.format(aggRangeQuery.getEndTimestamp())
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status aggValueQuery(AggValueQuery aggValueQuery) {
+        DeviceSchema deviceSchema = aggValueQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND value > '%s'",
+                tagName,
+                formatter.format(aggValueQuery.getValueThreshold())
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+        DeviceSchema deviceSchema = aggRangeValueQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "SELECT count(*) FROM PIARCHIVE..PICOMP2 WHERE tag = '%s' AND time >= '%s' AND time <= '%s' AND value > '%s'",
+                tagName,
+                formatter.format(aggRangeValueQuery.getValueThreshold()),
+                formatter.format(aggRangeValueQuery.getStartTimestamp()),
+                formatter.format(aggRangeValueQuery.getEndTimestamp())
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status groupByQuery(GroupByQuery groupByQuery) {
+        return null;
+    }
+
+    @Override
+    public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+        return null;
+    }
+
+    @Override
+    public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+        DeviceSchema deviceSchema = rangeQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "select tag, value, time from piarchive..picomp2 where tag = '%s' AND time >= '%s' AND time <= '%s' order by time desc",
+                tagName,
+                formatter.format(rangeQuery.getStartTimestamp()),
+                formatter.format(rangeQuery.getEndTimestamp())
+        );
+        return query(sql);
+    }
+
+    @Override
+    public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+        DeviceSchema deviceSchema = valueRangeQuery.getDeviceSchema().get(0);
+        String tagName = deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + deviceSchema.getSensors().get(0);
+        String sql = String.format(
+                "select tag, value, time from piarchive..picomp2 where tag = '%s' AND time >= '%s' AND time <= '%s' AND value > '%s' order by time desc",
+                tagName,
+                formatter.format(valueRangeQuery.getStartTimestamp()),
+                formatter.format(valueRangeQuery.getEndTimestamp()),
+                formatter.format(valueRangeQuery.getValueThreshold())
+        );
+        return query(sql);
+    }
+
+    public Status query(String sql) {
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+            int queryResultPointNum = resultSet.getFetchSize() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
+            return new Status(true, queryResultPointNum);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            return new Status(false, 0);
+        }
+    }
+
+    @Override
+    public String typeMap(Type iotdbType) {
+        switch (iotdbType) {
+            case INT32:
+            case INT64:
+                return "Int32";
+            case FLOAT:
+                return "Float32";
+            case DOUBLE:
+                return "Float64";
+            case BOOLEAN:
+            case TEXT:
+            default:
+                return "String";
+        }
+    }
 }

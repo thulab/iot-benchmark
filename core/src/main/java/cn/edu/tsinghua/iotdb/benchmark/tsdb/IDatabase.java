@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface IDatabase {
@@ -44,14 +45,14 @@ public interface IDatabase {
   void cleanup() throws TsdbException;
 
   /** Close the DB instance connections. Called once per DB instance. */
-  void close() throws TsdbException;
+  void close() throws TsdbException, SQLException;
 
   /**
    * Called once before each test if CREATE_SCHEMA=true.
    *
    * @param schemaList schema of devices to register
    */
-  void registerSchema(List<DeviceSchema> schemaList) throws TsdbException;
+  void registerSchema(List<DeviceSchema> schemaList) throws TsdbException, SQLException;
 
   /**
    * Insert one batch into the database, the DB implementation needs to resolve the data in batch
@@ -61,7 +62,7 @@ public interface IDatabase {
    * @param batch universal insertion data structure
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status insertOneBatch(Batch batch) throws DBConnectException;
+  Status insertOneBatch(Batch batch) throws DBConnectException, SQLException;
 
   /**
    * Insert single-sensor one batch into the database, the DB implementation needs to resolve the
@@ -80,7 +81,7 @@ public interface IDatabase {
    * @param preciseQuery universal precise query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status preciseQuery(PreciseQuery preciseQuery);
+  Status preciseQuery(PreciseQuery preciseQuery) throws SQLException;
 
   /**
    * Query data of one or multiple sensors in a time range. e.g. select v1... from data where time

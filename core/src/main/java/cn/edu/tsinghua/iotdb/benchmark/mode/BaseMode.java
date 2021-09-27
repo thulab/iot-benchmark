@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -76,7 +77,7 @@ public abstract class BaseMode {
     } finally {
       try {
         dbWrapper.close();
-      } catch (TsdbException e) {
+      } catch (TsdbException | SQLException e) {
         LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
       }
     }

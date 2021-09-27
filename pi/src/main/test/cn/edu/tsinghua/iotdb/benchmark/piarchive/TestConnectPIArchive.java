@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 public class TestConnectPIArchive {
@@ -60,12 +62,33 @@ public class TestConnectPIArchive {
 
     @Test
     public void testInsertRecord() {
+        try {
+            pStatement = connection.prepareStatement("insert piarchive..picomp (tag, value, time) values ('g_testTag1', ?, ?)");
+//            pStatement = connection.prepareStatement("insert piarchive..picomp (tag, value) values ('g_testTag', ?)");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            for (Long i = 0L; i < 50000L; i++) {
+                pStatement.setString(1, String.valueOf(i));
+                pStatement.setString(2, formatter.format(1432451409000L + i * 1000));
+                pStatement.addBatch();
+            }
 
+            pStatement.executeBatch();
+            connection.commit();
+            pStatement.clearBatch();
+            pStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @After
     public void close() throws SQLException {
-        resultSet.close();
-        connection.close();
+        if (resultSet != null) {
+            resultSet.close();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+
     }
 }
