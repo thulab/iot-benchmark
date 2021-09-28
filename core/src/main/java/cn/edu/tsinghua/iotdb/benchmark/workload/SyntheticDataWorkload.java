@@ -287,14 +287,14 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     if (targetBatch > config.getLOOP()) {
       LOGGER.warn("Error loop");
     }
-    // add out of order data
-    for (int i = barrier - 1; i >= 0; i--) {
-      long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
-      addOneRowIntoBatch(batch, offset);
-    }
     // add in order data
     for (int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
       long offset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, offset);
+    }
+    // add out of order data
+    for (int i = barrier - 1; i >= 0; i--) {
+      long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
       addOneRowIntoBatch(batch, offset);
     }
     batch.setDeviceSchema(deviceSchema);
