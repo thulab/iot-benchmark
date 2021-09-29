@@ -67,10 +67,9 @@ public class GenerateDataClient extends GenerateBaseClient {
   private boolean doGenerate(int actualDeviceFloor) {
     try {
       if (config.isIS_CLIENT_BIND()) {
-        List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
         if (config.isIS_SENSOR_TS_ALIGNMENT()) {
           // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-          for (DeviceSchema deviceSchema : schemas) {
+          for (DeviceSchema deviceSchema : deviceSchemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
               writeBatch(batch);
@@ -81,7 +80,7 @@ public class GenerateDataClient extends GenerateBaseClient {
           // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
           DeviceSchema sensorSchema = null;
           List<String> sensorList = new ArrayList<String>();
-          for (DeviceSchema deviceSchema : schemas) {
+          for (DeviceSchema deviceSchema : deviceSchemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               int colIndex = 0;
               for (String sensor : deviceSchema.getSensors()) {

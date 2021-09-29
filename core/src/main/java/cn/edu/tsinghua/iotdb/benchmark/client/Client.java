@@ -22,6 +22,8 @@ package cn.edu.tsinghua.iotdb.benchmark.client;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
+import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
@@ -41,13 +43,15 @@ public abstract class Client implements Runnable {
 
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected Measurement measurement;
-  protected int clientThreadId;
+  protected final int clientThreadId;
+  protected final List<DeviceSchema> deviceSchemas;
   protected List<DBWrapper> dbWrappers = new ArrayList<>();
 
   public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     clientThreadId = id;
+    deviceSchemas = BaseDataSchema.getClientBindSchema().get(clientThreadId);
     measurement = new Measurement();
     initDBWrappers();
   }

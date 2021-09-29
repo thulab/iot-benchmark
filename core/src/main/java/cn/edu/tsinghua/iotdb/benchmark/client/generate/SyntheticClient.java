@@ -345,10 +345,9 @@ public class SyntheticClient extends GenerateBaseClient {
   private boolean ingestionOperation(int actualDeviceFloor) {
     try {
       if (config.isIS_CLIENT_BIND()) {
-        List<DeviceSchema> schemas = baseDataSchema.getThreadDeviceSchema(clientThreadId);
         if (config.isIS_SENSOR_TS_ALIGNMENT()) {
           // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-          for (DeviceSchema deviceSchema : schemas) {
+          for (DeviceSchema deviceSchema : deviceSchemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
               for (DBWrapper dbWrapper : dbWrappers) {
@@ -361,7 +360,7 @@ public class SyntheticClient extends GenerateBaseClient {
           // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
           DeviceSchema sensorSchema = null;
           List<String> sensorList = new ArrayList<String>();
-          for (DeviceSchema deviceSchema : schemas) {
+          for (DeviceSchema deviceSchema : deviceSchemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               for (String sensor : deviceSchema.getSensors()) {
                 int colIndex = Integer.parseInt(sensor.replace(Constants.SENSOR_NAME_PREFIX, ""));
