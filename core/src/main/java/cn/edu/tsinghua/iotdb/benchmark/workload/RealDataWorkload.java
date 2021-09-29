@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IRealDataWorkload;
@@ -28,14 +30,15 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.reader.*;
 import java.util.List;
 
 public class RealDataWorkload implements IRealDataWorkload {
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private BasicReader basicReader;
   private int batchNumber = 0;
 
   /** Init reader of real dataset write test */
   public RealDataWorkload(int threadId) {
     List<String> files = MetaUtil.getThreadFiles().get(threadId);
-    basicReader = new GenerateReader(files);
-    batchNumber = files.size();
+    basicReader = new GenerateCSVReader(files);
+    batchNumber = files.size() * config.getBIG_BATCH_SIZE();
   }
 
   /**

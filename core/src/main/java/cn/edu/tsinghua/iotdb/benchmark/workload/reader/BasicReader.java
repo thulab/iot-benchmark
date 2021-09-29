@@ -27,8 +27,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,32 +37,30 @@ public abstract class BasicReader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BasicReader.class);
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private final List<String> files;
-  protected BufferedReader bufferedReader;
-
-  private int currentFileIndex = 0;
+  protected final List<String> files;
+  protected int currentFileIndex = 0;
   protected String currentFileName;
 
   public BasicReader(List<String> files) {
     this.files = files;
   }
 
-  public boolean hasNextBatch() {
-    if (currentFileIndex < files.size()) {
-      try {
-        currentFileName = files.get(currentFileIndex);
-        bufferedReader = new BufferedReader(new FileReader(currentFileName));
-      } catch (IOException ioException) {
-        LOGGER.error("Failed to read " + files.get(currentFileIndex));
-      }
-      currentFileIndex++;
-      return true;
-    }
-    return false;
-  }
+  /**
+   * check whether it has next batch
+   *
+   * @return
+   */
+  public abstract boolean hasNextBatch();
 
-  /** convert the cachedLines to Record list */
+  /**
+   * convert the cachedLines to Record list
+   *
+   * @return
+   */
   public abstract Batch nextBatch();
+
+  /** change the dataFile */
+  protected abstract boolean changeFile();
 
   /**
    * get device schema based on file name and data set type

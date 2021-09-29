@@ -174,6 +174,9 @@ public class ConfigDescriptor {
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
+        config.setBIG_BATCH_SIZE(
+            Integer.parseInt(
+                properties.getProperty("BIG_BATCH_SIZE", config.getBIG_BATCH_SIZE() + "")));
 
         config.setDEVICE_NUMBER(
             Integer.parseInt(

@@ -102,13 +102,16 @@
       <artifactId>activation</artifactId>
       <version>1.1</version>
     </dependency>
-
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
       <version>2.3.0-b170127.1453</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.5.2</version>
+    </dependency>
   </dependencies>
   <build>
 

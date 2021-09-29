@@ -24,21 +24,30 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
-public class GenerateReader extends BasicReader {
+public class GenerateCSVReader extends BasicReader {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateReader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateCSVReader.class);
   private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private Iterator<String[]> iterator = null;
 
-  public GenerateReader(List<String> files) {
+  public GenerateCSVReader(List<String> files) {
     super(files);
+  }
+
+  @Override
+  public boolean hasNextBatch() {
+    return (iterator != null && iterator.hasNext()) || changeFile();
   }
 
   /** convert the cachedLines to Record list */
@@ -55,23 +64,22 @@ public class GenerateReader extends BasicReader {
     List<String> sensors = null;
     List<Record> records = new ArrayList<>();
     try {
-      String line = "";
       boolean firstLine = true;
-      while ((line = bufferedReader.readLine()) != null) {
+      int lineNumber = 0;
+      while (iterator.hasNext() && lineNumber < config.getBATCH_SIZE_PER_WRITE()) {
         if (firstLine) {
-          int firstIndex = line.indexOf(" ");
-          line = line.substring(firstIndex + 1);
-          sensors = new ArrayList<>(Arrays.asList(line.split(" ")));
+          String[] items = iterator.next();
+          sensors = new ArrayList<>();
+          for (int i = 1; i < items.length; i++) {
+            sensors.add(items[i]);
+          }
           deviceSchema =
               new DeviceSchema(
                   MetaUtil.getGroupNameByDeviceStr(originDevice), originDevice, sensors);
           firstLine = false;
           continue;
         }
-        if (line.trim().length() == 0) {
-          continue;
-        }
-        String[] values = line.split(" ");
+        String[] values = iterator.next();
         long timestamp = Long.parseLong(values[0]);
         List<Object> recordValues = new ArrayList<>();
         for (int i = 1; i < values.length; i++) {
@@ -100,10 +108,33 @@ public class GenerateReader extends BasicReader {
         }
         Record record = new Record(timestamp, recordValues);
         records.add(record);
+        lineNumber++;
       }
     } catch (Exception exception) {
-      LOGGER.error("Failed to read file");
+      LOGGER.error("Failed to read file:" + exception.getMessage());
     }
     return new Batch(deviceSchema, records);
+  }
+
+  @Override
+  protected boolean changeFile() {
+    if (currentFileIndex < files.size()) {
+      try {
+        currentFileName = files.get(currentFileIndex);
+        CSVReader csvReader =
+            new CSVReaderBuilder(
+                    new BufferedReader(
+                        new InputStreamReader(
+                            new FileInputStream(new File(currentFileName)),
+                            StandardCharsets.UTF_8)))
+                .build();
+        iterator = csvReader.iterator();
+      } catch (IOException ioException) {
+        LOGGER.error("Failed to read " + files.get(currentFileIndex));
+      }
+      currentFileIndex++;
+      return true;
+    }
+    return false;
   }
 }

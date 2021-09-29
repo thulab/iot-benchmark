@@ -682,28 +682,49 @@ public class IoTDB implements IDatabase {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
-    int result = 0;
-    for (Record record : verificationQuery.getRecords()) {
-      String sql = getSimpleQuerySqlHead(deviceSchemas);
-      sql += " WHERE time = " + record.getTimestamp();
-      try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-        ResultSet resultSet = statement.executeQuery(sql);
-        resultSet.next();
-        List<Object> records = record.getRecordDataValue();
-        for (int i = 0; i < record.getRecordDataValue().size(); i++) {
+
+    List<Record> records = verificationQuery.getRecords();
+    if (records == null || records.size() == 0) {
+      return new Status(false);
+    }
+
+    StringBuffer sql = new StringBuffer();
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    int point = 0;
+    int line = 0;
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql.toString());
+      while (resultSet.next()) {
+        long timeStamp = resultSet.getLong(1);
+        List<Object> values = recordMap.get(timeStamp);
+        for (int i = 0; i < values.size(); i++) {
           String value = resultSet.getString(i + 2);
-          String target = String.valueOf(records.get(i));
+          String target = String.valueOf(values.get(i));
           if (!value.equals(target)) {
             LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
           } else {
-            result++;
+            point++;
           }
         }
-      } catch (Exception e) {
-        LOGGER.error("Query Error: " + sql);
+        line++;
       }
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql);
+      return new Status(false);
     }
-    return new Status(true, result);
+    if (recordMap.size() != line) {
+      LOGGER.error(
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+    }
+    return new Status(true, point);
   }
 
   String getEncodingType(Type dataType) {
