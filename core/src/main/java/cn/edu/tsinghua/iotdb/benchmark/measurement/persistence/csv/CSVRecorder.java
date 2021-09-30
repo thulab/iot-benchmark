@@ -36,6 +36,7 @@ import java.net.UnknownHostException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -67,15 +68,17 @@ public class CSVRecorder extends TestDataPersistence {
   /** If now line > CSV_MAX_LINE, then the result will write into other files */
   private static final AtomicLong fileNumber = new AtomicLong(1);
 
-  static volatile FileWriter projectWriter;
-  static FileWriter serverInfoWriter;
-  static FileWriter confWriter;
-  static FileWriter finalResultWriter;
+  private static AtomicBoolean isRecord = new AtomicBoolean(false);
+
+  static volatile FileWriter projectWriter = null;
+  static FileWriter serverInfoWriter = null;
+  static FileWriter confWriter = null;
+  static FileWriter finalResultWriter = null;
   static String confDir;
   static String dataDir;
   static String csvDir;
-  static boolean isRecord = false;
 
+  private static final String THREE = ",%s,%s\n";
   private static final String FOUR = ",%s,%s,%s\n";
 
   public CSVRecorder() {
@@ -107,14 +110,16 @@ public class CSVRecorder extends TestDataPersistence {
       }
     }
     try {
-      confWriter = new FileWriter(csvDir + "/CONF.csv", true);
-      finalResultWriter = new FileWriter(csvDir + "/FINAL_RESULT.csv", true);
-      projectWriter = new FileWriter(csvDir + "/" + projectID + ".csv", true);
+      if (!isRecord.get()) {
+        confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
+      }
+      finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
+      projectWriter = new FileWriter(csvDir + "/" + projectID + "_DETAIL.csv", true);
       serverInfoWriter =
           new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
       initCSVFile();
     } catch (IOException e) {
-      LOGGER.error("", e);
+      LOGGER.error("Failed to init csv", e);
       try {
         confWriter.close();
         finalResultWriter.close();
@@ -139,13 +144,13 @@ public class CSVRecorder extends TestDataPersistence {
               + ",walFileSize,tps,MB_read,MB_wrtn\n";
       serverInfoWriter.append(firstLine);
     }
-    if (confWriter != null) {
-      String firstLine = "id,projectID,configuration_item,configuration_value\n";
-      confWriter.append(firstLine);
-    }
     if (serverInfoWriter != null) {
-      String firstLine = "id,projectID,operation,result_key,result_value\n";
+      String firstLine = "id,operation,result_key,result_value\n";
       serverInfoWriter.append(firstLine);
+    }
+    if (finalResultWriter != null) {
+      String firstLine = "id,operation,type,value\n";
+      finalResultWriter.append(firstLine);
     }
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
         && projectWriter != null) {
@@ -197,62 +202,19 @@ public class CSVRecorder extends TestDataPersistence {
 
   @Override
   public void saveTestConfig() {
-    StringBuffer str = new StringBuffer();
+    StringBuffer str = new StringBuffer("id,configuration_item,configuration_value\n");
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
-      str.append(String.format(FOUR, projectID, "MODE", "DEFAULT_TEST_MODE"));
+      str.append(String.format(THREE, "MODE", "DEFAULT_TEST_MODE"));
     }
-
-    switch (config.getDbConfig().getDB_SWITCH().getType()) {
-      case IoTDB:
-      case TimescaleDB:
-        str.append(
-            String.format(FOUR, projectID, "ServerIP", config.getDbConfig().getHOST().get(0)));
-        break;
-      case InfluxDB:
-      case OpenTSDB:
-      case CTSDB:
-      case KairosDB:
-      case FakeDB:
-      case TDengine:
-      case QuestDB:
-      case MSSQLSERVER:
-      case VictoriaMetrics:
-      case SQLite:
-        str.append(
-            String.format(
-                FOUR,
-                projectID,
-                "ServerIP",
-                config.getDbConfig().getHOST() + ":" + config.getDbConfig().getPORT()));
-        break;
-      default:
-        LOGGER.error("unsupported database " + config.getDbConfig().getDB_SWITCH());
-    }
-    str.append(String.format(FOUR, projectID, "CLIENT", localName));
-    str.append(String.format(FOUR, projectID, "DB_SWITCH", config.getDbConfig().getDB_SWITCH()));
-    str.append(String.format(FOUR, projectID, "CLIENT_NUMBER", config.getCLIENT_NUMBER()));
-    str.append(String.format(FOUR, projectID, "LOOP", config.getLOOP()));
-    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
-      str.append(String.format(FOUR, projectID, "GROUP_NUMBER", config.getGROUP_NUMBER()));
-      str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
-      str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
-      str.append(String.format(FOUR, projectID, "QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM()));
-      str.append(String.format(FOUR, projectID, "QUERY_SENSOR_NUM", config.getQUERY_SENSOR_NUM()));
-      str.append(String.format(FOUR, projectID, "IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER()));
-      if (config.isIS_OUT_OF_ORDER()) {
-        str.append(
-            String.format(FOUR, projectID, "OUT_OF_ORDER_RATIO", config.getOUT_OF_ORDER_RATIO()));
-      }
-      str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
-      str.append(String.format(FOUR, projectID, "GROUP_NUMBER", config.getGROUP_NUMBER()));
-      str.append(String.format(FOUR, projectID, "DEVICE_NUMBER", config.getDEVICE_NUMBER()));
-      str.append(String.format(FOUR, projectID, "SENSOR_NUMBER", config.getSENSOR_NUMBER()));
-      str.append(
-          String.format(FOUR, projectID, "BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE()));
-      str.append(String.format(FOUR, projectID, "POINT_STEP", config.getPOINT_STEP()));
+    for (Map.Entry<String, Object> entry : config.getAllProperties().entrySet()) {
+      String value = entry.getValue().toString().replace("\n", "");
+      str.append(",").append(entry.getKey()).append(",\"").append(value).append("\"\n");
     }
     try {
-      confWriter.append(str.toString());
+      if (!isRecord.get()) {
+        confWriter.append(str.toString());
+        isRecord.set(true);
+      }
     } catch (IOException e) {
       LOGGER.error("", e);
     }
@@ -339,7 +301,7 @@ public class CSVRecorder extends TestDataPersistence {
 
   @Override
   protected void saveResult(String operation, String key, String value) {
-    String line = String.format(",%s,%s,%s,%s", projectID, operation, key, value);
+    String line = String.format(FOUR, operation, key, value);
     try {
       finalResultWriter.append(line);
     } catch (IOException e) {
@@ -364,9 +326,13 @@ public class CSVRecorder extends TestDataPersistence {
    */
   public static void readClose() {
     try {
+      confWriter.flush();
       confWriter.close();
+      finalResultWriter.flush();
       finalResultWriter.close();
+      projectWriter.flush();
       projectWriter.close();
+      serverInfoWriter.flush();
       serverInfoWriter.close();
     } catch (IOException ioException) {
       LOGGER.error("Failed to close writer", ioException);
