@@ -438,6 +438,17 @@ public class ConfigDescriptor {
             result &= checkDatabaseVerification(anotherConfig);
             checkQuery();
           }
+          if (config.isIS_COMPARISON()) {
+            // check query
+            double total = 0.0;
+            for (int i = 1; i < operations.length; i++) {
+              total += Double.valueOf(operations[i]);
+            }
+            if (total < 1e-7) {
+              LOGGER.error("There is no query when doing comparison.");
+              result = false;
+            }
+          }
           if (config.isIS_POINT_COMPARISON()
               && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
             LOGGER.warn("There are too many client ( > device number)");
