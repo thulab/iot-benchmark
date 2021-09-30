@@ -221,7 +221,9 @@ public class Measurement {
   /** Show Config of test */
   public void showConfigs() {
     System.out.println("----------------------Main Configurations----------------------");
-    System.out.println(config.getShowProperties());
+    for (Map.Entry<String, Object> entry : config.getShowProperties().entrySet()) {
+      System.out.println(entry.getKey() + "=" + entry.getValue());
+    }
     System.out.println("---------------------------------------------------------------");
   }
 
@@ -327,10 +329,10 @@ public class Measurement {
       try {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
         bw.write("Main Configurations");
-        String[] properties = config.getAllProperties().split("\n");
-        for (String property : properties) {
+        Map<String, Object> properties = config.getAllProperties();
+        for (Map.Entry<String, Object> property : properties.entrySet()) {
           bw.newLine();
-          bw.write(property.replace("=", ","));
+          bw.write(property.getKey() + "=" + property.getValue());
         }
         bw.close();
       } catch (IOException e) {

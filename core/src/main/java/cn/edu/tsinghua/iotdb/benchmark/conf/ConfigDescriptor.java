@@ -438,6 +438,12 @@ public class ConfigDescriptor {
             result &= checkDatabaseVerification(anotherConfig);
             checkQuery();
           }
+          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
+            LOGGER.error(
+                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
+            result = false;
+            checkQuery();
+          }
           if (config.isIS_COMPARISON()) {
             // check query
             double total = 0.0;
