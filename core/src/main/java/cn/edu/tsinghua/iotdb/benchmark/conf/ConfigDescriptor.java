@@ -125,6 +125,10 @@ public class ConfigDescriptor {
           config.setIS_COMPARISON(
               Boolean.parseBoolean(
                   properties.getProperty("IS_COMPARISON", config.isIS_COMPARISON() + "")));
+          config.setIS_POINT_COMPARISON(
+              Boolean.parseBoolean(
+                  properties.getProperty(
+                      "IS_POINT_COMPARISON", config.isIS_POINT_COMPARISON() + "")));
         }
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
@@ -412,14 +416,7 @@ public class ConfigDescriptor {
         String[] operations = config.getOPERATION_PROPORTION().split(":");
         if (Double.valueOf(operations[0]) - 0 < 1e-7) {
           // no write
-          if (config.isIS_DELETE_DATA()) {
-            LOGGER.warn("Benchmark is doing query, no need to delete data.");
-            config.setIS_DELETE_DATA(false);
-          }
-          if (config.isCREATE_SCHEMA()) {
-            LOGGER.warn("Benchmark is doing query, no need to create schema.");
-            config.setCREATE_SCHEMA(false);
-          }
+          checkQuery();
         } else {
           if (!config.isIS_DELETE_DATA()) {
             LOGGER.info("Benchmark not delete data before writing.");
@@ -436,13 +433,33 @@ public class ConfigDescriptor {
             LOGGER.error("Double write not support influxdb v1.x");
             result = false;
           }
-          if (config.isIS_COMPARISON()) {
+          if (config.isIS_COMPARISON() || config.isIS_POINT_COMPARISON()) {
             result &= checkDatabaseVerification(dbConfig);
             result &= checkDatabaseVerification(anotherConfig);
+            checkQuery();
+          }
+          if (config.isIS_COMPARISON()) {
+            // check query
+            double total = 0.0;
+            for (int i = 1; i < operations.length; i++) {
+              total += Double.valueOf(operations[i]);
+            }
+            if (total < 1e-7) {
+              LOGGER.error("There is no query when doing comparison.");
+              result = false;
+            }
+          }
+          if (config.isIS_POINT_COMPARISON()
+              && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+            LOGGER.warn("There are too many client ( > device number)");
+          }
+          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
+            LOGGER.error(
+                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
+            result = false;
           }
         }
         break;
-      case VERIFICATION_WRITE:
       case VERIFICATION_QUERY:
         result &= checkDatabaseVerification(config.getDbConfig());
         if (config.isIS_DOUBLE_WRITE()) {
@@ -464,6 +481,17 @@ public class ConfigDescriptor {
       result = false;
     }
     return result;
+  }
+
+  private void checkQuery() {
+    if (config.isIS_DELETE_DATA()) {
+      LOGGER.warn("Benchmark is doing query, no need to delete data.");
+      config.setIS_DELETE_DATA(false);
+    }
+    if (config.isCREATE_SCHEMA()) {
+      LOGGER.warn("Benchmark is doing query, no need to create schema.");
+      config.setCREATE_SCHEMA(false);
+    }
   }
 
   /**

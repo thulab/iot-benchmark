@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.measurement;
 
+import java.sql.ResultSet;
 import java.util.List;
 
 public class Status {
@@ -35,8 +36,10 @@ public class Status {
   private String errorMessage;
   /** SQL */
   private String sql;
-  /** results */
+  /** results in record */
   private List<List<Object>> records;
+  /** results in resultSet */
+  private ResultSet resultSet;
 
   public Status(boolean isOk) {
     this.isOk = isOk;
@@ -54,6 +57,13 @@ public class Status {
     this.records = records;
   }
 
+  public Status(boolean isOk, int queryResultPointNum, String sql, ResultSet resultSet) {
+    this.isOk = isOk;
+    this.queryResultPointNum = queryResultPointNum;
+    this.sql = sql;
+    this.resultSet = resultSet;
+  }
+
   public Status(boolean isOk, Exception exception, String errorMessage) {
     this.isOk = isOk;
     this.exception = exception;
@@ -69,6 +79,10 @@ public class Status {
 
   public int getQueryResultPointNum() {
     return queryResultPointNum;
+  }
+
+  public void setQueryResultPointNum(int queryResultPointNum) {
+    this.queryResultPointNum = queryResultPointNum;
   }
 
   public long getTimeCost() {
@@ -93,6 +107,10 @@ public class Status {
 
   public String getSql() {
     return sql;
+  }
+
+  public ResultSet getResultSet() {
+    return resultSet;
   }
 
   public boolean isOk() {

@@ -123,8 +123,10 @@ public abstract class BaseMode {
     measurement.calculateMetrics(operations);
     // output results
     measurement.showConfigs();
-    measurement.showMeasurements(operations);
-    measurement.showMetrics(operations);
+    if (operations.size() != 0) {
+      measurement.showMeasurements(operations);
+      measurement.showMetrics(operations);
+    }
     if (config.isCSV_OUTPUT()) {
       measurement.outputCSV();
     }

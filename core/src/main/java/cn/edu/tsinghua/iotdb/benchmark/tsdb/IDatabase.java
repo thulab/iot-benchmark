@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface IDatabase {
@@ -161,6 +162,13 @@ public interface IDatabase {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
   };
+
+  /** Verification between two database */
+  default Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    // TODO Optimize way to check
+    WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
+    return new Status(false, 0, workloadException, workloadException.getMessage());
+  }
 
   /**
    * map the given type string name to the name in the target DB

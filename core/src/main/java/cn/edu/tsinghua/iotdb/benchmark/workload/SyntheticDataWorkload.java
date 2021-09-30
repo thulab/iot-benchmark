@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SyntheticDataWorkload implements IGenerateDataWorkload {
 
@@ -66,6 +67,8 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
    */
   private static final Object[][] workloadValues = initWorkloadValues();
+
+  private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
 
   public SyntheticDataWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
@@ -284,14 +287,14 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     if (targetBatch > config.getLOOP()) {
       LOGGER.warn("Error loop");
     }
-    // add out of order data
-    for (int i = barrier - 1; i >= 0; i--) {
-      long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
-      addOneRowIntoBatch(batch, offset);
-    }
     // add in order data
     for (int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
       long offset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, offset);
+    }
+    // add out of order data
+    for (int i = barrier - 1; i >= 0; i--) {
+      long offset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
       addOneRowIntoBatch(batch, offset);
     }
     batch.setDeviceSchema(deviceSchema);
@@ -392,24 +395,24 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
     }
   }
 
-  private long getQueryStartTimestamp() {
-    long currentQueryLoop = operationLoops.get(Operation.PRECISE_QUERY);
+  private long getQueryStartTimestamp(Operation operation) {
+    long currentQueryLoop = operationLoops.get(operation);
     long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
-    operationLoops.put(Operation.PRECISE_QUERY, currentQueryLoop + 1);
+    operationLoops.put(operation, currentQueryLoop + 1);
     return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
   }
 
   @Override
   public PreciseQuery getPreciseQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
-    long timestamp = getQueryStartTimestamp();
+    long timestamp = getQueryStartTimestamp(Operation.PRECISE_QUERY);
     return new PreciseQuery(queryDevices, timestamp);
   }
 
   @Override
   public RangeQuery getRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
   }
@@ -417,7 +420,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.VALUE_RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_LOWER_VALUE());
@@ -427,7 +430,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices =
         getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.AGG_RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_AGGREGATE_FUN());
@@ -443,7 +446,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.AGG_RANGE_VALUE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeValueQuery(
         queryDevices,
@@ -460,7 +463,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       typeAllow = true;
     }
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(typeAllow);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.GROUP_BY_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(
         queryDevices,
@@ -473,10 +476,20 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   @Override
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
-    long startTimestamp = getQueryStartTimestamp();
+    long startTimestamp = getQueryStartTimestamp(Operation.LATEST_POINT_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(
         queryDevices, startTimestamp, endTimestamp, config.getQUERY_AGGREGATE_FUN());
+  }
+
+  @Override
+  public DeviceQuery getDeviceQuery() {
+    Integer deviceId = nowDeviceId.getAndIncrement();
+    if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
+      return null;
+    }
+    DeviceSchema deviceSchema = new DeviceSchema(deviceId, config.getSENSOR_CODES());
+    return new DeviceQuery(deviceSchema);
   }
 
   private static long getTimestampConst(String timePrecision) {

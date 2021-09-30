@@ -33,6 +33,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class DBWrapper implements IDatabase {
@@ -382,6 +383,23 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    Status status = null;
+    Operation operation = Operation.DEVICE_QUERY;
+    String device = deviceQuery.getDeviceSchema().getDevice();
+    try {
+      long start = System.nanoTime();
+      status = db.deviceQuery(deviceQuery);
+      long end = System.nanoTime();
+      status.setTimeCost(end - start);
+      handleQueryOperation(status, operation, device);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e, device);
+    }
+    return status;
+  }
+
+  @Override
   public void init() throws TsdbException {
     db.init();
   }
@@ -458,7 +476,7 @@ public class DBWrapper implements IDatabase {
    * @param status
    * @param operation
    */
-  private void handleQueryOperation(Status status, Operation operation, String device) {
+  public void handleQueryOperation(Status status, Operation operation, String device) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
       if (!config.isIS_QUIET_MODE()) {
@@ -488,7 +506,7 @@ public class DBWrapper implements IDatabase {
    * @param operation
    * @param e
    */
-  private void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
+  public void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
     measurement.addFailOperationNum(operation);
     // currently we do not have expected result point number for query
     LOGGER.error(ERROR_LOG, operation, e);

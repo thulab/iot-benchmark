@@ -69,13 +69,12 @@ public class TestWithDefaultPathMode extends BaseMode {
       st = System.nanoTime();
       executorService.submit(client);
     }
+    List<Operation> operations = Operation.getNormalOperation();
+    if (config.isIS_POINT_COMPARISON()) {
+      operations = new ArrayList<>();
+      operations.add(Operation.DEVICE_QUERY);
+    }
     finalMeasure(
-        executorService,
-        downLatch,
-        measurement,
-        threadsMeasurements,
-        st,
-        clients,
-        Operation.getNormalOperation());
+        executorService, downLatch, measurement, threadsMeasurements, st, clients, operations);
   }
 }

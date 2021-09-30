@@ -67,15 +67,17 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
     int actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
     actualDeviceFloor = MetaUtil.getDeviceId(actualDeviceFloor);
 
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
-          LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
+    if (!config.isIS_POINT_COMPARISON()) {
+      // print current progress periodically
+      service.scheduleAtFixedRate(
+          () -> {
+            String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
+            LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
+          },
+          1,
+          config.getLOG_PRINT_INTERVAL(),
+          TimeUnit.SECONDS);
+    }
     doOperations(actualDeviceFloor);
     service.shutdown();
   }
