@@ -1259,82 +1259,82 @@ public class Config {
    * @return
    */
   public String toInfoText() {
-    return "LOOP"
+    return "LOOP="
         + LOOP
-        + "\nBIG_BATCH_SIZE"
+        + "\nBIG_BATCH_SIZE="
         + BIG_BATCH_SIZE
-        + "\nFIRST_DEVICE_INDEX"
+        + "\nFIRST_DEVICE_INDEX="
         + FIRST_DEVICE_INDEX
-        + "\nPOINT_STEP"
+        + "\nPOINT_STEP="
         + POINT_STEP
         + "\nTIMESTAMP_PRECISION='"
         + TIMESTAMP_PRECISION
         + '\''
-        + "\nSTRING_LENGTH"
+        + "\nSTRING_LENGTH="
         + STRING_LENGTH
         + "\nINSERT_DATATYPE_PROPORTION='"
         + INSERT_DATATYPE_PROPORTION
         + '\''
-        + "\nDEVICE_NUMBER"
+        + "\nDEVICE_NUMBER="
         + DEVICE_NUMBER
-        + "\nREAL_INSERT_RATE"
+        + "\nREAL_INSERT_RATE="
         + REAL_INSERT_RATE
-        + "\nSENSOR_NUMBER"
+        + "\nSENSOR_NUMBER="
         + SENSOR_NUMBER
-        + "\nIS_SENSOR_TS_ALIGNMENT"
+        + "\nIS_SENSOR_TS_ALIGNMENT="
         + IS_SENSOR_TS_ALIGNMENT
-        + "\nDATA_SEED"
+        + "\nDATA_SEED="
         + DATA_SEED
         + "\nSG_STRATEGY='"
         + SG_STRATEGY
         + '\''
-        + "\nGROUP_NUMBER"
+        + "\nGROUP_NUMBER="
         + GROUP_NUMBER
-        + "\nBATCH_SIZE_PER_WRITE"
+        + "\nBATCH_SIZE_PER_WRITE="
         + BATCH_SIZE_PER_WRITE
         + "\nSTART_TIME='"
         + START_TIME
         + '\''
-        + "\nIS_OUT_OF_ORDER"
+        + "\nIS_OUT_OF_ORDER="
         + IS_OUT_OF_ORDER
-        + "\nOUT_OF_ORDER_MODE"
+        + "\nOUT_OF_ORDER_MODE="
         + OUT_OF_ORDER_MODE
-        + "\nOUT_OF_ORDER_RATIO"
+        + "\nOUT_OF_ORDER_RATIO="
         + OUT_OF_ORDER_RATIO
-        + "\nIS_REGULAR_FREQUENCY"
+        + "\nIS_REGULAR_FREQUENCY="
         + IS_REGULAR_FREQUENCY
-        + "\nLAMBDA"
+        + "\nLAMBDA="
         + LAMBDA
-        + "\nMAX_K"
+        + "\nMAX_K="
         + MAX_K
-        + "\nSTEP_SIZE"
+        + "\nSTEP_SIZE="
         + STEP_SIZE
-        + "\nQUERY_SENSOR_NUM"
+        + "\nQUERY_SENSOR_NUM="
         + QUERY_SENSOR_NUM
-        + "\nQUERY_DEVICE_NUM"
+        + "\nQUERY_DEVICE_NUM="
         + QUERY_DEVICE_NUM
         + "\nQUERY_AGGREGATE_FUN='"
         + QUERY_AGGREGATE_FUN
         + '\''
-        + "\nQUERY_INTERVAL"
+        + "\nQUERY_INTERVAL="
         + QUERY_INTERVAL
-        + "\nQUERY_LOWER_VALUE"
+        + "\nQUERY_LOWER_VALUE="
         + QUERY_LOWER_VALUE
-        + "\nGROUP_BY_TIME_UNIT"
+        + "\nGROUP_BY_TIME_UNIT="
         + GROUP_BY_TIME_UNIT
-        + "\nQUERY_SEED"
+        + "\nQUERY_SEED="
         + QUERY_SEED
-        + "\nQUERY_LIMIT_N"
+        + "\nQUERY_LIMIT_N="
         + QUERY_LIMIT_N
-        + "\nQUERY_LIMIT_OFFSET"
+        + "\nQUERY_LIMIT_OFFSET="
         + QUERY_LIMIT_OFFSET
-        + "\nQUERY_SLIMIT_N"
+        + "\nQUERY_SLIMIT_N="
         + QUERY_SLIMIT_N
-        + "\nQUERY_SLIMIT_OFFSET"
+        + "\nQUERY_SLIMIT_OFFSET="
         + QUERY_SLIMIT_OFFSET
-        + "\nWORKLOAD_BUFFER_SIZE"
+        + "\nWORKLOAD_BUFFER_SIZE="
         + WORKLOAD_BUFFER_SIZE
-        + "\nSENSOR_CODES"
+        + "\nSENSOR_CODES="
         + SENSOR_CODES;
   }
 
