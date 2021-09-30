@@ -115,16 +115,22 @@ public class CSVRecorder extends TestDataPersistence {
       }
       finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
       projectWriter = new FileWriter(csvDir + "/" + projectID + "_DETAIL.csv", true);
-      serverInfoWriter =
-          new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.SERVER) {
+        serverInfoWriter =
+            new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
+      }
       initCSVFile();
     } catch (IOException e) {
       LOGGER.error("Failed to init csv", e);
       try {
-        confWriter.close();
+        if (confWriter != null) {
+          confWriter.close();
+        }
         finalResultWriter.close();
         projectWriter.close();
-        serverInfoWriter.close();
+        if (serverInfoWriter != null) {
+          serverInfoWriter.close();
+        }
       } catch (IOException ioException) {
         LOGGER.error("", ioException);
       }
@@ -144,12 +150,8 @@ public class CSVRecorder extends TestDataPersistence {
               + ",walFileSize,tps,MB_read,MB_wrtn\n";
       serverInfoWriter.append(firstLine);
     }
-    if (serverInfoWriter != null) {
-      String firstLine = "id,operation,result_key,result_value\n";
-      serverInfoWriter.append(firstLine);
-    }
     if (finalResultWriter != null) {
-      String firstLine = "id,operation,type,value\n";
+      String firstLine = "id,operation,result_key,result_value\n";
       finalResultWriter.append(firstLine);
     }
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
@@ -194,7 +196,9 @@ public class CSVRecorder extends TestDataPersistence {
             + systemMetricsMap.get(SystemMetrics.DISK_WRITE_SPEED_MB)
             + "\n";
     try {
-      serverInfoWriter.append(system);
+      if (serverInfoWriter != null) {
+        serverInfoWriter.append(system);
+      }
     } catch (IOException e) {
       LOGGER.error("", e);
     }
@@ -332,8 +336,10 @@ public class CSVRecorder extends TestDataPersistence {
       finalResultWriter.close();
       projectWriter.flush();
       projectWriter.close();
-      serverInfoWriter.flush();
-      serverInfoWriter.close();
+      if (serverInfoWriter != null) {
+        serverInfoWriter.flush();
+        serverInfoWriter.close();
+      }
     } catch (IOException ioException) {
       LOGGER.error("Failed to close writer", ioException);
     }
