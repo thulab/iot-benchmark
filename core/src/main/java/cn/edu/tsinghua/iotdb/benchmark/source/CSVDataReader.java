@@ -113,8 +113,7 @@ public class CSVDataReader extends DataReader {
     return new Batch(deviceSchema, records);
   }
 
-  @Override
-  protected boolean changeFile() {
+  private boolean changeFile() {
     if (currentFileIndex < files.size()) {
       try {
         currentFileName = files.get(currentFileIndex);
