@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.extern.BasicWriter;
+import cn.edu.tsinghua.iotdb.benchmark.extern.SchemaWriter;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class GenerateDataMode extends BaseMode {
   /** Start benchmark */
   @Override
   public void run() {
-    if (!BasicWriter.getBasicWriter().writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas())) {
+    if (!SchemaWriter.getBasicWriter().writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas())) {
       return;
     }
 

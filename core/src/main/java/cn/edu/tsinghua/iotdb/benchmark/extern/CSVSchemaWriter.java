@@ -1,8 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.extern;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
@@ -17,8 +15,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
-public class CSVWriter extends BasicWriter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(CSVWriter.class);
+public class CSVSchemaWriter extends SchemaWriter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CSVSchemaWriter.class);
 
   /**
    * Write Schema to line
@@ -59,52 +57,5 @@ public class CSVWriter extends BasicWriter {
               + " is empty.");
       return false;
     }
-  }
-
-  @Override
-  public boolean writeBatch(Batch batch, long insertLoopIndex) {
-    String device = batch.getDeviceSchema().getDevice();
-    try {
-      Path dirFile = Paths.get(FileUtils.union(config.getFILE_PATH(), device));
-      if (!Files.exists(dirFile)) {
-        Files.createDirectories(dirFile);
-      }
-      Path dataFile =
-          Paths.get(
-              FileUtils.union(
-                  config.getFILE_PATH(),
-                  device,
-                  "BigBatch_" + (insertLoopIndex / config.getBIG_BATCH_SIZE()) + ".csv"));
-      if (!Files.exists(dataFile)) {
-        Files.createFile(dataFile);
-      }
-      List<String> sensors = batch.getDeviceSchema().getSensors();
-      String sensorLine = String.join(",", sensors);
-      sensorLine = "Sensor," + sensorLine + "\n";
-      Files.write(dataFile, sensorLine.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-      for (Record record : batch.getRecords()) {
-        StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
-        for (String sensor : sensors) {
-          Object value = null;
-          if (batch.getColIndex() != -1) {
-            value = record.getRecordDataValue().get(0);
-          } else {
-            int index = Integer.valueOf(sensor.split("_")[1]);
-            value = record.getRecordDataValue().get(index);
-          }
-          if (value instanceof String) {
-            value = "\"" + value + "\"";
-          }
-          line.append(",").append(value);
-        }
-        line.append("\n");
-        Files.write(
-            dataFile, line.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-      }
-    } catch (IOException ioException) {
-      LOGGER.error("Write batch Error!" + batch);
-      return false;
-    }
-    return true;
   }
 }

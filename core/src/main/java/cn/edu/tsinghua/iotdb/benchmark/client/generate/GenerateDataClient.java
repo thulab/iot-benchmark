@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.extern.BasicWriter;
+import cn.edu.tsinghua.iotdb.benchmark.extern.DataWriter;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.CyclicBarrier;
 
 /** This client is using by GenerateMode */
 public class GenerateDataClient extends GenerateBaseClient {
-  private BasicWriter basicWriter = BasicWriter.getBasicWriter();
+  private DataWriter dataWriter = DataWriter.getDataWriter();
 
   public GenerateDataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
@@ -66,7 +66,7 @@ public class GenerateDataClient extends GenerateBaseClient {
           for (DeviceSchema deviceSchema : deviceSchemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-              basicWriter.writeBatch(batch, insertLoopIndex);
+              dataWriter.writeBatch(batch, insertLoopIndex);
             }
           }
           insertLoopIndex++;
@@ -88,7 +88,7 @@ public class GenerateDataClient extends GenerateBaseClient {
                 SensorType colSensorType =
                     metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
                 batch.setColType(colSensorType);
-                basicWriter.writeBatch(batch, insertLoopIndex);
+                dataWriter.writeBatch(batch, insertLoopIndex);
                 colIndex++;
                 insertLoopIndex++;
               }
@@ -99,7 +99,7 @@ public class GenerateDataClient extends GenerateBaseClient {
         // IS_CLIENT_BIND = false
         Batch batch = singletonWorkload.getOneBatch();
         if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
-          basicWriter.writeBatch(batch, insertLoopIndex);
+          dataWriter.writeBatch(batch, insertLoopIndex);
         }
       }
     } catch (Exception e) {
