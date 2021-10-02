@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ public class VictoriaMetricsModel implements Serializable {
   private String metric;
   private long timestamp;
   private Object value;
-  private Type type;
+  private SensorType sensorType;
   private Map<String, String> tags = new HashMap<String, String>();
 
   public String getMetric() {
@@ -46,12 +46,12 @@ public class VictoriaMetricsModel implements Serializable {
     this.tags = tags;
   }
 
-  public Type getType() {
-    return type;
+  public SensorType getType() {
+    return sensorType;
   }
 
-  public void setType(Type type) {
-    this.type = type;
+  public void setType(SensorType sensorType) {
+    this.sensorType = sensorType;
   }
 
   @Override
@@ -73,7 +73,7 @@ public class VictoriaMetricsModel implements Serializable {
       }
     }
     result.append("} ");
-    if (type == Type.BOOLEAN) {
+    if (sensorType == SensorType.BOOLEAN) {
       result.append((boolean) value ? 1 : 0);
     } else {
       result.append(value);

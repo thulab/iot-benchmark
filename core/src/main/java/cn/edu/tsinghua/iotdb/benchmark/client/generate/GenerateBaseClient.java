@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IGenerateDataWorkload;
@@ -38,7 +38,7 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(GenerateBaseClient.class);
   /** meta schema */
-  protected final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  protected final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   /** synthetic workload */
   protected final IGenerateDataWorkload syntheticWorkload;
   /** singleton workload when IS_CLIENT_BIND = false */

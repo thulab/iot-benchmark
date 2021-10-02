@@ -23,9 +23,9 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -45,7 +45,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  protected static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
   protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
   protected final String ROOT_SERIES_NAME;
   protected DBConfig dbConfig;
@@ -122,7 +122,8 @@ public class IoTDB implements IDatabase {
       try (Statement statement = connection.createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
           for (String sensor : deviceSchema.getSensors()) {
-            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+            SensorType dataSensorType =
+                META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -133,8 +134,8 @@ public class IoTDB implements IDatabase {
                         + deviceSchema.getDevice()
                         + "."
                         + sensor,
-                    dataType,
-                    getEncodingType(dataType));
+                    dataSensorType,
+                    getEncodingType(dataSensorType));
             statement.addBatch(createSeriesSql);
             count++;
             if (count % 5000 == 0) {
@@ -155,8 +156,8 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getEncodingType(Type dataType) {
-    switch (dataType) {
+  String getEncodingType(SensorType dataSensorType) {
+    switch (dataSensorType) {
       case BOOLEAN:
       case INT32:
       case INT64:
@@ -165,7 +166,7 @@ public class IoTDB implements IDatabase {
       case TEXT:
         return "PLAIN";
       default:
-        LOGGER.error("Unsupported data type {}.", dataType);
+        LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;
     }
   }
@@ -357,7 +358,7 @@ public class IoTDB implements IDatabase {
     int sensorIndex = 0;
     List<String> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+      switch (META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;

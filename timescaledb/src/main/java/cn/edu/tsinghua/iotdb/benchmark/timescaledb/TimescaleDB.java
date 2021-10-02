@@ -23,9 +23,9 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -49,7 +49,7 @@ public class TimescaleDB implements IDatabase {
   private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
   // chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
@@ -554,7 +554,7 @@ public class TimescaleDB implements IDatabase {
           .append(", ")
           .append(sensors.get(i))
           .append(" ")
-          .append(typeMap(baseDataSchema.getSensorType(device, sensors.get(i))))
+          .append(typeMap(META_DATA_SCHEMA.getSensorType(device, sensors.get(i))))
           .append(" NULL ");
     }
     sqlBuilder.append(",UNIQUE (time, sGroup, device));");
@@ -624,8 +624,8 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public String typeMap(Type iotdbType) {
-    switch (iotdbType) {
+  public String typeMap(SensorType iotdbSensorType) {
+    switch (iotdbSensorType) {
       case BOOLEAN:
         return "BOOLEAN";
       case INT32:
@@ -639,7 +639,9 @@ public class TimescaleDB implements IDatabase {
       case TEXT:
         return "TEXT";
       default:
-        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+        LOGGER.error(
+            "Unsupported data sensorType {}, use default data sensorType: BINARY.",
+            iotdbSensorType);
         return "TEXT";
     }
   }

@@ -17,75 +17,72 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.schema;
+package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Data Schema for generate data */
-public class GenerateDataSchema extends BaseDataSchema {
+public class GenerateMetaDataSchema extends MetaDataSchema {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataSchema.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateMetaDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Integer TYPE_NUMBER = 6;
 
   @Override
-  public void createDataSchema() {
-    Map<String, Type> sensorTypes = getSensorTypes();
-    List<String> sensors = new ArrayList<>(sensorTypes.keySet());
-    sensors.sort(
-        new Comparator<String>() {
-          @Override
-          public int compare(String o1, String o2) {
-            return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, ""))
-                - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
-          }
-        });
-    int eachClientDeviceNum;
-    if (config.getCLIENT_NUMBER() != 0) {
-      eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
-    } else {
-      LOGGER.error("getCLIENT_NUMBER() can not be zero.");
-      return;
+  public boolean createMetaDataSchema() {
+    Map<String, SensorType> sensorTypes = getSensorTypes();
+    if (sensorTypes == null) {
+      return false;
     }
+    List<String> sensors = sortSensors(sensorTypes.keySet());
 
-    int deviceId = config.getFIRST_DEVICE_INDEX();
-    // The number of devices that cannot be divided equally
-    int mod = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
+    int eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
+    // The part that cannot be divided equally is given to clients with a smaller number
+    int leftClientDeviceNum = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
+    int deviceId = MetaUtil.getDeviceId(0);
     for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
+      int deviceNumber =
+          (clientId < leftClientDeviceNum) ? eachClientDeviceNum + 1 : eachClientDeviceNum;
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-      for (int j = 0; j < eachClientDeviceNum; j++) {
-        deviceSchemaList.add(new DeviceSchema(deviceId++, sensors));
-        addSensorType(MetaUtil.getDeviceName(deviceId - 1), sensorTypes);
+      for (int d = 0; d < deviceNumber; d++) {
+        DeviceSchema deviceSchema = new DeviceSchema(deviceId, sensors);
+        NAME_DATA_SCHEMA.put(deviceSchema.getDevice(), deviceSchema);
+        addSensorType(deviceSchema.getDevice(), sensorTypes);
+        deviceSchemaList.add(deviceSchema);
+        deviceId++;
       }
-      // The part that cannot be divided equally is given to clients with a smaller number.
-      if (clientId < mod) {
-        deviceSchemaList.add(new DeviceSchema(deviceId++, sensors));
-        addSensorType(MetaUtil.getDeviceName(deviceId - 1), sensorTypes);
-      }
-      CLIENT_BIND_SCHEMA.put(clientId, deviceSchemaList);
+      CLIENT_DATA_SCHEMA.put(clientId, deviceSchemaList);
     }
+    return true;
   }
 
-  private Map<String, Type> getSensorTypes() {
+  private Map<String, SensorType> getSensorTypes() {
     double[] probabilities = generateProbabilities();
-    Map<String, Type> sensors = new HashMap<>();
+    if (probabilities == null) {
+      return null;
+    }
+    Map<String, SensorType> sensors = new HashMap<>();
     for (int sensorIndex = 0; sensorIndex < config.getSENSOR_NUMBER(); sensorIndex++) {
       double sensorPosition = sensorIndex * 1.0 / config.getSENSOR_NUMBER();
       int i;
-      for (i = 1; i <= 6; i++) {
+      for (i = 1; i <= TYPE_NUMBER; i++) {
         if (sensorPosition >= probabilities[i - 1] && sensorPosition < probabilities[i]) {
           break;
         }
       }
       String sensorName = MetaUtil.getSensorName(sensorIndex);
-      sensors.put(sensorName, Type.getType(i));
+      sensors.put(sensorName, SensorType.getType(i));
     }
     return sensors;
   }
@@ -102,12 +99,14 @@ public class GenerateDataSchema extends BaseDataSchema {
     double[] proportions = new double[TYPE_NUMBER];
     // unified proportion array
     List<Double> proportion = new ArrayList<>();
-    LOGGER.info("Init SensorTypes!");
+    LOGGER.info(
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT="
+            + config.getINSERT_DATATYPE_PROPORTION());
 
     String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (split.length != TYPE_NUMBER) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-      System.exit(0);
+      return null;
     }
     double sum = 0;
     for (int i = 0; i < TYPE_NUMBER; i++) {

@@ -22,10 +22,10 @@ package cn.edu.tsinghua.iotdb.benchmark.tdengine;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -43,7 +43,7 @@ import java.util.List;
 public class TDengine implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String URL_TAOS = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
@@ -120,7 +120,7 @@ public class TDengine implements IDatabase {
         int sensorIndex = 0;
         for (String sensor : config.getSENSOR_CODES()) {
           String dataType =
-              typeMap(baseDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor));
+              typeMap(META_DATA_SCHEMA.getSensorType(MetaUtil.getDeviceName(0), sensor));
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
           } else {
@@ -224,7 +224,7 @@ public class TDengine implements IDatabase {
     int sensorIndex = 0;
     for (Object value : values) {
       switch (typeMap(
-          baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
+          META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
         case "BOOL":
           builder.append(",").append((boolean) value);
           break;
@@ -259,7 +259,7 @@ public class TDengine implements IDatabase {
     int sensorIndex = colIndex;
     Object value = values.get(0);
     String sensor = deviceSchema.getSensors().get(sensorIndex);
-    switch (typeMap(baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor))) {
+    switch (typeMap(META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor))) {
       case "BOOL":
         builder.append(",").append((boolean) value);
         break;
@@ -537,8 +537,8 @@ public class TDengine implements IDatabase {
   }
 
   @Override
-  public String typeMap(Type iotdbType) {
-    switch (iotdbType) {
+  public String typeMap(SensorType iotdbSensorType) {
+    switch (iotdbSensorType) {
       case BOOLEAN:
         return "BOOL";
       case INT32:
@@ -552,7 +552,9 @@ public class TDengine implements IDatabase {
       case TEXT:
         return "BINARY";
       default:
-        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+        LOGGER.error(
+            "Unsupported data sensorType {}, use default data sensorType: BINARY.",
+            iotdbSensorType);
         return "BINARY";
     }
   }

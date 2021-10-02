@@ -17,12 +17,14 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.schema;
+package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,68 +35,67 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class RealDataSchema extends BaseDataSchema {
+public class RealMetaDataSchema extends MetaDataSchema {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RealDataSchema.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(RealMetaDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  /** Create Data Schema for each device */
   @Override
-  protected void createDataSchema() {
-    Path path = Paths.get(config.getFILE_PATH());
+  protected boolean createMetaDataSchema() {
+    String pathStr = config.getFILE_PATH();
+    Path path = Paths.get(pathStr);
+    // Check the existence of dataset
     if (!Files.exists(path)) {
       LOGGER.error("{} dataset does not exit", config.getFILE_PATH());
-      return;
+      return false;
     }
-
+    // Check the validation of config between benchmark and dataset
+    if (!BasicReader.checkDataSet()) {
+      LOGGER.error("There are difference between benchmark and dataset");
+      return false;
+    }
+    // Load file from dataset
     List<String> files = new ArrayList<>();
-    getAllFiles(config.getFILE_PATH(), files);
+    getAllFiles(pathStr, files);
     LOGGER.info("Total files: {}", files.size());
     Collections.sort(files);
 
-    Map<String, Map<String, Type>> deviceSchemaMap = BasicReader.getDeviceSchemaList();
+    // Load sensor type from dataset
+    Map<String, Map<String, SensorType>> deviceSchemaMap = BasicReader.getDeviceSchemaList();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-    for (Map.Entry<String, Map<String, Type>> device : deviceSchemaMap.entrySet()) {
+    for (Map.Entry<String, Map<String, SensorType>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();
-      List<String> sensors = new ArrayList<>(device.getValue().keySet());
-      sensors.sort(
-          new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-              return Integer.valueOf(o1.replace(Constants.SENSOR_NAME_PREFIX, ""))
-                  - Integer.valueOf(o2.replace(Constants.SENSOR_NAME_PREFIX, ""));
-            }
-          });
+      List<String> sensors = sortSensors(device.getValue().keySet());
       DeviceSchema deviceSchema =
-          new DeviceSchema(MetaUtil.getGroupNameByDeviceStr(deviceName), deviceName, sensors);
-      addSensorType(MetaUtil.getDeviceName(deviceName), device.getValue());
+          new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
+      NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
+      addSensorType(deviceName, device.getValue());
       deviceSchemaList.add(deviceSchema);
     }
 
-    // Split into Thread And store Type
+    // Split into client And store Type
     for (int i = 0; i < deviceSchemaList.size(); i++) {
-      int threadId = i % config.getCLIENT_NUMBER();
+      int clientId = i % config.getCLIENT_NUMBER();
       DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      if (!CLIENT_BIND_SCHEMA.containsKey(threadId)) {
-        CLIENT_BIND_SCHEMA.put(threadId, new ArrayList<>());
+      if (!CLIENT_DATA_SCHEMA.containsKey(clientId)) {
+        CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
       }
-      CLIENT_BIND_SCHEMA.get(threadId).add(deviceSchema);
+      CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
     }
 
-    // Split Files into Thread
-    List<List<String>> threadFiles = new ArrayList<>();
+    // Split data files into client
+    List<List<String>> clientFiles = new ArrayList<>();
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      threadFiles.add(new ArrayList<>());
+      clientFiles.add(new ArrayList<>());
     }
 
     for (int i = 0; i < files.size(); i++) {
       String filePath = files.get(i);
-      int thread = i % config.getCLIENT_NUMBER();
-      threadFiles.get(thread).add(filePath);
+      int clientId = i % config.getCLIENT_NUMBER();
+      clientFiles.get(clientId).add(filePath);
     }
-    MetaUtil.setThreadFiles(threadFiles);
-    // set up loop
-    this.loopPerClient = files.size() / config.getCLIENT_NUMBER();
+    MetaUtil.setClientFiles(clientFiles);
+    return true;
   }
 
   private static void getAllFiles(String strPath, List<String> files) {

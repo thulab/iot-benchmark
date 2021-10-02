@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.kairosdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -116,7 +116,7 @@ public class KairosDB implements IDatabase {
     for (String sensor : deviceSchema.getSensors()) {
       KairosDataModel model = new KairosDataModel();
       model.setName(sensor);
-      // TODO: KairosDB do not support float as data type, use double instead.
+      // TODO: KairosDB do not support float as data sensorType, use double instead.
       model.setTimestamp(timestamp);
       model.setValue(recordValues.get(i));
       Map<String, String> tags = new HashMap<>();
@@ -135,7 +135,7 @@ public class KairosDB implements IDatabase {
     String groupId = deviceSchema.getGroup();
     KairosDataModel model = new KairosDataModel();
     model.setName(deviceSchema.getSensors().get(colIndex));
-    // TODO: KairosDB do not support float as data type, use double instead.
+    // TODO: KairosDB do not support float as data sensorType, use double instead.
     model.setTimestamp(timestamp);
     model.setValue(recordValues.get(0));
     Map<String, String> tags = new HashMap<>();

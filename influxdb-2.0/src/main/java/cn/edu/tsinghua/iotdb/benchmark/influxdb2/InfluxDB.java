@@ -23,8 +23,8 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -48,7 +48,7 @@ public class InfluxDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   private final String token;
   private final String org;
@@ -190,10 +190,11 @@ public class InfluxDB implements IDatabase {
         result.append(pair.getKey());
         result.append("=");
         // get value
-        String type =
+        String sensorType =
             typeMap(
-                baseDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
-        switch (type) {
+                META_DATA_SCHEMA.getSensorType(
+                    influxDBModel.getTags().get("device"), pair.getKey()));
+        switch (sensorType) {
           case "BOOLEAN":
             result.append(((boolean) pair.getValue()) ? "true" : "false");
             break;
@@ -213,7 +214,8 @@ public class InfluxDB implements IDatabase {
             result.append("\"").append(pair.getValue()).append("\"");
             break;
           default:
-            LOGGER.error("Unsupported data type {}, use default data type: BINARY.", type);
+            LOGGER.error(
+                "Unsupported data sensorType {}, use default data sensorType: BINARY.", sensorType);
             return "TEXT";
         }
       }

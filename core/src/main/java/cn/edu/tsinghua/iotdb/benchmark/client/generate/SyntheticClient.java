@@ -24,9 +24,9 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
@@ -116,7 +116,7 @@ public class SyntheticClient extends GenerateBaseClient {
                   status = dbWrapper.valueRangeQueryOrderByDesc((ValueRangeQuery) query);
                   break;
                 default:
-                  LOGGER.error("Unsupported operation type {}", operation);
+                  LOGGER.error("Unsupported operation sensorType {}", operation);
               }
               statuses.add(status);
             }
@@ -331,7 +331,7 @@ public class SyntheticClient extends GenerateBaseClient {
         query = syntheticWorkload.getValueRangeQuery();
         break;
       default:
-        LOGGER.error("Unsupported operation type {}", operation);
+        LOGGER.error("Unsupported operation sensorType {}", operation);
         query = syntheticWorkload.getPreciseQuery();
     }
     return query;
@@ -371,8 +371,9 @@ public class SyntheticClient extends GenerateBaseClient {
                 Batch batch =
                     syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
                 batch.setColIndex(colIndex);
-                Type colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
-                batch.setColType(colType);
+                SensorType colSensorType =
+                    metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+                batch.setColType(colSensorType);
                 for (DBWrapper dbWrapper : dbWrappers) {
                   dbWrapper.insertOneSensorBatch(batch);
                 }

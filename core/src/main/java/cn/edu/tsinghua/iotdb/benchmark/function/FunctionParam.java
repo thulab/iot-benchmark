@@ -37,7 +37,7 @@ public class FunctionParam {
   /** Cycle of function For *-k function, only use to calculate k */
   private long cycle;
 
-  @XmlAttribute(name = "function-type")
+  @XmlAttribute(name = "function-sensorType")
   public String getFunctionType() {
     return functionType;
   }

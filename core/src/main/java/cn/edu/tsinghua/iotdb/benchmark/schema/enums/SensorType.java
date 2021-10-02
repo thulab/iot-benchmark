@@ -19,38 +19,36 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.schema.enums;
 
-public enum Type {
-  BOOLEAN(1, "BOOLEAN"),
-  INT32(2, "INT32"),
-  INT64(3, "INT64"),
-  FLOAT(4, "FLOAT"),
-  DOUBLE(5, "DOUBLE"),
-  TEXT(6, "TEXT");
+public enum SensorType {
+  BOOLEAN("BOOLEAN"),
+  INT32("INT32"),
+  INT64("INT64"),
+  FLOAT("FLOAT"),
+  DOUBLE("DOUBLE"),
+  TEXT("TEXT");
 
-  public int index;
   public String name;
 
-  Type(int index, String name) {
-    this.index = index;
+  SensorType(String name) {
     this.name = name;
   }
 
-  public static Type[] getValueTypes() {
-    Type type[] = new Type[4];
+  public static SensorType[] getValueTypes() {
+    SensorType sensorType[] = new SensorType[4];
     for (int i = 1; i < 5; i++) {
-      type[i - 1] = Type.values()[i];
+      sensorType[i - 1] = SensorType.values()[i];
     }
-    return type;
+    return sensorType;
   }
 
-  public static Type getType(int index) {
-    for (Type type : Type.values()) {
-      if (type.index == index) {
-        return type;
+  public static SensorType getType(int ordinal) {
+    for (SensorType sensorType : SensorType.values()) {
+      if (sensorType.ordinal() == ordinal) {
+        return sensorType;
       }
     }
     // default type
-    return Type.TEXT;
+    return SensorType.TEXT;
   }
 
   @Override

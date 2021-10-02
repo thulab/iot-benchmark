@@ -27,10 +27,10 @@ import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IGenerateDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
@@ -53,7 +53,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
   private final Map<DeviceSchema, Long> maxTimestampIndexMap;
   private final Map<Operation, Long> operationLoops;
 
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   private final Random queryDeviceRandom;
   private static final Random random = new Random(config.getDATA_SEED());
@@ -72,7 +72,7 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
 
   public SyntheticDataWorkload(int clientId) {
     maxTimestampIndexMap = new HashMap<>();
-    for (DeviceSchema schema : BaseDataSchema.getInstance().getThreadDeviceSchema(clientId)) {
+    for (DeviceSchema schema : MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientId)) {
       maxTimestampIndexMap.put(schema, 0L);
     }
     queryDeviceRandom = new Random(config.getQUERY_SEED() + clientId);
@@ -94,15 +94,15 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
       workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
         String sensor = config.getSENSOR_CODES().get(j);
-        Type sensorType =
-            baseDataSchema.getSensorType(
+        SensorType sensorType =
+            META_DATA_SCHEMA.getSensorType(
                 MetaUtil.getDeviceName(config.getFIRST_DEVICE_INDEX()), sensor);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
           long currentTimestamp = getCurrentTimestamp(i);
           Object value;
-          if (sensorType == Type.TEXT) {
+          if (sensorType == SensorType.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
             StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
             for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
@@ -363,8 +363,8 @@ public class SyntheticDataWorkload implements IGenerateDataWorkload {
           i++) {
         String sensor = sensors.get(i);
         if (!typeAllow) {
-          Type type = baseDataSchema.getSensorType(device, sensor);
-          if (type == Type.BOOLEAN || type == Type.TEXT) {
+          SensorType sensorType = META_DATA_SCHEMA.getSensorType(device, sensor);
+          if (sensorType == SensorType.BOOLEAN || sensorType == SensorType.TEXT) {
             continue;
           }
         }

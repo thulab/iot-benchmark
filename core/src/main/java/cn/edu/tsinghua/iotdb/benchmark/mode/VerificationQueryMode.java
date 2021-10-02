@@ -25,7 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class VerificationQueryMode extends BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VerificationQueryMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   /** Start benchmark */
   @Override

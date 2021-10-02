@@ -19,8 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -91,8 +91,9 @@ public class GenerateDataClient extends GenerateBaseClient {
                 Batch batch =
                     syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
                 batch.setColIndex(colIndex);
-                Type colType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
-                batch.setColType(colType);
+                SensorType colSensorType =
+                    metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+                batch.setColType(colSensorType);
                 writeBatch(batch);
                 colIndex++;
                 insertLoopIndex++;

@@ -32,7 +32,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
@@ -73,12 +73,13 @@ public class IoTDBSession extends IoTDB {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      Type dataType = baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+      SensorType dataSensorType =
+          META_DATA_SCHEMA.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
-              Enum.valueOf(TSDataType.class, dataType.name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
+              Enum.valueOf(TSDataType.class, dataSensorType.name),
+              Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
     String deviceId =
@@ -101,7 +102,7 @@ public class IoTDBSession extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(
+        switch (META_DATA_SCHEMA.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];

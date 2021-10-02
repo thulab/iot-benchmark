@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,40 +63,36 @@ public abstract class BasicReader {
   protected abstract boolean changeFile();
 
   /**
-   * get device schema based on file name and data set type
+   * get device schema based on file name and data set sensorType
    *
    * @return device schema list to register
    */
-  public static Map<String, Map<String, Type>> getDeviceSchemaList() {
-    if (!checkDataSet()) {
-      LOGGER.error("Different configs need to be fixed");
-      System.exit(0);
-    }
+  public static Map<String, Map<String, SensorType>> getDeviceSchemaList() {
     Path path = Paths.get(config.getFILE_PATH(), Constants.SCHEMA_PATH);
     if (!Files.exists(path) || !Files.isRegularFile(path)) {
       LOGGER.error("Failed to find schema file in " + path.getFileName().toString());
       System.exit(0);
     }
-    Map<String, Map<String, Type>> result = new HashMap<>();
+    Map<String, Map<String, SensorType>> result = new HashMap<>();
     try {
       List<String> schemaLines = Files.readAllLines(path);
       for (String schemaLine : schemaLines) {
         if (schemaLine.trim().length() != 0) {
           String line[] = schemaLine.split(" ");
-          if (!result.containsKey(line[0])) {
-            result.put(line[0], new HashMap<>());
+          String deviceName = line[0];
+          if (!result.containsKey(deviceName)) {
+            result.put(deviceName, new HashMap<>());
           }
-          result.get(line[0]).put(line[1], Type.getType(Integer.valueOf(line[2])));
+          result.get(deviceName).put(line[1], SensorType.getType(Integer.parseInt(line[2])));
         }
       }
     } catch (IOException exception) {
       LOGGER.error("Failed to init register");
     }
-
     return result;
   }
 
-  private static boolean checkDataSet() {
+  public static boolean checkDataSet() {
     Path path = Paths.get(config.getFILE_PATH(), Constants.INFO_PATH);
     if (!Files.exists(path) || !Files.isRegularFile(path)) {
       return false;

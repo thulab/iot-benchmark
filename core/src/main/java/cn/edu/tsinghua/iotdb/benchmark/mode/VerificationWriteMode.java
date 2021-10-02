@@ -25,8 +25,8 @@ import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetWriteClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +42,12 @@ public class VerificationWriteMode extends BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VerificationWriteMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   /** Start benchmark */
   @Override
   public void run() {
-    List<DeviceSchema> deviceSchemaList = baseDataSchema.getAllDeviceSchema();
+    List<DeviceSchema> deviceSchemaList = META_DATA_SCHEMA.getAllDeviceSchemas();
 
     Measurement measurement = new Measurement();
     registerSchema(config.getDbConfig(), measurement);

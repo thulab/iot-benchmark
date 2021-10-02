@@ -24,8 +24,8 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -65,8 +65,8 @@ public abstract class BaseMode {
         }
       }
       try {
-        BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-        List<DeviceSchema> schemaList = baseDataSchema.getAllDeviceSchema();
+        MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
+        List<DeviceSchema> schemaList = metaDataSchema.getAllDeviceSchemas();
         dbWrapper.registerSchema(schemaList);
       } catch (TsdbException e) {
         LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);

@@ -5,10 +5,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -26,7 +26,7 @@ import java.util.List;
 public class SqliteDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(SqliteDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
   private static final String URL = "jdbc:sqlite:%s.db";
 
   private static final List<String> TYPES =
@@ -71,8 +71,8 @@ public class SqliteDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     try (Statement statement = connection.createStatement()) {
-      for (String type : TYPES) {
-        String tableName = dbConfig.getDB_NAME() + "_" + type;
+      for (String sensorType : TYPES) {
+        String tableName = dbConfig.getDB_NAME() + "_" + sensorType;
         statement.execute("DROP TABLE IF EXISTS " + tableName);
       }
       LOGGER.info("Finish Clean up!");
@@ -103,8 +103,9 @@ public class SqliteDB implements IDatabase {
   @Override
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try (Statement statement = connection.createStatement()) {
-      for (String type : TYPES) {
-        String create = String.format(CREATE_TABLE, dbConfig.getDB_NAME(), type, type, type);
+      for (String sensorType : TYPES) {
+        String create =
+            String.format(CREATE_TABLE, dbConfig.getDB_NAME(), sensorType, sensorType, sensorType);
         statement.execute(create);
       }
       LOGGER.info("Finish Register!");
@@ -182,21 +183,22 @@ public class SqliteDB implements IDatabase {
   private String getOneLine(
       long idPredix, int sensorIndex, long time, Object value, String device) {
     long sensorNow = sensorIndex + idPredix;
-    Type type = baseDataSchema.getSensorType(device, MetaUtil.getSensorName(sensorIndex));
-    String sysType = typeMap(type);
+    SensorType sensorType =
+        META_DATA_SCHEMA.getSensorType(device, MetaUtil.getSensorName(sensorIndex));
+    String sysType = typeMap(sensorType);
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")
             .append(dbConfig.getDB_NAME() + "_" + sysType)
             .append(" values (");
     sql.append(sensorNow).append(",");
     sql.append(time).append(",");
-    if (type == Type.BOOLEAN) {
+    if (sensorType == SensorType.BOOLEAN) {
       if ((boolean) value) {
         sql.append("1").append(")");
       } else {
         sql.append("0").append(")");
       }
-    } else if (type == Type.TEXT) {
+    } else if (sensorType == SensorType.TEXT) {
       sql.append("'").append(value).append("')");
     } else {
       sql.append(value).append(")");
@@ -234,8 +236,8 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : TYPES) {
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), type);
+        for (String sensorType : TYPES) {
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sensorType);
           sql = addTimeClause(sql, time);
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -262,8 +264,8 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : TYPES) {
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), type);
+        for (String sensorType : TYPES) {
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -290,8 +292,8 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), type);
+        for (String sensorType : VALUE_TYPES) {
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery(sql);
@@ -323,9 +325,9 @@ public class SqliteDB implements IDatabase {
         if (aggRangeQuery.getAggFun().startsWith("count")) {
           types = TYPES;
         }
-        for (String type : types) {
+        for (String sensorType : types) {
           String sql =
-              getHeader(aggRangeQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, type);
+              getHeader(aggRangeQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -350,9 +352,9 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (String sensorType : VALUE_TYPES) {
           String sql =
-              getHeader(aggValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, type);
+              getHeader(aggValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sensorType);
           sql = addValueClause(sql, aggValueQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery(sql);
           while (resultSet.next()) {
@@ -379,9 +381,10 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
+        for (String sensorType : VALUE_TYPES) {
           String sql =
-              getHeader(aggRangeValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, type);
+              getHeader(
+                  aggRangeValueQuery.getAggFun(), deviceSchema.getSensors(), idPrefix, sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addValueClause(sql, aggRangeValueQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery(sql);
@@ -409,8 +412,8 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
-          String sql = getHeader("max", deviceSchema.getSensors(), idPrefix, type);
+        for (String sensorType : VALUE_TYPES) {
+          String sql = getHeader("max", deviceSchema.getSensors(), idPrefix, sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addGroupByClause(sql, groupByQuery.getGranularity());
           ResultSet resultSet = statement.executeQuery(sql);
@@ -442,16 +445,16 @@ public class SqliteDB implements IDatabase {
           search.add(String.valueOf(sensorId));
         }
         String ids = String.join(",", search);
-        for (String type : TYPES) {
+        for (String sensorType : TYPES) {
           String sql =
               "select * from "
                   + dbConfig.getDB_NAME()
                   + "_"
-                  + type
+                  + sensorType
                   + ", (select max(pk_TimeStamp) as target from "
                   + dbConfig.getDB_NAME()
                   + "_"
-                  + type
+                  + sensorType
                   + " where pk_fk_Id in ("
                   + ids
                   + ")) as m"
@@ -483,8 +486,8 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : TYPES) {
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), type);
+        for (String sensorType : TYPES) {
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addOrderClause(sql);
           ResultSet resultSet = statement.executeQuery(sql);
@@ -512,8 +515,8 @@ public class SqliteDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (String type : VALUE_TYPES) {
-          String sql = getHeader(idPrefix, deviceSchema.getSensors(), type);
+        for (String sensorType : VALUE_TYPES) {
+          String sql = getHeader(idPrefix, deviceSchema.getSensors(), sensorType);
           sql = addTimeClause(sql, startTime, endTime);
           sql = addValueClause(sql, valueRangeQuery.getValueThreshold());
           sql = addOrderClause(sql);
@@ -584,14 +587,14 @@ public class SqliteDB implements IDatabase {
   }
 
   /**
-   * map the given type string name to the name in the target DB
+   * map the given sensorType string name to the name in the target DB
    *
-   * @param iotdbType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
+   * @param iotdbSensorType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
    * @return
    */
   @Override
-  public String typeMap(Type iotdbType) {
-    switch (iotdbType) {
+  public String typeMap(SensorType iotdbSensorType) {
+    switch (iotdbSensorType) {
       case BOOLEAN:
       case INT32:
       case INT64:
@@ -602,7 +605,7 @@ public class SqliteDB implements IDatabase {
       case TEXT:
         return "TEXT";
       default:
-        LOGGER.error("Error Type: " + iotdbType);
+        LOGGER.error("Error Type: " + iotdbSensorType);
         return "TEXT";
     }
   }

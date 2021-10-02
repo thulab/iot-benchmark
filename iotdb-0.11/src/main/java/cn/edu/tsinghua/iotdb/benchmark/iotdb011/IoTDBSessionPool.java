@@ -35,9 +35,9 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -56,7 +56,7 @@ public class IoTDBSessionPool implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  protected static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
   protected final String ROOT_SERIES_NAME;
   protected DBConfig dbConfig;
 
@@ -143,9 +143,10 @@ public class IoTDBSessionPool implements IDatabase {
                     + deviceSchema.getDevice()
                     + "."
                     + sensor);
-            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
-            dataTypes.add(TSDataType.valueOf(dataType.name));
-            encodings.add(TSEncoding.valueOf(getEncodingType(dataType)));
+            SensorType dataSensorType =
+                META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor);
+            dataTypes.add(TSDataType.valueOf(dataSensorType.name));
+            encodings.add(TSEncoding.valueOf(getEncodingType(dataSensorType)));
             // TODO remove when [IOTDB-1518] is solved(not supported null)
             compressors.add(CompressionType.valueOf("SNAPPY"));
             count++;
@@ -174,8 +175,8 @@ public class IoTDBSessionPool implements IDatabase {
     }
   }
 
-  private String getEncodingType(Type dataType) {
-    switch (dataType) {
+  private String getEncodingType(SensorType dataSensorType) {
+    switch (dataSensorType) {
       case BOOLEAN:
       case INT32:
       case INT64:
@@ -184,7 +185,7 @@ public class IoTDBSessionPool implements IDatabase {
       case TEXT:
         return "PLAIN";
       default:
-        LOGGER.error("Unsupported data type {}.", dataType);
+        LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;
     }
   }
@@ -194,12 +195,13 @@ public class IoTDBSessionPool implements IDatabase {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      Type dataType = baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+      SensorType dataSensorType =
+          META_DATA_SCHEMA.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
-              Enum.valueOf(TSDataType.class, dataType.name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
+              Enum.valueOf(TSDataType.class, dataSensorType.name),
+              Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
     String deviceId =
@@ -222,7 +224,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(
+        switch (META_DATA_SCHEMA.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
@@ -269,14 +271,14 @@ public class IoTDBSessionPool implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     List<MeasurementSchema> schemaList = new ArrayList<>();
-    Type dataType = batch.getColType();
+    SensorType dataSensorType = batch.getColType();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
       schemaList.add(
           new MeasurementSchema(
               sensor,
-              Enum.valueOf(TSDataType.class, dataType.name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
+              Enum.valueOf(TSDataType.class, dataSensorType.name),
+              Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
     String deviceId =
@@ -299,7 +301,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(
+        switch (META_DATA_SCHEMA.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];

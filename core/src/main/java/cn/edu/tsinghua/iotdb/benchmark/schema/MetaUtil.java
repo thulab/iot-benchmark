@@ -4,16 +4,13 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class MetaUtil {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(MetaUtil.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static List<List<String>> THREAD_FILES;
+  private static List<List<String>> CLIENT_FILES;
 
   /**
    * Used under cluster mode of benchmark TODO do
@@ -48,19 +45,26 @@ public class MetaUtil {
     }
   }
 
-  /**
-   * Get group name by device str
-   *
-   * @param deviceId
-   * @return
-   * @throws WorkloadException
-   */
-  public static String getGroupNameByDeviceStr(String deviceId) {
-    int group = deviceId.hashCode();
-    if (group < 0) {
-      group = -group;
+  public static String getGroupIdFromDeviceName(String deviceName) {
+    int groupId = deviceName.hashCode();
+    if (groupId < 0) {
+      groupId = -groupId;
     }
-    return String.valueOf(group % config.getGROUP_NUMBER());
+    return String.valueOf(groupId);
+  }
+
+  /**
+   * Get deviceId from str
+   *
+   * @param device
+   * @return
+   */
+  public static int getDeviceIdFromStr(String device) {
+    int deviceId = device.hashCode();
+    if (deviceId < 0) {
+      deviceId = -deviceId;
+    }
+    return deviceId;
   }
 
   /** Get Format Name */
@@ -76,11 +80,11 @@ public class MetaUtil {
     return Constants.SENSOR_NAME_PREFIX + sensorId;
   }
 
-  public static List<List<String>> getThreadFiles() {
-    return THREAD_FILES;
+  public static List<List<String>> getClientFiles() {
+    return CLIENT_FILES;
   }
 
-  public static void setThreadFiles(List<List<String>> threadFiles) {
-    THREAD_FILES = threadFiles;
+  public static void setClientFiles(List<List<String>> clientFiles) {
+    CLIENT_FILES = clientFiles;
   }
 }

@@ -22,8 +22,8 @@ package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -40,7 +40,7 @@ import java.util.*;
 public class VictoriaMetrics implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   private final String URL;
   private final String CREATE_URL;
@@ -194,7 +194,7 @@ public class VictoriaMetrics implements IDatabase {
     model.setMetric(metric);
     model.setTimestamp(timestamp);
     model.setValue(value);
-    model.setType(baseDataSchema.getSensorType(device, sensor));
+    model.setType(META_DATA_SCHEMA.getSensorType(device, sensor));
     Map<String, String> tags = new HashMap<>();
     tags.put("device", device);
     tags.put("sensor", sensor);
