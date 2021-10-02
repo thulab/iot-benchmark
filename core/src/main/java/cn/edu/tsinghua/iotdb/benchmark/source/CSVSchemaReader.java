@@ -1,29 +1,7 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package cn.edu.tsinghua.iotdb.benchmark.source;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,41 +11,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-public abstract class BasicReader {
+public class CSVSchemaReader extends SchemaReader {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BasicReader.class);
-  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected final List<String> files;
-  protected int currentFileIndex = 0;
-  protected String currentFileName;
-
-  public BasicReader(List<String> files) {
-    this.files = files;
-  }
-
-  /**
-   * check whether it has next batch
-   *
-   * @return
-   */
-  public abstract boolean hasNextBatch();
-
-  /**
-   * convert the cachedLines to Record list
-   *
-   * @return
-   */
-  public abstract Batch nextBatch();
-
-  /** change the dataFile */
-  protected abstract boolean changeFile();
+  private static final Logger LOGGER = LoggerFactory.getLogger(CSVSchemaReader.class);
 
   /**
    * get device schema based on file name and data set sensorType
    *
    * @return device schema list to register
    */
-  public static Map<String, Map<String, SensorType>> getDeviceSchemaList() {
+  @Override
+  public Map<String, Map<String, SensorType>> getDeviceSchemaList() {
     Path path = Paths.get(config.getFILE_PATH(), Constants.SCHEMA_PATH);
     if (!Files.exists(path) || !Files.isRegularFile(path)) {
       LOGGER.error("Failed to find schema file in " + path.getFileName().toString());
@@ -92,7 +46,8 @@ public abstract class BasicReader {
     return result;
   }
 
-  public static boolean checkDataSet() {
+  @Override
+  public boolean checkDataSet() {
     Path path = Paths.get(config.getFILE_PATH(), Constants.INFO_PATH);
     if (!Files.exists(path) || !Files.isRegularFile(path)) {
       return false;

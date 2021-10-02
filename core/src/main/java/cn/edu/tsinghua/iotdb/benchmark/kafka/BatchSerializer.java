@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.kafka;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import org.apache.kafka.common.serialization.Serializer;
 
 import java.io.ByteArrayOutputStream;

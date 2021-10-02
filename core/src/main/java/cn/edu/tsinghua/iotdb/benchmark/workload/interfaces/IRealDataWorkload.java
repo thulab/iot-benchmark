@@ -19,8 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.interfaces;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
 /** IRealDataWorkload is a workload using for real data */

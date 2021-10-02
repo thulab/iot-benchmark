@@ -1,8 +1,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 
 import java.util.List;
 

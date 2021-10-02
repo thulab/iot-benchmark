@@ -22,10 +22,11 @@ package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.source.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.source.CSVSchemaReader;
+import cn.edu.tsinghua.iotdb.benchmark.source.SchemaReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class RealMetaDataSchema extends MetaDataSchema {
 
@@ -42,6 +46,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
 
   @Override
   protected boolean createMetaDataSchema() {
+    SchemaReader schemaReader = new CSVSchemaReader();
     String pathStr = config.getFILE_PATH();
     Path path = Paths.get(pathStr);
     // Check the existence of dataset
@@ -50,7 +55,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
       return false;
     }
     // Check the validation of config between benchmark and dataset
-    if (!BasicReader.checkDataSet()) {
+    if (!schemaReader.checkDataSet()) {
       LOGGER.error("There are difference between benchmark and dataset");
       return false;
     }
@@ -61,7 +66,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
     Collections.sort(files);
 
     // Load sensor type from dataset
-    Map<String, Map<String, SensorType>> deviceSchemaMap = BasicReader.getDeviceSchemaList();
+    Map<String, Map<String, SensorType>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
     for (Map.Entry<String, Map<String, SensorType>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();

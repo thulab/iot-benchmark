@@ -17,24 +17,34 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.kafka;
+package cn.edu.tsinghua.iotdb.benchmark.source;
 
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import kafka.serializer.Decoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.util.List;
 
-public class BatchDeserializer implements Decoder<Batch> {
+public abstract class DataReader {
 
-  @Override
-  public Batch fromBytes(byte[] bytes) {
-    try (ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes)) {
-      return Batch.deserialize(inputStream);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataReader.class);
+  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected final List<String> files;
+  protected int currentFileIndex = 0;
+  protected String currentFileName;
 
-    return null;
+  public DataReader(List<String> files) {
+    this.files = files;
   }
+
+  /** check whether it has next batch */
+  public abstract boolean hasNextBatch();
+
+  /** convert the cachedLines to Record list */
+  public abstract Batch nextBatch();
+
+  /** change the dataFile */
+  protected abstract boolean changeFile();
 }

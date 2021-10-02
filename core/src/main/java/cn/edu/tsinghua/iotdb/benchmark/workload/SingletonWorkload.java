@@ -23,9 +23,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

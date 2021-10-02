@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.schema;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.GenerateMetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.RealMetaDataSchema;

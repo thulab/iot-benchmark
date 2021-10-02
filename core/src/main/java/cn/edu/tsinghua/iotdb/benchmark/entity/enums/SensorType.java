@@ -17,24 +17,42 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload;
+package cn.edu.tsinghua.iotdb.benchmark.entity.enums;
 
-public class WorkloadException extends Exception {
-  private static final long serialVersionUID = 8844396756042772132L;
+public enum SensorType {
+  BOOLEAN("BOOLEAN"),
+  INT32("INT32"),
+  INT64("INT64"),
+  FLOAT("FLOAT"),
+  DOUBLE("DOUBLE"),
+  TEXT("TEXT");
 
-  public WorkloadException(String message) {
-    super(message);
+  public String name;
+
+  SensorType(String name) {
+    this.name = name;
   }
 
-  public WorkloadException() {
-    super();
+  public static SensorType[] getValueTypes() {
+    SensorType sensorType[] = new SensorType[4];
+    for (int i = 1; i < 5; i++) {
+      sensorType[i - 1] = SensorType.values()[i];
+    }
+    return sensorType;
   }
 
-  public WorkloadException(String message, Throwable cause) {
-    super(message, cause);
+  public static SensorType getType(int ordinal) {
+    for (SensorType sensorType : SensorType.values()) {
+      if (sensorType.ordinal() == ordinal) {
+        return sensorType;
+      }
+    }
+    // default type
+    return SensorType.TEXT;
   }
 
-  public WorkloadException(Throwable cause) {
-    super(cause);
+  @Override
+  public String toString() {
+    return name;
   }
 }

@@ -19,11 +19,11 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.extern.BasicWriter;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 
 import java.util.ArrayList;
 import java.util.List;

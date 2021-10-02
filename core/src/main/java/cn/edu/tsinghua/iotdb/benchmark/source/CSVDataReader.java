@@ -17,15 +17,13 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.source.file;
+package cn.edu.tsinghua.iotdb.benchmark.source;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.source.BasicReader;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +34,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class GenerateCSVReader extends BasicReader {
+public class CSVDataReader extends DataReader {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateCSVReader.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CSVDataReader.class);
   private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
   private Iterator<String[]> iterator = null;
 
-  public GenerateCSVReader(List<String> files) {
+  public CSVDataReader(List<String> files) {
     super(files);
   }
 
@@ -120,7 +118,7 @@ public class GenerateCSVReader extends BasicReader {
     if (currentFileIndex < files.size()) {
       try {
         currentFileName = files.get(currentFileIndex);
-        CSVReader csvReader =
+        com.opencsv.CSVReader csvReader =
             new CSVReaderBuilder(
                     new BufferedReader(
                         new InputStreamReader(

@@ -21,9 +21,9 @@ package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -20,6 +20,8 @@
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
@@ -27,8 +29,6 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;

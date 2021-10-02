@@ -19,12 +19,12 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
 import java.sql.SQLException;

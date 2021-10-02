@@ -19,9 +19,9 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.kafka;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import kafka.consumer.KafkaStream;
 import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;

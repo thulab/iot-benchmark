@@ -19,9 +19,9 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;

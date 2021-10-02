@@ -19,9 +19,9 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 
 import java.util.concurrent.*;
 

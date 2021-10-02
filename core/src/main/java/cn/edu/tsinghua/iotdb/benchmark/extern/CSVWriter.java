@@ -1,12 +1,11 @@
-package cn.edu.tsinghua.iotdb.benchmark.extern.csv;
+package cn.edu.tsinghua.iotdb.benchmark.extern;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.extern.BasicWriter;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

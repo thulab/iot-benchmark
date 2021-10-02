@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 
 import java.io.Serializable;
 import java.util.HashMap;

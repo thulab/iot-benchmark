@@ -22,15 +22,15 @@ package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
 import java.sql.ResultSet;

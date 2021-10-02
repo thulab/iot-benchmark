@@ -21,10 +21,11 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.source.BasicReader;
-import cn.edu.tsinghua.iotdb.benchmark.source.file.GenerateCSVReader;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.source.CSVDataReader;
+import cn.edu.tsinghua.iotdb.benchmark.source.DataReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IRealDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
@@ -32,13 +33,13 @@ import java.util.List;
 
 public class RealDataWorkload implements IRealDataWorkload {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private BasicReader basicReader;
+  private DataReader dataReader;
   private int batchNumber = 0;
 
   /** Init reader of real dataset write test */
   public RealDataWorkload(int clientId) {
     List<String> files = MetaUtil.getClientFiles().get(clientId);
-    basicReader = new GenerateCSVReader(files);
+    dataReader = new CSVDataReader(files);
     batchNumber = files.size() * config.getBIG_BATCH_SIZE();
   }
 
@@ -50,8 +51,8 @@ public class RealDataWorkload implements IRealDataWorkload {
    */
   @Override
   public Batch getOneBatch() throws WorkloadException {
-    if (basicReader.hasNextBatch()) {
-      return basicReader.nextBatch();
+    if (dataReader.hasNextBatch()) {
+      return dataReader.nextBatch();
     } else {
       return null;
     }

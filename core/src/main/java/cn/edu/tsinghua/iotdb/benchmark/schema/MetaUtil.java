@@ -3,7 +3,7 @@ package cn.edu.tsinghua.iotdb.benchmark.schema;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 
 import java.util.List;
 
