@@ -22,10 +22,11 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
+import cn.edu.tsinghua.iotdb.benchmark.source.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.source.file.GenerateCSVReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IRealDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
-import cn.edu.tsinghua.iotdb.benchmark.workload.reader.*;
 
 import java.util.List;
 

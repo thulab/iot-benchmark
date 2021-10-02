@@ -19,19 +19,12 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
+import cn.edu.tsinghua.iotdb.benchmark.extern.BasicWriter;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -39,6 +32,7 @@ import java.util.concurrent.CyclicBarrier;
 
 /** This client is using by GenerateMode */
 public class GenerateDataClient extends GenerateBaseClient {
+  private BasicWriter basicWriter = BasicWriter.getBasicWriter();
 
   public GenerateDataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
@@ -72,7 +66,7 @@ public class GenerateDataClient extends GenerateBaseClient {
           for (DeviceSchema deviceSchema : deviceSchemas) {
             if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
               Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-              writeBatch(batch);
+              basicWriter.writeBatch(batch, insertLoopIndex);
             }
           }
           insertLoopIndex++;
@@ -94,7 +88,7 @@ public class GenerateDataClient extends GenerateBaseClient {
                 SensorType colSensorType =
                     metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
                 batch.setColType(colSensorType);
-                writeBatch(batch);
+                basicWriter.writeBatch(batch, insertLoopIndex);
                 colIndex++;
                 insertLoopIndex++;
               }
@@ -105,62 +99,13 @@ public class GenerateDataClient extends GenerateBaseClient {
         // IS_CLIENT_BIND = false
         Batch batch = singletonWorkload.getOneBatch();
         if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
-          writeBatch(batch);
+          basicWriter.writeBatch(batch, insertLoopIndex);
         }
       }
     } catch (Exception e) {
       LOGGER.error("Failed to insert one batch data because ", e);
     }
     return true;
-  }
-
-  /**
-   * Write batch into file
-   *
-   * @param batch
-   */
-  private void writeBatch(Batch batch) {
-    String device = batch.getDeviceSchema().getDevice();
-    try {
-      Path dirFile = Paths.get(FileUtils.union(config.getFILE_PATH(), device));
-      if (!Files.exists(dirFile)) {
-        Files.createDirectories(dirFile);
-      }
-      Path dataFile =
-          Paths.get(
-              FileUtils.union(
-                  config.getFILE_PATH(),
-                  device,
-                  "BigBatch_" + (insertLoopIndex / config.getBIG_BATCH_SIZE()) + ".csv"));
-      if (!Files.exists(dataFile)) {
-        Files.createFile(dataFile);
-      }
-      List<String> sensors = batch.getDeviceSchema().getSensors();
-      String sensorLine = String.join(",", sensors);
-      sensorLine = "Sensor," + sensorLine + "\n";
-      Files.write(dataFile, sensorLine.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-      for (Record record : batch.getRecords()) {
-        StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
-        for (String sensor : sensors) {
-          Object value = null;
-          if (batch.getColIndex() != -1) {
-            value = record.getRecordDataValue().get(0);
-          } else {
-            int index = Integer.valueOf(sensor.split("_")[1]);
-            value = record.getRecordDataValue().get(index);
-          }
-          if (value instanceof String) {
-            value = "\"" + value + "\"";
-          }
-          line.append(",").append(value);
-        }
-        line.append("\n");
-        Files.write(
-            dataFile, line.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-      }
-    } catch (IOException ioException) {
-      LOGGER.error("Write batch Error!" + batch.toString());
-    }
   }
 
   @Override

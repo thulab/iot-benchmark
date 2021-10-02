@@ -17,11 +17,12 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
+package cn.edu.tsinghua.iotdb.benchmark.source.file;
 
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.source.BasicReader;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import com.opencsv.CSVReader;

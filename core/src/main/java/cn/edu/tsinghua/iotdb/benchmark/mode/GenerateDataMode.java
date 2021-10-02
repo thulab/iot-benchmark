@@ -23,20 +23,12 @@ import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.extern.BasicWriter;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -53,7 +45,7 @@ public class GenerateDataMode extends BaseMode {
   /** Start benchmark */
   @Override
   public void run() {
-    if (!writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas())) {
+    if (!BasicWriter.getBasicWriter().writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas())) {
       return;
     }
 
@@ -79,45 +71,5 @@ public class GenerateDataMode extends BaseMode {
     LOGGER.info("Data Location: " + config.getFILE_PATH());
     LOGGER.info("Schema Location: " + FileUtils.union(config.getFILE_PATH(), "schema.txt"));
     LOGGER.info("Generate Info Location: " + FileUtils.union(config.getFILE_PATH(), "info.txt"));
-  }
-
-  /**
-   * Write Schema to line
-   *
-   * @param deviceSchemaList
-   * @return
-   */
-  private boolean writeSchema(List<DeviceSchema> deviceSchemaList) {
-    try {
-      // process target
-      Path path = Paths.get(config.getFILE_PATH());
-      Files.deleteIfExists(path);
-      Files.createDirectories(path);
-
-      LOGGER.info("Finish record schema.");
-
-      Path schemaPath = Paths.get(FileUtils.union(config.getFILE_PATH(), Constants.SCHEMA_PATH));
-      Files.createFile(schemaPath);
-      for (DeviceSchema deviceSchema : deviceSchemaList) {
-        for (String sensor : deviceSchema.getSensors()) {
-          SensorType sensorType = META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor);
-          String line = deviceSchema.getDevice() + " " + sensor + " " + sensorType.ordinal() + "\n";
-          Files.write(schemaPath, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-        }
-      }
-
-      Path infoPath = Paths.get(FileUtils.union(config.getFILE_PATH(), Constants.INFO_PATH));
-      Files.createFile(infoPath);
-      Files.write(
-          infoPath, config.toInfoText().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
-      return true;
-    } catch (IOException ioException) {
-      ioException.printStackTrace();
-      LOGGER.error(
-          "Failed to generate Schema. Please check whether "
-              + config.getFILE_PATH()
-              + " is empty.");
-      return false;
-    }
   }
 }

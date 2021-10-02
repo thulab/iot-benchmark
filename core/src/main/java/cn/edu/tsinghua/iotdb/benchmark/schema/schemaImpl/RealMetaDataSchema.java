@@ -25,7 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.workload.reader.BasicReader;
+import cn.edu.tsinghua.iotdb.benchmark.source.BasicReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

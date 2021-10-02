@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
+package cn.edu.tsinghua.iotdb.benchmark.source;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
