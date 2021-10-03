@@ -37,15 +37,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected List<DeviceSchema> deviceSchemas = new ArrayList<>();
   protected int deviceSchemaSize = 0;
 
-  public static GenerateDataWorkLoad getInstance(int clientId) {
-    List<DeviceSchema> deviceSchemas = metaDataSchema.getDeviceSchemaByClientId(clientId);
-    if (config.isIS_CLIENT_BIND()) {
-      return new SyntheticDataWorkLoad(deviceSchemas);
-    } else {
-      return SingletonWorkDataWorkLoad.getInstance();
-    }
-  }
-
   @Override
   public Batch getOneBatch() throws WorkloadException {
     if (!config.isIS_OUT_OF_ORDER()) {

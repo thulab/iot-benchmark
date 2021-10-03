@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
 import java.util.concurrent.CountDownLatch;
@@ -34,7 +33,7 @@ public class RealDataSetQueryClient extends RealBaseClient {
 
   /** Do Operations */
   @Override
-  protected void doOperations() {
+  protected void doTest() {
     while (true) {
       try {
         Batch batch = dataWorkLoad.getOneBatch();
@@ -42,9 +41,7 @@ public class RealDataSetQueryClient extends RealBaseClient {
           break;
         }
         VerificationQuery verificationQuery = queryWorkLoad.getVerifiedQuery(batch);
-        for (DBWrapper dbWrapper : dbWrappers) {
-          dbWrapper.verificationQuery(verificationQuery);
-        }
+        dbWrapper.verificationQuery(verificationQuery);
         loopIndex++;
       } catch (Exception e) {
         LOGGER.error("Failed to insert one batch data because ", e);

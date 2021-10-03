@@ -21,32 +21,21 @@ package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.extern.DataWriter;
-import cn.edu.tsinghua.iotdb.benchmark.workload.GenerateDataWorkLoad;
-import cn.edu.tsinghua.iotdb.benchmark.workload.QueryWorkLoad;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
 /** This client is using by GenerateMode */
-public class GenerateDataClient extends GenerateBaseClient {
+public class GenerateDataWriteClient extends GenerateBaseClient {
   private DataWriter dataWriter = DataWriter.getDataWriter();
 
-  public GenerateDataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(
-        id,
-        countDownLatch,
-        barrier,
-        GenerateDataWorkLoad.getInstance(id),
-        QueryWorkLoad.getInstance());
+  public GenerateDataWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+    super(id, countDownLatch, barrier);
   }
 
-  /**
-   * Do Operations
-   *
-   * @param actualDeviceFloor
-   */
+  /** Do Operations */
   @Override
-  protected void doOperations(int actualDeviceFloor) {
+  protected void doTest() {
     loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       if (!doGenerate(actualDeviceFloor)) {
@@ -82,5 +71,6 @@ public class GenerateDataClient extends GenerateBaseClient {
   @Override
   protected void initDBWrappers() {
     // do nothing
+    this.totalLoop = config.getLOOP();
   }
 }

@@ -19,8 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.extern.SchemaWriter;
@@ -29,45 +27,19 @@ import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class GenerateDataMode extends BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
-  /** Start benchmark */
   @Override
-  public void run() {
-    if (!SchemaWriter.getBasicWriter().writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas())) {
-      return;
-    }
+  protected boolean preCheck() {
+    return SchemaWriter.getBasicWriter().writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas());
+  }
 
-    // create getCLIENT_NUMBER() client threads to do the workloads
-    List<Client> clients = new ArrayList<>();
-    CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-    CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
-    ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
-    LOGGER.info("Generating workload buffer...");
-    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = new GenerateDataClient(i, downLatch, barrier);
-      clients.add(client);
-      executorService.submit(client);
-    }
-    executorService.shutdown();
-    try {
-      // wait for all clients finish test
-      downLatch.await();
-    } catch (InterruptedException e) {
-      LOGGER.error("Exception occurred during waiting for all threads finish.", e);
-      Thread.currentThread().interrupt();
-    }
+  @Override
+  protected void postCheck() {
     LOGGER.info("Data Location: " + config.getFILE_PATH());
     LOGGER.info("Schema Location: " + FileUtils.union(config.getFILE_PATH(), "schema.txt"));
     LOGGER.info("Generate Info Location: " + FileUtils.union(config.getFILE_PATH(), "info.txt"));

@@ -40,6 +40,11 @@ public class ServerMode extends BaseMode {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  @Override
+  protected boolean preCheck() {
+    return true;
+  }
+
   /** Start benchmark */
   @Override
   public void run() {
@@ -149,4 +154,7 @@ public class ServerMode extends BaseMode {
       }
     }
   }
+
+  @Override
+  protected void postCheck() {}
 }

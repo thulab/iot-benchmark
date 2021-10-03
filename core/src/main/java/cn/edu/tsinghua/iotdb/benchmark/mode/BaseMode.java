@@ -32,9 +32,12 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class BaseMode {
 
@@ -43,17 +46,51 @@ public abstract class BaseMode {
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
+  protected ExecutorService executorService =
+      Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+  protected CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+  protected CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected List<Client> clients = new ArrayList<>();
+  protected Measurement measurement = new Measurement();
+  protected long start = 0;
+
+  protected abstract boolean preCheck();
+
   /** Start benchmark */
-  public abstract void run();
+  public void run() {
+    if (!preCheck()) {
+      return;
+    }
+    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+      Client client = Client.getInstance(i, downLatch, barrier);
+      if (client == null) {
+        return;
+      }
+      clients.add(client);
+      start = System.nanoTime();
+      executorService.submit(client);
+    }
+    executorService.shutdown();
+    try {
+      // wait for all clients finish test
+      downLatch.await();
+    } catch (InterruptedException e) {
+      LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+      Thread.currentThread().interrupt();
+    }
+    postCheck();
+  }
+
+  protected abstract void postCheck();
 
   /**
    * Register schema
    *
-   * @param dbConfig
+   * @param dbConfigs
    * @param measurement
    */
-  protected void registerSchema(DBConfig dbConfig, Measurement measurement) {
-    DBWrapper dbWrapper = new DBWrapper(dbConfig, measurement);
+  protected void registerSchema(List<DBConfig> dbConfigs, Measurement measurement) {
+    DBWrapper dbWrapper = new DBWrapper(dbConfigs, measurement);
     // register schema if needed
     try {
       dbWrapper.init();
@@ -85,30 +122,17 @@ public abstract class BaseMode {
   /**
    * Save measure
    *
-   * @param executorService
-   * @param downLatch
    * @param measurement
    * @param threadsMeasurements
    * @param st
    * @param clients
    */
   protected static void finalMeasure(
-      ExecutorService executorService,
-      CountDownLatch downLatch,
       Measurement measurement,
       List<Measurement> threadsMeasurements,
       long st,
       List<Client> clients,
       List<Operation> operations) {
-    executorService.shutdown();
-
-    try {
-      // wait for all clients finish test
-      downLatch.await();
-    } catch (InterruptedException e) {
-      LOGGER.error("Exception occurred during waiting for all threads finish.", e);
-      Thread.currentThread().interrupt();
-    }
     long en = System.nanoTime();
     LOGGER.info("All clients finished.");
     // sum up all the measurements and calculate statistics
