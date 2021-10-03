@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
@@ -36,10 +37,11 @@ public class RealDataSetQueryClient extends RealBaseClient {
   protected void doOperations() {
     while (true) {
       try {
-        VerificationQuery verificationQuery = realDataWorkload.getVerifiedQuery();
-        if (verificationQuery == null) {
+        Batch batch = dataWorkLoad.getOneBatch();
+        if (batch == null) {
           break;
         }
+        VerificationQuery verificationQuery = queryWorkLoad.getVerifiedQuery(batch);
         for (DBWrapper dbWrapper : dbWrappers) {
           dbWrapper.verificationQuery(verificationQuery);
         }

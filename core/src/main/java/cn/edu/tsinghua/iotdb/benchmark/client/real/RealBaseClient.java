@@ -20,8 +20,10 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.workload.RealDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IRealDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.DataWorkLoad;
+import cn.edu.tsinghua.iotdb.benchmark.workload.QueryWorkLoad;
+import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IDataWorkLoad;
+import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IQueryWorkLoad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +33,9 @@ public abstract class RealBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
   /** RealDataWorkload */
-  protected final IRealDataWorkload realDataWorkload;
+  protected final IDataWorkLoad dataWorkLoad;
+  /** QueryWorkload */
+  protected final IQueryWorkLoad queryWorkLoad;
   /** Log related */
   protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   /** Loop index while write or query */
@@ -41,9 +45,13 @@ public abstract class RealBaseClient extends Client implements Runnable {
 
   public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
-    this.realDataWorkload = new RealDataWorkload(id);
+    this.dataWorkLoad = DataWorkLoad.getInstance(id);
+    this.queryWorkLoad = QueryWorkLoad.getInstance();
     this.loopIndex = 0;
-    this.loop = this.realDataWorkload.getBatchNumber();
+    this.loop = this.dataWorkLoad.getBatchNumber();
+    if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
+      this.loop *= config.getSENSOR_NUMBER();
+    }
   }
 
   /** Do test */

@@ -37,7 +37,7 @@ import java.util.List;
 public class CSVDataReader extends DataReader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CSVDataReader.class);
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   private Iterator<String[]> iterator = null;
 
   public CSVDataReader(List<String> files) {
@@ -63,8 +63,7 @@ public class CSVDataReader extends DataReader {
     List<Record> records = new ArrayList<>();
     try {
       boolean firstLine = true;
-      int lineNumber = 0;
-      while (iterator.hasNext() && lineNumber < config.getBATCH_SIZE_PER_WRITE()) {
+      while (iterator.hasNext() && records.size() < config.getBATCH_SIZE_PER_WRITE()) {
         if (firstLine) {
           String[] items = iterator.next();
           sensors = new ArrayList<>();
@@ -77,10 +76,14 @@ public class CSVDataReader extends DataReader {
           continue;
         }
         String[] values = iterator.next();
+        if (values[0].equals("Sensor")) {
+          LOGGER.warn("There is some thing wrong when read file.");
+          System.exit(1);
+        }
         long timestamp = Long.parseLong(values[0]);
         List<Object> recordValues = new ArrayList<>();
         for (int i = 1; i < values.length; i++) {
-          switch (META_DATA_SCHEMA.getSensorType(deviceName, sensors.get(i - 1))) {
+          switch (metaDataSchema.getSensorType(deviceName, sensors.get(i - 1))) {
             case BOOLEAN:
               recordValues.add(Boolean.parseBoolean(values[i]));
               break;
@@ -105,9 +108,9 @@ public class CSVDataReader extends DataReader {
         }
         Record record = new Record(timestamp, recordValues);
         records.add(record);
-        lineNumber++;
       }
     } catch (Exception exception) {
+      exception.printStackTrace();
       LOGGER.error("Failed to read file:" + exception.getMessage());
     }
     return new Batch(deviceSchema, records);

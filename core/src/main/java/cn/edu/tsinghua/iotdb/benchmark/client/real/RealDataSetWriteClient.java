@@ -36,7 +36,7 @@ public class RealDataSetWriteClient extends RealBaseClient {
   protected void doOperations() {
     while (true) {
       try {
-        Batch batch = realDataWorkload.getOneBatch();
+        Batch batch = dataWorkLoad.getOneBatch();
         if (batch == null) {
           break;
         }

@@ -22,8 +22,8 @@ package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IGenerateDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IDataWorkLoad;
+import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IQueryWorkLoad;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,10 +39,10 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
   protected static final Logger LOGGER = LoggerFactory.getLogger(GenerateBaseClient.class);
   /** meta schema */
   protected final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
-  /** synthetic workload */
-  protected final IGenerateDataWorkload syntheticWorkload;
-  /** singleton workload when IS_CLIENT_BIND = false */
-  protected final SingletonWorkload singletonWorkload;
+  /** data workload */
+  protected final IDataWorkLoad dataWorkLoad;
+  /** query workload */
+  protected final IQueryWorkLoad queryWorkLoad;
   /** Log related */
   protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
   /** Loop Index, using for loop and log */
@@ -54,10 +54,11 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
       int id,
       CountDownLatch countDownLatch,
       CyclicBarrier barrier,
-      IGenerateDataWorkload workload) {
+      IDataWorkLoad dataWorkLoad,
+      IQueryWorkLoad queryWorkLoad) {
     super(id, countDownLatch, barrier);
-    syntheticWorkload = workload;
-    singletonWorkload = SingletonWorkload.getInstance();
+    this.dataWorkLoad = dataWorkLoad;
+    this.queryWorkLoad = queryWorkLoad;
     insertLoopIndex = 0;
   }
 

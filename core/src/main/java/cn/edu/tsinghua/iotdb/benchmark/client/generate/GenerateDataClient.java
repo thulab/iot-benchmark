@@ -20,13 +20,10 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.extern.DataWriter;
-import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.GenerateDataWorkLoad;
+import cn.edu.tsinghua.iotdb.benchmark.workload.QueryWorkLoad;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -35,7 +32,12 @@ public class GenerateDataClient extends GenerateBaseClient {
   private DataWriter dataWriter = DataWriter.getDataWriter();
 
   public GenerateDataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
+    super(
+        id,
+        countDownLatch,
+        barrier,
+        GenerateDataWorkLoad.getInstance(id),
+        QueryWorkLoad.getInstance());
   }
 
   /**
@@ -60,48 +62,17 @@ public class GenerateDataClient extends GenerateBaseClient {
    */
   private boolean doGenerate(int actualDeviceFloor) {
     try {
-      if (config.isIS_CLIENT_BIND()) {
-        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-          // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-          for (DeviceSchema deviceSchema : deviceSchemas) {
-            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
-              Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-              dataWriter.writeBatch(batch, insertLoopIndex);
-            }
+      for (int i = 0; i < deviceSchemas.size(); i++) {
+        int innerLoop =
+            config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
+        for (int j = 0; j < innerLoop; j++) {
+          Batch batch = dataWorkLoad.getOneBatch();
+          if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
+            dataWriter.writeBatch(batch, insertLoopIndex);
           }
-          insertLoopIndex++;
-        } else {
-          // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
-          DeviceSchema sensorSchema = null;
-          List<String> sensorList = new ArrayList<String>();
-          for (DeviceSchema deviceSchema : deviceSchemas) {
-            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
-              int colIndex = 0;
-              for (String sensor : deviceSchema.getSensors()) {
-                sensorList = new ArrayList<String>();
-                sensorList.add(sensor);
-                sensorSchema = (DeviceSchema) deviceSchema.clone();
-                sensorSchema.setSensors(sensorList);
-                Batch batch =
-                    syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
-                batch.setColIndex(colIndex);
-                SensorType colSensorType =
-                    metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
-                batch.setColType(colSensorType);
-                dataWriter.writeBatch(batch, insertLoopIndex);
-                colIndex++;
-                insertLoopIndex++;
-              }
-            }
-          }
-        }
-      } else {
-        // IS_CLIENT_BIND = false
-        Batch batch = singletonWorkload.getOneBatch();
-        if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
-          dataWriter.writeBatch(batch, insertLoopIndex);
         }
       }
+      insertLoopIndex++;
     } catch (Exception e) {
       LOGGER.error("Failed to insert one batch data because ", e);
     }

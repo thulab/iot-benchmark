@@ -32,6 +32,10 @@ public abstract class DataReader {
   protected int currentFileIndex = 0;
   protected String currentFileName;
 
+  public static DataReader getInstance(List<String> files) {
+    return new CSVDataReader(files);
+  }
+
   public DataReader(List<String> files) {
     this.files = files;
   }

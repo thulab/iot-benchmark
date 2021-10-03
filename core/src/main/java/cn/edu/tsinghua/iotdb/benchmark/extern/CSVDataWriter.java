@@ -41,14 +41,10 @@ public class CSVDataWriter extends DataWriter {
       Files.write(dataFile, sensorLine.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
       for (Record record : batch.getRecords()) {
         StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
-        for (String sensor : sensors) {
+        for (int i = 0; i < sensors.size(); i++) {
+          String sensor = sensors.get(i);
           Object value = null;
-          if (batch.getColIndex() != -1) {
-            value = record.getRecordDataValue().get(0);
-          } else {
-            int index = Integer.valueOf(sensor.split("_")[1]);
-            value = record.getRecordDataValue().get(index);
-          }
+          value = record.getRecordDataValue().get(i);
           if (value instanceof String) {
             value = "\"" + value + "\"";
           }

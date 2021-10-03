@@ -21,16 +21,13 @@ package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SyntheticDataWorkload;
+import cn.edu.tsinghua.iotdb.benchmark.workload.DataWorkLoad;
+import cn.edu.tsinghua.iotdb.benchmark.workload.QueryWorkLoad;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
 import java.sql.ResultSet;
@@ -56,7 +53,7 @@ public class SyntheticClient extends GenerateBaseClient {
   private static final double THRESHOLD = 0.0000001D;
 
   public SyntheticClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier, new SyntheticDataWorkload(id));
+    super(id, countDownLatch, barrier, DataWorkLoad.getInstance(id), QueryWorkLoad.getInstance());
     this.operationController = new OperationController(id);
   }
 
@@ -204,7 +201,7 @@ public class SyntheticClient extends GenerateBaseClient {
           config.getLOG_PRINT_INTERVAL(),
           TimeUnit.SECONDS);
       for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
-        DeviceQuery deviceQuery = syntheticWorkload.getDeviceQuery();
+        DeviceQuery deviceQuery = queryWorkLoad.getDeviceQuery();
         if (deviceQuery == null) {
           break;
         }
@@ -301,38 +298,38 @@ public class SyntheticClient extends GenerateBaseClient {
     Query query = null;
     switch (operation) {
       case PRECISE_QUERY:
-        query = syntheticWorkload.getPreciseQuery();
+        query = queryWorkLoad.getPreciseQuery();
         break;
       case RANGE_QUERY:
-        query = syntheticWorkload.getRangeQuery();
+        query = queryWorkLoad.getRangeQuery();
         break;
       case VALUE_RANGE_QUERY:
-        query = syntheticWorkload.getValueRangeQuery();
+        query = queryWorkLoad.getValueRangeQuery();
         break;
       case AGG_RANGE_QUERY:
-        query = syntheticWorkload.getAggRangeQuery();
+        query = queryWorkLoad.getAggRangeQuery();
         break;
       case AGG_VALUE_QUERY:
-        query = syntheticWorkload.getAggValueQuery();
+        query = queryWorkLoad.getAggValueQuery();
         break;
       case AGG_RANGE_VALUE_QUERY:
-        query = syntheticWorkload.getAggRangeValueQuery();
+        query = queryWorkLoad.getAggRangeValueQuery();
         break;
       case GROUP_BY_QUERY:
-        query = syntheticWorkload.getGroupByQuery();
+        query = queryWorkLoad.getGroupByQuery();
         break;
       case LATEST_POINT_QUERY:
-        query = syntheticWorkload.getLatestPointQuery();
+        query = queryWorkLoad.getLatestPointQuery();
         break;
       case RANGE_QUERY_ORDER_BY_TIME_DESC:
-        query = syntheticWorkload.getRangeQuery();
+        query = queryWorkLoad.getRangeQuery();
         break;
       case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-        query = syntheticWorkload.getValueRangeQuery();
+        query = queryWorkLoad.getValueRangeQuery();
         break;
       default:
         LOGGER.error("Unsupported operation sensorType {}", operation);
-        query = syntheticWorkload.getPreciseQuery();
+        query = queryWorkLoad.getPreciseQuery();
     }
     return query;
   }
@@ -343,59 +340,24 @@ public class SyntheticClient extends GenerateBaseClient {
    * @param actualDeviceFloor @Return when connect failed return false
    */
   private boolean ingestionOperation(int actualDeviceFloor) {
+
     try {
-      if (config.isIS_CLIENT_BIND()) {
-        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-          // IS_CLIENT_BIND == true && IS_SENSOR_TS_ALIGNMENT = true
-          for (DeviceSchema deviceSchema : deviceSchemas) {
-            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
-              Batch batch = syntheticWorkload.getOneBatch(deviceSchema, insertLoopIndex);
-              for (DBWrapper dbWrapper : dbWrappers) {
-                dbWrapper.insertOneBatch(batch);
-              }
+      for (int i = 0; i < deviceSchemas.size(); i++) {
+        int innerLoop =
+            config.isIS_SENSOR_TS_ALIGNMENT() ? deviceSchemas.get(i).getSensors().size() : 1;
+        for (int j = 0; j < innerLoop; j++) {
+          Batch batch = dataWorkLoad.getOneBatch();
+          if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
+            for (DBWrapper dbWrapper : dbWrappers) {
+              dbWrapper.insertOneBatch(batch);
             }
-          }
-          insertLoopIndex++;
-        } else {
-          // IS_CLIENT_BIND == true && IS_SENSOR_IS_ALIGNMENT = false
-          DeviceSchema sensorSchema = null;
-          List<String> sensorList = new ArrayList<String>();
-          for (DeviceSchema deviceSchema : deviceSchemas) {
-            if (deviceSchema.getDeviceId() <= actualDeviceFloor) {
-              for (String sensor : deviceSchema.getSensors()) {
-                int colIndex = Integer.parseInt(sensor.replace(Constants.SENSOR_NAME_PREFIX, ""));
-                sensorList = new ArrayList<String>();
-                sensorList.add(sensor);
-                sensorSchema = (DeviceSchema) deviceSchema.clone();
-                sensorSchema.setSensors(sensorList);
-                Batch batch =
-                    syntheticWorkload.getOneBatch(sensorSchema, insertLoopIndex, colIndex);
-                batch.setColIndex(colIndex);
-                SensorType colSensorType =
-                    metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
-                batch.setColType(colSensorType);
-                for (DBWrapper dbWrapper : dbWrappers) {
-                  dbWrapper.insertOneSensorBatch(batch);
-                }
-                insertLoopIndex++;
-              }
-            }
-          }
-        }
-      } else {
-        // IS_CLIENT_BIND = false
-        Batch batch = singletonWorkload.getOneBatch();
-        if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
-          for (DBWrapper dbWrapper : dbWrappers) {
-            dbWrapper.insertOneBatch(batch);
           }
         }
       }
-    } catch (DBConnectException e) {
-      LOGGER.error("Failed to insert one batch data because ", e);
-      return false;
+      insertLoopIndex++;
     } catch (Exception e) {
       LOGGER.error("Failed to insert one batch data because ", e);
+      return false;
     }
     return true;
   }
