@@ -27,6 +27,8 @@ public class ValueRangeQuery extends RangeQuery {
 
   private double valueThreshold;
 
+  public ValueRangeQuery() {}
+
   public ValueRangeQuery(
       List<DeviceSchema> deviceSchema,
       long startTimestamp,

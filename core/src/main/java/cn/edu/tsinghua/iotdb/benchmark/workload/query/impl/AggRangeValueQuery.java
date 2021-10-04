@@ -27,6 +27,10 @@ public class AggRangeValueQuery extends AggRangeQuery {
 
   private double valueThreshold;
 
+  public AggRangeValueQuery() {
+    super();
+  }
+
   public AggRangeValueQuery(
       List<DeviceSchema> deviceSchema,
       long startTimestamp,

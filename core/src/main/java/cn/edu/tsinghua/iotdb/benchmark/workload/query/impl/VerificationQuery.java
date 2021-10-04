@@ -10,6 +10,8 @@ public class VerificationQuery extends Query {
   private DeviceSchema deviceSchema;
   private List<Record> records;
 
+  public VerificationQuery() {}
+
   public VerificationQuery(Batch batch) {
     this.deviceSchema = batch.getDeviceSchema();
     this.records = batch.getRecords();

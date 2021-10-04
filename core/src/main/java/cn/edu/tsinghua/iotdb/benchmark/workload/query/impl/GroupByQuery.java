@@ -29,13 +29,7 @@ public class GroupByQuery extends RangeQuery {
 
   private long granularity;
 
-  public String getAggFun() {
-    return aggFun;
-  }
-
-  public long getGranularity() {
-    return granularity;
-  }
+  public GroupByQuery() {}
 
   public GroupByQuery(
       List<DeviceSchema> deviceSchema,
@@ -46,6 +40,14 @@ public class GroupByQuery extends RangeQuery {
     super(deviceSchema, startTimestamp, endTimestamp);
     this.aggFun = aggFun;
     this.granularity = granularity;
+  }
+
+  public String getAggFun() {
+    return aggFun;
+  }
+
+  public long getGranularity() {
+    return granularity;
   }
 
   /**

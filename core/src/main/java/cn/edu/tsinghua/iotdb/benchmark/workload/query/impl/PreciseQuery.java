@@ -28,6 +28,8 @@ public class PreciseQuery extends Query {
   private List<DeviceSchema> deviceSchema;
   private long timestamp;
 
+  public PreciseQuery() {}
+
   public PreciseQuery(List<DeviceSchema> deviceSchema, long timestamp) {
     this.deviceSchema = deviceSchema;
     this.timestamp = timestamp;

@@ -30,6 +30,8 @@ public class RangeQuery extends Query {
   private long endTimestamp;
   private boolean desc = false;
 
+  public RangeQuery() {}
+
   public RangeQuery(List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp) {
     this.deviceSchema = deviceSchema;
     this.startTimestamp = startTimestamp;

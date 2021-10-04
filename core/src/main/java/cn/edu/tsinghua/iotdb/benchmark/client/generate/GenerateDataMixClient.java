@@ -33,6 +33,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
 
   public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
+    // TODO exclude control model
     this.operationController = new OperationController(id);
   }
 

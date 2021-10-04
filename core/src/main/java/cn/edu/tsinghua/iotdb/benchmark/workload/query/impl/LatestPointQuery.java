@@ -25,6 +25,10 @@ import java.util.List;
 
 public class LatestPointQuery extends AggRangeQuery {
 
+  public LatestPointQuery() {
+    super();
+  };
+
   public LatestPointQuery(
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp, String aggFun) {
     super(deviceSchema, startTimestamp, endTimestamp, aggFun);

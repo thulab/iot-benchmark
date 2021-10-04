@@ -44,6 +44,8 @@ public class AggValueQuery extends AggRangeQuery {
               + config.getPOINT_STEP() * config.getBATCH_SIZE_PER_WRITE() * 1000L * timeRangeConst)
           * timeStampConst;
 
+  public AggValueQuery() {}
+
   public AggValueQuery(List<DeviceSchema> deviceSchema, String aggFun, double valueThreshold) {
     super(deviceSchema, Constants.START_TIMESTAMP * timeStampConst, END_TIME, aggFun);
     this.valueThreshold = valueThreshold;
@@ -53,7 +55,7 @@ public class AggValueQuery extends AggRangeQuery {
     return valueThreshold;
   }
 
-  private final double valueThreshold;
+  private double valueThreshold;
 
   private static long getTimestampConst(String timePrecision) {
     if (timePrecision.equals("ms")) {
