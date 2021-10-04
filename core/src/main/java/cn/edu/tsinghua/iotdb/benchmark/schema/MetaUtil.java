@@ -13,7 +13,7 @@ public class MetaUtil {
   private static List<List<String>> CLIENT_FILES;
 
   /**
-   * Used under cluster mode of benchmark TODO do
+   * Used under cluster mode of benchmark
    *
    * @param deviceId
    * @return

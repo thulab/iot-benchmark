@@ -17,7 +17,6 @@ public abstract class SchemaWriter {
    * @return
    */
   public static SchemaWriter getBasicWriter() {
-    // TODO change according to config
     return new CSVSchemaWriter();
   }
 

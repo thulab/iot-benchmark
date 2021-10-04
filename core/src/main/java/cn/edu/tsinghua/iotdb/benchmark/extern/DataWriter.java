@@ -9,7 +9,6 @@ public abstract class DataWriter {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public static DataWriter getDataWriter() {
-    // TODO change according to config
     return new CSVDataWriter();
   }
 

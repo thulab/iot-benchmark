@@ -263,8 +263,7 @@ public class Config {
   private long GROUP_BY_TIME_UNIT = QUERY_INTERVAL / 2;
   /** Query random seed */
   private long QUERY_SEED = 1516580959202L;
-  // TODO check properties
-  /** Maximum number of output items in conditional query with limit TODO check */
+  /** Maximum number of output items in conditional query with limit */
   private int QUERY_LIMIT_N = 1;
   /** The offset in conditional query with limit */
   private int QUERY_LIMIT_OFFSET = 0;
@@ -428,8 +427,6 @@ public class Config {
       System.exit(0);
     }
   }
-
-  // TODO remove following
 
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {

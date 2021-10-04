@@ -138,7 +138,6 @@ public abstract class MetaDataSchema {
     if (metaDataSchema == null) {
       synchronized (MetaDataSchema.class) {
         if (metaDataSchema == null) {
-          // TODO init metadata schema
           switch (config.getBENCHMARK_WORK_MODE()) {
             case VERIFICATION_WRITE:
             case VERIFICATION_QUERY:
