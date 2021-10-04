@@ -40,7 +40,8 @@ public class VerificationWriteMode extends BaseMode {
 
   @Override
   protected boolean preCheck() {
-    List<DBConfig> dbConfigs = Arrays.asList(config.getDbConfig());
+    List<DBConfig> dbConfigs = new ArrayList<>();
+    dbConfigs.add(config.getDbConfig());
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }

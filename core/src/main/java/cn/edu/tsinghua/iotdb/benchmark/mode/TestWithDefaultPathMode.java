@@ -28,7 +28,6 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersisten
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class TestWithDefaultPathMode extends BaseMode {
@@ -41,7 +40,8 @@ public class TestWithDefaultPathMode extends BaseMode {
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     recorder.saveTestConfig();
 
-    List<DBConfig> dbConfigs = Arrays.asList(config.getDbConfig());
+    List<DBConfig> dbConfigs = new ArrayList<>();
+    dbConfigs.add(config.getDbConfig());
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }

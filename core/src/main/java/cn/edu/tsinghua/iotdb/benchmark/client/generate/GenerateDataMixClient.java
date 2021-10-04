@@ -113,7 +113,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
     try {
       for (int i = 0; i < deviceSchemas.size(); i++) {
         int innerLoop =
-            config.isIS_SENSOR_TS_ALIGNMENT() ? deviceSchemas.get(i).getSensors().size() : 1;
+            config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
         for (int j = 0; j < innerLoop; j++) {
           Batch batch = dataWorkLoad.getOneBatch();
           if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
