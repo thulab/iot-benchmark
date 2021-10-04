@@ -7,6 +7,7 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,11 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     boolean typeAllow = false;
     if (config.getQUERY_AGGREGATE_FUN().contains("count")) {
       typeAllow = true;
+    }
+    if (config.getDbConfig().getDB_SWITCH() == DBSwitch.DB_INFLUX_2
+        || (config.isIS_DOUBLE_WRITE()
+            && config.getANOTHER_DBConfig().getDB_SWITCH() == DBSwitch.DB_INFLUX_2)) {
+      typeAllow = false;
     }
     List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(typeAllow);
     long startTimestamp = getQueryStartTimestamp(Operation.GROUP_BY_QUERY);

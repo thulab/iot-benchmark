@@ -516,7 +516,12 @@ public class InfluxDB implements IDatabase {
       LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
     int cnt = 0;
-    List<FluxTable> tables = client.getQueryApi().query(sql);
+    List<FluxTable> tables = new ArrayList<>();
+    try {
+      tables = client.getQueryApi().query(sql);
+    } catch (Exception e) {
+      LOGGER.error("Error when query {} : {}", sql, e.getMessage());
+    }
     for (FluxTable table : tables) {
       List<FluxRecord> fluxRecords = table.getRecords();
       cnt += fluxRecords.size();
