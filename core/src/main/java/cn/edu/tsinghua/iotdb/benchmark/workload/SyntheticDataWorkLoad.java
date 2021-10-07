@@ -16,6 +16,10 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   private int sensorIndex = 0;
 
   public SyntheticDataWorkLoad(List<DeviceSchema> deviceSchemas) {
+    if (config.isIS_OUT_OF_ORDER()) {
+      long startIndex = (long) ((long) config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
+      this.insertLoop.set(startIndex);
+    }
     this.deviceSchemas = deviceSchemas;
     maxTimestampIndexMap = new HashMap<>();
     for (DeviceSchema schema : deviceSchemas) {
@@ -93,36 +97,10 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   protected Batch getLocalOutOfOrderBatch() {
     DeviceSchema deviceSchema = getDeviceSchema();
-    long loopIndex = insertLoop.get();
+    long loopIndex = insertLoop.get() % config.getLOOP();
     Batch batch = new Batch();
-    int moveOffset = config.getMAX_K() % config.getBATCH_SIZE_PER_WRITE();
-    if (moveOffset == 0) {
-      moveOffset = 1;
-    }
-    // like circular array
-    int barrier = (int) (config.getBATCH_SIZE_PER_WRITE() * config.getOUT_OF_ORDER_RATIO());
-    // out of order batch
-    long targetBatch;
-    if (loopIndex >= moveOffset) {
-      targetBatch = loopIndex - moveOffset;
-    } else {
-      targetBatch = loopIndex - moveOffset + config.getLOOP();
-    }
-    if (targetBatch > config.getLOOP()) {
-      LOGGER.warn("Error loop");
-    }
-    // add in order data
-    for (int i = barrier; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
+    for (int i = 0; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
       long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        addOneRowIntoBatch(batch, stepOffset);
-      } else {
-        addOneRowIntoBatch(batch, stepOffset, sensorIndex);
-      }
-    }
-    // add out of order data
-    for (int i = barrier - 1; i >= 0; i--) {
-      long stepOffset = targetBatch * config.getBATCH_SIZE_PER_WRITE() + i;
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
