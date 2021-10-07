@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
@@ -33,7 +32,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    */
   protected static final Object[][] workloadValues = initWorkloadValues();
 
-  protected AtomicLong insertLoop = new AtomicLong(0);
   protected List<DeviceSchema> deviceSchemas = new ArrayList<>();
   protected int deviceSchemaSize = 0;
 

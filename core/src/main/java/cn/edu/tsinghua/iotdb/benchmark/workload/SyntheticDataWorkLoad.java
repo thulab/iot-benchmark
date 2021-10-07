@@ -3,22 +3,20 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SyntheticDataWorkLoad.class);
   private final Map<DeviceSchema, Long> maxTimestampIndexMap;
+  private long insertLoop = 0;
   private int deviceIndex = 0;
   private int sensorIndex = 0;
 
   public SyntheticDataWorkLoad(List<DeviceSchema> deviceSchemas) {
     if (config.isIS_OUT_OF_ORDER()) {
-      long startIndex = (long) ((long) config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
-      this.insertLoop.set(startIndex);
+      long startIndex = (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
+      insertLoop = startIndex;
     }
     this.deviceSchemas = deviceSchemas;
     maxTimestampIndexMap = new HashMap<>();
@@ -38,10 +36,9 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   protected Batch getOrderedBatch() {
     DeviceSchema deviceSchema = getDeviceSchema();
-    long loopIndex = insertLoop.get();
     Batch batch = new Batch();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+      long stepOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
@@ -97,7 +94,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   protected Batch getLocalOutOfOrderBatch() {
     DeviceSchema deviceSchema = getDeviceSchema();
-    long loopIndex = insertLoop.get() % config.getLOOP();
+    long loopIndex = insertLoop % config.getLOOP();
     Batch batch = new Batch();
     for (int i = 0; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
       long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
@@ -115,13 +112,13 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   private void next() {
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {
       deviceIndex++;
-      insertLoop.getAndIncrement();
+      insertLoop++;
     } else {
       sensorIndex++;
       if (sensorIndex >= deviceSchemas.get(deviceIndex).getSensors().size()) {
         deviceIndex++;
         sensorIndex = 0;
-        insertLoop.getAndIncrement();
+        insertLoop++;
       }
     }
     if (deviceIndex >= deviceSchemaSize) {
