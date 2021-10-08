@@ -50,7 +50,6 @@ public class ServerMode extends BaseMode {
   public void run() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
-    recorder.saveTestConfig();
 
     float abnormalValue = -1;
 
