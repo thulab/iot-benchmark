@@ -112,17 +112,16 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   private void next() {
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {
       deviceIndex++;
-      insertLoop++;
     } else {
       sensorIndex++;
       if (sensorIndex >= deviceSchemas.get(deviceIndex).getSensors().size()) {
         deviceIndex++;
         sensorIndex = 0;
-        insertLoop++;
       }
     }
     if (deviceIndex >= deviceSchemaSize) {
       deviceIndex = 0;
+      insertLoop++;
     }
   }
 }
