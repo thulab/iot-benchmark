@@ -51,13 +51,6 @@ public class OpenTSDB implements IDatabase {
 
   /** constructor. */
   public OpenTSDB(DBConfig dbConfig) {
-    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (split[0].equals("1") || split[split.length - 1].equals("1")) {
-      System.out.println(
-          "The Opentsdb does not support boolean and text data.\n"
-              + "Please specify the property `INSERT_DATATYPE_PROPORTION` of configuration file to `0:1:1:1:1:0`.");
-      System.exit(0);
-    }
     sensorRandom = new Random(1 + config.getQUERY_SEED());
     String openUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
     writeUrl = openUrl + "/api/put?summary ";
@@ -328,7 +321,6 @@ public class OpenTSDB implements IDatabase {
       tags.put("sensor", sensorStr);
       tags.put("device", deviceStr);
       subQuery.put("tags", tags);
-      subQuery.put("downsample", "0all-count");
       list.add(subQuery);
     }
     return list;

@@ -73,18 +73,7 @@ cp -r third_party ./build
 
 5. Ensure the tables are created, the zooKeeper and Hbase is running, we can start OpenTSDB now. Move into the build directory, use ```./tsdb tsd``` to start the OpenTSDB, the jps process name of OpenTSDB is TSDMain.
 
-# Configuration of OpenTSDB
 
-There are a couple of default properties will block the test. Therefore, we need to modify the configuration file.
-```properties
-# modify
-tsd.core.auto_create_metrics = true
-
-# add
-tsd.http.request.enable_chunked = true
-tsd.http.request.max_chunk = 65535
-tsd.storage.fix_duplicates=true
-```
 
 # Use benchmark to test OpenTSDB
 

@@ -24,7 +24,7 @@ Databases currently supported:
 | Microsoft SQL Server | 2016 SP2 |                           jdbc                           |
 |   VictoriaMetrics    | v1.64.0  |                       Http Request                       |
 |        SQLite        |    --    |                           jdbc                           |
-|       OpenTSDB       |    2.4.1    |                       Http Request                       |
+|       OpenTSDB       |    --    |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
 |        TDengine        |    2.2.0.2    |                           jdbc                           |
@@ -90,7 +90,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                               |
 |     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
-|       OpenTSDB       |    2.4.1    |         opentsdb          |                                                  OpenTSDB                                                   |
+|       OpenTSDB       |    --    |         opentsdb          |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
 |        TDengine        |    2.2.0.2    |          TDengine           |                                                   TDengine                                                    |
 
