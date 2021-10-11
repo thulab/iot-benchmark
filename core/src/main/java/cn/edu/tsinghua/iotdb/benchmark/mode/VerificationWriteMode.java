@@ -23,10 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,9 +31,7 @@ import java.util.List;
 
 public class VerificationWriteMode extends BaseMode {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(VerificationWriteMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
 
   @Override
   protected boolean preCheck() {

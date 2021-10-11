@@ -40,7 +40,7 @@ import java.util.*;
 public class VictoriaMetrics implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private final String URL;
   private final String CREATE_URL;
@@ -194,7 +194,7 @@ public class VictoriaMetrics implements IDatabase {
     model.setMetric(metric);
     model.setTimestamp(timestamp);
     model.setValue(value);
-    model.setType(META_DATA_SCHEMA.getSensorType(device, sensor));
+    model.setType(metaDataSchema.getSensorType(device, sensor));
     Map<String, String> tags = new HashMap<>();
     tags.put("device", device);
     tags.put("sensor", sensor);

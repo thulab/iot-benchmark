@@ -45,7 +45,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  protected static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
   protected final String ROOT_SERIES_NAME;
   protected DBConfig dbConfig;
@@ -136,7 +136,7 @@ public class IoTDB implements IDatabase {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
             SensorType dataSensorType =
-                META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor);
+                metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -395,7 +395,7 @@ public class IoTDB implements IDatabase {
 
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+      switch (metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;

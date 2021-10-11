@@ -58,7 +58,7 @@ public class IoTDB implements IDatabase {
   private final String DELETE_SERIES_SQL;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   protected final String ROOT_SERIES_NAME;
   protected SingleNodeJDBCConnection ioTDBConnection;
   protected ExecutorService service;
@@ -190,7 +190,7 @@ public class IoTDB implements IDatabase {
       int sensorIndex = 0;
       for (String sensor : deviceSchema.getSensors()) {
         paths.add(getSensorPath(deviceSchema, sensor));
-        SensorType datatype = META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor);
+        SensorType datatype = metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
         tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
@@ -653,7 +653,7 @@ public class IoTDB implements IDatabase {
     int sensorIndex = 0;
     List<String> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      switch (META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+      switch (metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case BOOLEAN:
         case INT32:
         case INT64:

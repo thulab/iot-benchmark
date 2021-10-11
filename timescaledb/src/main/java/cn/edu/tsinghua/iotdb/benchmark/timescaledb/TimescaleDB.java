@@ -49,7 +49,7 @@ public class TimescaleDB implements IDatabase {
   private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   // chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
@@ -554,7 +554,7 @@ public class TimescaleDB implements IDatabase {
           .append(", ")
           .append(sensors.get(i))
           .append(" ")
-          .append(typeMap(META_DATA_SCHEMA.getSensorType(device, sensors.get(i))))
+          .append(typeMap(metaDataSchema.getSensorType(device, sensors.get(i))))
           .append(" NULL ");
     }
     sqlBuilder.append(",UNIQUE (time, sGroup, device));");

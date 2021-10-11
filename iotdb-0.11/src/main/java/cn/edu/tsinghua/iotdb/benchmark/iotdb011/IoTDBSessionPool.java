@@ -56,7 +56,7 @@ public class IoTDBSessionPool implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  protected static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   protected final String ROOT_SERIES_NAME;
   protected DBConfig dbConfig;
 
@@ -144,7 +144,7 @@ public class IoTDBSessionPool implements IDatabase {
                     + "."
                     + sensor);
             SensorType dataSensorType =
-                META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor);
+                metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             dataTypes.add(TSDataType.valueOf(dataSensorType.name));
             encodings.add(TSEncoding.valueOf(getEncodingType(dataSensorType)));
             // TODO remove when [IOTDB-1518] is solved(not supported null)
@@ -196,7 +196,7 @@ public class IoTDBSessionPool implements IDatabase {
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
       SensorType dataSensorType =
-          META_DATA_SCHEMA.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+          metaDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
@@ -224,7 +224,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (META_DATA_SCHEMA.getSensorType(
+        switch (metaDataSchema.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
@@ -301,7 +301,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (META_DATA_SCHEMA.getSensorType(
+        switch (metaDataSchema.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];

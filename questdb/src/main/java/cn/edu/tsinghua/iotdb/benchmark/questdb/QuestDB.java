@@ -44,7 +44,7 @@ public class QuestDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(QuestDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   private static final String URL_QUEST = "jdbc:postgresql://%s:%s/qdb";
 
   private static final String SSLMODE = "disable";
@@ -145,8 +145,7 @@ public class QuestDB implements IDatabase {
           List<String> sensors = deviceSchema.getSensors();
           for (int index = 0; index < sensors.size(); index++) {
             String dataType =
-                typeMap(
-                    META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(index)));
+                typeMap(metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(index)));
             create.append(sensors.get(index));
             create.append(" ");
             create.append(dataType);
@@ -211,8 +210,7 @@ public class QuestDB implements IDatabase {
         insertSQL.append("'");
         for (int i = 0; i < record.getRecordDataValue().size(); i++) {
           Object value = record.getRecordDataValue().get(i);
-          switch (typeMap(
-              META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(i)))) {
+          switch (typeMap(metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(i)))) {
             case "BOOLEAN":
               insertSQL.append(",").append((boolean) value);
               break;

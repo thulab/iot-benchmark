@@ -69,7 +69,7 @@ public class IoTDBSession extends IoTDB {
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
       SensorType dataSensorType =
-          META_DATA_SCHEMA.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+          metaDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
@@ -97,7 +97,7 @@ public class IoTDBSession extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (META_DATA_SCHEMA.getSensorType(
+        switch (metaDataSchema.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];

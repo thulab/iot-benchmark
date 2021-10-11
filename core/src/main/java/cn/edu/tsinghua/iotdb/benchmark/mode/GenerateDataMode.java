@@ -31,11 +31,11 @@ public class GenerateDataMode extends BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   @Override
   protected boolean preCheck() {
-    return SchemaWriter.getBasicWriter().writeSchema(META_DATA_SCHEMA.getAllDeviceSchemas());
+    return SchemaWriter.getBasicWriter().writeSchema(metaDataSchema.getAllDeviceSchemas());
   }
 
   @Override

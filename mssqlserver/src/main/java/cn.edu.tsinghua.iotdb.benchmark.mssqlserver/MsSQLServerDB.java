@@ -24,7 +24,7 @@ import java.util.List;
 public class MsSQLServerDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 
@@ -264,7 +264,7 @@ public class MsSQLServerDB implements IDatabase {
       long idPredix, int sensorIndex, long time, Object value, String device, List<String> sensors)
       throws SQLException {
     long sensorNow = sensorIndex + idPredix;
-    SensorType sensorType = META_DATA_SCHEMA.getSensorType(device, sensors.get(sensorIndex));
+    SensorType sensorType = metaDataSchema.getSensorType(device, sensors.get(sensorIndex));
     String valueStr = "";
     switch (sensorType) {
       case BOOLEAN:

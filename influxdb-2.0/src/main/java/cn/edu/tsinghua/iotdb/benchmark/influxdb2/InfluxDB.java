@@ -48,7 +48,7 @@ public class InfluxDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private final String token;
   private final String org;
@@ -192,8 +192,7 @@ public class InfluxDB implements IDatabase {
         // get value
         String sensorType =
             typeMap(
-                META_DATA_SCHEMA.getSensorType(
-                    influxDBModel.getTags().get("device"), pair.getKey()));
+                metaDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
         switch (sensorType) {
           case "BOOLEAN":
             result.append(((boolean) pair.getValue()) ? "true" : "false");

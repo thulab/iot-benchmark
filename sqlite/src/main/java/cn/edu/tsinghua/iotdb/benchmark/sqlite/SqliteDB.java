@@ -26,7 +26,7 @@ import java.util.List;
 public class SqliteDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(SqliteDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   private static final String URL = "jdbc:sqlite:%s.db";
 
   private static final List<String> TYPES =
@@ -184,7 +184,7 @@ public class SqliteDB implements IDatabase {
       long idPredix, int sensorIndex, long time, Object value, String device) {
     long sensorNow = sensorIndex + idPredix;
     SensorType sensorType =
-        META_DATA_SCHEMA.getSensorType(device, MetaUtil.getSensorName(sensorIndex));
+        metaDataSchema.getSensorType(device, MetaUtil.getSensorName(sensorIndex));
     String sysType = typeMap(sensorType);
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")

@@ -43,7 +43,7 @@ import java.util.List;
 public class TDengine implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
-  private static final MetaDataSchema META_DATA_SCHEMA = MetaDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String URL_TAOS = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
@@ -120,7 +120,7 @@ public class TDengine implements IDatabase {
         int sensorIndex = 0;
         for (String sensor : config.getSENSOR_CODES()) {
           String dataType =
-              typeMap(META_DATA_SCHEMA.getSensorType(MetaUtil.getDeviceName(0), sensor));
+              typeMap(metaDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor));
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
           } else {
@@ -224,7 +224,7 @@ public class TDengine implements IDatabase {
     int sensorIndex = 0;
     for (Object value : values) {
       switch (typeMap(
-          META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
+          metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
         case "BOOL":
           builder.append(",").append((boolean) value);
           break;
@@ -259,7 +259,7 @@ public class TDengine implements IDatabase {
     int sensorIndex = colIndex;
     Object value = values.get(0);
     String sensor = deviceSchema.getSensors().get(sensorIndex);
-    switch (typeMap(META_DATA_SCHEMA.getSensorType(deviceSchema.getDevice(), sensor))) {
+    switch (typeMap(metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor))) {
       case "BOOL":
         builder.append(",").append((boolean) value);
         break;
