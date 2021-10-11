@@ -161,6 +161,7 @@ public class OpenTSDB implements IDatabase {
     queryMap.put("start", aggRangeQuery.getStartTimestamp() - 1);
     queryMap.put("end", aggRangeQuery.getEndTimestamp() + 1);
     list = getSubQueries(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
+    list.get(0).put("downsample", "0all-count");
     queryMap.put("queries", list);
     String sql = JSON.toJSONString(queryMap);
     return executeQueryAndGetStatus(sql, false);
