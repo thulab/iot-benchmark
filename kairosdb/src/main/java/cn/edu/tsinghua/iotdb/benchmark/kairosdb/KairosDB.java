@@ -67,7 +67,7 @@ public class KairosDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient(dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
+      client = new HttpClient("http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
     } catch (MalformedURLException e) {
       e.printStackTrace();
       throw new TsdbException(
