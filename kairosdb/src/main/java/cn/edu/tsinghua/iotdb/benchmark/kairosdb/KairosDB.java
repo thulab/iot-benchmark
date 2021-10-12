@@ -67,8 +67,9 @@ public class KairosDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient(dbConfig.getHOST() + ":" + dbConfig.getPORT());
+      client = new HttpClient(dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
     } catch (MalformedURLException e) {
+      e.printStackTrace();
       throw new TsdbException(
           "Init KairosDB client failed, the url is "
               + dbConfig.getHOST()
@@ -98,7 +99,7 @@ public class KairosDB implements IDatabase {
   public void close() throws TsdbException {
     try {
       client.close();
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException e) {
       throw new TsdbException("Close KairosDB client failed, because " + e.getMessage());
     }
   }
@@ -298,9 +299,7 @@ public class KairosDB implements IDatabase {
     LOGGER.debug("[JSON] {}", builder);
     int queryResultPointNum = 0;
     try {
-
       QueryResponse response = client.query(builder);
-
       for (QueryResult query : response.getQueries()) {
         for (Result result : query.getResults()) {
           queryResultPointNum += result.getDataPoints().size();
