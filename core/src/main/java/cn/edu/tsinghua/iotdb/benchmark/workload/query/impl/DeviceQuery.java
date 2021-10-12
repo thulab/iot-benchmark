@@ -1,9 +1,11 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 public class DeviceQuery extends Query {
   private DeviceSchema deviceSchema;
+
+  public DeviceQuery() {}
 
   public DeviceQuery(DeviceSchema deviceSchema) {
     this.deviceSchema = deviceSchema;

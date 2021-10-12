@@ -19,11 +19,14 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 public abstract class Query {
   /**
    * get attributes of query
    *
    * @return
    */
+  @JSONField(serialize = false)
   public abstract StringBuilder getQueryAttrs();
 }

@@ -17,14 +17,13 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.reader;
+package cn.edu.tsinghua.iotdb.benchmark.source;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
-import com.opencsv.CSVReader;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import com.opencsv.CSVReaderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +34,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class GenerateCSVReader extends BasicReader {
+public class CSVDataReader extends DataReader {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateCSVReader.class);
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final Logger LOGGER = LoggerFactory.getLogger(CSVDataReader.class);
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   private Iterator<String[]> iterator = null;
 
-  public GenerateCSVReader(List<String> files) {
+  public CSVDataReader(List<String> files) {
     super(files);
   }
 
@@ -58,15 +57,13 @@ public class GenerateCSVReader extends BasicReader {
       separator = "\\\\";
     }
     String[] url = currentFileName.split(separator);
-    String originDevice = url[url.length - 2];
-    String device = MetaUtil.getDeviceName(originDevice);
+    String deviceName = url[url.length - 2];
     DeviceSchema deviceSchema = null;
     List<String> sensors = null;
     List<Record> records = new ArrayList<>();
     try {
       boolean firstLine = true;
-      int lineNumber = 0;
-      while (iterator.hasNext() && lineNumber < config.getBATCH_SIZE_PER_WRITE()) {
+      while (iterator.hasNext() && records.size() < config.getBATCH_SIZE_PER_WRITE()) {
         if (firstLine) {
           String[] items = iterator.next();
           sensors = new ArrayList<>();
@@ -74,16 +71,19 @@ public class GenerateCSVReader extends BasicReader {
             sensors.add(items[i]);
           }
           deviceSchema =
-              new DeviceSchema(
-                  MetaUtil.getGroupNameByDeviceStr(originDevice), originDevice, sensors);
+              new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
           firstLine = false;
           continue;
         }
         String[] values = iterator.next();
+        if (values[0].equals("Sensor")) {
+          LOGGER.warn("There is some thing wrong when read file.");
+          System.exit(1);
+        }
         long timestamp = Long.parseLong(values[0]);
         List<Object> recordValues = new ArrayList<>();
         for (int i = 1; i < values.length; i++) {
-          switch (baseDataSchema.getSensorType(device, sensors.get(i - 1))) {
+          switch (metaDataSchema.getSensorType(deviceName, sensors.get(i - 1))) {
             case BOOLEAN:
               recordValues.add(Boolean.parseBoolean(values[i]));
               break;
@@ -108,20 +108,19 @@ public class GenerateCSVReader extends BasicReader {
         }
         Record record = new Record(timestamp, recordValues);
         records.add(record);
-        lineNumber++;
       }
     } catch (Exception exception) {
+      exception.printStackTrace();
       LOGGER.error("Failed to read file:" + exception.getMessage());
     }
     return new Batch(deviceSchema, records);
   }
 
-  @Override
-  protected boolean changeFile() {
+  private boolean changeFile() {
     if (currentFileIndex < files.size()) {
       try {
         currentFileName = files.get(currentFileIndex);
-        CSVReader csvReader =
+        com.opencsv.CSVReader csvReader =
             new CSVReaderBuilder(
                     new BufferedReader(
                         new InputStreamReader(

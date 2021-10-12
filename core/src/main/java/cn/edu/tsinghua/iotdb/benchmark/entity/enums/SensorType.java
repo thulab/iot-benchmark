@@ -17,34 +17,42 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.interfaces;
+package cn.edu.tsinghua.iotdb.benchmark.entity.enums;
 
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
+public enum SensorType {
+  BOOLEAN("BOOLEAN"),
+  INT32("INT32"),
+  INT64("INT64"),
+  FLOAT("FLOAT"),
+  DOUBLE("DOUBLE"),
+  TEXT("TEXT");
 
-/** IRealDataWorkload is a workload using for real data */
-public interface IRealDataWorkload extends IWorkLoad {
-  /**
-   * Return a batch from real data return null if there is no data
-   *
-   * @return
-   * @throws WorkloadException
-   */
-  Batch getOneBatch() throws WorkloadException;
+  public String name;
 
-  /**
-   * Return a verified Query
-   *
-   * @return
-   * @throws WorkloadException
-   */
-  VerificationQuery getVerifiedQuery() throws WorkloadException;
+  SensorType(String name) {
+    this.name = name;
+  }
 
-  /**
-   * Get batch number of workload
-   *
-   * @return
-   */
-  int getBatchNumber();
+  public static SensorType[] getValueTypes() {
+    SensorType sensorType[] = new SensorType[4];
+    for (int i = 1; i < 5; i++) {
+      sensorType[i - 1] = SensorType.values()[i];
+    }
+    return sensorType;
+  }
+
+  public static SensorType getType(int ordinal) {
+    for (SensorType sensorType : SensorType.values()) {
+      if (sensorType.ordinal() == ordinal) {
+        return sensorType;
+      }
+    }
+    // default type
+    return SensorType.TEXT;
+  }
+
+  @Override
+  public String toString() {
+    return name;
+  }
 }

@@ -486,6 +486,10 @@ public class ConfigDescriptor {
       LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
       result = false;
     }
+    if (config.getCLIENT_NUMBER() == 0) {
+      LOGGER.error("Client number can't be zero");
+      result = false;
+    }
     return result;
   }
 

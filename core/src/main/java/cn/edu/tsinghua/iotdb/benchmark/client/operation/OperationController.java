@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.operation;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataMixClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import org.slf4j.Logger;
@@ -38,8 +39,7 @@ public class OperationController {
   }
 
   /**
-   * Get next Operation type, using by {@link
-   * cn.edu.tsinghua.iotdb.benchmark.client.generate.SyntheticClient}
+   * Get next Operation type, using by {@link GenerateDataMixClient}
    *
    * @return Operation the next operation for client to execute
    */

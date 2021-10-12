@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.List;
 
@@ -29,6 +29,8 @@ public class RangeQuery extends Query {
   private long startTimestamp;
   private long endTimestamp;
   private boolean desc = false;
+
+  public RangeQuery() {}
 
   public RangeQuery(List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp) {
     this.deviceSchema = deviceSchema;

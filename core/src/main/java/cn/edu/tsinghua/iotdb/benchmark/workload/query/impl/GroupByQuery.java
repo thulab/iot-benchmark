@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.List;
 
@@ -29,13 +29,7 @@ public class GroupByQuery extends RangeQuery {
 
   private long granularity;
 
-  public String getAggFun() {
-    return aggFun;
-  }
-
-  public long getGranularity() {
-    return granularity;
-  }
+  public GroupByQuery() {}
 
   public GroupByQuery(
       List<DeviceSchema> deviceSchema,
@@ -46,6 +40,14 @@ public class GroupByQuery extends RangeQuery {
     super(deviceSchema, startTimestamp, endTimestamp);
     this.aggFun = aggFun;
     this.granularity = granularity;
+  }
+
+  public String getAggFun() {
+    return aggFun;
+  }
+
+  public long getGranularity() {
+    return granularity;
   }
 
   /**

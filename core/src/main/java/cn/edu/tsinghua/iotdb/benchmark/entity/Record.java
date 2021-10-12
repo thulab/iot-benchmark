@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
+package cn.edu.tsinghua.iotdb.benchmark.entity;
 
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;

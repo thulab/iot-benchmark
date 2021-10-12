@@ -22,14 +22,14 @@ package cn.edu.tsinghua.iotdb.benchmark.influxdb2;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.Bucket;
@@ -48,7 +48,7 @@ public class InfluxDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private final String token;
   private final String org;
@@ -190,10 +190,10 @@ public class InfluxDB implements IDatabase {
         result.append(pair.getKey());
         result.append("=");
         // get value
-        String type =
+        String sensorType =
             typeMap(
-                baseDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
-        switch (type) {
+                metaDataSchema.getSensorType(influxDBModel.getTags().get("device"), pair.getKey()));
+        switch (sensorType) {
           case "BOOLEAN":
             result.append(((boolean) pair.getValue()) ? "true" : "false");
             break;
@@ -213,7 +213,8 @@ public class InfluxDB implements IDatabase {
             result.append("\"").append(pair.getValue()).append("\"");
             break;
           default:
-            LOGGER.error("Unsupported data type {}, use default data type: BINARY.", type);
+            LOGGER.error(
+                "Unsupported data sensorType {}, use default data sensorType: BINARY.", sensorType);
             return "TEXT";
         }
       }
@@ -514,7 +515,12 @@ public class InfluxDB implements IDatabase {
       LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
     int cnt = 0;
-    List<FluxTable> tables = client.getQueryApi().query(sql);
+    List<FluxTable> tables = new ArrayList<>();
+    try {
+      tables = client.getQueryApi().query(sql);
+    } catch (Exception e) {
+      LOGGER.error("Error when query {} : {}", sql, e.getMessage());
+    }
     for (FluxTable table : tables) {
       List<FluxRecord> fluxRecords = table.getRecords();
       cnt += fluxRecords.size();

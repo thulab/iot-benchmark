@@ -25,12 +25,12 @@ import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBInsertMode;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +56,13 @@ public class IoTDBSessionBase extends IoTDB {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (String sensor : batch.getDeviceSchema().getSensors()) {
-      Type dataType = baseDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+      SensorType dataSensorType =
+          metaDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
       schemaList.add(
           new MeasurementSchema(
               sensor,
-              Enum.valueOf(TSDataType.class, dataType.name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(dataType))));
+              Enum.valueOf(TSDataType.class, dataSensorType.name),
+              Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
     String deviceId =
@@ -84,7 +85,7 @@ public class IoTDBSessionBase extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (baseDataSchema.getSensorType(
+        switch (metaDataSchema.getSensorType(
             batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
@@ -124,7 +125,7 @@ public class IoTDBSessionBase extends IoTDB {
       String device, List<String> sensors, int recordValueSize) {
     List<TSDataType> dataTypes = new ArrayList<>();
     for (int sensorIndex = 0; sensorIndex < recordValueSize; sensorIndex++) {
-      switch (baseDataSchema.getSensorType(device, sensors.get(sensorIndex))) {
+      switch (metaDataSchema.getSensorType(device, sensors.get(sensorIndex))) {
         case BOOLEAN:
           dataTypes.add(TSDataType.BOOLEAN);
           break;

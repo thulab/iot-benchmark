@@ -19,62 +19,44 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.client.generate.SyntheticClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class TestWithDefaultPathMode extends BaseMode {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TestWithDefaultPathMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  /** Start benchmark */
   @Override
-  public void run() {
+  protected boolean preCheck() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     recorder.saveTestConfig();
 
-    Measurement measurement = new Measurement();
-    registerSchema(config.getDbConfig(), measurement);
+    List<DBConfig> dbConfigs = new ArrayList<>();
+    dbConfigs.add(config.getDbConfig());
     if (config.isIS_DOUBLE_WRITE()) {
-      registerSchema(config.getANOTHER_DBConfig(), measurement);
+      dbConfigs.add(config.getANOTHER_DBConfig());
     }
+    registerSchema(dbConfigs, measurement);
+    return true;
+  }
 
-    // create getCLIENT_NUMBER() client threads to do the workloads
-    List<Measurement> threadsMeasurements = new ArrayList<>();
-    List<Client> clients = new ArrayList<>();
-    CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-    CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
-    long st = 0;
-    ExecutorService executorService = Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
-    LOGGER.info("Generating workload buffer...");
-    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      SyntheticClient client = new SyntheticClient(i, downLatch, barrier);
-      clients.add(client);
-      st = System.nanoTime();
-      executorService.submit(client);
-    }
+  @Override
+  protected void postCheck() {
     List<Operation> operations = Operation.getNormalOperation();
     if (config.isIS_POINT_COMPARISON()) {
       operations = new ArrayList<>();
       operations.add(Operation.DEVICE_QUERY);
     }
-    finalMeasure(
-        executorService, downLatch, measurement, threadsMeasurements, st, clients, operations);
+    List<Measurement> threadsMeasurements = new ArrayList<>();
+    finalMeasure(measurement, threadsMeasurements, start, clients, operations);
   }
 }
