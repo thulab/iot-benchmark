@@ -93,7 +93,7 @@ public class DeviceSchema implements Cloneable {
   }
 
   public List<Sensor> getSensors() {
-    return sensors;
+    return new ArrayList<>(sensors);
   }
 
   public void setSensors(List<Sensor> sensors) {

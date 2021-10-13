@@ -593,7 +593,7 @@ public class IoTDB implements IDatabase {
                         for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                           switch (operation) {
                             case LATEST_POINT_QUERY:
-                              if (i == 2) {
+                              if (i == 2 || i >= 4) {
                                 continue;
                               }
                               break;

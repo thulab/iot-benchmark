@@ -1144,7 +1144,7 @@ public class Config {
   }
 
   public List<Sensor> getSENSORS() {
-    return SENSORS;
+    return new ArrayList<>(SENSORS);
   }
 
   public void setSENSORS(List<Sensor> SENSORS) {
