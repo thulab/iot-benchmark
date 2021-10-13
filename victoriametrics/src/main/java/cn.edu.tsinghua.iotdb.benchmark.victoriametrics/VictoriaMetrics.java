@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
@@ -156,7 +157,7 @@ public class VictoriaMetrics implements IDatabase {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     String device = deviceSchema.getDevice();
     List<Record> records = batch.getRecords();
-    List<String> sensors = deviceSchema.getSensors();
+    List<Sensor> sensors = deviceSchema.getSensors();
     int sensorNum = sensors.size();
     LinkedList<VictoriaMetricsModel> models = new LinkedList<>();
 
@@ -189,15 +190,15 @@ public class VictoriaMetrics implements IDatabase {
   }
 
   private VictoriaMetricsModel createModel(
-      String metric, long timestamp, Object value, String device, String sensor) {
+      String metric, long timestamp, Object value, String device, Sensor sensor) {
     VictoriaMetricsModel model = new VictoriaMetricsModel();
     model.setMetric(metric);
     model.setTimestamp(timestamp);
     model.setValue(value);
-    model.setType(metaDataSchema.getSensorType(device, sensor));
+    model.setType(sensor.getSensorType());
     Map<String, String> tags = new HashMap<>();
     tags.put("device", device);
-    tags.put("sensor", sensor);
+    tags.put("sensor", sensor.getName());
     model.setTags(tags);
     return model;
   }
@@ -214,9 +215,9 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_URL);
-        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName()));
         url.append("&").append("time=").append(preciseQuery.getTimestamp() / 1000);
         point += queryAndGetPoint(url.toString());
       }
@@ -236,9 +237,9 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
-        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName()));
         url.append("&start=").append(rangeQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(rangeQuery.getEndTimestamp() / 1000);
         point += queryAndGetPoint(url.toString());
@@ -260,9 +261,9 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
-        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName()));
         url.append("%3E").append(valueRangeQuery.getValueThreshold());
         url.append("&start=").append(valueRangeQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(valueRangeQuery.getEndTimestamp() / 1000);
@@ -285,10 +286,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append(aggRangeQuery.getAggFun()).append("%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%29");
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName())).append("%29");
         url.append("&start=").append(aggRangeQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(aggRangeQuery.getEndTimestamp() / 1000);
         point += queryAndGetPoint(url.toString());
@@ -311,10 +312,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append(aggValueQuery.getAggFun()).append("%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%29");
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName())).append("%29");
         url.append("&start=").append(Constants.START_TIMESTAMP / 1000);
         url.append("&end=").append(System.currentTimeMillis() / 1000);
         point += queryAndGetPoint(url.toString());
@@ -338,10 +339,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append(aggRangeValueQuery.getAggFun()).append("%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%3E");
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName())).append("%3E");
         url.append(aggRangeValueQuery.getValueThreshold()).append("%29");
         url.append("&start=").append(aggRangeValueQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(aggRangeValueQuery.getEndTimestamp() / 1000);
@@ -364,10 +365,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append(groupByQuery.getAggFun()).append("%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%5B");
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName())).append("%5B");
         url.append(groupByQuery.getGranularity()).append("ms%5D").append("%29");
         url.append("&start=").append(Constants.START_TIMESTAMP / 1000);
         url.append("&end=").append(System.currentTimeMillis() / 1000);
@@ -389,10 +390,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append("max_over_time%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor)).append("%29");
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName())).append("%29");
         url.append("&start=").append(Constants.START_TIMESTAMP / 1000);
         url.append("&end=").append(System.currentTimeMillis() / 1000);
         point += queryAndGetPoint(url.toString());
@@ -411,10 +412,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append("sort_desc%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName()));
         url.append("%29");
         url.append("&start=").append(rangeQuery.getStartTimestamp() / 1000);
         url.append("&end=").append(rangeQuery.getEndTimestamp() / 1000);
@@ -434,10 +435,10 @@ public class VictoriaMetrics implements IDatabase {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
         url.append("sort_desc%28");
-        url.append(getMatch(deviceSchema.getDevice(), sensor));
+        url.append(getMatch(deviceSchema.getDevice(), sensor.getName()));
         url.append("%3E").append(valueRangeQuery.getValueThreshold());
         url.append("%29");
         url.append("&start=").append(valueRangeQuery.getStartTimestamp() / 1000);

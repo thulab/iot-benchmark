@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DeviceSchema implements Cloneable {
@@ -41,8 +43,8 @@ public class DeviceSchema implements Cloneable {
   private String group;
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
-  /** Names of sensors from this device, e.g. ["s_0", "s_1", ..., "s_n"] */
-  private List<String> sensors;
+  /** Sensors in this device */
+  private List<Sensor> sensors;
   /** Only used for synthetic data set */
   private int deviceId;
 
@@ -52,7 +54,7 @@ public class DeviceSchema implements Cloneable {
    * @param deviceId e.g. FIRST_DEVICE_INDEX + device
    * @param sensors
    */
-  public DeviceSchema(int deviceId, List<String> sensors) {
+  public DeviceSchema(int deviceId, List<Sensor> sensors) {
     this.deviceId = deviceId;
     this.device = MetaUtil.getDeviceName(deviceId);
     this.sensors = sensors;
@@ -64,7 +66,7 @@ public class DeviceSchema implements Cloneable {
     }
   }
 
-  public DeviceSchema(String groupId, String deviceName, List<String> sensors) {
+  public DeviceSchema(String groupId, String deviceName, List<Sensor> sensors) {
     this.group = MetaUtil.getGroupName(groupId);
     this.device = deviceName;
     this.sensors = sensors;
@@ -90,11 +92,11 @@ public class DeviceSchema implements Cloneable {
     this.group = group;
   }
 
-  public List<String> getSensors() {
+  public List<Sensor> getSensors() {
     return sensors;
   }
 
-  public void setSensors(List<String> sensors) {
+  public void setSensors(List<Sensor> sensors) {
     this.sensors = sensors;
   }
 
@@ -107,8 +109,8 @@ public class DeviceSchema implements Cloneable {
     ReadWriteIOUtils.write(group, outputStream);
     ReadWriteIOUtils.write(device, outputStream);
     ReadWriteIOUtils.write(sensors.size(), outputStream);
-    for (String sensor : sensors) {
-      ReadWriteIOUtils.write(sensor, outputStream);
+    for (Sensor sensor : sensors) {
+      sensor.serialize(outputStream);
     }
     ReadWriteIOUtils.write(deviceId, outputStream);
   }
@@ -122,7 +124,11 @@ public class DeviceSchema implements Cloneable {
     DeviceSchema result = new DeviceSchema();
     result.group = ReadWriteIOUtils.readString(inputStream);
     result.device = ReadWriteIOUtils.readString(inputStream);
-    result.sensors = ReadWriteIOUtils.readStringList(inputStream);
+    result.sensors = new ArrayList<>();
+    int number = ReadWriteIOUtils.readInt(inputStream);
+    for (int i = 0; i < number; i++) {
+      result.sensors.add(Sensor.deserialize(inputStream));
+    }
     result.deviceId = ReadWriteIOUtils.readInt(inputStream);
     return result;
   }

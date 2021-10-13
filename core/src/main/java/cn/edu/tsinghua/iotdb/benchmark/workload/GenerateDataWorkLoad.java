@@ -3,11 +3,11 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,16 +127,13 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
       workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
       for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
-        String sensor = config.getSENSOR_CODES().get(j);
-        SensorType sensorType =
-            metaDataSchema.getSensorType(
-                MetaUtil.getDeviceName(config.getFIRST_DEVICE_INDEX()), sensor);
+        Sensor sensor = config.getSENSORS().get(j);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
           long currentTimestamp = getCurrentTimestamp(i);
           Object value;
-          if (sensorType == SensorType.TEXT) {
+          if (sensor.getSensorType() == SensorType.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
             StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
             for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
@@ -145,9 +142,9 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
             value = builder.toString();
           } else {
             // not TEXT case
-            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor);
+            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
             Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
-            switch (sensorType) {
+            switch (sensor.getSensorType()) {
               case BOOLEAN:
                 value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
                 break;

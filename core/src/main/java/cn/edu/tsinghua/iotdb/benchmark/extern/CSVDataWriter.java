@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.extern;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +36,19 @@ public class CSVDataWriter extends DataWriter {
       if (!Files.exists(dataFile)) {
         Files.createFile(dataFile);
       }
-      List<String> sensors = batch.getDeviceSchema().getSensors();
-      String sensorLine = String.join(",", sensors);
-      sensorLine = "Sensor," + sensorLine + "\n";
-      Files.write(dataFile, sensorLine.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+      List<Sensor> sensors = batch.getDeviceSchema().getSensors();
+      StringBuffer sensorLine = new StringBuffer("Sensor");
+      for (Sensor sensor : sensors) {
+        sensorLine.append(",").append(sensor.getName());
+      }
+      sensorLine.append("\n");
+      Files.write(
+          dataFile,
+          sensorLine.toString().getBytes(StandardCharsets.UTF_8),
+          StandardOpenOption.APPEND);
       for (Record record : batch.getRecords()) {
         StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
         for (int i = 0; i < sensors.size(); i++) {
-          String sensor = sensors.get(i);
           Object value = null;
           value = record.getRecordDataValue().get(i);
           if (value instanceof String) {

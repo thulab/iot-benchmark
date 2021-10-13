@@ -5,11 +5,11 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -134,7 +134,11 @@ public class SqliteDB implements IDatabase {
         for (int i = 0; i < values.size(); i++) {
           statement.addBatch(
               getOneLine(
-                  idPredix, i, record.getTimestamp(), values.get(i), deviceSchema.getDevice()));
+                  idPredix,
+                  i,
+                  record.getTimestamp(),
+                  values.get(i),
+                  deviceSchema.getSensors().get(i).getSensorType()));
         }
       }
       statement.executeBatch();
@@ -168,7 +172,7 @@ public class SqliteDB implements IDatabase {
                 batch.getColIndex(),
                 record.getTimestamp(),
                 values.get(batch.getColIndex()),
-                deviceSchema.getDevice()));
+                deviceSchema.getSensors().get(batch.getColIndex()).getSensorType()));
       }
       statement.executeBatch();
       statement.close();
@@ -181,10 +185,8 @@ public class SqliteDB implements IDatabase {
   }
 
   private String getOneLine(
-      long idPredix, int sensorIndex, long time, Object value, String device) {
+      long idPredix, int sensorIndex, long time, Object value, SensorType sensorType) {
     long sensorNow = sensorIndex + idPredix;
-    SensorType sensorType =
-        metaDataSchema.getSensorType(device, MetaUtil.getSensorName(sensorIndex));
     String sysType = typeMap(sensorType);
     StringBuffer sql =
         new StringBuffer("INSERT INTO ")
@@ -440,8 +442,8 @@ public class SqliteDB implements IDatabase {
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         List<String> search = new ArrayList<>();
-        for (String sensor : deviceSchema.getSensors()) {
-          long sensorId = idPrefix + Integer.parseInt(sensor.split("_")[1]);
+        for (Sensor sensor : deviceSchema.getSensors()) {
+          long sensorId = idPrefix + Integer.parseInt(sensor.getName().split("_")[1]);
           search.add(String.valueOf(sensorId));
         }
         String ids = String.join(",", search);
@@ -535,10 +537,10 @@ public class SqliteDB implements IDatabase {
     }
   }
 
-  private String getHeader(long device, List<String> sensors, String sysType) {
+  private String getHeader(long device, List<Sensor> sensors, String sysType) {
     List<String> search = new ArrayList<>();
-    for (String sensor : sensors) {
-      long sensorId = device + Integer.parseInt(sensor.split("_")[1]);
+    for (Sensor sensor : sensors) {
+      long sensorId = device + Integer.parseInt(sensor.getName().split("_")[1]);
       search.add(String.valueOf(sensorId));
     }
 
@@ -548,10 +550,10 @@ public class SqliteDB implements IDatabase {
     return stringBuilder.toString();
   }
 
-  private String getHeader(String aggFun, List<String> sensors, long device, String sysType) {
+  private String getHeader(String aggFun, List<Sensor> sensors, long device, String sysType) {
     List<String> search = new ArrayList<>();
-    for (String sensor : sensors) {
-      long sensorId = device + Integer.parseInt(sensor.split("_")[1]);
+    for (Sensor sensor : sensors) {
+      long sensorId = device + Integer.parseInt(sensor.getName().split("_")[1]);
       search.add(String.valueOf(sensorId));
     }
     String target = "value";

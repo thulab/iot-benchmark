@@ -23,10 +23,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -118,9 +118,8 @@ public class TDengine implements IDatabase {
         // create super table
         StringBuilder superSql = new StringBuilder();
         int sensorIndex = 0;
-        for (String sensor : config.getSENSOR_CODES()) {
-          String dataType =
-              typeMap(metaDataSchema.getSensorType(MetaUtil.getDeviceName(0), sensor));
+        for (Sensor sensor : config.getSENSORS()) {
+          String dataType = typeMap(sensor.getSensorType());
           if (dataType.equals("BINARY")) {
             superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
           } else {
@@ -188,12 +187,12 @@ public class TDengine implements IDatabase {
       statement.execute(String.format(USE_DB, testDb));
       StringBuilder builder = new StringBuilder();
       DeviceSchema deviceSchema = batch.getDeviceSchema();
-      List<String> colList = deviceSchema.getSensors();
+      List<Sensor> colList = deviceSchema.getSensors();
       builder
           .append("insert into ")
           .append(deviceSchema.getDevice())
           .append(" (time, ")
-          .append(colList.get(batch.getColIndex()));
+          .append(colList.get(batch.getColIndex()).getName());
       builder.append(") values ");
       int colIndex = batch.getColIndex();
 
@@ -220,11 +219,10 @@ public class TDengine implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append(" ('");
     builder.append(sdf.format(new Date(timestamp))).append("'");
-    List<String> sensors = deviceSchema.getSensors();
+    List<Sensor> sensors = deviceSchema.getSensors();
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (typeMap(
-          metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex)))) {
+      switch (typeMap(sensors.get(sensorIndex).getSensorType())) {
         case "BOOL":
           builder.append(",").append((boolean) value);
           break;
@@ -258,8 +256,8 @@ public class TDengine implements IDatabase {
     builder.append(sdf.format(new Date(timestamp))).append("'");
     int sensorIndex = colIndex;
     Object value = values.get(0);
-    String sensor = deviceSchema.getSensors().get(sensorIndex);
-    switch (typeMap(metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor))) {
+    Sensor sensor = deviceSchema.getSensors().get(sensorIndex);
+    switch (typeMap(sensor.getSensorType())) {
       case "BOOL":
         builder.append(",").append((boolean) value);
         break;
@@ -403,11 +401,11 @@ public class TDengine implements IDatabase {
   private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
+    List<Sensor> querySensors = devices.get(0).getSensors();
 
-    builder.append(querySensors.get(0));
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
+      builder.append(", ").append(querySensors.get(i).getName());
     }
 
     builder.append(generateConstrainForDevices(devices));
@@ -480,8 +478,8 @@ public class TDengine implements IDatabase {
   private static String addWhereValueClause(
       List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sqlHeader);
-    for (String sensor : devices.get(0).getSensors()) {
-      builder.append(" AND ").append(sensor).append(" > ").append(valueThreshold);
+    for (Sensor sensor : devices.get(0).getSensors()) {
+      builder.append(" AND ").append(sensor.getName()).append(" > ").append(valueThreshold);
     }
     return builder.toString();
   }
@@ -498,8 +496,8 @@ public class TDengine implements IDatabase {
       List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sqlHeader);
     builder.append(" Where ");
-    for (String sensor : devices.get(0).getSensors()) {
-      builder.append(sensor).append(" > ").append(valueThreshold).append(" AND ");
+    for (Sensor sensor : devices.get(0).getSensors()) {
+      builder.append(sensor.getName()).append(" > ").append(valueThreshold).append(" AND ");
     }
     builder.delete(builder.lastIndexOf("AND"), builder.length());
     return builder.toString();
@@ -515,11 +513,16 @@ public class TDengine implements IDatabase {
   private static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
+    List<Sensor> querySensors = devices.get(0).getSensors();
 
     builder.append(method).append("(").append(querySensors.get(0)).append(")");
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(method).append("(").append(querySensors.get(i)).append(")");
+      builder
+          .append(", ")
+          .append(method)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
     }
 
     builder.append(generateConstrainForDevices(devices));

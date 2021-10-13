@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import org.slf4j.Logger;
@@ -91,12 +92,12 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   }
 
   private DeviceSchema getDeviceSchema(long loop) {
-    List<String> sensors = new ArrayList<>();
+    List<Sensor> sensors = new ArrayList<>();
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-      sensors = config.getSENSOR_CODES();
+      sensors = config.getSENSORS();
     } else {
       int sensorId = sensorIndex.getAndIncrement();
-      sensors.add(config.getSENSOR_CODES().get(sensorId));
+      sensors.add(config.getSENSORS().get(sensorId));
       if (sensorIndex.get() >= config.getSENSOR_NUMBER()) {
         sensorIndex.set(0);
       }

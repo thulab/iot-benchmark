@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
@@ -261,10 +262,10 @@ public class MsSQLServerDB implements IDatabase {
    * @throws SQLException
    */
   private void addBatch(
-      long idPredix, int sensorIndex, long time, Object value, String device, List<String> sensors)
+      long idPredix, int sensorIndex, long time, Object value, String device, List<Sensor> sensors)
       throws SQLException {
     long sensorNow = sensorIndex + idPredix;
-    SensorType sensorType = metaDataSchema.getSensorType(device, sensors.get(sensorIndex));
+    SensorType sensorType = sensors.get(sensorIndex).getSensorType();
     String valueStr = "";
     switch (sensorType) {
       case BOOLEAN:
@@ -589,10 +590,10 @@ public class MsSQLServerDB implements IDatabase {
     }
   }
 
-  private String getTargetDevices(long device, List<String> sensors) {
+  private String getTargetDevices(long device, List<Sensor> sensors) {
     List<String> search = new ArrayList<>();
-    for (String sensor : sensors) {
-      long sensorId = device + Integer.parseInt(sensor.split("_")[1]);
+    for (Sensor sensor : sensors) {
+      long sensorId = device + Integer.parseInt(sensor.getName().split("_")[1]);
       search.add(String.valueOf(sensorId));
     }
     return String.join(",", search);

@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class IoTDBSession extends IoTDBSessionBase {
 
@@ -73,20 +74,18 @@ public class IoTDBSession extends IoTDBSessionBase {
             + "."
             + batch.getDeviceSchema().getDevice();
     int failRecord = 0;
+    List<String> sensors =
+        batch.getDeviceSchema().getSensors().stream()
+            .map(sensor -> sensor.getName())
+            .collect(Collectors.toList());
+
     for (Record record : batch.getRecords()) {
       long timestamp = record.getTimestamp();
       List<TSDataType> dataTypes =
           constructDataTypes(
-              batch.getDeviceSchema().getDevice(),
-              batch.getDeviceSchema().getSensors(),
-              record.getRecordDataValue().size());
+              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
-        session.insertRecord(
-            deviceId,
-            timestamp,
-            batch.getDeviceSchema().getSensors(),
-            dataTypes,
-            record.getRecordDataValue());
+        session.insertRecord(deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;
       }
@@ -112,16 +111,19 @@ public class IoTDBSession extends IoTDBSessionBase {
     List<List<String>> measurementsList = new ArrayList<>();
     List<List<TSDataType>> typesList = new ArrayList<>();
     List<List<Object>> valuesList = new ArrayList<>();
+    List<String> sensors =
+        batch.getDeviceSchema().getSensors().stream()
+            .map(sensor -> sensor.getName())
+            .collect(Collectors.toList());
+
     for (Record record : batch.getRecords()) {
       deviceIds.add(deviceId);
       times.add(record.getTimestamp());
-      measurementsList.add(batch.getDeviceSchema().getSensors());
+      measurementsList.add(sensors);
       valuesList.add(record.getRecordDataValue());
       typesList.add(
           constructDataTypes(
-              batch.getDeviceSchema().getDevice(),
-              batch.getDeviceSchema().getSensors(),
-              record.getRecordDataValue().size()));
+              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
     }
     try {
       session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);

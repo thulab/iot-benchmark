@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.source;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +22,13 @@ public class CSVSchemaReader extends SchemaReader {
    * @return device schema list to register
    */
   @Override
-  public Map<String, Map<String, SensorType>> getDeviceSchemaList() {
+  public Map<String, List<Sensor>> getDeviceSchemaList() {
     Path path = Paths.get(config.getFILE_PATH(), Constants.SCHEMA_PATH);
     if (!Files.exists(path) || !Files.isRegularFile(path)) {
       LOGGER.error("Failed to find schema file in " + path.getFileName().toString());
       System.exit(0);
     }
-    Map<String, Map<String, SensorType>> result = new HashMap<>();
+    Map<String, List<Sensor>> result = new HashMap<>();
     try {
       List<String> schemaLines = Files.readAllLines(path);
       for (String schemaLine : schemaLines) {
@@ -35,9 +36,10 @@ public class CSVSchemaReader extends SchemaReader {
           String line[] = schemaLine.split(" ");
           String deviceName = line[0];
           if (!result.containsKey(deviceName)) {
-            result.put(deviceName, new HashMap<>());
+            result.put(deviceName, new ArrayList<>());
           }
-          result.get(deviceName).put(line[1], SensorType.getType(Integer.parseInt(line[2])));
+          Sensor sensor = new Sensor(line[1], SensorType.getType(Integer.parseInt(line[2])));
+          result.get(deviceName).add(sensor);
         }
       }
     } catch (IOException exception) {
