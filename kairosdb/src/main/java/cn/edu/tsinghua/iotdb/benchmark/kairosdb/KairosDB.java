@@ -31,11 +31,8 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import com.alibaba.fastjson.JSON;
 import org.kairosdb.client.HttpClient;
-import org.kairosdb.client.builder.Aggregator;
-import org.kairosdb.client.builder.AggregatorFactory;
+import org.kairosdb.client.builder.*;
 import org.kairosdb.client.builder.AggregatorFactory.FilterOperation;
-import org.kairosdb.client.builder.QueryBuilder;
-import org.kairosdb.client.builder.TimeUnit;
 import org.kairosdb.client.builder.aggregator.SamplingAggregator;
 import org.kairosdb.client.response.QueryResponse;
 import org.kairosdb.client.response.QueryResult;
@@ -287,12 +284,24 @@ public class KairosDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    long startTime = rangeQuery.getStartTimestamp();
+    long endTime = rangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, rangeQuery.getDeviceSchema());
+    builder.getMetrics().get(0).setOrder(QueryMetric.Order.DESCENDING);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    long startTime = valueRangeQuery.getStartTimestamp();
+    long endTime = valueRangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, valueRangeQuery.getDeviceSchema());
+    Aggregator filterAggre =
+            AggregatorFactory.createFilterAggregator(
+                    FilterOperation.LTE, valueRangeQuery.getValueThreshold());
+    addAggreForQuery(builder, filterAggre);
+    builder.getMetrics().get(0).setOrder(QueryMetric.Order.DESCENDING);
+    return executeOneQuery(builder);
   }
 
   private Status executeOneQuery(QueryBuilder builder) {
