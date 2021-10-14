@@ -20,14 +20,14 @@ public abstract class DataWorkLoad implements IDataWorkLoad {
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
-  protected static final Integer BUFFER_SIZE = 500;
 
   protected ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-  protected ArrayBlockingQueue<Batch> batches = new ArrayBlockingQueue<>(BUFFER_SIZE);
+  protected ArrayBlockingQueue<Batch> batches =
+      new ArrayBlockingQueue<>(config.getBATCH_BUFFER_SIZE());
 
   @Override
   public void startGetData() throws WorkloadException {
-    for (int i = 0; i < BUFFER_SIZE; i++) {
+    for (int i = 0; i < config.getBATCH_BUFFER_SIZE(); i++) {
       generateBatch();
     }
     executorService.scheduleAtFixedRate(
@@ -39,7 +39,7 @@ public abstract class DataWorkLoad implements IDataWorkLoad {
           }
         },
         0,
-        100,
+        config.getBATCH_GENERATE_RATE(),
         TimeUnit.MICROSECONDS);
   }
 

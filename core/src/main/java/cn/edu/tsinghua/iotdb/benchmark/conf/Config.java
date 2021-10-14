@@ -208,6 +208,10 @@ public class Config {
    * * BATCH_SIZE
    */
   private int BATCH_SIZE_PER_WRITE = 1;
+  /** The Buffer size of batch */
+  private int BATCH_BUFFER_SIZE = 500;
+  /** The rate of generate of batch */
+  private int BATCH_GENERATE_RATE = 100;
   /** Whether create schema before writing */
   private boolean CREATE_SCHEMA = true;
 
@@ -853,6 +857,22 @@ public class Config {
 
   public void setBATCH_SIZE_PER_WRITE(int BATCH_SIZE_PER_WRITE) {
     this.BATCH_SIZE_PER_WRITE = BATCH_SIZE_PER_WRITE;
+  }
+
+  public int getBATCH_BUFFER_SIZE() {
+    return BATCH_BUFFER_SIZE;
+  }
+
+  public void setBATCH_BUFFER_SIZE(int BATCH_BUFFER_SIZE) {
+    this.BATCH_BUFFER_SIZE = BATCH_BUFFER_SIZE;
+  }
+
+  public int getBATCH_GENERATE_RATE() {
+    return BATCH_GENERATE_RATE;
+  }
+
+  public void setBATCH_GENERATE_RATE(int BATCH_GENERATE_RATE) {
+    this.BATCH_GENERATE_RATE = BATCH_GENERATE_RATE;
   }
 
   public boolean isCREATE_SCHEMA() {

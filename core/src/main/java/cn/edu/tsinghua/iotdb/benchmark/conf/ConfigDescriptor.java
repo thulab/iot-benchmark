@@ -272,6 +272,13 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE() + "")));
+        config.setBATCH_BUFFER_SIZE(
+            Integer.parseInt(
+                properties.getProperty("BATCH_BUFFER_SIZE", config.getBATCH_BUFFER_SIZE() + "")));
+        config.setBATCH_GENERATE_RATE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "BATCH_GENERATE_RATE", config.getBATCH_GENERATE_RATE() + "")));
 
         config.setCREATE_SCHEMA(
             Boolean.parseBoolean(
