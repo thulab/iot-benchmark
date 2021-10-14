@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -31,7 +32,8 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
 
-  public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
+      throws WorkloadException {
     super(id, countDownLatch, barrier);
     // TODO exclude control model
     this.operationController = new OperationController(id);

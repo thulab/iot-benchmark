@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.extern.DataWriter;
 
 import java.util.concurrent.CountDownLatch;
@@ -29,7 +30,8 @@ import java.util.concurrent.CyclicBarrier;
 public class GenerateDataWriteClient extends GenerateBaseClient {
   private DataWriter dataWriter = DataWriter.getDataWriter();
 
-  public GenerateDataWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public GenerateDataWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
+      throws WorkloadException {
     super(id, countDownLatch, barrier);
   }
 

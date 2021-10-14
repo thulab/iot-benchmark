@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,8 @@ public abstract class RealBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
 
-  public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
+      throws WorkloadException {
     super(id, countDownLatch, barrier);
   }
 

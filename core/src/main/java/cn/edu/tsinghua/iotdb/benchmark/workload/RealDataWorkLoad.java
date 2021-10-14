@@ -20,11 +20,17 @@ public class RealDataWorkLoad extends DataWorkLoad {
   }
 
   @Override
-  public Batch getOneBatch() throws WorkloadException {
+  protected void generateBatch() throws WorkloadException {
+    Batch batch = null;
     if (dataReader.hasNextBatch()) {
-      return dataReader.nextBatch();
+      batch = dataReader.nextBatch();
     } else {
-      return null;
+      executorService.shutdown();
+    }
+    try {
+      batches.put(batch);
+    } catch (InterruptedException interruptedException) {
+      LOGGER.error("Failed to load batch");
     }
   }
 

@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,8 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataDeviceClient.class);
 
-  public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
+      throws WorkloadException {
     super(id, countDownLatch, barrier);
   }
 

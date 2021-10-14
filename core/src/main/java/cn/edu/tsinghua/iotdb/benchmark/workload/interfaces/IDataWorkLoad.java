@@ -5,6 +5,9 @@ import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 
 /** interface of data workload */
 public interface IDataWorkLoad extends IWorkLoad {
+
+  void startGetData() throws WorkloadException;
+
   /**
    * Insert one batch into database NOTICE: every row contains data from all sensors
    *
@@ -19,4 +22,11 @@ public interface IDataWorkLoad extends IWorkLoad {
    * @return
    */
   long getBatchNumber();
+
+  /**
+   * Finish GetData
+   *
+   * @throws WorkloadException
+   */
+  void finishGenerate() throws WorkloadException;
 }

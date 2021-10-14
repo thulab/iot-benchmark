@@ -49,7 +49,7 @@ public class ConfigDescriptor {
       System.exit(1);
     }
     config.initInnerFunction();
-    config.initSensorCodes();
+    config.initSensors();
     config.initSensorFunction();
   }
 

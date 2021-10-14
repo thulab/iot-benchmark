@@ -435,7 +435,7 @@ public class Config {
   }
 
   /** According to the number of sensors, initialize the sensor number */
-  void initSensorCodes() {
+  void initSensors() {
     int TYPE_NUMBER = 6;
     double[] probabilities = generateProbabilities(TYPE_NUMBER);
     if (probabilities == null) {

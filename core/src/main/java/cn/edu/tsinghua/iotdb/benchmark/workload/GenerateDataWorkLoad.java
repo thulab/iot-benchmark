@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
@@ -36,25 +37,31 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected int deviceSchemaSize = 0;
 
   @Override
-  public Batch getOneBatch() throws WorkloadException {
+  public long getBatchNumber() {
+    return config.getDEVICE_NUMBER() * config.getLOOP();
+  }
+
+  @Override
+  protected void generateBatch() throws WorkloadException {
+    Batch batch = null;
     if (!config.isIS_OUT_OF_ORDER()) {
-      return getOrderedBatch();
+      batch = getOrderedBatch();
     } else {
       switch (config.getOUT_OF_ORDER_MODE()) {
         case 0:
-          return getDistOutOfOrderBatch();
+          batch = getDistOutOfOrderBatch();
         case 1:
-          return getLocalOutOfOrderBatch();
+          batch = getLocalOutOfOrderBatch();
         default:
           throw new WorkloadException(
               "Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
       }
     }
-  }
-
-  @Override
-  public long getBatchNumber() {
-    return config.getDEVICE_NUMBER() * config.getLOOP();
+    try {
+      batches.put(batch);
+    } catch (InterruptedException interruptedException) {
+      LOGGER.error("Put Batch Failed:" + interruptedException.getMessage());
+    }
   }
 
   protected abstract Batch getOrderedBatch();
@@ -123,26 +130,31 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    */
   private static Object[][] initWorkloadValues() {
     Object[][] workloadValues = null;
+    int sensorNumber = config.getSENSOR_NUMBER();
+    int workLoadNumber = config.getWORKLOAD_BUFFER_SIZE();
+    int stringLength = config.getSTRING_LENGTH();
+    List<Sensor> sensors = config.getSENSORS();
+    Map<String, FunctionParam> functionParams = config.getSENSOR_FUNCTION();
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
-      workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
-      for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
-        Sensor sensor = config.getSENSORS().get(j);
-        for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
+      workloadValues = new Object[sensorNumber][workLoadNumber];
+      for (int j = 0; j < sensorNumber; j++) {
+        Sensor sensor = sensors.get(j);
+        for (int i = 0; i < workLoadNumber; i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
           long currentTimestamp = getCurrentTimestamp(i);
           Object value;
           if (sensor.getSensorType() == SensorType.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
-            StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
-            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+            StringBuffer builder = new StringBuffer(stringLength);
+            for (int k = 0; k < stringLength; k++) {
               builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
             }
             value = builder.toString();
           } else {
             // not TEXT case
-            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
+            FunctionParam param = functionParams.get(sensor.getName());
             Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
             switch (sensor.getSensorType()) {
               case BOOLEAN:

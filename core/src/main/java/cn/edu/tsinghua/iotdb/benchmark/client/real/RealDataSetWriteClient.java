@@ -21,13 +21,15 @@ package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
 public class RealDataSetWriteClient extends RealBaseClient {
 
-  public RealDataSetWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public RealDataSetWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
+      throws WorkloadException {
     super(id, countDownLatch, barrier);
   }
 

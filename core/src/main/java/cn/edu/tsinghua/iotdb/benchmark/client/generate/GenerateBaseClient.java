@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,8 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
   /** Actual deviceFloor */
   protected int actualDeviceFloor;
 
-  public GenerateBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public GenerateBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
+      throws WorkloadException {
     super(id, countDownLatch, barrier);
     insertLoopIndex = 0;
     actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
