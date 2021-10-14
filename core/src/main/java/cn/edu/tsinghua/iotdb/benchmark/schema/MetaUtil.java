@@ -50,6 +50,7 @@ public class MetaUtil {
     if (groupId < 0) {
       groupId = -groupId;
     }
+    groupId = groupId % config.getGROUP_NUMBER();
     return String.valueOf(groupId);
   }
 
