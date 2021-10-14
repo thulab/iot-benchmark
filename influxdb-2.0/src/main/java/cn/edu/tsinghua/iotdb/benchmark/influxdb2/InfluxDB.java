@@ -26,7 +26,6 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -49,7 +48,6 @@ public class InfluxDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private final String token;
   private final String org;

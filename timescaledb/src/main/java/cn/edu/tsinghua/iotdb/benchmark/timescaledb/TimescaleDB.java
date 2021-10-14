@@ -27,7 +27,6 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -50,7 +49,6 @@ public class TimescaleDB implements IDatabase {
   private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
-  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   // chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";

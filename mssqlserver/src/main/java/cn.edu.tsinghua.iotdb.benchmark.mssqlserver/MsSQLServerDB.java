@@ -9,7 +9,6 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -25,7 +24,6 @@ import java.util.List;
 public class MsSQLServerDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 

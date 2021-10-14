@@ -39,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class MetaDataSchema {
   private static final Logger LOGGER = LoggerFactory.getLogger(MetaDataSchema.class);
   private static final String UNKNOWN_DEVICE = "Unknown device: %s";
-  private static final String UNKNOWN_SENSOR = "Unknown type: device: %s, sensor: %s";
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   /** DeviceSchema for each client */
