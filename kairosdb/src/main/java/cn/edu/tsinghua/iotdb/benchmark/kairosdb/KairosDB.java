@@ -64,7 +64,8 @@ public class KairosDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient("http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
+      client =
+          new HttpClient("http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
     } catch (MalformedURLException e) {
       e.printStackTrace();
       throw new TsdbException(
@@ -297,8 +298,8 @@ public class KairosDB implements IDatabase {
     long endTime = valueRangeQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, valueRangeQuery.getDeviceSchema());
     Aggregator filterAggre =
-            AggregatorFactory.createFilterAggregator(
-                    FilterOperation.LTE, valueRangeQuery.getValueThreshold());
+        AggregatorFactory.createFilterAggregator(
+            FilterOperation.LTE, valueRangeQuery.getValueThreshold());
     addAggreForQuery(builder, filterAggre);
     builder.getMetrics().get(0).setOrder(QueryMetric.Order.DESCENDING);
     return executeOneQuery(builder);
