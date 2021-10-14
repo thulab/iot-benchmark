@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 
 import java.util.concurrent.CountDownLatch;
@@ -28,8 +27,7 @@ import java.util.concurrent.CyclicBarrier;
 
 public class RealDataSetQueryClient extends RealBaseClient {
 
-  public RealDataSetQueryClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
-      throws WorkloadException {
+  public RealDataSetQueryClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
   }
 

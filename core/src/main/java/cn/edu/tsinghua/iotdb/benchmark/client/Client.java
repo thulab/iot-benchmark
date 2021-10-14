@@ -26,7 +26,6 @@ import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.real.RealDataSetWriteClient;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
@@ -49,6 +48,7 @@ public abstract class Client implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
 
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
+  protected final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   /** The id of client */
   protected final int clientThreadId;
@@ -74,8 +74,7 @@ public abstract class Client implements Runnable {
 
   private final CyclicBarrier barrier;
 
-  public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
-      throws WorkloadException {
+  public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
@@ -86,8 +85,7 @@ public abstract class Client implements Runnable {
     initDBWrappers();
   }
 
-  public static Client getInstance(int id, CountDownLatch countDownLatch, CyclicBarrier barrier)
-      throws WorkloadException {
+  public static Client getInstance(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_POINT_COMPARISON()) {
@@ -136,7 +134,6 @@ public abstract class Client implements Runnable {
 
         doTest();
         service.shutdown();
-        dataWorkLoad.finishGenerate();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       } finally {

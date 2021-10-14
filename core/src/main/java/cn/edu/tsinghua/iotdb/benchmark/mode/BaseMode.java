@@ -23,7 +23,6 @@ import cn.edu.tsinghua.iotdb.benchmark.client.Client;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
@@ -63,13 +62,7 @@ public abstract class BaseMode {
       return;
     }
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = null;
-      try {
-        client = Client.getInstance(i, downLatch, barrier);
-      } catch (WorkloadException workloadException) {
-        LOGGER.error("Failed to init Client");
-        return;
-      }
+      Client client = Client.getInstance(i, downLatch, barrier);
       if (client == null) {
         return;
       }
