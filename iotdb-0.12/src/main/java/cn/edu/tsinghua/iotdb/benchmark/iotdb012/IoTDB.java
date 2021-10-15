@@ -250,7 +250,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      SensorType colSensorType = batch.getColType();
+      SensorType colSensorType = batch.getDeviceSchema().getSensors().get(0).getSensorType();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(

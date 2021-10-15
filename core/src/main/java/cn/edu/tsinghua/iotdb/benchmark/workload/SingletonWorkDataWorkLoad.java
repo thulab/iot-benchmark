@@ -56,6 +56,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex.get());
+        batch.setColIndex(sensorIndex.get());
       }
     }
     batch.setDeviceSchema(deviceSchema);
@@ -85,6 +86,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex.get());
+        batch.setColIndex(sensorIndex.get());
       }
     }
     batch.setDeviceSchema(deviceSchema);

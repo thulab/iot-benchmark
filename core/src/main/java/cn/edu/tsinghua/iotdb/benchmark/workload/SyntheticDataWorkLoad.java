@@ -44,6 +44,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex);
+        batch.setColIndex(sensorIndex);
       }
     }
     batch.setDeviceSchema(deviceSchema);
@@ -85,6 +86,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex);
+        batch.setColIndex(sensorIndex);
       }
     }
     batch.setDeviceSchema(deviceSchema);
@@ -103,6 +105,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex);
+        batch.setColIndex(sensorIndex);
       }
     }
     batch.setDeviceSchema(deviceSchema);

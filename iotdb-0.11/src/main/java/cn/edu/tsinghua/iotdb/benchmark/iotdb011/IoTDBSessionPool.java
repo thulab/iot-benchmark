@@ -265,7 +265,7 @@ public class IoTDBSessionPool implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     List<MeasurementSchema> schemaList = new ArrayList<>();
-    SensorType dataSensorType = batch.getColType();
+    SensorType dataSensorType = batch.getDeviceSchema().getSensors().get(0).getSensorType();
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
       schemaList.add(
