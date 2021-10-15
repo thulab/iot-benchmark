@@ -62,6 +62,8 @@ public abstract class Client implements Runnable {
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
   protected final List<DeviceSchema> deviceSchemas;
+  /** Related Schema Size */
+  protected final int deviceSchemasSize;
   /** Measurement */
   protected Measurement measurement;
   /** Total number of loop */
@@ -81,6 +83,7 @@ public abstract class Client implements Runnable {
     this.queryWorkLoad = QueryWorkLoad.getInstance();
     this.clientThreadId = id;
     this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
+    this.deviceSchemasSize = deviceSchemas.size();
     this.measurement = new Measurement();
     initDBWrappers();
   }
