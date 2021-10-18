@@ -2,14 +2,14 @@ package cn.edu.tsinghua.iotdb.benchmark.piarchive;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class PIArchive implements IDatabase {
   private static final String driverClassName = "com.osisoft.jdbc.Driver";
   private static final Properties properties = new Properties();
   private static final String url = "jdbc:pioledb://%s/Data Source=%s; Integrated Security=SSPI";
-  private static Connection connection;
+  private Connection connection;
   private static DBConfig dbConfig;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PIArchive.class);
