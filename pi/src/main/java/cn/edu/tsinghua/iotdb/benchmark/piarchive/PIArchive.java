@@ -3,14 +3,16 @@ package cn.edu.tsinghua.iotdb.benchmark.piarchive;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -19,7 +21,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class PIArchive implements IDatabase {
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema baseDataSchema = MetaDataSchema.getInstance();
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -28,6 +30,8 @@ public class PIArchive implements IDatabase {
   private static final String url = "jdbc:pioledb://%s/Data Source=%s; Integrated Security=SSPI";
   private static Connection connection;
   private static DBConfig dbConfig;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(PIArchive.class);
 
   public PIArchive(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -46,7 +50,7 @@ public class PIArchive implements IDatabase {
           DriverManager.getConnection(
               String.format(url, dbConfig.getHOST().get(0), "PI"), properties);
     } catch (Exception ex) {
-      System.err.println(ex);
+      LOGGER.error(String.valueOf(ex));
     }
   }
 
@@ -127,7 +131,7 @@ public class PIArchive implements IDatabase {
       pStatement.close();
       return new Status(true);
     } catch (SQLException e) {
-      System.out.println(e);
+      LOGGER.error(String.valueOf(e));
       return new Status(false, 0, e, e.toString());
     }
   }
@@ -157,7 +161,7 @@ public class PIArchive implements IDatabase {
       pStatement.close();
       return new Status(true);
     } catch (SQLException e) {
-      System.out.println(e);
+      LOGGER.error(String.valueOf(e));
       return new Status(false, 0, e, e.toString());
     }
   }
@@ -336,7 +340,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public String typeMap(Type iotdbType) {
+  public String typeMap(SensorType iotdbType) {
     switch (iotdbType) {
       case INT32:
       case INT64:
