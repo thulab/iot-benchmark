@@ -29,54 +29,70 @@ There is a [sample configuration file](./config.properties).
 ## The Result of Test
 ```
 ----------------------Main Configurations----------------------
-DB_SWITCH: PIArchive
-OPERATION_PROPORTION: 0:1:1:1:1:1:1:0:0:1:1
-ENABLE_THRIFT_COMPRESSION: false
-INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
-IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
-GROUP_NUMBER: 20
-DEVICE_NUMBER: 1
-SENSOR_NUMBER: 100
-BATCH_SIZE_PER_WRITE: 10
-LOOP: 1000
-POINT_STEP: 5000
-QUERY_INTERVAL: 250000
-IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
-OUT_OF_ORDER_RATIO: 0.5
+CREATE_SCHEMA=false
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=10
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=100
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=5
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=PIArchive
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=false
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OP_INTERVAL=0
+OPERATION_PROPORTION=0:1:1:1:1:1:1:0:0:1:1
+DEVICE_NUMBER=1
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=false
+IS_SENSOR_TS_ALIGNMENT=true
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 50.85 second
+Test elapsed time (not include schema creation): 19.56 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
 INGESTION           0                   0                   0                   0                   0.00                
-PRECISE_POINT       650                 649                 12                  0                   12.76               
-TIME_RANGE          607                 30957               0                   0                   608.83              
-VALUE_RANGE         645                 32844               6                   0                   645.94              
-AGG_RANGE           583                 583                 4                   0                   11.47               
-AGG_VALUE           617                 617                 8                   0                   12.13               
-AGG_RANGE_VALUE     659                 659                 8                   0                   12.96               
+PRECISE_POINT       656                 635                 0                   0                   32.47               
+TIME_RANGE          607                 31563               0                   0                   1613.96             
+VALUE_RANGE         648                 34098               0                   0                   1743.58             
+AGG_RANGE           585                 585                 0                   0                   29.91               
+AGG_VALUE           621                 621                 0                   0                   31.75               
+AGG_RANGE_VALUE     663                 663                 0                   0                   33.90               
 GROUP_BY            0                   0                   0                   0                   0.00                
 LATEST_POINT        0                   0                   0                   0                   0.00                
-RANGE_QUERY_DESC    586                 29886               6                   0                   587.77              
-VALUE_RANGE_QUERY_DESC625                 31875               12                  0                   626.88              
+RANGE_QUERY_DESC    589                 30557               0                   0                   1562.51             
+VALUE_RANGE_QUERY_DESC631                 33700               0                   0                   1723.23             
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
 INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-PRECISE_POINT       45.07       8.84        16.38       17.90       22.89       69.01       74.35       118.55      124.41      185.87      178.82      6285.25     
-TIME_RANGE          44.56       9.25        16.64       18.19       23.20       69.05       74.66       118.67      125.73      173.11      171.93      6385.11     
-VALUE_RANGE         44.43       9.33        16.68       18.30       23.74       69.30       75.37       117.74      123.44      126.70      126.33      6799.28     
-AGG_RANGE           47.40       8.87        16.54       17.94       24.02       69.90       75.00       118.43      161.00      179.54      177.87      6425.04     
-AGG_VALUE           91.27       58.03       65.54       67.40       72.10       118.18      124.00      164.54      172.51      259.20      228.01      12479.66    
-AGG_RANGE_VALUE     45.56       9.04        16.80       19.57       25.97       71.48       78.50       119.68      128.76      177.12      174.38      6677.10     
+PRECISE_POINT       11.55       5.85        7.78        9.23        11.05       13.45       15.62       17.70       20.51       24.94       24.29       1752.68     
+TIME_RANGE          11.75       5.98        7.91        9.39        11.37       13.51       15.64       17.16       20.14       26.93       25.89       1577.79     
+VALUE_RANGE         11.66       6.18        7.70        9.25        11.15       13.57       15.84       17.38       22.07       29.35       29.35       1611.35     
+AGG_RANGE           8.70        5.37        6.17        6.70        8.13        9.90        12.11       13.60       17.48       21.73       21.57       1078.39     
+AGG_VALUE           64.62       51.19       57.72       60.32       63.53       68.29       73.47       75.79       81.59       87.73       87.65       8903.90     
+AGG_RANGE_VALUE     11.22       5.65        7.04        8.77        10.83       12.98       15.28       16.22       25.17       30.47       30.46       1616.79     
 GROUP_BY            0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
 LATEST_POINT        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-RANGE_QUERY_DESC    42.80       9.44        16.62       17.99       23.11       69.16       74.80       116.79      124.89      183.14      177.82      5435.38     
-VALUE_RANGE_QUERY_DESC46.23       9.34        16.71       18.17       23.64       70.09       77.92       120.08      125.73      168.99      168.68      6003.53     
+RANGE_QUERY_DESC    11.93       6.08        8.10        9.71        11.67       13.83       15.87       17.11       22.41       26.29       25.88       1609.52     
+VALUE_RANGE_QUERY_DESC11.93       6.24        8.09        9.61        11.47       13.75       16.15       17.25       21.71       25.50       25.09       1672.69     
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Process finished with exit code 0
 ```
