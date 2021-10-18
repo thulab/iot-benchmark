@@ -1,7 +1,7 @@
 # Benchmark for PIArchive
 ## The Environment of Test
 You need to firstly install the PI JDBC on the test machine, if you want to start this test. Besides, you need to add the jar file of PI JDBC to `Libraries` of the project. The path of jar file is `%PIHOME%\JDBC\PIJDBCDriver.jar`.  
-The module of PI will not compile in default. Therefore, you need to cancel the annotation of `pom.xml`, if you want to compile the module.
+The module of PI will not compile in default. Therefore, you need to cancel the annotation of PI module in `pom.xml`, if you want to compile the module.
 ```xml
 <modules>
         <module>core</module>
