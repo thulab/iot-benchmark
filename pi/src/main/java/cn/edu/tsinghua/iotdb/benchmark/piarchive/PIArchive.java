@@ -2,14 +2,12 @@ package cn.edu.tsinghua.iotdb.benchmark.piarchive;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
@@ -36,7 +34,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public void init() throws TsdbException {
+  public void init() {
     properties.put("TrustedConnection", "yes");
     properties.put("ProtocolOrder", "nettcp:5462");
     properties.put("LogConsole", "True");
@@ -53,7 +51,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public void cleanup() throws TsdbException {
+  public void cleanup() {
     try {
       PreparedStatement deleteRecordsStatement =
           connection.prepareStatement("delete piarchive..picomp2 where tag like 'g_%'");
@@ -67,33 +65,41 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public void close() throws TsdbException, SQLException {
-    //        if (connection != null) {
-    //            connection.close();
-    //        }
+  public void close() {
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException, SQLException {
+  public void registerSchema(List<DeviceSchema> schemaList) {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      PreparedStatement pStatement =
-          connection.prepareStatement(
-              "INSERT pipoint..classic (tag, pointtypex, compressing, future) VALUES (?, ?, 0, 1)");
-      for (DeviceSchema deviceSchema : schemaList) {
-        String group = deviceSchema.getGroup();
-        String deviceName = deviceSchema.getDevice();
-        for (String sensor : deviceSchema.getSensors()) {
-          String pointName = group + "_" + deviceName + "_" + sensor;
-          String pointTypex = typeMap(baseDataSchema.getSensorType(deviceName, sensor));
-          pStatement.setString(1, pointName);
-          pStatement.setString(2, pointTypex);
-          pStatement.addBatch();
+      try {
+        PreparedStatement pStatement =
+            connection.prepareStatement(
+                "INSERT pipoint..classic (tag, pointtypex, compressing, future) VALUES (?, ?, 0, 1)");
+        for (DeviceSchema deviceSchema : schemaList) {
+          String group = deviceSchema.getGroup();
+          String deviceName = deviceSchema.getDevice();
+          for (String sensor : deviceSchema.getSensors()) {
+            String pointName = group + "_" + deviceName + "_" + sensor;
+            String pointTypex = typeMap(baseDataSchema.getSensorType(deviceName, sensor));
+            pStatement.setString(1, pointName);
+            pStatement.setString(2, pointTypex);
+            pStatement.addBatch();
+          }
         }
+        pStatement.executeBatch();
+        connection.commit();
+        pStatement.clearBatch();
+        pStatement.close();
+      } catch (SQLException e) {
+        e.printStackTrace();
       }
-      pStatement.executeBatch();
-      connection.commit();
-      pStatement.clearBatch();
-      pStatement.close();
     }
   }
 
@@ -127,10 +133,11 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    try (PreparedStatement pStatement =
-        connection.prepareStatement(
-            "INSERT piarchive..picomp2 (tag, value, time) VALUES (?, ?, ?)")) {
+  public Status insertOneSensorBatch(Batch batch) {
+    try {
+      PreparedStatement pStatement =
+          connection.prepareStatement(
+              "INSERT piarchive..picomp2 (tag, value, time) VALUES (?, ?, ?)");
       DeviceSchema deviceSchema = batch.getDeviceSchema();
       String pointName =
           deviceSchema.getGroup()
@@ -304,8 +311,7 @@ public class PIArchive implements IDatabase {
             tagName,
             formatter.format(valueRangeQuery.getStartTimestamp()),
             formatter.format(valueRangeQuery.getEndTimestamp()),
-            valueRangeQuery.getValueThreshold()
-        );
+            valueRangeQuery.getValueThreshold());
     return query(sql);
   }
 
@@ -316,10 +322,12 @@ public class PIArchive implements IDatabase {
       int resultLineNum = 0;
       try {
         while (resultSet.next()) {
-          resultLineNum ++;
+          resultLineNum++;
         }
-      } catch (NoSuchMethodError e) { }
-      int queryResultPointNum = resultLineNum * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
+      } catch (NoSuchMethodError e) {
+      }
+      int queryResultPointNum =
+          resultLineNum * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (SQLException throwables) {
       throwables.printStackTrace();

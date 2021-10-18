@@ -27,7 +27,6 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -76,7 +75,7 @@ public abstract class Client implements Runnable {
           for (DBWrapper dbWrapper : dbWrappers) {
             dbWrapper.close();
           }
-        } catch (TsdbException | SQLException e) {
+        } catch (TsdbException e) {
           LOGGER.error("Close {} error: ", config.getDbConfig().getDB_SWITCH(), e);
         }
       }

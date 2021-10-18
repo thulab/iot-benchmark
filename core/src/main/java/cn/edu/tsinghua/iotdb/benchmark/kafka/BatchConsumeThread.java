@@ -27,8 +27,6 @@ import kafka.message.MessageAndMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-
 public class BatchConsumeThread implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BatchConsumeThread.class);
@@ -50,7 +48,7 @@ public class BatchConsumeThread implements Runnable {
     for (MessageAndMetadata<String, Batch> consumerIterator : stream) {
       try {
         session.insertOneBatch(consumerIterator.message());
-      } catch (DBConnectException | SQLException e) {
+      } catch (DBConnectException e) {
         LOGGER.error(e.getMessage());
         break;
       }
