@@ -1,6 +1,29 @@
 # Benchmark for PIArchive
 ## The Environment of Test
-You need to firstly install the PI JDBC on the test machine, if you want to start this test. Besides, you need to add the jar file of PI JDBC to `Libraries` of the project. The path of jar file is `%PIHOME%\JDBC\PIJDBCDriver.jar`.
+You need to firstly install the PI JDBC on the test machine, if you want to start this test. Besides, you need to add the jar file of PI JDBC to `Libraries` of the project. The path of jar file is `%PIHOME%\JDBC\PIJDBCDriver.jar`.  
+The module of PI will not compile in default. Therefore, you need to cancel the annotation of `pom.xml`, if you want to compile the module.
+```xml
+<modules>
+        <module>core</module>
+        <module>influxdb</module>
+        <module>influxdb-2.0</module>
+        <module>kairosdb</module>
+        <module>opentsdb</module>
+        <module>taosdb</module>
+        <module>questdb</module>
+        <module>timescaledb</module>
+        <module>victoriametrics</module>
+        <module>iotdb-0.12</module>
+        <module>iotdb-0.11</module>
+        <module>iotdb-0.10</module>
+        <module>iotdb-0.09</module>
+        <module>mssqlserver</module>
+        <module>sqlite</module>
+        <module>verification</module>
+        <!-- cancel this annotation -->
+<!--        <module>pi</module>-->
+    </modules>
+```
 ## Configuration of Benchmark
 There is a [sample configuration file](./config.properties).
 ## The Result of Test
