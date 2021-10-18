@@ -64,6 +64,9 @@ public class Config {
    */
   private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
+  /** Precision of result, unit: % */
+  private double RESULT_PRECISION = 0.1;
+
   /** Whether use benchmark in cluster * */
   private boolean BENCHMARK_CLUSTER = false;
   /** In cluster mode of benchmark, the index of benchmark which will influence index of devices */
@@ -94,7 +97,9 @@ public class Config {
   /** Another configuration of db */
   private DBConfig ANOTHER_DBConfig = new DBConfig();
   /** Whether run verification when double write */
-  private boolean IS_VERIFICATION = false;
+  private boolean IS_COMPARISON = false;
+  /** Whether to do point compare */
+  private boolean IS_POINT_COMPARISON = false;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -126,6 +131,8 @@ public class Config {
   // 测试数据：外部测试数据
   /** The path of file */
   private String FILE_PATH;
+  /** The size of Big Batch */
+  private int BIG_BATCH_SIZE = 10;
 
   // 设备、传感器、客户端相关参数
   /** The number of devices of database */
@@ -421,8 +428,6 @@ public class Config {
     }
   }
 
-  // TODO remove following
-
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
     for (int i = 0; i < SENSOR_NUMBER; i++) {
@@ -486,6 +491,14 @@ public class Config {
 
   public void setBENCHMARK_WORK_MODE(BenchmarkMode BENCHMARK_WORK_MODE) {
     this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+  }
+
+  public double getRESULT_PRECISION() {
+    return RESULT_PRECISION;
+  }
+
+  public void setRESULT_PRECISION(double RESULT_PRECISION) {
+    this.RESULT_PRECISION = RESULT_PRECISION;
   }
 
   public boolean isBENCHMARK_CLUSTER() {
@@ -1213,17 +1226,40 @@ public class Config {
     return IS_DOUBLE_WRITE;
   }
 
-  public boolean isIS_VERIFICATION() {
-    return IS_VERIFICATION;
+  public boolean isIS_COMPARISON() {
+    return IS_COMPARISON;
   }
 
-  public void setIS_VERIFICATION(boolean IS_VERIFICATION) {
-    this.IS_VERIFICATION = IS_VERIFICATION;
+  public void setIS_COMPARISON(boolean IS_COMPARISON) {
+    this.IS_COMPARISON = IS_COMPARISON;
   }
 
+  public int getBIG_BATCH_SIZE() {
+    return BIG_BATCH_SIZE;
+  }
+
+  public void setBIG_BATCH_SIZE(int BIG_BATCH_SIZE) {
+    this.BIG_BATCH_SIZE = BIG_BATCH_SIZE;
+  }
+
+  public boolean isIS_POINT_COMPARISON() {
+    return IS_POINT_COMPARISON;
+  }
+
+  public void setIS_POINT_COMPARISON(boolean IS_POINT_COMPARISON) {
+    this.IS_POINT_COMPARISON = IS_POINT_COMPARISON;
+  }
+
+  /**
+   * write dataset config to info
+   *
+   * @return
+   */
   public String toInfoText() {
     return "LOOP="
         + LOOP
+        + "\nBIG_BATCH_SIZE="
+        + BIG_BATCH_SIZE
         + "\nFIRST_DEVICE_INDEX="
         + FIRST_DEVICE_INDEX
         + "\nPOINT_STEP="
@@ -1297,5 +1333,83 @@ public class Config {
         + WORKLOAD_BUFFER_SIZE
         + "\nSENSOR_CODES="
         + SENSOR_CODES;
+  }
+
+  /**
+   * get properties from config, one property in one line.
+   *
+   * @return
+   */
+  public Map<String, Object> getShowProperties() {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
+
+    properties.put("RESULT_PRECISION", this.RESULT_PRECISION + "%");
+    properties.put("DBConfig", this.dbConfig);
+    properties.put("DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
+    if (this.isIS_DOUBLE_WRITE()) {
+      properties.put("ANOTHER DBConfig", this.ANOTHER_DBConfig);
+      properties.put("IS_COMPASSION", this.IS_COMPARISON);
+      properties.put("IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
+    }
+    properties.put("BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
+    if (this.BENCHMARK_CLUSTER) {
+      properties.put("BENCHMARK_INDEX", this.BENCHMARK_INDEX);
+      properties.put("FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
+      properties.put("IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
+    }
+    properties.put("OPERATION_PROPORTION", this.OPERATION_PROPORTION);
+    properties.put("INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
+    properties.put("IS_DELETE_DATA", this.IS_DELETE_DATA);
+    properties.put("CREATE_SCHEMA", this.CREATE_SCHEMA);
+    properties.put("IS_CLIENT_BIND", this.IS_CLIENT_BIND);
+    properties.put("CLIENT_NUMBER", this.CLIENT_NUMBER);
+    properties.put("GROUP_NUMBER", this.GROUP_NUMBER);
+    properties.put("SG_STRATEGY", this.SG_STRATEGY);
+    properties.put("DEVICE_NUMBER", this.DEVICE_NUMBER);
+    properties.put("REAL_INSERT_RATE", this.REAL_INSERT_RATE);
+    properties.put("SENSOR_NUMBER", this.SENSOR_NUMBER);
+    properties.put("IS_SENSOR_TS_ALIGNMENT", this.IS_SENSOR_TS_ALIGNMENT);
+    properties.put("BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
+    properties.put("LOOP", this.LOOP);
+    properties.put("POINT_STEP", this.POINT_STEP);
+    properties.put("OP_INTERVAL", this.OP_INTERVAL);
+    properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
+    properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
+    properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
+    properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
+    properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
+    properties.put("START_TIME", this.START_TIME);
+    return properties;
+  }
+
+  /**
+   * get all properties from config, one property in one line.
+   *
+   * @return
+   */
+  public Map<String, Object> getAllProperties() {
+    Map<String, Object> properties = getShowProperties();
+    properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
+    properties.put("STRING_LENGTH", this.STRING_LENGTH);
+    properties.put("ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
+    properties.put("WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
+    properties.put("READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);
+    if (this.IS_OUT_OF_ORDER) {
+      properties.put("LAMBDA", this.LAMBDA);
+      properties.put("MAX_K", this.MAX_K);
+    }
+    properties.put("STEP_SIZE", this.STEP_SIZE);
+    properties.put("QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);
+    properties.put("QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
+    properties.put("QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
+    properties.put("QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
+    properties.put("QUERY_SEED", this.QUERY_SEED);
+    properties.put("QUERY_LIMIT_N", this.QUERY_LIMIT_N);
+    properties.put("QUERY_LIMIT_OFFSET", this.QUERY_LIMIT_OFFSET);
+    properties.put("QUERY_SLIMIT_N", this.QUERY_SLIMIT_N);
+    properties.put("QUERY_SLIMIT_OFFSET", this.QUERY_SLIMIT_OFFSET);
+    properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
+    return properties;
   }
 }

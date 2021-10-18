@@ -24,10 +24,10 @@ Databases currently supported:
 | Microsoft SQL Server | 2016 SP2 |                           jdbc                           |
 |   VictoriaMetrics    | v1.64.0  |                       Http Request                       |
 |        SQLite        |    --    |                           jdbc                           |
-|       OpenTSDB       |    --    |                       Http Request                       |
+|       OpenTSDB       |    2.4.1    |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
-|        TaosDB        |    --    |                           jdbc                           |
+|        TDengine        |    2.2.0.2    |                           jdbc                           |
 
 # 4. Main Features
 
@@ -90,9 +90,9 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                               |
 |     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
-|       OpenTSDB       |    --    |         opentsdb          |                                                  OpenTSDB                                                   |
+|       OpenTSDB       |    2.4.1    |         opentsdb          |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
-|        TaosDB        |    --    |          taosdb           |                                                   TaosDB                                                    |
+|        TDengine        |    2.2.0.2    |          TDengine           |                                                   TDengine                                                    |
 
 # 6. Explanation of different operating modes of IoTDB-Benchmark
 

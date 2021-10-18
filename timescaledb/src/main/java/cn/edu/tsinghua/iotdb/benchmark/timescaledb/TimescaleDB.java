@@ -22,22 +22,24 @@ package cn.edu.tsinghua.iotdb.benchmark.timescaledb;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TimescaleDB implements IDatabase {
 
@@ -47,7 +49,7 @@ public class TimescaleDB implements IDatabase {
   private static final String POSTGRESQL_JDBC_NAME = "org.postgresql.Driver";
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   // chunk_time_interval=7d
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
@@ -150,14 +152,13 @@ public class TimescaleDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
-      int colIndex = batch.getColIndex();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
                 batch.getDeviceSchema(),
                 record.getTimestamp(),
-                record.getRecordDataValue().get(colIndex),
-                colIndex);
+                record.getRecordDataValue().get(0),
+                0);
         statement.addBatch(sql);
       }
       statement.executeBatch();
@@ -331,32 +332,64 @@ public class TimescaleDB implements IDatabase {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
-    int result = 0;
-    for (Record record : verificationQuery.getRecords()) {
-      String sql =
-          getSampleQuerySqlHead(deviceSchemas)
-              .append(" AND time = ")
-              .append(record.getTimestamp())
-              .toString();
-      try (Statement statement = connection.createStatement()) {
-        ResultSet resultSet = statement.executeQuery(sql);
-        resultSet.next();
-        List<Object> records = record.getRecordDataValue();
-        for (int i = 0; i < record.getRecordDataValue().size(); i++) {
-          String testRecord = String.valueOf(records.get(i));
+
+    List<Record> records = verificationQuery.getRecords();
+    if (records == null || records.size() == 0) {
+      return new Status(false);
+    }
+
+    StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    sql.append(" and (time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    sql.append(")");
+    int point = 0;
+    int line = 0;
+    try (Statement statement = connection.createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql.toString());
+      while (resultSet.next()) {
+        long timeStamp = resultSet.getLong(1);
+        List<Object> values = recordMap.get(timeStamp);
+        for (int i = 0; i < values.size(); i++) {
           String value = String.valueOf(resultSet.getObject(i + 2));
-          if (!value.equals(testRecord)) {
-            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + testRecord);
+          String target = String.valueOf(values.get(i));
+          if (!value.equals(target)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
           } else {
-            result++;
+            point++;
           }
         }
-      } catch (Exception e) {
-        LOGGER.error(e.getMessage());
-        LOGGER.error("Query Error: " + sql);
+        line++;
       }
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql);
+      return new Status(false);
     }
-    return new Status(true, result);
+    if (recordMap.size() != line) {
+      LOGGER.error(
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+    }
+    return new Status(true, point);
+  }
+
+  @Override
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
+    sql.append(" ORDER BY time DESC");
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("TimescaleDB:" + sql);
+    }
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(sql.toString());
+    return new Status(true, 0, sql.toString(), resultSet);
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
@@ -370,7 +403,7 @@ public class TimescaleDB implements IDatabase {
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
-          if (config.isIS_VERIFICATION()) {
+          if (config.isIS_COMPARISON()) {
             List<Object> record = new ArrayList<>();
             for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
               switch (operation) {
@@ -391,7 +424,7 @@ public class TimescaleDB implements IDatabase {
         }
       }
       queryResultPointNum = line * sensorNum * config.getQUERY_DEVICE_NUM();
-      if (config.isIS_VERIFICATION()) {
+      if (config.isIS_COMPARISON()) {
         return new Status(true, queryResultPointNum, sql, records);
       } else {
         return new Status(true, queryResultPointNum);
@@ -521,7 +554,7 @@ public class TimescaleDB implements IDatabase {
           .append(", ")
           .append(sensors.get(i))
           .append(" ")
-          .append(typeMap(baseDataSchema.getSensorType(device, sensors.get(i))))
+          .append(typeMap(metaDataSchema.getSensorType(device, sensors.get(i))))
           .append(" NULL ");
     }
     sqlBuilder.append(",UNIQUE (time, sGroup, device));");
@@ -570,17 +603,20 @@ public class TimescaleDB implements IDatabase {
       DeviceSchema deviceSchema, long timestamp, Object value, int colIndex) {
     StringBuilder builder = new StringBuilder();
     builder
-        .append("replace into ")
+        .append("insert into ")
         .append(tableName)
-        .append("(time, sGroup, device,")
+        .append("(time, sGroup, device, ")
         .append(deviceSchema.getSensors().get(colIndex));
     builder.append(") values(");
     builder.append(timestamp);
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
     builder.append(",'").append(value).append("'");
-
-    builder.append(")");
+    builder.append(") ON CONFLICT(time,sGroup,device) DO UPDATE SET ");
+    builder
+        .append(deviceSchema.getSensors().get(0))
+        .append("=excluded.")
+        .append(deviceSchema.getSensors().get(0));
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }
@@ -588,8 +624,8 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public String typeMap(Type iotdbType) {
-    switch (iotdbType) {
+  public String typeMap(SensorType iotdbSensorType) {
+    switch (iotdbSensorType) {
       case BOOLEAN:
         return "BOOLEAN";
       case INT32:
@@ -603,7 +639,9 @@ public class TimescaleDB implements IDatabase {
       case TEXT:
         return "TEXT";
       default:
-        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+        LOGGER.error(
+            "Unsupported data sensorType {}, use default data sensorType: BINARY.",
+            iotdbSensorType);
         return "TEXT";
     }
   }

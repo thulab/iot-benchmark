@@ -3,16 +3,16 @@ package cn.edu.tsinghua.iotdb.benchmark.mssqlserver;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ import java.util.List;
 public class MsSQLServerDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private static final String DBDRIVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 
@@ -57,7 +57,7 @@ public class MsSQLServerDB implements IDatabase {
   };
 
   private PreparedStatement[] insertStatements = new PreparedStatement[6];
-  // first: type second: query index
+  // first: sensorType second: query index
   private PreparedStatement[][] queryStatements = new PreparedStatement[6][10];
 
   private static final String DELETE_TABLE = "drop table if exists %s_%s";
@@ -87,10 +87,10 @@ public class MsSQLServerDB implements IDatabase {
               dbConfig.getPASSWORD());
 
       // init preparedStatement
-      for (Type type : Type.values()) {
-        String db = dbConfig.getDB_NAME() + "_" + typeMap(type);
+      for (SensorType sensorType : SensorType.values()) {
+        String db = dbConfig.getDB_NAME() + "_" + typeMap(sensorType);
         String insertSql = String.format(INSERT_SQL, db);
-        insertStatements[type.index - 1] = connection.prepareStatement(insertSql);
+        insertStatements[sensorType.ordinal()] = connection.prepareStatement(insertSql);
         for (int i = 0; i < SELECT_SQL.length; i++) {
           String query;
           if (i == 3 || i == 4 || i == 5) {
@@ -106,7 +106,7 @@ public class MsSQLServerDB implements IDatabase {
           } else {
             query = String.format(SELECT_SQL[i], db);
           }
-          queryStatements[type.index - 1][i] = connection.prepareStatement(query);
+          queryStatements[sensorType.ordinal()][i] = connection.prepareStatement(query);
         }
       }
     } catch (Exception e) {
@@ -124,8 +124,8 @@ public class MsSQLServerDB implements IDatabase {
   public void cleanup() throws TsdbException {
     try {
       Statement statement = connection.createStatement();
-      for (Type type : Type.values()) {
-        statement.execute(String.format(DELETE_TABLE, dbConfig.getDB_NAME(), typeMap(type)));
+      for (SensorType sensorType : SensorType.values()) {
+        statement.execute(String.format(DELETE_TABLE, dbConfig.getDB_NAME(), typeMap(sensorType)));
       }
       statement.close();
     } catch (SQLException sqlException) {
@@ -155,11 +155,11 @@ public class MsSQLServerDB implements IDatabase {
   public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       Statement statement = connection.createStatement();
-      for (Type type : Type.values()) {
-        if (type == Type.DOUBLE) {
+      for (SensorType sensorType : SensorType.values()) {
+        if (sensorType == SensorType.DOUBLE) {
           continue;
         }
-        String sysType = typeMap(type);
+        String sysType = typeMap(sensorType);
         String createSQL =
             String.format(
                 CREATE_TABLE,
@@ -264,9 +264,9 @@ public class MsSQLServerDB implements IDatabase {
       long idPredix, int sensorIndex, long time, Object value, String device, List<String> sensors)
       throws SQLException {
     long sensorNow = sensorIndex + idPredix;
-    Type type = baseDataSchema.getSensorType(device, sensors.get(sensorIndex));
+    SensorType sensorType = metaDataSchema.getSensorType(device, sensors.get(sensorIndex));
     String valueStr = "";
-    switch (type) {
+    switch (sensorType) {
       case BOOLEAN:
         if ((boolean) value) {
           valueStr = "1";
@@ -281,7 +281,7 @@ public class MsSQLServerDB implements IDatabase {
         valueStr = String.valueOf(value);
         break;
     }
-    PreparedStatement statement = insertStatements[type.index - 1];
+    PreparedStatement statement = insertStatements[sensorType.ordinal()];
     statement.setLong(1, sensorNow);
     statement.setTimestamp(2, new Timestamp(time));
     statement.setString(3, valueStr);
@@ -317,8 +317,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.values()) {
-          PreparedStatement statement = queryStatements[type.index - 1][0];
+        for (SensorType sensorType : SensorType.values()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][0];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, timestamp);
           ResultSet resultSet = statement.executeQuery();
@@ -344,8 +344,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.values()) {
-          PreparedStatement statement = queryStatements[type.index - 1][1];
+        for (SensorType sensorType : SensorType.values()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][1];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -372,8 +372,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.getValueTypes()) {
-          PreparedStatement statement = queryStatements[type.index - 1][2];
+        for (SensorType sensorType : SensorType.getValueTypes()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][2];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -401,12 +401,12 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        Type[] types = Type.getValueTypes();
+        SensorType[] sensorTypes = SensorType.getValueTypes();
         if (aggRangeQuery.getAggFun().startsWith("count")) {
-          types = Type.values();
+          sensorTypes = SensorType.values();
         }
-        for (Type type : types) {
-          PreparedStatement statement = queryStatements[type.index - 1][3];
+        for (SensorType sensorType : sensorTypes) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][3];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -431,8 +431,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.getValueTypes()) {
-          PreparedStatement statement = queryStatements[type.index - 1][4];
+        for (SensorType sensorType : SensorType.getValueTypes()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][4];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setDouble(2, aggValueQuery.getValueThreshold());
           ResultSet resultSet = statement.executeQuery();
@@ -458,8 +458,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.getValueTypes()) {
-          PreparedStatement statement = queryStatements[type.index - 1][5];
+        for (SensorType sensorType : SensorType.getValueTypes()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][5];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -487,8 +487,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.getValueTypes()) {
-          PreparedStatement statement = queryStatements[type.index - 1][6];
+        for (SensorType sensorType : SensorType.getValueTypes()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][6];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -514,8 +514,8 @@ public class MsSQLServerDB implements IDatabase {
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
         String ids = getTargetDevices(idPrefix, deviceSchema.getSensors());
-        for (Type type : Type.values()) {
-          PreparedStatement statement = queryStatements[type.index - 1][7];
+        for (SensorType sensorType : SensorType.values()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][7];
           statement.setString(1, ids);
           statement.setString(2, ids);
           ResultSet resultSet = statement.executeQuery();
@@ -541,8 +541,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.values()) {
-          PreparedStatement statement = queryStatements[type.index - 1][8];
+        for (SensorType sensorType : SensorType.values()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][8];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -569,8 +569,8 @@ public class MsSQLServerDB implements IDatabase {
       int result = 0;
       for (DeviceSchema deviceSchema : deviceSchemas) {
         long idPrefix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-        for (Type type : Type.getValueTypes()) {
-          PreparedStatement statement = queryStatements[type.index - 1][9];
+        for (SensorType sensorType : SensorType.getValueTypes()) {
+          PreparedStatement statement = queryStatements[sensorType.ordinal()][9];
           statement.setString(1, getTargetDevices(idPrefix, deviceSchema.getSensors()));
           statement.setTimestamp(2, startTime);
           statement.setTimestamp(3, endTime);
@@ -650,14 +650,14 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   /**
-   * map the given type string name to the name in the target DB
+   * map the given sensorType string name to the name in the target DB
    *
-   * @param iotdbType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
+   * @param iotdbSensorType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
    * @return
    */
   @Override
-  public String typeMap(Type iotdbType) {
-    switch (iotdbType) {
+  public String typeMap(SensorType iotdbSensorType) {
+    switch (iotdbSensorType) {
       case BOOLEAN:
         return "bit";
       case INT32:
@@ -670,7 +670,9 @@ public class MsSQLServerDB implements IDatabase {
       case TEXT:
         return "text";
       default:
-        LOGGER.error("Unsupported data type {}, use default data type: BINARY.", iotdbType);
+        LOGGER.error(
+            "Unsupported data sensorType {}, use default data sensorType: BINARY.",
+            iotdbSensorType);
         return "text";
     }
   }

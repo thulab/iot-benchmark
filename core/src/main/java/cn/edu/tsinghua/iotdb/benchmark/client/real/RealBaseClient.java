@@ -20,50 +20,26 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.workload.RealDataWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IRealDataWorkload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 public abstract class RealBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
-  /** RealDataWorkload */
-  protected final IRealDataWorkload realDataWorkload;
-  /** Log related */
-  protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-  /** Loop index while write or query */
-  protected long loopIndex;
-  /** Total loop of write or query */
-  protected long loop;
 
   public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
-    this.realDataWorkload = new RealDataWorkload(id);
-    this.loopIndex = 0;
-    this.loop = this.realDataWorkload.getBatchNumber();
   }
 
-  /** Do test */
   @Override
-  protected void doTest() {
-    String currentThread = Thread.currentThread().getName();
-
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / loop);
-          LOGGER.info("{} {}% realDataWorkload is done.", currentThread, percent);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
-    doOperations();
-    service.shutdown();
+  protected void initDBWrappers() {
+    super.initDBWrappers();
+    this.totalLoop = this.dataWorkLoad.getBatchNumber();
+    if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
+      this.totalLoop *= config.getSENSOR_NUMBER();
+    }
   }
-
-  /** Do Operations */
-  protected abstract void doOperations();
 }

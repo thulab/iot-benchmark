@@ -19,13 +19,17 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.List;
 
 public class AggRangeQuery extends RangeQuery {
 
   private String aggFun;
+
+  public AggRangeQuery() {
+    super();
+  };
 
   public AggRangeQuery(
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp, String aggFun) {

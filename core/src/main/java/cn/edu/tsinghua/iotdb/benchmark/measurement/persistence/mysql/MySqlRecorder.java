@@ -293,7 +293,7 @@ public class MySqlRecorder extends TestDataPersistence {
         case CTSDB:
         case KairosDB:
         case FakeDB:
-        case TaosDB:
+        case TDengine:
         case QuestDB:
         case MSSQLSERVER:
         case VictoriaMetrics:

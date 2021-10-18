@@ -19,18 +19,16 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -42,8 +40,7 @@ import java.util.*;
 public class VictoriaMetrics implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VictoriaMetrics.class);
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   private final String URL;
   private final String CREATE_URL;
@@ -54,7 +51,7 @@ public class VictoriaMetrics implements IDatabase {
 
   public VictoriaMetrics(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
-    URL = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
+    URL = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
     CREATE_URL = URL + "/api/v1/import/prometheus?extra_label=db=" + dbConfig.getDB_NAME();
     DELETE_URL =
         URL
@@ -197,7 +194,7 @@ public class VictoriaMetrics implements IDatabase {
     model.setMetric(metric);
     model.setTimestamp(timestamp);
     model.setValue(value);
-    model.setType(baseDataSchema.getSensorType(device, sensor));
+    model.setType(metaDataSchema.getSensorType(device, sensor));
     Map<String, String> tags = new HashMap<>();
     tags.put("device", device);
     tags.put("sensor", sensor);

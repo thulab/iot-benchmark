@@ -22,13 +22,13 @@ package cn.edu.tsinghua.iotdb.benchmark.opentsdb;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -51,6 +51,13 @@ public class OpenTSDB implements IDatabase {
 
   /** constructor. */
   public OpenTSDB(DBConfig dbConfig) {
+    String[] split = config.getINSERT_DATATYPE_PROPORTION().split(":");
+    if (split[0].equals("1") || split[split.length - 1].equals("1")) {
+      System.out.println(
+          "The Opentsdb does not support boolean and text data.\n"
+              + "Please specify the property `INSERT_DATATYPE_PROPORTION` of configuration file to `0:1:1:1:1:0`.");
+      System.exit(0);
+    }
     sensorRandom = new Random(1 + config.getQUERY_SEED());
     String openUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
     writeUrl = openUrl + "/api/put?summary ";
@@ -154,6 +161,7 @@ public class OpenTSDB implements IDatabase {
     queryMap.put("start", aggRangeQuery.getStartTimestamp() - 1);
     queryMap.put("end", aggRangeQuery.getEndTimestamp() + 1);
     list = getSubQueries(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
+    list.get(0).put("downsample", "0all-count");
     queryMap.put("queries", list);
     String sql = JSON.toJSONString(queryMap);
     return executeQueryAndGetStatus(sql, false);
@@ -321,6 +329,7 @@ public class OpenTSDB implements IDatabase {
       tags.put("sensor", sensorStr);
       tags.put("device", deviceStr);
       subQuery.put("tags", tags);
+      subQuery.put("downsample", "0all-count");
       list.add(subQuery);
     }
     return list;

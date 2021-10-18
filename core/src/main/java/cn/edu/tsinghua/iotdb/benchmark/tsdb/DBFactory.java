@@ -95,8 +95,8 @@ public class DBFactory {
         case DB_TIMESCALE:
           dbClass = Constants.TIMESCALEDB_CLASS;
           break;
-        case DB_TAOSDB:
-          dbClass = Constants.TAOSDB_CLASS;
+        case DB_TDENGINE:
+          dbClass = Constants.TDENGINE_CLASS;
           break;
         case DB_FAKE:
           dbClass = Constants.FAKEDB_CLASS;

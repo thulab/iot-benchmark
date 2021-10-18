@@ -1,14 +1,16 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.List;
 
 public class VerificationQuery extends Query {
   private DeviceSchema deviceSchema;
   private List<Record> records;
+
+  public VerificationQuery() {}
 
   public VerificationQuery(Batch batch) {
     this.deviceSchema = batch.getDeviceSchema();
