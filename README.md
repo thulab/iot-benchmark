@@ -28,6 +28,7 @@ Databases currently supported:
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
 |        TDengine        |    2.2.0.2    |                           jdbc                           |
+|       PI Archive     |    2016     |                           jdbc                        |
 
 # 4. Main Features
 
@@ -93,6 +94,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |       OpenTSDB       |    2.4.1    |         opentsdb          |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
 |        TDengine        |    2.2.0.2    |          TDengine           |                                                   TDengine                                                    |
+|       PI Archive      |   2016  |         PIArchive         |                                                     PIArchive                                                |
 
 # 6. Explanation of different operating modes of IoTDB-Benchmark
 
@@ -675,7 +677,12 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ## 7.7. Test TimeScaleDB
 [Quick Start](timescaledb/README.md)
 
+## 7.8. Test PI Archive
+
+[Quick Start](./pi/README.md)
+
 # 8. Verification 
+
 1. Now verification only support IoTDB v0.12 and TimescaleDB
 2. [Quick Start](verification/README.md)
 

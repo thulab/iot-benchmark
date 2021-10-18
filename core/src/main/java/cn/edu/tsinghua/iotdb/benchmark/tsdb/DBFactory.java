@@ -113,6 +113,9 @@ public class DBFactory {
         case DB_SQLITE:
           dbClass = Constants.SQLITE_CLASS;
           break;
+        case DB_PIARCHIVE:
+          dbClass = Constants.PI_ARCHIVE_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }
