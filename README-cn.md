@@ -77,6 +77,7 @@ IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
 |        TDengine        |    2.2.0.2    |                           jdbc                           |
+|       PI Archive     |   2016   |                             jdbc                         |
 
 
 # 4. 主要特点
@@ -143,7 +144,8 @@ mvn clean package -Dmaven.test.skip=true
 |        SQLite        |    --    |     sqlite      |                                                   SQLite                                                    |
 |       OpenTSDB       |    --    |    opentsdb     |                                                  OpenTSDB                                                   |
 |       KariosDB       |    --    |    kairosdb     |                                                  KairosDB                                                   |
-|        TDengine        |    2.2.0.2    |     TDengine      |                                                   TDengine                                                    |
+|        TDengine      |  2.2.0.2 |     TDengine    |                                          TDengine                                                  |
+|       PI Archive     |   2016   |    PIArchive    |                                                    PIArchive                                                 |
 
 # 6. IoTDB-Benchmark的不同运行模式的说明
 
@@ -728,6 +730,10 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ## 7.7. 测试 TimeScaleDB
 [快速指引](timescaledb/README.md)
 
+## 7.8. 测试 PI Archive
+
+[快速指引](./pi/README.md)
+
 # 8. 执行正确性验证
 1. 目前正确性验证部分仅支持IoTDB v0.12和TimeScaleDB
 2. [快速指引](verification/README.md)
@@ -782,7 +788,7 @@ sh $BENCHMARK_HOME/benchmark.sh
 > cd ./logs
 > tail -f log_info.log
 ```
-  
+
 
 # 10. 相关文章
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
