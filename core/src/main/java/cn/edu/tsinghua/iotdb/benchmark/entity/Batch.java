@@ -17,10 +17,10 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload.ingestion;
+package cn.edu.tsinghua.iotdb.benchmark.entity;
 
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -36,7 +36,7 @@ public class Batch {
   private DeviceSchema deviceSchema;
   private List<Record> records;
   private int colIndex = -1;
-  private Type colType;
+  private SensorType colSensorType;
 
   public Batch() {
     records = new LinkedList<>();
@@ -105,16 +105,16 @@ public class Batch {
     this.colIndex = colIndex;
   }
 
-  public void setColType(Type colType) {
-    this.colType = colType;
+  public void setColType(SensorType colSensorType) {
+    this.colSensorType = colSensorType;
   }
 
   public int getColIndex() {
     return colIndex;
   }
 
-  public Type getColType() {
-    return colType;
+  public SensorType getColType() {
+    return colSensorType;
   }
 
   public List<Record> getRecords() {

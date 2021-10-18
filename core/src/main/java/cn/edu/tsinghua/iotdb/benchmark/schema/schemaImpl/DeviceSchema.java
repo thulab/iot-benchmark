@@ -17,12 +17,11 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.schema;
+package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
@@ -36,7 +35,6 @@ import java.util.List;
 public class DeviceSchema implements Cloneable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   /** prefix of device name */
 
   /** Each device belongs to one group, i.e. database */
@@ -66,9 +64,9 @@ public class DeviceSchema implements Cloneable {
     }
   }
 
-  public DeviceSchema(String group, String device, List<String> sensors) {
-    this.group = MetaUtil.getGroupName(group);
-    this.device = MetaUtil.getDeviceName(device);
+  public DeviceSchema(String groupId, String deviceName, List<String> sensors) {
+    this.group = MetaUtil.getGroupName(groupId);
+    this.device = deviceName;
     this.sensors = sensors;
   }
 

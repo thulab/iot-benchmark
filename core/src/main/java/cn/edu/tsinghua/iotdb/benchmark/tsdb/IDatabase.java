@@ -19,14 +19,15 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
-import cn.edu.tsinghua.iotdb.benchmark.workload.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface IDatabase {
@@ -157,18 +158,23 @@ public interface IDatabase {
 
   /** Using in verification */
   default Status verificationQuery(VerificationQuery verificationQuery) {
-    // TODO Optimize way to check
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
   };
 
+  /** Verification between two database */
+  default Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+    WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
+    return new Status(false, 0, workloadException, workloadException.getMessage());
+  }
+
   /**
    * map the given type string name to the name in the target DB
    *
-   * @param iotdbType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
+   * @param iotdbSensorType : "BOOLEAN", "INT32", "INT64", "FLOAT", "DOUBLE", "TEXT"
    * @return
    */
-  default String typeMap(Type iotdbType) {
-    return iotdbType.name;
+  default String typeMap(SensorType iotdbSensorType) {
+    return iotdbSensorType.name;
   }
 }

@@ -34,7 +34,8 @@ public enum Operation {
   LATEST_POINT_QUERY("LATEST_POINT"),
   RANGE_QUERY_ORDER_BY_TIME_DESC("RANGE_QUERY_DESC"),
   VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC("VALUE_RANGE_QUERY_DESC"),
-  VERIFICATION_QUERY("VERIFICATION_QUERY");
+  VERIFICATION_QUERY("VERIFICATION_QUERY"),
+  DEVICE_QUERY("DEVICE_QUERY");
 
   public String getName() {
     return name;
@@ -49,7 +50,7 @@ public enum Operation {
   public static List<Operation> getNormalOperation() {
     List<Operation> operations = new ArrayList<>();
     for (Operation operation : Operation.values()) {
-      if (operation != Operation.VERIFICATION_QUERY) {
+      if (operation != Operation.VERIFICATION_QUERY && operation != Operation.DEVICE_QUERY) {
         operations.add(operation);
       }
     }

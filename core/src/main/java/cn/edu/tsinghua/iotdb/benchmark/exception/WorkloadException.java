@@ -17,44 +17,24 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.schema.enums;
+package cn.edu.tsinghua.iotdb.benchmark.exception;
 
-public enum Type {
-  BOOLEAN(1, "BOOLEAN"),
-  INT32(2, "INT32"),
-  INT64(3, "INT64"),
-  FLOAT(4, "FLOAT"),
-  DOUBLE(5, "DOUBLE"),
-  TEXT(6, "TEXT");
+public class WorkloadException extends Exception {
+  private static final long serialVersionUID = 8844396756042772132L;
 
-  public int index;
-  public String name;
-
-  Type(int index, String name) {
-    this.index = index;
-    this.name = name;
+  public WorkloadException(String message) {
+    super(message);
   }
 
-  public static Type[] getValueTypes() {
-    Type type[] = new Type[4];
-    for (int i = 1; i < 5; i++) {
-      type[i - 1] = Type.values()[i];
-    }
-    return type;
+  public WorkloadException() {
+    super();
   }
 
-  public static Type getType(int index) {
-    for (Type type : Type.values()) {
-      if (type.index == index) {
-        return type;
-      }
-    }
-    // default type
-    return Type.TEXT;
+  public WorkloadException(String message, Throwable cause) {
+    super(message, cause);
   }
 
-  @Override
-  public String toString() {
-    return name;
+  public WorkloadException(Throwable cause) {
+    super(cause);
   }
 }

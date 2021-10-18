@@ -21,16 +21,16 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb011;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.enums.Type;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  protected static final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
+  protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   protected static final String JDBC_URL = "jdbc:iotdb://%s:%s/";
   protected final String ROOT_SERIES_NAME;
   protected DBConfig dbConfig;
@@ -60,7 +60,7 @@ public class IoTDB implements IDatabase {
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
-    DELETE_SERIES_SQL = "delete timeseries root." + dbConfig.getDB_NAME();
+    DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME();
   }
 
   @Override
@@ -135,7 +135,8 @@ public class IoTDB implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           int sensorIndex = 0;
           for (String sensor : deviceSchema.getSensors()) {
-            Type dataType = baseDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+            SensorType dataSensorType =
+                metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
             String createSeriesSql =
                 String.format(
                     CREATE_SERIES_SQL,
@@ -146,8 +147,8 @@ public class IoTDB implements IDatabase {
                         + deviceSchema.getDevice()
                         + "."
                         + sensor,
-                    dataType,
-                    getEncodingType(dataType));
+                    dataSensorType,
+                    getEncodingType(dataSensorType));
             statement.addBatch(createSeriesSql);
             count++;
             sensorIndex++;
@@ -169,8 +170,8 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  String getEncodingType(Type dataType) {
-    switch (dataType) {
+  String getEncodingType(SensorType dataSensorType) {
+    switch (dataSensorType) {
       case BOOLEAN:
       case INT32:
       case INT64:
@@ -179,7 +180,7 @@ public class IoTDB implements IDatabase {
       case TEXT:
         return "PLAIN";
       default:
-        LOGGER.error("Unsupported data type {}.", dataType);
+        LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;
     }
   }
@@ -203,14 +204,14 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = connection.createStatement()) {
-      Type colType = batch.getColType();
+      SensorType colSensorType = batch.getColType();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
                 batch.getDeviceSchema(),
                 record.getTimestamp(),
                 record.getRecordDataValue().get(0),
-                colType);
+                colSensorType);
         statement.addBatch(sql);
       }
       statement.executeBatch();
@@ -394,7 +395,7 @@ public class IoTDB implements IDatabase {
 
     int sensorIndex = 0;
     for (Object value : values) {
-      switch (baseDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+      switch (metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
         case TEXT:
           builder.append(",").append("'").append(value).append("'");
           break;
@@ -410,7 +411,7 @@ public class IoTDB implements IDatabase {
   }
 
   public String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, Object value, Type colType) {
+      DeviceSchema deviceSchema, long timestamp, Object value, SensorType colSensorType) {
     StringBuilder builder = new StringBuilder();
     builder
         .append("insert into ")
@@ -425,7 +426,7 @@ public class IoTDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
-    switch (colType) {
+    switch (colSensorType) {
       case TEXT:
         builder.append(",").append("'").append(value).append("'");
         break;

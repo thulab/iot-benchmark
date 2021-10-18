@@ -40,12 +40,16 @@ public class ServerMode extends BaseMode {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  @Override
+  protected boolean preCheck() {
+    return true;
+  }
+
   /** Start benchmark */
   @Override
   public void run() {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
-    recorder.saveTestConfig();
 
     float abnormalValue = -1;
 
@@ -149,4 +153,7 @@ public class ServerMode extends BaseMode {
       }
     }
   }
+
+  @Override
+  protected void postCheck() {}
 }

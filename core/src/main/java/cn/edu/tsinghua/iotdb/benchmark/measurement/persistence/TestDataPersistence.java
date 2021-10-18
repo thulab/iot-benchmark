@@ -43,14 +43,13 @@ public abstract class TestDataPersistence {
    */
   public abstract void insertSystemMetrics(Map<SystemMetrics, Float> systemMetricsMap);
 
-  // TODO pass DBConfig
   /** Save config of test */
   public abstract void saveTestConfig();
 
   /**
    * Save measurement result of operation
    *
-   * @param operation which type of operation
+   * @param operation which sensorType of operation
    * @param okPoint okPoint of operation
    * @param failPoint failPoint of operation
    * @param latency latency of operation
@@ -72,7 +71,7 @@ public abstract class TestDataPersistence {
   /**
    * Save measurement result of operation async
    *
-   * @param operation which type of operation
+   * @param operation which sensorType of operation
    * @param okPoint okPoint of operation
    * @param failPoint failPoint of operation
    * @param latency latency of operation

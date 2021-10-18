@@ -21,21 +21,18 @@ package cn.edu.tsinghua.iotdb.benchmark.kairosdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.workload.ingestion.Record;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import com.alibaba.fastjson.JSON;
 import org.kairosdb.client.HttpClient;
-import org.kairosdb.client.builder.Aggregator;
-import org.kairosdb.client.builder.AggregatorFactory;
+import org.kairosdb.client.builder.*;
 import org.kairosdb.client.builder.AggregatorFactory.FilterOperation;
-import org.kairosdb.client.builder.QueryBuilder;
-import org.kairosdb.client.builder.TimeUnit;
 import org.kairosdb.client.builder.aggregator.SamplingAggregator;
 import org.kairosdb.client.response.QueryResponse;
 import org.kairosdb.client.response.QueryResult;
@@ -67,8 +64,10 @@ public class KairosDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      client = new HttpClient(dbConfig.getHOST() + ":" + dbConfig.getPORT());
+      client =
+          new HttpClient("http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
     } catch (MalformedURLException e) {
+      e.printStackTrace();
       throw new TsdbException(
           "Init KairosDB client failed, the url is "
               + dbConfig.getHOST()
@@ -98,7 +97,7 @@ public class KairosDB implements IDatabase {
   public void close() throws TsdbException {
     try {
       client.close();
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException e) {
       throw new TsdbException("Close KairosDB client failed, because " + e.getMessage());
     }
   }
@@ -116,7 +115,7 @@ public class KairosDB implements IDatabase {
     for (String sensor : deviceSchema.getSensors()) {
       KairosDataModel model = new KairosDataModel();
       model.setName(sensor);
-      // TODO: KairosDB do not support float as data type, use double instead.
+      // TODO: KairosDB do not support float as data sensorType, use double instead.
       model.setTimestamp(timestamp);
       model.setValue(recordValues.get(i));
       Map<String, String> tags = new HashMap<>();
@@ -135,7 +134,7 @@ public class KairosDB implements IDatabase {
     String groupId = deviceSchema.getGroup();
     KairosDataModel model = new KairosDataModel();
     model.setName(deviceSchema.getSensors().get(colIndex));
-    // TODO: KairosDB do not support float as data type, use double instead.
+    // TODO: KairosDB do not support float as data sensorType, use double instead.
     model.setTimestamp(timestamp);
     model.setValue(recordValues.get(0));
     Map<String, String> tags = new HashMap<>();
@@ -286,21 +285,31 @@ public class KairosDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    long startTime = rangeQuery.getStartTimestamp();
+    long endTime = rangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, rangeQuery.getDeviceSchema());
+    builder.getMetrics().get(0).setOrder(QueryMetric.Order.DESCENDING);
+    return executeOneQuery(builder);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    long startTime = valueRangeQuery.getStartTimestamp();
+    long endTime = valueRangeQuery.getEndTimestamp();
+    QueryBuilder builder = constructBuilder(startTime, endTime, valueRangeQuery.getDeviceSchema());
+    Aggregator filterAggre =
+        AggregatorFactory.createFilterAggregator(
+            FilterOperation.LTE, valueRangeQuery.getValueThreshold());
+    addAggreForQuery(builder, filterAggre);
+    builder.getMetrics().get(0).setOrder(QueryMetric.Order.DESCENDING);
+    return executeOneQuery(builder);
   }
 
   private Status executeOneQuery(QueryBuilder builder) {
     LOGGER.debug("[JSON] {}", builder);
     int queryResultPointNum = 0;
     try {
-
       QueryResponse response = client.query(builder);
-
       for (QueryResult query : response.getQueries()) {
         for (Result result : query.getResults()) {
           queryResultPointNum += result.getDataPoints().size();

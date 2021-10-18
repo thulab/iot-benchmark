@@ -20,14 +20,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
-import cn.edu.tsinghua.iotdb.benchmark.schema.BaseDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iotdb.benchmark.workload.SingletonWorkload;
-import cn.edu.tsinghua.iotdb.benchmark.workload.interfaces.IGenerateDataWorkload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Responsible for writing and querying generate data. The order and number of operation(e.g.
@@ -37,53 +35,22 @@ import java.util.concurrent.*;
 public abstract class GenerateBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(GenerateBaseClient.class);
-  /** meta schema */
-  protected final BaseDataSchema baseDataSchema = BaseDataSchema.getInstance();
-  /** synthetic workload */
-  protected final IGenerateDataWorkload syntheticWorkload;
-  /** singleton workload when IS_CLIENT_BIND = false */
-  protected final SingletonWorkload singletonWorkload;
-  /** Log related */
-  protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-  /** Loop Index, using for loop and log */
-  protected long loopIndex;
+
   /** Insert Loop Index, using for data insertion */
   protected long insertLoopIndex;
+  /** Actual deviceFloor */
+  protected int actualDeviceFloor;
 
-  public GenerateBaseClient(
-      int id,
-      CountDownLatch countDownLatch,
-      CyclicBarrier barrier,
-      IGenerateDataWorkload workload) {
+  public GenerateBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
-    syntheticWorkload = workload;
-    singletonWorkload = SingletonWorkload.getInstance();
     insertLoopIndex = 0;
+    actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
+    actualDeviceFloor = MetaUtil.getDeviceId(actualDeviceFloor);
   }
 
   @Override
-  protected void doTest() {
-    String currentThread = Thread.currentThread().getName();
-    int actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
-    actualDeviceFloor = MetaUtil.getDeviceId(actualDeviceFloor);
-
-    // print current progress periodically
-    service.scheduleAtFixedRate(
-        () -> {
-          String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / config.getLOOP());
-          LOGGER.info("{} {}% syntheticWorkload is done.", currentThread, percent);
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
-    doOperations(actualDeviceFloor);
-    service.shutdown();
+  protected void initDBWrappers() {
+    super.initDBWrappers();
+    this.totalLoop = config.getLOOP();
   }
-
-  /**
-   * Do Operations
-   *
-   * @param actualDeviceFloor contains
-   */
-  protected abstract void doOperations(int actualDeviceFloor);
 }

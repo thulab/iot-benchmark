@@ -17,24 +17,32 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.workload;
+package cn.edu.tsinghua.iotdb.benchmark.source;
 
-public class WorkloadException extends Exception {
-  private static final long serialVersionUID = 8844396756042772132L;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 
-  public WorkloadException(String message) {
-    super(message);
+import java.util.List;
+
+public abstract class DataReader {
+
+  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected final List<String> files;
+  protected int currentFileIndex = 0;
+  protected String currentFileName;
+
+  public static DataReader getInstance(List<String> files) {
+    return new CSVDataReader(files);
   }
 
-  public WorkloadException() {
-    super();
+  public DataReader(List<String> files) {
+    this.files = files;
   }
 
-  public WorkloadException(String message, Throwable cause) {
-    super(message, cause);
-  }
+  /** check whether it has next batch */
+  public abstract boolean hasNextBatch();
 
-  public WorkloadException(Throwable cause) {
-    super(cause);
-  }
+  /** convert the cachedLines to Record list */
+  public abstract Batch nextBatch();
 }
