@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
@@ -29,7 +30,7 @@ public class PIArchive implements IDatabase {
   private static final Properties properties = new Properties();
   private static final String url = "jdbc:pioledb://%s/Data Source=%s; Integrated Security=SSPI";
   private Connection connection;
-  private static DBConfig dbConfig;
+  private DBConfig dbConfig;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PIArchive.class);
 
@@ -89,9 +90,9 @@ public class PIArchive implements IDatabase {
         for (DeviceSchema deviceSchema : schemaList) {
           String group = deviceSchema.getGroup();
           String deviceName = deviceSchema.getDevice();
-          for (String sensor : deviceSchema.getSensors()) {
-            String pointName = group + "_" + deviceName + "_" + sensor;
-            String pointTypex = typeMap(baseDataSchema.getSensorType(deviceName, sensor));
+          for (Sensor sensor : deviceSchema.getSensors()) {
+            String pointName = group + "_" + deviceName + "_" + sensor.getName();
+            String pointTypex = typeMap(sensor.getSensorType());
             pStatement.setString(1, pointName);
             pStatement.setString(2, pointTypex);
             pStatement.addBatch();
@@ -114,8 +115,8 @@ public class PIArchive implements IDatabase {
             "INSERT piarchive..picomp2 (tag, value, time) VALUES (?, ?, ?)")) {
       DeviceSchema deviceSchema = batch.getDeviceSchema();
       ArrayList<String> pointsName = new ArrayList<>();
-      for (String sensor : deviceSchema.getSensors()) {
-        pointsName.add(deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + sensor);
+      for (Sensor sensor : deviceSchema.getSensors()) {
+        pointsName.add(deviceSchema.getGroup() + "_" + deviceSchema.getDevice() + "_" + sensor.getName());
       }
       for (Record record : batch.getRecords()) {
         for (int i = 0; i < record.getRecordDataValue().size(); i++) {
