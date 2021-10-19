@@ -449,7 +449,8 @@ public class Config {
           break;
         }
       }
-      Sensor sensor = new Sensor(Constants.SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i));
+      Sensor sensor =
+          new Sensor(Constants.SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i - 1));
       SENSORS.add(sensor);
     }
   }
