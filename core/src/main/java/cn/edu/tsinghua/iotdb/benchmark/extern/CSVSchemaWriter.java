@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.extern;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.FileUtils;
@@ -37,8 +38,8 @@ public class CSVSchemaWriter extends SchemaWriter {
       Path schemaPath = Paths.get(FileUtils.union(config.getFILE_PATH(), Constants.SCHEMA_PATH));
       Files.createFile(schemaPath);
       for (DeviceSchema deviceSchema : deviceSchemaList) {
-        for (String sensor : deviceSchema.getSensors()) {
-          SensorType sensorType = metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+        for (Sensor sensor : deviceSchema.getSensors()) {
+          SensorType sensorType = sensor.getSensorType();
           String line = deviceSchema.getDevice() + " " + sensor + " " + sensorType.ordinal() + "\n";
           Files.write(schemaPath, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         }

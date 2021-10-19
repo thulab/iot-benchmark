@@ -35,10 +35,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -56,7 +56,6 @@ public class IoTDBSessionPool implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   protected final String ROOT_SERIES_NAME;
   protected DBConfig dbConfig;
 
@@ -133,8 +132,7 @@ public class IoTDBSessionPool implements IDatabase {
       // create time series
       try {
         for (DeviceSchema deviceSchema : schemaList) {
-          int sensorIndex = 0;
-          for (String sensor : deviceSchema.getSensors()) {
+          for (Sensor sensor : deviceSchema.getSensors()) {
             paths.add(
                 ROOT_SERIES_NAME
                     + "."
@@ -143,14 +141,12 @@ public class IoTDBSessionPool implements IDatabase {
                     + deviceSchema.getDevice()
                     + "."
                     + sensor);
-            SensorType dataSensorType =
-                metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+            SensorType dataSensorType = sensor.getSensorType();
             dataTypes.add(TSDataType.valueOf(dataSensorType.name));
             encodings.add(TSEncoding.valueOf(getEncodingType(dataSensorType)));
             // TODO remove when [IOTDB-1518] is solved(not supported null)
             compressors.add(CompressionType.valueOf("SNAPPY"));
             count++;
-            sensorIndex++;
             if (count % 5000 == 0) {
               pool.createMultiTimeseries(
                   paths, dataTypes, encodings, compressors, null, null, null, null);
@@ -194,12 +190,11 @@ public class IoTDBSessionPool implements IDatabase {
   public Status insertOneBatch(Batch batch) throws DBConnectException {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
-    for (String sensor : batch.getDeviceSchema().getSensors()) {
-      SensorType dataSensorType =
-          metaDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+    for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
+      SensorType dataSensorType = sensor.getSensorType();
       schemaList.add(
           new MeasurementSchema(
-              sensor,
+              sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
@@ -214,7 +209,7 @@ public class IoTDBSessionPool implements IDatabase {
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
 
-    List<String> sensors = batch.getDeviceSchema().getSensors();
+    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
       Record record = batch.getRecords().get(recordIndex);
@@ -224,8 +219,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (metaDataSchema.getSensorType(
-            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+        switch (sensors.get(sensorIndex).getSensorType()) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] = (boolean) record.getRecordDataValue().get(recordValueIndex);
@@ -271,12 +265,12 @@ public class IoTDBSessionPool implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     List<MeasurementSchema> schemaList = new ArrayList<>();
-    SensorType dataSensorType = batch.getColType();
+    SensorType dataSensorType = batch.getDeviceSchema().getSensors().get(0).getSensorType();
     int sensorIndex = 0;
-    for (String sensor : batch.getDeviceSchema().getSensors()) {
+    for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
       schemaList.add(
           new MeasurementSchema(
-              sensor,
+              sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
@@ -290,7 +284,7 @@ public class IoTDBSessionPool implements IDatabase {
     Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
-    List<String> sensors = batch.getDeviceSchema().getSensors();
+    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
 
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
@@ -301,8 +295,7 @@ public class IoTDBSessionPool implements IDatabase {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (metaDataSchema.getSensorType(
-            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+        switch (sensors.get(sensorIndex).getSensorType()) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] =
@@ -455,10 +448,10 @@ public class IoTDBSessionPool implements IDatabase {
   private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0));
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
+      builder.append(", ").append(querySensors.get(i).getName());
     }
     return addFromClause(devices, builder);
   }
@@ -531,12 +524,12 @@ public class IoTDBSessionPool implements IDatabase {
   private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         builder
             .append(" AND ")
             .append(getDevicePath(deviceSchema))
             .append(".")
-            .append(sensor)
+            .append(sensor.getName())
             .append(" > ")
             .append(valueThreshold);
       }
@@ -547,10 +540,15 @@ public class IoTDBSessionPool implements IDatabase {
   private String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(aggFun).append("(").append(querySensors.get(0)).append(")");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(aggFun).append("(").append(querySensors.get(0).getName()).append(")");
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(aggFun).append("(").append(querySensors.get(i)).append(")");
+      builder
+          .append(", ")
+          .append(aggFun)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
     }
     return addFromClause(devices, builder);
   }
@@ -558,10 +556,10 @@ public class IoTDBSessionPool implements IDatabase {
   private String getLatestPointQuerySql(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT last ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0));
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
+      builder.append(", ").append(querySensors.get(i).getName());
     }
     return addFromClause(devices, builder);
   }

@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.source.CSVSchemaReader;
@@ -66,15 +66,14 @@ public class RealMetaDataSchema extends MetaDataSchema {
     Collections.sort(files);
 
     // Load sensor type from dataset
-    Map<String, Map<String, SensorType>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
+    Map<String, List<Sensor>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-    for (Map.Entry<String, Map<String, SensorType>> device : deviceSchemaMap.entrySet()) {
+    for (Map.Entry<String, List<Sensor>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();
-      List<String> sensors = sortSensors(device.getValue().keySet());
+      List<Sensor> sensors = sortSensors(device.getValue());
       DeviceSchema deviceSchema =
           new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
-      addSensorType(deviceName, device.getValue());
       deviceSchemaList.add(deviceSchema);
     }
 

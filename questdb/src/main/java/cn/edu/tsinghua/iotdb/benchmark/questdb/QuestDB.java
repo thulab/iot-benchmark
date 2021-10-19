@@ -23,10 +23,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -44,7 +44,6 @@ public class QuestDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(QuestDB.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   private static final String URL_QUEST = "jdbc:postgresql://%s:%s/qdb";
 
   private static final String SSLMODE = "disable";
@@ -142,11 +141,10 @@ public class QuestDB implements IDatabase {
           // 添加时间戳
           create.append("( ts TIMESTAMP, ");
           // 添加传感器
-          List<String> sensors = deviceSchema.getSensors();
+          List<Sensor> sensors = deviceSchema.getSensors();
           for (int index = 0; index < sensors.size(); index++) {
-            String dataType =
-                typeMap(metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(index)));
-            create.append(sensors.get(index));
+            String dataType = typeMap(sensors.get(index).getSensorType());
+            create.append(sensors.get(index).getName());
             create.append(" ");
             create.append(dataType);
             if (index != sensors.size() - 1) {
@@ -201,7 +199,7 @@ public class QuestDB implements IDatabase {
       tableName.append(deviceSchema.getGroup());
       tableName.append("_");
       tableName.append(deviceSchema.getDevice());
-      List<String> sensors = batch.getDeviceSchema().getSensors();
+      List<Sensor> sensors = batch.getDeviceSchema().getSensors();
       for (Record record : batch.getRecords()) {
         StringBuffer insertSQL = new StringBuffer(INSERT_SQL);
         insertSQL.append(tableName);
@@ -210,7 +208,7 @@ public class QuestDB implements IDatabase {
         insertSQL.append("'");
         for (int i = 0; i < record.getRecordDataValue().size(); i++) {
           Object value = record.getRecordDataValue().get(i);
-          switch (typeMap(metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(i)))) {
+          switch (typeMap(sensors.get(i).getSensorType())) {
             case "BOOLEAN":
               insertSQL.append(",").append((boolean) value);
               break;
@@ -252,12 +250,12 @@ public class QuestDB implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     DeviceSchema targetDevice = preciseQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
+    List<Sensor> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sqlHead = "SELECT " + sensors.get(0);
+    String sqlHead = "SELECT " + sensors.get(0).getName();
     for (int i = 1; i < sensors.size(); i++) {
-      sqlHead += ", " + sensors.get(i);
+      sqlHead += ", " + sensors.get(i).getName();
     }
     String sql =
         sqlHead
@@ -280,12 +278,12 @@ public class QuestDB implements IDatabase {
   public Status rangeQuery(RangeQuery rangeQuery) {
     // select * from test_${group}_${device} where ts >= ? and ts <= ?;
     DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
+    List<Sensor> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sqlHead = "SELECT " + sensors.get(0);
+    String sqlHead = "SELECT " + sensors.get(0).getName();
     for (int i = 1; i < sensors.size(); i++) {
-      sqlHead += ", " + sensors.get(i);
+      sqlHead += ", " + sensors.get(i).getName();
     }
     String sql = sqlHead + " FROM " + table;
     sql = addWhereTimeClause(sql, rangeQuery);
@@ -309,12 +307,12 @@ public class QuestDB implements IDatabase {
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     // select * from test_${group}_${device} where ts >= ? and ts <= ? and s_${sensor} > ?;
     DeviceSchema targetDevice = valueRangeQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
+    List<Sensor> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sqlHead = "SELECT " + sensors.get(0);
+    String sqlHead = "SELECT " + sensors.get(0).getName();
     for (int i = 1; i < sensors.size(); i++) {
-      sqlHead += ", " + sensors.get(i);
+      sqlHead += ", " + sensors.get(i).getName();
     }
     sqlHead += " FROM " + table;
     String sqlWithTimeFilter = addWhereTimeClause(sqlHead, valueRangeQuery);
@@ -329,8 +327,8 @@ public class QuestDB implements IDatabase {
   private static String addWhereValueClause(
       List<DeviceSchema> devices, String sql, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sql);
-    for (String sensor : devices.get(0).getSensors()) {
-      builder.append(" AND ").append(sensor).append(" > ").append(valueThreshold);
+    for (Sensor sensor : devices.get(0).getSensors()) {
+      builder.append(" AND ").append(sensor.getName()).append(" > ").append(valueThreshold);
     }
     return builder.toString();
   }
@@ -345,7 +343,6 @@ public class QuestDB implements IDatabase {
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     DeviceSchema targetDevice = aggRangeQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
@@ -372,7 +369,6 @@ public class QuestDB implements IDatabase {
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     DeviceSchema targetDevice = aggValueQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
@@ -388,8 +384,8 @@ public class QuestDB implements IDatabase {
       List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sqlHeader);
     builder.append(" WHERE ");
-    for (String sensor : devices.get(0).getSensors()) {
-      builder.append(sensor).append(" > ").append(valueThreshold).append(" AND ");
+    for (Sensor sensor : devices.get(0).getSensors()) {
+      builder.append(sensor.getName()).append(" > ").append(valueThreshold).append(" AND ");
     }
     builder.delete(builder.lastIndexOf("AND"), builder.length());
     return builder.toString();
@@ -406,7 +402,6 @@ public class QuestDB implements IDatabase {
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     DeviceSchema targetDevice = aggRangeValueQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
@@ -432,7 +427,6 @@ public class QuestDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     DeviceSchema targetDevice = groupByQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
     String aggQuerySqlHead =
@@ -456,10 +450,16 @@ public class QuestDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     DeviceSchema targetDevice = latestPointQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
+    List<Sensor> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sql = "SELECT " + sensors.get(0) + " FROM " + table + " LATEST BY " + sensors.get(0);
+    String sql =
+        "SELECT "
+            + sensors.get(0).getName()
+            + " FROM "
+            + table
+            + " LATEST BY "
+            + sensors.get(0).getName();
     return executeQueryAndGetStatus(sql);
   }
 
@@ -471,12 +471,12 @@ public class QuestDB implements IDatabase {
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
+    List<Sensor> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sqlHead = "SELECT " + sensors.get(0);
+    String sqlHead = "SELECT " + sensors.get(0).getName();
     for (int i = 1; i < sensors.size(); i++) {
-      sqlHead += ", " + sensors.get(i);
+      sqlHead += ", " + sensors.get(i).getName();
     }
     String sql = sqlHead + " FROM " + table;
     sql = addWhereTimeClause(sql, rangeQuery) + " ORDER BY ts DESC";
@@ -491,12 +491,12 @@ public class QuestDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     DeviceSchema targetDevice = valueRangeQuery.getDeviceSchema().get(0);
-    List<String> sensors = targetDevice.getSensors();
+    List<Sensor> sensors = targetDevice.getSensors();
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
-    String sqlHead = "SELECT " + sensors.get(0);
+    String sqlHead = "SELECT " + sensors.get(0).getName();
     for (int i = 1; i < sensors.size(); i++) {
-      sqlHead += ", " + sensors.get(i);
+      sqlHead += ", " + sensors.get(i).getName();
     }
     sqlHead += " FROM " + table;
     String sqlWithTimeFilter = addWhereTimeClause(sqlHead, valueRangeQuery);

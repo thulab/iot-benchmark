@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 public class IoTDBClusterSession extends IoTDBSessionBase {
 
@@ -78,20 +80,18 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
             + "."
             + batch.getDeviceSchema().getDevice();
     int failRecord = 0;
+    List<String> sensors =
+        batch.getDeviceSchema().getSensors().stream()
+            .map(Sensor::getName)
+            .collect(Collectors.toList());
     for (Record record : batch.getRecords()) {
       long timestamp = record.getTimestamp();
       List<TSDataType> dataTypes =
           constructDataTypes(
-              batch.getDeviceSchema().getDevice(),
-              batch.getDeviceSchema().getSensors(),
-              record.getRecordDataValue().size());
+              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
         sessions[currSession].insertRecord(
-            deviceId,
-            timestamp,
-            batch.getDeviceSchema().getSensors(),
-            dataTypes,
-            record.getRecordDataValue());
+            deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         LOGGER.error("insert record failed", e);
         failRecord++;
@@ -120,16 +120,18 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     List<List<String>> measurementsList = new ArrayList<>();
     List<List<TSDataType>> typesList = new ArrayList<>();
     List<List<Object>> valuesList = new ArrayList<>();
+    List<String> sensors =
+        batch.getDeviceSchema().getSensors().stream()
+            .map(Sensor::getName)
+            .collect(Collectors.toList());
     for (Record record : batch.getRecords()) {
       deviceIds.add(deviceId);
       times.add(record.getTimestamp());
-      measurementsList.add(batch.getDeviceSchema().getSensors());
+      measurementsList.add(sensors);
       valuesList.add(record.getRecordDataValue());
       typesList.add(
           constructDataTypes(
-              batch.getDeviceSchema().getDevice(),
-              batch.getDeviceSchema().getSensors(),
-              record.getRecordDataValue().size()));
+              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
     }
 
     future =

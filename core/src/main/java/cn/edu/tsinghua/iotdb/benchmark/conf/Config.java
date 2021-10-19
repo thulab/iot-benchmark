@@ -19,12 +19,16 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.conf;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -34,6 +38,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Config {
+  private static Logger LOGGER = LoggerFactory.getLogger(Config.class);
+
   // 初始化
   // 初始化：清理数据
   /** Whether to clear old data before test */
@@ -325,8 +331,8 @@ public class Config {
   /** Whether split result into different csv file */
   private boolean CSV_FILE_SPLIT = true;
 
-  /** Sensor number */
-  private List<String> SENSOR_CODES = new ArrayList<>();
+  /** Sensors */
+  private List<Sensor> SENSORS = new ArrayList<>();
   /** Built-in function parameters */
   private final List<FunctionParam> LINE_LIST = new ArrayList<>();
 
@@ -420,7 +426,7 @@ public class Config {
                   + "in initSensorFunction()!");
           System.exit(0);
         }
-        SENSOR_FUNCTION.put(SENSOR_CODES.get(i), param);
+        SENSOR_FUNCTION.put(SENSORS.get(i).getName(), param);
       }
     } else {
       System.err.println("function ration must >=0 and sum>0");
@@ -430,10 +436,62 @@ public class Config {
 
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
-    for (int i = 0; i < SENSOR_NUMBER; i++) {
-      String sensorCode = "s_" + i;
-      SENSOR_CODES.add(sensorCode);
+    int TYPE_NUMBER = 6;
+    double[] probabilities = generateProbabilities(TYPE_NUMBER);
+    if (probabilities == null) {
+      return;
     }
+    for (int sensorIndex = 0; sensorIndex < SENSOR_NUMBER; sensorIndex++) {
+      double sensorPosition = sensorIndex * 1.0 / SENSOR_NUMBER;
+      int i;
+      for (i = 1; i <= TYPE_NUMBER; i++) {
+        if (sensorPosition >= probabilities[i - 1] && sensorPosition < probabilities[i]) {
+          break;
+        }
+      }
+      Sensor sensor = new Sensor(Constants.SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i));
+      SENSORS.add(sensor);
+    }
+  }
+
+  /**
+   * Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1)
+   *
+   * @return
+   */
+  private double[] generateProbabilities(int TYPE_NUMBER) {
+    // Probabilities for Types
+    double[] probabilities = new double[TYPE_NUMBER + 1];
+    // Origin proportion array
+    double[] proportions = new double[TYPE_NUMBER];
+    // unified proportion array
+    List<Double> proportion = new ArrayList<>();
+    LOGGER.info(
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT=" + INSERT_DATATYPE_PROPORTION);
+
+    String[] split = INSERT_DATATYPE_PROPORTION.split(":");
+    if (split.length != TYPE_NUMBER) {
+      LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
+      return null;
+    }
+    double sum = 0;
+    for (int i = 0; i < TYPE_NUMBER; i++) {
+      proportions[i] = Double.parseDouble(split[i]);
+      sum += proportions[i];
+    }
+    for (int i = 0; i < TYPE_NUMBER; i++) {
+      if (sum != 0) {
+        proportion.add(proportions[i] / sum);
+      } else {
+        proportion.add(0.0);
+        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+      }
+    }
+    probabilities[0] = 0.0;
+    for (int i = 1; i <= TYPE_NUMBER; i++) {
+      probabilities[i] = probabilities[i - 1] + proportion.get(i - 1);
+    }
+    return probabilities;
   }
 
   public long IncrementAndGetCURRENT_CSV_LINE() {
@@ -1085,12 +1143,12 @@ public class Config {
     this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
   }
 
-  public List<String> getSENSOR_CODES() {
-    return SENSOR_CODES;
+  public List<Sensor> getSENSORS() {
+    return new ArrayList<>(SENSORS);
   }
 
-  public void setSENSOR_CODES(List<String> SENSOR_CODES) {
-    this.SENSOR_CODES = SENSOR_CODES;
+  public void setSENSORS(List<Sensor> SENSORS) {
+    this.SENSORS = SENSORS;
   }
 
   public List<FunctionParam> getLINE_LIST() {
@@ -1331,8 +1389,8 @@ public class Config {
         + QUERY_SLIMIT_OFFSET
         + "\nWORKLOAD_BUFFER_SIZE="
         + WORKLOAD_BUFFER_SIZE
-        + "\nSENSOR_CODES="
-        + SENSOR_CODES;
+        + "\nSENSORS="
+        + SENSORS;
   }
 
   /**

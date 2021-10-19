@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.influxdb2;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +12,7 @@ public class InfluxDBModel implements Serializable {
   private long timestamp;
 
   private Map<String, String> tags = new HashMap<String, String>();
-  private Map<String, Object> fields = new HashMap<>();
+  private Map<Sensor, Object> fields = new HashMap<>();
 
   public String getMetric() {
     return metric;
@@ -32,7 +34,7 @@ public class InfluxDBModel implements Serializable {
     return tags;
   }
 
-  public Map<String, Object> getFields() {
+  public Map<Sensor, Object> getFields() {
     return fields;
   }
 
@@ -40,7 +42,7 @@ public class InfluxDBModel implements Serializable {
     tags.put(tag, value);
   }
 
-  public void addField(String sensor, Object value) {
+  public void addField(Sensor sensor, Object value) {
     fields.put(sensor, value);
   }
 }

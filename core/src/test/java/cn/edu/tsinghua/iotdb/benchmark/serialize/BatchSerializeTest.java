@@ -21,6 +21,8 @@ package cn.edu.tsinghua.iotdb.benchmark.serialize;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import org.junit.After;
 import org.junit.Before;
@@ -46,9 +48,9 @@ public class BatchSerializeTest {
   public void testSerialize() throws Exception {
     String group = "g1";
     String device = "d1";
-    List<String> sensors = new ArrayList<>();
-    sensors.add("s1");
-    sensors.add("s2");
+    List<Sensor> sensors = new ArrayList<>();
+    sensors.add(new Sensor("s1", SensorType.DOUBLE));
+    sensors.add(new Sensor("s2", SensorType.DOUBLE));
     DeviceSchema deviceSchema = new DeviceSchema(group, device, sensors);
     List<Record> records = new LinkedList<>();
     for (int i = 0; i < 12; i++) {

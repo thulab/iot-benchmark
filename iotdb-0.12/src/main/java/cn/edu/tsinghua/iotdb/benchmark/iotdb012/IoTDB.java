@@ -30,10 +30,10 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -58,7 +58,6 @@ public class IoTDB implements IDatabase {
   private final String DELETE_SERIES_SQL;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   protected final String ROOT_SERIES_NAME;
   protected SingleNodeJDBCConnection ioTDBConnection;
   protected ExecutorService service;
@@ -187,10 +186,9 @@ public class IoTDB implements IDatabase {
     int count = 0;
     int createSchemaBatchNum = 10000;
     for (DeviceSchema deviceSchema : schemaList) {
-      int sensorIndex = 0;
-      for (String sensor : deviceSchema.getSensors()) {
-        paths.add(getSensorPath(deviceSchema, sensor));
-        SensorType datatype = metaDataSchema.getSensorType(deviceSchema.getDevice(), sensor);
+      for (Sensor sensor : deviceSchema.getSensors()) {
+        paths.add(getSensorPath(deviceSchema, sensor.getName()));
+        SensorType datatype = sensor.getSensorType();
         tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
@@ -198,7 +196,6 @@ public class IoTDB implements IDatabase {
         if (++count % createSchemaBatchNum == 0) {
           registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
         }
-        sensorIndex++;
       }
     }
     if (!paths.isEmpty()) {
@@ -253,7 +250,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      SensorType colSensorType = batch.getColType();
+      SensorType colSensorType = batch.getDeviceSchema().getSensors().get(0).getSensorType();
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
@@ -281,8 +278,8 @@ public class IoTDB implements IDatabase {
         .append(".")
         .append(deviceSchema.getDevice())
         .append("(timestamp");
-    for (String sensor : deviceSchema.getSensors()) {
-      builder.append(",").append(sensor);
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      builder.append(",").append(sensor.getName());
     }
     builder.append(") values(");
     builder.append(timestamp);
@@ -473,10 +470,10 @@ public class IoTDB implements IDatabase {
   private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0));
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
+      builder.append(", ").append(querySensors.get(i).getName());
     }
     return addFromClause(devices, builder);
   }
@@ -484,10 +481,15 @@ public class IoTDB implements IDatabase {
   private String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(aggFun).append("(").append(querySensors.get(0)).append(")");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(aggFun).append("(").append(querySensors.get(0).getName()).append(")");
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(aggFun).append("(").append(querySensors.get(i)).append(")");
+      builder
+          .append(", ")
+          .append(aggFun)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
     }
     return addFromClause(devices, builder);
   }
@@ -522,12 +524,12 @@ public class IoTDB implements IDatabase {
   private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         builder
             .append(" AND ")
             .append(getDevicePath(deviceSchema))
             .append(".")
-            .append(sensor)
+            .append(sensor.getName())
             .append(" > ")
             .append(valueThreshold);
       }
@@ -538,10 +540,10 @@ public class IoTDB implements IDatabase {
   private String getLatestPointQuerySql(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT last ");
-    List<String> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0));
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
+      builder.append(", ").append(querySensors.get(i).getName());
     }
     return addFromClause(devices, builder);
   }
@@ -591,7 +593,7 @@ public class IoTDB implements IDatabase {
                         for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                           switch (operation) {
                             case LATEST_POINT_QUERY:
-                              if (i == 2) {
+                              if (i == 2 || i >= 4) {
                                 continue;
                               }
                               break;
@@ -645,15 +647,15 @@ public class IoTDB implements IDatabase {
         .append(".")
         .append(deviceSchema.getDevice())
         .append("(timestamp");
-    for (String sensor : deviceSchema.getSensors()) {
-      builder.append(",").append(sensor);
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      builder.append(",").append(sensor.getName());
     }
     builder.append(") values(");
     builder.append(timestamp);
     int sensorIndex = 0;
-    List<String> sensors = deviceSchema.getSensors();
+    List<Sensor> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      switch (metaDataSchema.getSensorType(deviceSchema.getDevice(), sensors.get(sensorIndex))) {
+      switch (sensors.get(sensorIndex).getSensorType()) {
         case BOOLEAN:
         case INT32:
         case INT64:

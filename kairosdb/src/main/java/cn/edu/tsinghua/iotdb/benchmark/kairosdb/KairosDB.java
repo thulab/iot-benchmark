@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -112,9 +113,9 @@ public class KairosDB implements IDatabase {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     String groupId = deviceSchema.getGroup();
     int i = 0;
-    for (String sensor : deviceSchema.getSensors()) {
+    for (Sensor sensor : deviceSchema.getSensors()) {
       KairosDataModel model = new KairosDataModel();
-      model.setName(sensor);
+      model.setName(sensor.getName());
       // TODO: KairosDB do not support float as data sensorType, use double instead.
       model.setTimestamp(timestamp);
       model.setValue(recordValues.get(i));
@@ -133,7 +134,7 @@ public class KairosDB implements IDatabase {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     String groupId = deviceSchema.getGroup();
     KairosDataModel model = new KairosDataModel();
-    model.setName(deviceSchema.getSensors().get(colIndex));
+    model.setName(deviceSchema.getSensors().get(colIndex).getName());
     // TODO: KairosDB do not support float as data sensorType, use double instead.
     model.setTimestamp(timestamp);
     model.setValue(recordValues.get(0));
@@ -325,9 +326,9 @@ public class KairosDB implements IDatabase {
     QueryBuilder builder = QueryBuilder.getInstance();
     builder.setStart(new Date(st)).setEnd(new Date(et));
     for (DeviceSchema deviceSchema : deviceSchemaList) {
-      for (String sensor : deviceSchema.getSensors()) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
         builder
-            .addMetric(sensor)
+            .addMetric(sensor.getName())
             .addTag(DEVICE_STR, deviceSchema.getDevice())
             .addTag(GROUP_STR, deviceSchema.getGroup());
       }

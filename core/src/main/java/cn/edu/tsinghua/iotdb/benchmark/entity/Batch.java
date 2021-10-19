@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.entity;
 
-import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -36,7 +35,6 @@ public class Batch {
   private DeviceSchema deviceSchema;
   private List<Record> records;
   private int colIndex = -1;
-  private SensorType colSensorType;
 
   public Batch() {
     records = new LinkedList<>();
@@ -105,16 +103,8 @@ public class Batch {
     this.colIndex = colIndex;
   }
 
-  public void setColType(SensorType colSensorType) {
-    this.colSensorType = colSensorType;
-  }
-
   public int getColIndex() {
     return colIndex;
-  }
-
-  public SensorType getColType() {
-    return colSensorType;
   }
 
   public List<Record> getRecords() {

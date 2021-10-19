@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.source;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
@@ -30,9 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class CSVDataReader extends DataReader {
 
@@ -59,16 +58,22 @@ public class CSVDataReader extends DataReader {
     String[] url = currentFileName.split(separator);
     String deviceName = url[url.length - 2];
     DeviceSchema deviceSchema = null;
-    List<String> sensors = null;
+    List<Sensor> sensors = null;
     List<Record> records = new ArrayList<>();
     try {
       boolean firstLine = true;
       while (iterator.hasNext() && records.size() < config.getBATCH_SIZE_PER_WRITE()) {
         if (firstLine) {
           String[] items = iterator.next();
+          // TODO Optimize
+          DeviceSchema originMetaSchema = metaDataSchema.getDeviceSchemaByName(deviceName);
+          Map<String, Sensor> stringSensorMap = new HashMap<>();
+          for (Sensor sensor : originMetaSchema.getSensors()) {
+            stringSensorMap.put(sensor.getName(), sensor);
+          }
           sensors = new ArrayList<>();
           for (int i = 1; i < items.length; i++) {
-            sensors.add(items[i]);
+            sensors.add(stringSensorMap.get(items[i]));
           }
           deviceSchema =
               new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
@@ -83,7 +88,7 @@ public class CSVDataReader extends DataReader {
         long timestamp = Long.parseLong(values[0]);
         List<Object> recordValues = new ArrayList<>();
         for (int i = 1; i < values.length; i++) {
-          switch (metaDataSchema.getSensorType(deviceName, sensors.get(i - 1))) {
+          switch (sensors.get(i - 1).getSensorType()) {
             case BOOLEAN:
               recordValues.add(Boolean.parseBoolean(values[i]));
               break;
