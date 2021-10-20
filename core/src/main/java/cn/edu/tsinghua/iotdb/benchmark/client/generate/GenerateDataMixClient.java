@@ -52,7 +52,13 @@ public class GenerateDataMixClient extends GenerateBaseClient {
         }
       } else {
         if (config.isIS_RECENT_QUERY()) {
-          queryWorkLoad.updateTime(dataWorkLoad.getCurrentTimestamp() - config.getQUERY_WINDOW());
+          long timestamp = dataWorkLoad.getCurrentTimestamp();
+          if (!config.isIS_QUIET_MODE()) {
+            String currentThread = Thread.currentThread().getName();
+            LOGGER.info(
+                "{} update queryWorkLoad with maxTimestamp : {}.", currentThread, timestamp);
+          }
+          queryWorkLoad.updateTime(timestamp - config.getQUERY_WINDOW());
         }
         try {
           switch (operation) {

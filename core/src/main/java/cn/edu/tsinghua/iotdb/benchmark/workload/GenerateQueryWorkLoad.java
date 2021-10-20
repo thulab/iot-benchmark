@@ -135,14 +135,18 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public void updateTime(long currentTimestamp) {
-    if(currentTimestamp > 0){
+    if (currentTimestamp > 0) {
       this.currentTimestamp = currentTimestamp;
     }
   }
 
   private long getQueryStartTimestamp(Operation operation) {
     if (currentTimestamp != null) {
-      return currentTimestamp;
+      if (operation == Operation.PRECISE_QUERY) {
+        return currentTimestamp + config.getQUERY_WINDOW();
+      } else {
+        return currentTimestamp;
+      }
     }
     long currentQueryLoop = operationLoops.get(operation);
     long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
