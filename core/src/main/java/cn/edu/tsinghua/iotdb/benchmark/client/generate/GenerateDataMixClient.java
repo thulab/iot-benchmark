@@ -58,7 +58,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
             LOGGER.info(
                 "{} update queryWorkLoad with maxTimestamp : {}.", currentThread, timestamp);
           }
-          queryWorkLoad.updateTime(timestamp - config.getQUERY_WINDOW());
+          queryWorkLoad.updateTime(timestamp);
         }
         try {
           switch (operation) {

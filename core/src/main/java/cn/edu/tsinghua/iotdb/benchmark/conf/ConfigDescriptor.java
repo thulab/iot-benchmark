@@ -298,11 +298,6 @@ public class ConfigDescriptor {
         config.setIS_RECENT_QUERY(
             Boolean.parseBoolean(
                 properties.getProperty("IS_RECENT_QUERY", config.isIS_RECENT_QUERY() + "")));
-        if (config.isIS_RECENT_QUERY()) {
-          config.setQUERY_WINDOW(
-              Integer.parseInt(
-                  properties.getProperty("QUERY_WINDOW", config.getQUERY_WINDOW() + "")));
-        }
         config.setSTEP_SIZE(
             Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
         config.setOPERATION_PROPORTION(

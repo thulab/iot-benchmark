@@ -235,8 +235,6 @@ public class Config {
   // Operation：查询相关参数
   /** Whether query recent data, only used in read and write mix mode */
   private boolean IS_RECENT_QUERY = false;
-  /** The window of recent query */
-  private int QUERY_WINDOW = 1000;
   /** The change step size of the time starting point of the time filter condition */
   private int STEP_SIZE = 1;
   /**
@@ -932,14 +930,6 @@ public class Config {
     this.IS_RECENT_QUERY = IS_RECENT_QUERY;
   }
 
-  public int getQUERY_WINDOW() {
-    return QUERY_WINDOW;
-  }
-
-  public void setQUERY_WINDOW(int QUERY_WINDOW) {
-    this.QUERY_WINDOW = QUERY_WINDOW;
-  }
-
   public int getSTEP_SIZE() {
     return STEP_SIZE;
   }
@@ -1460,9 +1450,6 @@ public class Config {
     properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
     properties.put("START_TIME", this.START_TIME);
     properties.put("IS_RECENT_QUERY", this.IS_RECENT_QUERY);
-    if (this.IS_RECENT_QUERY) {
-      properties.put("QUERY_WINDOW", this.QUERY_WINDOW);
-    }
     return properties;
   }
 
