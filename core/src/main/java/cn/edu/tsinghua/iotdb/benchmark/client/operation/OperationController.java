@@ -57,7 +57,7 @@ public class OperationController {
         LOGGER.error("The sum of operation proportions is zero!");
       }
     }
-    if (Math.abs(proportions[0] - 1.0) < 1e-7) {
+    if (Math.abs(proportion.get(0) - 1.0) < 1e-7) {
       isAllWrite = true;
     }
   }
