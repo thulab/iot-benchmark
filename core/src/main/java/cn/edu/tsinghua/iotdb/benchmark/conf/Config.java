@@ -233,6 +233,10 @@ public class Config {
   private int MAX_K = 10;
 
   // Operation：查询相关参数
+  /** Whether query recent data, only used in read and write mix mode */
+  private boolean IS_RECENT_QUERY = false;
+  /** The window of recent query */
+  private int QUERY_WINDOW = 1000;
   /** The change step size of the time starting point of the time filter condition */
   private int STEP_SIZE = 1;
   /**
@@ -918,6 +922,22 @@ public class Config {
 
   public void setMAX_K(int MAX_K) {
     this.MAX_K = MAX_K;
+  }
+
+  public boolean isIS_RECENT_QUERY() {
+    return IS_RECENT_QUERY;
+  }
+
+  public void setIS_RECENT_QUERY(boolean IS_RECENT_QUERY) {
+    this.IS_RECENT_QUERY = IS_RECENT_QUERY;
+  }
+
+  public int getQUERY_WINDOW() {
+    return QUERY_WINDOW;
+  }
+
+  public void setQUERY_WINDOW(int QUERY_WINDOW) {
+    this.QUERY_WINDOW = QUERY_WINDOW;
   }
 
   public int getSTEP_SIZE() {

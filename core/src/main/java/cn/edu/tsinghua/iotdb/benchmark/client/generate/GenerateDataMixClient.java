@@ -51,6 +51,9 @@ public class GenerateDataMixClient extends GenerateBaseClient {
           break;
         }
       } else {
+        if (config.isIS_RECENT_QUERY()) {
+          queryWorkLoad.updateTime(dataWorkLoad.getRecentTimestamp());
+        }
         try {
           switch (operation) {
             case PRECISE_QUERY:

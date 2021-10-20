@@ -14,6 +14,7 @@ public abstract class DataWorkLoad implements IDataWorkLoad {
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
+  protected long recentTimestamp = 0;
 
   public static IDataWorkLoad getInstance(int clientId) {
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_WRITE
@@ -28,5 +29,10 @@ public abstract class DataWorkLoad implements IDataWorkLoad {
         return SingletonWorkDataWorkLoad.getInstance();
       }
     }
+  }
+
+  @Override
+  public long getRecentTimestamp() {
+    return recentTimestamp;
   }
 }

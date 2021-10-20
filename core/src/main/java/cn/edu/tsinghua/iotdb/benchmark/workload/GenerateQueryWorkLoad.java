@@ -21,7 +21,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   private static final Random queryDeviceRandom = new Random(config.getQUERY_SEED());
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
-  private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
+  private AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
+  private Long currentTimestamp = null;
 
   private final Map<Operation, Long> operationLoops;
 
@@ -132,7 +133,15 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     return new DeviceQuery(deviceSchema);
   }
 
+  @Override
+  public void updateTime(long currentTimestamp) {
+    this.currentTimestamp = currentTimestamp;
+  }
+
   private long getQueryStartTimestamp(Operation operation) {
+    if (currentTimestamp != null) {
+      return currentTimestamp;
+    }
     long currentQueryLoop = operationLoops.get(operation);
     long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
     operationLoops.put(operation, currentQueryLoop + 1);

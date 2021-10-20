@@ -295,6 +295,14 @@ public class ConfigDescriptor {
             Double.parseDouble(properties.getProperty("LAMBDA", config.getLAMBDA() + "")));
         config.setMAX_K(Integer.parseInt(properties.getProperty("MAX_K", config.getMAX_K() + "")));
 
+        config.setIS_RECENT_QUERY(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_RECENT_QUERY", config.isIS_RECENT_QUERY() + "")));
+        if (config.isIS_RECENT_QUERY()) {
+          config.setQUERY_WINDOW(
+              Integer.parseInt(
+                  properties.getProperty("QUERY_WINDOW", config.getQUERY_WINDOW() + "")));
+        }
         config.setSTEP_SIZE(
             Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
         config.setOPERATION_PROPORTION(
@@ -501,6 +509,10 @@ public class ConfigDescriptor {
     if (config.isCREATE_SCHEMA()) {
       LOGGER.warn("Benchmark is doing query, no need to create schema.");
       config.setCREATE_SCHEMA(false);
+    }
+    if (config.isIS_RECENT_QUERY()) {
+      LOGGER.warn("Benchmark is only doing query, can not do recent query.");
+      config.setIS_RECENT_QUERY(false);
     }
   }
 
