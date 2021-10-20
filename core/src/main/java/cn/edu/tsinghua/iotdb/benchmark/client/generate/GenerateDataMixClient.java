@@ -52,7 +52,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
         }
       } else {
         if (config.isIS_RECENT_QUERY()) {
-          queryWorkLoad.updateTime(dataWorkLoad.getRecentTimestamp());
+          queryWorkLoad.updateTime(dataWorkLoad.getCurrentTimestamp() - config.getQUERY_WINDOW());
         }
         try {
           switch (operation) {

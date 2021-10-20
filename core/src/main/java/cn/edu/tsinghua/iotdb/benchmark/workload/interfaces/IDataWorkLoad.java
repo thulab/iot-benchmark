@@ -25,5 +25,5 @@ public interface IDataWorkLoad extends IWorkLoad {
    *
    * @return
    */
-  long getRecentTimestamp();
+  long getCurrentTimestamp();
 }
