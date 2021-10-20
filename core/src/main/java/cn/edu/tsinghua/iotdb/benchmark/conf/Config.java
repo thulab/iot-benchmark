@@ -1459,6 +1459,10 @@ public class Config {
     properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
     properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
     properties.put("START_TIME", this.START_TIME);
+    properties.put("IS_RECENT_QUERY", this.IS_RECENT_QUERY);
+    if(this.IS_RECENT_QUERY){
+      properties.put("QUERY_WINDOW", this.QUERY_WINDOW);
+    }
     return properties;
   }
 

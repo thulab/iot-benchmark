@@ -135,7 +135,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public void updateTime(long currentTimestamp) {
-    this.currentTimestamp = currentTimestamp;
+    if(currentTimestamp > 0){
+      this.currentTimestamp = currentTimestamp;
+    }
   }
 
   private long getQueryStartTimestamp(Operation operation) {
