@@ -24,10 +24,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   private AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentTimestamp = null;
 
-  private final Map<Operation, Long> operationLoops;
+  private static final Map<Operation, Long> operationLoops = new EnumMap<>(Operation.class);;
 
   public GenerateQueryWorkLoad() {
-    operationLoops = new EnumMap<>(Operation.class);
     for (Operation operation : Operation.values()) {
       operationLoops.put(operation, 0L);
     }
