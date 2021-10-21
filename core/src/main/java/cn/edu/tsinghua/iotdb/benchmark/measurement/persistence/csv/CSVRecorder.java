@@ -110,12 +110,13 @@ public class CSVRecorder extends TestDataPersistence {
       }
     }
     try {
-      if (!isRecord.get()) {
-        confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
-      }
-      finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
-      projectWriter = new FileWriter(csvDir + "/" + projectID + "_DETAIL.csv", true);
-      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.SERVER) {
+      if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.SERVER) {
+        if (!isRecord.get()) {
+          confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
+        }
+        finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
+        projectWriter = new FileWriter(csvDir + "/" + projectID + "_DETAIL.csv", true);
+      } else {
         serverInfoWriter =
             new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
       }
@@ -330,12 +331,18 @@ public class CSVRecorder extends TestDataPersistence {
    */
   public static void readClose() {
     try {
-      confWriter.flush();
-      confWriter.close();
-      finalResultWriter.flush();
-      finalResultWriter.close();
-      projectWriter.flush();
-      projectWriter.close();
+      if (confWriter != null) {
+        confWriter.flush();
+        confWriter.close();
+      }
+      if (finalResultWriter != null) {
+        finalResultWriter.flush();
+        finalResultWriter.close();
+      }
+      if (projectWriter != null) {
+        projectWriter.flush();
+        projectWriter.close();
+      }
       if (serverInfoWriter != null) {
         serverInfoWriter.flush();
         serverInfoWriter.close();
