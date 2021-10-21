@@ -24,6 +24,9 @@
     - [6.2.2. Benchmark的启动](#622-benchmark的启动)
     - [6.2.3. Benchmark的执行](#623-benchmark的执行)
   - [6.3. 常规测试模式之读写混合模式](#63-常规测试模式之读写混合模式)
+    - [6.3.1. Benchmark的配置](#631-benchmark的配置)
+    - [6.3.2. Benchmark的启动](#632-benchmark的启动)
+    - [6.3.3. Benchmark的执行](#633-benchmark的执行)
   - [6.4. 常规测试模式之读写混合模式（查询临近写入数据）](#64-常规测试模式之读写混合模式查询临近写入数据)
   - [6.5. 常规测试模式之使用系统记录](#65-常规测试模式之使用系统记录)
     - [6.5.1. Benchmark的配置](#651-benchmark的配置)
@@ -305,7 +308,7 @@ VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00      
 
 ## 6.2. 常规测试模式之查询(不使用系统记录)
 
-常规测试模式除了用于写入数据，还可以查询数据，此外该模式还支持读写混合操作。
+常规测试模式除了用于写入数据，还可以仅仅查询数据。
 
 ### 6.2.1. Benchmark的配置
 
@@ -446,7 +449,147 @@ VALUE_RANGE_QUERY_DESC1.40        0.61        0.72        0.76        0.89      
 > 当 okOperation 小于 1000 或 100 时，因为我们使用 T-Digest 算法，分位数 P99 和 P999 甚至可能大于 MAX（该算法在该场景中使用插值）。
 
 ## 6.3. 常规测试模式之读写混合模式
-TODO
+
+常规测试模式可以支持用户进行读写混合的测试，需要注意的是这种场景下的读写混合的时间戳都是从写入开始时间开始。
+
+### 6.3.1. Benchmark的配置
+
+修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_DELETE_DATA=false```，来关闭数据清理)：
+
+```properties
+### Main Data Ingestion and Query Shared Parameters
+HOST=127.0.0.1
+PORT=6667
+IS_DELETE_DATA=false
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
+BATCH_SIZE_PER_WRITE=1
+POINT_STEP=5000
+LOOP=1000
+IS_RECENT_QUERY=false
+
+### Main Query Related Parameters
+# the number of sensor involved in each query request or SQL 
+QUERY_SENSOR_NUM=1
+# the number of device involved in each query request or SQL 
+QUERY_DEVICE_NUM=1
+# the aggregation function for aggregate query
+QUERY_AGGREGATE_FUN=count
+# the variation step of time range query condition for different operation epoch
+STEP_SIZE=1
+# the time range interval of time range query condition
+QUERY_INTERVAL=250000
+# the aggregation granularity of group-by (down-sampling) query
+GROUP_BY_TIME_UNIT=20000
+```
+
+> 注意：
+> 一般情况下写入测试会在数据插入测试之后执行，当然你也可以通过修改```OPERATION_PROPORTION=INGEST:1:1:1:1:1:1:1:1:1:1```来添加写入操作，这个参数会控制包含写入和查询操作在内的各种操作的比例。
+
+### 6.3.2. Benchmark的启动
+
+在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+
+之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+
+```sh
+> ./benchmark.sh
+```
+
+### 6.3.3. Benchmark的执行
+
+测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
+
+```
+...
+19:42:42.418 [pool-61-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-20 60.70% workload is done.
+19:42:42.418 [pool-37-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-12 59.90% workload is done.
+19:42:42.418 [pool-16-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 60.10% workload is done.
+19:42:42.418 [pool-34-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-11 60.10% workload is done.
+...
+```
+
+当测试结束后，最后会显示出本次测试的统计信息，如下所示：
+
+```
+19:42:43.000 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+----------------------Main Configurations----------------------
+CREATE_SCHEMA=false
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=1
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=300
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=20
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=false
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OP_INTERVAL=0
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+DEVICE_NUMBER=20
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=false
+IS_SENSOR_TS_ALIGNMENT=true
+---------------------------------------------------------------
+main measurements:
+Create schema cost 0.00 second
+Test elapsed time (not include schema creation): 1.60 second
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
+INGESTION           0                   0                   0                   0                   0.00                
+PRECISE_POINT       2011                1991                0                   0                   1247.48             
+TIME_RANGE          1983                101124              0                   0                   63360.14            
+VALUE_RANGE         1964                100156              0                   0                   62753.63            
+AGG_RANGE           2042                2042                0                   0                   1279.43             
+AGG_VALUE           1912                1912                0                   0                   1197.98             
+AGG_RANGE_VALUE     1977                1977                0                   0                   1238.71             
+GROUP_BY            2017                26221               0                   0                   16429.00            
+LATEST_POINT        2070                2070                0                   0                   1296.98             
+RANGE_QUERY_DESC    2056                104845              0                   0                   65691.57            
+VALUE_RANGE_QUERY_DESC1968                100356              0                   0                   62878.94            
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+PRECISE_POINT       1.36        0.57        0.66        0.71        0.86        1.23        2.35        3.25        8.13        21.37       53.07       184.71      
+TIME_RANGE          1.43        0.60        0.69        0.75        0.89        1.25        2.25        3.27        10.60       45.40       53.19       184.30      
+VALUE_RANGE         1.44        0.60        0.71        0.76        0.88        1.22        2.11        2.90        13.74       42.46       43.02       232.00      
+AGG_RANGE           1.25        0.56        0.66        0.71        0.83        1.13        1.95        2.63        9.24        24.54       43.21       157.19      
+AGG_VALUE           1.47        0.73        0.84        0.90        1.04        1.33        2.25        3.11        8.56        28.29       35.07       210.58      
+AGG_RANGE_VALUE     1.45        0.70        0.78        0.84        0.98        1.27        2.02        3.04        8.72        43.52       50.86       199.38      
+GROUP_BY            1.28        0.54        0.64        0.70        0.83        1.16        1.96        2.90        6.94        36.30       43.57       233.86      
+LATEST_POINT        1.53        0.37        0.49        0.54        0.65        0.94        1.57        2.55        31.88       53.67       53.70       206.66      
+RANGE_QUERY_DESC    1.40        0.61        0.70        0.75        0.89        1.24        2.07        2.87        9.61        42.87       75.45       204.70      
+VALUE_RANGE_QUERY_DESC1.40        0.61        0.72        0.76        0.89        1.21        2.03        3.14        10.59       48.94       52.89       177.61      
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+> 注意：
+> 当 okOperation 小于 1000 或 100 时，因为我们使用 T-Digest 算法，分位数 P99 和 P999 甚至可能大于 MAX（该算法在该场景中使用插值）。
+
 
 ## 6.4. 常规测试模式之读写混合模式（查询临近写入数据）
 TODO
