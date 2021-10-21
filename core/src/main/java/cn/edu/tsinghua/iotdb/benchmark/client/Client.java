@@ -129,7 +129,7 @@ public abstract class Client implements Runnable {
         service.scheduleAtFixedRate(
             () -> {
               String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / this.totalLoop);
-              LOGGER.info("{} {}% dataWorkload is done.", currentThread, percent);
+              LOGGER.info("{} {}% workload is done.", currentThread, percent);
             },
             1,
             config.getLOG_PRINT_INTERVAL(),
