@@ -27,7 +27,10 @@
     - [6.3.1. Benchmark的配置](#631-benchmark的配置)
     - [6.3.2. Benchmark的启动](#632-benchmark的启动)
     - [6.3.3. Benchmark的执行](#633-benchmark的执行)
-  - [6.4. 常规测试模式之读写混合模式（查询临近写入数据）](#64-常规测试模式之读写混合模式查询临近写入数据)
+  - [6.4. 常规测试模式之读写混合模式（查询最近写入数据）](#64-常规测试模式之读写混合模式查询最近写入数据)
+    - [6.4.1. Benchmark的配置](#641-benchmark的配置)
+    - [6.4.2. Benchmark的启动](#642-benchmark的启动)
+    - [6.4.3. Benchmark的执行](#643-benchmark的执行)
   - [6.5. 常规测试模式之使用系统记录](#65-常规测试模式之使用系统记录)
     - [6.5.1. Benchmark的配置](#651-benchmark的配置)
     - [6.5.2. Benchmark的启动](#652-benchmark的启动)
@@ -45,6 +48,7 @@
     - [6.9.2. Benchmark的启动](#692-benchmark的启动)
     - [6.9.3. Benchmark的执行](#693-benchmark的执行)
   - [6.10. 正确性单点查询模式（双数据库比较）](#610-正确性单点查询模式双数据库比较)
+  - [6.11. 正确性功能查询模式（双数据库比较）](#611-正确性功能查询模式双数据库比较)
 - [7. 使用IoTDB Benchmark测试其他数据库(部分)](#7-使用iotdb-benchmark测试其他数据库部分)
   - [7.1. 测试 InfluxDB v1.x](#71-测试-influxdb-v1x)
   - [7.2. 测试 InfluxDB v2.0](#72-测试-influxdb-v20)
@@ -450,11 +454,11 @@ VALUE_RANGE_QUERY_DESC1.40        0.61        0.72        0.76        0.89      
 
 ## 6.3. 常规测试模式之读写混合模式
 
-常规测试模式可以支持用户进行读写混合的测试，需要注意的是这种场景下的读写混合的时间戳都是从写入开始时间开始。
+常规测试模式可以支持用户进行读写混合的测试，需要注意的是这种场景下的读写混合的时间戳都是从**写入开始时间**开始。
 
 ### 6.3.1. Benchmark的配置
 
-修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_DELETE_DATA=false```，来关闭数据清理)：
+修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=false```，来关闭最近查询模式)：
 
 ```properties
 ### Main Data Ingestion and Query Shared Parameters
@@ -488,9 +492,6 @@ QUERY_INTERVAL=250000
 GROUP_BY_TIME_UNIT=20000
 ```
 
-> 注意：
-> 一般情况下写入测试会在数据插入测试之后执行，当然你也可以通过修改```OPERATION_PROPORTION=INGEST:1:1:1:1:1:1:1:1:1:1```来添加写入操作，这个参数会控制包含写入和查询操作在内的各种操作的比例。
-
 ### 6.3.2. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
@@ -507,19 +508,19 @@ GROUP_BY_TIME_UNIT=20000
 
 ```
 ...
-19:42:42.418 [pool-61-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-20 60.70% workload is done.
-19:42:42.418 [pool-37-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-12 59.90% workload is done.
-19:42:42.418 [pool-16-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 60.10% workload is done.
-19:42:42.418 [pool-34-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-11 60.10% workload is done.
+19:54:38.983 [pool-16-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 84.30% workload is done.
+19:54:38.983 [pool-55-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-18 86.00% workload is done.
+19:54:38.983 [pool-40-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-13 84.00% workload is done.
+19:54:38.983 [pool-46-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-15 85.10% workload is done.
 ...
 ```
 
 当测试结束后，最后会显示出本次测试的统计信息，如下所示：
 
 ```
-19:42:43.000 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+19:54:39.178 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
 ----------------------Main Configurations----------------------
-CREATE_SCHEMA=false
+CREATE_SCHEMA=true
 START_TIME=2018-9-20T00:00:00+08:00
 INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
 BATCH_SIZE_PER_WRITE=1
@@ -528,6 +529,7 @@ LOOP=1000
 IS_OUT_OF_ORDER=false
 IS_REGULAR_FREQUENCY=true
 GROUP_NUMBER=20
+IS_RECENT_QUERY=false
 QUERY_INTERVAL=250000
 SENSOR_NUMBER=300
 RESULT_PRECISION=0.1%
@@ -547,52 +549,182 @@ DBConfig=
 DOUBLE_WRITE=false
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OP_INTERVAL=0
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
 DEVICE_NUMBER=20
 OUT_OF_ORDER_RATIO=0.5
 BENCHMARK_CLUSTER=false
-IS_DELETE_DATA=false
+IS_DELETE_DATA=true
 IS_SENSOR_TS_ALIGNMENT=true
 ---------------------------------------------------------------
 main measurements:
-Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 1.60 second
+Create schema cost 0.13 second
+Test elapsed time (not include schema creation): 1.20 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           0                   0                   0                   0                   0.00                
-PRECISE_POINT       2011                1991                0                   0                   1247.48             
-TIME_RANGE          1983                101124              0                   0                   63360.14            
-VALUE_RANGE         1964                100156              0                   0                   62753.63            
-AGG_RANGE           2042                2042                0                   0                   1279.43             
-AGG_VALUE           1912                1912                0                   0                   1197.98             
-AGG_RANGE_VALUE     1977                1977                0                   0                   1238.71             
-GROUP_BY            2017                26221               0                   0                   16429.00            
-LATEST_POINT        2070                2070                0                   0                   1296.98             
-RANGE_QUERY_DESC    2056                104845              0                   0                   65691.57            
-VALUE_RANGE_QUERY_DESC1968                100356              0                   0                   62878.94            
+INGESTION           1824                547200              0                   0                   454490.46           
+PRECISE_POINT       1831                0                   0                   0                   0.00                
+TIME_RANGE          1776                0                   0                   0                   0.00                
+VALUE_RANGE         1871                0                   0                   0                   0.00                
+AGG_RANGE           1734                1734                0                   0                   1440.22             
+AGG_VALUE           1769                1769                0                   0                   1469.29             
+AGG_RANGE_VALUE     1790                1790                0                   0                   1486.73             
+GROUP_BY            1912                24856               0                   0                   20644.76            
+LATEST_POINT        1841                1811                0                   0                   1504.17             
+RANGE_QUERY_DESC    1875                0                   0                   0                   0.00                
+VALUE_RANGE_QUERY_DESC1777                0                   0                   0                   0.00                
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-PRECISE_POINT       1.36        0.57        0.66        0.71        0.86        1.23        2.35        3.25        8.13        21.37       53.07       184.71      
-TIME_RANGE          1.43        0.60        0.69        0.75        0.89        1.25        2.25        3.27        10.60       45.40       53.19       184.30      
-VALUE_RANGE         1.44        0.60        0.71        0.76        0.88        1.22        2.11        2.90        13.74       42.46       43.02       232.00      
-AGG_RANGE           1.25        0.56        0.66        0.71        0.83        1.13        1.95        2.63        9.24        24.54       43.21       157.19      
-AGG_VALUE           1.47        0.73        0.84        0.90        1.04        1.33        2.25        3.11        8.56        28.29       35.07       210.58      
-AGG_RANGE_VALUE     1.45        0.70        0.78        0.84        0.98        1.27        2.02        3.04        8.72        43.52       50.86       199.38      
-GROUP_BY            1.28        0.54        0.64        0.70        0.83        1.16        1.96        2.90        6.94        36.30       43.57       233.86      
-LATEST_POINT        1.53        0.37        0.49        0.54        0.65        0.94        1.57        2.55        31.88       53.67       53.70       206.66      
-RANGE_QUERY_DESC    1.40        0.61        0.70        0.75        0.89        1.24        2.07        2.87        9.61        42.87       75.45       204.70      
-VALUE_RANGE_QUERY_DESC1.40        0.61        0.72        0.76        0.89        1.21        2.03        3.14        10.59       48.94       52.89       177.61      
+INGESTION           1.19        0.48        0.54        0.57        0.62        0.79        1.40        1.70        19.96       42.62       46.36       145.92      
+PRECISE_POINT       0.93        0.37        0.43        0.47        0.55        0.74        1.09        1.91        7.26        45.30       70.77       147.95      
+TIME_RANGE          0.98        0.38        0.44        0.48        0.56        0.78        1.11        1.91        10.37       33.01       34.32       125.31      
+VALUE_RANGE         0.93        0.38        0.43        0.47        0.54        0.72        1.04        1.81        8.20        36.80       85.32       143.19      
+AGG_RANGE           1.00        0.43        0.51        0.55        0.63        0.82        1.22        1.96        9.45        24.39       28.49       149.08      
+AGG_VALUE           1.04        0.49        0.57        0.61        0.70        0.89        1.25        2.04        9.12        21.21       23.62       125.92      
+AGG_RANGE_VALUE     1.04        0.45        0.53        0.57        0.66        0.85        1.21        1.94        8.84        36.21       85.38       175.98      
+GROUP_BY            1.03        0.45        0.52        0.56        0.64        0.83        1.21        2.30        8.87        23.33       38.16       143.27      
+LATEST_POINT        1.29        0.41        0.47        0.52        0.59        0.79        1.19        2.56        35.24       36.42       58.61       161.28      
+RANGE_QUERY_DESC    0.88        0.38        0.44        0.48        0.56        0.75        1.06        1.71        7.69        23.27       23.31       127.48      
+VALUE_RANGE_QUERY_DESC0.96        0.37        0.44        0.48        0.55        0.72        1.13        2.03        7.93        32.28       119.40      182.66      
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-> 注意：
-> 当 okOperation 小于 1000 或 100 时，因为我们使用 T-Digest 算法，分位数 P99 和 P999 甚至可能大于 MAX（该算法在该场景中使用插值）。
 
+## 6.4. 常规测试模式之读写混合模式（查询最近写入数据）
+常规测试模式可以支持用户进行读写混合的测试(查询最近写入数据），需要注意的是这种场景下的查询时间范围为当前最大写入时间戳的左侧临近的数据。
 
-## 6.4. 常规测试模式之读写混合模式（查询临近写入数据）
-TODO
+### 6.4.1. Benchmark的配置
+
+修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=true```，来关闭最近查询模式)：
+
+```properties
+### Main Data Ingestion and Query Shared Parameters
+HOST=127.0.0.1
+PORT=6667
+IS_DELETE_DATA=false
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
+BATCH_SIZE_PER_WRITE=1
+POINT_STEP=5000
+LOOP=1000
+IS_RECENT_QUERY=true
+
+### Main Query Related Parameters
+# the number of sensor involved in each query request or SQL 
+QUERY_SENSOR_NUM=1
+# the number of device involved in each query request or SQL 
+QUERY_DEVICE_NUM=1
+# the aggregation function for aggregate query
+QUERY_AGGREGATE_FUN=count
+# the variation step of time range query condition for different operation epoch
+STEP_SIZE=1
+# the time range interval of time range query condition
+QUERY_INTERVAL=250000
+# the aggregation granularity of group-by (down-sampling) query
+GROUP_BY_TIME_UNIT=20000
+```
+
+### 6.4.2. Benchmark的启动
+
+在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+
+之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+
+```sh
+> ./benchmark.sh
+```
+
+### 6.4.3. Benchmark的执行
+
+测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
+
+```
+...
+19:56:24.503 [pool-52-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-17 73.90% workload is done.
+19:56:24.503 [pool-34-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-11 73.60% workload is done.
+19:56:24.503 [pool-40-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-13 75.20% workload is done.
+19:56:24.503 [pool-46-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-15 80.50% workload is done.
+...
+```
+
+当测试结束后，最后会显示出本次测试的统计信息，如下所示：
+
+```
+19:56:24.835 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+----------------------Main Configurations----------------------
+CREATE_SCHEMA=true
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=1
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+IS_RECENT_QUERY=true
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=300
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=20
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=false
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OP_INTERVAL=0
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+DEVICE_NUMBER=20
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=true
+IS_SENSOR_TS_ALIGNMENT=true
+---------------------------------------------------------------
+main measurements:
+Create schema cost 0.16 second
+Test elapsed time (not include schema creation): 1.34 second
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
+INGESTION           1824                547200              0                   0                   407810.64           
+PRECISE_POINT       1831                985                 0                   0                   734.09              
+TIME_RANGE          1776                59868               0                   0                   44617.70            
+VALUE_RANGE         1871                61613               0                   0                   45918.20            
+AGG_RANGE           1734                1734                0                   0                   1292.29             
+AGG_VALUE           1769                1769                0                   0                   1318.38             
+AGG_RANGE_VALUE     1790                1790                0                   0                   1334.03             
+GROUP_BY            1912                24856               0                   0                   18524.38            
+LATEST_POINT        1841                1808                0                   0                   1347.44             
+RANGE_QUERY_DESC    1875                61920               0                   0                   46146.99            
+VALUE_RANGE_QUERY_DESC1777                59887               0                   0                   44631.86            
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+INGESTION           1.02        0.47        0.55        0.58        0.62        0.71        0.94        1.56        12.18       38.28       52.47       123.56      
+PRECISE_POINT       1.11        0.37        0.51        0.58        0.70        0.94        1.60        2.69        8.98        23.99       50.06       176.81      
+TIME_RANGE          1.27        0.50        0.59        0.66        0.78        1.09        2.03        3.16        9.32        32.81       34.42       142.20      
+VALUE_RANGE         1.13        0.48        0.59        0.65        0.75        0.98        1.71        2.72        6.24        32.12       57.05       142.92      
+AGG_RANGE           1.09        0.45        0.54        0.61        0.71        0.95        1.61        2.79        8.13        19.74       24.52       133.49      
+AGG_VALUE           1.15        0.49        0.60        0.67        0.76        0.96        1.58        2.61        9.61        24.18       27.66       145.30      
+AGG_RANGE_VALUE     1.23        0.51        0.61        0.68        0.78        1.02        1.75        2.78        9.99        33.98       51.08       163.81      
+GROUP_BY            1.13        0.45        0.56        0.62        0.73        0.94        1.59        2.63        8.72        21.08       29.40       149.96      
+LATEST_POINT        1.39        0.40        0.50        0.57        0.68        0.93        1.65        3.31        28.51       30.74       36.17       161.25      
+RANGE_QUERY_DESC    1.26        0.49        0.61        0.68        0.79        1.07        1.91        3.21        9.69        22.97       34.34       161.65      
+VALUE_RANGE_QUERY_DESC1.16        0.49        0.60        0.67        0.76        1.01        1.70        2.69        9.41        19.58       20.78       127.89      
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
 
 ## 6.5. 常规测试模式之使用系统记录
 
@@ -898,6 +1030,9 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ```
 
 ## 6.10. 正确性单点查询模式（双数据库比较）
+TODO
+
+## 6.11. 正确性功能查询模式（双数据库比较）
 TODO
 
 # 7. 使用IoTDB Benchmark测试其他数据库(部分)
