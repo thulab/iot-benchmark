@@ -100,7 +100,27 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    * @param stepOffset
    * @return
    */
-  protected static long getCurrentTimestamp(long stepOffset) {
+  protected long getCurrentTimestamp(long stepOffset) {
+    // offset of data ahead
+    long offset = config.getPOINT_STEP() * stepOffset;
+    // timestamp for next data
+    long timestamp = 0;
+    // change timestamp frequency
+    if (config.isIS_REGULAR_FREQUENCY()) {
+      // data is in regular frequency, then do nothing
+      timestamp += config.getPOINT_STEP();
+    } else {
+      // data is not in regular frequency, then use random
+      timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
+    }
+    long currentTimestamp = (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    if (config.isIS_RECENT_QUERY()) {
+      this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
+    }
+    return currentTimestamp;
+  }
+
+  private static long getCurrentTimestampStatic(long stepOffset) {
     // offset of data ahead
     long offset = config.getPOINT_STEP() * stepOffset;
     // timestamp for next data
@@ -131,7 +151,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
-          long currentTimestamp = getCurrentTimestamp(i);
+          long currentTimestamp = getCurrentTimestampStatic(i);
           Object value;
           if (sensor.getSensorType() == SensorType.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.

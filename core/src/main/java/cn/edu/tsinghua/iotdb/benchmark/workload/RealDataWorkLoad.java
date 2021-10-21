@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.source.DataReader;
 import org.slf4j.Logger;
@@ -22,7 +23,13 @@ public class RealDataWorkLoad extends DataWorkLoad {
   @Override
   public Batch getOneBatch() throws WorkloadException {
     if (dataReader.hasNextBatch()) {
-      return dataReader.nextBatch();
+      Batch batch = dataReader.nextBatch();
+      if (config.isIS_RECENT_QUERY()) {
+        for (Record record : batch.getRecords()) {
+          currentTimestamp = Math.max(currentTimestamp, record.getTimestamp());
+        }
+      }
+      return batch;
     } else {
       return null;
     }
