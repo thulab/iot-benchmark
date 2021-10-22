@@ -21,7 +21,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   private static final Random queryDeviceRandom = new Random(config.getQUERY_SEED());
   private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
-  private AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
+  private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentTimestamp = null;
 
   private static final Map<Operation, Long> operationLoops = new EnumMap<>(Operation.class);;

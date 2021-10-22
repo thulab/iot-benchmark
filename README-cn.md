@@ -15,40 +15,51 @@
   - [5.2. IoTDB-Benchmark支持的运行模式](#52-iotdb-benchmark支持的运行模式)
   - [5.3. IoTDB-Benchmark的编译构建](#53-iotdb-benchmark的编译构建)
 - [6. IoTDB-Benchmark的不同运行模式的说明](#6-iotdb-benchmark的不同运行模式的说明)
-  - [6.1. 常规测试模式之写入(简单示例)](#61-常规测试模式之写入简单示例)
+  - [6.1. 常规测试模式之写入(单数据库)](#61-常规测试模式之写入单数据库)
     - [6.1.1. Benchmark的配置](#611-benchmark的配置)
     - [6.1.2. Benchmark的启动](#612-benchmark的启动)
     - [6.1.3. Benchmark的执行](#613-benchmark的执行)
-  - [6.2. 常规测试模式之查询(不使用系统记录)](#62-常规测试模式之查询不使用系统记录)
+  - [6.2. 常规测试模式之查询(单数据库，不使用系统记录)](#62-常规测试模式之查询单数据库不使用系统记录)
     - [6.2.1. Benchmark的配置](#621-benchmark的配置)
     - [6.2.2. Benchmark的启动](#622-benchmark的启动)
     - [6.2.3. Benchmark的执行](#623-benchmark的执行)
-  - [6.3. 常规测试模式之读写混合模式](#63-常规测试模式之读写混合模式)
+  - [6.3. 常规测试模式之读写混合模式（单数据库）](#63-常规测试模式之读写混合模式单数据库)
     - [6.3.1. Benchmark的配置](#631-benchmark的配置)
     - [6.3.2. Benchmark的启动](#632-benchmark的启动)
     - [6.3.3. Benchmark的执行](#633-benchmark的执行)
-  - [6.4. 常规测试模式之读写混合模式（查询最近写入数据）](#64-常规测试模式之读写混合模式查询最近写入数据)
+  - [6.4. 常规测试模式之读写混合模式（单数据库，查询最近写入数据）](#64-常规测试模式之读写混合模式单数据库查询最近写入数据)
     - [6.4.1. Benchmark的配置](#641-benchmark的配置)
     - [6.4.2. Benchmark的启动](#642-benchmark的启动)
     - [6.4.3. Benchmark的执行](#643-benchmark的执行)
-  - [6.5. 常规测试模式之使用系统记录](#65-常规测试模式之使用系统记录)
+  - [6.5. 常规测试模式之使用系统记录（单数据库）](#65-常规测试模式之使用系统记录单数据库)
     - [6.5.1. Benchmark的配置](#651-benchmark的配置)
     - [6.5.2. Benchmark的启动](#652-benchmark的启动)
-  - [6.6. 常规测试模式之测试过程持久化](#66-常规测试模式之测试过程持久化)
+  - [6.6. 常规测试模式之测试过程持久化（单数据库）](#66-常规测试模式之测试过程持久化单数据库)
   - [6.7. 生成数据模式](#67-生成数据模式)
     - [6.7.1. Benchmark的配置](#671-benchmark的配置)
     - [6.7.2. Benchmark的启动](#672-benchmark的启动)
     - [6.7.3. Benchmark的执行](#673-benchmark的执行)
-  - [6.8. 正确性单点写入模式](#68-正确性单点写入模式)
+  - [6.8. 正确性写入模式（单数据库，外部数据集）](#68-正确性写入模式单数据库外部数据集)
     - [6.8.1. Benchmark的配置](#681-benchmark的配置)
     - [6.8.2. Benchmark的启动](#682-benchmark的启动)
     - [6.8.3. Benchmark的执行](#683-benchmark的执行)
-  - [6.9. 正确性单点查询模式（外部数据集）](#69-正确性单点查询模式外部数据集)
+  - [6.9. 正确性单点查询模式（单数据库，外部数据集）](#69-正确性单点查询模式单数据库外部数据集)
     - [6.9.1. Benchmark的配置](#691-benchmark的配置)
     - [6.9.2. Benchmark的启动](#692-benchmark的启动)
     - [6.9.3. Benchmark的执行](#693-benchmark的执行)
-  - [6.10. 正确性单点查询模式（双数据库比较）](#610-正确性单点查询模式双数据库比较)
-  - [6.11. 正确性功能查询模式（双数据库比较）](#611-正确性功能查询模式双数据库比较)
+  - [6.10. 双数据库模式](#610-双数据库模式)
+  - [6.11. 常规测试模式之写入(双数据库)](#611-常规测试模式之写入双数据库)
+    - [6.11.1. Benchmark的配置](#6111-benchmark的配置)
+    - [6.11.2. Benchmark的启动](#6112-benchmark的启动)
+    - [6.11.3. Benchmark的执行](#6113-benchmark的执行)
+  - [6.12. 正确性单点查询模式（双数据库比较）](#612-正确性单点查询模式双数据库比较)
+    - [6.12.1. Benchmark的配置](#6121-benchmark的配置)
+    - [6.12.2. Benchmark的启动](#6122-benchmark的启动)
+    - [6.12.3. Benchmark的执行](#6123-benchmark的执行)
+  - [6.13. 正确性功能查询模式（双数据库比较）](#613-正确性功能查询模式双数据库比较)
+    - [6.13.1. Benchmark的配置](#6131-benchmark的配置)
+    - [6.13.2. Benchmark的启动](#6132-benchmark的启动)
+    - [6.13.3. Benchmark的执行](#6133-benchmark的执行)
 - [7. 使用IoTDB Benchmark测试其他数据库(部分)](#7-使用iotdb-benchmark测试其他数据库部分)
   - [7.1. 测试 InfluxDB v1.x](#71-测试-influxdb-v1x)
   - [7.2. 测试 InfluxDB v2.0](#72-测试-influxdb-v20)
@@ -58,7 +69,7 @@
   - [7.6. 测试 Victoriametrics](#76-测试-victoriametrics)
   - [7.7. 测试 TimeScaleDB](#77-测试-timescaledb)
   - [7.8. 测试 PI Archive](#78-测试-pi-archive)
-- [8. 执行正确性验证](#8-执行正确性验证)
+- [8. 正确性验证的进一步说明](#8-正确性验证的进一步说明)
 - [9. 自动执行多项测试](#9-自动执行多项测试)
   - [9.1. 配置 routine](#91-配置-routine)
   - [9.2. 开始测试](#92-开始测试)
@@ -87,8 +98,8 @@ IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进
 |       OpenTSDB       |    --    |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
-|        TDengine        |    2.2.0.2    |                           jdbc                           |
-|       PI Archive     |   2016   |                             jdbc                         |
+|       TDengine       | 2.2.0.2  |                           jdbc                           |
+|      PI Archive      |   2016   |                           jdbc                           |
 
 
 # 4. 主要特点
@@ -100,6 +111,7 @@ IotDB-Benchmark的特点如下：
    1. 按照配置生成周期性的时间序列数据并直接插入和查询。
    2. 将生成的数据写入到磁盘中对应位置。
    3. 从磁盘中生成的生成的数据集加载数据，并写入和查询。
+   4. 对数据和查询结果分别进行正确性验证测试。
 3. 测试报告与结果：支持存储测试信息和结果以供进一步查询或分析。
 4. 可视化测试结果：与Tableau集成以可视化测试结果。
 
@@ -140,27 +152,27 @@ mvn clean package -Dmaven.test.skip=true
 
 默认的配置文件存放在`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
-|        数据库        |   版本   |   对应子项目    |                                                  DB_SWITCH                                                  |
-| :------------------: | :------: | :-------------: | :---------------------------------------------------------------------------------------------------------: |
+|        数据库        |   版本   |   对应子项目    |                                                  DB_SWITCH                                                   |
+| :------------------: | :------: | :-------------: | :----------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   0.12   |   iotdb-0.12    | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
-|        IoTDB         |   0.11   |   iotdb-0.11    |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                        |
-|        IoTDB         |   0.10   |   iotdb-0.10    |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                     |
-|        IoTDB         |   0.9    |   iotdb-0.09    |                                      IoTDB-09-JDBC<br>IoTDB-09-SESSION                                      |
-|       InfluxDB       |   v1.x   |    influxdb     |                                                  InfluxDB                                                   |
-|       InfluxDB       |   v2.0   |  influxdb-2.0   |                                                InfluxDB-2.0                                                 |
-|       QuestDB        |  v6.0.7  |     questdb     |                                                   QuestDB                                                   |
-| Microsoft SQL Server | 2016 SP2 |   mssqlserver   |                                                 MSSQLSERVER                                                 |
-|   VictoriaMetrics    | v1.64.0  | victoriametrics |                                               VictoriaMetrics                                               |
-|     TimescaleDB      |          |   timescaledb   |                                                 TimescaleDB                                                 |
-|        SQLite        |    --    |     sqlite      |                                                   SQLite                                                    |
-|       OpenTSDB       |    --    |    opentsdb     |                                                  OpenTSDB                                                   |
-|       KariosDB       |    --    |    kairosdb     |                                                  KairosDB                                                   |
-|        TDengine      |  2.2.0.2 |     TDengine    |                                          TDengine                                                  |
-|       PI Archive     |   2016   |    PIArchive    |                                                    PIArchive                                                 |
+|        IoTDB         |   0.11   |   iotdb-0.11    |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                         |
+|        IoTDB         |   0.10   |   iotdb-0.10    |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                      |
+|        IoTDB         |   0.9    |   iotdb-0.09    |                                      IoTDB-09-JDBC<br>IoTDB-09-SESSION                                       |
+|       InfluxDB       |   v1.x   |    influxdb     |                                                   InfluxDB                                                   |
+|       InfluxDB       |   v2.0   |  influxdb-2.0   |                                                 InfluxDB-2.0                                                 |
+|       QuestDB        |  v6.0.7  |     questdb     |                                                   QuestDB                                                    |
+| Microsoft SQL Server | 2016 SP2 |   mssqlserver   |                                                 MSSQLSERVER                                                  |
+|   VictoriaMetrics    | v1.64.0  | victoriametrics |                                               VictoriaMetrics                                                |
+|     TimescaleDB      |          |   timescaledb   |                                                 TimescaleDB                                                  |
+|        SQLite        |    --    |     sqlite      |                                                    SQLite                                                    |
+|       OpenTSDB       |    --    |    opentsdb     |                                                   OpenTSDB                                                   |
+|       KariosDB       |    --    |    kairosdb     |                                                   KairosDB                                                   |
+|       TDengine       | 2.2.0.2  |    TDengine     |                                                   TDengine                                                   |
+|      PI Archive      |   2016   |    PIArchive    |                                                  PIArchive                                                   |
 
 # 6. IoTDB-Benchmark的不同运行模式的说明
 
-## 6.1. 常规测试模式之写入(简单示例)
+## 6.1. 常规测试模式之写入(单数据库)
 
 这个简单的指引将以常规测试模式为例带你快速熟悉IoTDB-Benchmark的使用基本流程。
 
@@ -308,9 +320,28 @@ VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00      
 
 以上的全部信息都会被记录到运行设备的```logs```文件夹中。
 
+如果您想要使用乱序方式写入数据，那么您需要对`config.properties`文件的如下属性进行修改：
+
+```
+# 是否乱序写入
+IS_OUT_OF_ORDER=true
+# 乱序写入模式，目前如下2种
+# 0 按泊松分布的乱序模式
+# 1 批插入乱序模式
+OUT_OF_ORDER_MODE=1
+# 乱序写入的数据的比例
+OUT_OF_ORDER_RATIO=0.5
+# 是否为等长时间戳
+IS_REGULAR_FREQUENCY=true
+# 泊松分布的期望和方差
+LAMBDA=2200.0
+# 泊松分布模型的随机数的最大值
+MAX_K=170000
+```
+
 直到现在，我们已经完成了常规测试模式的写入测试。如果需要使用完成其他测试请继续阅读。
 
-## 6.2. 常规测试模式之查询(不使用系统记录)
+## 6.2. 常规测试模式之查询(单数据库，不使用系统记录)
 
 常规测试模式除了用于写入数据，还可以仅仅查询数据。
 
@@ -351,7 +382,7 @@ GROUP_BY_TIME_UNIT=20000
 ```
 
 > 注意：
-> 一般情况下写入测试会在数据插入测试之后执行，当然你也可以通过修改```OPERATION_PROPORTION=INGEST:1:1:1:1:1:1:1:1:1:1```来添加写入操作，这个参数会控制包含写入和查询操作在内的各种操作的比例。
+> `config.properties`中包含了查询相关的配置参数，您可以通过查看示例文件来了解。
 
 ### 6.2.2. Benchmark的启动
 
@@ -452,7 +483,7 @@ VALUE_RANGE_QUERY_DESC1.40        0.61        0.72        0.76        0.89      
 > 注意：
 > 当 okOperation 小于 1000 或 100 时，因为我们使用 T-Digest 算法，分位数 P99 和 P999 甚至可能大于 MAX（该算法在该场景中使用插值）。
 
-## 6.3. 常规测试模式之读写混合模式
+## 6.3. 常规测试模式之读写混合模式（单数据库）
 
 常规测试模式可以支持用户进行读写混合的测试，需要注意的是这种场景下的读写混合的时间戳都是从**写入开始时间**开始。
 
@@ -590,7 +621,7 @@ VALUE_RANGE_QUERY_DESC0.96        0.37        0.44        0.48        0.55      
 ```
 
 
-## 6.4. 常规测试模式之读写混合模式（查询最近写入数据）
+## 6.4. 常规测试模式之读写混合模式（单数据库，查询最近写入数据）
 常规测试模式可以支持用户进行读写混合的测试(查询最近写入数据），需要注意的是这种场景下的查询时间范围为当前最大写入时间戳的左侧临近的数据。
 
 ### 6.4.1. Benchmark的配置
@@ -726,7 +757,7 @@ VALUE_RANGE_QUERY_DESC1.16        0.49        0.60        0.67        0.76      
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## 6.5. 常规测试模式之使用系统记录
+## 6.5. 常规测试模式之使用系统记录（单数据库）
 
 IoTDB Benchmark支持您使用数据库存储测试过程中的系统数据，目前支持使用CSV记录。
 
@@ -759,7 +790,7 @@ MONITOR_INTERVAL=0
 
 其他后续过程和上文所述类似，最后生成的相关文件会存放在```data```目录下。
 
-## 6.6. 常规测试模式之测试过程持久化
+## 6.6. 常规测试模式之测试过程持久化（单数据库）
 
 为了后续的分析，IoTDB-Benchmark可以将测试信息存储到数据库中(如果你不想存储测试数据，那么设置```TEST_DATA_PERSISTENCE=None```即可)
 
@@ -793,6 +824,8 @@ REMARK=
 
 为了生成可以重复使用的数据集，IoTDB-Benchmark提供生成数据集的模式，生成数据集到FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
 
+用户可以通过修改`BIG_BATCH_SIZE`来控制每个文件中包含的batch的个数
+
 为此，你需要修改```config.properties```中的如下配置：
 
 ```
@@ -802,7 +835,10 @@ FILE_PATH=data/test
 DEVICE_NUMBER=5
 SENSOR_NUMBER=10
 CLIENT_NUMBER=5
+BATCH_SIZE_PER_WRITE=10
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+# 每个数据文件包含的Batch个数
+BIG_BATCH_SIZE=100
 ```
 
 > 注意：
@@ -822,18 +858,20 @@ OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 
 ```
 ...
-19:13:58.310 [pool-6-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-1-thread-5 33.10% syntheticWorkload is done.
-19:13:58.316 [pool-3-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-1-thread-2 68.10% syntheticWorkload is done.
-19:13:58.317 [pool-5-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateBaseClient - pool-1-thread-4 37.20% syntheticWorkload is done.
+11:26:43.104 [pool-4-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-3 83.70% workload is done.
+11:26:43.104 [pool-2-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-1 83.80% workload is done.
+11:26:43.104 [pool-3-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-2 83.40% workload is done.
+11:26:43.104 [pool-5-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-4 83.70% workload is done.
+11:26:43.104 [pool-6-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 83.40% workload is done.
 ...
 ```
 
 当测试结束后，最后会显示出本次生成的数据集的信息，如下所示：
 
 ```
-19:13:59.755 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode - Data Location: data/test
-19:13:59.755 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode - Schema Location: data/test/schema.txt
-19:13:59.755 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode - Generate Info Location: data/test/info.txt
+11:26:43.286 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode - Data Location: data/test
+11:26:43.287 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode - Schema Location: data/test/schema.txt
+11:26:43.287 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode - Generate Info Location: data/test/info.txt
 ```
 
 > 注意：
@@ -845,6 +883,7 @@ OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 
 ```
 LOOP=1000
+BIG_BATCH_SIZE=100
 FIRST_DEVICE_INDEX=0
 POINT_STEP=5000
 TIMESTAMP_PRECISION='ms'
@@ -857,12 +896,12 @@ IS_SENSOR_TS_ALIGNMENT=true
 DATA_SEED=666
 SG_STRATEGY='mod'
 GROUP_NUMBER=20
-BATCH_SIZE_PER_WRITE=1
+BATCH_SIZE_PER_WRITE=10
 START_TIME='2018-9-20T00:00:00+08:00'
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_MODE=0
 OUT_OF_ORDER_RATIO=0.5
-IS_REGULAR_FREQUENCY=false
+IS_REGULAR_FREQUENCY=true
 LAMBDA=2200.0
 MAX_K=170000
 STEP_SIZE=1
@@ -878,10 +917,10 @@ QUERY_LIMIT_OFFSET=5
 QUERY_SLIMIT_N=5
 QUERY_SLIMIT_OFFSET=5
 WORKLOAD_BUFFER_SIZE=100
-SENSOR_CODES=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
+SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 ```
 
-## 6.8. 正确性单点写入模式
+## 6.8. 正确性写入模式（单数据库，外部数据集）
 
 为了验证数据集写入的正确性，您可以使用该模式写入生成数据模式中生成的数据集，目前该模式仅支持IoTDB v0.12
 
@@ -893,6 +932,8 @@ SENSOR_CODES=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 BENCHMARK_WORK_MODE=verificationWriteMode
 # 数据集存储地址
 FILE_PATH=data/test
+# 每个数据文件包含的Batch个数
+BIG_BATCH_SIZE=100
 ```
 
 > 注意：
@@ -915,48 +956,71 @@ FILE_PATH=data/test
 
 ```
 ...
-21:03:06.552 [pool-5-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.real.RealBaseClient - pool-3-thread-1 68.90% realDataWorkload is done.
-21:03:06.552 [pool-16-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.real.RealBaseClient - pool-3-thread-5 75.70% realDataWorkload is done.
-21:03:06.553 [pool-11-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.real.RealBaseClient - pool-3-thread-3 75.00% realDataWorkload is done.
+11:30:02.615 [pool-9-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-3 55.60% workload is done.
+11:30:02.615 [pool-6-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-2 55.40% workload is done.
+11:30:02.615 [pool-12-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-4 54.20% workload is done.
+11:30:02.615 [pool-4-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-1 55.00% workload is done.
+11:30:02.615 [pool-15-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 55.00% workload is done.
 ...
 ```
 
 当测试结束后，最后会显示出写入数据集的信息，如下所示：
 
 ```
-21:03:06.678 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+11:30:03.155 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
 ----------------------Main Configurations----------------------
-DB_SWITCH: IoTDB-012-SESSION_BY_TABLET
-OPERATION_PROPORTION: 1:0:0:0:0:0:0:0:0:0:0
-ENABLE_THRIFT_COMPRESSION: false
-INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
-IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
-GROUP_NUMBER: 20
-DEVICE_NUMBER: 5
-SENSOR_NUMBER: 10
-BATCH_SIZE_PER_WRITE: 1
-LOOP: 1000
-POINT_STEP: 5000
-QUERY_INTERVAL: 250000
-IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
-OUT_OF_ORDER_RATIO: 0.5
+CREATE_SCHEMA=true
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=10
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+IS_RECENT_QUERY=true
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=10
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=5
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=false
+BENCHMARK_WORK_MODE=verificationWriteMode
+OP_INTERVAL=0
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+DEVICE_NUMBER=5
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=true
+IS_SENSOR_TS_ALIGNMENT=true
 ---------------------------------------------------------------
 main measurements:
-Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 1.18 second
+Create schema cost 0.04 second
+Test elapsed time (not include schema creation): 0.63 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           5000                50000               0                   0                   42249.45            
+INGESTION           5000                500000              0                   0                   796890.43           
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-INGESTION           0.45        0.08        0.10        0.12        0.15        0.25        0.52        0.89        4.10        36.44       70.54       485.69      
+INGESTION           0.39        0.10        0.12        0.13        0.15        0.20        0.44        0.67        2.33        9.94        124.64      397.86      
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## 6.9. 正确性单点查询模式（外部数据集）
+## 6.9. 正确性单点查询模式（单数据库，外部数据集）
+
+在运行这个模式之前需要先使用正确性写入模式写入数据到数据库。
 
 为了验证数据集写入的正确性，您可以使用该模式查询写入到数据库中的数据集，目前该模式仅支持IoTDB v0.12
 
@@ -968,6 +1032,8 @@ INGESTION           0.45        0.08        0.10        0.12        0.15        
 BENCHMARK_WORK_MODE=verificationQueryMode
 # 数据集存储地址
 FILE_PATH=data/test
+# 每个数据文件包含的Batch个数
+BIG_BATCH_SIZE=100
 ```
 
 > 注意：
@@ -989,9 +1055,285 @@ FILE_PATH=data/test
 
 ```
 ...
-21:05:37.020 [pool-3-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.real.RealBaseClient - pool-1-thread-1 82.80% realDataWorkload is done.
-21:05:37.033 [pool-5-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.real.RealBaseClient - pool-1-thread-2 85.00% realDataWorkload is done.
-21:05:37.043 [pool-7-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.real.RealBaseClient - pool-1-thread-3 88.80% realDataWorkload is done.
+11:31:32.595 [pool-2-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-1 50.60% workload is done.
+11:31:32.595 [pool-6-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-3 51.30% workload is done.
+11:31:32.595 [pool-4-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-2 51.60% workload is done.
+11:31:32.595 [pool-10-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 50.90% workload is done.
+11:31:32.595 [pool-8-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-4 51.40% workload is done.
+...
+```
+
+当测试结束后，最后会显示出写入数据集的信息，如下所示：
+
+```
+11:31:37.070 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+----------------------Main Configurations----------------------
+CREATE_SCHEMA=true
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=10
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+IS_RECENT_QUERY=true
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=10
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=5
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=false
+BENCHMARK_WORK_MODE=verificationQueryMode
+OP_INTERVAL=0
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+DEVICE_NUMBER=5
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=true
+IS_SENSOR_TS_ALIGNMENT=true
+---------------------------------------------------------------
+main measurements:
+Create schema cost 0.00 second
+Test elapsed time (not include schema creation): 10.49 second
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
+VERIFICATION_QUERY  5000                500000              0                   0                   47644.92            
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+VERIFICATION_QUERY  10.25       3.47        6.49        7.90        9.17        10.53       13.41       16.72       34.40       53.20       245.16      10280.50    
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+## 6.10. 双数据库模式
+
+为了更方便、快速完成正确性验证，iotdb-benchmark也支持双数据库模式。
+
+1. 对于上文中提到的所有测试场景，除特别说明，均支持双数据库进行。请在`verification`项目中**启动测试**。
+2. 对于下文中的正确性验证的相关测试场景，均必须在双数据库模式下运行，并且目前仅仅支持iotdb-0.12和timescaledb两种。
+
+为了完成双数据库配置，您需要对`config.properties`完成如下修改：
+
+```
+################ Benchmark：双写模式 ####################
+# 双写模式仅支持不同数据库之间进行比较，不支持同一个数据库不同版本进行双写
+IS_DOUBLE_WRITE=true
+# 另一个写入的数据库，目前的格式为{name}{-version}{-insert mode}(注意-号)其全部参考值参见README文件
+ANOTHER_DB_SWITCH=TimescaleDB
+# 另一个写入的数据库的主机
+ANOTHER_HOST=127.0.0.1
+# 另一个写入的数据库的端口
+ANOTHER_PORT=5432
+# 另一个写入的数据库的用户名
+ANOTHER_USERNAME=postgres
+# 另一个写入的数据库的密码，如果为多个数据库，则要求保持一致
+ANOTHER_PASSWORD=postgres
+# 另一个写入的数据库的名称
+ANOTHER_DB_NAME=postgres
+# 另一个数据库认证使用的Token，目前仅限于InfluxDB 2.0使用
+ANOTHER_TOKEN=token
+# 是否将两个数据库中的查询结果集进行比较
+IS_COMPARISON=false
+# 是否进行两个数据库间点对点数据对比
+IS_POINT_COMPARISON=false
+```
+
+## 6.11. 常规测试模式之写入(双数据库)
+
+为了进行下文中的正确性验证，首先需要将数据写到两个数据库中。
+
+### 6.11.1. Benchmark的配置
+
+如双数据库模式中描述的方式在`config.properties`完成双数据库配置
+
+此外，请在`config.properties`中修改如下配置：
+
+```
+BENCHMARK_WORK_MODE=testWithDefaultPath
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+HOST=127.0.0.1
+PORT=6667
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
+BATCH_SIZE_PER_WRITE=1
+POINT_STEP=5000
+LOOP=1000
+```
+
+### 6.11.2. Benchmark的启动
+
+在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
+
+之后您进入到`iotdb-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+
+```sh
+> ./benchmark.sh
+```
+
+### 6.11.3. Benchmark的执行
+
+写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+
+```
+...
+11:49:14.691 [pool-55-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-18 89.90% workload is done.
+11:49:14.691 [pool-16-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-5 90.40% workload is done.
+11:49:14.692 [pool-58-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-19 88.50% workload is done.
+11:49:14.692 [pool-19-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-6 90.40% workload is done.
+11:49:14.691 [pool-52-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-17 88.10% workload is done.
+...
+```
+
+当测试结束后，最后会显示出写入数据集的信息，如下所示：
+
+```
+11:49:17.634 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+----------------------Main Configurations----------------------
+CREATE_SCHEMA=true
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=1
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+IS_COMPASSION=false
+IS_RECENT_QUERY=true
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=300
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=20
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+ANOTHER DBConfig=
+  DB_SWITCH=TimescaleDB
+  HOST=[127.0.0.1]
+  PORT=[5432]
+  USERNAME=postgres
+  PASSWORD=postgres
+  DB_NAME=postgres
+  TOKEN=token
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=true
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OP_INTERVAL=0
+IS_POINT_COMPARISON=false
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+DEVICE_NUMBER=20
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=true
+IS_SENSOR_TS_ALIGNMENT=true
+---------------------------------------------------------------
+main measurements:
+Create schema cost 0.06 second
+Test elapsed time (not include schema creation): 23.97 second
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
+INGESTION           40000               12000000            0                   0                   500551.60           
+PRECISE_POINT       0                   0                   0                   0                   0.00                
+TIME_RANGE          0                   0                   0                   0                   0.00                
+VALUE_RANGE         0                   0                   0                   0                   0.00                
+AGG_RANGE           0                   0                   0                   0                   0.00                
+AGG_VALUE           0                   0                   0                   0                   0.00                
+AGG_RANGE_VALUE     0                   0                   0                   0                   0.00                
+GROUP_BY            0                   0                   0                   0                   0.00                
+LATEST_POINT        0                   0                   0                   0                   0.00                
+RANGE_QUERY_DESC    0                   0                   0                   0                   0.00                
+VALUE_RANGE_QUERY_DESC0                   0                   0                   0                   0.00                
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+INGESTION           11.70       0.34        0.50        0.60        7.75        21.32       27.84       32.53       42.92       65.38       161.62      23740.74    
+PRECISE_POINT       0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+TIME_RANGE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+VALUE_RANGE         0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+AGG_RANGE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+AGG_VALUE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+AGG_RANGE_VALUE     0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+GROUP_BY            0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+LATEST_POINT        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+RANGE_QUERY_DESC    0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+## 6.12. 正确性单点查询模式（双数据库比较）
+
+为了更高效的验证数据库数据的正确性，iotdb-benchmark提供通过对比两个数据库间的数据来完成正确性验证。
+
+注意，在进行该测试前，请先使用上文中的常规测试模式之写入（双数据库）完成数据库写入。
+
+### 6.12.1. Benchmark的配置
+
+如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
+
+```
+# 是否进行两个数据库间点对点数据对比
+IS_POINT_COMPARISON=true
+```
+
+此外，请在`config.properties`中修改如下配置：
+
+```
+BENCHMARK_WORK_MODE=testWithDefaultPath
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+HOST=127.0.0.1
+PORT=6667
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
+BATCH_SIZE_PER_WRITE=1
+POINT_STEP=5000
+LOOP=1000
+```
+
+### 6.12.2. Benchmark的启动
+
+在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
+
+之后您进入到`iotdb-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+
+```sh
+> ./benchmark.sh
+```
+
+### 6.12.3. Benchmark的执行
+
+写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+
+```
+...
+11:53:02.347 [pool-74-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper - pool-1-thread-11 97.90% syntheticClient for d_0 is done.
+11:53:02.347 [pool-73-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper - pool-1-thread-12 98.90% syntheticClient for d_0 is done.
+11:53:02.354 [pool-76-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper - pool-1-thread-4 100.00% syntheticClient for d_0 is done.
 ...
 ```
 
@@ -999,41 +1341,205 @@ FILE_PATH=data/test
 
 ```
 ----------------------Main Configurations----------------------
-DB_SWITCH: IoTDB-012-SESSION_BY_TABLET
-OPERATION_PROPORTION: 1:0:0:0:0:0:0:0:0:0:0
-ENABLE_THRIFT_COMPRESSION: false
-INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
-IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
-GROUP_NUMBER: 20
-DEVICE_NUMBER: 5
-SENSOR_NUMBER: 10
-BATCH_SIZE_PER_WRITE: 1
-LOOP: 1000
-POINT_STEP: 5000
-QUERY_INTERVAL: 250000
-IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
-OUT_OF_ORDER_RATIO: 0.5
+CREATE_SCHEMA=false
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=1
+IS_CLIENT_BIND=true
+LOOP=1000
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+IS_COMPASSION=false
+IS_RECENT_QUERY=false
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=300
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=20
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+ANOTHER DBConfig=
+  DB_SWITCH=TimescaleDB
+  HOST=[127.0.0.1]
+  PORT=[5432]
+  USERNAME=postgres
+  PASSWORD=postgres
+  DB_NAME=postgres
+  TOKEN=token
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=true
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OP_INTERVAL=0
+IS_POINT_COMPARISON=true
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+DEVICE_NUMBER=20
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=false
+IS_SENSOR_TS_ALIGNMENT=true
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 12.93 second
+Test elapsed time (not include schema creation): 4.17 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
 Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-VERIFICATION_QUERY  5000                50000               0                   0                   3868.45             
+DEVICE_QUERY        40                  12027960            0                   0                   11054800.40         
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        8.32        13.62       20.41       42.82       199.66      2242.67     10075.76    
+DEVICE_QUERY        610.61      365.63      383.00      400.94      432.11      838.37      862.54      864.10      866.40      866.31      866.30      1295.73     
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## 6.10. 正确性单点查询模式（双数据库比较）
-TODO
+## 6.13. 正确性功能查询模式（双数据库比较）
 
-## 6.11. 正确性功能查询模式（双数据库比较）
-TODO
+为了更高效的验证数据库查询的正确性，iotdb-benchmark提供通过对比两个数据库间的数据查询结果的差异来完成正确性验证。
+
+注意:
+
+1. 在进行该测试前，请先使用上文中的常规测试模式之写入（双数据库）完成数据库写入。
+2. LOOP的值**不能过大**，满足：LOOP(query) * QUERY_INTERVAL(query) * DEVICE_NUMBER(write) <= LOOP(write) * POINT_STEP(write)
+
+### 6.13.1. Benchmark的配置
+
+如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
+
+```
+# 是否将两个数据库中的查询结果集进行比较
+IS_COMPARISON=true
+```
+
+此外，请在`config.properties`中修改如下配置（注意：`LOOP=100`，避免查询超出写入范围）
+
+```
+BENCHMARK_WORK_MODE=testWithDefaultPath
+DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+HOST=127.0.0.1
+PORT=6667
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+GROUP_NUMBER=20
+DEVICE_NUMBER=20
+SENSOR_NUMBER=300
+CLIENT_NUMBER=20
+BATCH_SIZE_PER_WRITE=1
+POINT_STEP=5000
+LOOP=100
+```
+
+### 6.13.2. Benchmark的启动
+
+在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
+
+之后您进入到`iotdb-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+
+```sh
+> ./benchmark.sh
+```
+
+### 6.13.3. Benchmark的执行
+写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+
+```
+...
+12:08:21.087 [pool-37-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-12 70.00% workload is done.
+12:08:21.087 [pool-55-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-18 68.00% workload is done.
+12:08:21.087 [pool-43-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-14 78.00% workload is done.
+12:08:21.087 [pool-46-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client - pool-1-thread-15 80.00% workload is done.
+...
+```
+
+当测试结束后，最后会显示出写入数据集的信息，如下所示：
+
+```
+12:08:21.362 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+----------------------Main Configurations----------------------
+CREATE_SCHEMA=false
+START_TIME=2018-9-20T00:00:00+08:00
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+BATCH_SIZE_PER_WRITE=1
+IS_CLIENT_BIND=true
+LOOP=100
+IS_OUT_OF_ORDER=false
+IS_REGULAR_FREQUENCY=true
+GROUP_NUMBER=20
+IS_COMPASSION=true
+IS_RECENT_QUERY=false
+QUERY_INTERVAL=250000
+SENSOR_NUMBER=300
+RESULT_PRECISION=0.1%
+POINT_STEP=5000
+CLIENT_NUMBER=20
+SG_STRATEGY=mod
+REAL_INSERT_RATE=1.0
+ANOTHER DBConfig=
+  DB_SWITCH=TimescaleDB
+  HOST=[127.0.0.1]
+  PORT=[5432]
+  USERNAME=postgres
+  PASSWORD=postgres
+  DB_NAME=postgres
+  TOKEN=token
+OUT_OF_ORDER_MODE=0
+DBConfig=
+  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  HOST=[127.0.0.1]
+  PORT=[6667]
+  USERNAME=root
+  PASSWORD=root
+  DB_NAME=test
+  TOKEN=token
+DOUBLE_WRITE=true
+BENCHMARK_WORK_MODE=testWithDefaultPath
+OP_INTERVAL=0
+IS_POINT_COMPARISON=false
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+DEVICE_NUMBER=20
+OUT_OF_ORDER_RATIO=0.5
+BENCHMARK_CLUSTER=false
+IS_DELETE_DATA=false
+IS_SENSOR_TS_ALIGNMENT=true
+---------------------------------------------------------------
+main measurements:
+Create schema cost 0.00 second
+Test elapsed time (not include schema creation): 1.31 second
+----------------------------------------------------------Result Matrix----------------------------------------------------------
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
+INGESTION           0                   0                   0                   0                   0.00                
+PRECISE_POINT       430                 428                 0                   0                   326.21              
+TIME_RANGE          398                 20296               0                   0                   15468.98            
+VALUE_RANGE         374                 19072               0                   0                   14536.08            
+AGG_RANGE           410                 410                 0                   0                   312.49              
+AGG_VALUE           400                 400                 0                   0                   304.87              
+AGG_RANGE_VALUE     185                 185                 0                   0                   141.00              
+GROUP_BY            368                 4784                0                   0                   3646.22             
+LATEST_POINT        438                 438                 0                   0                   333.83              
+RANGE_QUERY_DESC    422                 21522               0                   0                   16403.40            
+VALUE_RANGE_QUERY_DESC390                 19890               0                   0                   15159.54            
+---------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
+Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+INGESTION           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+PRECISE_POINT       3.68        0.57        0.65        0.73        2.69        5.00        7.62        11.49       19.77       36.61       35.21       125.62      
+TIME_RANGE          4.14        0.60        0.69        0.78        3.26        6.30        9.77        11.75       16.65       33.62       31.49       154.34      
+VALUE_RANGE         4.53        0.56        0.70        0.77        3.28        6.94        10.63       12.38       19.47       44.93       41.90       164.10      
+AGG_RANGE           4.50        0.55        0.66        0.72        3.47        6.87        9.46        11.55       21.93       44.14       40.56       176.79      
+AGG_VALUE           11.94       0.70        0.83        0.92        4.92        19.43       30.13       36.91       59.25       121.43      114.04      351.56      
+AGG_RANGE_VALUE     8.18        2.80        3.64        4.95        6.60        8.98        13.29       17.09       34.23       49.49       47.12       121.37      
+GROUP_BY            4.81        0.56        0.64        0.72        3.16        7.49        11.18       14.29       23.51       27.56       26.93       145.47      
+LATEST_POINT        7.31        0.35        0.50        0.59        3.26        6.38        27.74       38.16       49.25       49.31       49.31       207.71      
+RANGE_QUERY_DESC    4.67        0.57        0.68        0.77        3.15        6.74        10.19       12.99       30.43       51.53       46.21       148.04      
+VALUE_RANGE_QUERY_DESC5.05        0.59        0.71        0.81        3.36        7.08        11.07       16.40       29.38       49.00       44.73       151.20      
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
 
 # 7. 使用IoTDB Benchmark测试其他数据库(部分)
 
@@ -1062,7 +1568,7 @@ TODO
 
 [快速指引](./pi/README.md)
 
-# 8. 执行正确性验证
+# 8. 正确性验证的进一步说明
 1. 目前正确性验证部分仅支持IoTDB v0.12和TimeScaleDB
 2. [快速指引](verification/README.md)
 
