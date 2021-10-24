@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 public class OperationControllerTest {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private static OperationController operationController = new OperationController(0);
 
   @Before
   public void before() {}
@@ -43,11 +42,15 @@ public class OperationControllerTest {
   @Test
   public void testGetNextOperationType() {
     config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0:0:0");
+    OperationController operationController = new OperationController(0);
+
     int loop = 10000;
     for (int i = 0; i < loop; i++) {
       assertEquals(Operation.INGESTION, operationController.getNextOperationType());
     }
+
     config.setOPERATION_PROPORTION("0:1:0:0:0:0:0:0:0:0:0");
+    operationController = new OperationController(0);
     for (int i = 0; i < loop; i++) {
       assertEquals(Operation.PRECISE_QUERY, operationController.getNextOperationType());
     }

@@ -2,6 +2,8 @@ package cn.edu.tsinghua.iotdb.benchmark.entity;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.utils.ReadWriteIOUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -54,6 +56,29 @@ public class Sensor {
     result.name = ReadWriteIOUtils.readString(inputStream);
     result.sensorType = SensorType.getType(ReadWriteIOUtils.readInt(inputStream));
     return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Sensor that = (Sensor) o;
+
+    return new EqualsBuilder()
+        .append(name, that.name)
+        .append(sensorType, that.sensorType)
+        .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37).append(name).append(sensorType).toHashCode();
   }
 
   @Override
