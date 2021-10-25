@@ -386,10 +386,11 @@ public class TDengine implements IDatabase {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
     String sqlWithValueFilter =
-            addWhereValueClause(
-                    valueRangeQuery.getDeviceSchema(),
-                    sqlWithTimeFilter,
-                    valueRangeQuery.getValueThreshold()) + " order by timestamp desc";
+        addWhereValueClause(
+                valueRangeQuery.getDeviceSchema(),
+                sqlWithTimeFilter,
+                valueRangeQuery.getValueThreshold())
+            + " order by timestamp desc";
     return executeQueryAndGetStatus(sqlWithValueFilter);
   }
 
