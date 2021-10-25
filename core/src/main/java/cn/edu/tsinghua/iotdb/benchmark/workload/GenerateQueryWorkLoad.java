@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateQueryWorkLoad.class);
 
   private static final Random queryDeviceRandom = new Random(config.getQUERY_SEED());
-  private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+  private static final long timeStampConst =
+      TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentTimestamp = null;
 
@@ -213,16 +215,6 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     if (!(config.getQUERY_SENSOR_NUM() > 0
         && config.getQUERY_SENSOR_NUM() <= config.getSENSOR_NUMBER())) {
       throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
-    }
-  }
-
-  private static long getTimestampConst(String timePrecision) {
-    if (timePrecision.equals("ms")) {
-      return 1L;
-    } else if (timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1000000L;
     }
   }
 }

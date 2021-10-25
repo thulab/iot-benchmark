@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,8 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected static final Random timestampRandom = new Random(config.getDATA_SEED());
   protected static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  protected static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+  protected static final long timeStampConst =
+      TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   /**
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
@@ -199,15 +201,5 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     }
     LOGGER.info("Finish Generating WorkLoad");
     return workloadValues;
-  }
-
-  private static long getTimestampConst(String timePrecision) {
-    if (timePrecision.equals("ms")) {
-      return 1L;
-    } else if (timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1000000L;
-    }
   }
 }
