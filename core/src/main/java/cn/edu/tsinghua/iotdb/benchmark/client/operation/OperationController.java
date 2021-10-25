@@ -32,10 +32,34 @@ public class OperationController {
 
   private static final Logger LOGGER = null;
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private List<Double> proportion = new ArrayList<>();
+  private List<Operation> operations = Operation.getNormalOperation();
+  private boolean isAllWrite = false;
   private Random random;
 
   public OperationController(int seed) {
     random = new Random(seed);
+    String[] split = config.getOPERATION_PROPORTION().split(":");
+    if (split.length != Operation.getNormalOperation().size()) {
+      LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
+    }
+    double[] proportions = new double[Operation.getNormalOperation().size()];
+    double sum = 0;
+    for (int i = 0; i < split.length; i++) {
+      proportions[i] = Double.parseDouble(split[i]);
+      sum += proportions[i];
+    }
+    for (int i = 0; i < split.length; i++) {
+      if (sum != 0) {
+        proportion.add(proportions[i] / sum);
+      } else {
+        proportion.add(0.0);
+        LOGGER.error("The sum of operation proportions is zero!");
+      }
+    }
+    if (Math.abs(proportion.get(0) - 1.0) < 1e-7) {
+      isAllWrite = true;
+    }
   }
 
   /**
@@ -44,8 +68,9 @@ public class OperationController {
    * @return Operation the next operation for client to execute
    */
   public Operation getNextOperationType() {
-    List<Double> proportion = resolveOperationProportion();
-    List<Operation> operations = Operation.getNormalOperation();
+    if (isAllWrite) {
+      return Operation.INGESTION;
+    }
     // p contains cumulative probability
     double[] p = new double[operations.size() + 1];
     p[0] = 0.0;
@@ -87,33 +112,5 @@ public class OperationController {
         LOGGER.error("Unsupported operation {}, use default operation: INGESTION.", i);
         return Operation.INGESTION;
     }
-  }
-
-  /**
-   * calculate proportion according to OPERATION_PROPORTION
-   *
-   * @return
-   */
-  private List<Double> resolveOperationProportion() {
-    List<Double> proportion = new ArrayList<>();
-    String[] split = config.getOPERATION_PROPORTION().split(":");
-    if (split.length != Operation.getNormalOperation().size()) {
-      LOGGER.error("OPERATION_PROPORTION error, please check this parameter.");
-    }
-    double[] proportions = new double[Operation.getNormalOperation().size()];
-    double sum = 0;
-    for (int i = 0; i < split.length; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < split.length; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of operation proportions is zero!");
-      }
-    }
-    return proportion;
   }
 }

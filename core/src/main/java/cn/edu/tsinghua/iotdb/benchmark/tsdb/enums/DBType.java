@@ -32,6 +32,7 @@ public enum DBType {
   QuestDB("QuestDB"),
   MSSQLSERVER("MsSqlServer"),
   VictoriaMetrics("VictoriaMetrics"),
+  PIArchive("PIArchive"),
   SQLite("SQLite");
 
   private String DBType;

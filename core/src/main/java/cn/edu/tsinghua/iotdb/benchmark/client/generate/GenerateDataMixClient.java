@@ -109,9 +109,8 @@ public class GenerateDataMixClient extends GenerateBaseClient {
    * @param actualDeviceFloor @Return when connect failed return false
    */
   private boolean ingestionOperation(int actualDeviceFloor) {
-
     try {
-      for (int i = 0; i < deviceSchemas.size(); i++) {
+      for (int i = 0; i < deviceSchemasSize; i++) {
         int innerLoop =
             config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
         for (int j = 0; j < innerLoop; j++) {

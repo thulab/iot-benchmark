@@ -3,9 +3,9 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
@@ -128,7 +128,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
       return null;
     }
-    DeviceSchema deviceSchema = new DeviceSchema(deviceId, config.getSENSOR_CODES());
+    DeviceSchema deviceSchema = new DeviceSchema(deviceId, config.getSENSORS());
     return new DeviceQuery(deviceSchema);
   }
 
@@ -162,16 +162,15 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
         queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < clientDevicesIndex.size();
         m++) {
       int deviceId = clientDevicesIndex.get(m);
-      String device = MetaUtil.getDeviceName(deviceId);
-      List<String> sensors = config.getSENSOR_CODES();
+      List<Sensor> sensors = config.getSENSORS();
       Collections.shuffle(sensors, queryDeviceRandom);
-      List<String> querySensors = new ArrayList<>();
+      List<Sensor> querySensors = new ArrayList<>();
       for (int i = 0;
           querySensors.size() < config.getQUERY_SENSOR_NUM() && i < sensors.size();
           i++) {
-        String sensor = sensors.get(i);
+        Sensor sensor = sensors.get(i);
         if (!typeAllow) {
-          SensorType sensorType = metaDataSchema.getSensorType(device, sensor);
+          SensorType sensorType = sensor.getSensorType();
           if (sensorType == SensorType.BOOLEAN || sensorType == SensorType.TEXT) {
             continue;
           }

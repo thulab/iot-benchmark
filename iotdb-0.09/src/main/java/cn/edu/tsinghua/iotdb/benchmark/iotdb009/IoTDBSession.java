@@ -27,10 +27,9 @@ import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.RowBatch;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
-import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
@@ -45,7 +44,6 @@ import java.util.List;
 public class IoTDBSession extends IoTDB {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private final Session session;
 
   public IoTDBSession(DBConfig dbConfig) {
@@ -67,12 +65,11 @@ public class IoTDBSession extends IoTDB {
   public Status insertOneBatch(Batch batch) throws DBConnectException {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
-    for (String sensor : batch.getDeviceSchema().getSensors()) {
-      SensorType dataSensorType =
-          metaDataSchema.getSensorType(batch.getDeviceSchema().getDevice(), sensor);
+    for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
+      SensorType dataSensorType = sensor.getSensorType();
       schemaList.add(
           new MeasurementSchema(
-              sensor,
+              sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
@@ -86,7 +83,7 @@ public class IoTDBSession extends IoTDB {
     RowBatch tablet = new RowBatch(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
-    List<String> sensors = batch.getDeviceSchema().getSensors();
+    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
 
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.batchSize++;
@@ -97,8 +94,7 @@ public class IoTDBSession extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
-        switch (metaDataSchema.getSensorType(
-            batch.getDeviceSchema().getDevice(), sensors.get(sensorIndex))) {
+        switch (sensors.get(sensorIndex).getSensorType()) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
             sensorsBool[recordIndex] =

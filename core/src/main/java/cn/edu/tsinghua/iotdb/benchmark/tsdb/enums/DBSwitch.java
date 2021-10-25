@@ -49,6 +49,7 @@ public enum DBSwitch {
   DB_QUESTDB(DBType.QuestDB, null, null),
   DB_MSSQLSERVER(DBType.MSSQLSERVER, null, null),
   DB_VICTORIAMETRICS(DBType.VictoriaMetrics, null, null),
+  DB_PIARCHIVE(DBType.PIArchive, null, null),
   DB_SQLITE(DBType.SQLite, null, null);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DBSwitch.class);

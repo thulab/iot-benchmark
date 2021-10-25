@@ -62,6 +62,8 @@ public abstract class Client implements Runnable {
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
   protected final List<DeviceSchema> deviceSchemas;
+  /** Related Schema Size */
+  protected final int deviceSchemasSize;
   /** Measurement */
   protected Measurement measurement;
   /** Total number of loop */
@@ -81,6 +83,7 @@ public abstract class Client implements Runnable {
     this.queryWorkLoad = QueryWorkLoad.getInstance();
     this.clientThreadId = id;
     this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
+    this.deviceSchemasSize = deviceSchemas.size();
     this.measurement = new Measurement();
     initDBWrappers();
   }
@@ -126,7 +129,7 @@ public abstract class Client implements Runnable {
         service.scheduleAtFixedRate(
             () -> {
               String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / this.totalLoop);
-              LOGGER.info("{} {}% realDataWorkload is done.", currentThread, percent);
+              LOGGER.info("{} {}% workload is done.", currentThread, percent);
             },
             1,
             config.getLOG_PRINT_INTERVAL(),

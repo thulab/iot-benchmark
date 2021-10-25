@@ -2,8 +2,9 @@ package cn.edu.tsinghua.iotdb.benchmark.source;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 
+import java.util.List;
 import java.util.Map;
 
 public abstract class SchemaReader {
@@ -15,7 +16,7 @@ public abstract class SchemaReader {
    *
    * @return device schema list to register
    */
-  public abstract Map<String, Map<String, SensorType>> getDeviceSchemaList();
+  public abstract Map<String, List<Sensor>> getDeviceSchemaList();
 
   /**
    * Check whether dataset is valid

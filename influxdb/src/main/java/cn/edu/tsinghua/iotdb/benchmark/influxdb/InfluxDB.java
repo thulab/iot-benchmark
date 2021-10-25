@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -289,9 +290,9 @@ public class InfluxDB implements IDatabase {
     model.setTimestamp(time);
     model.setTimestampPrecision(config.getTIMESTAMP_PRECISION());
     HashMap<String, Object> fields = new HashMap<>();
-    List<String> sensors = deviceSchema.getSensors();
+    List<Sensor> sensors = deviceSchema.getSensors();
     for (int i = 0; i < sensors.size(); i++) {
-      fields.put(sensors.get(i), valueList.get(i));
+      fields.put(sensors.get(i).getName(), valueList.get(i));
     }
     model.setFields(fields);
     return model;
@@ -307,9 +308,9 @@ public class InfluxDB implements IDatabase {
     model.setTimestamp(time);
     model.setTimestampPrecision(config.getTIMESTAMP_PRECISION());
     HashMap<String, Object> fields = new HashMap<>();
-    List<String> sensors = deviceSchema.getSensors();
+    List<Sensor> sensors = deviceSchema.getSensors();
     // 值只有一个，在get(0)处，但是schema为了复用，没有改，所以在colIndex处
-    fields.put(sensors.get(colIndex), valueList.get(0));
+    fields.put(sensors.get(colIndex).getName(), valueList.get(0));
     model.setFields(fields);
     return model;
   }
@@ -369,8 +370,8 @@ public class InfluxDB implements IDatabase {
   private static String addWhereValueClause(
       List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sqlHeader);
-    for (String sensor : devices.get(0).getSensors()) {
-      builder.append(" AND ").append(sensor).append(" > ").append(valueThreshold);
+    for (Sensor sensor : devices.get(0).getSensors()) {
+      builder.append(" AND ").append(sensor.getName()).append(" > ").append(valueThreshold);
     }
     return builder.toString();
   }
@@ -395,11 +396,11 @@ public class InfluxDB implements IDatabase {
   private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
+    List<Sensor> querySensors = devices.get(0).getSensors();
 
-    builder.append(querySensors.get(0));
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i));
+      builder.append(", ").append(querySensors.get(i).getName());
     }
 
     builder.append(generateConstrainForDevices(devices));
@@ -416,11 +417,16 @@ public class InfluxDB implements IDatabase {
   private static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<String> querySensors = devices.get(0).getSensors();
+    List<Sensor> querySensors = devices.get(0).getSensors();
 
-    builder.append(method).append("(").append(querySensors.get(0)).append(")");
+    builder.append(method).append("(").append(querySensors.get(0).getName()).append(")");
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(method).append("(").append(querySensors.get(i)).append(")");
+      builder
+          .append(", ")
+          .append(method)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
     }
 
     builder.append(generateConstrainForDevices(devices));

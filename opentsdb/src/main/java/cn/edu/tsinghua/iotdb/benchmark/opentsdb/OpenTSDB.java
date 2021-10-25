@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -228,7 +229,7 @@ public class OpenTSDB implements IDatabase {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     String device = deviceSchema.getDevice();
     List<Record> records = batch.getRecords();
-    List<String> sensors = deviceSchema.getSensors();
+    List<Sensor> sensors = deviceSchema.getSensors();
     int sensorNum = sensors.size();
     int recordNum = records.size();
     LinkedList<OpenTSDBDataModel> models = new LinkedList<>();
@@ -243,7 +244,7 @@ public class OpenTSDB implements IDatabase {
         model.setValue(record.getRecordDataValue().get(0));
         Map<String, String> tags = new HashMap<>();
         tags.put("device", device);
-        tags.put("sensor", deviceSchema.getSensors().get(batch.getColIndex()));
+        tags.put("sensor", deviceSchema.getSensors().get(batch.getColIndex()).getName());
         model.setTags(tags);
         models.addLast(model);
       } else {
@@ -255,7 +256,7 @@ public class OpenTSDB implements IDatabase {
           model.setValue(record.getRecordDataValue().get(j));
           Map<String, String> tags = new HashMap<>();
           tags.put("device", device);
-          tags.put("sensor", deviceSchema.getSensors().get(j));
+          tags.put("sensor", deviceSchema.getSensors().get(j).getName());
           model.setTags(tags);
           models.addLast(model);
         }
@@ -298,8 +299,8 @@ public class OpenTSDB implements IDatabase {
     List<Map<String, Object>> list = new ArrayList<>();
 
     List<String> sensorList = new ArrayList<>();
-    for (String sensor : devices.get(0).getSensors()) {
-      sensorList.add(sensor);
+    for (Sensor sensor : devices.get(0).getSensors()) {
+      sensorList.add(sensor.getName());
     }
     Collections.shuffle(sensorList, sensorRandom);
     // group2device

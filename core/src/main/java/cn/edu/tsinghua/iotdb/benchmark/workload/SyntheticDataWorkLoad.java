@@ -2,6 +2,7 @@ package cn.edu.tsinghua.iotdb.benchmark.workload;
 
 import cn.edu.tsinghua.iotdb.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.*;
@@ -24,7 +25,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         maxTimestampIndexMap.put(schema, 0L);
       } else {
-        for (String sensor : schema.getSensors()) {
+        for (Sensor sensor : schema.getSensors()) {
           DeviceSchema deviceSchema = new DeviceSchema(schema.getDeviceId(), Arrays.asList(sensor));
           maxTimestampIndexMap.put(deviceSchema, 0L);
         }
@@ -43,6 +44,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex);
+        batch.setColIndex(sensorIndex);
       }
     }
     batch.setDeviceSchema(deviceSchema);
@@ -56,7 +58,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
             deviceSchemas.get(deviceIndex).getDeviceId(),
             deviceSchemas.get(deviceIndex).getSensors());
     if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
-      List<String> sensors = new ArrayList<>();
+      List<Sensor> sensors = new ArrayList<>();
       sensors.add(deviceSchema.getSensors().get(sensorIndex));
       deviceSchema.setSensors(sensors);
     }
@@ -84,6 +86,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex);
+        batch.setColIndex(sensorIndex);
       }
     }
     batch.setDeviceSchema(deviceSchema);
@@ -102,6 +105,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         addOneRowIntoBatch(batch, stepOffset);
       } else {
         addOneRowIntoBatch(batch, stepOffset, sensorIndex);
+        batch.setColIndex(sensorIndex);
       }
     }
     batch.setDeviceSchema(deviceSchema);
