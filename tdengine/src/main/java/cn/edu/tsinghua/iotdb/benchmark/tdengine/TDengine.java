@@ -376,12 +376,22 @@ public class TDengine implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
+    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery) + " order by timestamp desc";
+    return executeQueryAndGetStatus(sql);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
+    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
+    String sqlWithValueFilter =
+        addWhereValueClause(
+                valueRangeQuery.getDeviceSchema(),
+                sqlWithTimeFilter,
+                valueRangeQuery.getValueThreshold())
+            + " order by timestamp desc";
+    return executeQueryAndGetStatus(sqlWithValueFilter);
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
