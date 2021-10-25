@@ -6,6 +6,55 @@ You can also read [中文版本](README-cn.md).
 
 # 2. Table of Contents
 
+- [1. IoTDB-Benchmark](#1-iotdb-benchmark)
+- [2. Table of Contents](#2-table-of-contents)
+- [3. Overview](#3-overview)
+- [4. Main Features](#4-main-features)
+- [5. Usage of IoTDB-Benchmark](#5-usage-of-iotdb-benchmark)
+  - [5.1. Prerequisites of IoTDB-Benchmark](#51-prerequisites-of-iotdb-benchmark)
+  - [5.2. Working modes of IoTDB-Benchmark](#52-working-modes-of-iotdb-benchmark)
+  - [5.3. Build of IoTDB-Benchmark](#53-build-of-iotdb-benchmark)
+- [6. Explanation of different operating modes of IoTDB-Benchmark](#6-explanation-of-different-operating-modes-of-iotdb-benchmark)
+  - [6.1. Write of Conventional test mode](#61-write-of-conventional-test-mode)
+    - [6.1.1. Configure](#611-configure)
+    - [6.1.2. Start(Without Server System Information Recording)](#612-startwithout-server-system-information-recording)
+    - [6.1.3. Execute](#613-execute)
+  - [6.2. Query of Conventional test mode](#62-query-of-conventional-test-mode)
+    - [6.2.1. Configure](#621-configure)
+    - [6.2.2. Start (Without Server System Information Recording)](#622-start-without-server-system-information-recording)
+    - [6.2.3. Execute](#623-execute)
+  - [6.3. Conventional test mode(Using Server System Information Recording)](#63-conventional-test-modeusing-server-system-information-recording)
+    - [6.3.1. Configure](#631-configure)
+    - [6.3.2. Start (With Server System Information Recording)](#632-start-with-server-system-information-recording)
+  - [6.4. Test process persistence of Conventional test mode](#64-test-process-persistence-of-conventional-test-mode)
+  - [6.5. Generate data mode](#65-generate-data-mode)
+    - [6.5.1. Configure](#651-configure)
+    - [6.5.2. Start](#652-start)
+    - [6.5.3. Execute](#653-execute)
+  - [6.6. Write mode of verification](#66-write-mode-of-verification)
+    - [6.6.1. Configure](#661-configure)
+    - [6.6.2. Start](#662-start)
+    - [6.6.3. Execute](#663-execute)
+  - [6.7. Query mode of verification](#67-query-mode-of-verification)
+    - [6.7.1. Configure](#671-configure)
+    - [6.7.2. Start](#672-start)
+    - [6.7.3. Execute](#673-execute)
+- [7. Test Other Database(Part)](#7-test-other-databasepart)
+  - [7.1. Test InfluxDB v1.x](#71-test-influxdb-v1x)
+  - [7.2. Test InfluxDB v2.0](#72-test-influxdb-v20)
+  - [7.3. Test Microsoft SQL Server](#73-test-microsoft-sql-server)
+  - [7.4. Test QuestDB](#74-test-questdb)
+  - [7.5. Test SQLite](#75-test-sqlite)
+  - [7.6. Test Victoriametrics](#76-test-victoriametrics)
+  - [7.7. Test TimeScaleDB](#77-test-timescaledb)
+  - [7.8. Test PI Archive](#78-test-pi-archive)
+  - [7.9. Test TDenginee](#79-test-tdenginee)
+- [8. Verification](#8-verification)
+- [9. Perform Multiple Tests Automatically](#9-perform-multiple-tests-automatically)
+  - [9.1. Configure routine](#91-configure-routine)
+  - [9.2. Start](#92-start)
+- [10. Related Article](#10-related-article)
+
 # 3. Overview
 
 IoTDB-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
@@ -680,6 +729,9 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ## 7.8. Test PI Archive
 
 [Quick Start](./pi/README.md)
+
+## 7.9. Test TDenginee
+[Quick Start](./tdengine/README.md)
 
 # 8. Verification 
 

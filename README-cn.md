@@ -47,6 +47,8 @@
   - [7.5. 测试 SQLite](#75-测试-sqlite)
   - [7.6. 测试 Victoriametrics](#76-测试-victoriametrics)
   - [7.7. 测试 TimeScaleDB](#77-测试-timescaledb)
+  - [7.8. 测试 PI Archive](#78-测试-pi-archive)
+  - [7.9. 测试 TDenginee](#79-测试-tdenginee)
 - [8. 执行正确性验证](#8-执行正确性验证)
 - [9. 自动执行多项测试](#9-自动执行多项测试)
   - [9.1. 配置 routine](#91-配置-routine)
@@ -733,6 +735,9 @@ VERIFICATION_QUERY  9.84        2.16        3.07        3.71        5.19        
 ## 7.8. 测试 PI Archive
 
 [快速指引](./pi/README.md)
+
+## 7.9. 测试 TDenginee
+[快速指引](./tdengine/README.md)
 
 # 8. 执行正确性验证
 1. 目前正确性验证部分仅支持IoTDB v0.12和TimeScaleDB
