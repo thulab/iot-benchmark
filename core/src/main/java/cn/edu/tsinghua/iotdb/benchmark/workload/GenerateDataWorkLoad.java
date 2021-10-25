@@ -142,12 +142,14 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    * @return
    */
   private static Object[][] initWorkloadValues() {
+    LOGGER.info("Start Generating WorkLoad");
     Object[][] workloadValues = null;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+      int sensorNumber = config.getSENSOR_NUMBER();
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
-      workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
-      for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
-        Sensor sensor = config.getSENSORS().get(j);
+      workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
+      for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
+        Sensor sensor = config.getSENSORS().get(sensorIndex);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
@@ -185,12 +187,17 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
                 break;
             }
           }
-          workloadValues[j][i] = value;
+          workloadValues[sensorIndex][i] = value;
+        }
+        if (sensorIndex % 5000 == 0) {
+          LOGGER.info(
+              "Finish {} % WorkLoad Buffer", (sensorIndex * 100.0 / config.getSENSOR_NUMBER()));
         }
       }
     } else {
       LOGGER.info("According to OPERATION_PROPORTION, there is no need to write");
     }
+    LOGGER.info("Finish Generating WorkLoad");
     return workloadValues;
   }
 
