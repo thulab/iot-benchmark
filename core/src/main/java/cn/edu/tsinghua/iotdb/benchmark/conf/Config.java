@@ -233,6 +233,8 @@ public class Config {
   private int MAX_K = 10;
 
   // Operation：查询相关参数
+  /** Whether query recent data, only used in read and write mix mode */
+  private boolean IS_RECENT_QUERY = false;
   /** The change step size of the time starting point of the time filter condition */
   private int STEP_SIZE = 1;
   /**
@@ -920,6 +922,14 @@ public class Config {
     this.MAX_K = MAX_K;
   }
 
+  public boolean isIS_RECENT_QUERY() {
+    return IS_RECENT_QUERY;
+  }
+
+  public void setIS_RECENT_QUERY(boolean IS_RECENT_QUERY) {
+    this.IS_RECENT_QUERY = IS_RECENT_QUERY;
+  }
+
   public int getSTEP_SIZE() {
     return STEP_SIZE;
   }
@@ -1439,6 +1449,7 @@ public class Config {
     properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
     properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
     properties.put("START_TIME", this.START_TIME);
+    properties.put("IS_RECENT_QUERY", this.IS_RECENT_QUERY);
     return properties;
   }
 

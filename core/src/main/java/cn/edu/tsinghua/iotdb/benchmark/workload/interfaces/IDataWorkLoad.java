@@ -19,4 +19,11 @@ public interface IDataWorkLoad extends IWorkLoad {
    * @return
    */
   long getBatchNumber();
+
+  /**
+   * Get recentTimestamp
+   *
+   * @return
+   */
+  long getCurrentTimestamp();
 }

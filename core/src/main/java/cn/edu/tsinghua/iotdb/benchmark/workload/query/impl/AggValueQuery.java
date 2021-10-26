@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 
 import java.util.List;
 
@@ -36,7 +37,8 @@ public class AggValueQuery extends AggRangeQuery {
    */
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+  private static final long timeStampConst =
+      TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   private static final long timeRangeConst =
       (config.getTIMESTAMP_PRECISION().equals("ns")) ? 3L : 1000L;
   private static final long END_TIME =
@@ -56,16 +58,6 @@ public class AggValueQuery extends AggRangeQuery {
   }
 
   private double valueThreshold;
-
-  private static long getTimestampConst(String timePrecision) {
-    if (timePrecision.equals("ms")) {
-      return 1L;
-    } else if (timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1000000L;
-    }
-  }
 
   /**
    * get attributes of query

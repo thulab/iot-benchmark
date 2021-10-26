@@ -27,4 +27,14 @@ public class TimeUtils {
     DateTime dateTime = new DateTime(dateStr);
     return dateTime.getMillis();
   }
+
+  public static long getTimestampConst(String timePrecision) {
+    if (timePrecision.equals("ms")) {
+      return 1L;
+    } else if (timePrecision.equals("us")) {
+      return 1000L;
+    } else {
+      return 1000000L;
+    }
+  }
 }

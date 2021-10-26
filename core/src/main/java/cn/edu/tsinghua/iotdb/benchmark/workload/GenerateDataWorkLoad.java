@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.function.Function;
 import cn.edu.tsinghua.iotdb.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,8 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected static final Random timestampRandom = new Random(config.getDATA_SEED());
   protected static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  protected static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+  protected static final long timeStampConst =
+      TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   /**
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
@@ -100,7 +102,27 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    * @param stepOffset
    * @return
    */
-  protected static long getCurrentTimestamp(long stepOffset) {
+  protected long getCurrentTimestamp(long stepOffset) {
+    // offset of data ahead
+    long offset = config.getPOINT_STEP() * stepOffset;
+    // timestamp for next data
+    long timestamp = 0;
+    // change timestamp frequency
+    if (config.isIS_REGULAR_FREQUENCY()) {
+      // data is in regular frequency, then do nothing
+      timestamp += config.getPOINT_STEP();
+    } else {
+      // data is not in regular frequency, then use random
+      timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
+    }
+    long currentTimestamp = (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    if (config.isIS_RECENT_QUERY()) {
+      this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
+    }
+    return currentTimestamp;
+  }
+
+  private static long getCurrentTimestampStatic(long stepOffset) {
     // offset of data ahead
     long offset = config.getPOINT_STEP() * stepOffset;
     // timestamp for next data
@@ -122,16 +144,18 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    * @return
    */
   private static Object[][] initWorkloadValues() {
+    LOGGER.info("Start Generating WorkLoad");
     Object[][] workloadValues = null;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+      int sensorNumber = config.getSENSOR_NUMBER();
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
-      workloadValues = new Object[config.getSENSOR_NUMBER()][config.getWORKLOAD_BUFFER_SIZE()];
-      for (int j = 0; j < config.getSENSOR_NUMBER(); j++) {
-        Sensor sensor = config.getSENSORS().get(j);
+      workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
+      for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
+        Sensor sensor = config.getSENSORS().get(sensorIndex);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
-          long currentTimestamp = getCurrentTimestamp(i);
+          long currentTimestamp = getCurrentTimestampStatic(i);
           Object value;
           if (sensor.getSensorType() == SensorType.TEXT) {
             // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
@@ -165,22 +189,17 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
                 break;
             }
           }
-          workloadValues[j][i] = value;
+          workloadValues[sensorIndex][i] = value;
+        }
+        if (sensorIndex % 5000 == 0) {
+          LOGGER.info(
+              "Finish {} % WorkLoad Buffer", (sensorIndex * 100.0 / config.getSENSOR_NUMBER()));
         }
       }
     } else {
       LOGGER.info("According to OPERATION_PROPORTION, there is no need to write");
     }
+    LOGGER.info("Finish Generating WorkLoad");
     return workloadValues;
-  }
-
-  private static long getTimestampConst(String timePrecision) {
-    if (timePrecision.equals("ms")) {
-      return 1L;
-    } else if (timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1000000L;
-    }
   }
 }

@@ -88,4 +88,11 @@ public interface IQueryWorkLoad extends IWorkLoad {
    * @throws WorkloadException
    */
   DeviceQuery getDeviceQuery();
+
+  /**
+   * Update query time in recent mode
+   *
+   * @param currentTimestamp
+   */
+  void updateTime(long currentTimestamp);
 }

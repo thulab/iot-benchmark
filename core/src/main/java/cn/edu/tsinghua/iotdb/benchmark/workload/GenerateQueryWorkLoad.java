@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +21,14 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateQueryWorkLoad.class);
 
   private static final Random queryDeviceRandom = new Random(config.getQUERY_SEED());
-  private static final long timeStampConst = getTimestampConst(config.getTIMESTAMP_PRECISION());
+  private static final long timeStampConst =
+      TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
+  private Long currentTimestamp = null;
 
-  private final Map<Operation, Long> operationLoops;
+  private static final Map<Operation, Long> operationLoops = new EnumMap<>(Operation.class);;
 
   public GenerateQueryWorkLoad() {
-    operationLoops = new EnumMap<>(Operation.class);
     for (Operation operation : Operation.values()) {
       operationLoops.put(operation, 0L);
     }
@@ -132,7 +134,21 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     return new DeviceQuery(deviceSchema);
   }
 
+  @Override
+  public void updateTime(long currentTimestamp) {
+    this.currentTimestamp = currentTimestamp;
+  }
+
   private long getQueryStartTimestamp(Operation operation) {
+    if (currentTimestamp != null) {
+      if (operation == Operation.PRECISE_QUERY) {
+        return currentTimestamp;
+      } else {
+        return currentTimestamp >= config.getQUERY_INTERVAL()
+            ? currentTimestamp - config.getQUERY_INTERVAL()
+            : 0;
+      }
+    }
     long currentQueryLoop = operationLoops.get(operation);
     long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
     operationLoops.put(operation, currentQueryLoop + 1);
@@ -199,16 +215,6 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     if (!(config.getQUERY_SENSOR_NUM() > 0
         && config.getQUERY_SENSOR_NUM() <= config.getSENSOR_NUMBER())) {
       throw new WorkloadException("QUERY_SENSOR_NUM is not correct, please check.");
-    }
-  }
-
-  private static long getTimestampConst(String timePrecision) {
-    if (timePrecision.equals("ms")) {
-      return 1L;
-    } else if (timePrecision.equals("us")) {
-      return 1000L;
-    } else {
-      return 1000000L;
     }
   }
 }
