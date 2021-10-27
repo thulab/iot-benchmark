@@ -115,7 +115,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       // data is not in regular frequency, then use random
       timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
     }
-    long currentTimestamp = (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
     if (config.isIS_RECENT_QUERY()) {
       this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
     }
@@ -135,7 +135,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       // data is not in regular frequency, then use random
       timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
     }
-    return (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    return Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
   }
 
   /**
