@@ -47,7 +47,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
         start = System.currentTimeMillis();
       }
       if (operation == Operation.INGESTION) {
-        if (!ingestionOperation(actualDeviceFloor)) {
+        if (!ingestionOperation()) {
           break;
         }
       } else {
@@ -112,19 +112,15 @@ public class GenerateDataMixClient extends GenerateBaseClient {
     }
   }
 
-  /**
-   * Do Ingestion Operation
-   *
-   * @param actualDeviceFloor @Return when connect failed return false
-   */
-  private boolean ingestionOperation(int actualDeviceFloor) {
+  /** Do Ingestion Operation @Return when connect failed return false */
+  private boolean ingestionOperation() {
     try {
       for (int i = 0; i < deviceSchemasSize; i++) {
         int innerLoop =
             config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
         for (int j = 0; j < innerLoop; j++) {
           Batch batch = dataWorkLoad.getOneBatch();
-          if (batch.getDeviceSchema().getDeviceId() <= actualDeviceFloor) {
+          if (checkBatch(batch)) {
             dbWrapper.insertOneBatch(batch);
           }
         }
