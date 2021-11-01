@@ -83,12 +83,7 @@ public abstract class BaseMode {
 
   protected abstract void postCheck();
 
-  /**
-   * Register schema
-   *
-   * @param dbConfigs
-   * @param measurement
-   */
+  /** Register schema */
   protected void registerSchema(List<DBConfig> dbConfigs, Measurement measurement) {
     DBWrapper dbWrapper = new DBWrapper(dbConfigs, measurement);
     // register schema if needed
@@ -119,14 +114,7 @@ public abstract class BaseMode {
     }
   }
 
-  /**
-   * Save measure
-   *
-   * @param measurement
-   * @param threadsMeasurements
-   * @param st
-   * @param clients
-   */
+  /** Save measure */
   protected static void finalMeasure(
       Measurement measurement,
       List<Measurement> threadsMeasurements,

@@ -459,11 +459,7 @@ public class Config {
     }
   }
 
-  /**
-   * Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1)
-   *
-   * @return
-   */
+  /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1) */
   private double[] generateProbabilities(int TYPE_NUMBER) {
     // Probabilities for Types
     double[] probabilities = new double[TYPE_NUMBER + 1];
@@ -1329,11 +1325,7 @@ public class Config {
     this.IS_POINT_COMPARISON = IS_POINT_COMPARISON;
   }
 
-  /**
-   * write dataset config to info
-   *
-   * @return
-   */
+  /** write dataset config to info */
   public String toInfoText() {
     return "LOOP="
         + LOOP
@@ -1416,11 +1408,7 @@ public class Config {
         + SENSORS;
   }
 
-  /**
-   * get properties from config, one property in one line.
-   *
-   * @return
-   */
+  /** get properties from config, one property in one line. */
   public Map<String, Object> getShowProperties() {
     Map<String, Object> properties = new HashMap<>();
     properties.put("BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
@@ -1468,11 +1456,7 @@ public class Config {
     return properties;
   }
 
-  /**
-   * get all properties from config, one property in one line.
-   *
-   * @return
-   */
+  /** get all properties from config, one property in one line. */
   public Map<String, Object> getAllProperties() {
     Map<String, Object> properties = getShowProperties();
     properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);

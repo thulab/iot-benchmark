@@ -59,12 +59,7 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
     this.totalLoop = config.getLOOP();
   }
 
-  /**
-   * Check whether write batch
-   *
-   * @param batch
-   * @return
-   */
+  /** Check whether write batch */
   protected boolean checkBatch(Batch batch) {
     if (batch.getDeviceSchema().getDeviceId() > actualDeviceFloor) {
       return false;

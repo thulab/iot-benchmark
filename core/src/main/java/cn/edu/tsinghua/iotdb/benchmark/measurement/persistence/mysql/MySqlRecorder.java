@@ -421,13 +421,7 @@ public class MySqlRecorder extends TestDataPersistence {
     }
   }
 
-  /**
-   * Whether the table named table already exists in the database
-   *
-   * @param table
-   * @return
-   * @throws SQLException
-   */
+  /** Whether the table named table already exists in the database */
   private Boolean hasTable(String table) throws SQLException {
     String showTableTemplate = "show tables like \"%s\"";
     String checkTable = String.format(showTableTemplate, table);

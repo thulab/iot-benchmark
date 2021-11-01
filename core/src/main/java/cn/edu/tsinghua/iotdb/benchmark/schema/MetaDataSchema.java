@@ -55,11 +55,7 @@ public abstract class MetaDataSchema {
     }
   }
 
-  /**
-   * init data schema for each device
-   *
-   * @return
-   */
+  /** init data schema for each device */
   protected abstract boolean createMetaDataSchema();
 
   protected List<Sensor> sortSensors(List<Sensor> sensors) {
@@ -69,12 +65,7 @@ public abstract class MetaDataSchema {
     return sensors;
   }
 
-  /**
-   * Get DeviceSchema by device
-   *
-   * @param deviceName
-   * @return
-   */
+  /** Get DeviceSchema by device */
   public DeviceSchema getDeviceSchemaByName(String deviceName) {
     try {
       return NAME_DATA_SCHEMA.get(deviceName);
@@ -84,21 +75,12 @@ public abstract class MetaDataSchema {
     }
   }
 
-  /**
-   * Get DeviceSchema by clientId
-   *
-   * @param clientId
-   * @return
-   */
+  /** Get DeviceSchema by clientId */
   public List<DeviceSchema> getDeviceSchemaByClientId(int clientId) {
     return CLIENT_DATA_SCHEMA.get(clientId);
   }
 
-  /**
-   * Get All Device Schema
-   *
-   * @return
-   */
+  /** Get All Device Schema */
   public List<DeviceSchema> getAllDeviceSchemas() {
     return new ArrayList<>(NAME_DATA_SCHEMA.values());
   }

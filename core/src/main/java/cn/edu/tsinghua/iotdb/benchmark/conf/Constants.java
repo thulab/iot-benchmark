@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iotdb.benchmark.conf;
 
 import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 
-/** 系统运行常量值 */
+/** The constants of system */
 public class Constants {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   public static final long START_TIMESTAMP =

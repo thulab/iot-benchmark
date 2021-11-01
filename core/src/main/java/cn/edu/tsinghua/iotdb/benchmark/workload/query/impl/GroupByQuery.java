@@ -50,11 +50,6 @@ public class GroupByQuery extends RangeQuery {
     return granularity;
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = super.getQueryAttrs();

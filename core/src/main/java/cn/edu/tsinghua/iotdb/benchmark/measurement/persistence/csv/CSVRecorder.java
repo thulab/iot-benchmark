@@ -138,11 +138,7 @@ public class CSVRecorder extends TestDataPersistence {
     }
   }
 
-  /**
-   * write header of csv file
-   *
-   * @throws IOException
-   */
+  /** write header of csv file */
   public void initCSVFile() throws IOException {
     if (serverInfoWriter != null) {
       String firstLine =

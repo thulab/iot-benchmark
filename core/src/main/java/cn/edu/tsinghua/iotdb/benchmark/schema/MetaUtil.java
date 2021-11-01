@@ -12,23 +12,12 @@ public class MetaUtil {
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private static List<List<String>> CLIENT_FILES;
 
-  /**
-   * Used under cluster mode of benchmark
-   *
-   * @param deviceId
-   * @return
-   */
+  /** Used under cluster mode of benchmark */
   public static int getDeviceId(int deviceId) {
     return config.getFIRST_DEVICE_INDEX() + deviceId;
   }
 
-  /**
-   * Calculate GroupId(integer) from device according to SG_STRATEGY
-   *
-   * @param deviceId
-   * @return
-   * @throws WorkloadException
-   */
+  /** Calculate GroupId(integer) from device according to SG_STRATEGY */
   public static int calGroupId(int deviceId) throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
@@ -54,12 +43,7 @@ public class MetaUtil {
     return String.valueOf(groupId);
   }
 
-  /**
-   * Get deviceId from str
-   *
-   * @param device
-   * @return
-   */
+  /** Get deviceId from str */
   public static int getDeviceIdFromStr(String device) {
     int deviceId = device.hashCode();
     if (deviceId < 0) {

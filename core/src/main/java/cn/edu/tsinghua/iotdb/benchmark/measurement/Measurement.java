@@ -275,11 +275,7 @@ public class Measurement {
       }
     }
 
-    /**
-     * Get filename
-     *
-     * @return
-     */
+    /** Get filename */
     private String createFileName() {
       // Formatting time
       SimpleDateFormat sdf = new SimpleDateFormat();
@@ -320,11 +316,7 @@ public class Measurement {
       }
     }
 
-    /**
-     * Write config to csv
-     *
-     * @param csv
-     */
+    /** Write config to csv */
     private void outputConfigToCSV(File csv) {
       try {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
@@ -340,11 +332,7 @@ public class Measurement {
       }
     }
 
-    /**
-     * Write result metric to csv
-     *
-     * @param csv
-     */
+    /** Write result metric to csv */
     private void outputResultMetricToCSV(File csv) {
       try {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
@@ -385,11 +373,7 @@ public class Measurement {
       }
     }
 
-    /**
-     * Write Latency metric to csv
-     *
-     * @param csv
-     */
+    /** Write Latency metric to csv */
     private void outputLatencyMetricsToCSV(File csv) {
       try {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));

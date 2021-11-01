@@ -37,11 +37,7 @@ public class IoUsage {
     return IoUsageHolder.INSTANCE;
   }
 
-  /**
-   * use `iostat -m 1 2` to statistic IO
-   *
-   * @return
-   */
+  /** use `iostat -m 1 2` to statistic IO */
   public HashMap<IOStatistics, Float> getIOStatistics() {
     HashMap<IOStatistics, Float> ioStaMap = new HashMap<>();
     for (IOStatistics iostat : IOStatistics.values()) {

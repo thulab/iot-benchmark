@@ -43,11 +43,6 @@ public class PreciseQuery extends Query {
     return timestamp;
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = new StringBuilder();

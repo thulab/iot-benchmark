@@ -34,11 +34,6 @@ public class LatestPointQuery extends AggRangeQuery {
     super(deviceSchema, startTimestamp, endTimestamp, aggFun);
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     return super.getQueryAttrs();

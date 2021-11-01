@@ -412,11 +412,7 @@ public class ConfigDescriptor {
     }
   }
 
-  /**
-   * Check validation of config
-   *
-   * @return
-   */
+  /** Check validation of config */
   private boolean checkConfig() {
     boolean result = true;
     // Checking config according to mode
