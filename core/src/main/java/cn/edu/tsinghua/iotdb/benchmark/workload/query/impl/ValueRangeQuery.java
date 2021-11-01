@@ -42,11 +42,6 @@ public class ValueRangeQuery extends RangeQuery {
     return valueThreshold;
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = super.getQueryAttrs();

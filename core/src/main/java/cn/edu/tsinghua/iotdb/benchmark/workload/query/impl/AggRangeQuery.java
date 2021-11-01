@@ -41,11 +41,6 @@ public class AggRangeQuery extends RangeQuery {
     return aggFun;
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = super.getQueryAttrs();

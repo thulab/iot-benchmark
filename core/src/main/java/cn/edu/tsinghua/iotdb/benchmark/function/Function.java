@@ -31,13 +31,7 @@ public class Function {
   /** use DATA_SEED in config */
   private static final Random random = new Random(config.getDATA_SEED());
 
-  /**
-   * Get value of function
-   *
-   * @param param
-   * @param currentTime
-   * @return
-   */
+  /** Get value of function */
   public static Number getValueByFunctionIdAndParam(FunctionParam param, long currentTime) {
     return getValueByFunctionIdAndParam(
         FunctionType.valueOf(param.getFunctionType().toUpperCase()),

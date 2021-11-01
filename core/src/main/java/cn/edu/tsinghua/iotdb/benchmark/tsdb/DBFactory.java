@@ -33,12 +33,7 @@ public class DBFactory {
 
   public DBFactory() {}
 
-  /**
-   * Get database according to DB_SWITCH
-   *
-   * @return
-   * @throws SQLException
-   */
+  /** Get database according to DB_SWITCH */
   public IDatabase getDatabase(DBConfig dbConfig) throws SQLException {
     String dbClass = "";
     try {

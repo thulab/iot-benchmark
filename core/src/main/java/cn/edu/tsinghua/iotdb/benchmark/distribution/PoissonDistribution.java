@@ -50,11 +50,7 @@ public class PoissonDistribution {
     this.maxK = config.getMAX_K();
   }
 
-  /**
-   * Generate next poisson delta
-   *
-   * @return
-   */
+  /** Generate next poisson delta */
   public int getNextPoissonDelta() {
     int nextDelta = 0;
     int kInUse = BASIC_MODEL_MAX_K;
@@ -100,13 +96,7 @@ public class PoissonDistribution {
     return nextDelta;
   }
 
-  /**
-   * get next poisson probability
-   *
-   * @param k
-   * @param la
-   * @return
-   */
+  /** get next poisson probability */
   private double getPoissonProbability(int k, double la) {
     double c = Math.exp(-la);
     double sum = 1;

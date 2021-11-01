@@ -45,11 +45,6 @@ public class AggRangeValueQuery extends AggRangeQuery {
     return valueThreshold;
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = super.getQueryAttrs();

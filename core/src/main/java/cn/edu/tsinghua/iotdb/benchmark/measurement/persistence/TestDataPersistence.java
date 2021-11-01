@@ -95,13 +95,7 @@ public abstract class TestDataPersistence {
     }
   }
 
-  /**
-   * Save result of operation Async
-   *
-   * @param operation
-   * @param key
-   * @param value
-   */
+  /** Save result of operation Async */
   public void saveResultAsync(String operation, String key, String value) {
     future =
         service.submit(

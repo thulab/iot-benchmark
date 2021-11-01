@@ -59,12 +59,7 @@ public class DBWrapper implements IDatabase {
   private Measurement measurement;
   private TestDataPersistence recorder;
 
-  /**
-   * Use DBFactory to get database
-   *
-   * @param dbConfigs
-   * @param measurement
-   */
+  /** Use DBFactory to get database */
   public DBWrapper(List<DBConfig> dbConfigs, Measurement measurement) {
     DBFactory dbFactory = new DBFactory();
     for (DBConfig dbConfig : dbConfigs) {
@@ -137,15 +132,7 @@ public class DBWrapper implements IDatabase {
     return status;
   }
 
-  /**
-   * Measure one batch
-   *
-   * @param status
-   * @param operation
-   * @param batch
-   * @param start
-   * @return
-   */
+  /** Measure one batch */
   private Status measureOneBatch(Status status, Operation operation, Batch batch, long start) {
     long end = System.nanoTime();
     status.setTimeCost(end - start);
@@ -430,11 +417,7 @@ public class DBWrapper implements IDatabase {
     return status;
   }
 
-  /**
-   * Using in verification
-   *
-   * @param verificationQuery
-   */
+  /** Using in verification */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) {
     Status status = null;
@@ -536,14 +519,7 @@ public class DBWrapper implements IDatabase {
     }
   }
 
-  /**
-   * Measure ok operation 1. operation is execute as expected way 2. occurs expected exception
-   *
-   * @param status
-   * @param operation
-   * @param okPointNum
-   * @param device
-   */
+  /** Measure ok operation 1. operation is execute as expected way 2. occurs expected exception */
   private void measureOkOperation(
       Status status, Operation operation, int okPointNum, String device) {
     double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
@@ -712,12 +688,7 @@ public class DBWrapper implements IDatabase {
             + status2.getSql());
   }
 
-  /**
-   * Handle unexpected exception
-   *
-   * @param status
-   * @param operation
-   */
+  /** Handle unexpected exception */
   public void handleQueryOperation(Status status, Operation operation, String device) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
@@ -745,8 +716,6 @@ public class DBWrapper implements IDatabase {
    * Handle unexpected query exception
    *
    * @see DBWrapper
-   * @param operation
-   * @param e
    */
   public void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
     measurement.addFailOperationNum(operation);

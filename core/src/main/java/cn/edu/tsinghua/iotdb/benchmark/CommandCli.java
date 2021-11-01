@@ -36,11 +36,7 @@ public class CommandCli {
 
   private static final int MAX_HELP_CONSOLE_WIDTH = 88;
 
-  /**
-   * create options by config
-   *
-   * @return
-   */
+  /** create options by config */
   private Options createOptions() {
     Options options = new Options();
     Option help = new Option(HELP_ARGS, false, "Display help information");
@@ -61,13 +57,6 @@ public class CommandCli {
   /**
    * parse params and config system property when args contains HELP_ARGS, it will just print help
    * message when args contains CONFIG_ARGS, it will set configuration for use.
-   *
-   * @param commandLine
-   * @param parser
-   * @param options
-   * @param args
-   * @param hf
-   * @return
    */
   private boolean parseParams(
       CommandLine commandLine,

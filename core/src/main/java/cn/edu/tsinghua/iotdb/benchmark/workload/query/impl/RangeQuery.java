@@ -58,11 +58,6 @@ public class RangeQuery extends Query {
     return desc;
   }
 
-  /**
-   * get attributes of query
-   *
-   * @return
-   */
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = new StringBuilder();

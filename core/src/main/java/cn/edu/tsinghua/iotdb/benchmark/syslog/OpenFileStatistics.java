@@ -51,7 +51,6 @@ public class OpenFileStatistics {
   /**
    * Get the pid of the currently specified database server
    *
-   * @param
    * @return int, pid
    */
   public int getPID(DBType dbType) {

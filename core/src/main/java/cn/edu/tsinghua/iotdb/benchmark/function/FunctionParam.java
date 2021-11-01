@@ -34,7 +34,7 @@ public class FunctionParam {
   private double max;
   /** Minimum of function */
   private double min;
-  /** Cycle of function For *-k function, only use to calculate k */
+  /** Cycle of function For *-k function, only be used to calculate k */
   private long cycle;
 
   @XmlAttribute(name = "function-sensorType")

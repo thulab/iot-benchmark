@@ -52,11 +52,7 @@ public class FileSize {
     return FileSizeHolder.INSTANCE;
   }
 
-  /**
-   * Use `du` to get File size
-   *
-   * @return
-   */
+  /** Use `du` to get File size */
   public Map<FileSizeKinds, Float> getFileSize() {
     Map<FileSizeKinds, Float> fileSize = new EnumMap<>(FileSizeKinds.class);
     BufferedReader in;
