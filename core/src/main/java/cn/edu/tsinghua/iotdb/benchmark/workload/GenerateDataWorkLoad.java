@@ -20,7 +20,7 @@ import java.util.Random;
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataWorkLoad.class);
-  protected static final ProbTool probTool = new ProbTool();
+
   protected static final Random poissonRandom = new Random(config.getDATA_SEED());
   protected static final Random dataRandom = new Random(config.getDATA_SEED());
   protected static final Random timestampRandom = new Random(config.getDATA_SEED());
@@ -35,6 +35,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected static final Object[][] workloadValues = initWorkloadValues();
 
   protected List<DeviceSchema> deviceSchemas = new ArrayList<>();
+  protected final ProbTool probTool = new ProbTool();
   protected int deviceSchemaSize = 0;
 
   @Override
@@ -115,7 +116,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       // data is not in regular frequency, then use random
       timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
     }
-    long currentTimestamp = (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
     if (config.isIS_RECENT_QUERY()) {
       this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
     }
@@ -135,7 +136,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       // data is not in regular frequency, then use random
       timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
     }
-    return (Constants.START_TIMESTAMP + offset + timestamp) * timeStampConst;
+    return Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
   }
 
   /**

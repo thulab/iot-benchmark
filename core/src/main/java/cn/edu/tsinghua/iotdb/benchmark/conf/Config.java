@@ -152,6 +152,8 @@ public class Config {
 
   /** Whether the sensor timestamp is aligned */
   private boolean IS_SENSOR_TS_ALIGNMENT = true;
+  /** The ratio of not null sensor of one device. */
+  private double TS_ALIGNMENT_RATIO = 1.0;
   /**
    * whether the device is bind to client if true: number of clients <= devices if false: number of
    * clients can larger than devices
@@ -728,6 +730,14 @@ public class Config {
 
   public void setIS_SENSOR_TS_ALIGNMENT(boolean IS_SENSOR_TS_ALIGNMENT) {
     this.IS_SENSOR_TS_ALIGNMENT = IS_SENSOR_TS_ALIGNMENT;
+  }
+
+  public double getTS_ALIGNMENT_RATIO() {
+    return TS_ALIGNMENT_RATIO;
+  }
+
+  public void setTS_ALIGNMENT_RATIO(double TS_ALIGNMENT_RATIO) {
+    this.TS_ALIGNMENT_RATIO = TS_ALIGNMENT_RATIO;
   }
 
   public boolean isIS_CLIENT_BIND() {
@@ -1349,6 +1359,8 @@ public class Config {
         + SENSOR_NUMBER
         + "\nIS_SENSOR_TS_ALIGNMENT="
         + IS_SENSOR_TS_ALIGNMENT
+        + "\nTS_ALIGNMENT_RATIO="
+        + TS_ALIGNMENT_RATIO
         + "\nDATA_SEED="
         + DATA_SEED
         + "\nSG_STRATEGY='"
@@ -1439,6 +1451,9 @@ public class Config {
     properties.put("REAL_INSERT_RATE", this.REAL_INSERT_RATE);
     properties.put("SENSOR_NUMBER", this.SENSOR_NUMBER);
     properties.put("IS_SENSOR_TS_ALIGNMENT", this.IS_SENSOR_TS_ALIGNMENT);
+    if (!this.IS_SENSOR_TS_ALIGNMENT) {
+      properties.put("TS_ALIGNMENT_RATIO", this.TS_ALIGNMENT_RATIO);
+    }
     properties.put("BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
     properties.put("LOOP", this.LOOP);
     properties.put("POINT_STEP", this.POINT_STEP);

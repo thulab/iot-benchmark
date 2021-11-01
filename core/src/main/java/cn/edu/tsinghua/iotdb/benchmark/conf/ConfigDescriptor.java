@@ -202,6 +202,12 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty(
                     "IS_SENSOR_TS_ALIGNMENT", config.isIS_SENSOR_TS_ALIGNMENT() + "")));
+        if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
+          config.setTS_ALIGNMENT_RATIO(
+              Double.parseDouble(
+                  properties.getProperty(
+                      "TS_ALIGNMENT_RATIO", config.getTS_ALIGNMENT_RATIO() + "")));
+        }
         config.setIS_CLIENT_BIND(
             Boolean.parseBoolean(
                 properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND() + "")));

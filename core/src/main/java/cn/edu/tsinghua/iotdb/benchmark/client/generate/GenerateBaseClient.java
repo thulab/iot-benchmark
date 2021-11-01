@@ -20,10 +20,13 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.distribution.ProbTool;
+import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -35,6 +38,8 @@ import java.util.concurrent.CyclicBarrier;
 public abstract class GenerateBaseClient extends Client implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(GenerateBaseClient.class);
+  protected final ProbTool probTool = new ProbTool();
+  protected final Random alignRandom = new Random(config.getDATA_SEED());
 
   /** Insert Loop Index, using for data insertion */
   protected long insertLoopIndex;
@@ -52,5 +57,21 @@ public abstract class GenerateBaseClient extends Client implements Runnable {
   protected void initDBWrappers() {
     super.initDBWrappers();
     this.totalLoop = config.getLOOP();
+  }
+
+  /**
+   * Check whether write batch
+   *
+   * @param batch
+   * @return
+   */
+  protected boolean checkBatch(Batch batch) {
+    if (batch.getDeviceSchema().getDeviceId() > actualDeviceFloor) {
+      return false;
+    }
+    if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
+      return probTool.returnTrueByProb(config.getTS_ALIGNMENT_RATIO(), alignRandom);
+    }
+    return true;
   }
 }
