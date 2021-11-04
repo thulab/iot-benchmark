@@ -212,43 +212,6 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   /**
-   * Insert single-sensor one batch into the database, the DB implementation needs to resolve the
-   * data in batch which contains device schema and Map[Long, List[String]] records. The key of
-   * records is a timestamp and the value is one sensor value data.
-   *
-   * @param batch universal insertion data structure
-   * @return status which contains successfully executed flag, error message and so on.
-   */
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    DeviceSchema deviceSchema = batch.getDeviceSchema();
-    long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-    try {
-      PreparedStatement statement = connection.prepareStatement(INSERT_SQL);
-      for (Record record : batch.getRecords()) {
-        List<Object> values = record.getRecordDataValue();
-        addBatch(
-            idPredix,
-            batch.getColIndex(),
-            record.getTimestamp(),
-            values.get(0),
-            deviceSchema.getDevice(),
-            deviceSchema.getSensors());
-      }
-      for (PreparedStatement preparedStatement : insertStatements) {
-        preparedStatement.executeBatch();
-        preparedStatement.clearParameters();
-      }
-      statement.close();
-      return new Status(true);
-    } catch (SQLException e) {
-      e.printStackTrace();
-      LOGGER.error("Write batch failed");
-      return new Status(false, 0, e, e.getMessage());
-    }
-  }
-
-  /**
    * Add Data into batch
    *
    * @param idPredix

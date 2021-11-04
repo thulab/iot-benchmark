@@ -129,31 +129,6 @@ public class VictoriaMetrics implements IDatabase {
     }
   }
 
-  /**
-   * Insert single-sensor one batch into the database, the DB implementation needs to resolve the
-   * data in batch which contains device schema and Map[Long, List[String]] records. The key of
-   * records is a timestamp and the value is one sensor value data.
-   *
-   * @param batch universal insertion data structure
-   * @return status which contains successfully executed flag, error message and so on.
-   */
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    try {
-      LinkedList<VictoriaMetricsModel> models = createDataModelByBatch(batch);
-      StringBuffer body = new StringBuffer();
-      for (VictoriaMetricsModel victoriaMetricsModel : models) {
-        body.append(victoriaMetricsModel.toString() + "\n");
-      }
-      HttpRequestUtil.sendPost(
-          CREATE_URL, body.toString(), "text/plain; version=0.0.4; charset=utf-8");
-      return new Status(true);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
   private LinkedList<VictoriaMetricsModel> createDataModelByBatch(Batch batch) {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     String device = deviceSchema.getDevice();
