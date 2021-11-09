@@ -117,6 +117,7 @@ public abstract class BaseMode {
         LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
       }
     }
+    LOGGER.info("Registering schema successful!");
     return true;
   }
 
