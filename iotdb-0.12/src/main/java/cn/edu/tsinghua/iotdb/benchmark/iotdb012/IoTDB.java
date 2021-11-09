@@ -103,7 +103,7 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     // create timeseries one by one is too slow in current cluster server.
     // therefore, we use session to create time series in batch.
 
@@ -157,6 +157,7 @@ public class IoTDB implements IDatabase {
         }
       }
     }
+    return true;
   }
 
   private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)

@@ -125,9 +125,10 @@ public class QuestDB implements IDatabase {
    * Called once before each test if CREATE_SCHEMA=true.
    *
    * @param schemaList schema of devices to register
+   * @return
    */
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       try (Statement statement = connection.createStatement()) {
         for (DeviceSchema deviceSchema : schemaList) {
@@ -163,6 +164,7 @@ public class QuestDB implements IDatabase {
         throw new TsdbException(e);
       }
     }
+    return true;
   }
 
   /**

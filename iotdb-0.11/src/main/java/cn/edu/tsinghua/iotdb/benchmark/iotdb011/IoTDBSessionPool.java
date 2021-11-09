@@ -104,7 +104,7 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     int count = 0;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       try {
@@ -169,6 +169,7 @@ public class IoTDBSessionPool implements IDatabase {
         }
       }
     }
+    return true;
   }
 
   private String getEncodingType(SensorType dataSensorType) {
