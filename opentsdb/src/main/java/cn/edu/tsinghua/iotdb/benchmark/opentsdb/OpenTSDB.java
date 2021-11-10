@@ -109,20 +109,6 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch) {
-    try {
-      // create dataModel
-      LinkedList<OpenTSDBDataModel> models = createDataModelByBatch(batch);
-      String sql = JSON.toJSONString(models);
-      HttpRequest.sendPost(writeUrl, sql);
-      return new Status(true);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
-  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     Map<String, Object> queryMap = new HashMap<>();
     List<Map<String, Object>> list = null;

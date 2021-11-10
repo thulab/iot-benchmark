@@ -179,39 +179,6 @@ public class TDengine implements IDatabase {
     }
   }
 
-  @Override
-  public Status insertOneSensorBatch(Batch batch) {
-    try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, testDb));
-      StringBuilder builder = new StringBuilder();
-      DeviceSchema deviceSchema = batch.getDeviceSchema();
-      List<Sensor> colList = deviceSchema.getSensors();
-      builder
-          .append("insert into ")
-          .append(deviceSchema.getDevice())
-          .append(" (time, ")
-          .append(colList.get(batch.getColIndex()).getName());
-      builder.append(") values ");
-      int colIndex = batch.getColIndex();
-
-      for (Record record : batch.getRecords()) {
-        builder.append(
-            getInsertOneRecordSql(
-                batch.getDeviceSchema(),
-                record.getTimestamp(),
-                record.getRecordDataValue(),
-                colIndex));
-      }
-      LOGGER.debug("getInsertOneBatchSql: {}", builder.toString());
-      statement.addBatch(builder.toString());
-
-      statement.executeBatch();
-      return new Status(true);
-    } catch (Exception e) {
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
   private String getInsertOneRecordSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();

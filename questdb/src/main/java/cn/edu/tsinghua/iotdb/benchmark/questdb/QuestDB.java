@@ -178,19 +178,6 @@ public class QuestDB implements IDatabase {
     return insertBatch(batch);
   }
 
-  /**
-   * Insert single-sensor one batch into the database, the DB implementation needs to resolve the
-   * data in batch which contains device schema and Map[Long, List[String]] records. The key of
-   * records is a timestamp and the value is one sensor value data.
-   *
-   * @param batch universal insertion data structure
-   * @return status which contains successfully executed flag, error message and so on.
-   */
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    return insertBatch(batch);
-  }
-
   private Status insertBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
       DeviceSchema deviceSchema = batch.getDeviceSchema();

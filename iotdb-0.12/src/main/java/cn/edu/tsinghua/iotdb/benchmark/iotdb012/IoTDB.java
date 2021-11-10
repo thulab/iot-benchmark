@@ -247,26 +247,6 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      SensorType colSensorType = batch.getDeviceSchema().getSensors().get(0).getSensorType();
-      for (Record record : batch.getRecords()) {
-        String sql =
-            getInsertOneBatchSql(
-                batch.getDeviceSchema(),
-                record.getTimestamp(),
-                record.getRecordDataValue().get(0),
-                colSensorType);
-        statement.addBatch(sql);
-      }
-      statement.executeBatch();
-      return new Status(true);
-    } catch (Exception e) {
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
   public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, Object value, SensorType colSensorType) {
     StringBuilder builder = new StringBuilder();

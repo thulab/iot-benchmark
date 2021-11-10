@@ -133,35 +133,6 @@ public class InfluxDB implements IDatabase {
     }
   }
 
-  @Override
-  public Status insertOneSensorBatch(Batch batch) {
-    BatchPoints batchPoints =
-        BatchPoints.database(influxDbName)
-            .retentionPolicy(defaultRp)
-            .consistency(org.influxdb.InfluxDB.ConsistencyLevel.ALL)
-            .build();
-    try {
-      InfluxDataModel model;
-      int colIndex = batch.getColIndex();
-      for (Record record : batch.getRecords()) {
-        model =
-            createDataModel(
-                batch.getDeviceSchema(),
-                record.getTimestamp(),
-                record.getRecordDataValue(),
-                colIndex);
-        batchPoints.point(model.toInfluxPoint());
-      }
-
-      influxDbInstance.write(batchPoints);
-
-      return new Status(true);
-    } catch (Exception e) {
-      LOGGER.warn(e.getMessage());
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
   /** eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time = 1535558405000000000. */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {

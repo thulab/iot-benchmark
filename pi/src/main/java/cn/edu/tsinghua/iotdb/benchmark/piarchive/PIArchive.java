@@ -138,36 +138,6 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch) {
-    try {
-      PreparedStatement pStatement =
-          connection.prepareStatement(
-              "INSERT piarchive..picomp2 (tag, value, time) VALUES (?, ?, ?)");
-      DeviceSchema deviceSchema = batch.getDeviceSchema();
-      String pointName =
-          deviceSchema.getGroup()
-              + "_"
-              + deviceSchema.getDevice()
-              + "_"
-              + deviceSchema.getSensors().get(0);
-      for (Record record : batch.getRecords()) {
-        pStatement.setString(1, pointName);
-        pStatement.setString(2, String.valueOf(record.getRecordDataValue().get(0)));
-        pStatement.setString(3, formatter.format(record.getTimestamp()));
-        pStatement.addBatch();
-      }
-      pStatement.executeBatch();
-      connection.commit();
-      pStatement.clearBatch();
-      pStatement.close();
-      return new Status(true);
-    } catch (SQLException e) {
-      LOGGER.error(String.valueOf(e));
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
-  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     DeviceSchema deviceSchema = preciseQuery.getDeviceSchema().get(0);
     String tagName =

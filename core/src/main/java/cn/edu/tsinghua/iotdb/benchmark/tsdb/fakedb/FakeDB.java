@@ -55,11 +55,6 @@ public class FakeDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneSensorBatch(Batch batch) {
-    return new Status(true);
-  }
-
-  @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     return new Status(true, null, null);
   }

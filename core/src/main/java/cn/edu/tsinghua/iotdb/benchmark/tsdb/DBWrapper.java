@@ -105,33 +105,6 @@ public class DBWrapper implements IDatabase {
     return status;
   }
 
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    Status status = null;
-    Operation operation = Operation.INGESTION;
-    try {
-      for (IDatabase database : databases) {
-        long start = System.nanoTime();
-        status = database.insertOneSensorBatch(batch);
-        status = measureOneBatch(status, operation, batch, start);
-      }
-    } catch (DBConnectException ex) {
-      throw ex;
-    } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResultAsync(
-          operation.getName(),
-          0,
-          batch.pointNum(),
-          0,
-          e.toString(),
-          batch.getDeviceSchema().getDevice());
-      LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
-    }
-    return status;
-  }
-
   /** Measure one batch */
   private Status measureOneBatch(Status status, Operation operation, Batch batch, long start) {
     long end = System.nanoTime();
