@@ -179,10 +179,10 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
                 value = number.longValue();
                 break;
               case FLOAT:
-                value = number.floatValue();
+                value = (float) (Math.round(number.floatValue()));
                 break;
               case DOUBLE:
-                value = Math.round(number.doubleValue() * 100) / 100.0;
+                value = (double) Math.round(number.doubleValue());
                 break;
               default:
                 value = null;
