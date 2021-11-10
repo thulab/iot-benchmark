@@ -1511,7 +1511,23 @@ public class Config {
       properties.put("IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     }
     properties.put("OPERATION_PROPORTION", this.OPERATION_PROPORTION);
+    properties.put("STRING_LENGTH", this.STRING_LENGTH);
+    properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
     properties.put("INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
+    properties.put(
+        "ENCODINGS",
+        this.ENCODING_BOOLEAN
+            + "/"
+            + this.ENCODING_INT32
+            + "/"
+            + this.ENCODING_INT64
+            + "/"
+            + this.ENCODING_FLOAT
+            + "/"
+            + this.ENCODING_DOUBLE
+            + "/"
+            + this.ENCODING_TEXT);
+    properties.put("COMPRESSOR", this.COMPRESSOR);
     properties.put("IS_DELETE_DATA", this.IS_DELETE_DATA);
     properties.put("CREATE_SCHEMA", this.CREATE_SCHEMA);
     properties.put("IS_CLIENT_BIND", this.IS_CLIENT_BIND);
@@ -1543,8 +1559,6 @@ public class Config {
   public Map<String, Object> getAllProperties() {
     Map<String, Object> properties = getShowProperties();
     properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
-    properties.put("STRING_LENGTH", this.STRING_LENGTH);
-    properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
     properties.put("ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     properties.put("WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     properties.put("READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);

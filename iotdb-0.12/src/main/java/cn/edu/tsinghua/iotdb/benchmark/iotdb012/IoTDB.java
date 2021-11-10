@@ -192,7 +192,7 @@ public class IoTDB implements IDatabase {
         tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
         tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
         // TODO remove when [IOTDB-1518] is solved(not supported null)
-        compressionTypes.add(Enum.valueOf(CompressionType.class, "SNAPPY"));
+        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
         if (++count % createSchemaBatchNum == 0) {
           registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
         }
@@ -748,12 +748,17 @@ public class IoTDB implements IDatabase {
   String getEncodingType(SensorType dataSensorType) {
     switch (dataSensorType) {
       case BOOLEAN:
+        return config.getENCODING_BOOLEAN();
       case INT32:
+        return config.getENCODING_INT32();
       case INT64:
+        return config.getENCODING_INT64();
       case FLOAT:
+        return config.getENCODING_FLOAT();
       case DOUBLE:
+        return config.getENCODING_DOUBLE();
       case TEXT:
-        return "PLAIN";
+        return config.getENCODING_TEXT();
       default:
         LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;

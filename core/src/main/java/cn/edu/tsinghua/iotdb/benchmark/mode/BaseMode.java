@@ -67,9 +67,9 @@ public abstract class BaseMode {
         return;
       }
       clients.add(client);
-      start = System.nanoTime();
       executorService.submit(client);
     }
+    start = System.nanoTime();
     executorService.shutdown();
     try {
       // wait for all clients finish test
