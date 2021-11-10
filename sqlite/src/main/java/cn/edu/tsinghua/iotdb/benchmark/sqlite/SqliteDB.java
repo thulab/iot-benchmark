@@ -148,40 +148,6 @@ public class SqliteDB implements IDatabase {
     }
   }
 
-  /**
-   * Insert single-sensor one batch into the database, the DB implementation needs to resolve the
-   * data in batch which contains device schema and Map[Long, List[String]] records. The key of
-   * records is a timestamp and the value is one sensor value data.
-   *
-   * @param batch universal insertion data structure
-   * @return status which contains successfully executed flag, error message and so on.
-   */
-  @Override
-  public Status insertOneSensorBatch(Batch batch) throws DBConnectException {
-    DeviceSchema deviceSchema = batch.getDeviceSchema();
-    long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
-    try {
-      Statement statement = connection.createStatement();
-      for (Record record : batch.getRecords()) {
-        List<Object> values = record.getRecordDataValue();
-        statement.addBatch(
-            getOneLine(
-                idPredix,
-                batch.getColIndex(),
-                record.getTimestamp(),
-                values.get(batch.getColIndex()),
-                deviceSchema.getSensors().get(batch.getColIndex()).getSensorType()));
-      }
-      statement.executeBatch();
-      statement.close();
-      return new Status(true);
-    } catch (SQLException e) {
-      e.printStackTrace();
-      LOGGER.error("Write batch failed");
-      return new Status(false, 0, e, e.getMessage());
-    }
-  }
-
   private String getOneLine(
       long idPredix, int sensorIndex, long time, Object value, SensorType sensorType) {
     long sensorNow = sensorIndex + idPredix;
