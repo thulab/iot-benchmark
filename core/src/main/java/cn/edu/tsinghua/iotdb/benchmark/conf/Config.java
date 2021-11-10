@@ -134,6 +134,21 @@ public class Config {
    */
   private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
+  /** The compress of data */
+  private String COMPRESSOR = "UNCOMPRESSOR";
+  /** The encoding of boolean */
+  private String ENCODING_BOOLEAN = "PLAIN";
+  /** The encoding of int32 */
+  private String ENCODING_INT32 = "PLAIN";
+  /** The encoding of int64 */
+  private String ENCODING_INT64 = "PLAIN";
+  /** The encoding of float */
+  private String ENCODING_FLOAT = "PLAIN";
+  /** The encoding of double */
+  private String ENCODING_DOUBLE = "PLAIN";
+  /** The encoding of text */
+  private String ENCODING_TEXT = "PLAIN";
+
   // 测试数据相关参数
 
   // 测试数据：外部测试数据
@@ -696,6 +711,62 @@ public class Config {
 
   public void setINSERT_DATATYPE_PROPORTION(String INSERT_DATATYPE_PROPORTION) {
     this.INSERT_DATATYPE_PROPORTION = INSERT_DATATYPE_PROPORTION;
+  }
+
+  public String getCOMPRESSOR() {
+    return COMPRESSOR;
+  }
+
+  public void setCOMPRESSOR(String COMPRESSOR) {
+    this.COMPRESSOR = COMPRESSOR;
+  }
+
+  public String getENCODING_BOOLEAN() {
+    return ENCODING_BOOLEAN;
+  }
+
+  public void setENCODING_BOOLEAN(String ENCODING_BOOLEAN) {
+    this.ENCODING_BOOLEAN = ENCODING_BOOLEAN;
+  }
+
+  public String getENCODING_INT32() {
+    return ENCODING_INT32;
+  }
+
+  public void setENCODING_INT32(String ENCODING_INT32) {
+    this.ENCODING_INT32 = ENCODING_INT32;
+  }
+
+  public String getENCODING_INT64() {
+    return ENCODING_INT64;
+  }
+
+  public void setENCODING_INT64(String ENCODING_INT64) {
+    this.ENCODING_INT64 = ENCODING_INT64;
+  }
+
+  public String getENCODING_FLOAT() {
+    return ENCODING_FLOAT;
+  }
+
+  public void setENCODING_FLOAT(String ENCODING_FLOAT) {
+    this.ENCODING_FLOAT = ENCODING_FLOAT;
+  }
+
+  public String getENCODING_DOUBLE() {
+    return ENCODING_DOUBLE;
+  }
+
+  public void setENCODING_DOUBLE(String ENCODING_DOUBLE) {
+    this.ENCODING_DOUBLE = ENCODING_DOUBLE;
+  }
+
+  public String getENCODING_TEXT() {
+    return ENCODING_TEXT;
+  }
+
+  public void setENCODING_TEXT(String ENCODING_TEXT) {
+    this.ENCODING_TEXT = ENCODING_TEXT;
   }
 
   public String getFILE_PATH() {
