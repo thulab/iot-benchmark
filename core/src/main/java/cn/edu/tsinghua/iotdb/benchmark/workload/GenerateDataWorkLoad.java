@@ -144,7 +144,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
   /** Init workload values */
   private static Object[][] initWorkloadValues() {
-    int ratio = 1;
+    double ratio = 1.0;
     for (int i = 0; i < config.getDOUBLE_LENGTH(); i++) {
       ratio *= 10;
     }
