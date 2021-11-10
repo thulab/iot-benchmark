@@ -126,6 +126,8 @@ public class Config {
   // 数据：格式与编码
   /** The length of string */
   private int STRING_LENGTH = 2;
+  /** The length of double */
+  private int DOUBLE_LENGTH = 2;
   /**
    * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT D5: DOUBLE D6:
    * TEXT
@@ -678,6 +680,14 @@ public class Config {
 
   public void setSTRING_LENGTH(int STRING_LENGTH) {
     this.STRING_LENGTH = STRING_LENGTH;
+  }
+
+  public int getDOUBLE_LENGTH() {
+    return DOUBLE_LENGTH;
+  }
+
+  public void setDOUBLE_LENGTH(int DOUBLE_LENGTH) {
+    this.DOUBLE_LENGTH = DOUBLE_LENGTH;
   }
 
   public String getINSERT_DATATYPE_PROPORTION() {
@@ -1340,6 +1350,8 @@ public class Config {
         + '\''
         + "\nSTRING_LENGTH="
         + STRING_LENGTH
+        + "\nDOUBLE_LENGTH="
+        + DOUBLE_LENGTH
         + "\nINSERT_DATATYPE_PROPORTION='"
         + INSERT_DATATYPE_PROPORTION
         + '\''
@@ -1461,6 +1473,7 @@ public class Config {
     Map<String, Object> properties = getShowProperties();
     properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
     properties.put("STRING_LENGTH", this.STRING_LENGTH);
+    properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
     properties.put("ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     properties.put("WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     properties.put("READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);

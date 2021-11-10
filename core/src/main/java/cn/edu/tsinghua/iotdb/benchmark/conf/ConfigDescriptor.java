@@ -173,6 +173,9 @@ public class ConfigDescriptor {
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));
+        config.setDOUBLE_LENGTH(
+            Integer.parseInt(
+                properties.getProperty("DOUBLE_LENGTH", config.getDOUBLE_LENGTH() + "")));
         config.setINSERT_DATATYPE_PROPORTION(
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
