@@ -11,6 +11,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       try {
         PreparedStatement pStatement =
@@ -104,8 +105,10 @@ public class PIArchive implements IDatabase {
         pStatement.close();
       } catch (SQLException e) {
         e.printStackTrace();
+        throw new TsdbException(e);
       }
     }
+    return true;
   }
 
   @Override

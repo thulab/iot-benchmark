@@ -149,9 +149,10 @@ public class MsSQLServerDB implements IDatabase {
    * Called once before each test if CREATE_SCHEMA=true.
    *
    * @param schemaList schema of devices to register
+   * @return
    */
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       Statement statement = connection.createStatement();
       for (SensorType sensorType : SensorType.values()) {
@@ -172,7 +173,9 @@ public class MsSQLServerDB implements IDatabase {
       statement.close();
     } catch (SQLException sqlException) {
       LOGGER.warn("Failed to register", sqlException);
+      throw new TsdbException(sqlException);
     }
+    return true;
   }
 
   /**
