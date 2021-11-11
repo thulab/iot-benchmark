@@ -99,7 +99,7 @@ public class TDengine implements IDatabase {
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       if (config.getSENSOR_NUMBER() > 1024) {
         LOGGER.error(
@@ -156,6 +156,7 @@ public class TDengine implements IDatabase {
         throw new TsdbException(e);
       }
     }
+    return true;
   }
 
   @Override

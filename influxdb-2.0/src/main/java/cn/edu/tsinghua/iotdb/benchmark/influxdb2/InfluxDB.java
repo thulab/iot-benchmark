@@ -111,7 +111,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
       String orgId = "";
@@ -130,9 +130,9 @@ public class InfluxDB implements IDatabase {
       client.getBucketsApi().createBucket(influxDbName, orgId);
     } catch (Exception e) {
       LOGGER.error("RegisterSchema InfluxDB failed because ", e);
-      e.printStackTrace();
       throw new TsdbException(e);
     }
+    return true;
   }
 
   @Override

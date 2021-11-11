@@ -47,7 +47,9 @@ public class FakeDB implements IDatabase {
   public void close() throws TsdbException {}
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {}
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    return true;
+  }
 
   @Override
   public Status insertOneBatch(Batch batch) {

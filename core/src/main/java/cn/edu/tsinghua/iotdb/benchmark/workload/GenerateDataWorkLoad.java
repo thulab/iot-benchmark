@@ -144,6 +144,10 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
   /** Init workload values */
   private static Object[][] initWorkloadValues() {
+    double ratio = 1.0;
+    for (int i = 0; i < config.getDOUBLE_LENGTH(); i++) {
+      ratio *= 10;
+    }
     LOGGER.info("Start Generating WorkLoad");
     Object[][] workloadValues = null;
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
@@ -179,10 +183,10 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
                 value = number.longValue();
                 break;
               case FLOAT:
-                value = (float) (Math.round(number.floatValue()));
+                value = number.floatValue();
                 break;
               case DOUBLE:
-                value = (double) Math.round(number.doubleValue());
+                value = Math.round(number.doubleValue() * ratio) / ratio;
                 break;
               default:
                 value = null;

@@ -99,13 +99,14 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try {
       influxDbInstance.createDatabase(influxDbName);
     } catch (Exception e) {
       LOGGER.error("RegisterSchema InfluxDB failed because ", e);
       throw new TsdbException(e);
     }
+    return true;
   }
 
   @Override

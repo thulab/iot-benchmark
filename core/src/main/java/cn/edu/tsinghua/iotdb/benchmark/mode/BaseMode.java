@@ -67,9 +67,9 @@ public abstract class BaseMode {
         return;
       }
       clients.add(client);
-      start = System.nanoTime();
       executorService.submit(client);
     }
+    start = System.nanoTime();
     executorService.shutdown();
     try {
       // wait for all clients finish test
@@ -84,7 +84,7 @@ public abstract class BaseMode {
   protected abstract void postCheck();
 
   /** Register schema */
-  protected void registerSchema(List<DBConfig> dbConfigs, Measurement measurement) {
+  protected boolean registerSchema(List<DBConfig> dbConfigs, Measurement measurement) {
     DBWrapper dbWrapper = new DBWrapper(dbConfigs, measurement);
     // register schema if needed
     try {
@@ -94,17 +94,22 @@ public abstract class BaseMode {
           dbWrapper.cleanup();
         } catch (TsdbException e) {
           LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
+          return false;
         }
       }
       try {
         MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
         List<DeviceSchema> schemaList = metaDataSchema.getAllDeviceSchemas();
-        dbWrapper.registerSchema(schemaList);
+        if (!dbWrapper.registerSchema(schemaList)) {
+          return false;
+        }
       } catch (TsdbException e) {
         LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
+        return false;
       }
     } catch (TsdbException e) {
       LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
+      return false;
     } finally {
       try {
         dbWrapper.close();
@@ -112,6 +117,8 @@ public abstract class BaseMode {
         LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
       }
     }
+    LOGGER.info("Registering schema successful!");
+    return true;
   }
 
   /** Save measure */

@@ -112,9 +112,11 @@ public class TimescaleDB implements IDatabase {
   /**
    * Map the data schema concepts as follow: DB_NAME(table name), storage group name(table field)
    * device name(table field), sensors(table fields)
+   *
+   * @return
    */
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try (Statement statement = connection.createStatement()) {
       String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
       LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
@@ -126,6 +128,7 @@ public class TimescaleDB implements IDatabase {
       LOGGER.error("Can't create PG table because: {}", e.getMessage());
       throw new TsdbException(e);
     }
+    return true;
   }
 
   @Override

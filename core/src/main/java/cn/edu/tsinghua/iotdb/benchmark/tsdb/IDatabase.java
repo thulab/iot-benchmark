@@ -52,7 +52,7 @@ public interface IDatabase {
    *
    * @param schemaList schema of devices to register
    */
-  void registerSchema(List<DeviceSchema> schemaList) throws TsdbException;
+  boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException;
 
   /**
    * Insert one batch into the database, the DB implementation needs to resolve the data in batch

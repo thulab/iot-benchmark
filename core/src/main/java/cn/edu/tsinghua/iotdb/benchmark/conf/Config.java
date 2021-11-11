@@ -126,11 +126,28 @@ public class Config {
   // 数据：格式与编码
   /** The length of string */
   private int STRING_LENGTH = 2;
+  /** The length of double */
+  private int DOUBLE_LENGTH = 2;
   /**
    * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT D5: DOUBLE D6:
    * TEXT
    */
   private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
+
+  /** The compress of data */
+  private String COMPRESSOR = "UNCOMPRESSOR";
+  /** The encoding of boolean */
+  private String ENCODING_BOOLEAN = "PLAIN";
+  /** The encoding of int32 */
+  private String ENCODING_INT32 = "PLAIN";
+  /** The encoding of int64 */
+  private String ENCODING_INT64 = "PLAIN";
+  /** The encoding of float */
+  private String ENCODING_FLOAT = "PLAIN";
+  /** The encoding of double */
+  private String ENCODING_DOUBLE = "PLAIN";
+  /** The encoding of text */
+  private String ENCODING_TEXT = "PLAIN";
 
   // 测试数据相关参数
 
@@ -680,12 +697,76 @@ public class Config {
     this.STRING_LENGTH = STRING_LENGTH;
   }
 
+  public int getDOUBLE_LENGTH() {
+    return DOUBLE_LENGTH;
+  }
+
+  public void setDOUBLE_LENGTH(int DOUBLE_LENGTH) {
+    this.DOUBLE_LENGTH = DOUBLE_LENGTH;
+  }
+
   public String getINSERT_DATATYPE_PROPORTION() {
     return INSERT_DATATYPE_PROPORTION;
   }
 
   public void setINSERT_DATATYPE_PROPORTION(String INSERT_DATATYPE_PROPORTION) {
     this.INSERT_DATATYPE_PROPORTION = INSERT_DATATYPE_PROPORTION;
+  }
+
+  public String getCOMPRESSOR() {
+    return COMPRESSOR;
+  }
+
+  public void setCOMPRESSOR(String COMPRESSOR) {
+    this.COMPRESSOR = COMPRESSOR;
+  }
+
+  public String getENCODING_BOOLEAN() {
+    return ENCODING_BOOLEAN;
+  }
+
+  public void setENCODING_BOOLEAN(String ENCODING_BOOLEAN) {
+    this.ENCODING_BOOLEAN = ENCODING_BOOLEAN;
+  }
+
+  public String getENCODING_INT32() {
+    return ENCODING_INT32;
+  }
+
+  public void setENCODING_INT32(String ENCODING_INT32) {
+    this.ENCODING_INT32 = ENCODING_INT32;
+  }
+
+  public String getENCODING_INT64() {
+    return ENCODING_INT64;
+  }
+
+  public void setENCODING_INT64(String ENCODING_INT64) {
+    this.ENCODING_INT64 = ENCODING_INT64;
+  }
+
+  public String getENCODING_FLOAT() {
+    return ENCODING_FLOAT;
+  }
+
+  public void setENCODING_FLOAT(String ENCODING_FLOAT) {
+    this.ENCODING_FLOAT = ENCODING_FLOAT;
+  }
+
+  public String getENCODING_DOUBLE() {
+    return ENCODING_DOUBLE;
+  }
+
+  public void setENCODING_DOUBLE(String ENCODING_DOUBLE) {
+    this.ENCODING_DOUBLE = ENCODING_DOUBLE;
+  }
+
+  public String getENCODING_TEXT() {
+    return ENCODING_TEXT;
+  }
+
+  public void setENCODING_TEXT(String ENCODING_TEXT) {
+    this.ENCODING_TEXT = ENCODING_TEXT;
   }
 
   public String getFILE_PATH() {
@@ -1340,6 +1421,8 @@ public class Config {
         + '\''
         + "\nSTRING_LENGTH="
         + STRING_LENGTH
+        + "\nDOUBLE_LENGTH="
+        + DOUBLE_LENGTH
         + "\nINSERT_DATATYPE_PROPORTION='"
         + INSERT_DATATYPE_PROPORTION
         + '\''
@@ -1428,7 +1511,23 @@ public class Config {
       properties.put("IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     }
     properties.put("OPERATION_PROPORTION", this.OPERATION_PROPORTION);
+    properties.put("STRING_LENGTH", this.STRING_LENGTH);
+    properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
     properties.put("INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
+    properties.put(
+        "ENCODINGS",
+        this.ENCODING_BOOLEAN
+            + "/"
+            + this.ENCODING_INT32
+            + "/"
+            + this.ENCODING_INT64
+            + "/"
+            + this.ENCODING_FLOAT
+            + "/"
+            + this.ENCODING_DOUBLE
+            + "/"
+            + this.ENCODING_TEXT);
+    properties.put("COMPRESSOR", this.COMPRESSOR);
     properties.put("IS_DELETE_DATA", this.IS_DELETE_DATA);
     properties.put("CREATE_SCHEMA", this.CREATE_SCHEMA);
     properties.put("IS_CLIENT_BIND", this.IS_CLIENT_BIND);
@@ -1460,7 +1559,6 @@ public class Config {
   public Map<String, Object> getAllProperties() {
     Map<String, Object> properties = getShowProperties();
     properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
-    properties.put("STRING_LENGTH", this.STRING_LENGTH);
     properties.put("ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     properties.put("WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     properties.put("READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);

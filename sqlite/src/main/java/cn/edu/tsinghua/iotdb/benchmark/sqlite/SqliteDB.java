@@ -97,9 +97,10 @@ public class SqliteDB implements IDatabase {
    * Called once before each test if CREATE_SCHEMA=true.
    *
    * @param schemaList schema of devices to register
+   * @return
    */
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     try (Statement statement = connection.createStatement()) {
       for (String sensorType : TYPES) {
         String create =
@@ -111,6 +112,7 @@ public class SqliteDB implements IDatabase {
       LOGGER.error(sqlException.getMessage());
       throw new TsdbException("Failed to register!", sqlException);
     }
+    return true;
   }
 
   /**

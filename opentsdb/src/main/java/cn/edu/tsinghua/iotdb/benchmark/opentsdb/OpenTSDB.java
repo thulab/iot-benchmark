@@ -92,7 +92,9 @@ public class OpenTSDB implements IDatabase {
 
   // no need for opentsdb
   @Override
-  public void registerSchema(List<DeviceSchema> schemaList) throws TsdbException {}
+  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    return true;
+  }
 
   @Override
   public Status insertOneBatch(Batch batch) {

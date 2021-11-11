@@ -173,9 +173,20 @@ public class ConfigDescriptor {
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));
+        config.setDOUBLE_LENGTH(
+            Integer.parseInt(
+                properties.getProperty("DOUBLE_LENGTH", config.getDOUBLE_LENGTH() + "")));
         config.setINSERT_DATATYPE_PROPORTION(
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
+
+        config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", "UNCOMPRESSOR"));
+        config.setENCODING_BOOLEAN(properties.getProperty("ENCODING_BOOLEAN", "PLAIN"));
+        config.setENCODING_INT32(properties.getProperty("ENCODING_INT32", "PLAIN"));
+        config.setENCODING_INT64(properties.getProperty("ENCODING_INT64", "PLAIN"));
+        config.setENCODING_FLOAT(properties.getProperty("ENCODING_FLOAT", "PLAIN"));
+        config.setENCODING_DOUBLE(properties.getProperty("ENCODING_DOUBLE", "PLAIN"));
+        config.setENCODING_TEXT(properties.getProperty("ENCODING_TEXT", "PLAIN"));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
         config.setBIG_BATCH_SIZE(
