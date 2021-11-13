@@ -135,7 +135,7 @@ public class Config {
   private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
   /** The compress of data */
-  private String COMPRESSOR = "UNCOMPRESSOR";
+  private String COMPRESSOR = "SNAPPY";
   /** The encoding of boolean */
   private String ENCODING_BOOLEAN = "PLAIN";
   /** The encoding of int32 */
