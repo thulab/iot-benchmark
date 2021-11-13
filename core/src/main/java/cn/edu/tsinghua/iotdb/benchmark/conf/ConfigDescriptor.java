@@ -180,7 +180,7 @@ public class ConfigDescriptor {
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
-        config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", "UNCOMPRESSOR"));
+        config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", "SNAPPY"));
         config.setENCODING_BOOLEAN(properties.getProperty("ENCODING_BOOLEAN", "PLAIN"));
         config.setENCODING_INT32(properties.getProperty("ENCODING_INT32", "PLAIN"));
         config.setENCODING_INT64(properties.getProperty("ENCODING_INT64", "PLAIN"));
