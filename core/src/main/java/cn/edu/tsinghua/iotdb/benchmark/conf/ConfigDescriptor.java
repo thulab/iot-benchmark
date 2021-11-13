@@ -180,13 +180,13 @@ public class ConfigDescriptor {
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
-        config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", "SNAPPY"));
-        config.setENCODING_BOOLEAN(properties.getProperty("ENCODING_BOOLEAN", "PLAIN"));
-        config.setENCODING_INT32(properties.getProperty("ENCODING_INT32", "PLAIN"));
-        config.setENCODING_INT64(properties.getProperty("ENCODING_INT64", "PLAIN"));
-        config.setENCODING_FLOAT(properties.getProperty("ENCODING_FLOAT", "PLAIN"));
-        config.setENCODING_DOUBLE(properties.getProperty("ENCODING_DOUBLE", "PLAIN"));
-        config.setENCODING_TEXT(properties.getProperty("ENCODING_TEXT", "PLAIN"));
+        config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", config.getCOMPRESSOR()));
+        config.setENCODING_BOOLEAN(properties.getProperty("ENCODING_BOOLEAN", config.getENCODING_BOOLEAN()));
+        config.setENCODING_INT32(properties.getProperty("ENCODING_INT32", config.getENCODING_INT32()));
+        config.setENCODING_INT64(properties.getProperty("ENCODING_INT64", config.getENCODING_INT64()));
+        config.setENCODING_FLOAT(properties.getProperty("ENCODING_FLOAT", config.getENCODING_FLOAT()));
+        config.setENCODING_DOUBLE(properties.getProperty("ENCODING_DOUBLE", config.getENCODING_DOUBLE()));
+        config.setENCODING_TEXT(properties.getProperty("ENCODING_TEXT", config.getENCODING_TEXT()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
         config.setBIG_BATCH_SIZE(
