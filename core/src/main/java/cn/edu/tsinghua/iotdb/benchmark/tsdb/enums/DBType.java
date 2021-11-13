@@ -33,7 +33,8 @@ public enum DBType {
   MSSQLSERVER("MsSqlServer"),
   VictoriaMetrics("VictoriaMetrics"),
   PIArchive("PIArchive"),
-  SQLite("SQLite");
+  SQLite("SQLite"),
+  IginX("IginX");
 
   private String DBType;
 

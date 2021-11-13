@@ -111,8 +111,11 @@ public class DBFactory {
         case DB_PIARCHIVE:
           dbClass = Constants.PI_ARCHIVE_CLASS;
           break;
+        case DB_IginX:
+          dbClass = Constants.IGINX_CLASS;
+          break;
         default:
-          throw new SQLException("didn't support this database");
+          throw new SQLException("didn't support this database" + dbConfig.getDB_SWITCH());
       }
       Class<?> databaseClass = Class.forName(dbClass);
       Constructor<?> constructor = databaseClass.getConstructor(DBConfig.class);
