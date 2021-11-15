@@ -37,7 +37,7 @@ public class IginX implements IDatabase {
 
   public IginX(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
-    this.DB_NAME = dbConfig.getDB_NAME();
+    this.DB_NAME = dbConfig.getDB_NAME() + ".cluster_" + config.getBENCHMARK_INDEX();
     this.FULL_PATHS = DB_NAME + ".*";
   }
 
