@@ -115,7 +115,7 @@ public class DBFactory {
           dbClass = Constants.IGINX_CLASS;
           break;
         default:
-          throw new SQLException("didn't support this database" + dbConfig.getDB_SWITCH());
+          throw new SQLException("didn't support this database");
       }
       Class<?> databaseClass = Class.forName(dbClass);
       Constructor<?> constructor = databaseClass.getConstructor(DBConfig.class);
