@@ -23,22 +23,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class IginX implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IginX.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
+  private static final String SEPARATOR = "_";
+
   private final String DB_NAME;
   private final String FULL_PATHS;
   private final DBConfig dbConfig;
   private Session session;
 
+  private final Map<String, String> normalizeMap;
+
   public IginX(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
-    this.DB_NAME = dbConfig.getDB_NAME() + ".cluster_" + config.getBENCHMARK_INDEX();
-    this.FULL_PATHS = DB_NAME + ".*";
+    this.DB_NAME = dbConfig.getDB_NAME();
+    this.FULL_PATHS = "*";
+    this.normalizeMap = new HashMap<>();
   }
 
   @Override
@@ -65,6 +72,7 @@ public class IginX implements IDatabase {
       LOGGER.info("Finish clean data!");
     } catch (SessionException | ExecutionException e) {
       LOGGER.warn("Clear Data failed because ", e);
+      throw new TsdbException(e);
     }
   }
 
@@ -263,12 +271,12 @@ public class IginX implements IDatabase {
 
   private void buildPathsAndTypesFromSchema(
       DeviceSchema schema, List<String> paths, List<DataType> types) {
-    String group = schema.getGroup();
-    String device = schema.getDevice();
+    String group = normalize(schema.getGroup());
+    String device = normalize(schema.getDevice());
     List<Sensor> sensors = schema.getSensors();
     sensors.forEach(
         sensor -> {
-          paths.add(DB_NAME + "." + group + "." + device + "." + sensor.getName());
+          paths.add(device + "." + this.DB_NAME + "." + group + "." + sensor.getName());
           types.add(sensorTypeToDataType(sensor.getSensorType()));
         });
   }
@@ -276,31 +284,32 @@ public class IginX implements IDatabase {
   private void buildPathsFromSchemaList(List<DeviceSchema> schemaList, List<String> paths) {
     schemaList.forEach(
         schema -> {
-          String group = schema.getGroup();
-          String device = schema.getDevice();
+          String group = normalize(schema.getGroup());
+          String device = normalize(schema.getDevice());
           List<Sensor> sensors = schema.getSensors();
           sensors.forEach(
-              sensor -> paths.add(DB_NAME + "." + group + "." + device + "." + sensor.getName()));
+              sensor ->
+                  paths.add(device + "." + this.DB_NAME + "." + group + "." + sensor.getName()));
         });
   }
 
   private String buildBooleanExpression(List<DeviceSchema> schemas, int valueThreshold) {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema schema : schemas) {
-      String group = schema.getGroup();
-      String device = schema.getDevice();
+      String group = normalize(schema.getGroup());
+      String device = normalize(schema.getDevice());
 
       if (!schema.getSensors().isEmpty()) {
         String sensorName = schema.getSensors().get(0).getName();
         builder
-            .append(DB_NAME + "." + group + "." + device + "." + sensorName)
+            .append(device + "." + this.DB_NAME + "." + group + "." + sensorName)
             .append(" > ")
             .append(valueThreshold);
         for (int i = 1; i < schema.getSensors().size(); i++) {
           sensorName = schema.getSensors().get(i).getName();
           builder
               .append(" AND ")
-              .append(DB_NAME + "." + group + "." + device + "." + sensorName)
+              .append(device + "." + this.DB_NAME + "." + group + "." + sensorName)
               .append(" > ")
               .append(valueThreshold);
         }
@@ -327,5 +336,16 @@ public class IginX implements IDatabase {
         LOGGER.error("Unsupported data sensorType {}.", type);
         return null;
     }
+  }
+
+  private String normalize(String path) {
+    String normalizedPath = normalizeMap.get(path);
+    if (normalizedPath != null) {
+      return normalizedPath;
+    }
+    String[] parts = path.split(SEPARATOR);
+    normalizedPath = String.format("%s_%04d", parts[0], Integer.valueOf(parts[1]));
+    normalizeMap.put(path, normalizedPath);
+    return normalizedPath;
   }
 }
