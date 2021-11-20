@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SingletonWorkDataWorkLoad.class);
+  private static final List<Sensor> SENSORS = Collections.synchronizedList(config.getSENSORS());
   private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
   private static AtomicInteger sensorIndex = new AtomicInteger();
@@ -66,29 +68,20 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   protected Batch getOrderedBatch() {
     long curLoop = insertLoop.getAndIncrement();
-    DeviceSchema deviceSchema = getDeviceSchema(curLoop);
-    Batch batch = new Batch();
+    Batch batch = getBatchWithDeviceSchema(curLoop);
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       long stepOffset =
           (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        addOneRowIntoBatch(batch, stepOffset);
-      } else {
-        addOneRowIntoBatch(batch, stepOffset, sensorIndex.get());
-        batch.setColIndex(sensorIndex.get());
-      }
+      addOneRowIntoBatch(batch, stepOffset);
     }
-    batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
   @Override
   protected Batch getDistOutOfOrderBatch() {
     long curLoop = insertLoop.getAndIncrement();
-    DeviceSchema deviceSchema = getDeviceSchema(curLoop);
-    int deviceId = deviceSchema.getDeviceId();
-
-    Batch batch = new Batch();
+    Batch batch = getBatchWithDeviceSchema(curLoop);
+    int deviceId = batch.getDeviceSchema().getDeviceId();
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
@@ -101,31 +94,25 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
         // generate normal increasing timestamp
         stepOffset = deviceMaxTimeIndexMap.get(deviceId).getAndIncrement();
       }
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        addOneRowIntoBatch(batch, stepOffset);
-      } else {
-        addOneRowIntoBatch(batch, stepOffset, sensorIndex.get());
-        batch.setColIndex(sensorIndex.get());
-      }
+      addOneRowIntoBatch(batch, stepOffset);
     }
-    batch.setDeviceSchema(deviceSchema);
     return batch;
   }
 
-  private DeviceSchema getDeviceSchema(long loop) {
+  private Batch getBatchWithDeviceSchema(long loop) {
+    Batch batch = new Batch();
     List<Sensor> sensors = new ArrayList<>();
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-      sensors = config.getSENSORS();
+      sensors = SENSORS;
     } else {
-      int sensorId = sensorIndex.getAndIncrement();
-      sensors.add(config.getSENSORS().get(sensorId));
-      if (sensorIndex.get() >= config.getSENSOR_NUMBER()) {
-        sensorIndex.set(0);
-      }
+      int sensorId = sensorIndex.getAndIncrement() % config.getSENSOR_NUMBER();
+      batch.setColIndex(sensorId);
+      sensors.add(SENSORS.get(sensorId));
     }
     DeviceSchema deviceSchema =
         new DeviceSchema(MetaUtil.getDeviceId((int) loop % config.getDEVICE_NUMBER()), sensors);
-    return deviceSchema;
+    batch.setDeviceSchema(deviceSchema);
+    return batch;
   }
 
   @Override

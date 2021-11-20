@@ -89,19 +89,16 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected void addOneRowIntoBatch(Batch batch, long stepOffset) {
     List<Object> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
-    for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
+    if (batch.getColIndex() == -1) {
+      for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
+        values.add(
+            workloadValues[i][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+      }
+    } else {
       values.add(
-          workloadValues[i][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+          workloadValues[batch.getColIndex()][
+              (int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     }
-    batch.add(currentTimestamp, values);
-  }
-
-  /** Add one row into batch, row contains data from one sensor which index is colIndex */
-  protected void addOneRowIntoBatch(Batch batch, long stepOffset, int colIndex) {
-    List<Object> values = new ArrayList<>();
-    long currentTimestamp = getCurrentTimestamp(stepOffset);
-    values.add(
-        workloadValues[colIndex][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     batch.add(currentTimestamp, values);
   }
 
