@@ -1,18 +1,12 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.enums;
 
 public enum OutOfOrderMode {
-  POISSON(0),
-  BATCH(1);
+  POISSON,
+  BATCH;
 
-  private int mode;
-
-  OutOfOrderMode(int mode) {
-    this.mode = mode;
-  }
-
-  public static OutOfOrderMode getOutOfOrderMode(int mode) {
+  public static OutOfOrderMode getOutOfOrderMode(String name) {
     for (OutOfOrderMode outOfOrderMode : OutOfOrderMode.values()) {
-      if (mode == outOfOrderMode.mode) {
+      if (name.equals(outOfOrderMode.name())) {
         return outOfOrderMode;
       }
     }

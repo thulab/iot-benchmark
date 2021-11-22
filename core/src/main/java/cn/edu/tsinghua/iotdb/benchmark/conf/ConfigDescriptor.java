@@ -305,7 +305,8 @@ public class ConfigDescriptor {
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
         config.setOUT_OF_ORDER_MODE(
             OutOfOrderMode.getOutOfOrderMode(
-                Integer.parseInt(properties.getProperty("OUT_OF_ORDER_MODE", "0"))));
+                properties.getProperty(
+                    "OUT_OF_ORDER_MODE", config.getOUT_OF_ORDER_MODE().toString())));
         config.setOUT_OF_ORDER_RATIO(
             Double.parseDouble(
                 properties.getProperty("OUT_OF_ORDER_RATIO", config.getOUT_OF_ORDER_RATIO() + "")));
