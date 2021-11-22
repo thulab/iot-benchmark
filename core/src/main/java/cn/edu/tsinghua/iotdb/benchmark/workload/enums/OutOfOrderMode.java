@@ -1,8 +1,13 @@
 package cn.edu.tsinghua.iotdb.benchmark.workload.enums;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public enum OutOfOrderMode {
   POISSON,
   BATCH;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(OutOfOrderMode.class);
 
   public static OutOfOrderMode getOutOfOrderMode(String name) {
     for (OutOfOrderMode outOfOrderMode : OutOfOrderMode.values()) {
@@ -10,6 +15,7 @@ public enum OutOfOrderMode {
         return outOfOrderMode;
       }
     }
+    LOGGER.warn("Unknown out of order mode: " + name + ", use possion.");
     return OutOfOrderMode.POISSON;
   }
 
