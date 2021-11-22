@@ -63,9 +63,9 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       return getOrderedBatch();
     } else {
       switch (config.getOUT_OF_ORDER_MODE()) {
-        case 0:
+        case POISSON:
           return getDistOutOfOrderBatch();
-        case 1:
+        case BATCH:
           return getLocalOutOfOrderBatch();
         default:
           throw new WorkloadException(

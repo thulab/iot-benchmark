@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBType;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBVersion;
+import cn.edu.tsinghua.iotdb.benchmark.workload.enums.OutOfOrderMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -303,8 +304,8 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
         config.setOUT_OF_ORDER_MODE(
-            Integer.parseInt(
-                properties.getProperty("OUT_OF_ORDER_MODE", config.getOUT_OF_ORDER_MODE() + "")));
+            OutOfOrderMode.getOutOfOrderMode(
+                Integer.parseInt(properties.getProperty("OUT_OF_ORDER_MODE", "0"))));
         config.setOUT_OF_ORDER_RATIO(
             Double.parseDouble(
                 properties.getProperty("OUT_OF_ORDER_RATIO", config.getOUT_OF_ORDER_RATIO() + "")));
@@ -444,6 +445,12 @@ public class ConfigDescriptor {
           }
           if (!config.isCREATE_SCHEMA()) {
             LOGGER.info("Benchmark not create schema before writing.");
+          }
+        }
+        if (config.isIS_OUT_OF_ORDER()) {
+          if (config.getOUT_OF_ORDER_MODE() == OutOfOrderMode.BATCH && !config.isIS_CLIENT_BIND()) {
+            LOGGER.error("Not supported OUT_OF_ORDER_MODE = 1 when IS_CLIENT_BIND = false");
+            result = false;
           }
         }
         if (config.isIS_DOUBLE_WRITE()) {
