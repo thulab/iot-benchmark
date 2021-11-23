@@ -499,8 +499,8 @@ public class DBWrapper implements IDatabase {
   /** Measure ok operation 1. operation is execute as expected way 2. occurs expected exception */
   private void measureOkOperation(
       Status status, Operation operation, int okPointNum, String device) {
+    double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
     if (config.isUSE_MEASUREMENT()) {
-      double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
       if (latencyInMillis < 0) {
         LOGGER.warn(
             "Operation {} may have exception since the latency is negative, set it to zero",
@@ -510,9 +510,9 @@ public class DBWrapper implements IDatabase {
       measurement.addOperationLatency(operation, latencyInMillis);
       measurement.addOkOperationNum(operation);
       measurement.addOkPointNum(operation, okPointNum);
-      recorder.saveOperationResultAsync(
-          operation.getName(), okPointNum, 0, latencyInMillis, "", device);
     }
+    recorder.saveOperationResultAsync(
+        operation.getName(), okPointNum, 0, latencyInMillis, "", device);
   }
 
   private boolean doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
@@ -669,27 +669,27 @@ public class DBWrapper implements IDatabase {
 
   /** Handle unexpected exception */
   public void handleQueryOperation(Status status, Operation operation, String device) {
-    if (config.isUSE_MEASUREMENT()) {
-      if (status.isOk()) {
-        measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
-        if (!config.isIS_QUIET_MODE()) {
-          double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-          String formatTimeInMillis = String.format("%.2f", timeInMillis);
-          String currentThread = Thread.currentThread().getName();
-          LOGGER.info(
-              "{} complete {} with latency ,{}, ms ,{}, result points",
-              currentThread,
-              operation,
-              formatTimeInMillis,
-              status.getQueryResultPointNum());
-        }
-      } else {
-        LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
-        measurement.addFailOperationNum(operation);
-        // currently we do not have expected result point number for query
-        recorder.saveOperationResultAsync(
-            operation.getName(), 0, 0, 0, status.getException().toString(), device);
+    if (status.isOk()) {
+      measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
+      if (!config.isIS_QUIET_MODE()) {
+        double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
+        String formatTimeInMillis = String.format("%.2f", timeInMillis);
+        String currentThread = Thread.currentThread().getName();
+        LOGGER.info(
+            "{} complete {} with latency ,{}, ms ,{}, result points",
+            currentThread,
+            operation,
+            formatTimeInMillis,
+            status.getQueryResultPointNum());
       }
+    } else {
+      LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
+      if (config.isUSE_MEASUREMENT()) {
+        measurement.addFailOperationNum(operation);
+      }
+      // currently, we do not have expected result point number for query
+      recorder.saveOperationResultAsync(
+          operation.getName(), 0, 0, 0, status.getException().toString(), device);
     }
   }
 
