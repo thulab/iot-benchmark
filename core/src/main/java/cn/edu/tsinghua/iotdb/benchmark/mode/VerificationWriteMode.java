@@ -45,14 +45,12 @@ public class VerificationWriteMode extends BaseMode {
 
   @Override
   protected void postCheck() {
-    if (config.isUSE_MEASUREMENT()) {
-      List<Measurement> threadsMeasurements = new ArrayList<>();
-      finalMeasure(
-          measurement,
-          threadsMeasurements,
-          start,
-          clients,
-          new ArrayList<>(Arrays.asList(Operation.INGESTION)));
-    }
+    List<Measurement> threadsMeasurements = new ArrayList<>();
+    finalMeasure(
+        measurement,
+        threadsMeasurements,
+        start,
+        clients,
+        new ArrayList<>(Arrays.asList(Operation.INGESTION)));
   }
 }

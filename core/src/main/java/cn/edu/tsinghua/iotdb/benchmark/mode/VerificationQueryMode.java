@@ -39,14 +39,12 @@ public class VerificationQueryMode extends BaseMode {
 
   @Override
   protected void postCheck() {
-    if (config.isUSE_MEASUREMENT()) {
-      List<Measurement> threadsMeasurements = new ArrayList<>();
-      finalMeasure(
-          measurement,
-          threadsMeasurements,
-          start,
-          clients,
-          Arrays.asList(Operation.VERIFICATION_QUERY));
-    }
+    List<Measurement> threadsMeasurements = new ArrayList<>();
+    finalMeasure(
+        measurement,
+        threadsMeasurements,
+        start,
+        clients,
+        Arrays.asList(Operation.VERIFICATION_QUERY));
   }
 }
