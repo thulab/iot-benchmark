@@ -55,7 +55,9 @@ public class TestWithDefaultPathMode extends BaseMode {
       operations = new ArrayList<>();
       operations.add(Operation.DEVICE_QUERY);
     }
-    List<Measurement> threadsMeasurements = new ArrayList<>();
-    finalMeasure(measurement, threadsMeasurements, start, clients, operations);
+    if (config.isUSE_MEASUREMENT()) {
+      List<Measurement> threadsMeasurements = new ArrayList<>();
+      finalMeasure(measurement, threadsMeasurements, start, clients, operations);
+    }
   }
 }

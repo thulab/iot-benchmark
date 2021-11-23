@@ -499,18 +499,20 @@ public class DBWrapper implements IDatabase {
   /** Measure ok operation 1. operation is execute as expected way 2. occurs expected exception */
   private void measureOkOperation(
       Status status, Operation operation, int okPointNum, String device) {
-    double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-    if (latencyInMillis < 0) {
-      LOGGER.warn(
-          "Operation {} may have exception since the latency is negative, set it to zero",
-          operation.getName());
-      latencyInMillis = 0;
+    if (config.isUSE_MEASUREMENT()) {
+      double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
+      if (latencyInMillis < 0) {
+        LOGGER.warn(
+            "Operation {} may have exception since the latency is negative, set it to zero",
+            operation.getName());
+        latencyInMillis = 0;
+      }
+      measurement.addOperationLatency(operation, latencyInMillis);
+      measurement.addOkOperationNum(operation);
+      measurement.addOkPointNum(operation, okPointNum);
+      recorder.saveOperationResultAsync(
+          operation.getName(), okPointNum, 0, latencyInMillis, "", device);
     }
-    measurement.addOperationLatency(operation, latencyInMillis);
-    measurement.addOkOperationNum(operation);
-    measurement.addOkPointNum(operation, okPointNum);
-    recorder.saveOperationResultAsync(
-        operation.getName(), okPointNum, 0, latencyInMillis, "", device);
   }
 
   private boolean doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {

@@ -70,10 +70,12 @@ public class Config {
    */
   private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
+  /** Whether to use measurement */
+  private boolean USE_MEASUREMENT = true;
   /** Precision of result, unit: % */
   private double RESULT_PRECISION = 0.1;
 
-  /** Whether use benchmark in cluster * */
+  /** Whether to use benchmark in cluster * */
   private boolean BENCHMARK_CLUSTER = false;
   /** In cluster mode of benchmark, the index of benchmark which will influence index of devices */
   private int BENCHMARK_INDEX = 0;
@@ -567,6 +569,14 @@ public class Config {
 
   public void setBENCHMARK_WORK_MODE(BenchmarkMode BENCHMARK_WORK_MODE) {
     this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+  }
+
+  public boolean isUSE_MEASUREMENT() {
+    return USE_MEASUREMENT;
+  }
+
+  public void setUSE_MEASUREMENT(boolean USE_MEASUREMENT) {
+    this.USE_MEASUREMENT = USE_MEASUREMENT;
   }
 
   public double getRESULT_PRECISION() {
