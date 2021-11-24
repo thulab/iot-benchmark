@@ -61,19 +61,6 @@ popd
 set BENCHMARK_CONF=%BENCHMARK_HOME%\conf
 set BENCHMARK_LOGS=%BENCHMARK_HOME%\logs
 
-@setlocal ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
-set is_conf_path=false
-for %%i in (%*) do (
-	IF "%%i" == "-c" (
-		set is_conf_path=true
-	) ELSE IF "!is_conf_path!" == "true" (
-		set is_conf_path=false
-		set BENCHMARK_CONF=%%i
-	) ELSE (
-		set CONF_PARAMS=!CONF_PARAMS! %%i
-	)
-)
-
 if NOT DEFINED MAIN_CLASS set MAIN_CLASS=cn.edu.tsinghua.iotdb.benchmark.App
 if NOT DEFINED JAVA_HOME goto :err
 
@@ -81,8 +68,6 @@ if NOT DEFINED JAVA_HOME goto :err
 @REM JVM Opts we'll use in legacy run or installation
 set JAVA_OPTS=-ea^
  -Dlogback.configurationFile="%BENCHMARK_CONF%\logback.xml"^
- -DBENCHMARK_HOME="%BENCHMARK_HOME%"^
- -DBENCHMARK_CONF="%BENCHMARK_CONF%"^
  -Dsun.jnu.encoding=UTF-8^
  -Dfile.encoding=UTF-8
 
@@ -102,7 +87,7 @@ goto :eof
 
 rem echo CLASSPATH: %CLASSPATH%
 
-"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp %CLASSPATH% %MAIN_CLASS% %CONF_PARAMS%
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp .;./lib/* %MAIN_CLASS% -cf $BENCHMARK_HOME/conf/config.properties
 goto finally
 
 :err
