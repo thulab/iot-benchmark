@@ -54,10 +54,7 @@ IF "%JAVA_VERSION%" == "7" (
 
 if "%OS%" == "Windows_NT" setlocal
 
-pushd %~dp0..
-if NOT DEFINED BENCHMARK_HOME set BENCHMARK_HOME=%cd%
-popd
-
+if NOT DEFINED BENCHMARK_HOME set BENCHMARK_HOME=%~dp0
 set BENCHMARK_CONF=%BENCHMARK_HOME%\conf
 set BENCHMARK_LOGS=%BENCHMARK_HOME%\logs
 
@@ -87,7 +84,7 @@ goto :eof
 
 rem echo CLASSPATH: %CLASSPATH%
 
-"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp .;./lib/* %MAIN_CLASS% -cf $BENCHMARK_HOME/conf/config.properties
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp .;./lib/* %MAIN_CLASS% -cf %BENCHMARK_HOME%/conf/config.properties
 goto finally
 
 :err
