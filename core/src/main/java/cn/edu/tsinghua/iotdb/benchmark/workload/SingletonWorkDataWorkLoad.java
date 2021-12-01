@@ -117,7 +117,12 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
 
   @Override
   protected Batch getLocalOutOfOrderBatch() {
-    LOGGER.error("Not supported OUT_OF_ORDER_MODE = 1 when IS_CLIENT_BIND = false");
-    return null;
+    long loopIndex = insertLoop.getAndIncrement() % config.getLOOP();
+    Batch batch = getBatchWithDeviceSchema(loopIndex);
+    for (int i = 0; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
+      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
+      addOneRowIntoBatch(batch, stepOffset);
+    }
+    return batch;
   }
 }
