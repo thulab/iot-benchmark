@@ -448,12 +448,6 @@ public class ConfigDescriptor {
             LOGGER.info("Benchmark not create schema before writing.");
           }
         }
-        if (config.isIS_OUT_OF_ORDER()) {
-          if (config.getOUT_OF_ORDER_MODE() == OutOfOrderMode.BATCH && !config.isIS_CLIENT_BIND()) {
-            LOGGER.error("Not supported OUT_OF_ORDER_MODE = 1 when IS_CLIENT_BIND = false");
-            result = false;
-          }
-        }
         if (config.isIS_DOUBLE_WRITE()) {
           DBConfig dbConfig = config.getDbConfig();
           DBConfig anotherConfig = config.getANOTHER_DBConfig();
