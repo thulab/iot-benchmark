@@ -267,8 +267,10 @@ public class Measurement {
         createDirectory();
         csv.createNewFile();
         outputConfigToCSV(csv);
-        outputResultMetricToCSV(csv);
-        outputLatencyMetricsToCSV(csv);
+        if (config.isUSE_MEASUREMENT()) {
+          outputResultMetricToCSV(csv);
+          outputLatencyMetricsToCSV(csv);
+        }
 
       } catch (IOException e) {
         LOGGER.error("Exception occurred during writing csv file because: ", e);
