@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
+import cn.edu.tsinghua.iotdb.benchmark.workload.enums.OutOfOrderMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,7 +241,7 @@ public class Config {
    * The mode of out-of-order insertion 0: Out-of-order mode of Poisson distribution 1: Out-of-order
    * mode of batch
    */
-  private int OUT_OF_ORDER_MODE = 0;
+  private OutOfOrderMode OUT_OF_ORDER_MODE = OutOfOrderMode.POISSON;
   /** The out of order ratio of batch inserting */
   private double OUT_OF_ORDER_RATIO = 1.0;
   /** Whether use random time interval in inorder data need IS_OUT_OF_ORDER = false */
@@ -969,11 +970,11 @@ public class Config {
     this.IS_OUT_OF_ORDER = IS_OUT_OF_ORDER;
   }
 
-  public int getOUT_OF_ORDER_MODE() {
+  public OutOfOrderMode getOUT_OF_ORDER_MODE() {
     return OUT_OF_ORDER_MODE;
   }
 
-  public void setOUT_OF_ORDER_MODE(int OUT_OF_ORDER_MODE) {
+  public void setOUT_OF_ORDER_MODE(OutOfOrderMode OUT_OF_ORDER_MODE) {
     this.OUT_OF_ORDER_MODE = OUT_OF_ORDER_MODE;
   }
 
