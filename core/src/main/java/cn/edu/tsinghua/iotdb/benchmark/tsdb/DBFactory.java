@@ -111,6 +111,9 @@ public class DBFactory {
         case DB_PIARCHIVE:
           dbClass = Constants.PI_ARCHIVE_CLASS;
           break;
+        case DB_IginX:
+          dbClass = Constants.IGINX_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }

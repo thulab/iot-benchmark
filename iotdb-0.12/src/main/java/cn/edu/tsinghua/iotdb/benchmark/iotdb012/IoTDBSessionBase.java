@@ -32,11 +32,15 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBInsertMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class IoTDBSessionBase extends IoTDB {
+  private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSessionBase.class);
+
   public IoTDBSessionBase(DBConfig dbConfig) {
     super(dbConfig);
   }
@@ -113,6 +117,8 @@ public class IoTDBSessionBase extends IoTDB {
             sensorsText[recordIndex] =
                 Binary.valueOf((String) record.getRecordDataValue().get(recordValueIndex));
             break;
+          default:
+            LOGGER.error("Unsupported Type:" + sensors.get(sensorIndex).getSensorType());
         }
         sensorIndex++;
       }

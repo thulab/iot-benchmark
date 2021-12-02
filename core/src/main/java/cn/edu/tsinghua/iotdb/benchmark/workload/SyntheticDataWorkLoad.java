@@ -55,23 +55,16 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
 
   @Override
   protected Batch getOrderedBatch() {
-    DeviceSchema deviceSchema = getDeviceSchema();
-    Batch batch = new Batch();
+    Batch batch = getBatchWithSchema();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       long stepOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        addOneRowIntoBatch(batch, stepOffset);
-      } else {
-        addOneRowIntoBatch(batch, stepOffset, sensorIndex);
-        batch.setColIndex(sensorIndex);
-      }
+      addOneRowIntoBatch(batch, stepOffset);
     }
-    batch.setDeviceSchema(deviceSchema);
-    next();
     return batch;
   }
 
-  private DeviceSchema getDeviceSchema() {
+  private Batch getBatchWithSchema() {
+    Batch batch = new Batch();
     DeviceSchema deviceSchema =
         new DeviceSchema(
             deviceSchemas.get(deviceIndex).getDeviceId(),
@@ -80,14 +73,17 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       List<Sensor> sensors = new ArrayList<>();
       sensors.add(deviceSchema.getSensors().get(sensorIndex));
       deviceSchema.setSensors(sensors);
+      batch.setColIndex(sensorIndex);
     }
-    return deviceSchema;
+    batch.setDeviceSchema(deviceSchema);
+    next();
+    return batch;
   }
 
   @Override
   protected Batch getDistOutOfOrderBatch() {
-    DeviceSchema deviceSchema = getDeviceSchema();
-    Batch batch = new Batch();
+    Batch batch = getBatchWithSchema();
+    DeviceSchema deviceSchema = batch.getDeviceSchema();
     PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
     int nextDelta;
     long stepOffset;
@@ -101,34 +97,19 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
         stepOffset = maxTimestampIndexMap.get(deviceSchema);
       }
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        addOneRowIntoBatch(batch, stepOffset);
-      } else {
-        addOneRowIntoBatch(batch, stepOffset, sensorIndex);
-        batch.setColIndex(sensorIndex);
-      }
+      addOneRowIntoBatch(batch, stepOffset);
     }
-    batch.setDeviceSchema(deviceSchema);
-    next();
     return batch;
   }
 
   @Override
   protected Batch getLocalOutOfOrderBatch() {
-    DeviceSchema deviceSchema = getDeviceSchema();
     long loopIndex = insertLoop % config.getLOOP();
-    Batch batch = new Batch();
+    Batch batch = getBatchWithSchema();
     for (int i = 0; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
       long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        addOneRowIntoBatch(batch, stepOffset);
-      } else {
-        addOneRowIntoBatch(batch, stepOffset, sensorIndex);
-        batch.setColIndex(sensorIndex);
-      }
+      addOneRowIntoBatch(batch, stepOffset);
     }
-    batch.setDeviceSchema(deviceSchema);
-    next();
     return batch;
   }
 

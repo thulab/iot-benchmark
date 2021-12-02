@@ -298,6 +298,7 @@ public class MySqlRecorder extends TestDataPersistence {
         case MSSQLSERVER:
         case VictoriaMetrics:
         case SQLite:
+        case IginX:
           String host = config.getDbConfig().getHOST() + ":" + config.getDbConfig().getPORT();
           sql = String.format(SAVE_CONFIG, "'" + PROJECT_ID + "'", "'ServerIP'", "'" + host + "'");
           statement.addBatch(sql);
