@@ -53,7 +53,7 @@ public class Measurement {
   private final Map<Operation, Long> failOperationNumMap;
   private final Map<Operation, Long> okPointNumMap;
   private final Map<Operation, Long> failPointNumMap;
-  private static final String RESULT_ITEM = "%-20s";
+  private static final String RESULT_ITEM = "%-25s";
   private static final String LATENCY_ITEM = "%-12s";
   /** Precision = 3 / COMPRESSION */
   private static final int COMPRESSION = (int) (300 / config.getRESULT_PRECISION());
