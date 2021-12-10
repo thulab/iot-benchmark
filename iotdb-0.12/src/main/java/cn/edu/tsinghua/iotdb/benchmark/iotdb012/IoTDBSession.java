@@ -54,6 +54,10 @@ public class IoTDBSession extends IoTDBSessionBase {
             dbConfig.getUSERNAME(),
             dbConfig.getPASSWORD(),
             true);
+  }
+
+  @Override
+  public void init() throws TsdbException {
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
@@ -146,7 +150,6 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
-    super.close();
     try {
       if (session != null) {
         session.close();

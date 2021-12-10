@@ -138,13 +138,15 @@ public abstract class BaseMode {
     for (Measurement m : threadsMeasurements) {
       measurement.mergeMeasurement(m);
     }
-    // must call calculateMetrics() before using the Metrics
-    measurement.calculateMetrics(operations);
     // output results
     measurement.showConfigs();
-    if (operations.size() != 0) {
-      measurement.showMeasurements(operations);
-      measurement.showMetrics(operations);
+    if (config.isUSE_MEASUREMENT()) {
+      // must call calculateMetrics() before using the Metrics
+      measurement.calculateMetrics(operations);
+      if (operations.size() != 0) {
+        measurement.showMeasurements(operations);
+        measurement.showMetrics(operations);
+      }
     }
     if (config.isCSV_OUTPUT()) {
       measurement.outputCSV();

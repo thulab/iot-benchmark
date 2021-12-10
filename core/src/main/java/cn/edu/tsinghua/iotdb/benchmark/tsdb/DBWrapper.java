@@ -500,15 +500,17 @@ public class DBWrapper implements IDatabase {
   private void measureOkOperation(
       Status status, Operation operation, int okPointNum, String device) {
     double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-    if (latencyInMillis < 0) {
-      LOGGER.warn(
-          "Operation {} may have exception since the latency is negative, set it to zero",
-          operation.getName());
-      latencyInMillis = 0;
+    if (config.isUSE_MEASUREMENT()) {
+      if (latencyInMillis < 0) {
+        LOGGER.warn(
+            "Operation {} may have exception since the latency is negative, set it to zero",
+            operation.getName());
+        latencyInMillis = 0;
+      }
+      measurement.addOperationLatency(operation, latencyInMillis);
+      measurement.addOkOperationNum(operation);
+      measurement.addOkPointNum(operation, okPointNum);
     }
-    measurement.addOperationLatency(operation, latencyInMillis);
-    measurement.addOkOperationNum(operation);
-    measurement.addOkPointNum(operation, okPointNum);
     recorder.saveOperationResultAsync(
         operation.getName(), okPointNum, 0, latencyInMillis, "", device);
   }
@@ -682,8 +684,10 @@ public class DBWrapper implements IDatabase {
       }
     } else {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
-      measurement.addFailOperationNum(operation);
-      // currently we do not have expected result point number for query
+      if (config.isUSE_MEASUREMENT()) {
+        measurement.addFailOperationNum(operation);
+      }
+      // currently, we do not have expected result point number for query
       recorder.saveOperationResultAsync(
           operation.getName(), 0, 0, 0, status.getException().toString(), device);
     }
@@ -695,9 +699,11 @@ public class DBWrapper implements IDatabase {
    * @see DBWrapper
    */
   public void handleUnexpectedQueryException(Operation operation, Exception e, String device) {
-    measurement.addFailOperationNum(operation);
-    // currently we do not have expected result point number for query
-    LOGGER.error(ERROR_LOG, operation, e);
-    recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, e.toString(), device);
+    if (config.isUSE_MEASUREMENT()) {
+      measurement.addFailOperationNum(operation);
+      // currently, we do not have expected result point number for query
+      LOGGER.error(ERROR_LOG, operation, e);
+      recorder.saveOperationResultAsync(operation.getName(), 0, 0, 0, e.toString(), device);
+    }
   }
 }

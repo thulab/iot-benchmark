@@ -72,6 +72,11 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   }
 
   @Override
+  public void init() throws TsdbException {
+    // do nothing here
+  }
+
+  @Override
   public Status insertOneBatchByRecord(Batch batch) {
     String deviceId =
         ROOT_SERIES_NAME
@@ -182,7 +187,6 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
-    super.close();
     for (SessionPool sessionPool : sessions) {
       if (sessionPool != null) {
         sessionPool.close();

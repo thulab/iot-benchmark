@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBType;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBVersion;
+import cn.edu.tsinghua.iotdb.benchmark.workload.enums.OutOfOrderMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +87,9 @@ public class ConfigDescriptor {
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+        config.setUSE_MEASUREMENT(
+            Boolean.parseBoolean(
+                properties.getProperty("USE_MEASUREMENT", config.isUSE_MEASUREMENT() + "")));
         config.setRESULT_PRECISION(
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
@@ -303,8 +307,9 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
         config.setOUT_OF_ORDER_MODE(
-            Integer.parseInt(
-                properties.getProperty("OUT_OF_ORDER_MODE", config.getOUT_OF_ORDER_MODE() + "")));
+            OutOfOrderMode.getOutOfOrderMode(
+                properties.getProperty(
+                    "OUT_OF_ORDER_MODE", config.getOUT_OF_ORDER_MODE().toString())));
         config.setOUT_OF_ORDER_RATIO(
             Double.parseDouble(
                 properties.getProperty("OUT_OF_ORDER_RATIO", config.getOUT_OF_ORDER_RATIO() + "")));
