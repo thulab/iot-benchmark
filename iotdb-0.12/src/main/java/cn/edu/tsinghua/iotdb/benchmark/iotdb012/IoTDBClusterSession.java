@@ -21,10 +21,14 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.pool.SessionDataSetWrapper;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.read.common.Field;
+import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
@@ -41,6 +45,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class IoTDBClusterSession extends IoTDBSessionBase {
@@ -167,6 +173,82 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     Status status = waitFuture();
     currSession = (currSession + 1) % sessions.length;
     return status;
+  }
+
+  @Override
+  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
+    AtomicBoolean isOk = new AtomicBoolean(true);
+
+    try {
+      List<List<Object>> records = new ArrayList<>();
+      future =
+          service.submit(
+              () -> {
+                try {
+                  SessionDataSetWrapper sessionDataSet =
+                      sessions[currSession].executeQueryStatement(sql);
+                  while (sessionDataSet.hasNext()) {
+                    RowRecord rowRecord = sessionDataSet.next();
+                    line.getAndIncrement();
+                    if (config.isIS_COMPARISON()) {
+                      List<Object> record = new ArrayList<>();
+                      switch (operation) {
+                        case AGG_RANGE_QUERY:
+                        case AGG_VALUE_QUERY:
+                        case AGG_RANGE_VALUE_QUERY:
+                          break;
+                        default:
+                          record.add(rowRecord.getTimestamp());
+                          break;
+                      }
+                      List<Field> fields = rowRecord.getFields();
+                      for (int i = 0; i < fields.size(); i++) {
+                        switch (operation) {
+                          case LATEST_POINT_QUERY:
+                            if (i == 0 || i == 2) {
+                              continue;
+                            }
+                          default:
+                            break;
+                        }
+                        record.add(fields.get(i).toString());
+                      }
+                      records.add(record);
+                    }
+                  }
+                } catch (StatementExecutionException | IoTDBConnectionException e) {
+                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                  isOk.set(false);
+                }
+                queryResultPointNum.set(
+                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+              });
+      try {
+        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        future.cancel(true);
+        return new Status(false, queryResultPointNum.get(), e, sql);
+      }
+      if (isOk.get() == true) {
+        if (config.isIS_COMPARISON()) {
+          return new Status(true, queryResultPointNum.get(), sql, records);
+        } else {
+          return new Status(true, queryResultPointNum.get());
+        }
+      } else {
+        return new Status(
+            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
+      }
+    } catch (Exception e) {
+      return new Status(false, queryResultPointNum.get(), e, sql);
+    } catch (Throwable t) {
+      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+    }
   }
 
   private Status waitFuture() {
