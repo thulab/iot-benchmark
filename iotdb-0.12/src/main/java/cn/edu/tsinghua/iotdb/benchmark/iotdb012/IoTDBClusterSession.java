@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,6 +76,12 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
               config.isENABLE_THRIFT_COMPRESSION(),
               true);
     }
+  }
+
+  @Override
+  public void init() throws TsdbException {
+    // do nothing
+    this.service = Executors.newSingleThreadExecutor();
   }
 
   @Override
@@ -264,11 +271,11 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
-    super.close();
     for (SessionPool sessionPool : sessions) {
       if (sessionPool != null) {
         sessionPool.close();
       }
     }
+    this.service.shutdown();
   }
 }

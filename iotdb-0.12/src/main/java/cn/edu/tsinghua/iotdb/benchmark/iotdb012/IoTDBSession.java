@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,13 +68,13 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public void init() throws TsdbException {
-    super.init();
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
       } else {
         session.open();
       }
+      this.service = Executors.newSingleThreadExecutor();
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to add session", e);
     }
@@ -235,11 +236,11 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
-    super.close();
     try {
       if (session != null) {
         session.close();
       }
+      this.service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
       LOGGER.error("Failed to close session.");
       throw new TsdbException(ioTDBConnectionException);
