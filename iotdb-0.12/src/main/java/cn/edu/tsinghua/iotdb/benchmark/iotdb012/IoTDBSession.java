@@ -19,12 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
-import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.write.record.Tablet;
-
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
@@ -32,6 +26,11 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.Session;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +57,7 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public void init() throws TsdbException {
+    super.init();
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);
@@ -150,6 +150,7 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
+    super.close();
     try {
       if (session != null) {
         session.close();
