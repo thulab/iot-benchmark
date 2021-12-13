@@ -1,5 +1,5 @@
 # 1. IoTDB-Benchmark
-![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux-yellow.svg)
+![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
 You can also read [中文版本](README-cn.md).
@@ -112,6 +112,7 @@ IoTDB-benchmark's features are as following:
    4. Perform correctness verification tests on data and query results respectively.
 3. Testing report and result: Supporting storing testing information and results for further query or analysis.
 4. Visualize test results: Integration with Tableau to visualize the test result.
+5. We recommend using MacOs or Linux systems. This article takes MacOS and Linux systems as examples. If you use Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
 
 # 5. Usage of IoTDB-Benchmark
 
