@@ -116,10 +116,15 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   private boolean ingestionOperation() {
     try {
       for (int i = 0; i < deviceSchemasSize; i++) {
-        int innerLoop =
-            config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
-        if (!config.isIS_CLIENT_BIND()) {
-          innerLoop *= config.getDEVICE_NUMBER();
+        int innerLoop = 0;
+        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
+          innerLoop = 1;
+        } else {
+          if (config.isIS_CLIENT_BIND()) {
+            innerLoop = deviceSchemas.get(i).getSensors().size();
+          } else {
+            innerLoop = deviceSchemas.get(i).getSensors().size() * config.getDEVICE_NUMBER();
+          }
         }
         for (int j = 0; j < innerLoop; j++) {
           Batch batch = dataWorkLoad.getOneBatch();
