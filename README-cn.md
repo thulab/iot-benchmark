@@ -1,5 +1,5 @@
 # 1. IoTDB-Benchmark
-![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux-yellow.svg)
+![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
 # 2. 内容目录
@@ -128,6 +128,7 @@ IotDB-Benchmark的特点如下：
    1. Apache IoTDB >= v0.9([获取方式](https://github.com/apache/iotdb))，并且目前主要支持IoTDB v0.12
    2. 其他的对应版本的数据库
 4. ServerMode和CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
+5. 我们建议使用MacOs或Linux系统，本文以MacOS和Linux系统为例，如果使用Windows系统，请使用`conf`文件夹下的`benchmark.bat`脚本启动benchmark。
 
 ## 5.2. IoTDB-Benchmark支持的运行模式
 |        模式名称        |  BENCHMARK_WORK_MODE  | 模式内容                                                                               |
