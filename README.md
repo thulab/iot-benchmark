@@ -74,6 +74,7 @@ You can also read [中文版本](README-cn.md).
 - [9. Perform Multiple Tests Automatically](#9-perform-multiple-tests-automatically)
   - [9.1. Configure routine](#91-configure-routine)
   - [9.2. Start](#92-start)
+- [10. Developer Guidelines](#10-developer-guidelines)
 - [10. Related Article](#10-related-article)
 
 # 3. Overview
@@ -1621,6 +1622,13 @@ In this case, if you want to know what is going on, you can check the log inform
 > cd ./logs
 > tail -f log_info.log
 ```
+
+# 10. Developer Guidelines
+1. All the interfaces of IoTDB-Benchmark are in the core module.
+2. The realization of all database tests of IoTDB-Benchmark are in each maven sub-project.
+3. If you want to use an editor such as IDEA to run Benchmark:
+    1. You can find TestEntrance in the test file directory under each maven subproject, and run the corresponding test.
+    2. Taking IoTDB 0.12 as an example, you can run `iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 10. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios

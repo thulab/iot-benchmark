@@ -74,7 +74,8 @@
 - [9. 自动执行多项测试](#9-自动执行多项测试)
   - [9.1. 配置 routine](#91-配置-routine)
   - [9.2. 开始测试](#92-开始测试)
-- [10. 相关文章](#10-相关文章)
+- [10. 开发者指引](#10-开发者指引)
+- [11. 相关文章](#11-相关文章)
 
 <!-- /TOC -->
 
@@ -1628,8 +1629,14 @@ sh $BENCHMARK_HOME/benchmark.sh
 > tail -f log_info.log
 ```
 
+# 10. 开发者指引
+1. IoTDB-Benchmark的所有的接口均在core模块中。
+2. IoTDB-Benchmark的所有的数据库测试的实现均在各个maven子项目中。
+3. 如果你想要使用IDEA等编辑器运行Benchmark：
+   1. 可以在每一个maven子项目下找到test文件目录下的TestEntrance，运行对应测试。
+   2. 以IoTDB 0.12为例，你可以运行`iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
-# 10. 相关文章
+# 11. 相关文章
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304
