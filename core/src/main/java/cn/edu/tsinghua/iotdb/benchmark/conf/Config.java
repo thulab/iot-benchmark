@@ -236,6 +236,9 @@ public class Config {
   /** Start time of writing data */
   private String START_TIME = "2018-8-30T00:00:00+08:00";
 
+  // whether copy files or just use the generated synthetic data, in VerifyWriteMode
+  private boolean IS_COPY_MODE = false;
+
   // Operation：乱序写入部分
   /** Whether insert out of order */
   private boolean IS_OUT_OF_ORDER = false;
@@ -972,6 +975,12 @@ public class Config {
     this.START_TIME = START_TIME;
   }
 
+  public boolean isIS_COPY_MODE() { return IS_COPY_MODE;
+  }
+
+  public void setIS_COPY_MODE(boolean IS_COPY_MODE) { this.IS_COPY_MODE = IS_COPY_MODE; }
+
+
   public boolean isIS_OUT_OF_ORDER() {
     return IS_OUT_OF_ORDER;
   }
@@ -1459,6 +1468,9 @@ public class Config {
         + "\nSTART_TIME='"
         + START_TIME
         + '\''
+        + "\nIS_COPY_MODE="
+        + IS_COPY_MODE
+        + '\''
         + "\nIS_OUT_OF_ORDER="
         + IS_OUT_OF_ORDER
         + "\nOUT_OF_ORDER_MODE="
@@ -1557,6 +1569,7 @@ public class Config {
     properties.put("POINT_STEP", this.POINT_STEP);
     properties.put("OP_INTERVAL", this.OP_INTERVAL);
     properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
+    properties.put("IS_COPY_MODE", this.IS_COPY_MODE);
     properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
     properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
     properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
@@ -1590,4 +1603,5 @@ public class Config {
     properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
     return properties;
   }
+
 }

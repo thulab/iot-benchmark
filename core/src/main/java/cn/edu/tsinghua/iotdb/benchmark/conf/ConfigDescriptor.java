@@ -303,6 +303,9 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("CREATE_SCHEMA", config.isCREATE_SCHEMA() + "")));
         config.setSTART_TIME(properties.getProperty("START_TIME", config.getSTART_TIME()));
+        config.setIS_COPY_MODE(
+                Boolean.parseBoolean(
+                        properties.getProperty("IS_COPY_MODE", config.isIS_COPY_MODE() + "")));
         config.setIS_OUT_OF_ORDER(
             Boolean.parseBoolean(
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
