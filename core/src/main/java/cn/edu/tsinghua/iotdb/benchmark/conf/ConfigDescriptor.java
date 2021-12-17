@@ -306,6 +306,9 @@ public class ConfigDescriptor {
         config.setIS_COPY_MODE(
                 Boolean.parseBoolean(
                         properties.getProperty("IS_COPY_MODE", config.isIS_COPY_MODE() + "")));
+        config.setIS_ADD_ANOMALY(
+                Boolean.parseBoolean(
+                        properties.getProperty("IS_ADD_ANOMALY", config.isIS_ADD_ANOMALY() + "")));
         config.setIS_OUT_OF_ORDER(
             Boolean.parseBoolean(
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
