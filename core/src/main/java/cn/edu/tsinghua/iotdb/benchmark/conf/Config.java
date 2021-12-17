@@ -1593,6 +1593,9 @@ public class Config {
     properties.put("POINT_STEP", this.POINT_STEP);
     properties.put("OP_INTERVAL", this.OP_INTERVAL);
     properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
+    properties.put("IS_ADD_ANOMALY", this.IS_ADD_ANOMALY);
+    properties.put("ANOMALY_RATE", this.ANOMALY_RATE);
+    properties.put("ANOMALY_TIMES", this.ANOMALY_TIMES);
     properties.put("IS_COPY_MODE", this.IS_COPY_MODE);
     properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
     properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
