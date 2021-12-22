@@ -57,10 +57,10 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
   private final String DELETE_SERIES_SQL;
+  private SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final String ROOT_SERIES_NAME;
-  protected SingleNodeJDBCConnection ioTDBConnection;
   protected ExecutorService service;
   protected Future<?> future;
   protected DBConfig dbConfig;
@@ -273,35 +273,6 @@ public class IoTDB implements IDatabase {
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
-  }
-
-  public String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, Object value, SensorType colSensorType) {
-    StringBuilder builder = new StringBuilder();
-    builder
-        .append("insert into ")
-        .append(ROOT_SERIES_NAME)
-        .append(".")
-        .append(deviceSchema.getGroup())
-        .append(".")
-        .append(deviceSchema.getDevice())
-        .append("(timestamp");
-    for (Sensor sensor : deviceSchema.getSensors()) {
-      builder.append(",").append(sensor.getName());
-    }
-    builder.append(") values(");
-    builder.append(timestamp);
-    switch (colSensorType) {
-      case TEXT:
-        builder.append(",").append("'").append(value).append("'");
-        break;
-      default:
-        builder.append(",").append(value);
-        break;
-    }
-
-    builder.append(")");
-    return builder.toString();
   }
 
   /**
