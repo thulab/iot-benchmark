@@ -141,6 +141,7 @@ public class IoTDB implements IDatabase {
         }
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           if (config.isTEMPLATE()) {
+            registerStorageGroups(pair.getKey(), pair.getValue());
             registerTemplates(pair.getKey(), pair.getValue());
           } else {
             registerStorageGroups(pair.getKey(), pair.getValue());
@@ -176,8 +177,8 @@ public class IoTDB implements IDatabase {
       measurementList.add(Collections.singletonList(sensor.getName()));
       dataTypeList.add(
           Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-      encodingList.add(Collections.singletonList(TSEncoding.RLE));
-      compressionTypes.add(CompressionType.SNAPPY);
+      encodingList.add(Collections.singletonList(Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
+      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
       schemaNames.add(sensor.getName());
     }
     metaSession.createSchemaTemplate(
