@@ -183,7 +183,7 @@ public class IoTDB implements IDatabase {
     metaSession.createSchemaTemplate(
         "testTemplate", schemaNames, measurementList, dataTypeList, encodingList, compressionTypes);
     for (DeviceSchema deviceSchema : schemaList) {
-      metaSession.setSchemaTemplate("testTemplate", "root." + deviceSchema.getGroup());
+      metaSession.setSchemaTemplate("testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
     }
   }
 
