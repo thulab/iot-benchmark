@@ -278,6 +278,9 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "IOTDB_SESSION_POOL_SIZE", config.getIOTDB_SESSION_POOL_SIZE() + "")));
+        config.setTEMPLATE(
+            Boolean.parseBoolean(
+                properties.getProperty("TEMPLATE", String.valueOf(config.isTEMPLATE()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
 

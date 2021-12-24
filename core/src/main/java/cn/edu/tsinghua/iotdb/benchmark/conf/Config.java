@@ -208,6 +208,8 @@ public class Config {
   private int GROUP_NUMBER = 1;
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
+  /** Whether to use templates */
+  private boolean TEMPLATE = true;
 
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
@@ -922,6 +924,14 @@ public class Config {
 
   public void setIOTDB_SESSION_POOL_SIZE(int IOTDB_SESSION_POOL_SIZE) {
     this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
+  }
+
+  public boolean isTEMPLATE() {
+    return TEMPLATE;
+  }
+
+  public void setTEMPLATE(boolean TEMPLATE) {
+    this.TEMPLATE = TEMPLATE;
   }
 
   public long getOP_INTERVAL() {
