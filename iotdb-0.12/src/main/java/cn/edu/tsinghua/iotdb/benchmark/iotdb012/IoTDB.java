@@ -180,14 +180,17 @@ public class IoTDB implements IDatabase {
       measurementList.add(Collections.singletonList(sensor.getName()));
       dataTypeList.add(
           Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-      encodingList.add(Collections.singletonList(Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
+      encodingList.add(
+          Collections.singletonList(
+              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
       compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
       schemaNames.add(sensor.getName());
     }
     metaSession.createSchemaTemplate(
         "testTemplate", schemaNames, measurementList, dataTypeList, encodingList, compressionTypes);
     for (DeviceSchema deviceSchema : schemaList) {
-      metaSession.setSchemaTemplate("testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      metaSession.setSchemaTemplate(
+          "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
     }
   }
 
