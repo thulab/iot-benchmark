@@ -342,6 +342,9 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         sessionPool.close();
       }
     }
+    if (ioTDBConnection != null) {
+      ioTDBConnection.close();
+    }
     this.service.shutdown();
   }
 }

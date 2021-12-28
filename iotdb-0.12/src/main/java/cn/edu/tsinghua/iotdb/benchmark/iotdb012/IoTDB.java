@@ -57,7 +57,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
   private final String DELETE_SERIES_SQL;
-  private SingleNodeJDBCConnection ioTDBConnection;
+  protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final String ROOT_SERIES_NAME;
@@ -94,7 +94,9 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    ioTDBConnection.close();
+    if (ioTDBConnection != null) {
+      ioTDBConnection.close();
+    }
     if (service != null) {
       service.shutdownNow();
     }
@@ -719,7 +721,15 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    // TODO find a new way to fix
+    try {
+      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
+      ioTDBConnection.init();
+      this.service = Executors.newSingleThreadExecutor();
+    } catch (Exception e) {
+      throw new TsdbException(e);
+    }
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
