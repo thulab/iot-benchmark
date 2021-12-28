@@ -35,13 +35,17 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -241,7 +245,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (isOk.get() == true) {
+      currSession = (currSession + 1) % sessions.length;
+      if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), sql, records);
         } else {
@@ -256,6 +261,67 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     } catch (Throwable t) {
       return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
     }
+  }
+
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+
+    List<Record> records = verificationQuery.getRecords();
+    if (records == null || records.size() == 0) {
+      return new Status(
+          false,
+          new TsdbException("There are no records in verficationQuery."),
+          "There are no records in verficationQuery.");
+    }
+
+    StringBuffer sql = new StringBuffer();
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    int point = 0;
+    int line = 0;
+    try {
+      SessionDataSetWrapper sessionDataSet =
+          sessions[currSession].executeQueryStatement(sql.toString());
+      while (sessionDataSet.hasNext()) {
+        RowRecord rowRecord = sessionDataSet.next();
+        long timeStamp = rowRecord.getTimestamp();
+        List<Object> values = recordMap.get(timeStamp);
+        for (int i = 0; i < values.size(); i++) {
+          String value = rowRecord.getFields().get(i).toString();
+          String target = String.valueOf(values.get(i));
+          if (!value.equals(target)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
+          } else {
+            point++;
+          }
+        }
+        line++;
+      }
+      currSession = (currSession + 1) % sessions.length;
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql);
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+    if (recordMap.size() != line) {
+      LOGGER.error(
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+    }
+    return new Status(true, point);
   }
 
   private Status waitFuture() {

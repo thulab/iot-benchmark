@@ -44,7 +44,7 @@ public class RealDataSetQueryClient extends RealBaseClient {
         dbWrapper.verificationQuery(verificationQuery);
         loopIndex++;
       } catch (Exception e) {
-        LOGGER.error("Failed to insert one batch data because ", e);
+        LOGGER.error("Failed to query one batch data because ", e);
       }
     }
   }

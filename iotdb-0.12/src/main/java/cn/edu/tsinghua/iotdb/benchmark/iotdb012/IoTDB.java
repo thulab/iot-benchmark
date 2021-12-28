@@ -453,7 +453,7 @@ public class IoTDB implements IDatabase {
    * @param devices schema list of query devices
    * @return Simple Query header. e.g. Select sensors from devices
    */
-  private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  protected String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
@@ -673,7 +673,10 @@ public class IoTDB implements IDatabase {
 
     List<Record> records = verificationQuery.getRecords();
     if (records == null || records.size() == 0) {
-      return new Status(false);
+      return new Status(
+          false,
+          new TsdbException("There are no records in verficationQuery."),
+          "There are no records in verficationQuery.");
     }
 
     StringBuffer sql = new StringBuffer();
@@ -706,7 +709,7 @@ public class IoTDB implements IDatabase {
       }
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
-      return new Status(false);
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
     if (recordMap.size() != line) {
       LOGGER.error(
