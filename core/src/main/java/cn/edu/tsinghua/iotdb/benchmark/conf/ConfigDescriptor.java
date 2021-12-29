@@ -467,12 +467,6 @@ public class ConfigDescriptor {
             result &= checkDatabaseVerification(anotherConfig);
             checkQuery();
           }
-          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
-            LOGGER.error(
-                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
-            result = false;
-            checkQuery();
-          }
           if (config.isIS_COMPARISON()) {
             // check query
             double total = 0.0;
@@ -480,8 +474,9 @@ public class ConfigDescriptor {
               total += Double.valueOf(operations[i]);
             }
             if (total < 1e-7) {
-              LOGGER.error("There is no query when doing comparison.");
-              result = false;
+              LOGGER.warn(
+                  "There is no query when doing comparison, so auto set IS_COMPARISON = false");
+              config.setIS_COMPARISON(false);
             }
           }
           if (config.isIS_POINT_COMPARISON()
@@ -492,6 +487,7 @@ public class ConfigDescriptor {
             LOGGER.error(
                 "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
             result = false;
+            checkQuery();
           }
         }
         break;
