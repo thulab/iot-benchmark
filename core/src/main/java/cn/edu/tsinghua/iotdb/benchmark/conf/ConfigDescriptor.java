@@ -462,48 +462,46 @@ public class ConfigDescriptor {
             LOGGER.error("Double write not support influxdb v1.x");
             result = false;
           }
-        }
-        // check query
-        double queryTotal = 0.0;
-        for (int i = 1; i < operations.length; i++) {
-          queryTotal += Double.valueOf(operations[i]);
-        }
-        if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
-          LOGGER.error(
-              "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
-          result = false;
-          checkQuery();
-        } else {
-          if (config.isIS_COMPARISON()) {
-            if (queryTotal < 1e-7) {
-              LOGGER.warn(
-                  "There is no query when doing comparison, so auto set IS_COMPARISON = false");
-              config.setIS_COMPARISON(false);
-            }
+          // check query
+          double queryTotal = 0.0;
+          for (int i = 1; i < operations.length; i++) {
+            queryTotal += Double.valueOf(operations[i]);
           }
-          if (config.isIS_POINT_COMPARISON()) {
-            if (queryTotal < 1e-7) {
-              LOGGER.warn(
-                  "There is no query when doing comparison, so auto set IS_COMPARISON = false");
-              config.setIS_POINT_COMPARISON(false);
-            }
-            if (config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
-              LOGGER.warn("There are too many client ( > device number)");
-            }
-          }
-        }
-        if (config.isIS_DOUBLE_WRITE()) {
-          DBConfig dbConfig = config.getDbConfig();
-          DBConfig anotherConfig = config.getANOTHER_DBConfig();
-          if (dbConfig.getDB_SWITCH() == DBSwitch.DB_INFLUX
-              || anotherConfig.getDB_SWITCH() == DBSwitch.DB_INFLUX) {
-            LOGGER.error("Double write not support influxdb v1.x");
+          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
+            LOGGER.error(
+                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
             result = false;
+            checkQuery();
+          } else {
+            if (config.isIS_COMPARISON()) {
+              if (queryTotal < 1e-7) {
+                LOGGER.warn(
+                    "There is no query when doing comparison, so auto set IS_COMPARISON = false");
+                config.setIS_COMPARISON(false);
+              }
+            }
+            if (config.isIS_POINT_COMPARISON()) {
+              if (queryTotal < 1e-7) {
+                LOGGER.warn(
+                    "There is no query when doing comparison, so auto set IS_COMPARISON = false");
+                config.setIS_POINT_COMPARISON(false);
+              }
+              if (config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+                LOGGER.warn("There are too many client ( > device number)");
+              }
+            }
           }
           if (config.isIS_COMPARISON() || config.isIS_POINT_COMPARISON()) {
             result &= checkDatabaseVerification(dbConfig);
             result &= checkDatabaseVerification(anotherConfig);
             checkQuery();
+          }
+        } else {
+          if (config.isIS_COMPARISON() || config.isIS_POINT_COMPARISON()) {
+            LOGGER.warn(
+                "There are ONLY 1 database, not support IS_COMPARISON and IS_POINT_COMPARISON");
+            config.setIS_COMPARISON(false);
+            config.setIS_POINT_COMPARISON(false);
           }
         }
         break;
