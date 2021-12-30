@@ -1514,7 +1514,7 @@ public class Config {
 
   /** get properties from config, one property in one line. */
   public Map<String, Object> getShowProperties() {
-    Map<String, Object> properties = new HashMap<>();
+    Map<String, Object> properties = new LinkedHashMap<>();
     properties.put("BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
 
     properties.put("RESULT_PRECISION", this.RESULT_PRECISION + "%");
