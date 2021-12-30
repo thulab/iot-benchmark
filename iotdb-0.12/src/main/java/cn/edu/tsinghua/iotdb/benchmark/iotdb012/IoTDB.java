@@ -57,7 +57,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
   private final String DELETE_SERIES_SQL;
-  private SingleNodeJDBCConnection ioTDBConnection;
+  protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final String ROOT_SERIES_NAME;
@@ -94,7 +94,9 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    ioTDBConnection.close();
+    if (ioTDBConnection != null) {
+      ioTDBConnection.close();
+    }
     if (service != null) {
       service.shutdownNow();
     }
@@ -453,7 +455,7 @@ public class IoTDB implements IDatabase {
    * @param devices schema list of query devices
    * @return Simple Query header. e.g. Select sensors from devices
    */
-  private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  protected String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
@@ -673,7 +675,10 @@ public class IoTDB implements IDatabase {
 
     List<Record> records = verificationQuery.getRecords();
     if (records == null || records.size() == 0) {
-      return new Status(false);
+      return new Status(
+          false,
+          new TsdbException("There are no records in verficationQuery."),
+          "There are no records in verficationQuery.");
     }
 
     StringBuffer sql = new StringBuffer();
@@ -706,7 +711,7 @@ public class IoTDB implements IDatabase {
       }
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
-      return new Status(false);
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
     if (recordMap.size() != line) {
       LOGGER.error(
@@ -716,7 +721,15 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    // TODO find a new way to fix
+    try {
+      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
+      ioTDBConnection.init();
+      this.service = Executors.newSingleThreadExecutor();
+    } catch (Exception e) {
+      throw new TsdbException(e);
+    }
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);

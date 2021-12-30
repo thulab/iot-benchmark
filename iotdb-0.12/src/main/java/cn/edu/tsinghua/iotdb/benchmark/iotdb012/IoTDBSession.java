@@ -34,13 +34,17 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -234,11 +238,73 @@ public class IoTDBSession extends IoTDBSessionBase {
     }
   }
 
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+
+    List<Record> records = verificationQuery.getRecords();
+    if (records == null || records.size() == 0) {
+      return new Status(
+          false,
+          new TsdbException("There are no records in verficationQuery."),
+          "There are no records in verficationQuery.");
+    }
+
+    StringBuffer sql = new StringBuffer();
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    int point = 0;
+    int line = 0;
+    try {
+      SessionDataSet sessionDataSet = session.executeQueryStatement(sql.toString());
+      while (sessionDataSet.hasNext()) {
+        RowRecord rowRecord = sessionDataSet.next();
+        long timeStamp = rowRecord.getTimestamp();
+        List<Object> values = recordMap.get(timeStamp);
+        for (int i = 0; i < values.size(); i++) {
+          String value = rowRecord.getFields().get(i).toString();
+          String target = String.valueOf(values.get(i));
+          if (!value.equals(target)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
+          } else {
+            point++;
+          }
+        }
+        line++;
+      }
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql);
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+    if (recordMap.size() != line) {
+      LOGGER.error(
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+    }
+    return new Status(true, point);
+  }
+
   @Override
   public void close() throws TsdbException {
     try {
       if (session != null) {
         session.close();
+      }
+      if (ioTDBConnection != null) {
+        ioTDBConnection.close();
       }
       this.service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
