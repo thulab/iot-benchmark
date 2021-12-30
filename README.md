@@ -935,6 +935,29 @@ Notice:
 > 1. The FILE_PATH folder should be the data set generated using the generated data mode
 > 2. When running this mode, other parameters should be consistent with the description in info.txt**
 
+If you want to use external data set to write into database, you need to the following configuration in ```config.properties```:
+```
+BENCHMARK_WORK_MODE=verificationWriteMode
+# the file path that you store external data set in. 
+FILE_PATH=data/test
+# since using one external csv file as data set, BIG_BATCH_SIZE is regarded as 1. 
+BIG_BATCH_SIZE=1
+# we can't write data in parallel in copy data mode, so CLIENT_NUM should be set 1.
+CLIENT_NUM=1
+# set to intercept the original CSV data set of BATCH_SIZE_PER_WRITE size
+BATCH_SIZE_PER_WRITE=100
+# enable the copy mode.
+IS_COPY_MODE=true
+```
+Then you need add the csv file in the FILE_PATH:
+```
++ FILE_PATH
+   + d_0
+       + *.csv  # modify the schema(first line of csv) as  "Sensor,s_0,s_1,..."
+   + schema.txt # specify which sensorType of one senor with one row, the content is like "d_0 s_0 3\n d_0 s_1 4"
+```
+After that, you can start it.
+
 ### 6.8.2. Start
 
 Before running the test, you need to open the IoTDB service on port 6667.
