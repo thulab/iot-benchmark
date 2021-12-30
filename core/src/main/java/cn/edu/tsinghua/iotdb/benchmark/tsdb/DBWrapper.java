@@ -518,6 +518,8 @@ public class DBWrapper implements IDatabase {
   private boolean doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
     ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
 
+    int totalPointNumber = 0;
+
     String currentThread = Thread.currentThread().getName();
     // print current progress periodically
     pointService.scheduleAtFixedRate(
@@ -529,8 +531,8 @@ public class DBWrapper implements IDatabase {
                       * 100.0D
                       / (config.getLOOP() * config.getBATCH_SIZE_PER_WRITE()));
           LOGGER.info(
-              "{} {}% syntheticClient for {} is done.",
-              currentThread, percent, deviceQuery.getDeviceSchema().getDevice());
+              "{} Loop {} ({}%) syntheticClient for {} is done.",
+              currentThread, (lineNumber + 1), percent, deviceQuery.getDeviceSchema().getDevice());
         },
         1,
         config.getLOG_PRINT_INTERVAL(),
@@ -558,6 +560,7 @@ public class DBWrapper implements IDatabase {
         for (int j = 2; j <= resultSet1.getMetaData().getColumnCount(); j++) {
           stringBuilder1.append(",").append(resultSet1.getObject(j));
           stringBuilder2.append(",").append(resultSet1.getObject(j));
+          totalPointNumber++;
         }
         if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
           LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
@@ -583,13 +586,13 @@ public class DBWrapper implements IDatabase {
       long end = System.nanoTime();
       status1.setTimeCost(end - start + status1.getTimeCost());
       status2.setTimeCost(end - start + status2.getTimeCost());
-      status1.setQueryResultPointNum(lineNumber * col1);
-      status2.setQueryResultPointNum(lineNumber * col2);
+      status1.setQueryResultPointNum(totalPointNumber);
+      status2.setQueryResultPointNum(totalPointNumber);
       LOGGER.info(
           "Finish Device: "
               + deviceQuery.getDeviceSchema().getDevice()
               + " with "
-              + lineNumber
+              + (lineNumber + 1)
               + " line.");
       lineNumber = 0;
     } catch (SQLException e) {
