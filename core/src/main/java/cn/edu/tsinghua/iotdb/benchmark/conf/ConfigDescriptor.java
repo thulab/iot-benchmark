@@ -473,7 +473,7 @@ public class ConfigDescriptor {
               "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
           result = false;
           checkQuery();
-        }else{
+        } else {
           if (config.isIS_COMPARISON()) {
             if (queryTotal < 1e-7) {
               LOGGER.warn(
