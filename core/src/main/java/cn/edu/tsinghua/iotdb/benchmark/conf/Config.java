@@ -1466,26 +1466,32 @@ public class Config {
 
   /** get properties from config, one property in one line. */
   public Map<String, Object> getShowProperties() {
+
     Map<String, Object> properties = new LinkedHashMap<>();
     properties.put("BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
 
-    properties.put("RESULT_PRECISION", this.RESULT_PRECISION + "%");
-    properties.put("DBConfig", this.dbConfig);
     properties.put("DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
-    if (this.isIS_DOUBLE_WRITE()) {
-      properties.put("ANOTHER DBConfig", this.ANOTHER_DBConfig);
-      properties.put("IS_COMPASSION", this.IS_COMPARISON);
-      properties.put("IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
+    properties.put("DBConfig", this.dbConfig.getMainConfig());
+    if (this.IS_DOUBLE_WRITE) {
+      properties.put("ANOTHER DBConfig", this.ANOTHER_DBConfig.getMainConfig());
     }
-    properties.put("BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
-    if (this.BENCHMARK_CLUSTER) {
-      properties.put("BENCHMARK_INDEX", this.BENCHMARK_INDEX);
-      properties.put("FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
-      properties.put("IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
+    properties.put("GROUP_NUMBER", this.GROUP_NUMBER);
+    properties.put("DEVICE_NUMBER", this.DEVICE_NUMBER);
+    properties.put("REAL_INSERT_RATE", this.REAL_INSERT_RATE);
+    properties.put("SENSOR_NUMBER", this.SENSOR_NUMBER);
+    properties.put("IS_SENSOR_TS_ALIGNMENT", this.IS_SENSOR_TS_ALIGNMENT);
+    if (!this.IS_SENSOR_TS_ALIGNMENT) {
+      properties.put("TS_ALIGNMENT_RATIO", this.TS_ALIGNMENT_RATIO);
     }
+    properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
+    properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
     properties.put("OPERATION_PROPORTION", this.OPERATION_PROPORTION);
-    properties.put("STRING_LENGTH", this.STRING_LENGTH);
-    properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
+    properties.put("CLIENT_NUMBER", this.CLIENT_NUMBER);
+    properties.put("LOOP", this.LOOP);
+    properties.put("BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
+    properties.put("START_TIME", this.START_TIME);
+    properties.put("POINT_STEP", this.POINT_STEP);
+    properties.put("OP_INTERVAL", this.OP_INTERVAL);
     properties.put("INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
     properties.put(
         "ENCODINGS",
@@ -1501,51 +1507,75 @@ public class Config {
             + "/"
             + this.ENCODING_TEXT);
     properties.put("COMPRESSOR", this.COMPRESSOR);
+    properties.put("QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
+    properties.put("QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);
+    properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
+    properties.put("STEP_SIZE", this.STEP_SIZE);
+    properties.put("IS_RECENT_QUERY", this.IS_RECENT_QUERY);
     properties.put("IS_DELETE_DATA", this.IS_DELETE_DATA);
     properties.put("CREATE_SCHEMA", this.CREATE_SCHEMA);
-    properties.put("IS_CLIENT_BIND", this.IS_CLIENT_BIND);
-    properties.put("CLIENT_NUMBER", this.CLIENT_NUMBER);
-    properties.put("GROUP_NUMBER", this.GROUP_NUMBER);
-    properties.put("SG_STRATEGY", this.SG_STRATEGY);
-    properties.put("DEVICE_NUMBER", this.DEVICE_NUMBER);
-    properties.put("REAL_INSERT_RATE", this.REAL_INSERT_RATE);
-    properties.put("SENSOR_NUMBER", this.SENSOR_NUMBER);
-    properties.put("IS_SENSOR_TS_ALIGNMENT", this.IS_SENSOR_TS_ALIGNMENT);
-    if (!this.IS_SENSOR_TS_ALIGNMENT) {
-      properties.put("TS_ALIGNMENT_RATIO", this.TS_ALIGNMENT_RATIO);
+    if (this.IS_DOUBLE_WRITE) {
+      properties.put("IS_COMPASSION", this.IS_COMPARISON);
+      properties.put("IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
     }
-    properties.put("BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
-    properties.put("LOOP", this.LOOP);
-    properties.put("POINT_STEP", this.POINT_STEP);
-    properties.put("OP_INTERVAL", this.OP_INTERVAL);
-    properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
-    properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
-    properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
-    properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
-    properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
-    properties.put("START_TIME", this.START_TIME);
-    properties.put("IS_RECENT_QUERY", this.IS_RECENT_QUERY);
+    properties.put("BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
+    if (this.BENCHMARK_CLUSTER) {
+      properties.put("BENCHMARK_INDEX", this.BENCHMARK_INDEX);
+      properties.put("FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
+      properties.put("IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
+    }
     return properties;
   }
 
   /** get all properties from config, one property in one line. */
   public Map<String, Object> getAllProperties() {
     Map<String, Object> properties = getShowProperties();
+    /* The config of test db */
     properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
+
+    /* The config of generate data */
+    if (hasWrite()) {
+      properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
+      properties.put("STRING_LENGTH", this.STRING_LENGTH);
+      properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
+      if (this.IS_OUT_OF_ORDER) {
+        properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
+        properties.put("LAMBDA", this.LAMBDA);
+        properties.put("MAX_K", this.MAX_K);
+      }
+      properties.put("SG_STRATEGY", this.SG_STRATEGY);
+    }
+
+    /* The config of schema */
+    properties.put("IS_CLIENT_BIND", this.IS_CLIENT_BIND);
+
+    /* The config of query */
+    if (hasQuery()) {
+      properties.put("QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
+      properties.put("QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
+      properties.put("QUERY_SEED", this.QUERY_SEED);
+    }
+
+    /* other config */
+    properties.put("RESULT_PRECISION", this.RESULT_PRECISION + "%");
+    properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
+
     properties.put("ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     properties.put("WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     properties.put("READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);
-    if (this.IS_OUT_OF_ORDER) {
-      properties.put("LAMBDA", this.LAMBDA);
-      properties.put("MAX_K", this.MAX_K);
-    }
-    properties.put("STEP_SIZE", this.STEP_SIZE);
-    properties.put("QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);
-    properties.put("QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
-    properties.put("QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
-    properties.put("QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
-    properties.put("QUERY_SEED", this.QUERY_SEED);
-    properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
     return properties;
+  }
+
+  public boolean hasWrite() {
+    return Double.parseDouble(this.OPERATION_PROPORTION.split(":")[0]) > 1e-7;
+  }
+
+  public boolean hasQuery() {
+    Double total = 0.0;
+    String[] proportion = this.OPERATION_PROPORTION.split(":");
+    for (int i = 1; i < proportion.length; i++) {
+      total += Double.parseDouble(proportion[i]);
+    }
+    return total > 1e-7;
   }
 }

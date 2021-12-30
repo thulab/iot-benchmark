@@ -102,6 +102,10 @@ public class DBConfig {
     this.TOKEN = TOKEN;
   }
 
+  public String getMainConfig() {
+    return "\n" + "  DB_SWITCH=" + DB_SWITCH + "\n" + "  HOST=" + HOST;
+  }
+
   @Override
   public String toString() {
     return "\n"
