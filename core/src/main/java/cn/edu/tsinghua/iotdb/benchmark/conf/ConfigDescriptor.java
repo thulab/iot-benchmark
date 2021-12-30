@@ -468,28 +468,29 @@ public class ConfigDescriptor {
         for (int i = 1; i < operations.length; i++) {
           queryTotal += Double.valueOf(operations[i]);
         }
-        if (config.isIS_COMPARISON()) {
-          if (queryTotal < 1e-7) {
-            LOGGER.warn(
-                "There is no query when doing comparison, so auto set IS_COMPARISON = false");
-            config.setIS_COMPARISON(false);
-          }
-        }
-        if (config.isIS_POINT_COMPARISON()) {
-          if (queryTotal < 1e-7) {
-            LOGGER.warn(
-                "There is no query when doing comparison, so auto set IS_COMPARISON = false");
-            config.setIS_POINT_COMPARISON(false);
-          }
-          if (config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
-            LOGGER.warn("There are too many client ( > device number)");
-          }
-        }
         if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
           LOGGER.error(
               "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
           result = false;
           checkQuery();
+        }else{
+          if (config.isIS_COMPARISON()) {
+            if (queryTotal < 1e-7) {
+              LOGGER.warn(
+                  "There is no query when doing comparison, so auto set IS_COMPARISON = false");
+              config.setIS_COMPARISON(false);
+            }
+          }
+          if (config.isIS_POINT_COMPARISON()) {
+            if (queryTotal < 1e-7) {
+              LOGGER.warn(
+                  "There is no query when doing comparison, so auto set IS_COMPARISON = false");
+              config.setIS_POINT_COMPARISON(false);
+            }
+            if (config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+              LOGGER.warn("There are too many client ( > device number)");
+            }
+          }
         }
         if (config.isIS_DOUBLE_WRITE()) {
           DBConfig dbConfig = config.getDbConfig();
