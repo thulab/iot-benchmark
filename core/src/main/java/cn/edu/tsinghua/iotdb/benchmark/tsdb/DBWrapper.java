@@ -426,7 +426,11 @@ public class DBWrapper implements IDatabase {
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         LOGGER.info(
-            "Use " + (end - start) + " ms to query " + deviceQuery.getDeviceSchema().getDevice());
+            database.getClass().getName()
+                + " use "
+                + (end - start)
+                + " ms to query "
+                + deviceQuery.getDeviceSchema().getDevice());
         statuses.add(status);
       }
       LOGGER.info("Start Compare:" + deviceQuery.getDeviceSchema().getDevice());
