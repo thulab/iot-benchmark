@@ -452,6 +452,8 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Failed to get total number of device");
       return -1;
     }
+    LOGGER.info(
+        "Both database has " + number + " lines for " + deviceQuery.getDeviceSchema().getDevice());
     return number;
   }
 
