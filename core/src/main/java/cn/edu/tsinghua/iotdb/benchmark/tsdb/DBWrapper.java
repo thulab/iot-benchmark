@@ -590,6 +590,8 @@ public class DBWrapper implements IDatabase {
       status2.setTimeCost(end - start + status2.getTimeCost());
       status1.setQueryResultPointNum(totalPointNumber);
       status2.setQueryResultPointNum(totalPointNumber);
+      resultSet1.close();
+      resultSet2.close();
       lineNumber = 0;
     } catch (SQLException e) {
       LOGGER.error("Failed to do DEVICE_QUERY because ", e);
