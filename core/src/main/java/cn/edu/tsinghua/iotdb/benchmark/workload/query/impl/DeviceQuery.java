@@ -23,8 +23,10 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 public class DeviceQuery extends Query {
   private DeviceSchema deviceSchema;
-  private int offset = 0;
-  private int limit = 500;
+  /* include */
+  private long startTimestamp;
+  /* not include */
+  private long endTimestamp;
 
   public DeviceQuery() {}
 
@@ -36,35 +38,32 @@ public class DeviceQuery extends Query {
     return deviceSchema;
   }
 
-  public void setOffset(int offset) {
-    this.offset = offset;
+  public void setDeviceSchema(DeviceSchema deviceSchema) {
+    this.deviceSchema = deviceSchema;
   }
 
-  public void setLimit(int limit) {
-    this.limit = limit;
+  public long getStartTimestamp() {
+    return startTimestamp;
   }
 
-  public int getOffset() {
-    return offset;
+  public void setStartTimestamp(long startTimestamp) {
+    this.startTimestamp = startTimestamp;
   }
 
-  public int getLimit() {
-    return limit;
+  public long getEndTimestamp() {
+    return endTimestamp;
   }
 
-  public DeviceQuery getQueryWithOffset(int offset) {
-    DeviceQuery deviceQuery = new DeviceQuery(deviceSchema);
-    deviceQuery.setLimit(limit);
-    deviceQuery.setOffset(offset);
-    return deviceQuery;
+  public void setEndTimestamp(long endTimestamp) {
+    this.endTimestamp = endTimestamp;
   }
 
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("DeviceSchema=").append(deviceSchema);
-    stringBuilder.append(" limit=").append(limit);
-    stringBuilder.append(" offset=").append(offset);
+    stringBuilder.append(" startTimeStamp=").append(startTimestamp);
+    stringBuilder.append(" endTimeStamp=").append(endTimestamp);
     return stringBuilder;
   }
 }

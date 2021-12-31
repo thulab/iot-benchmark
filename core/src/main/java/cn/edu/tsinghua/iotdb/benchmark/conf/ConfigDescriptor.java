@@ -134,10 +134,10 @@ public class ConfigDescriptor {
                   properties.getProperty(
                       "IS_POINT_COMPARISON", config.isIS_POINT_COMPARISON() + "")));
           if (config.isIS_POINT_COMPARISON()) {
-            config.setVERIFICATION_BATCH(
+            config.setVERIFICATION_STEP_SIZE(
                 Integer.parseInt(
                     properties.getProperty(
-                        "VERIFICATION_BATCH", config.getVERIFICATION_BATCH() + "")));
+                        "VERIFICATION_BATCH", config.getVERIFICATION_STEP_SIZE() + "")));
           }
         }
 

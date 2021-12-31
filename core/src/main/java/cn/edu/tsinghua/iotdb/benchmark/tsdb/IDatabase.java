@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
@@ -158,7 +159,8 @@ public interface IDatabase {
     return new Status(false, 0, workloadException, workloadException.getMessage());
   }
 
-  default int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  /** get summary of device */
+  default DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     throw new TsdbException("Not Supported get total line number of device");
   }
 

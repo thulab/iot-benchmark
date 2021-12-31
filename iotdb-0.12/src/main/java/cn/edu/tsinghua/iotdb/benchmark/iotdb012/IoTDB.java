@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -749,17 +750,25 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     initJDBCConnection();
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     String sql = "select count(*) from " + getDevicePath(deviceSchema);
-    if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("IoTDB:" + sql);
-    }
     Statement statement = ioTDBConnection.getConnection().createStatement();
     ResultSet resultSet = statement.executeQuery(sql);
     resultSet.next();
-    return Integer.parseInt(resultSet.getString(1));
+    int totalLineNumber = Integer.parseInt(resultSet.getString(1));
+
+    sql = "select * from " + getDevicePath(deviceSchema) + " order by time desc";
+    resultSet = statement.executeQuery(sql);
+    long maxTimeStamp = Long.parseLong(resultSet.getString(1));
+
+    sql = "select * from " + getDevicePath(deviceSchema) + " order by time";
+    resultSet = statement.executeQuery(sql);
+    long minTimeStamp = Long.parseLong(resultSet.getString(1));
+
+    statement.close();
+    return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
   private void initJDBCConnection() throws TsdbException {

@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
@@ -432,28 +433,27 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    Integer number = 0;
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    DeviceSummary deviceSummary = null;
     try {
-      List<Integer> numbers = new ArrayList<>();
+      List<DeviceSummary> deviceSummaries = new ArrayList<>();
       for (IDatabase database : databases) {
-        number = database.deviceTotalNumber(deviceQuery);
-        numbers.add(number);
+        deviceSummary = database.deviceSummary(deviceQuery);
+        deviceSummaries.add(deviceSummary);
       }
-      Integer base = numbers.get(0);
-      for (int i = 1; i < numbers.size(); i++) {
-        if (!base.equals(numbers.get(i))) {
+      DeviceSummary base = deviceSummaries.get(0);
+      for (int i = 1; i < deviceSummaries.size(); i++) {
+        if (!base.equals(deviceSummaries.get(i))) {
           LOGGER.error("Error number of different database");
-          return -1;
+          return null;
         }
       }
     } catch (Exception e) {
       LOGGER.error("Failed to get total number of device");
-      return -1;
+      return null;
     }
-    LOGGER.info(
-        "Both database has " + number + " lines for " + deviceQuery.getDeviceSchema().getDevice());
-    return number;
+    LOGGER.info("Device Summary:" + deviceSummary.toString());
+    return deviceSummary;
   }
 
   @Override
