@@ -43,7 +43,9 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         if (deviceQuery == null) {
           return;
         }
+        LOGGER.info("Start Check Device: " + deviceQuery.getDeviceSchema().getDevice());
         dbWrapper.deviceQuery(deviceQuery);
+        LOGGER.info("Finish Check Device: " + deviceQuery.getDeviceSchema().getDevice());
       }
     } catch (SQLException sqlException) {
       LOGGER.error("Failed DeviceQuery: " + sqlException.getMessage());
