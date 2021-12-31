@@ -23,6 +23,8 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 public class DeviceQuery extends Query {
   private DeviceSchema deviceSchema;
+  private int offset = 0;
+  private int limit = 500;
 
   public DeviceQuery() {}
 
@@ -32,6 +34,29 @@ public class DeviceQuery extends Query {
 
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
+  }
+
+  public void setOffset(int offset) {
+    this.offset = offset;
+  }
+
+  public void setLimit(int limit) {
+    this.limit = limit;
+  }
+
+  public int getOffset() {
+    return offset;
+  }
+
+  public int getLimit() {
+    return limit;
+  }
+
+  public DeviceQuery getQueryWithOffset(int offset) {
+    DeviceQuery deviceQuery = new DeviceQuery(deviceSchema);
+    deviceQuery.setLimit(limit);
+    deviceQuery.setOffset(offset);
+    return deviceQuery;
   }
 
   @Override

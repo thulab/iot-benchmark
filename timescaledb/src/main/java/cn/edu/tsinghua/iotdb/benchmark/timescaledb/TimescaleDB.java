@@ -36,10 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TimescaleDB implements IDatabase {
 
@@ -364,12 +361,27 @@ public class TimescaleDB implements IDatabase {
     deviceSchemas.add(deviceSchema);
     StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
     sql.append(" ORDER BY time DESC");
+    sql.append(" OFFSET ").append(deviceQuery.getOffset());
+    sql.append(" LIMIT ").append(deviceQuery.getLimit());
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("TimescaleDB:" + sql);
     }
     Statement statement = connection.createStatement();
     ResultSet resultSet = statement.executeQuery(sql.toString());
     return new Status(true, 0, sql.toString(), resultSet);
+  }
+
+  @Override
+  public int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    StringBuilder sql = new StringBuilder("select count(1)");
+    sql.append(" FROM ").append(tableName);
+    addDeviceCondition(sql, Arrays.asList(deviceSchema));
+    LOGGER.info("TimescaleDB:" + sql);
+    Statement statement = connection.createStatement();
+    ResultSet resultSet = statement.executeQuery(sql.toString());
+    resultSet.next();
+    return Integer.parseInt(resultSet.getString(1));
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {

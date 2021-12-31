@@ -73,13 +73,7 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void init() throws TsdbException {
-    try {
-      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-      ioTDBConnection.init();
-      this.service = Executors.newSingleThreadExecutor();
-    } catch (Exception e) {
-      throw new TsdbException(e);
-    }
+    initJDBCConnection();
   }
 
   @Override
@@ -723,25 +717,45 @@ public class IoTDB implements IDatabase {
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     // TODO find a new way to fix
-    try {
-      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-      ioTDBConnection.init();
-      this.service = Executors.newSingleThreadExecutor();
-    } catch (Exception e) {
-      throw new TsdbException(e);
-    }
+    initJDBCConnection();
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
     StringBuffer sql = new StringBuffer();
     sql.append(getSimpleQuerySqlHead(deviceSchemas));
     sql.append(" order by time desc");
+    sql.append(" offset ").append(deviceQuery.getOffset());
+    sql.append(" limit ").append(deviceQuery.getLimit());
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("IoTDB:" + sql);
     }
     Statement statement = ioTDBConnection.getConnection().createStatement();
     ResultSet resultSet = statement.executeQuery(sql.toString());
     return new Status(true, 0, sql.toString(), resultSet);
+  }
+
+  @Override
+  public int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    initJDBCConnection();
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    String sql = "select count(*) from " + getDevicePath(deviceSchema);
+    LOGGER.info("IoTDB:" + sql);
+    Statement statement = ioTDBConnection.getConnection().createStatement();
+    ResultSet resultSet = statement.executeQuery(sql);
+    resultSet.next();
+    return Integer.parseInt(resultSet.getString(1));
+  }
+
+  private void initJDBCConnection() throws TsdbException {
+    if (ioTDBConnection == null) {
+      try {
+        ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
+        ioTDBConnection.init();
+        this.service = Executors.newSingleThreadExecutor();
+      } catch (Exception e) {
+        throw new TsdbException(e);
+      }
+    }
   }
 
   String getEncodingType(SensorType dataSensorType) {

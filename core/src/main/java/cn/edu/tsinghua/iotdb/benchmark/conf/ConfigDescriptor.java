@@ -468,7 +468,7 @@ public class ConfigDescriptor {
               }
             }
             if (config.isIS_POINT_COMPARISON()) {
-              if (queryTotal < 1e-7) {
+              if (queryTotal < 1e-7 && !config.isIS_POINT_COMPARISON()) {
                 LOGGER.warn(
                     "There is no query when doing comparison, so auto set IS_POINT_COMPARISON = false");
                 config.setIS_POINT_COMPARISON(false);

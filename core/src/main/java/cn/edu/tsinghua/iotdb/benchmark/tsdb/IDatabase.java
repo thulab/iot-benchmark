@@ -158,6 +158,10 @@ public interface IDatabase {
     return new Status(false, 0, workloadException, workloadException.getMessage());
   }
 
+  default int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    throw new TsdbException("Not Supported get total line number of device");
+  }
+
   /**
    * map the given type string name to the name in the target DB
    *

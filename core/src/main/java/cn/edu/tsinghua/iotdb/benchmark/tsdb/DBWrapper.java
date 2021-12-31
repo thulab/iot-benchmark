@@ -39,9 +39,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DBWrapper implements IDatabase {
@@ -446,6 +443,29 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public int deviceTotalNumber(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    Integer number = 0;
+    try {
+      List<Integer> numbers = new ArrayList<>();
+      for (IDatabase database : databases) {
+        number = database.deviceTotalNumber(deviceQuery);
+        numbers.add(number);
+      }
+      Integer base = numbers.get(0);
+      for (int i = 1; i < numbers.size(); i++) {
+        if (!base.equals(numbers.get(i))) {
+          LOGGER.error("Error number of different database");
+          return -1;
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.error("Failed to get total number of device");
+      return -1;
+    }
+    return number;
+  }
+
+  @Override
   public void init() throws TsdbException {
     for (IDatabase database : databases) {
       database.init();
@@ -524,27 +544,8 @@ public class DBWrapper implements IDatabase {
   }
 
   private boolean doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
-    ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
-
     int totalPointNumber = 0;
 
-    String currentThread = Thread.currentThread().getName();
-    // print current progress periodically
-    pointService.scheduleAtFixedRate(
-        () -> {
-          String percent =
-              String.format(
-                  "%.2f",
-                  (lineNumber + 1)
-                      * 100.0D
-                      / (config.getLOOP() * config.getBATCH_SIZE_PER_WRITE()));
-          LOGGER.info(
-              "{} Loop {} ({}%) syntheticClient for {} is done.",
-              currentThread, (lineNumber + 1), percent, deviceQuery.getDeviceSchema().getDevice());
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
     try {
       long start = System.nanoTime();
       Status status1 = statuses.get(0);
@@ -607,7 +608,6 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Failed to do DEVICE_QUERY because ", e);
       return false;
     }
-    pointService.shutdown();
     return true;
   }
 
