@@ -352,19 +352,6 @@ public class ConfigDescriptor {
                 properties.getProperty("GROUP_BY_TIME_UNIT", config.getGROUP_BY_TIME_UNIT() + "")));
         config.setQUERY_SEED(
             Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED() + "")));
-        config.setQUERY_LIMIT_N(
-            Integer.parseInt(
-                properties.getProperty("QUERY_LIMIT_N", config.getQUERY_LIMIT_N() + "")));
-        config.setQUERY_LIMIT_OFFSET(
-            Integer.parseInt(
-                properties.getProperty("QUERY_LIMIT_OFFSET", config.getQUERY_LIMIT_OFFSET() + "")));
-        config.setQUERY_SLIMIT_N(
-            Integer.parseInt(
-                properties.getProperty("QUERY_SLIMIT_N", config.getQUERY_SLIMIT_N() + "")));
-        config.setQUERY_SLIMIT_OFFSET(
-            Integer.parseInt(
-                properties.getProperty(
-                    "QUERY_SLIMIT_OFFSET", config.getQUERY_SLIMIT_OFFSET() + "")));
 
         config.setWORKLOAD_BUFFER_SIZE(
             Integer.parseInt(
