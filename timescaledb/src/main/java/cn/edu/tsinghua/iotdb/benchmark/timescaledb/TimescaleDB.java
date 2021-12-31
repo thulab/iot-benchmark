@@ -377,7 +377,9 @@ public class TimescaleDB implements IDatabase {
     StringBuilder sql = new StringBuilder("select count(1)");
     sql.append(" FROM ").append(tableName);
     addDeviceCondition(sql, Arrays.asList(deviceSchema));
-    LOGGER.info("TimescaleDB:" + sql);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("TimescaleDB:" + sql);
+    }
     Statement statement = connection.createStatement();
     ResultSet resultSet = statement.executeQuery(sql.toString());
     resultSet.next();

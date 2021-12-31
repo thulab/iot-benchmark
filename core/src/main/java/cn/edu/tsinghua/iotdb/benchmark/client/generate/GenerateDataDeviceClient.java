@@ -30,7 +30,7 @@ import java.util.concurrent.*;
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataDeviceClient.class);
-  private int range = 10000;
+  private int verificationBatchSize = config.getVERIFICATION_BATCH();
   private int now = 0;
 
   public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
@@ -45,23 +45,24 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         if (deviceQuery == null) {
           break;
         }
-        deviceQuery.setLimit(range);
+        deviceQuery.setLimit(verificationBatchSize);
         int number = dbWrapper.deviceTotalNumber(deviceQuery);
         ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
         String currentThread = Thread.currentThread().getName();
         // print current progress periodically
         pointService.scheduleAtFixedRate(
             () -> {
-              String percent = String.format("%.2f", now * 100.0D / number);
+              int loop = now * verificationBatchSize;
+              String percent = String.format("%.2f", loop * 100.0D / number);
               LOGGER.info(
-                  "{} Loop {} ({}%) syntheticClient for {} is done.",
-                  currentThread, now, percent, deviceQuery.getDeviceSchema().getDevice());
+                  "{} Loop {} ({}%) check for {} is done.",
+                  currentThread, loop, percent, deviceQuery.getDeviceSchema().getDevice());
             },
             1,
             config.getLOG_PRINT_INTERVAL(),
             TimeUnit.SECONDS);
-        for (now = 0; now * range < number; now++) {
-          DeviceQuery query = deviceQuery.getQueryWithOffset(now * range);
+        for (now = 0; now * verificationBatchSize < number; now++) {
+          DeviceQuery query = deviceQuery.getQueryWithOffset(now * verificationBatchSize);
           dbWrapper.deviceQuery(query);
         }
         pointService.shutdown();

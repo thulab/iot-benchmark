@@ -739,7 +739,9 @@ public class IoTDB implements IDatabase {
     initJDBCConnection();
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     String sql = "select count(*) from " + getDevicePath(deviceSchema);
-    LOGGER.info("IoTDB:" + sql);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("IoTDB:" + sql);
+    }
     Statement statement = ioTDBConnection.getConnection().createStatement();
     ResultSet resultSet = statement.executeQuery(sql);
     resultSet.next();

@@ -50,8 +50,6 @@ public class DBWrapper implements IDatabase {
   private static final double NANO_TO_MILLIS = 1000000.0d;
   private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
 
-  private int lineNumber = 0;
-
   private List<IDatabase> databases = new ArrayList<>();
   private Measurement measurement;
   private TestDataPersistence recorder;
@@ -422,17 +420,9 @@ public class DBWrapper implements IDatabase {
         status = database.deviceQuery(deviceQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
-        LOGGER.info(
-            database.getClass().getName()
-                + " use "
-                + (end - start)
-                + " ms to query "
-                + deviceQuery.getDeviceSchema().getDevice());
         statuses.add(status);
       }
-      LOGGER.info("Start Compare:" + deviceQuery.getDeviceSchema().getDevice());
       doPointComparison(statuses, deviceQuery);
-      LOGGER.info("Finish Compare:" + deviceQuery.getDeviceSchema().getDevice());
       for (Status sta : statuses) {
         handleQueryOperation(sta, operation, device);
       }
@@ -543,7 +533,8 @@ public class DBWrapper implements IDatabase {
         operation.getName(), okPointNum, 0, latencyInMillis, "", device);
   }
 
-  private boolean doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
+  private int doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
+    int lineNumber = 0;
     int totalPointNumber = 0;
 
     try {
@@ -558,7 +549,7 @@ public class DBWrapper implements IDatabase {
         LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
         resultSet1.close();
         resultSet2.close();
-        return false;
+        return -1;
       }
       resultSet1.next();
       resultSet2.next();
@@ -577,7 +568,7 @@ public class DBWrapper implements IDatabase {
           LOGGER.error("In DB2 line: " + stringBuilder2);
           resultSet1.close();
           resultSet2.close();
-          return false;
+          return -1;
         }
         boolean b1 = resultSet1.next();
         boolean b2 = resultSet2.next();
@@ -588,7 +579,7 @@ public class DBWrapper implements IDatabase {
           LOGGER.error("DeviceQuery(Different Length):" + deviceQuery.getQueryAttrs());
           resultSet1.close();
           resultSet2.close();
-          return false;
+          return -1;
         }
         lineNumber++;
       }
@@ -597,18 +588,12 @@ public class DBWrapper implements IDatabase {
       status2.setTimeCost(end - start + status2.getTimeCost());
       status1.setQueryResultPointNum(totalPointNumber);
       status2.setQueryResultPointNum(totalPointNumber);
-      LOGGER.info(
-          "Finish Device: "
-              + deviceQuery.getDeviceSchema().getDevice()
-              + " with "
-              + (lineNumber + 1)
-              + " line.");
       lineNumber = 0;
     } catch (SQLException e) {
       LOGGER.error("Failed to do DEVICE_QUERY because ", e);
-      return false;
+      return -1;
     }
-    return true;
+    return lineNumber + 1;
   }
 
   private boolean doComparisonByRecord(Query query, List<Status> statuses) {

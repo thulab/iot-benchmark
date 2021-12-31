@@ -133,6 +133,12 @@ public class ConfigDescriptor {
               Boolean.parseBoolean(
                   properties.getProperty(
                       "IS_POINT_COMPARISON", config.isIS_POINT_COMPARISON() + "")));
+          if (config.isIS_POINT_COMPARISON()) {
+            config.setVERIFICATION_BATCH(
+                Integer.parseInt(
+                    properties.getProperty(
+                        "VERIFICATION_BATCH", config.getVERIFICATION_BATCH() + "")));
+          }
         }
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");

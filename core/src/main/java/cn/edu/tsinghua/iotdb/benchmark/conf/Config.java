@@ -109,6 +109,8 @@ public class Config {
   private boolean IS_COMPARISON = false;
   /** Whether to do point compare */
   private boolean IS_POINT_COMPARISON = false;
+  /** The batch size of verification */
+  private int VERIFICATION_BATCH = 1000;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -1387,6 +1389,14 @@ public class Config {
     this.IS_POINT_COMPARISON = IS_POINT_COMPARISON;
   }
 
+  public int getVERIFICATION_BATCH() {
+    return VERIFICATION_BATCH;
+  }
+
+  public void setVERIFICATION_BATCH(int VERIFICATION_BATCH) {
+    this.VERIFICATION_BATCH = VERIFICATION_BATCH;
+  }
+
   /** write dataset config to info */
   public String toInfoText() {
     return "LOOP="
@@ -1476,6 +1486,9 @@ public class Config {
       properties.put("ANOTHER DBConfig", this.ANOTHER_DBConfig);
       properties.put("IS_COMPASSION", this.IS_COMPARISON);
       properties.put("IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
+      if (this.IS_POINT_COMPARISON) {
+        properties.put("VERIFICATION_BATCH", this.VERIFICATION_BATCH);
+      }
     }
     properties.put("BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
     if (this.BENCHMARK_CLUSTER) {
