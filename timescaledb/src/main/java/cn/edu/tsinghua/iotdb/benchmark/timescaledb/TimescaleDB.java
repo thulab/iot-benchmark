@@ -366,9 +366,19 @@ public class TimescaleDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("TimescaleDB:" + sql);
     }
-    Statement statement = connection.createStatement();
-    ResultSet resultSet = statement.executeQuery(sql.toString());
-    return new Status(true, 0, sql.toString(), resultSet);
+    List<List<Object>> result = new ArrayList<>();
+    try (Statement statement = connection.createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql.toString());
+      int columnNumber = resultSet.getMetaData().getColumnCount();
+      while (resultSet.next()) {
+        List<Object> line = new ArrayList<>();
+        for (int i = 1; i < columnNumber; i++) {
+          line.add(resultSet.getObject(i));
+        }
+        result.add(line);
+      }
+    }
+    return new Status(true, 0, sql.toString(), result);
   }
 
   @Override

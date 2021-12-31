@@ -63,6 +63,8 @@ public class DeviceQuery extends Query {
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("DeviceSchema=").append(deviceSchema);
+    stringBuilder.append(" limit=").append(limit);
+    stringBuilder.append(" offset=").append(offset);
     return stringBuilder;
   }
 }

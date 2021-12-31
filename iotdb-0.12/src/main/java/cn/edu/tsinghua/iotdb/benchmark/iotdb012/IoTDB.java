@@ -729,9 +729,23 @@ public class IoTDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("IoTDB:" + sql);
     }
-    Statement statement = ioTDBConnection.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery(sql.toString());
-    return new Status(true, 0, sql.toString(), resultSet);
+    List<List<Object>> result = new ArrayList<>();
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql.toString());
+      int colNumber = resultSet.getMetaData().getColumnCount();
+      while (resultSet.next()) {
+        List<Object> line = new ArrayList<>();
+        for (int i = 1; i < colNumber; i++) {
+          line.add(resultSet.getObject(i));
+        }
+        result.add(line);
+      }
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+
+    return new Status(true, 0, sql.toString(), result);
   }
 
   @Override

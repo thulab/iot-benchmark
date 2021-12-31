@@ -34,7 +34,6 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -536,68 +535,47 @@ public class DBWrapper implements IDatabase {
   }
 
   private int doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
-    int lineNumber = 0;
     int totalPointNumber = 0;
 
-    try {
-      long start = System.nanoTime();
-      Status status1 = statuses.get(0);
-      Status status2 = statuses.get(1);
-      ResultSet resultSet1 = status1.getResultSet();
-      ResultSet resultSet2 = status2.getResultSet();
-      int col1 = resultSet1.getMetaData().getColumnCount();
-      int col2 = resultSet2.getMetaData().getColumnCount();
-      if (col1 != col2) {
-        LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
-        resultSet1.close();
-        resultSet2.close();
-        return -1;
-      }
-      resultSet1.next();
-      resultSet2.next();
-      while (true) {
-        StringBuilder stringBuilder1 = new StringBuilder(resultSet1.getObject(1).toString());
-        StringBuilder stringBuilder2 = new StringBuilder(resultSet2.getObject(1).toString());
-        // compare
-        for (int j = 2; j <= resultSet1.getMetaData().getColumnCount(); j++) {
-          stringBuilder1.append(",").append(resultSet1.getObject(j));
-          stringBuilder2.append(",").append(resultSet1.getObject(j));
-          totalPointNumber++;
-        }
-        if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
-          LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
-          LOGGER.error("In DB1 line: " + stringBuilder1);
-          LOGGER.error("In DB2 line: " + stringBuilder2);
-          resultSet1.close();
-          resultSet2.close();
-          return -1;
-        }
-        boolean b1 = resultSet1.next();
-        boolean b2 = resultSet2.next();
-        if (!b1 | !b2) {
-          if (!b1 & !b2) {
-            break;
-          }
-          LOGGER.error("DeviceQuery(Different Length):" + deviceQuery.getQueryAttrs());
-          resultSet1.close();
-          resultSet2.close();
-          return -1;
-        }
-        lineNumber++;
-      }
-      long end = System.nanoTime();
-      status1.setTimeCost(end - start + status1.getTimeCost());
-      status2.setTimeCost(end - start + status2.getTimeCost());
-      status1.setQueryResultPointNum(totalPointNumber);
-      status2.setQueryResultPointNum(totalPointNumber);
-      resultSet1.close();
-      resultSet2.close();
-      lineNumber = 0;
-    } catch (SQLException e) {
-      LOGGER.error("Failed to do DEVICE_QUERY because ", e);
+    long start = System.nanoTime();
+    Status status1 = statuses.get(0);
+    Status status2 = statuses.get(1);
+    List<List<Object>> records1 = status1.getRecords();
+    List<List<Object>> records2 = status2.getRecords();
+    int lines1 = records1.size();
+    int lines2 = records2.size();
+    if (lines1 != lines2) {
+      LOGGER.error("Line number different. DeviceQuery:" + deviceQuery.getQueryAttrs());
       return -1;
     }
-    return lineNumber + 1;
+    for (int i = 0; i < lines1; i++) {
+      List<Object> record1 = records1.get(i);
+      List<Object> record2 = records2.get(i);
+      StringBuilder stringBuilder1 = new StringBuilder(record1.get(0).toString());
+      StringBuilder stringBuilder2 = new StringBuilder(record2.get(0).toString());
+      // compare
+      if (record1.size() != record2.size()) {
+        LOGGER.error("Column number different. DeviceQuery:" + deviceQuery.getQueryAttrs());
+        return -1;
+      }
+      for (int j = 0; j < record1.size(); j++) {
+        stringBuilder1.append(",").append(record1.get(j));
+        stringBuilder2.append(",").append(record2.get(j));
+        totalPointNumber++;
+      }
+      if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
+        LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
+        LOGGER.error("In DB1 line: " + stringBuilder1);
+        LOGGER.error("In DB2 line: " + stringBuilder2);
+        return -1;
+      }
+    }
+    long end = System.nanoTime();
+    status1.setTimeCost(end - start + status1.getTimeCost());
+    status2.setTimeCost(end - start + status2.getTimeCost());
+    status1.setQueryResultPointNum(totalPointNumber);
+    status2.setQueryResultPointNum(totalPointNumber);
+    return lines1;
   }
 
   private boolean doComparisonByRecord(Query query, List<Status> statuses) {
