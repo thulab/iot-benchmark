@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
 
-import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -31,6 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
@@ -724,9 +724,9 @@ public class IoTDB implements IDatabase {
     deviceSchemas.add(deviceSchema);
     StringBuffer sql = new StringBuffer();
     sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    sql.append(" where time >= ").append(deviceQuery.getStartTimestamp());
+    sql.append(" and time <").append(deviceQuery.getEndTimestamp());
     sql.append(" order by time desc");
-    sql.append(" offset ").append(deviceQuery.getOffset());
-    sql.append(" limit ").append(deviceQuery.getLimit());
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("IoTDB:" + sql);
     }
@@ -759,13 +759,15 @@ public class IoTDB implements IDatabase {
     resultSet.next();
     int totalLineNumber = Integer.parseInt(resultSet.getString(1));
 
-    sql = "select * from " + getDevicePath(deviceSchema) + " order by time desc";
+    sql = "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
     resultSet = statement.executeQuery(sql);
-    long maxTimeStamp = Long.parseLong(resultSet.getString(1));
+    resultSet.next();
+    long maxTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
 
-    sql = "select * from " + getDevicePath(deviceSchema) + " order by time";
+    sql = "select * from " + getDevicePath(deviceSchema) + " order by time limit 1";
     resultSet = statement.executeQuery(sql);
-    long minTimeStamp = Long.parseLong(resultSet.getString(1));
+    resultSet.next();
+    long minTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
 
     statement.close();
     return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);

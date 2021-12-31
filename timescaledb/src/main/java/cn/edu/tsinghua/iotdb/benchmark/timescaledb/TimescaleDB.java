@@ -23,13 +23,13 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
@@ -361,13 +361,12 @@ public class TimescaleDB implements IDatabase {
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
     StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
+    sql.append(" AND (time >= ").append(deviceQuery.getStartTimestamp());
+    sql.append(" AND time < ").append(deviceQuery.getEndTimestamp()).append(")");
     sql.append(" ORDER BY time DESC");
-    sql.append(" OFFSET ").append(deviceQuery.getOffset());
-    sql.append(" LIMIT ").append(deviceQuery.getLimit());
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("TimescaleDB:" + sql);
     }
-    LOGGER.info("TimescaleDB:" + sql);
     List<List<Object>> result = new ArrayList<>();
     try (Statement statement = connection.createStatement()) {
       ResultSet resultSet = statement.executeQuery(sql.toString());
@@ -384,7 +383,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException{
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     StringBuilder sql = new StringBuilder("select count(1)");
     sql.append(" FROM ").append(tableName);

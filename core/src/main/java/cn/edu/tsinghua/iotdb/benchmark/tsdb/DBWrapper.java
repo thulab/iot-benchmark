@@ -444,7 +444,9 @@ public class DBWrapper implements IDatabase {
       DeviceSummary base = deviceSummaries.get(0);
       for (int i = 1; i < deviceSummaries.size(); i++) {
         if (!base.equals(deviceSummaries.get(i))) {
-          LOGGER.error("Error number of different database");
+          LOGGER.error("Error number of different database: ");
+          LOGGER.error("DB1:" + base);
+          LOGGER.error("DB2:" + deviceSummaries.get(i));
           return null;
         }
       }

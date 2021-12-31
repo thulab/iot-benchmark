@@ -34,6 +34,13 @@ public class DeviceQuery extends Query {
     this.deviceSchema = deviceSchema;
   }
 
+  public DeviceQuery getTotalDeviceQuery(long startTimestamp, long endTimestamp) {
+    DeviceQuery deviceQuery = new DeviceQuery(deviceSchema);
+    deviceQuery.setStartTimestamp(startTimestamp);
+    deviceQuery.setEndTimestamp(endTimestamp);
+    return deviceQuery;
+  }
+
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
   }

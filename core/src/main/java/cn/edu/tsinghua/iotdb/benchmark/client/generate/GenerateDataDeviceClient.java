@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.slf4j.Logger;
@@ -30,7 +31,10 @@ import java.util.concurrent.*;
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataDeviceClient.class);
-  private int verificationBatchSize = config.getVERIFICATION_BATCH();
+  private long verificationStepSize =
+      config.getVERIFICATION_STEP_SIZE()
+          * config.getPOINT_STEP()
+          * config.getBATCH_SIZE_PER_WRITE();
   private int now = 0;
 
   public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
@@ -45,26 +49,36 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         if (deviceQuery == null) {
           break;
         }
-        deviceQuery.setLimit(verificationBatchSize);
-        int number = dbWrapper.deviceTotalNumber(deviceQuery);
+        DeviceSummary deviceSummary = dbWrapper.deviceSummary(deviceQuery);
+        if (deviceSummary == null) {
+          return;
+        }
         ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
         String currentThread = Thread.currentThread().getName();
         // print current progress periodically
         pointService.scheduleAtFixedRate(
             () -> {
-              int loop = now * verificationBatchSize;
-              String percent = String.format("%.2f", loop * 100.0D / number);
+              String percent =
+                  String.format(
+                      "%.2f",
+                      now
+                          * 100.0D
+                          / (deviceSummary.getTotalLineNumber() * config.getSENSOR_NUMBER()));
               LOGGER.info(
-                  "{} Loop {} ({}%) check for {} is done.",
-                  currentThread, loop, percent, deviceQuery.getDeviceSchema().getDevice());
+                  "{} has checked {} ({}%) data point for {}.",
+                  currentThread, now, percent, deviceQuery.getDeviceSchema().getDevice());
             },
             1,
             config.getLOG_PRINT_INTERVAL(),
             TimeUnit.SECONDS);
-        for (now = 0; now * verificationBatchSize < number; now++) {
-          DeviceQuery query = deviceQuery.getQueryWithOffset(now * verificationBatchSize);
-          dbWrapper.deviceQuery(query);
-        }
+        long queryStartTime = deviceSummary.getMinTimeStamp();
+        do {
+          DeviceQuery query =
+              deviceQuery.getTotalDeviceQuery(
+                  queryStartTime, queryStartTime + verificationStepSize);
+          now += dbWrapper.deviceQuery(query).getQueryResultPointNum();
+          queryStartTime += verificationStepSize;
+        } while (queryStartTime < deviceSummary.getMaxTimeStamp());
         pointService.shutdown();
       }
     } catch (SQLException | TsdbException sqlException) {
