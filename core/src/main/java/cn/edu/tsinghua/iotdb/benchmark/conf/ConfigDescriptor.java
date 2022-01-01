@@ -137,7 +137,7 @@ public class ConfigDescriptor {
             config.setVERIFICATION_STEP_SIZE(
                 Integer.parseInt(
                     properties.getProperty(
-                        "VERIFICATION_BATCH", config.getVERIFICATION_STEP_SIZE() + "")));
+                        "VERIFICATION_STEP_SIZE", config.getVERIFICATION_STEP_SIZE() + "")));
           }
         }
 
