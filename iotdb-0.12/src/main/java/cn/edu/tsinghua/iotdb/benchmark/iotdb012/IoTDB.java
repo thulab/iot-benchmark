@@ -74,7 +74,15 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void init() throws TsdbException {
-    initJDBCConnection();
+    if (ioTDBConnection == null) {
+      try {
+        ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
+        ioTDBConnection.init();
+        this.service = Executors.newSingleThreadExecutor();
+      } catch (Exception e) {
+        throw new TsdbException(e);
+      }
+    }
   }
 
   @Override
@@ -717,22 +725,16 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    // TODO find a new way to fix
-    initJDBCConnection();
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
-    List<DeviceSchema> deviceSchemas = new ArrayList<>();
-    deviceSchemas.add(deviceSchema);
-    StringBuffer sql = new StringBuffer();
-    sql.append(getSimpleQuerySqlHead(deviceSchemas));
-    sql.append(" where time >= ").append(deviceQuery.getStartTimestamp());
-    sql.append(" and time <").append(deviceQuery.getEndTimestamp());
-    sql.append(" order by time desc");
+    String sql =
+        getDeviceQuerySql(
+            deviceSchema, deviceQuery.getStartTimestamp(), deviceQuery.getEndTimestamp());
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("IoTDB:" + sql);
     }
     List<List<Object>> result = new ArrayList<>();
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      ResultSet resultSet = statement.executeQuery(sql.toString());
+      ResultSet resultSet = statement.executeQuery(sql);
       int colNumber = resultSet.getMetaData().getColumnCount();
       while (resultSet.next()) {
         List<Object> line = new ArrayList<>();
@@ -749,40 +751,49 @@ public class IoTDB implements IDatabase {
     return new Status(true, 0, sql.toString(), result);
   }
 
+  protected String getDeviceQuerySql(
+      DeviceSchema deviceSchema, long startTimeStamp, long endTimeStamp) {
+    StringBuffer sql = new StringBuffer();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    sql.append(" where time >= ").append(startTimeStamp);
+    sql.append(" and time <").append(endTimeStamp);
+    sql.append(" order by time desc");
+    return sql.toString();
+  }
+
   @Override
   public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    initJDBCConnection();
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
-    String sql = "select count(*) from " + getDevicePath(deviceSchema);
-    Statement statement = ioTDBConnection.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery(sql);
-    resultSet.next();
-    int totalLineNumber = Integer.parseInt(resultSet.getString(1));
+    int totalLineNumber = 0;
+    long minTimeStamp = 0, maxTimeStamp = 0;
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      ResultSet resultSet = statement.executeQuery(getTotalLineNumberSql(deviceSchema));
+      resultSet.next();
+      totalLineNumber = Integer.parseInt(resultSet.getString(1));
 
-    sql = "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
-    resultSet = statement.executeQuery(sql);
-    resultSet.next();
-    long maxTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
+      resultSet = statement.executeQuery(getMaxTimeStampSql(deviceSchema));
+      resultSet.next();
+      maxTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
 
-    sql = "select * from " + getDevicePath(deviceSchema) + " order by time limit 1";
-    resultSet = statement.executeQuery(sql);
-    resultSet.next();
-    long minTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
-
-    statement.close();
+      resultSet = statement.executeQuery(getMinTimeStampSql(deviceSchema));
+      resultSet.next();
+      minTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
+    }
     return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
-  private void initJDBCConnection() throws TsdbException {
-    if (ioTDBConnection == null) {
-      try {
-        ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-        ioTDBConnection.init();
-        this.service = Executors.newSingleThreadExecutor();
-      } catch (Exception e) {
-        throw new TsdbException(e);
-      }
-    }
+  protected String getTotalLineNumberSql(DeviceSchema deviceSchema) {
+    return "select count(*) from " + getDevicePath(deviceSchema);
+  }
+
+  protected String getMinTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from " + getDevicePath(deviceSchema) + " order by time limit 1";
+  }
+
+  protected String getMaxTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
   }
 
   String getEncodingType(SensorType dataSensorType) {
