@@ -373,7 +373,7 @@ public class TimescaleDB implements IDatabase {
       int columnNumber = resultSet.getMetaData().getColumnCount();
       while (resultSet.next()) {
         List<Object> line = new ArrayList<>();
-        for (int i = 1; i < columnNumber; i++) {
+        for (int i = 1; i <= columnNumber; i++) {
           line.add(resultSet.getObject(i));
         }
         result.add(line);

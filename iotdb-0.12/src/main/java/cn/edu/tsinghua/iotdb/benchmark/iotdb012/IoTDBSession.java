@@ -316,6 +316,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         List<Object> line = new ArrayList<>();
         RowRecord rowRecord = sessionDataSet.next();
         List<Field> fields = rowRecord.getFields();
+        line.add(rowRecord.getTimestamp());
         for (int i = 0; i < fields.size(); i++) {
           line.add(fields.get(i).getStringValue());
         }
@@ -342,11 +343,11 @@ public class IoTDBSession extends IoTDBSessionBase {
 
       sessionDataSet = session.executeQueryStatement(getMaxTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
-      maxTimeStamp = Long.parseLong(rowRecord.getFields().get(0).toString());
+      maxTimeStamp = rowRecord.getTimestamp();
 
       sessionDataSet = session.executeQueryStatement(getMinTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
-      minTimeStamp = Long.parseLong(rowRecord.getFields().get(0).toString());
+      minTimeStamp = rowRecord.getTimestamp();
     } catch (IoTDBConnectionException e) {
       throw new TsdbException("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {

@@ -161,7 +161,7 @@ public interface IDatabase {
 
   /** get summary of device */
   default DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    throw new TsdbException("Not Supported get total line number of device");
+    throw new TsdbException("Not Supported get summary of device.");
   }
 
   /**

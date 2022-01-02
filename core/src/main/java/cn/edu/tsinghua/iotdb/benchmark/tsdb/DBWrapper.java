@@ -451,7 +451,7 @@ public class DBWrapper implements IDatabase {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to get total number of device");
+      LOGGER.error("Failed to get summary of device");
       return null;
     }
     LOGGER.info("Device Summary:" + deviceSummary.toString());
@@ -563,7 +563,9 @@ public class DBWrapper implements IDatabase {
       for (int j = 0; j < record1.size(); j++) {
         stringBuilder1.append(",").append(record1.get(j));
         stringBuilder2.append(",").append(record2.get(j));
-        totalPointNumber++;
+        if (j != 0) {
+          totalPointNumber++;
+        }
       }
       if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
         LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());

@@ -738,7 +738,7 @@ public class IoTDB implements IDatabase {
       int colNumber = resultSet.getMetaData().getColumnCount();
       while (resultSet.next()) {
         List<Object> line = new ArrayList<>();
-        for (int i = 1; i < colNumber; i++) {
+        for (int i = 1; i <= colNumber; i++) {
           line.add(resultSet.getObject(i));
         }
         result.add(line);
