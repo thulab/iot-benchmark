@@ -318,6 +318,7 @@ VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00      
   + failOperation: 执行失败的不同操作的Request/SQL的数量
   + failPoint: 插入失败的数据点数(对于查询该值总为0)
   + throughput: 等于```okPoint / Test elapsed time```
+  + <a href = "https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=199529657">参数详细说明</a>
 + 不同操作的毫秒级延迟统计
   + 其中```SLOWEST_THREAD``` 是客户端线程中的最大的累积操作时间长度
 

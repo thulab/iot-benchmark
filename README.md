@@ -313,6 +313,7 @@ The output contains overall information of the test including:
   + failOperation: the request/SQL number failed to execute for different operations
   + failPoint: the data point number failed to ingest (for query operations currently this field is always zero)
   + throughput: equals to ```okPoint / Test elapsed time```
+  + <a href = "https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=199529657">Detailed parameter description</a>
 + The latency statistics of different operations in millisecond 
   + ```SLOWEST_THREAD``` is the max accumulative operation time-cost among the client threads
 
