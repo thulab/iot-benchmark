@@ -1,5 +1,5 @@
 # 1. IoTDB-Benchmark
-![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux-yellow.svg)
+![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
 You can also read [中文版本](README-cn.md).
@@ -74,6 +74,7 @@ You can also read [中文版本](README-cn.md).
 - [9. Perform Multiple Tests Automatically](#9-perform-multiple-tests-automatically)
   - [9.1. Configure routine](#91-configure-routine)
   - [9.2. Start](#92-start)
+- [10. Developer Guidelines](#10-developer-guidelines)
 - [10. Related Article](#10-related-article)
 
 # 3. Overview
@@ -112,6 +113,7 @@ IoTDB-benchmark's features are as following:
    4. Perform correctness verification tests on data and query results respectively.
 3. Testing report and result: Supporting storing testing information and results for further query or analysis.
 4. Visualize test results: Integration with Tableau to visualize the test result.
+5. We recommend using MacOs or Linux systems. This article takes MacOS and Linux systems as examples. If you use Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
 
 # 5. Usage of IoTDB-Benchmark
 
@@ -1620,6 +1622,13 @@ In this case, if you want to know what is going on, you can check the log inform
 > cd ./logs
 > tail -f log_info.log
 ```
+
+# 10. Developer Guidelines
+1. All the interfaces of IoTDB-Benchmark are in the core module.
+2. The realization of all database tests of IoTDB-Benchmark are in each maven sub-project.
+3. If you want to use an editor such as IDEA to run Benchmark:
+    1. You can find TestEntrance in the test file directory under each maven subproject, and run the corresponding test.
+    2. Taking IoTDB 0.12 as an example, you can run `iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 10. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios

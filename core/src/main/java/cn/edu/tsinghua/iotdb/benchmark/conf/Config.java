@@ -208,6 +208,8 @@ public class Config {
   private int GROUP_NUMBER = 1;
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
+  /** Whether to use templates */
+  private boolean TEMPLATE = true;
 
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
@@ -293,14 +295,6 @@ public class Config {
   private long GROUP_BY_TIME_UNIT = QUERY_INTERVAL / 2;
   /** Query random seed */
   private long QUERY_SEED = 1516580959202L;
-  /** Maximum number of output items in conditional query with limit */
-  private int QUERY_LIMIT_N = 1;
-  /** The offset in conditional query with limit */
-  private int QUERY_LIMIT_OFFSET = 0;
-  /** Maximum number of output sequences */
-  private int QUERY_SLIMIT_N = 1;
-  /** Offset of output sequences */
-  private int QUERY_SLIMIT_OFFSET = 0;
 
   // workload 相关部分
   /** The size of workload buffer size */
@@ -924,6 +918,14 @@ public class Config {
     this.IOTDB_SESSION_POOL_SIZE = IOTDB_SESSION_POOL_SIZE;
   }
 
+  public boolean isTEMPLATE() {
+    return TEMPLATE;
+  }
+
+  public void setTEMPLATE(boolean TEMPLATE) {
+    this.TEMPLATE = TEMPLATE;
+  }
+
   public long getOP_INTERVAL() {
     return OP_INTERVAL;
   }
@@ -1098,38 +1100,6 @@ public class Config {
 
   public void setQUERY_SEED(long QUERY_SEED) {
     this.QUERY_SEED = QUERY_SEED;
-  }
-
-  public int getQUERY_LIMIT_N() {
-    return QUERY_LIMIT_N;
-  }
-
-  public void setQUERY_LIMIT_N(int QUERY_LIMIT_N) {
-    this.QUERY_LIMIT_N = QUERY_LIMIT_N;
-  }
-
-  public int getQUERY_LIMIT_OFFSET() {
-    return QUERY_LIMIT_OFFSET;
-  }
-
-  public void setQUERY_LIMIT_OFFSET(int QUERY_LIMIT_OFFSET) {
-    this.QUERY_LIMIT_OFFSET = QUERY_LIMIT_OFFSET;
-  }
-
-  public int getQUERY_SLIMIT_N() {
-    return QUERY_SLIMIT_N;
-  }
-
-  public void setQUERY_SLIMIT_N(int QUERY_SLIMIT_N) {
-    this.QUERY_SLIMIT_N = QUERY_SLIMIT_N;
-  }
-
-  public int getQUERY_SLIMIT_OFFSET() {
-    return QUERY_SLIMIT_OFFSET;
-  }
-
-  public void setQUERY_SLIMIT_OFFSET(int QUERY_SLIMIT_OFFSET) {
-    this.QUERY_SLIMIT_OFFSET = QUERY_SLIMIT_OFFSET;
   }
 
   public int getWORKLOAD_BUFFER_SIZE() {
@@ -1488,14 +1458,6 @@ public class Config {
         + GROUP_BY_TIME_UNIT
         + "\nQUERY_SEED="
         + QUERY_SEED
-        + "\nQUERY_LIMIT_N="
-        + QUERY_LIMIT_N
-        + "\nQUERY_LIMIT_OFFSET="
-        + QUERY_LIMIT_OFFSET
-        + "\nQUERY_SLIMIT_N="
-        + QUERY_SLIMIT_N
-        + "\nQUERY_SLIMIT_OFFSET="
-        + QUERY_SLIMIT_OFFSET
         + "\nWORKLOAD_BUFFER_SIZE="
         + WORKLOAD_BUFFER_SIZE
         + "\nSENSORS="
@@ -1583,10 +1545,6 @@ public class Config {
     properties.put("QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
     properties.put("QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
     properties.put("QUERY_SEED", this.QUERY_SEED);
-    properties.put("QUERY_LIMIT_N", this.QUERY_LIMIT_N);
-    properties.put("QUERY_LIMIT_OFFSET", this.QUERY_LIMIT_OFFSET);
-    properties.put("QUERY_SLIMIT_N", this.QUERY_SLIMIT_N);
-    properties.put("QUERY_SLIMIT_OFFSET", this.QUERY_SLIMIT_OFFSET);
     properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
     return properties;
   }
