@@ -21,26 +21,37 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.pool.SessionDataSetWrapper;
 import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.read.common.Field;
+import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 
+import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class IoTDBClusterSession extends IoTDBSessionBase {
@@ -69,6 +80,12 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
               config.isENABLE_THRIFT_COMPRESSION(),
               true);
     }
+  }
+
+  @Override
+  public void init() throws TsdbException {
+    // do nothing
+    this.service = Executors.newSingleThreadExecutor();
   }
 
   @Override
@@ -169,6 +186,144 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     return status;
   }
 
+  @Override
+  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
+    AtomicBoolean isOk = new AtomicBoolean(true);
+
+    try {
+      List<List<Object>> records = new ArrayList<>();
+      future =
+          service.submit(
+              () -> {
+                try {
+                  SessionDataSetWrapper sessionDataSet =
+                      sessions[currSession].executeQueryStatement(sql);
+                  while (sessionDataSet.hasNext()) {
+                    RowRecord rowRecord = sessionDataSet.next();
+                    line.getAndIncrement();
+                    if (config.isIS_COMPARISON()) {
+                      List<Object> record = new ArrayList<>();
+                      switch (operation) {
+                        case AGG_RANGE_QUERY:
+                        case AGG_VALUE_QUERY:
+                        case AGG_RANGE_VALUE_QUERY:
+                          break;
+                        default:
+                          record.add(rowRecord.getTimestamp());
+                          break;
+                      }
+                      List<Field> fields = rowRecord.getFields();
+                      for (int i = 0; i < fields.size(); i++) {
+                        switch (operation) {
+                          case LATEST_POINT_QUERY:
+                            if (i == 0 || i == 2) {
+                              continue;
+                            }
+                          default:
+                            break;
+                        }
+                        record.add(fields.get(i).toString());
+                      }
+                      records.add(record);
+                    }
+                  }
+                } catch (StatementExecutionException | IoTDBConnectionException e) {
+                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                  isOk.set(false);
+                }
+                queryResultPointNum.set(
+                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+              });
+      try {
+        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        future.cancel(true);
+        return new Status(false, queryResultPointNum.get(), e, sql);
+      }
+      currSession = (currSession + 1) % sessions.length;
+      if (isOk.get()) {
+        if (config.isIS_COMPARISON()) {
+          return new Status(true, queryResultPointNum.get(), sql, records);
+        } else {
+          return new Status(true, queryResultPointNum.get());
+        }
+      } else {
+        return new Status(
+            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
+      }
+    } catch (Exception e) {
+      return new Status(false, queryResultPointNum.get(), e, sql);
+    } catch (Throwable t) {
+      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+    }
+  }
+
+  /**
+   * Using in verification
+   *
+   * @param verificationQuery
+   */
+  @Override
+  public Status verificationQuery(VerificationQuery verificationQuery) {
+    DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+
+    List<Record> records = verificationQuery.getRecords();
+    if (records == null || records.size() == 0) {
+      return new Status(
+          false,
+          new TsdbException("There are no records in verficationQuery."),
+          "There are no records in verficationQuery.");
+    }
+
+    StringBuffer sql = new StringBuffer();
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    int point = 0;
+    int line = 0;
+    try {
+      SessionDataSetWrapper sessionDataSet =
+          sessions[currSession].executeQueryStatement(sql.toString());
+      while (sessionDataSet.hasNext()) {
+        RowRecord rowRecord = sessionDataSet.next();
+        long timeStamp = rowRecord.getTimestamp();
+        List<Object> values = recordMap.get(timeStamp);
+        for (int i = 0; i < values.size(); i++) {
+          String value = rowRecord.getFields().get(i).toString();
+          String target = String.valueOf(values.get(i));
+          if (!value.equals(target)) {
+            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
+          } else {
+            point++;
+          }
+        }
+        line++;
+      }
+      currSession = (currSession + 1) % sessions.length;
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql);
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+    if (recordMap.size() != line) {
+      LOGGER.error(
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+    }
+    return new Status(true, point);
+  }
+
   private Status waitFuture() {
     try {
       future.get(config.getWRITE_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
@@ -182,11 +337,14 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
-    super.close();
     for (SessionPool sessionPool : sessions) {
       if (sessionPool != null) {
         sessionPool.close();
       }
     }
+    if (ioTDBConnection != null) {
+      ioTDBConnection.close();
+    }
+    this.service.shutdown();
   }
 }
