@@ -55,7 +55,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
       return false;
     }
     // Check the validation of config between benchmark and dataset
-    if (!schemaReader.checkDataSet()) {
+    if (!config.isIS_COPY_MODE() && !schemaReader.checkDataSet()) {
       LOGGER.error("There are difference between benchmark and dataset");
       return false;
     }

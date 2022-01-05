@@ -33,7 +33,12 @@ public abstract class DataReader {
   protected String currentFileName;
 
   public static DataReader getInstance(List<String> files) {
-    return new CSVDataReader(files);
+    if(config.isIS_COPY_MODE()){
+      return new CopyDataReader(files);
+    }
+    else {
+      return new CSVDataReader(files);
+    }
   }
 
   public DataReader(List<String> files) {
