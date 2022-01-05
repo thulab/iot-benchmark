@@ -105,9 +105,11 @@ public class IoTDBSession extends IoTDBSessionBase {
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
         if (config.isVECTOR()) {
-          session.insertAlignedRecord(deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+          session.insertAlignedRecord(
+              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
         } else {
-          session.insertRecord(deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+          session.insertRecord(
+              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;

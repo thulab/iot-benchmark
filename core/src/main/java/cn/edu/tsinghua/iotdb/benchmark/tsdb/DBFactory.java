@@ -38,7 +38,7 @@ public class DBFactory {
     String dbClass = "";
     try {
       switch (dbConfig.getDB_SWITCH()) {
-        // IoTDB 0.13
+          // IoTDB 0.13
         case DB_IOT_013_JDBC:
           dbClass = Constants.IOTDB013_JDBC_CLASS;
           break;

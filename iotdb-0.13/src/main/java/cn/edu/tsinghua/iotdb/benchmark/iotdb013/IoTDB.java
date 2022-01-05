@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
 import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -145,15 +144,15 @@ public class IoTDB implements IDatabase {
           registerStorageGroups(pair.getKey(), pair.getValue());
 
           registerTimeseries(pair.getKey(), pair.getValue());
-//          if (config.isTEMPLATE()) {
-//            try {
-//              registerTemplates(pair.getKey(), pair.getValue());
-//            } catch (StatementExecutionException e) {
-//              continue;
-//            }
-//          } else {
-//            registerTimeseries(pair.getKey(), pair.getValue());
-//          }
+          //          if (config.isTEMPLATE()) {
+          //            try {
+          //              registerTemplates(pair.getKey(), pair.getValue());
+          //            } catch (StatementExecutionException e) {
+          //              continue;
+          //            }
+          //          } else {
+          //            registerTimeseries(pair.getKey(), pair.getValue());
+          //          }
         }
       } catch (Exception e) {
         throw new TsdbException(e);
@@ -173,30 +172,32 @@ public class IoTDB implements IDatabase {
     return true;
   }
 
-//  private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
-//      throws IoTDBConnectionException, StatementExecutionException {
-//    List<List<String>> measurementList = new ArrayList<>();
-//    List<List<TSDataType>> dataTypeList = new ArrayList<>();
-//    List<List<TSEncoding>> encodingList = new ArrayList<>();
-//    List<CompressionType> compressionTypes = new ArrayList<>();
-//    List<String> schemaNames = new ArrayList<>();
-//    for (Sensor sensor : schemaList.get(0).getSensors()) {
-//      measurementList.add(Collections.singletonList(sensor.getName()));
-//      dataTypeList.add(
-//          Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-//      encodingList.add(
-//          Collections.singletonList(
-//              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
-//      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-//      schemaNames.add(sensor.getName());
-//    }
-//    metaSession.createSchemaTemplate(
-//        "testTemplate", schemaNames, measurementList, dataTypeList, encodingList, compressionTypes);
-//    for (DeviceSchema deviceSchema : schemaList) {
-//      metaSession.setSchemaTemplate(
-//          "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
-//    }
-//  }
+  //  private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
+  //      throws IoTDBConnectionException, StatementExecutionException {
+  //    List<List<String>> measurementList = new ArrayList<>();
+  //    List<List<TSDataType>> dataTypeList = new ArrayList<>();
+  //    List<List<TSEncoding>> encodingList = new ArrayList<>();
+  //    List<CompressionType> compressionTypes = new ArrayList<>();
+  //    List<String> schemaNames = new ArrayList<>();
+  //    for (Sensor sensor : schemaList.get(0).getSensors()) {
+  //      measurementList.add(Collections.singletonList(sensor.getName()));
+  //      dataTypeList.add(
+  //          Collections.singletonList(Enum.valueOf(TSDataType.class,
+  // sensor.getSensorType().name)));
+  //      encodingList.add(
+  //          Collections.singletonList(
+  //              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
+  //      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+  //      schemaNames.add(sensor.getName());
+  //    }
+  //    metaSession.createSchemaTemplate(
+  //        "testTemplate", schemaNames, measurementList, dataTypeList, encodingList,
+  // compressionTypes);
+  //    for (DeviceSchema deviceSchema : schemaList) {
+  //      metaSession.setSchemaTemplate(
+  //          "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+  //    }
+  //  }
 
   private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)
       throws TsdbException {
@@ -233,7 +234,13 @@ public class IoTDB implements IDatabase {
           encodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
           compressors.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
         }
-        registerAlignedTimeseriesBatch(metaSession, getDevicePath(deviceSchema), multiMeasurementComponents, dataTypes, encodings, compressors);
+        registerAlignedTimeseriesBatch(
+            metaSession,
+            getDevicePath(deviceSchema),
+            multiMeasurementComponents,
+            dataTypes,
+            encodings,
+            compressors);
       }
     } else {
       List<String> paths = new ArrayList<>();
@@ -260,21 +267,19 @@ public class IoTDB implements IDatabase {
         registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
       }
     }
-
-
   }
 
   private void registerAlignedTimeseriesBatch(
-          Session metaSession,
-          String multiSeriesId,
-          List<String> multiMeasurementComponents,
-          List<TSDataType> dataTypes,
-          List<TSEncoding> encodings,
-          List<CompressionType> compressors)
-          throws TsdbException {
+      Session metaSession,
+      String multiSeriesId,
+      List<String> multiMeasurementComponents,
+      List<TSDataType> dataTypes,
+      List<TSEncoding> encodings,
+      List<CompressionType> compressors)
+      throws TsdbException {
     try {
       metaSession.createAlignedTimeseries(
-              multiSeriesId, multiMeasurementComponents, dataTypes, encodings, compressors, null);
+          multiSeriesId, multiMeasurementComponents, dataTypes, encodings, compressors, null);
     } catch (Exception e) {
       handleRegisterException(e);
     } finally {
