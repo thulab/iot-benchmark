@@ -398,6 +398,17 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   }
 
   @Override
+  public void cleanup() {
+    try {
+      sessions[currSession].executeNonQueryStatement(DELETE_SERIES_SQL);
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
+  }
+
+  @Override
   public void close() throws TsdbException {
     for (SessionPool sessionPool : sessions) {
       if (sessionPool != null) {

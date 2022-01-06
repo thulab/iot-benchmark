@@ -357,6 +357,17 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
+  public void cleanup() {
+    try {
+      session.executeNonQueryStatement(DELETE_SERIES_SQL);
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
+  }
+
+  @Override
   public void close() throws TsdbException {
     try {
       if (session != null) {
