@@ -33,10 +33,9 @@ public abstract class DataReader {
   protected String currentFileName;
 
   public static DataReader getInstance(List<String> files) {
-    if(config.isIS_COPY_MODE()){
+    if (config.isIS_COPY_MODE()) {
       return new CopyDataReader(files);
-    }
-    else {
+    } else {
       return new CSVDataReader(files);
     }
   }

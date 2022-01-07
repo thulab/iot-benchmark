@@ -983,22 +983,37 @@ public class Config {
     this.START_TIME = START_TIME;
   }
 
-  public boolean isIS_COPY_MODE() { return IS_COPY_MODE;
+  public boolean isIS_COPY_MODE() {
+    return IS_COPY_MODE;
   }
 
-  public void setIS_COPY_MODE(boolean IS_COPY_MODE) { this.IS_COPY_MODE = IS_COPY_MODE; }
+  public void setIS_COPY_MODE(boolean IS_COPY_MODE) {
+    this.IS_COPY_MODE = IS_COPY_MODE;
+  }
 
-  public boolean isIS_ADD_ANOMALY() { return IS_ADD_ANOMALY; }
+  public boolean isIS_ADD_ANOMALY() {
+    return IS_ADD_ANOMALY;
+  }
 
-  public void setIS_ADD_ANOMALY(boolean IS_ADD_ANOMALY) {this.IS_ADD_ANOMALY = IS_ADD_ANOMALY; }
+  public void setIS_ADD_ANOMALY(boolean IS_ADD_ANOMALY) {
+    this.IS_ADD_ANOMALY = IS_ADD_ANOMALY;
+  }
 
-  public double getANOMALY_RATE() { return ANOMALY_RATE; }
+  public double getANOMALY_RATE() {
+    return ANOMALY_RATE;
+  }
 
-  public void setANOMALY_RATE(double ANOMALY_RATE) { this.ANOMALY_RATE = ANOMALY_RATE;}
+  public void setANOMALY_RATE(double ANOMALY_RATE) {
+    this.ANOMALY_RATE = ANOMALY_RATE;
+  }
 
-  public int getANOMALY_TIMES() { return ANOMALY_TIMES; }
+  public int getANOMALY_TIMES() {
+    return ANOMALY_TIMES;
+  }
 
-  public void setANOMALY_TIMES(int ANOMALY_TIMES) { this.ANOMALY_TIMES = ANOMALY_TIMES; }
+  public void setANOMALY_TIMES(int ANOMALY_TIMES) {
+    this.ANOMALY_TIMES = ANOMALY_TIMES;
+  }
 
   public boolean isIS_OUT_OF_ORDER() {
     return IS_OUT_OF_ORDER;
@@ -1588,6 +1603,4 @@ public class Config {
     properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
     return properties;
   }
-
-
 }
