@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
@@ -34,14 +35,10 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DBWrapper implements IDatabase {
@@ -52,8 +49,6 @@ public class DBWrapper implements IDatabase {
   private static final double NANO_TO_SECOND = 1000000000.0d;
   private static final double NANO_TO_MILLIS = 1000000.0d;
   private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
-
-  private int lineNumber = 0;
 
   private List<IDatabase> databases = new ArrayList<>();
   private Measurement measurement;
@@ -438,6 +433,37 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    DeviceSummary deviceSummary = null;
+    try {
+      List<DeviceSummary> deviceSummaries = new ArrayList<>();
+      for (IDatabase database : databases) {
+        deviceSummary = database.deviceSummary(deviceQuery);
+        if (deviceSummary == null) {
+          LOGGER.error("Failed to get summary: {}", database.getClass().getName());
+          continue;
+        }
+        deviceSummaries.add(deviceSummary);
+      }
+      DeviceSummary base = deviceSummaries.get(0);
+      for (int i = 1; i < deviceSummaries.size(); i++) {
+        if (!base.equals(deviceSummaries.get(i))) {
+          LOGGER.error("Error number of different database: ");
+          LOGGER.error("DB1:" + base);
+          LOGGER.error("DB2:" + deviceSummaries.get(i));
+          return null;
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.error("Failed to get summary of device");
+      e.printStackTrace();
+      return null;
+    }
+    LOGGER.info("Device Summary:" + deviceSummary.toString());
+    return deviceSummary;
+  }
+
+  @Override
   public void init() throws TsdbException {
     for (IDatabase database : databases) {
       database.init();
@@ -515,89 +541,50 @@ public class DBWrapper implements IDatabase {
         operation.getName(), okPointNum, 0, latencyInMillis, "", device);
   }
 
-  private boolean doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
-    ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
+  private int doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
+    int totalPointNumber = 0;
 
-    String currentThread = Thread.currentThread().getName();
-    // print current progress periodically
-    pointService.scheduleAtFixedRate(
-        () -> {
-          String percent =
-              String.format(
-                  "%.2f",
-                  (lineNumber + 1)
-                      * 100.0D
-                      / (config.getLOOP() * config.getBATCH_SIZE_PER_WRITE()));
-          LOGGER.info(
-              "{} {}% syntheticClient for {} is done.",
-              currentThread, percent, deviceQuery.getDeviceSchema().getDevice());
-        },
-        1,
-        config.getLOG_PRINT_INTERVAL(),
-        TimeUnit.SECONDS);
-    try {
-      long start = System.nanoTime();
-      Status status1 = statuses.get(0);
-      Status status2 = statuses.get(1);
-      ResultSet resultSet1 = status1.getResultSet();
-      ResultSet resultSet2 = status2.getResultSet();
-      int col1 = resultSet1.getMetaData().getColumnCount();
-      int col2 = resultSet2.getMetaData().getColumnCount();
-      if (col1 != col2) {
-        LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
-        resultSet1.close();
-        resultSet2.close();
-        return false;
-      }
-      resultSet1.next();
-      resultSet2.next();
-      while (true) {
-        StringBuilder stringBuilder1 = new StringBuilder(resultSet1.getObject(1).toString());
-        StringBuilder stringBuilder2 = new StringBuilder(resultSet2.getObject(1).toString());
-        // compare
-        for (int j = 2; j <= resultSet1.getMetaData().getColumnCount(); j++) {
-          stringBuilder1.append(",").append(resultSet1.getObject(j));
-          stringBuilder2.append(",").append(resultSet1.getObject(j));
-        }
-        if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
-          LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
-          LOGGER.error("In DB1 line: " + stringBuilder1);
-          LOGGER.error("In DB2 line: " + stringBuilder2);
-          resultSet1.close();
-          resultSet2.close();
-          return false;
-        }
-        boolean b1 = resultSet1.next();
-        boolean b2 = resultSet2.next();
-        if (!b1 | !b2) {
-          if (!b1 & !b2) {
-            break;
-          }
-          LOGGER.error("DeviceQuery(Different Length):" + deviceQuery.getQueryAttrs());
-          resultSet1.close();
-          resultSet2.close();
-          return false;
-        }
-        lineNumber++;
-      }
-      long end = System.nanoTime();
-      status1.setTimeCost(end - start + status1.getTimeCost());
-      status2.setTimeCost(end - start + status2.getTimeCost());
-      status1.setQueryResultPointNum(lineNumber * col1);
-      status2.setQueryResultPointNum(lineNumber * col2);
-      LOGGER.info(
-          "Finish Device: "
-              + deviceQuery.getDeviceSchema().getDevice()
-              + " with "
-              + lineNumber
-              + " line.");
-      lineNumber = 0;
-    } catch (SQLException e) {
-      LOGGER.error("Failed to do DEVICE_QUERY because ", e);
-      return false;
+    long start = System.nanoTime();
+    Status status1 = statuses.get(0);
+    Status status2 = statuses.get(1);
+    List<List<Object>> records1 = status1.getRecords();
+    List<List<Object>> records2 = status2.getRecords();
+    int lines1 = records1.size();
+    int lines2 = records2.size();
+    if (lines1 != lines2) {
+      LOGGER.error("Line number different. DeviceQuery:" + deviceQuery.getQueryAttrs());
+      return -1;
     }
-    pointService.shutdown();
-    return true;
+    for (int i = 0; i < lines1; i++) {
+      List<Object> record1 = records1.get(i);
+      List<Object> record2 = records2.get(i);
+      StringBuilder stringBuilder1 = new StringBuilder(record1.get(0).toString());
+      StringBuilder stringBuilder2 = new StringBuilder(record2.get(0).toString());
+      // compare
+      if (record1.size() != record2.size()) {
+        LOGGER.error("Column number different. DeviceQuery:" + deviceQuery.getQueryAttrs());
+        return -1;
+      }
+      for (int j = 0; j < record1.size(); j++) {
+        stringBuilder1.append(",").append(record1.get(j));
+        stringBuilder2.append(",").append(record2.get(j));
+        if (j != 0) {
+          totalPointNumber++;
+        }
+      }
+      if (!stringBuilder1.toString().equals(stringBuilder2.toString())) {
+        LOGGER.error("DeviceQuery:" + deviceQuery.getQueryAttrs());
+        LOGGER.error("In DB1 line: " + stringBuilder1);
+        LOGGER.error("In DB2 line: " + stringBuilder2);
+        return -1;
+      }
+    }
+    long end = System.nanoTime();
+    status1.setTimeCost(end - start + status1.getTimeCost());
+    status2.setTimeCost(end - start + status2.getTimeCost());
+    status1.setQueryResultPointNum(totalPointNumber);
+    status2.setQueryResultPointNum(totalPointNumber);
+    return lines1;
   }
 
   private boolean doComparisonByRecord(Query query, List<Status> statuses) {

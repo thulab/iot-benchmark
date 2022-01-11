@@ -109,6 +109,8 @@ public class Config {
   private boolean IS_COMPARISON = false;
   /** Whether to do point compare */
   private boolean IS_POINT_COMPARISON = false;
+  /** The step size of verification query */
+  private int VERIFICATION_STEP_SIZE = 1000;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -1428,6 +1430,14 @@ public class Config {
     this.IS_POINT_COMPARISON = IS_POINT_COMPARISON;
   }
 
+  public int getVERIFICATION_STEP_SIZE() {
+    return VERIFICATION_STEP_SIZE;
+  }
+
+  public void setVERIFICATION_STEP_SIZE(int VERIFICATION_STEP_SIZE) {
+    this.VERIFICATION_STEP_SIZE = VERIFICATION_STEP_SIZE;
+  }
+
   /** write dataset config to info */
   public String toInfoText() {
     return "LOOP="
@@ -1568,6 +1578,9 @@ public class Config {
     if (this.IS_DOUBLE_WRITE) {
       properties.put("IS_COMPASSION", this.IS_COMPARISON);
       properties.put("IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
+      if (this.IS_POINT_COMPARISON) {
+        properties.put("VERIFICATION_STEP_SIZE", this.VERIFICATION_STEP_SIZE);
+      }
     }
     properties.put("BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
     if (this.BENCHMARK_CLUSTER) {

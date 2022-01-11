@@ -23,6 +23,10 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 
 public class DeviceQuery extends Query {
   private DeviceSchema deviceSchema;
+  /* include */
+  private long startTimestamp;
+  /* not include */
+  private long endTimestamp;
 
   public DeviceQuery() {}
 
@@ -30,14 +34,43 @@ public class DeviceQuery extends Query {
     this.deviceSchema = deviceSchema;
   }
 
+  public DeviceQuery getTotalDeviceQuery(long startTimestamp, long endTimestamp) {
+    DeviceQuery deviceQuery = new DeviceQuery(deviceSchema);
+    deviceQuery.setStartTimestamp(startTimestamp);
+    deviceQuery.setEndTimestamp(endTimestamp);
+    return deviceQuery;
+  }
+
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
+  }
+
+  public void setDeviceSchema(DeviceSchema deviceSchema) {
+    this.deviceSchema = deviceSchema;
+  }
+
+  public long getStartTimestamp() {
+    return startTimestamp;
+  }
+
+  public void setStartTimestamp(long startTimestamp) {
+    this.startTimestamp = startTimestamp;
+  }
+
+  public long getEndTimestamp() {
+    return endTimestamp;
+  }
+
+  public void setEndTimestamp(long endTimestamp) {
+    this.endTimestamp = endTimestamp;
   }
 
   @Override
   public StringBuilder getQueryAttrs() {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("DeviceSchema=").append(deviceSchema);
+    stringBuilder.append(" startTimeStamp=").append(startTimestamp);
+    stringBuilder.append(" endTimeStamp=").append(endTimestamp);
     return stringBuilder;
   }
 }

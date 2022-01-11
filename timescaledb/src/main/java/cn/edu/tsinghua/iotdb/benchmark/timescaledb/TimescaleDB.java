@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
@@ -36,10 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TimescaleDB implements IDatabase {
 
@@ -363,13 +361,54 @@ public class TimescaleDB implements IDatabase {
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
     StringBuilder sql = getSampleQuerySqlHead(deviceSchemas);
+    sql.append(" AND (time >= ").append(deviceQuery.getStartTimestamp());
+    sql.append(" AND time < ").append(deviceQuery.getEndTimestamp()).append(")");
     sql.append(" ORDER BY time DESC");
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("TimescaleDB:" + sql);
     }
+    List<List<Object>> result = new ArrayList<>();
+    try (Statement statement = connection.createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql.toString());
+      int columnNumber = resultSet.getMetaData().getColumnCount();
+      while (resultSet.next()) {
+        List<Object> line = new ArrayList<>();
+        for (int i = 1; i <= columnNumber; i++) {
+          line.add(resultSet.getObject(i));
+        }
+        result.add(line);
+      }
+    }
+    return new Status(true, 0, sql.toString(), result);
+  }
+
+  @Override
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    StringBuilder sql = new StringBuilder("select count(1)");
+    sql.append(" FROM ").append(tableName);
+    addDeviceCondition(sql, Arrays.asList(deviceSchema));
     Statement statement = connection.createStatement();
     ResultSet resultSet = statement.executeQuery(sql.toString());
-    return new Status(true, 0, sql.toString(), resultSet);
+    resultSet.next();
+    int totalLineNumber = Integer.parseInt(resultSet.getString(1));
+
+    sql = new StringBuilder("select min(time)");
+    sql.append(" FROM ").append(tableName);
+    addDeviceCondition(sql, Arrays.asList(deviceSchema));
+    resultSet = statement.executeQuery(sql.toString());
+    resultSet.next();
+    long minTimeStamp = Long.parseLong(resultSet.getString(1));
+
+    sql = new StringBuilder("select max(time)");
+    sql.append(" FROM ").append(tableName);
+    addDeviceCondition(sql, Arrays.asList(deviceSchema));
+    resultSet = statement.executeQuery(sql.toString());
+    resultSet.next();
+    long maxTimeStamp = Long.parseLong(resultSet.getString(1));
+
+    statement.close();
+    return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
