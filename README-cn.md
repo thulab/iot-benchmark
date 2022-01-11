@@ -318,6 +318,7 @@ VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00      
   + failOperation: 执行失败的不同操作的Request/SQL的数量
   + failPoint: 插入失败的数据点数(对于查询该值总为0)
   + throughput: 等于```okPoint / Test elapsed time```
+  + <a href = "https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=199529657">参数详细说明</a>
 + 不同操作的毫秒级延迟统计
   + 其中```SLOWEST_THREAD``` 是客户端线程中的最大的累积操作时间长度
 
@@ -942,6 +943,29 @@ BIG_BATCH_SIZE=100
 > 注意：
 > 1. FILE_PATH文件夹应当为使用生成数据模式生成的数据集
 > 2. 运行该模式时其他参数应当和info.txt中的描述**保持一致**
+
+
+外部数据集，即如果需要使用现有的真实数据进行扩展插入到数据库中，需要设置如下
+```
+BENCHMARK_WORK_MODE=verificationWriteMode
+# 数据集存储地址
+FILE_PATH=data/test
+# 每个数据文件包含的Batch个数，由于是csv外部数据集导入，故而视为单个数据集
+BIG_BATCH_SIZE=1
+CLIENT_NUM=1
+# 每个BATCH的写入数量，设置后会截取BATCH_SIZE_PER_WRITE大小的原csv数据集
+BATCH_SIZE_PER_WRITE=100
+# 激活复制模式
+IS_COPY_MODE=true
+```
+需要在FILE_PATH中添加外部数据集
+```
++ FILE_PATH
+   + d_0
+       + *.csv  # 将第一列修改为如"Sensor,s_0,s_1,..."
+   + schema.txt # 每一行解释每个Sensor的Type,如"d_0 s_0 3\n d_0 s_1 4"
+```
+添加完成后，即可运行。
 
 ### 6.8.2. Benchmark的启动
 
