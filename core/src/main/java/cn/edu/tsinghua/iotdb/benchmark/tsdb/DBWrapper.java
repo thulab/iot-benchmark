@@ -439,6 +439,10 @@ public class DBWrapper implements IDatabase {
       List<DeviceSummary> deviceSummaries = new ArrayList<>();
       for (IDatabase database : databases) {
         deviceSummary = database.deviceSummary(deviceQuery);
+        if (deviceSummary == null) {
+          LOGGER.error("Failed to get summary: {}", database.getClass().getName());
+          continue;
+        }
         deviceSummaries.add(deviceSummary);
       }
       DeviceSummary base = deviceSummaries.get(0);
@@ -452,6 +456,7 @@ public class DBWrapper implements IDatabase {
       }
     } catch (Exception e) {
       LOGGER.error("Failed to get summary of device");
+      e.printStackTrace();
       return null;
     }
     LOGGER.info("Device Summary:" + deviceSummary.toString());
