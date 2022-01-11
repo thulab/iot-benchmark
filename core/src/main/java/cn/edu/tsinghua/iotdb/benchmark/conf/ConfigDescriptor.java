@@ -312,6 +312,18 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("CREATE_SCHEMA", config.isCREATE_SCHEMA() + "")));
         config.setSTART_TIME(properties.getProperty("START_TIME", config.getSTART_TIME()));
+        config.setIS_COPY_MODE(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_COPY_MODE", config.isIS_COPY_MODE() + "")));
+        config.setIS_ADD_ANOMALY(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_ADD_ANOMALY", config.isIS_ADD_ANOMALY() + "")));
+        config.setANOMALY_RATE(
+            Double.parseDouble(
+                properties.getProperty("ANOMALY_RATE", config.getANOMALY_RATE() + "")));
+        config.setANOMALY_TIMES(
+            Integer.parseInt(
+                properties.getProperty("ANOMALY_TIMES", config.getANOMALY_TIMES() + "")));
         config.setIS_OUT_OF_ORDER(
             Boolean.parseBoolean(
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
