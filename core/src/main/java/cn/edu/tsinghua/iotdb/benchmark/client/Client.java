@@ -125,15 +125,17 @@ public abstract class Client implements Runnable {
 
         String currentThread = Thread.currentThread().getName();
 
-        // print current progress periodically
-        service.scheduleAtFixedRate(
-            () -> {
-              String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / this.totalLoop);
-              LOGGER.info("{} {}% workload is done.", currentThread, percent);
-            },
-            1,
-            config.getLOG_PRINT_INTERVAL(),
-            TimeUnit.SECONDS);
+        if (!config.isIS_POINT_COMPARISON()) {
+          // print current progress periodically
+          service.scheduleAtFixedRate(
+              () -> {
+                String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / this.totalLoop);
+                LOGGER.info("{} {}% workload is done.", currentThread, percent);
+              },
+              1,
+              config.getLOG_PRINT_INTERVAL(),
+              TimeUnit.SECONDS);
+        }
 
         doTest();
         service.shutdown();

@@ -19,17 +19,23 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
+import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.*;
 
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataDeviceClient.class);
+  private long verificationStepSize =
+      config.getVERIFICATION_STEP_SIZE()
+          * config.getPOINT_STEP()
+          * config.getBATCH_SIZE_PER_WRITE();
+  private int now = 0;
 
   public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
@@ -41,11 +47,41 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
       for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
         DeviceQuery deviceQuery = queryWorkLoad.getDeviceQuery();
         if (deviceQuery == null) {
+          break;
+        }
+        DeviceSummary deviceSummary = dbWrapper.deviceSummary(deviceQuery);
+        if (deviceSummary == null) {
           return;
         }
-        dbWrapper.deviceQuery(deviceQuery);
+        ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
+        String currentThread = Thread.currentThread().getName();
+        // print current progress periodically
+        pointService.scheduleAtFixedRate(
+            () -> {
+              String percent =
+                  String.format(
+                      "%.2f",
+                      now
+                          * 100.0D
+                          / (deviceSummary.getTotalLineNumber() * config.getSENSOR_NUMBER()));
+              LOGGER.info(
+                  "{} has checked {} ({}%) data point for {}.",
+                  currentThread, now, percent, deviceQuery.getDeviceSchema().getDevice());
+            },
+            1,
+            config.getLOG_PRINT_INTERVAL(),
+            TimeUnit.SECONDS);
+        long queryStartTime = deviceSummary.getMinTimeStamp();
+        do {
+          DeviceQuery query =
+              deviceQuery.getTotalDeviceQuery(
+                  queryStartTime, queryStartTime + verificationStepSize);
+          now += dbWrapper.deviceQuery(query).getQueryResultPointNum();
+          queryStartTime += verificationStepSize;
+        } while (queryStartTime < deviceSummary.getMaxTimeStamp());
+        pointService.shutdown();
       }
-    } catch (SQLException sqlException) {
+    } catch (SQLException | TsdbException sqlException) {
       LOGGER.error("Failed DeviceQuery: " + sqlException.getMessage());
     }
   }
