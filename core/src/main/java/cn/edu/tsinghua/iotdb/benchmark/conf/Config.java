@@ -240,6 +240,15 @@ public class Config {
   /** Start time of writing data */
   private String START_TIME = "2018-8-30T00:00:00+08:00";
 
+  // whether copy files or just use the generated synthetic data, in VerifyWriteMode
+  private boolean IS_COPY_MODE = false;
+
+  // whether to insert/add anomalies to the copied times series
+  // TODO: insert anomalies to any kind of series
+  private boolean IS_ADD_ANOMALY = false;
+  private double ANOMALY_RATE = 0.1;
+  private int ANOMALY_TIMES = 3;
+
   // Operation：乱序写入部分
   /** Whether insert out of order */
   private boolean IS_OUT_OF_ORDER = false;
@@ -984,6 +993,38 @@ public class Config {
     this.START_TIME = START_TIME;
   }
 
+  public boolean isIS_COPY_MODE() {
+    return IS_COPY_MODE;
+  }
+
+  public void setIS_COPY_MODE(boolean IS_COPY_MODE) {
+    this.IS_COPY_MODE = IS_COPY_MODE;
+  }
+
+  public boolean isIS_ADD_ANOMALY() {
+    return IS_ADD_ANOMALY;
+  }
+
+  public void setIS_ADD_ANOMALY(boolean IS_ADD_ANOMALY) {
+    this.IS_ADD_ANOMALY = IS_ADD_ANOMALY;
+  }
+
+  public double getANOMALY_RATE() {
+    return ANOMALY_RATE;
+  }
+
+  public void setANOMALY_RATE(double ANOMALY_RATE) {
+    this.ANOMALY_RATE = ANOMALY_RATE;
+  }
+
+  public int getANOMALY_TIMES() {
+    return ANOMALY_TIMES;
+  }
+
+  public void setANOMALY_TIMES(int ANOMALY_TIMES) {
+    this.ANOMALY_TIMES = ANOMALY_TIMES;
+  }
+
   public boolean isIS_OUT_OF_ORDER() {
     return IS_OUT_OF_ORDER;
   }
@@ -1439,6 +1480,16 @@ public class Config {
         + "\nSTART_TIME='"
         + START_TIME
         + '\''
+        + "\nIS_COPY_MODE="
+        + IS_COPY_MODE
+        + '\''
+        + "\nIS_ADD_ANOMALY="
+        + IS_ADD_ANOMALY
+        + "\nANOMALY_RATE="
+        + ANOMALY_RATE
+        + "\nANOMALY_TIMES="
+        + ANOMALY_TIMES
+        + '\''
         + "\nIS_OUT_OF_ORDER="
         + IS_OUT_OF_ORDER
         + "\nOUT_OF_ORDER_MODE="
@@ -1529,6 +1580,10 @@ public class Config {
     properties.put("POINT_STEP", this.POINT_STEP);
     properties.put("OP_INTERVAL", this.OP_INTERVAL);
     properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
+    properties.put("IS_ADD_ANOMALY", this.IS_ADD_ANOMALY);
+    properties.put("ANOMALY_RATE", this.ANOMALY_RATE);
+    properties.put("ANOMALY_TIMES", this.ANOMALY_TIMES);
+    properties.put("IS_COPY_MODE", this.IS_COPY_MODE);
     properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
     properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
     properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
