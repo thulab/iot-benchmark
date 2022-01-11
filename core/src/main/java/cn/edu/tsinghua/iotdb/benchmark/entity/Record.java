@@ -46,6 +46,10 @@ public class Record {
     return timestamp;
   }
 
+  public void setTimestamp(long timestamp) {
+    this.timestamp = timestamp;
+  }
+
   public List<Object> getRecordDataValue() {
     return recordDataValue;
   }

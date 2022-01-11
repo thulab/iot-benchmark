@@ -306,6 +306,18 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("CREATE_SCHEMA", config.isCREATE_SCHEMA() + "")));
         config.setSTART_TIME(properties.getProperty("START_TIME", config.getSTART_TIME()));
+        config.setIS_COPY_MODE(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_COPY_MODE", config.isIS_COPY_MODE() + "")));
+        config.setIS_ADD_ANOMALY(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_ADD_ANOMALY", config.isIS_ADD_ANOMALY() + "")));
+        config.setANOMALY_RATE(
+            Double.parseDouble(
+                properties.getProperty("ANOMALY_RATE", config.getANOMALY_RATE() + "")));
+        config.setANOMALY_TIMES(
+            Integer.parseInt(
+                properties.getProperty("ANOMALY_TIMES", config.getANOMALY_TIMES() + "")));
         config.setIS_OUT_OF_ORDER(
             Boolean.parseBoolean(
                 properties.getProperty("IS_OUT_OF_ORDER", config.isIS_OUT_OF_ORDER() + "")));
@@ -352,19 +364,6 @@ public class ConfigDescriptor {
                 properties.getProperty("GROUP_BY_TIME_UNIT", config.getGROUP_BY_TIME_UNIT() + "")));
         config.setQUERY_SEED(
             Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED() + "")));
-        config.setQUERY_LIMIT_N(
-            Integer.parseInt(
-                properties.getProperty("QUERY_LIMIT_N", config.getQUERY_LIMIT_N() + "")));
-        config.setQUERY_LIMIT_OFFSET(
-            Integer.parseInt(
-                properties.getProperty("QUERY_LIMIT_OFFSET", config.getQUERY_LIMIT_OFFSET() + "")));
-        config.setQUERY_SLIMIT_N(
-            Integer.parseInt(
-                properties.getProperty("QUERY_SLIMIT_N", config.getQUERY_SLIMIT_N() + "")));
-        config.setQUERY_SLIMIT_OFFSET(
-            Integer.parseInt(
-                properties.getProperty(
-                    "QUERY_SLIMIT_OFFSET", config.getQUERY_SLIMIT_OFFSET() + "")));
 
         config.setWORKLOAD_BUFFER_SIZE(
             Integer.parseInt(
@@ -462,36 +461,46 @@ public class ConfigDescriptor {
             LOGGER.error("Double write not support influxdb v1.x");
             result = false;
           }
+          // check query
+          double queryTotal = 0.0;
+          for (int i = 1; i < operations.length; i++) {
+            queryTotal += Double.valueOf(operations[i]);
+          }
+          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
+            LOGGER.error(
+                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
+            result = false;
+            checkQuery();
+          } else {
+            if (config.isIS_COMPARISON()) {
+              if (queryTotal < 1e-7) {
+                LOGGER.warn(
+                    "There is no query when doing comparison, so auto set IS_COMPARISON = false");
+                config.setIS_COMPARISON(false);
+              }
+            }
+            if (config.isIS_POINT_COMPARISON()) {
+              if (queryTotal < 1e-7) {
+                LOGGER.warn(
+                    "There is no query when doing comparison, so auto set IS_POINT_COMPARISON = false");
+                config.setIS_POINT_COMPARISON(false);
+              }
+              if (config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+                LOGGER.warn("There are too many client ( > device number)");
+              }
+            }
+          }
           if (config.isIS_COMPARISON() || config.isIS_POINT_COMPARISON()) {
             result &= checkDatabaseVerification(dbConfig);
             result &= checkDatabaseVerification(anotherConfig);
             checkQuery();
           }
-          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
-            LOGGER.error(
-                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
-            result = false;
-            checkQuery();
-          }
-          if (config.isIS_COMPARISON()) {
-            // check query
-            double total = 0.0;
-            for (int i = 1; i < operations.length; i++) {
-              total += Double.valueOf(operations[i]);
-            }
-            if (total < 1e-7) {
-              LOGGER.error("There is no query when doing comparison.");
-              result = false;
-            }
-          }
-          if (config.isIS_POINT_COMPARISON()
-              && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
-            LOGGER.warn("There are too many client ( > device number)");
-          }
-          if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
-            LOGGER.error(
-                "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
-            result = false;
+        } else {
+          if (config.isIS_COMPARISON() || config.isIS_POINT_COMPARISON()) {
+            LOGGER.warn(
+                "There are ONLY 1 database, not support IS_COMPARISON and IS_POINT_COMPARISON");
+            config.setIS_COMPARISON(false);
+            config.setIS_POINT_COMPARISON(false);
           }
         }
         break;
