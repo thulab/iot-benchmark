@@ -1282,7 +1282,7 @@ VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00      
 
 In order to verify the correctness of the database data more efficiently, iotdb-benchmark provides to complete the correctness verification by comparing the data between the two databases.
 
-Note that before performing this test, please use the regular test mode write (dual database) above to complete the database write.
+Note that before performing this test, please use the regular test mode write (dual database) above to complete the database write, it is currently recommended using the JDBC method
 
 ### 6.12.1. Configure
 
