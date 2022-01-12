@@ -23,8 +23,7 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.Tablet;
-import org.apache.iotdb.tsfile.write.schema.IMeasurementSchema;
-import org.apache.iotdb.tsfile.write.schema.UnaryMeasurementSchema;
+import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
@@ -59,12 +58,12 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   protected Tablet genTablet(Batch batch) {
-    List<IMeasurementSchema> schemaList = new ArrayList<>();
+    List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
       SensorType dataSensorType = sensor.getSensorType();
       schemaList.add(
-          new UnaryMeasurementSchema(
+          new MeasurementSchema(
               sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
