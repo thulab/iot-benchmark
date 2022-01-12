@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.tsdb;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
@@ -156,6 +157,11 @@ public interface IDatabase {
   default Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
+  }
+
+  /** get summary of device */
+  default DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    throw new TsdbException("Not Supported get summary of device.");
   }
 
   /**

@@ -133,6 +133,12 @@ public class ConfigDescriptor {
               Boolean.parseBoolean(
                   properties.getProperty(
                       "IS_POINT_COMPARISON", config.isIS_POINT_COMPARISON() + "")));
+          if (config.isIS_POINT_COMPARISON()) {
+            config.setVERIFICATION_STEP_SIZE(
+                Integer.parseInt(
+                    properties.getProperty(
+                        "VERIFICATION_STEP_SIZE", config.getVERIFICATION_STEP_SIZE() + "")));
+          }
         }
 
         String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
@@ -480,7 +486,7 @@ public class ConfigDescriptor {
               }
             }
             if (config.isIS_POINT_COMPARISON()) {
-              if (queryTotal < 1e-7) {
+              if (queryTotal < 1e-7 && !config.isIS_POINT_COMPARISON()) {
                 LOGGER.warn(
                     "There is no query when doing comparison, so auto set IS_POINT_COMPARISON = false");
                 config.setIS_POINT_COMPARISON(false);
