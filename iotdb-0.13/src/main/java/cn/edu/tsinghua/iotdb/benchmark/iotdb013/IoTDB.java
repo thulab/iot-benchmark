@@ -148,11 +148,7 @@ public class IoTDB implements IDatabase {
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
           if (config.isTEMPLATE()) {
-            try {
-              registerTemplates(pair.getKey(), pair.getValue());
-            } catch (StatementExecutionException e) {
-              // do nothing
-            }
+            registerTemplates(pair.getKey(), pair.getValue());
           }
           registerTimeseries(pair.getKey(), pair.getValue());
         }
@@ -175,23 +171,32 @@ public class IoTDB implements IDatabase {
   }
 
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
-      throws IoTDBConnectionException, StatementExecutionException, IOException {
+          throws IoTDBConnectionException, IOException {
     Template template = new Template("testTemplate");
     InternalNode internalNode = new InternalNode("template", true);
-    for (Sensor sensor : schemaList.get(0).getSensors()) {
-      MeasurementNode measurementNode =
-          new MeasurementNode(
-              sensor.getName(),
-              Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
-              Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-      internalNode.addChild(measurementNode);
+    try{
+      for (Sensor sensor : schemaList.get(0).getSensors()) {
+        MeasurementNode measurementNode =
+                new MeasurementNode(
+                        sensor.getName(),
+                        Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
+                        Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
+                        Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        internalNode.addChild(measurementNode);
+      }
+      template.addToTemplate(internalNode);
+      metaSession.createSchemaTemplate(template);
+    } catch (StatementExecutionException e) {
+      // do noting
     }
-    template.addToTemplate(internalNode);
-    metaSession.createSchemaTemplate(template);
+
     for (DeviceSchema deviceSchema : schemaList) {
-      metaSession.setSchemaTemplate(
-          "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      try{
+        metaSession.setSchemaTemplate(
+                "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      } catch (StatementExecutionException e) {
+        // do nothing
+      }
     }
   }
 
@@ -772,26 +777,42 @@ public class IoTDB implements IDatabase {
 
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    // TODO find a new way to fix
-    try {
-      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-      ioTDBConnection.init();
-      this.service = Executors.newSingleThreadExecutor();
-    } catch (Exception e) {
-      throw new TsdbException(e);
-    }
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
-    List<DeviceSchema> deviceSchemas = new ArrayList<>();
-    deviceSchemas.add(deviceSchema);
-    StringBuffer sql = new StringBuffer();
-    sql.append(getSimpleQuerySqlHead(deviceSchemas));
-    sql.append(" order by time desc");
+    String sql =
+        getDeviceQuerySql(
+            deviceSchema, deviceQuery.getStartTimestamp(), deviceQuery.getEndTimestamp());
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("IoTDB:" + sql);
     }
-    Statement statement = ioTDBConnection.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery(sql.toString());
-    return new Status(true, 0, sql.toString(), resultSet);
+    List<List<Object>> result = new ArrayList<>();
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      ResultSet resultSet = statement.executeQuery(sql);
+      int colNumber = resultSet.getMetaData().getColumnCount();
+      while (resultSet.next()) {
+        List<Object> line = new ArrayList<>();
+        for (int i = 1; i <= colNumber; i++) {
+          line.add(resultSet.getObject(i));
+        }
+        result.add(line);
+      }
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+
+    return new Status(true, 0, sql.toString(), result);
+  }
+
+  protected String getDeviceQuerySql(
+      DeviceSchema deviceSchema, long startTimeStamp, long endTimeStamp) {
+    StringBuffer sql = new StringBuffer();
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    deviceSchemas.add(deviceSchema);
+    sql.append(getSimpleQuerySqlHead(deviceSchemas));
+    sql.append(" where time >= ").append(startTimeStamp);
+    sql.append(" and time <").append(endTimeStamp);
+    sql.append(" order by time desc");
+    return sql.toString();
   }
 
   String getEncodingType(SensorType dataSensorType) {
