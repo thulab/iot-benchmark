@@ -171,17 +171,17 @@ public class IoTDB implements IDatabase {
   }
 
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
-          throws IoTDBConnectionException, IOException {
+      throws IoTDBConnectionException, IOException {
     Template template = new Template("testTemplate");
     InternalNode internalNode = new InternalNode("template", true);
-    try{
+    try {
       for (Sensor sensor : schemaList.get(0).getSensors()) {
         MeasurementNode measurementNode =
-                new MeasurementNode(
-                        sensor.getName(),
-                        Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
-                        Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
-                        Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+            new MeasurementNode(
+                sensor.getName(),
+                Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
+                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
+                Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
         internalNode.addChild(measurementNode);
       }
       template.addToTemplate(internalNode);
@@ -191,9 +191,9 @@ public class IoTDB implements IDatabase {
     }
 
     for (DeviceSchema deviceSchema : schemaList) {
-      try{
+      try {
         metaSession.setSchemaTemplate(
-                "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+            "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
       } catch (StatementExecutionException e) {
         // do nothing
       }
