@@ -18,6 +18,9 @@ Notice, default config of influxdb2 is not support too many write in a short tim
 1. This is [Demo config](config.properties)
 2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.0/reference/config-options/
 3. [Syntax](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
+4. You should pay attention to DB_SWITCH=InfluxDB-2.0, PORT=8086, USERNAME=admin, PASSWORD=12345678, DB_NAME=org, TOKEN(can be found at http://{ip}:8086/) in config.properties.
+![image](https://user-images.githubusercontent.com/34939716/149779954-29d9485d-d750-4313-ab45-2e4aaff9c7e8.png)
+![image](https://user-images.githubusercontent.com/34939716/149780004-fc430061-5e4a-4ea2-8cbc-730cb6e518e0.png)
 
 # test result
 ```
