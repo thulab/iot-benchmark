@@ -542,7 +542,8 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    if (config.isVECTOR()) builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
+    if (config.isVECTOR())
+      builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
     else builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
       builder.append(", ").append(getDevicePath(devices.get(i)));
