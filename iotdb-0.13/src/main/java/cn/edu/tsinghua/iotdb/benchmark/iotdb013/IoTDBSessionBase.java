@@ -74,7 +74,8 @@ public class IoTDBSessionBase extends IoTDB {
             + "."
             + batch.getDeviceSchema().getGroup()
             + "."
-            + batch.getDeviceSchema().getDevice();
+            + batch.getDeviceSchema().getDevice()
+            + ".vector";
     Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
