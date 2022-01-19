@@ -173,8 +173,8 @@ public class IoTDB implements IDatabase {
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
       throws IoTDBConnectionException, IOException {
     Template template = new Template("testTemplate");
-    InternalNode internalNode = new InternalNode("template", true);
     try {
+      InternalNode internalNode = new InternalNode("vector", true);
       for (Sensor sensor : schemaList.get(0).getSensors()) {
         MeasurementNode measurementNode =
             new MeasurementNode(
@@ -182,9 +182,10 @@ public class IoTDB implements IDatabase {
                 Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
                 Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
                 Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        internalNode.addChild(measurementNode);
+        if (config.isVECTOR()) internalNode.addChild(measurementNode);
+        else template.addToTemplate(measurementNode);
       }
-      template.addToTemplate(internalNode);
+      if (config.isVECTOR()) template.addToTemplate(internalNode);
       metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
       // do noting
@@ -237,7 +238,7 @@ public class IoTDB implements IDatabase {
         }
         registerAlignedTimeseriesBatch(
             metaSession,
-            getDevicePath(deviceSchema),
+            getDevicePath(deviceSchema) + ".vector",
             multiMeasurementComponents,
             dataTypes,
             encodings,
