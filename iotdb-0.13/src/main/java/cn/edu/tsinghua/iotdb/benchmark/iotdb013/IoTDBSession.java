@@ -142,7 +142,8 @@ public class IoTDBSession extends IoTDBSessionBase {
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId + ".vector");
+      if (config.isVECTOR()) deviceIds.add(deviceId + ".vector");
+      else deviceIds.add(deviceId);
       times.add(record.getTimestamp());
       measurementsList.add(sensors);
       valuesList.add(record.getRecordDataValue());
