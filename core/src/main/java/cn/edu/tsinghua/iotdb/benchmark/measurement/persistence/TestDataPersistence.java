@@ -88,6 +88,7 @@ public abstract class TestDataPersistence {
       future.get(config.getTEST_DATA_WRITE_TIME_OUT(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       future.cancel(true);
+      e.printStackTrace();
       LOGGER.error(
           String.format(
               "Record Error! Operation:%s, OkPoint:%d, FailPoint:%d, Latency:%f, Remark:%s.",
@@ -116,7 +117,14 @@ public abstract class TestDataPersistence {
   protected abstract void close();
 
   public void closeAsync() {
-    close();
-    service.shutdown();
+    while (!service.isTerminated()) {
+      try {
+        Thread.sleep(1000);
+      } catch (Exception e) {
+        // do nothing
+      }
+      close();
+      service.shutdown();
+    }
   }
 }

@@ -76,7 +76,8 @@ public class CSVRecorder extends TestDataPersistence {
   private static ExecutorService service;
   private static Future<?> future;
 
-  private static AtomicBoolean isRecord = new AtomicBoolean(false);
+  private static AtomicBoolean isInit = new AtomicBoolean(false);
+  private static AtomicBoolean isRecordConfig = new AtomicBoolean(false);
 
   static volatile FileWriter projectWriter = null;
   static volatile String projectWriterName = null;
@@ -120,7 +121,7 @@ public class CSVRecorder extends TestDataPersistence {
     }
     try {
       if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.SERVER) {
-        if (!isRecord.get()) {
+        if (!isRecordConfig.get()) {
           confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
           projectWriterName = csvDir + "/" + projectID + "_DETAIL.csv";
           projectWriter = new FileWriter(projectWriterName, true);
@@ -151,22 +152,28 @@ public class CSVRecorder extends TestDataPersistence {
 
   /** write header of csv file */
   public void initCSVFile() throws IOException {
-    if (serverInfoWriter != null) {
-      String firstLine =
-          "id,cpu_usage,mem_usage,diskIo_usage,net_recv_rate,net_send_rate"
-              + ",pro_mem_size,dataFileSize,systemFizeSize,sequenceFileSize,unsequenceFileSize"
-              + ",walFileSize,tps,MB_read,MB_wrtn\n";
-      serverInfoWriter.append(firstLine);
-    }
-    if (finalResultWriter != null) {
-      String firstLine = "id,operation,result_key,result_value\n";
-      finalResultWriter.append(firstLine);
-    }
-    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
-        && projectWriter != null) {
-      String firstLine =
-          "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
-      projectWriter.append(firstLine);
+    if (!isInit.get()) {
+      if (serverInfoWriter != null) {
+        String firstLine =
+            "id,cpu_usage,mem_usage,diskIo_usage,net_recv_rate,net_send_rate"
+                + ",pro_mem_size,dataFileSize,systemFizeSize,sequenceFileSize,unsequenceFileSize"
+                + ",walFileSize,tps,MB_read,MB_wrtn\n";
+        serverInfoWriter.append(firstLine);
+        serverInfoWriter.flush();
+      }
+      if (finalResultWriter != null) {
+        String firstLine = "id,operation,result_key,result_value\n";
+        finalResultWriter.append(firstLine);
+        finalResultWriter.flush();
+      }
+      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
+          && projectWriter != null) {
+        String firstLine =
+            "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
+        projectWriter.append(firstLine);
+        projectWriter.flush();
+      }
+      isInit.set(true);
     }
   }
 
@@ -223,9 +230,9 @@ public class CSVRecorder extends TestDataPersistence {
       str.append(",").append(entry.getKey()).append(",\"").append(value).append("\"\n");
     }
     try {
-      if (!isRecord.get()) {
+      if (!isRecordConfig.get()) {
         confWriter.append(str.toString());
-        isRecord.set(true);
+        isRecordConfig.set(true);
       }
     } catch (IOException e) {
       LOGGER.error("", e);
@@ -294,6 +301,7 @@ public class CSVRecorder extends TestDataPersistence {
               csvDir + "/" + projectID + "_split" + fileNumber.getAndIncrement() + ".csv";
           newProjectWriter = new FileWriter(newProjectWriterName, true);
           newProjectWriter.append(firstLine);
+          newProjectWriter.flush();
         } catch (IOException e) {
           LOGGER.error("", e);
         }
