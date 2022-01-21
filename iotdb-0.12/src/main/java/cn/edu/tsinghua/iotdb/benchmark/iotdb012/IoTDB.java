@@ -147,11 +147,7 @@ public class IoTDB implements IDatabase {
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
           if (config.isTEMPLATE()) {
-            try {
-              registerTemplates(pair.getKey(), pair.getValue());
-            } catch (StatementExecutionException e) {
-              continue;
-            }
+            registerTemplates(pair.getKey(), pair.getValue());
           } else {
             registerTimeseries(pair.getKey(), pair.getValue());
           }
@@ -175,7 +171,7 @@ public class IoTDB implements IDatabase {
   }
 
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
-      throws IoTDBConnectionException, StatementExecutionException {
+      throws IoTDBConnectionException {
     List<List<String>> measurementList = new ArrayList<>();
     List<List<TSDataType>> dataTypeList = new ArrayList<>();
     List<List<TSEncoding>> encodingList = new ArrayList<>();
@@ -191,11 +187,25 @@ public class IoTDB implements IDatabase {
       compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
       schemaNames.add(sensor.getName());
     }
-    metaSession.createSchemaTemplate(
-        "testTemplate", schemaNames, measurementList, dataTypeList, encodingList, compressionTypes);
+    try {
+      metaSession.createSchemaTemplate(
+          "testTemplate",
+          schemaNames,
+          measurementList,
+          dataTypeList,
+          encodingList,
+          compressionTypes);
+
+    } catch (StatementExecutionException e) {
+      // do notiong
+    }
     for (DeviceSchema deviceSchema : schemaList) {
-      metaSession.setSchemaTemplate(
-          "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      try {
+        metaSession.setSchemaTemplate(
+            "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      } catch (StatementExecutionException e) {
+        // do nothing
+      }
     }
   }
 
