@@ -148,11 +148,7 @@ public class IoTDB implements IDatabase {
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
           if (config.isTEMPLATE()) {
-            try {
-              registerTemplates(pair.getKey(), pair.getValue());
-            } catch (StatementExecutionException e) {
-              // do nothing
-            }
+            registerTemplates(pair.getKey(), pair.getValue());
           }
           registerTimeseries(pair.getKey(), pair.getValue());
         }
@@ -175,23 +171,33 @@ public class IoTDB implements IDatabase {
   }
 
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
-      throws IoTDBConnectionException, StatementExecutionException, IOException {
+      throws IoTDBConnectionException, IOException {
     Template template = new Template("testTemplate");
-    InternalNode internalNode = new InternalNode("template", true);
-    for (Sensor sensor : schemaList.get(0).getSensors()) {
-      MeasurementNode measurementNode =
-          new MeasurementNode(
-              sensor.getName(),
-              Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
-              Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-      internalNode.addChild(measurementNode);
+    try {
+      InternalNode internalNode = new InternalNode("vector", true);
+      for (Sensor sensor : schemaList.get(0).getSensors()) {
+        MeasurementNode measurementNode =
+            new MeasurementNode(
+                sensor.getName(),
+                Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
+                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
+                Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        if (config.isVECTOR()) internalNode.addChild(measurementNode);
+        else template.addToTemplate(measurementNode);
+      }
+      if (config.isVECTOR()) template.addToTemplate(internalNode);
+      metaSession.createSchemaTemplate(template);
+    } catch (StatementExecutionException e) {
+      // do noting
     }
-    template.addToTemplate(internalNode);
-    metaSession.createSchemaTemplate(template);
+
     for (DeviceSchema deviceSchema : schemaList) {
-      metaSession.setSchemaTemplate(
-          "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      try {
+        metaSession.setSchemaTemplate(
+            "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+      } catch (StatementExecutionException e) {
+        // do nothing
+      }
     }
   }
 
@@ -232,7 +238,7 @@ public class IoTDB implements IDatabase {
         }
         registerAlignedTimeseriesBatch(
             metaSession,
-            getDevicePath(deviceSchema),
+            getDevicePath(deviceSchema) + ".vector",
             multiMeasurementComponents,
             dataTypes,
             encodings,
@@ -536,7 +542,9 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    builder.append(" FROM ").append(getDevicePath(devices.get(0)));
+    if (config.isVECTOR())
+      builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
+    else builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
       builder.append(", ").append(getDevicePath(devices.get(i)));
     }
