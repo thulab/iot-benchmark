@@ -236,13 +236,23 @@ public class IoTDB implements IDatabase {
           encodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
           compressors.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
         }
-        registerAlignedTimeseriesBatch(
-            metaSession,
-            getDevicePath(deviceSchema) + ".vector",
-            multiMeasurementComponents,
-            dataTypes,
-            encodings,
-            compressors);
+        if (config.isTEMPLATE()) {
+          registerAlignedTimeseriesBatch(
+              metaSession,
+              getDevicePath(deviceSchema) + ".vector",
+              multiMeasurementComponents,
+              dataTypes,
+              encodings,
+              compressors);
+        } else {
+          registerAlignedTimeseriesBatch(
+              metaSession,
+              getDevicePath(deviceSchema),
+              multiMeasurementComponents,
+              dataTypes,
+              encodings,
+              compressors);
+        }
       }
     } else {
       List<String> paths = new ArrayList<>();
@@ -542,7 +552,7 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    if (config.isVECTOR())
+    if (config.isTEMPLATE())
       builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
     else builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
