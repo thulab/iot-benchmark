@@ -212,6 +212,8 @@ public class Config {
   private int IOTDB_SESSION_POOL_SIZE = 50;
   /** Whether to use templates */
   private boolean TEMPLATE = true;
+  /** Whether to use vector */
+  private boolean VECTOR = true;
 
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
@@ -935,6 +937,14 @@ public class Config {
 
   public void setTEMPLATE(boolean TEMPLATE) {
     this.TEMPLATE = TEMPLATE;
+  }
+
+  public boolean isVECTOR() {
+    return VECTOR;
+  }
+
+  public void setVECTOR(boolean VECTOR) {
+    this.VECTOR = VECTOR;
   }
 
   public long getOP_INTERVAL() {

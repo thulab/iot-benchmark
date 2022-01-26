@@ -17,11 +17,14 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.iotdb012;
+package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
+import org.apache.iotdb.session.template.InternalNode;
+import org.apache.iotdb.session.template.MeasurementNode;
+import org.apache.iotdb.session.template.Template;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
@@ -30,7 +33,6 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
@@ -44,6 +46,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -57,7 +60,7 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
-  protected final String DELETE_SERIES_SQL;
+  private final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -74,14 +77,12 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void init() throws TsdbException {
-    if (ioTDBConnection == null) {
-      try {
-        ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-        ioTDBConnection.init();
-        this.service = Executors.newSingleThreadExecutor();
-      } catch (Exception e) {
-        throw new TsdbException(e);
-      }
+    try {
+      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
+      ioTDBConnection.init();
+      this.service = Executors.newSingleThreadExecutor();
+    } catch (Exception e) {
+      throw new TsdbException(e);
     }
   }
 
@@ -148,9 +149,8 @@ public class IoTDB implements IDatabase {
           registerStorageGroups(pair.getKey(), pair.getValue());
           if (config.isTEMPLATE()) {
             registerTemplates(pair.getKey(), pair.getValue());
-          } else {
-            registerTimeseries(pair.getKey(), pair.getValue());
           }
+          registerTimeseries(pair.getKey(), pair.getValue());
         }
       } catch (Exception e) {
         throw new TsdbException(e);
@@ -171,34 +171,26 @@ public class IoTDB implements IDatabase {
   }
 
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
-      throws IoTDBConnectionException {
-    List<List<String>> measurementList = new ArrayList<>();
-    List<List<TSDataType>> dataTypeList = new ArrayList<>();
-    List<List<TSEncoding>> encodingList = new ArrayList<>();
-    List<CompressionType> compressionTypes = new ArrayList<>();
-    List<String> schemaNames = new ArrayList<>();
-    for (Sensor sensor : schemaList.get(0).getSensors()) {
-      measurementList.add(Collections.singletonList(sensor.getName()));
-      dataTypeList.add(
-          Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-      encodingList.add(
-          Collections.singletonList(
-              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
-      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-      schemaNames.add(sensor.getName());
-    }
+      throws IoTDBConnectionException, IOException {
+    Template template = new Template("testTemplate");
     try {
-      metaSession.createSchemaTemplate(
-          "testTemplate",
-          schemaNames,
-          measurementList,
-          dataTypeList,
-          encodingList,
-          compressionTypes);
-
+      InternalNode internalNode = new InternalNode("vector", true);
+      for (Sensor sensor : schemaList.get(0).getSensors()) {
+        MeasurementNode measurementNode =
+            new MeasurementNode(
+                sensor.getName(),
+                Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
+                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
+                Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        if (config.isVECTOR()) internalNode.addChild(measurementNode);
+        else template.addToTemplate(measurementNode);
+      }
+      if (config.isVECTOR()) template.addToTemplate(internalNode);
+      metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
-      // do notiong
+      // do noting
     }
+
     for (DeviceSchema deviceSchema : schemaList) {
       try {
         metaSession.setSchemaTemplate(
@@ -229,27 +221,74 @@ public class IoTDB implements IDatabase {
   private void registerTimeseries(Session metaSession, List<DeviceSchema> schemaList)
       throws TsdbException {
     // create time series
-    List<String> paths = new ArrayList<>();
-    List<TSDataType> tsDataTypes = new ArrayList<>();
-    List<TSEncoding> tsEncodings = new ArrayList<>();
-    List<CompressionType> compressionTypes = new ArrayList<>();
-    int count = 0;
-    int createSchemaBatchNum = 10000;
-    for (DeviceSchema deviceSchema : schemaList) {
-      for (Sensor sensor : deviceSchema.getSensors()) {
-        paths.add(getSensorPath(deviceSchema, sensor.getName()));
-        SensorType datatype = sensor.getSensorType();
-        tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
-        tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
-        // TODO remove when [IOTDB-1518] is solved(not supported null)
-        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        if (++count % createSchemaBatchNum == 0) {
-          registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+
+    if (config.isVECTOR()) {
+      List<String> multiMeasurementComponents = new ArrayList<>();
+      List<TSDataType> dataTypes = new ArrayList<>();
+      List<TSEncoding> encodings = new ArrayList<>();
+      List<CompressionType> compressors = new ArrayList<>();
+
+      for (DeviceSchema deviceSchema : schemaList) {
+        for (Sensor sensor : deviceSchema.getSensors()) {
+          multiMeasurementComponents.add(sensor.getName());
+          SensorType datatype = sensor.getSensorType();
+          dataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
+          encodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
+          compressors.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        }
+        registerAlignedTimeseriesBatch(
+            metaSession,
+            getDevicePath(deviceSchema) + ".vector",
+            multiMeasurementComponents,
+            dataTypes,
+            encodings,
+            compressors);
+      }
+    } else {
+      List<String> paths = new ArrayList<>();
+      List<TSDataType> tsDataTypes = new ArrayList<>();
+      List<TSEncoding> tsEncodings = new ArrayList<>();
+      List<CompressionType> compressionTypes = new ArrayList<>();
+      int count = 0;
+      int createSchemaBatchNum = 10000;
+      for (DeviceSchema deviceSchema : schemaList) {
+        for (Sensor sensor : deviceSchema.getSensors()) {
+          paths.add(getSensorPath(deviceSchema, sensor.getName()));
+          SensorType datatype = sensor.getSensorType();
+          tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
+          tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
+          // TODO remove when [IOTDB-1518] is solved(not supported null)
+          compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+          if (++count % createSchemaBatchNum == 0) {
+            registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+          }
         }
       }
+
+      if (!paths.isEmpty()) {
+        registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+      }
     }
-    if (!paths.isEmpty()) {
-      registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
+  }
+
+  private void registerAlignedTimeseriesBatch(
+      Session metaSession,
+      String multiSeriesId,
+      List<String> multiMeasurementComponents,
+      List<TSDataType> dataTypes,
+      List<TSEncoding> encodings,
+      List<CompressionType> compressors)
+      throws TsdbException {
+    try {
+      metaSession.createAlignedTimeseries(
+          multiSeriesId, multiMeasurementComponents, dataTypes, encodings, compressors, null);
+    } catch (Exception e) {
+      handleRegisterException(e);
+    } finally {
+      multiMeasurementComponents.clear();
+      dataTypes.clear();
+      encodings.clear();
+      compressors.clear();
     }
   }
 
@@ -503,7 +542,9 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    builder.append(" FROM ").append(getDevicePath(devices.get(0)));
+    if (config.isVECTOR())
+      builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
+    else builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
       builder.append(", ").append(getDevicePath(devices.get(i)));
     }
@@ -651,7 +692,11 @@ public class IoTDB implements IDatabase {
     for (Sensor sensor : deviceSchema.getSensors()) {
       builder.append(",").append(sensor.getName());
     }
-    builder.append(") values(");
+    if (config.isVECTOR() == true) {
+      builder.append(") aligned values(");
+    } else {
+      builder.append(") values(");
+    }
     builder.append(timestamp);
     int sensorIndex = 0;
     List<Sensor> sensors = deviceSchema.getSensors();
@@ -771,39 +816,6 @@ public class IoTDB implements IDatabase {
     sql.append(" and time <").append(endTimeStamp);
     sql.append(" order by time desc");
     return sql.toString();
-  }
-
-  @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
-    int totalLineNumber = 0;
-    long minTimeStamp = 0, maxTimeStamp = 0;
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      ResultSet resultSet = statement.executeQuery(getTotalLineNumberSql(deviceSchema));
-      resultSet.next();
-      totalLineNumber = Integer.parseInt(resultSet.getString(1));
-
-      resultSet = statement.executeQuery(getMaxTimeStampSql(deviceSchema));
-      resultSet.next();
-      maxTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
-
-      resultSet = statement.executeQuery(getMinTimeStampSql(deviceSchema));
-      resultSet.next();
-      minTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
-    }
-    return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
-  }
-
-  protected String getTotalLineNumberSql(DeviceSchema deviceSchema) {
-    return "select count(*) from " + getDevicePath(deviceSchema);
-  }
-
-  protected String getMinTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + getDevicePath(deviceSchema) + " order by time limit 1";
-  }
-
-  protected String getMaxTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
   }
 
   String getEncodingType(SensorType dataSensorType) {

@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iotdb.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iotdb.benchmark.utils.ZipUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,6 +49,8 @@ public class CSVRecorder extends TestDataPersistence {
 
   /** The count of write retry */
   private static final int WRITE_RETRY_COUNT = 5;
+
+  private static final int MAX_COMPRESS_TIME = 10 * 60 * 1000;
   /** reentrantLock used for writing result into file */
   private static final ReentrantLock reentrantLock = new ReentrantLock(true);
 
@@ -68,9 +73,13 @@ public class CSVRecorder extends TestDataPersistence {
   /** If now line > CSV_MAX_LINE, then the result will write into other files */
   private static final AtomicLong fileNumber = new AtomicLong(1);
 
+  private static ExecutorService service;
+  private static Future<?> future;
+
   private static AtomicBoolean isRecord = new AtomicBoolean(false);
 
   static volatile FileWriter projectWriter = null;
+  static volatile String projectWriterName = null;
   static FileWriter serverInfoWriter = null;
   static FileWriter confWriter = null;
   static FileWriter finalResultWriter = null;
@@ -113,9 +122,10 @@ public class CSVRecorder extends TestDataPersistence {
       if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.SERVER) {
         if (!isRecord.get()) {
           confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
+          projectWriterName = csvDir + "/" + projectID + "_DETAIL.csv";
+          projectWriter = new FileWriter(projectWriterName, true);
         }
         finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
-        projectWriter = new FileWriter(csvDir + "/" + projectID + "_DETAIL.csv", true);
       } else {
         serverInfoWriter =
             new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
@@ -136,6 +146,7 @@ public class CSVRecorder extends TestDataPersistence {
         LOGGER.error("", ioException);
       }
     }
+    service = Executors.newSingleThreadExecutor();
   }
 
   /** write header of csv file */
@@ -274,14 +285,14 @@ public class CSVRecorder extends TestDataPersistence {
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
       FileWriter newProjectWriter = null;
+      String newProjectWriterName = null;
       if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
         String firstLine =
             "id,recordTime,clientName,operation,okPoint,failPoint,latency,rate,remark\n";
         try {
-          newProjectWriter =
-              new FileWriter(
-                  csvDir + "/" + projectID + "_split" + fileNumber.getAndIncrement() + ".csv",
-                  true);
+          newProjectWriterName =
+              csvDir + "/" + projectID + "_split" + fileNumber.getAndIncrement() + ".csv";
+          newProjectWriter = new FileWriter(newProjectWriterName, true);
           newProjectWriter.append(firstLine);
         } catch (IOException e) {
           LOGGER.error("", e);
@@ -290,6 +301,21 @@ public class CSVRecorder extends TestDataPersistence {
       FileWriter oldProjectWriter = projectWriter;
       projectWriter = newProjectWriter;
       try {
+        future =
+            service.submit(
+                () -> {
+                  ZipUtils.toZip(
+                      Collections.singletonList(projectWriterName),
+                      projectWriterName.replace(".csv", ".zip"),
+                      true);
+                });
+        try {
+          future.get(MAX_COMPRESS_TIME, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+          LOGGER.error("Failed to compress files {} in async way", projectWriterName);
+          future.cancel(true);
+        }
+        projectWriterName = newProjectWriterName;
         oldProjectWriter.close();
       } catch (IOException e) {
         LOGGER.error("", e);
@@ -318,6 +344,7 @@ public class CSVRecorder extends TestDataPersistence {
   @Override
   public void close() {
     // do nothing
+    service.shutdown();
   }
 
   /**
@@ -343,6 +370,7 @@ public class CSVRecorder extends TestDataPersistence {
         serverInfoWriter.flush();
         serverInfoWriter.close();
       }
+      service.shutdown();
     } catch (IOException ioException) {
       LOGGER.error("Failed to close writer", ioException);
     }

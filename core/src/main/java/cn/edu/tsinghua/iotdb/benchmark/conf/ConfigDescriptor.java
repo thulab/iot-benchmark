@@ -287,6 +287,9 @@ public class ConfigDescriptor {
         config.setTEMPLATE(
             Boolean.parseBoolean(
                 properties.getProperty("TEMPLATE", String.valueOf(config.isTEMPLATE()))));
+        config.setVECTOR(
+            Boolean.parseBoolean(
+                properties.getProperty("VECTOR", String.valueOf(config.isVECTOR()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
 
