@@ -223,6 +223,7 @@ public class IoTDBSession extends IoTDBSessionBase {
                       records.add(record);
                     }
                   }
+                  sessionDataSet.closeOperationHandle();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
                   isOk.set(false);
@@ -236,7 +237,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (isOk.get() == true) {
+      if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), sql, records);
         } else {
@@ -301,6 +302,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         }
         line++;
       }
+      sessionDataSet.close();
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");

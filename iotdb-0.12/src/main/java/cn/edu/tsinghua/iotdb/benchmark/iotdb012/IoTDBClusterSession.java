@@ -235,6 +235,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
                       records.add(record);
                     }
                   }
+                  sessionDataSet.close();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
                   isOk.set(false);
@@ -315,6 +316,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         }
         line++;
       }
+      sessionDataSet.close();
       currSession = (currSession + 1) % sessions.length;
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
@@ -349,6 +351,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         }
         result.add(line);
       }
+      sessionDataSet.close();
       currSession = (currSession + 1) % sessions.length;
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
@@ -368,16 +371,19 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
           sessions[currSession].executeQueryStatement(getTotalLineNumberSql(deviceSchema));
       RowRecord rowRecord = sessionDataSet.next();
       totalLineNumber = Integer.parseInt(rowRecord.getFields().get(0).toString());
+      sessionDataSet.close();
 
       sessionDataSet =
           sessions[currSession].executeQueryStatement(getMaxTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
       maxTimeStamp = rowRecord.getTimestamp();
+      sessionDataSet.close();
 
       sessionDataSet =
           sessions[currSession].executeQueryStatement(getMinTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
       minTimeStamp = rowRecord.getTimestamp();
+      sessionDataSet.close();
     } catch (IoTDBConnectionException e) {
       throw new TsdbException("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {

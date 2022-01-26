@@ -232,6 +232,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
                       records.add(record);
                     }
                   }
+                  sessionDataSet.close();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
                   isOk.set(false);
@@ -312,6 +313,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         }
         line++;
       }
+      sessionDataSet.close();
       currSession = (currSession + 1) % sessions.length;
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);

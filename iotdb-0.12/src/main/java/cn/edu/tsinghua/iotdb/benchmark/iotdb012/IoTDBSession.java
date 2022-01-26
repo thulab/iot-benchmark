@@ -211,6 +211,7 @@ public class IoTDBSession extends IoTDBSessionBase {
                       records.add(record);
                     }
                   }
+                  sessionDataSet.closeOperationHandle();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
                   isOk.set(false);
@@ -289,6 +290,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         }
         line++;
       }
+      sessionDataSet.closeOperationHandle();
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
@@ -322,6 +324,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         }
         result.add(line);
       }
+      sessionDataSet.closeOperationHandle();
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
@@ -340,14 +343,17 @@ public class IoTDBSession extends IoTDBSessionBase {
           session.executeQueryStatement(getTotalLineNumberSql(deviceSchema));
       RowRecord rowRecord = sessionDataSet.next();
       totalLineNumber = Integer.parseInt(rowRecord.getFields().get(0).toString());
+      sessionDataSet.closeOperationHandle();
 
       sessionDataSet = session.executeQueryStatement(getMaxTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
       maxTimeStamp = rowRecord.getTimestamp();
+      sessionDataSet.closeOperationHandle();
 
       sessionDataSet = session.executeQueryStatement(getMinTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
       minTimeStamp = rowRecord.getTimestamp();
+      sessionDataSet.closeOperationHandle();
     } catch (IoTDBConnectionException e) {
       throw new TsdbException("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
