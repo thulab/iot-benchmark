@@ -221,9 +221,7 @@ public class Measurement {
   /** Show Config of test */
   public void showConfigs() {
     System.out.println("----------------------Main Configurations----------------------");
-    for (Map.Entry<String, Object> entry : config.getShowProperties().entrySet()) {
-      System.out.println(entry.getKey() + "=" + entry.getValue());
-    }
+    System.out.println(config.getShowConfigProperties().toString());
     System.out.println("---------------------------------------------------------------");
   }
 
@@ -322,12 +320,8 @@ public class Measurement {
     private void outputConfigToCSV(File csv) {
       try {
         BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
-        bw.write("Main Configurations");
-        Map<String, Object> properties = config.getAllProperties();
-        for (Map.Entry<String, Object> property : properties.entrySet()) {
-          bw.newLine();
-          bw.write(property.getKey() + "=" + property.getValue());
-        }
+        bw.write("Main Configurations" + System.lineSeparator());
+        bw.write(config.getAllConfigProperties().toString());
         bw.close();
       } catch (IOException e) {
         LOGGER.error("Exception occurred during operating buffer writer because: ", e);

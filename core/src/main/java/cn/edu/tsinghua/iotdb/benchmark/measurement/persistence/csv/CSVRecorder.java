@@ -225,8 +225,9 @@ public class CSVRecorder extends TestDataPersistence {
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
       str.append(String.format(THREE, "MODE", "DEFAULT_TEST_MODE"));
     }
-    for (Map.Entry<String, Object> entry : config.getAllProperties().entrySet()) {
-      String value = entry.getValue().toString().replace("\n", "");
+    for (Map.Entry<String, Object> entry :
+        config.getAllConfigProperties().getAllProperties().entrySet()) {
+      String value = entry.getValue().toString().replace(System.lineSeparator(), "");
       str.append(",").append(entry.getKey()).append(",\"").append(value).append("\"\n");
     }
     try {
