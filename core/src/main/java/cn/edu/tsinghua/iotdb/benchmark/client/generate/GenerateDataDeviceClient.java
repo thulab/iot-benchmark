@@ -56,6 +56,7 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
         String currentThread = Thread.currentThread().getName();
         // print current progress periodically
+        now = 0;
         pointService.scheduleAtFixedRate(
             () -> {
               String percent =
