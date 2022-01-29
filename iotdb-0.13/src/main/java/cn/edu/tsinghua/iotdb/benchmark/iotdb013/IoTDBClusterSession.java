@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionDataSetWrapper;
@@ -42,6 +44,7 @@ import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -324,6 +327,69 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
           "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
     }
     return new Status(true, point);
+  }
+
+  @Override
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    String sql =
+        getDeviceQuerySql(
+            deviceSchema, deviceQuery.getStartTimestamp(), deviceQuery.getEndTimestamp());
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("IoTDB:" + sql);
+    }
+    List<List<Object>> result = new ArrayList<>();
+    try {
+      SessionDataSetWrapper sessionDataSet = sessions[currSession].executeQueryStatement(sql);
+      while (sessionDataSet.hasNext()) {
+        List<Object> line = new ArrayList<>();
+        RowRecord rowRecord = sessionDataSet.next();
+        line.add(rowRecord.getTimestamp());
+        List<Field> fields = rowRecord.getFields();
+        for (int i = 0; i < fields.size(); i++) {
+          line.add(fields.get(i).getStringValue());
+        }
+        result.add(line);
+      }
+      sessionDataSet.close();
+      currSession = (currSession + 1) % sessions.length;
+    } catch (Exception e) {
+      LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+
+    return new Status(true, 0, sql, result);
+  }
+
+  @Override
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    int totalLineNumber = 0;
+    long minTimeStamp = 0, maxTimeStamp = 0;
+    try {
+      SessionDataSetWrapper sessionDataSet =
+          sessions[currSession].executeQueryStatement(getTotalLineNumberSql(deviceSchema));
+      RowRecord rowRecord = sessionDataSet.next();
+      totalLineNumber = Integer.parseInt(rowRecord.getFields().get(0).toString());
+      sessionDataSet.close();
+
+      sessionDataSet =
+          sessions[currSession].executeQueryStatement(getMaxTimeStampSql(deviceSchema));
+      rowRecord = sessionDataSet.next();
+      maxTimeStamp = rowRecord.getTimestamp();
+      sessionDataSet.close();
+
+      sessionDataSet =
+          sessions[currSession].executeQueryStatement(getMinTimeStampSql(deviceSchema));
+      rowRecord = sessionDataSet.next();
+      minTimeStamp = rowRecord.getTimestamp();
+      sessionDataSet.close();
+    } catch (IoTDBConnectionException e) {
+      throw new TsdbException("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      throw new TsdbException("Failed to execute statement:" + e.getMessage());
+    }
+    return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
   private Status waitFuture() {
