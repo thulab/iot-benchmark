@@ -104,9 +104,9 @@ public class IoTDBSession extends IoTDBSessionBase {
           constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
-        if (config.isVECTOR()) {
+        if (config.isTEMPLATE()) {
           session.insertAlignedRecord(
-              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+              deviceId + ".vector", timestamp, sensors, dataTypes, record.getRecordDataValue());
         } else {
           session.insertRecord(
               deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
@@ -142,7 +142,8 @@ public class IoTDBSession extends IoTDBSessionBase {
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId);
+      if (config.isTEMPLATE()) deviceIds.add(deviceId + ".vector");
+      else deviceIds.add(deviceId);
       times.add(record.getTimestamp());
       measurementsList.add(sensors);
       valuesList.add(record.getRecordDataValue());
@@ -222,6 +223,7 @@ public class IoTDBSession extends IoTDBSessionBase {
                       records.add(record);
                     }
                   }
+                  sessionDataSet.closeOperationHandle();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
                   isOk.set(false);
@@ -235,7 +237,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (isOk.get() == true) {
+      if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), sql, records);
         } else {
@@ -300,6 +302,7 @@ public class IoTDBSession extends IoTDBSessionBase {
         }
         line++;
       }
+      sessionDataSet.close();
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");

@@ -28,7 +28,7 @@
         <module>sqlite</module>
         <module>verification</module>
 <!--        <module>pi</module>-->
-        <module>iginx</module>
+<!--        <module>iginx</module>-->
     </modules>
 
     <properties>

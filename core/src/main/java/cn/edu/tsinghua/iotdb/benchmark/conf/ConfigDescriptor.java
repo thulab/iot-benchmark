@@ -451,7 +451,7 @@ public class ConfigDescriptor {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         String[] operations = config.getOPERATION_PROPORTION().split(":");
-        if (Double.valueOf(operations[0]) - 0 < 1e-7) {
+        if (!config.hasWrite()) {
           // no write
           checkQuery();
         } else {
@@ -470,11 +470,6 @@ public class ConfigDescriptor {
             LOGGER.error("Double write not support influxdb v1.x");
             result = false;
           }
-          // check query
-          double queryTotal = 0.0;
-          for (int i = 1; i < operations.length; i++) {
-            queryTotal += Double.valueOf(operations[i]);
-          }
           if (config.isIS_COMPARISON() && config.isIS_POINT_COMPARISON()) {
             LOGGER.error(
                 "Benchmark not support IS_COMPARISON and IS_POINT_COMPARISON, please only choose one");
@@ -482,14 +477,14 @@ public class ConfigDescriptor {
             checkQuery();
           } else {
             if (config.isIS_COMPARISON()) {
-              if (queryTotal < 1e-7) {
+              if (!config.hasQuery()) {
                 LOGGER.warn(
                     "There is no query when doing comparison, so auto set IS_COMPARISON = false");
                 config.setIS_COMPARISON(false);
               }
             }
             if (config.isIS_POINT_COMPARISON()) {
-              if (queryTotal < 1e-7 && !config.isIS_POINT_COMPARISON()) {
+              if (!config.hasQuery()) {
                 LOGGER.warn(
                     "There is no query when doing comparison, so auto set IS_POINT_COMPARISON = false");
                 config.setIS_POINT_COMPARISON(false);
