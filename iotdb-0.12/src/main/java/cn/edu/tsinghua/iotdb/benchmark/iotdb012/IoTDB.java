@@ -671,7 +671,9 @@ public class IoTDB implements IDatabase {
       sensorIndex++;
     }
     builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("getInsertOneBatchSql: {}", builder);
+    }
     return builder.toString();
   }
 
