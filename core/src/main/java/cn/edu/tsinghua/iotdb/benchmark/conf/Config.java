@@ -1536,32 +1536,43 @@ public class Config {
   }
 
   /** get properties from config, one property in one line. */
-  public Map<String, Object> getShowProperties() {
-    Map<String, Object> properties = new HashMap<>();
-    properties.put("BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
+  public ConfigProperties getShowConfigProperties() {
+    ConfigProperties configProperties = new ConfigProperties();
 
-    properties.put("RESULT_PRECISION", this.RESULT_PRECISION + "%");
-    properties.put("DBConfig", this.dbConfig);
-    properties.put("DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
-    if (this.isIS_DOUBLE_WRITE()) {
-      properties.put("ANOTHER DBConfig", this.ANOTHER_DBConfig);
-      properties.put("IS_COMPASSION", this.IS_COMPARISON);
-      properties.put("IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
-      if (this.IS_POINT_COMPARISON) {
-        properties.put("VERIFICATION_STEP_SIZE", this.VERIFICATION_STEP_SIZE);
-      }
+    configProperties.addProperty("Test Mode", "BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
+
+    configProperties.addProperty(
+        "Database Connection Information", "DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
+    configProperties.addProperty(
+        "Database Connection Information", "DBConfig", this.dbConfig.getMainConfig());
+    if (this.IS_DOUBLE_WRITE) {
+      configProperties.addProperty(
+          "Database Connection Information",
+          "ANOTHER DBConfig",
+          this.ANOTHER_DBConfig.getMainConfig());
     }
-    properties.put("BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
-    if (this.BENCHMARK_CLUSTER) {
-      properties.put("BENCHMARK_INDEX", this.BENCHMARK_INDEX);
-      properties.put("FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
-      properties.put("IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
+    configProperties.addProperty("Data Mode", "GROUP_NUMBER", this.GROUP_NUMBER);
+    configProperties.addProperty("Data Mode", "DEVICE_NUMBER", this.DEVICE_NUMBER);
+    configProperties.addProperty("Data Mode", "REAL_INSERT_RATE", this.REAL_INSERT_RATE);
+    configProperties.addProperty("Data Mode", "SENSOR_NUMBER", this.SENSOR_NUMBER);
+    configProperties.addProperty(
+        "Data Mode", "IS_SENSOR_TS_ALIGNMENT", this.IS_SENSOR_TS_ALIGNMENT);
+    if (!this.IS_SENSOR_TS_ALIGNMENT) {
+      configProperties.addProperty("Data Mode", "TS_ALIGNMENT_RATIO", this.TS_ALIGNMENT_RATIO);
     }
-    properties.put("OPERATION_PROPORTION", this.OPERATION_PROPORTION);
-    properties.put("STRING_LENGTH", this.STRING_LENGTH);
-    properties.put("DOUBLE_LENGTH", this.DOUBLE_LENGTH);
-    properties.put("INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
-    properties.put(
+    configProperties.addProperty("Data Mode", "IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
+    configProperties.addProperty("Data Mode", "OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
+    configProperties.addProperty("Data Amount", "OPERATION_PROPORTION", this.OPERATION_PROPORTION);
+    configProperties.addProperty("Data Amount", "CLIENT_NUMBER", this.CLIENT_NUMBER);
+    configProperties.addProperty("Data Amount", "LOOP", this.LOOP);
+    configProperties.addProperty("Data Amount", "BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
+    configProperties.addProperty("Data Amount", "START_TIME", this.START_TIME);
+    configProperties.addProperty("Data Amount", "POINT_STEP", this.POINT_STEP);
+    configProperties.addProperty("Data Amount", "OP_INTERVAL", this.OP_INTERVAL);
+    configProperties.addProperty(
+        "Data Amount", "INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
+    configProperties.addProperty(
+        "Data Amount",
         "ENCODINGS",
         this.ENCODING_BOOLEAN
             + "/"
@@ -1574,56 +1585,91 @@ public class Config {
             + this.ENCODING_DOUBLE
             + "/"
             + this.ENCODING_TEXT);
-    properties.put("COMPRESSOR", this.COMPRESSOR);
-    properties.put("IS_DELETE_DATA", this.IS_DELETE_DATA);
-    properties.put("CREATE_SCHEMA", this.CREATE_SCHEMA);
-    properties.put("IS_CLIENT_BIND", this.IS_CLIENT_BIND);
-    properties.put("CLIENT_NUMBER", this.CLIENT_NUMBER);
-    properties.put("GROUP_NUMBER", this.GROUP_NUMBER);
-    properties.put("SG_STRATEGY", this.SG_STRATEGY);
-    properties.put("DEVICE_NUMBER", this.DEVICE_NUMBER);
-    properties.put("REAL_INSERT_RATE", this.REAL_INSERT_RATE);
-    properties.put("SENSOR_NUMBER", this.SENSOR_NUMBER);
-    properties.put("IS_SENSOR_TS_ALIGNMENT", this.IS_SENSOR_TS_ALIGNMENT);
-    if (!this.IS_SENSOR_TS_ALIGNMENT) {
-      properties.put("TS_ALIGNMENT_RATIO", this.TS_ALIGNMENT_RATIO);
+    configProperties.addProperty("Data Amount", "COMPRESSOR", this.COMPRESSOR);
+    if (hasQuery()) {
+      configProperties.addProperty("Query Param", "QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
+      configProperties.addProperty("Query Param", "QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);
+      configProperties.addProperty("Query Param", "QUERY_INTERVAL", this.QUERY_INTERVAL);
+      configProperties.addProperty("Query Param", "STEP_SIZE", this.STEP_SIZE);
+      configProperties.addProperty("Query Param", "IS_RECENT_QUERY", this.IS_RECENT_QUERY);
     }
-    properties.put("BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
-    properties.put("LOOP", this.LOOP);
-    properties.put("POINT_STEP", this.POINT_STEP);
-    properties.put("OP_INTERVAL", this.OP_INTERVAL);
-    properties.put("QUERY_INTERVAL", this.QUERY_INTERVAL);
-    properties.put("IS_ADD_ANOMALY", this.IS_ADD_ANOMALY);
-    properties.put("ANOMALY_RATE", this.ANOMALY_RATE);
-    properties.put("ANOMALY_TIMES", this.ANOMALY_TIMES);
-    properties.put("IS_COPY_MODE", this.IS_COPY_MODE);
-    properties.put("IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
-    properties.put("OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
-    properties.put("OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
-    properties.put("IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
-    properties.put("START_TIME", this.START_TIME);
-    properties.put("IS_RECENT_QUERY", this.IS_RECENT_QUERY);
-    return properties;
+    configProperties.addProperty("Other Param", "IS_DELETE_DATA", this.IS_DELETE_DATA);
+    configProperties.addProperty("Other Param", "CREATE_SCHEMA", this.CREATE_SCHEMA);
+    if (this.IS_DOUBLE_WRITE) {
+      configProperties.addProperty("Other Param", "IS_COMPASSION", this.IS_COMPARISON);
+      configProperties.addProperty("Other Param", "IS_POINT_COMPARISON", this.IS_POINT_COMPARISON);
+      if (this.IS_POINT_COMPARISON) {
+        configProperties.addProperty(
+            "Other Param", "VERIFICATION_STEP_SIZE", this.VERIFICATION_STEP_SIZE);
+      }
+    }
+    configProperties.addProperty("Other Param", "BENCHMARK_CLUSTER", this.BENCHMARK_CLUSTER);
+    if (this.BENCHMARK_CLUSTER) {
+      configProperties.addProperty("Other Param", "BENCHMARK_INDEX", this.BENCHMARK_INDEX);
+      configProperties.addProperty("Other Param", "FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
+      configProperties.addProperty(
+          "Other Param", "IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
+    }
+    return configProperties;
   }
 
   /** get all properties from config, one property in one line. */
-  public Map<String, Object> getAllProperties() {
-    Map<String, Object> properties = getShowProperties();
-    properties.put("TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
-    properties.put("ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
-    properties.put("WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
-    properties.put("READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);
-    if (this.IS_OUT_OF_ORDER) {
-      properties.put("LAMBDA", this.LAMBDA);
-      properties.put("MAX_K", this.MAX_K);
+  public ConfigProperties getAllConfigProperties() {
+    ConfigProperties configProperties = getShowConfigProperties();
+    /* The config of test db */
+    configProperties.addProperty("Extern Param", "TIMESTAMP_PRECISION", this.TIMESTAMP_PRECISION);
+
+    /* The config of generate data */
+    if (hasWrite()) {
+      configProperties.addProperty(
+          "Extern Param", "IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
+      configProperties.addProperty("Extern Param", "STRING_LENGTH", this.STRING_LENGTH);
+      configProperties.addProperty("Extern Param", "DOUBLE_LENGTH", this.DOUBLE_LENGTH);
+      if (this.IS_OUT_OF_ORDER) {
+        configProperties.addProperty("Extern Param", "OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
+        configProperties.addProperty("Extern Param", "LAMBDA", this.LAMBDA);
+        configProperties.addProperty("Extern Param", "MAX_K", this.MAX_K);
+      }
+      configProperties.addProperty("Extern Param", "SG_STRATEGY", this.SG_STRATEGY);
     }
-    properties.put("STEP_SIZE", this.STEP_SIZE);
-    properties.put("QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);
-    properties.put("QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
-    properties.put("QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
-    properties.put("QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
-    properties.put("QUERY_SEED", this.QUERY_SEED);
-    properties.put("WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
-    return properties;
+    configProperties.addProperty("Extern Param", "IS_ADD_ANOMALY", this.IS_ADD_ANOMALY);
+    configProperties.addProperty("Extern Param", "ANOMALY_RATE", this.ANOMALY_RATE);
+    configProperties.addProperty("Extern Param", "ANOMALY_TIMES", this.ANOMALY_TIMES);
+    configProperties.addProperty("Extern Param", "IS_COPY_MODE", this.IS_COPY_MODE);
+
+    /* The config of schema */
+    configProperties.addProperty("Extern Param", "IS_CLIENT_BIND", this.IS_CLIENT_BIND);
+
+    /* The config of query */
+    if (hasQuery()) {
+      configProperties.addProperty("Extern Param", "QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
+      configProperties.addProperty("Extern Param", "QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
+      configProperties.addProperty("Extern Param", "QUERY_SEED", this.QUERY_SEED);
+    }
+
+    /* other config */
+    configProperties.addProperty("Extern Param", "RESULT_PRECISION", this.RESULT_PRECISION + "%");
+    configProperties.addProperty("Extern Param", "WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
+
+    configProperties.addProperty(
+        "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
+    configProperties.addProperty(
+        "Extern Param", "WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
+    configProperties.addProperty(
+        "Extern Param", "READ_OPERATION_TIMEOUT_MS", this.READ_OPERATION_TIMEOUT_MS);
+    return configProperties;
+  }
+
+  public boolean hasWrite() {
+    return Double.parseDouble(this.OPERATION_PROPORTION.split(":")[0]) > 1e-7;
+  }
+
+  public boolean hasQuery() {
+    Double total = 0.0;
+    String[] proportion = this.OPERATION_PROPORTION.split(":");
+    for (int i = 1; i < proportion.length; i++) {
+      total += Double.parseDouble(proportion[i]);
+    }
+    return total > 1e-7;
   }
 }
