@@ -56,6 +56,7 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
         String currentThread = Thread.currentThread().getName();
         // print current progress periodically
+        now = 0;
         pointService.scheduleAtFixedRate(
             () -> {
               String percent =
@@ -79,6 +80,8 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
           now += dbWrapper.deviceQuery(query).getQueryResultPointNum();
           queryStartTime += verificationStepSize;
         } while (queryStartTime < deviceSummary.getMaxTimeStamp());
+        LOGGER.info(
+            "All points of {} have been checked", deviceQuery.getDeviceSchema().getDevice());
         pointService.shutdown();
       }
     } catch (SQLException | TsdbException sqlException) {

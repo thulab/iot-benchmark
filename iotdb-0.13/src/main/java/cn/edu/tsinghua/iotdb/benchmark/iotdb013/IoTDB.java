@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -60,7 +61,7 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
-  private final String DELETE_SERIES_SQL;
+  protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -77,12 +78,14 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void init() throws TsdbException {
-    try {
-      ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-      ioTDBConnection.init();
-      this.service = Executors.newSingleThreadExecutor();
-    } catch (Exception e) {
-      throw new TsdbException(e);
+    if (ioTDBConnection == null) {
+      try {
+        ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
+        ioTDBConnection.init();
+        this.service = Executors.newSingleThreadExecutor();
+      } catch (Exception e) {
+        throw new TsdbException(e);
+      }
     }
   }
 
@@ -182,10 +185,15 @@ public class IoTDB implements IDatabase {
                 Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
                 Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
                 Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        if (config.isVECTOR()) internalNode.addChild(measurementNode);
-        else template.addToTemplate(measurementNode);
+        if (config.isVECTOR()) {
+          internalNode.addChild(measurementNode);
+        } else {
+          template.addToTemplate(measurementNode);
+        }
       }
-      if (config.isVECTOR()) template.addToTemplate(internalNode);
+      if (config.isVECTOR()) {
+        template.addToTemplate(internalNode);
+      }
       metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
       // do noting
@@ -552,9 +560,11 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    if (config.isTEMPLATE())
+    if (config.isTEMPLATE()) {
       builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
-    else builder.append(" FROM ").append(getDevicePath(devices.get(0)));
+    } else {
+      builder.append(" FROM ").append(getDevicePath(devices.get(0)));
+    }
     for (int i = 1; i < devices.size(); i++) {
       builder.append(", ").append(getDevicePath(devices.get(i)));
     }
@@ -815,7 +825,6 @@ public class IoTDB implements IDatabase {
 
     return new Status(true, 0, sql.toString(), result);
   }
-
   protected String getDeviceQuerySql(
       DeviceSchema deviceSchema, long startTimeStamp, long endTimeStamp) {
     StringBuffer sql = new StringBuffer();
@@ -826,6 +835,39 @@ public class IoTDB implements IDatabase {
     sql.append(" and time <").append(endTimeStamp);
     sql.append(" order by time desc");
     return sql.toString();
+  }
+
+  @Override
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
+    int totalLineNumber = 0;
+    long minTimeStamp = 0, maxTimeStamp = 0;
+    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
+      ResultSet resultSet = statement.executeQuery(getTotalLineNumberSql(deviceSchema));
+      resultSet.next();
+      totalLineNumber = Integer.parseInt(resultSet.getString(1));
+
+      resultSet = statement.executeQuery(getMaxTimeStampSql(deviceSchema));
+      resultSet.next();
+      maxTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
+
+      resultSet = statement.executeQuery(getMinTimeStampSql(deviceSchema));
+      resultSet.next();
+      minTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
+    }
+    return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
+  }
+
+  protected String getTotalLineNumberSql(DeviceSchema deviceSchema) {
+    return "select count(*) from " + getDevicePath(deviceSchema);
+  }
+
+  protected String getMinTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from " + getDevicePath(deviceSchema) + " order by time limit 1";
+  }
+
+  protected String getMaxTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
   }
 
   String getEncodingType(SensorType dataSensorType) {
