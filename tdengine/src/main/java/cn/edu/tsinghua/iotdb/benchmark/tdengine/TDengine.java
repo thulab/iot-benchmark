@@ -87,8 +87,6 @@ public class TDengine implements IDatabase {
   public void cleanup() throws TsdbException {
     // current no implementation
     try (Statement statement = connection.createStatement()) {
-      // drop super table
-      statement.execute(String.format(DROP_STABLE, SUPER_TABLE_NAME));
       // drop database
       statement.execute(String.format(DROP_DATABASE, SUPER_TABLE_NAME));
     } catch (SQLException e) {
