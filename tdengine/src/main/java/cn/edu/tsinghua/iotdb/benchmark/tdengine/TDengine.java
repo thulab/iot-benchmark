@@ -88,7 +88,7 @@ public class TDengine implements IDatabase {
     // current no implementation
     try (Statement statement = connection.createStatement()) {
       // drop database
-      statement.execute(String.format(DROP_DATABASE, SUPER_TABLE_NAME));
+      statement.execute(String.format(DROP_DATABASE, testDatabaseName));
     } catch (SQLException e) {
       // ignore if already has the time series
       LOGGER.error("Clean TaosDB failed because ", e);
