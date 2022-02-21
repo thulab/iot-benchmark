@@ -169,7 +169,7 @@ mvn clean package -Dmaven.test.skip=true
 |     TimescaleDB      |          |   timescaledb   |                                                 TimescaleDB                                                  |
 |        SQLite        |    --    |     sqlite      |                                                    SQLite                                                    |
 |       OpenTSDB       |    --    |    opentsdb     |                                                   OpenTSDB                                                   |
-|       KariosDB       |    --    |    kairosdb     |                                                   KairosDB                                                   |
+|       KairosDB       |    --    |    kairosdb     |                                                   KairosDB                                                   |
 |       TDengine       | 2.2.0.2  |    TDengine     |                                                   TDengine                                                   |
 |      PI Archive      |   2016   |    PIArchive    |                                                  PIArchive                                                   |
 

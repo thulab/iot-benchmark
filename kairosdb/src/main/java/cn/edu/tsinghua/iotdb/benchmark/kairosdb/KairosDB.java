@@ -58,7 +58,7 @@ public class KairosDB implements IDatabase {
   private static final String DEVICE_STR = "device";
 
   public KairosDB(DBConfig dbConfig) {
-    writeUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0) + "/api/v1/datapoints";
+    writeUrl = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0) + "/api/v1/datapoints";
     this.dbConfig = dbConfig;
   }
 
