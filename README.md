@@ -165,7 +165,7 @@ The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/targe
 |     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                 |
 |        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
 |       OpenTSDB       |    2.4.1    |         opentsdb          |                                                  OpenTSDB                                                   |
-|       KariosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
+|       KairosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
 |        TDengine        |    2.2.0.2    |          TDengine           |                                                   TDengine                                                    |
 |       PI Archive      |   2016  |         PIArchive         |                                                     PIArchive                                                |
 

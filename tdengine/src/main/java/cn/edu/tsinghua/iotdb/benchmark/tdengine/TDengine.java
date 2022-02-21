@@ -40,42 +40,44 @@ import java.util.Date;
 import java.util.List;
 
 public class TDengine implements IDatabase {
-
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
+  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
-  private static final String URL_TAOS = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
+  private static final String TAOS_URL = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
+
   private static final String CREATE_DATABASE = "create database if not exists %s";
-  private static final String SUPER_TABLE = "super";
+  private static final String DROP_DATABASE = "drop database if exists %s";
   private static final String USE_DB = "use %s";
   private static final String CREATE_STABLE =
-      "create table if not exists %s (time timestamp, %s) tags(device binary(20))";
+      "create stable if not exists %s (time timestamp, %s) tags(device binary(20))";
+  private static final String DROP_STABLE = "drop stables if exists %s";
   private static final String CREATE_TABLE = "create table if not exists %s using %s tags('%s')";
+  private static final String SUPER_TABLE_NAME = "device";
+
   private Connection connection;
   private DBConfig dbConfig;
-  private static String testDb;
-  private static Config config;
-  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  private String testDatabaseName;
 
   public TDengine(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
-    this.testDb = dbConfig.getDB_NAME();
+    this.testDatabaseName = dbConfig.getDB_NAME();
   }
 
   @Override
   public void init() {
-    config = ConfigDescriptor.getInstance().getConfig();
     try {
       Class.forName(TAOS_DRIVER);
       connection =
           DriverManager.getConnection(
               String.format(
-                  URL_TAOS,
+                  TAOS_URL,
                   dbConfig.getHOST().get(0),
                   dbConfig.getPORT().get(0),
                   dbConfig.getUSERNAME(),
                   dbConfig.getPASSWORD()));
-      LOGGER.info("init success.");
+      LOGGER.info("TDengine init success.");
     } catch (SQLException | ClassNotFoundException e) {
       e.printStackTrace();
     }
@@ -83,7 +85,15 @@ public class TDengine implements IDatabase {
 
   @Override
   public void cleanup() throws TsdbException {
-    // currently no implementation
+    // current no implementation
+    try (Statement statement = connection.createStatement()) {
+      // drop database
+      statement.execute(String.format(DROP_DATABASE, testDatabaseName));
+    } catch (SQLException e) {
+      // ignore if already has the time series
+      LOGGER.error("Clean TaosDB failed because ", e);
+      throw new TsdbException(e);
+    }
   }
 
   @Override
@@ -107,15 +117,14 @@ public class TDengine implements IDatabase {
             config.getSENSOR_NUMBER());
         throw new TsdbException("taosDB do not support more than 1024 column for one table.");
       }
-      // create database
-      try {
-        Statement statement = connection.createStatement();
-        statement.execute(String.format(CREATE_DATABASE, testDb));
-        statement.execute(String.format(USE_DB, testDb));
+      try (Statement statement = connection.createStatement()) {
+        // create database
+        statement.execute(String.format(CREATE_DATABASE, testDatabaseName));
+        // use database
+        statement.execute(String.format(USE_DB, testDatabaseName));
 
         // create super table
         StringBuilder superSql = new StringBuilder();
-        int sensorIndex = 0;
         for (Sensor sensor : config.getSENSORS()) {
           String dataType = typeMap(sensor.getSensorType());
           if (dataType.equals("BINARY")) {
@@ -123,32 +132,21 @@ public class TDengine implements IDatabase {
           } else {
             superSql.append(sensor).append(" ").append(dataType).append(",");
           }
-          sensorIndex++;
         }
         superSql.deleteCharAt(superSql.length() - 1);
-        LOGGER.info(String.format(CREATE_STABLE, SUPER_TABLE, superSql.toString()));
-        statement.execute(String.format(CREATE_STABLE, SUPER_TABLE, superSql.toString()));
-      } catch (SQLException e) {
-        // ignore if already has the time series
-        LOGGER.error("Register TaosDB schema failed because ", e);
-        throw new TsdbException(e);
-      }
+        String superTableCreateSql = String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql);
+        LOGGER.info(superTableCreateSql);
+        statement.execute(superTableCreateSql);
 
-      // create tables
-      try (Statement statement = connection.createStatement()) {
-        statement.execute(String.format(USE_DB, testDb));
+        // create tables
+        statement.execute(String.format(USE_DB, testDatabaseName));
         for (DeviceSchema deviceSchema : schemaList) {
           statement.execute(
               String.format(
-                  CREATE_TABLE, deviceSchema.getDevice(), SUPER_TABLE, deviceSchema.getDevice()));
-          //          createTableSql.append(String.format(CREATE_TABLE,
-          // deviceSchema.getDevice())).append(" (ts timestamp,");
-          //          for (String sensor : deviceSchema.getSensors()) {
-          //            String dataType = getNextDataType(sensorIndex);
-          //            createTableSql.append(sensor).append(" ").append(dataType).append(",");
-          //            sensorIndex++;
-          //          }
-          //          createTableSql.deleteCharAt(createTableSql.length() - 1).append(")");
+                  CREATE_TABLE,
+                  deviceSchema.getDevice(),
+                  SUPER_TABLE_NAME,
+                  deviceSchema.getDevice()));
         }
       } catch (SQLException e) {
         // ignore if already has the time series
@@ -162,7 +160,7 @@ public class TDengine implements IDatabase {
   @Override
   public Status insertOneBatch(Batch batch) {
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, testDb));
+      statement.execute(String.format(USE_DB, testDatabaseName));
       StringBuilder builder = new StringBuilder();
       DeviceSchema deviceSchema = batch.getDeviceSchema();
       builder.append("insert into ").append(deviceSchema.getDevice()).append(" values ");
@@ -171,7 +169,7 @@ public class TDengine implements IDatabase {
             getInsertOneRecordSql(
                 batch.getDeviceSchema(), record.getTimestamp(), record.getRecordDataValue()));
       }
-      LOGGER.debug("getInsertOneBatchSql: {}", builder.toString());
+      LOGGER.debug("getInsertOneBatchSql: {}", builder);
       statement.addBatch(builder.toString());
       statement.executeBatch();
       return new Status(true);
@@ -211,41 +209,6 @@ public class TDengine implements IDatabase {
       }
       sensorIndex++;
     }
-    builder.append(")");
-    return builder.toString();
-  }
-
-  private String getInsertOneRecordSql(
-      DeviceSchema deviceSchema, long timestamp, List<Object> values, int colIndex) {
-    StringBuilder builder = new StringBuilder();
-    builder.append(" ('");
-    builder.append(sdf.format(new Date(timestamp))).append("'");
-    int sensorIndex = colIndex;
-    Object value = values.get(0);
-    Sensor sensor = deviceSchema.getSensors().get(sensorIndex);
-    switch (typeMap(sensor.getSensorType())) {
-      case "BOOL":
-        builder.append(",").append((boolean) value);
-        break;
-      case "INT":
-        builder.append(",").append((int) value);
-        break;
-      case "BIGINT":
-        builder.append(",").append((long) value);
-        break;
-      case "FLOAT":
-        builder.append(",").append((float) value);
-        break;
-      case "DOUBLE":
-        builder.append(",").append((double) value);
-        break;
-      case "BINARY":
-      default:
-        builder.append(",").append("'").append(value).append("'");
-        break;
-    }
-    sensorIndex++;
-
     builder.append(")");
     return builder.toString();
   }
@@ -415,7 +378,7 @@ public class TDengine implements IDatabase {
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, testDb));
+      statement.execute(String.format(USE_DB, testDatabaseName));
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
