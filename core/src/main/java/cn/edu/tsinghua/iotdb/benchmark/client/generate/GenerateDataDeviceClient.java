@@ -83,6 +83,9 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         LOGGER.info(
             "All points of {} have been checked", deviceQuery.getDeviceSchema().getDevice());
         pointService.shutdown();
+        if (isStop.get()) {
+          break;
+        }
       }
     } catch (SQLException | TsdbException sqlException) {
       LOGGER.error("Failed DeviceQuery: " + sqlException.getMessage());

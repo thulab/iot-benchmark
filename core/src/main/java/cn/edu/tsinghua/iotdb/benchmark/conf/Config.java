@@ -71,6 +71,9 @@ public class Config {
    */
   private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
+  /** The max time of test, unit: ms. if TEST_MAX_TIME is 0, there are no constraint. */
+  private Long TEST_MAX_TIME = 0L;
+
   /** Whether to use measurement */
   private boolean USE_MEASUREMENT = true;
   /** Precision of result, unit: % */
@@ -577,6 +580,14 @@ public class Config {
 
   public void setBENCHMARK_WORK_MODE(BenchmarkMode BENCHMARK_WORK_MODE) {
     this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+  }
+
+  public Long getTEST_MAX_TIME() {
+    return TEST_MAX_TIME;
+  }
+
+  public void setTEST_MAX_TIME(Long TEST_MAX_TIME) {
+    this.TEST_MAX_TIME = TEST_MAX_TIME;
   }
 
   public boolean isUSE_MEASUREMENT() {
@@ -1648,6 +1659,8 @@ public class Config {
     }
 
     /* other config */
+    configProperties.addProperty("Extern Param", "TEST_MAX_TIME", this.TEST_MAX_TIME);
+
     configProperties.addProperty("Extern Param", "RESULT_PRECISION", this.RESULT_PRECISION + "%");
     configProperties.addProperty("Extern Param", "WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
 
