@@ -54,15 +54,15 @@ public class MetaUtil {
 
   /** Get Format Name */
   public static String getGroupName(Object groupId) {
-    return Constants.GROUP_NAME_PREFIX + groupId;
+    return config.getGROUP_NAME_PREFIX() + groupId;
   }
 
   public static String getDeviceName(Object deviceId) {
-    return Constants.DEVICE_NAME_PREFIX + deviceId;
+    return config.getDEVICE_NAME_PREFIX() + deviceId;
   }
 
   public static String getSensorName(Object sensorId) {
-    return Constants.SENSOR_NAME_PREFIX + sensorId;
+    return config.getSENSOR_NAME_PREFIX() + sensorId;
   }
 
   public static List<List<String>> getClientFiles() {

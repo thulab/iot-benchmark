@@ -36,13 +36,6 @@ public class Constants {
 
   public static final String INFO_PATH = "info.txt";
 
-  /** name prefix of group */
-  public static final String GROUP_NAME_PREFIX = "g_";
-  /** name prefix of device */
-  public static final String DEVICE_NAME_PREFIX = "d_";
-  /** name prefix of sensor */
-  public static final String SENSOR_NAME_PREFIX = "s_";
-
   /** support test data persistence */
   public static final String TDP_NONE = "None";
 

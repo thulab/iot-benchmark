@@ -240,6 +240,12 @@ public class ConfigDescriptor {
         config.setCLIENT_NUMBER(
             Integer.parseInt(
                 properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER() + "")));
+        config.setGROUP_NAME_PREFIX(
+            properties.getProperty("GROUP_NAME_PREFIX", config.getGROUP_NAME_PREFIX()));
+        config.setDEVICE_NAME_PREFIX(
+            properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
+        config.setSENSOR_NAME_PREFIX(
+            properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));
