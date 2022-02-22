@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
-import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -34,6 +33,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
@@ -825,6 +825,7 @@ public class IoTDB implements IDatabase {
 
     return new Status(true, 0, sql.toString(), result);
   }
+
   protected String getDeviceQuerySql(
       DeviceSchema deviceSchema, long startTimeStamp, long endTimeStamp) {
     StringBuffer sql = new StringBuffer();
