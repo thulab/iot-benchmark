@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Client implements Runnable {
 
@@ -70,6 +71,9 @@ public abstract class Client implements Runnable {
   protected long totalLoop = 0;
   /** Loop Index, using for loop and log */
   protected long loopIndex = 0;
+
+  /** Control the status */
+  protected AtomicBoolean isStop = new AtomicBoolean(false);
 
   /** Control the end of client */
   private final CountDownLatch countDownLatch;
@@ -157,7 +161,7 @@ public abstract class Client implements Runnable {
     return measurement;
   }
 
-  /** Do test */
+  /** Do test, Notice please use `isStop` parameters to control */
   protected abstract void doTest();
 
   /** Init DBWrapper */
@@ -168,5 +172,10 @@ public abstract class Client implements Runnable {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
     dbWrapper = new DBWrapper(dbConfigs, measurement);
+  }
+
+  /** Stop client */
+  public void stopClient() {
+    this.isStop.set(true);
   }
 }

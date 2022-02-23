@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
 import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.TimeClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
@@ -67,6 +68,10 @@ public abstract class BaseMode {
         return;
       }
       clients.add(client);
+    }
+    TimeClient timeClient = new TimeClient(clients);
+    timeClient.start();
+    for (Client client : clients) {
       executorService.submit(client);
     }
     start = System.nanoTime();
@@ -74,6 +79,9 @@ public abstract class BaseMode {
     try {
       // wait for all clients finish test
       downLatch.await();
+      if (timeClient.isAlive()) {
+        timeClient.interrupt();
+      }
     } catch (InterruptedException e) {
       LOGGER.error("Exception occurred during waiting for all threads finish.", e);
       Thread.currentThread().interrupt();

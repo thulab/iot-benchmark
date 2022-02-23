@@ -87,6 +87,9 @@ public class ConfigDescriptor {
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+        config.setTEST_MAX_TIME(
+            Long.parseLong(
+                properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
         config.setUSE_MEASUREMENT(
             Boolean.parseBoolean(
                 properties.getProperty("USE_MEASUREMENT", config.isUSE_MEASUREMENT() + "")));

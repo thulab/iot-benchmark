@@ -42,6 +42,9 @@ public class RealDataSetWriteClient extends RealBaseClient {
         }
         dbWrapper.insertOneBatch(batch);
         loopIndex++;
+        if (isStop.get()) {
+          break;
+        }
       } catch (DBConnectException e) {
         LOGGER.error("Failed to insert one batch data because ", e);
       } catch (Exception e) {

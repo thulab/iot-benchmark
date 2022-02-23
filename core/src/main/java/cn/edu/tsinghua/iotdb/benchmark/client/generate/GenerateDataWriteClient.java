@@ -41,6 +41,9 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
       if (!doGenerate()) {
         break loop;
       }
+      if (isStop.get()) {
+        break;
+      }
     }
   }
 
