@@ -71,6 +71,9 @@ public class Config {
    */
   private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
+  /** The max time of test, unit: ms. if TEST_MAX_TIME is 0, there are no constraint. */
+  private Long TEST_MAX_TIME = 0L;
+
   /** Whether to use measurement */
   private boolean USE_MEASUREMENT = true;
   /** Precision of result, unit: % */
@@ -186,6 +189,13 @@ public class Config {
    * number of devices.
    */
   private int CLIENT_NUMBER = 2;
+
+  /** name prefix of group */
+  private String GROUP_NAME_PREFIX = "g_";
+  /** name prefix of device */
+  private String DEVICE_NAME_PREFIX = "d_";
+  /** name prefix of sensor */
+  private String SENSOR_NAME_PREFIX = "s_";
 
   // 设备、传感器、客户端：生成数据的规律
   /** 线性 默认 9个 0.054 */
@@ -480,8 +490,7 @@ public class Config {
           break;
         }
       }
-      Sensor sensor =
-          new Sensor(Constants.SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i - 1));
+      Sensor sensor = new Sensor(SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i - 1));
       SENSORS.add(sensor);
     }
   }
@@ -577,6 +586,14 @@ public class Config {
 
   public void setBENCHMARK_WORK_MODE(BenchmarkMode BENCHMARK_WORK_MODE) {
     this.BENCHMARK_WORK_MODE = BENCHMARK_WORK_MODE;
+  }
+
+  public Long getTEST_MAX_TIME() {
+    return TEST_MAX_TIME;
+  }
+
+  public void setTEST_MAX_TIME(Long TEST_MAX_TIME) {
+    this.TEST_MAX_TIME = TEST_MAX_TIME;
   }
 
   public boolean isUSE_MEASUREMENT() {
@@ -849,6 +866,30 @@ public class Config {
 
   public void setCLIENT_NUMBER(int CLIENT_NUMBER) {
     this.CLIENT_NUMBER = CLIENT_NUMBER;
+  }
+
+  public String getGROUP_NAME_PREFIX() {
+    return GROUP_NAME_PREFIX;
+  }
+
+  public void setGROUP_NAME_PREFIX(String GROUP_NAME_PREFIX) {
+    this.GROUP_NAME_PREFIX = GROUP_NAME_PREFIX;
+  }
+
+  public String getDEVICE_NAME_PREFIX() {
+    return DEVICE_NAME_PREFIX;
+  }
+
+  public void setDEVICE_NAME_PREFIX(String DEVICE_NAME_PREFIX) {
+    this.DEVICE_NAME_PREFIX = DEVICE_NAME_PREFIX;
+  }
+
+  public String getSENSOR_NAME_PREFIX() {
+    return SENSOR_NAME_PREFIX;
+  }
+
+  public void setSENSOR_NAME_PREFIX(String SENSOR_NAME_PREFIX) {
+    this.SENSOR_NAME_PREFIX = SENSOR_NAME_PREFIX;
   }
 
   public double getLINE_RATIO() {
@@ -1648,8 +1689,13 @@ public class Config {
     }
 
     /* other config */
+    configProperties.addProperty("Extern Param", "TEST_MAX_TIME", this.TEST_MAX_TIME);
+
     configProperties.addProperty("Extern Param", "RESULT_PRECISION", this.RESULT_PRECISION + "%");
     configProperties.addProperty("Extern Param", "WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
+    configProperties.addProperty("Extern Param", "GROUP_NAME_PREFIX", this.GROUP_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "DEVICE_NAME_PREFIX", this.DEVICE_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "SENSOR_NAME_PREFIX", this.SENSOR_NAME_PREFIX);
 
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);

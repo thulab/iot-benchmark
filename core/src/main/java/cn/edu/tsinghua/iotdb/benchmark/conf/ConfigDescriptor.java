@@ -87,6 +87,9 @@ public class ConfigDescriptor {
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+        config.setTEST_MAX_TIME(
+            Long.parseLong(
+                properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
         config.setUSE_MEASUREMENT(
             Boolean.parseBoolean(
                 properties.getProperty("USE_MEASUREMENT", config.isUSE_MEASUREMENT() + "")));
@@ -240,6 +243,12 @@ public class ConfigDescriptor {
         config.setCLIENT_NUMBER(
             Integer.parseInt(
                 properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER() + "")));
+        config.setGROUP_NAME_PREFIX(
+            properties.getProperty("GROUP_NAME_PREFIX", config.getGROUP_NAME_PREFIX()));
+        config.setDEVICE_NAME_PREFIX(
+            properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
+        config.setSENSOR_NAME_PREFIX(
+            properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));

@@ -99,6 +99,9 @@ public class GenerateDataMixClient extends GenerateBaseClient {
           LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
         }
       }
+      if (isStop.get()) {
+        break;
+      }
       if (config.getOP_INTERVAL() > 0) {
         long elapsed = System.currentTimeMillis() - start;
         if (elapsed < config.getOP_INTERVAL()) {

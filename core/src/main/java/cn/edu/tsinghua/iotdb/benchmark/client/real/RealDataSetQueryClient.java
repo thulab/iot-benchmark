@@ -43,6 +43,9 @@ public class RealDataSetQueryClient extends RealBaseClient {
         VerificationQuery verificationQuery = queryWorkLoad.getVerifiedQuery(batch);
         dbWrapper.verificationQuery(verificationQuery);
         loopIndex++;
+        if (isStop.get()) {
+          break;
+        }
       } catch (Exception e) {
         LOGGER.error("Failed to query one batch data because ", e);
       }

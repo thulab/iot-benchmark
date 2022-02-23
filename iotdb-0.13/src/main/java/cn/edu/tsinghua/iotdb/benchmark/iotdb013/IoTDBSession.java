@@ -19,8 +19,6 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 
-import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -34,11 +32,13 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
+import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
