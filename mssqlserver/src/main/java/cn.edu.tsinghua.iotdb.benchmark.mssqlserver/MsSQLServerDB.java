@@ -2,7 +2,6 @@ package cn.edu.tsinghua.iotdb.benchmark.mssqlserver;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
@@ -262,7 +261,7 @@ public class MsSQLServerDB implements IDatabase {
    * @return
    */
   private long getId(String group, String device, String sensor) {
-    long groupNow = Long.parseLong(group.replace(Constants.GROUP_NAME_PREFIX, ""));
+    long groupNow = Long.parseLong(group.replace(config.getGROUP_NAME_PREFIX(), ""));
     long deviceNow = Long.parseLong(device.split("_")[1]);
     long sensorNow = 0;
     if (sensor != null) {

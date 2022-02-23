@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iotdb.benchmark.schema;
 
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.GenerateMetaDataSchema;
@@ -61,7 +60,7 @@ public abstract class MetaDataSchema {
   protected List<Sensor> sortSensors(List<Sensor> sensors) {
     sensors.sort(
         Comparator.comparingInt(
-            o -> Integer.valueOf(o.getName().replace(Constants.SENSOR_NAME_PREFIX, ""))));
+            o -> Integer.parseInt(o.getName().replace(config.getSENSOR_NAME_PREFIX(), ""))));
     return sensors;
   }
 
