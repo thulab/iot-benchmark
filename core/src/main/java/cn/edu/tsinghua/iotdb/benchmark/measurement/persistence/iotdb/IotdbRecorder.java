@@ -301,10 +301,12 @@ public class IotdbRecorder extends TestDataPersistence {
   @Override
   public void close() {
     try {
-      globalStatement.executeBatch();
-      globalStatement.clearBatch();
-      globalStatement.close();
-      connection.close();
+      if (!connection.isClosed()) {
+        globalStatement.executeBatch();
+        globalStatement.clearBatch();
+        globalStatement.close();
+        connection.close();
+      }
     } catch (SQLException e) {
       LOGGER.error("close failed", e);
     }

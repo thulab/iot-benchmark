@@ -308,12 +308,14 @@ public class CSVRecorder extends TestDataPersistence {
       }
       FileWriter oldProjectWriter = projectWriter;
       projectWriter = newProjectWriter;
+      config.resetCURRENT_CSV_LINE();
+      String toZipFileName = projectWriterName;
       try {
         service.submit(
             () -> {
               ZipUtils.toZip(
-                  Collections.singletonList(projectWriterName),
-                  projectWriterName.replace(".csv", ".zip"),
+                  Collections.singletonList(toZipFileName),
+                  toZipFileName.replace(".csv", ".zip"),
                   true);
             });
         projectWriterName = newProjectWriterName;
@@ -321,7 +323,6 @@ public class CSVRecorder extends TestDataPersistence {
       } catch (IOException e) {
         LOGGER.error("", e);
       }
-      config.resetCURRENT_CSV_LINE();
     } else {
       insert(operation, okPoint, failPoint, latency, remark, device);
     }

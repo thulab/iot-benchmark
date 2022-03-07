@@ -101,6 +101,7 @@ public class MySqlRecorder extends TestDataPersistence {
     try {
       Class.forName(Constants.MYSQL_DRIVENAME);
       connection = DriverManager.getConnection(URL);
+      System.out.println(connection);
       statement = connection.createStatement();
       initTable();
     } catch (SQLException e) {
@@ -413,8 +414,10 @@ public class MySqlRecorder extends TestDataPersistence {
   public void close() {
     if (connection != null) {
       try {
-        statement.executeBatch();
-        statement.close();
+        if (!statement.isClosed()) {
+          statement.executeBatch();
+          statement.close();
+        }
         connection.close();
       } catch (SQLException e) {
         LOGGER.error("Failed to close connection to MySQL, because: ", e);
