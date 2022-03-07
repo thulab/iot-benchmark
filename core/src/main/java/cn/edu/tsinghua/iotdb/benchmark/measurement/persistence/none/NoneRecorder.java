@@ -43,6 +43,12 @@ public class NoneRecorder extends TestDataPersistence {
   }
 
   @Override
+  protected void createNewRecordOrInsert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    // Do nothing
+  }
+
+  @Override
   protected void saveResult(String operation, String key, String value) {
     // DO nothing
   }

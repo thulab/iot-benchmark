@@ -58,6 +58,10 @@ public abstract class TestDataPersistence {
   protected abstract void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark, String device);
 
+  /** Create new record when line meet max line */
+  protected abstract void createNewRecordOrInsert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device);
+
   /**
    * Save result of operation
    *

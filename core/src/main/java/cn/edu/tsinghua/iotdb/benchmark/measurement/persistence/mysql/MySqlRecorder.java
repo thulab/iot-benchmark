@@ -210,11 +210,6 @@ public class MySqlRecorder extends TestDataPersistence {
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.IncrementAndGetCURRENT_RECORD_LINE() % 10
         < config.getMYSQL_REAL_INSERT_RATE() * 10) {
-      double rate = 0;
-      if (latency > 0) {
-        // unit: points/second
-        rate = okPoint * 1000 / latency;
-      }
       // check whether the connection is valid
       try {
         if (!connection.isValid(TIME_OUT)) {
@@ -241,27 +236,22 @@ public class MySqlRecorder extends TestDataPersistence {
         if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
           reentrantLock.lock();
           try {
-            createNewTableOrInsert(operation, okPoint, failPoint, latency, remark, device, rate);
+            createNewRecordOrInsert(operation, okPoint, failPoint, latency, remark, device);
           } finally {
             reentrantLock.unlock();
           }
         } else {
-          insert(operation, okPoint, failPoint, latency, remark, device, rate);
+          insert(operation, okPoint, failPoint, latency, remark, device);
         }
       } else {
-        insert(operation, okPoint, failPoint, latency, remark, device, rate);
+        insert(operation, okPoint, failPoint, latency, remark, device);
       }
     }
   }
 
-  private void createNewTableOrInsert(
-      String operation,
-      int okPoint,
-      int failPoint,
-      double latency,
-      String remark,
-      String device,
-      double rate) {
+  @Override
+  protected void createNewRecordOrInsert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       // create table
       String newTableName = "";
@@ -274,17 +264,16 @@ public class MySqlRecorder extends TestDataPersistence {
         LOGGER.error("Failed to create split table: " + newTableName);
       }
     }
-    insert(operation, okPoint, failPoint, latency, remark, device, rate);
+    insert(operation, okPoint, failPoint, latency, remark, device);
   }
 
   private void insert(
-      String operation,
-      int okPoint,
-      int failPoint,
-      double latency,
-      String remark,
-      String device,
-      double rate) {
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    double rate = 0;
+    if (latency > 0) {
+      // unit: points/second
+      rate = okPoint * 1000 / latency;
+    }
     // execute sql
     String mysqlSql = "";
     try {

@@ -258,6 +258,12 @@ public class IotdbRecorder extends TestDataPersistence {
   }
 
   @Override
+  protected void createNewRecordOrInsert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    // TODO
+  }
+
+  @Override
   protected void saveResult(String operation, String key, String value) {
     StringBuffer builder = new StringBuffer(INSERT_SQL_PREFIX);
     builder.append(".").append(operation).append(INSERT_SQL_STR2);
