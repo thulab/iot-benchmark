@@ -436,7 +436,8 @@ public class ConfigDescriptor {
         config.setCSV_OUTPUT(
             Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT() + "")));
         config.setRECORD_SPLIT_MAX_LINE(
-            Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getRECORD_SPLIT_MAX_LINE() + "")));
+            Long.parseLong(
+                properties.getProperty("CSV_MAX_LINE", config.getRECORD_SPLIT_MAX_LINE() + "")));
         config.setRECORD_SPLIT(
             Boolean.parseBoolean(
                 properties.getProperty("CSV_FILE_SPLIT", config.isRECORD_SPLIT() + "")));

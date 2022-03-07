@@ -328,7 +328,7 @@ public class Config {
   private String TEST_DATA_PERSISTENCE = "None";
   /** Whether split result into different record */
   private boolean RECORD_SPLIT = true;
-  /** Max line of record line  */
+  /** Max line of record line */
   private long RECORD_SPLIT_MAX_LINE = 10000000;
 
   // 输出：系统性能 Server mode

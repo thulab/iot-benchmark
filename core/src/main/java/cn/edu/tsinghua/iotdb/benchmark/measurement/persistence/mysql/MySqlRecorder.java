@@ -208,7 +208,8 @@ public class MySqlRecorder extends TestDataPersistence {
   @Override
   protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    if (config.IncrementAndGetCURRENT_RECORD_LINE() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
+    if (config.IncrementAndGetCURRENT_RECORD_LINE() % 10
+        < config.getMYSQL_REAL_INSERT_RATE() * 10) {
       double rate = 0;
       if (latency > 0) {
         // unit: points/second
@@ -253,16 +254,23 @@ public class MySqlRecorder extends TestDataPersistence {
     }
   }
 
-  private void createNewTableOrInsert(String operation, int okPoint, int failPoint, double latency, String remark, String device, double rate) {
-    if(config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()){
+  private void createNewTableOrInsert(
+      String operation,
+      int okPoint,
+      int failPoint,
+      double latency,
+      String remark,
+      String device,
+      double rate) {
+    if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       // create table
       String newTableName = "";
-      try{
+      try {
         newTableName = PROJECT_ID + "_split" + tableNumber.getAndIncrement();
         createOperationTable(newTableName);
         OPERATION_TABLE_NAME = newTableName;
         config.resetCURRENT_RECORD_LINE();
-      }catch (SQLException sqlException){
+      } catch (SQLException sqlException) {
         LOGGER.error("Failed to create split table: " + newTableName);
       }
     }
@@ -270,7 +278,13 @@ public class MySqlRecorder extends TestDataPersistence {
   }
 
   private void insert(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device, double rate) {
+      String operation,
+      int okPoint,
+      int failPoint,
+      double latency,
+      String remark,
+      String device,
+      double rate) {
     // execute sql
     String mysqlSql = "";
     try {
@@ -278,7 +292,15 @@ public class MySqlRecorder extends TestDataPersistence {
       mysqlSql =
           String.format(
               "insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')",
-              OPERATION_TABLE_NAME, time, device, operation, okPoint, failPoint, latency, rate, remark);
+              OPERATION_TABLE_NAME,
+              time,
+              device,
+              operation,
+              okPoint,
+              failPoint,
+              latency,
+              rate,
+              remark);
       statement.execute(mysqlSql);
       count++;
       if (count % BATCH_SIZE == 0) {
