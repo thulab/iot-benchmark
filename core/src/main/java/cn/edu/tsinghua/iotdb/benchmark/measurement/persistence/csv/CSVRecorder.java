@@ -242,8 +242,8 @@ public class CSVRecorder extends TestDataPersistence {
   @Override
   protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    if (config.isCSV_FILE_SPLIT()) {
-      if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
+    if (config.isRECORD_SPLIT()) {
+      if (config.IncrementAndGetCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
         reentrantLock.lock();
         try {
           createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark, device);
@@ -290,7 +290,7 @@ public class CSVRecorder extends TestDataPersistence {
 
   private void createNewCsvOrInsert(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    if (config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
+    if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       FileWriter newProjectWriter = null;
       String newProjectWriterName = null;
       if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
@@ -308,7 +308,7 @@ public class CSVRecorder extends TestDataPersistence {
       }
       FileWriter oldProjectWriter = projectWriter;
       projectWriter = newProjectWriter;
-      config.resetCURRENT_CSV_LINE();
+      config.resetCURRENT_RECORD_LINE();
       String toZipFileName = projectWriterName;
       try {
         service.submit(
@@ -323,9 +323,8 @@ public class CSVRecorder extends TestDataPersistence {
       } catch (IOException e) {
         LOGGER.error("", e);
       }
-    } else {
-      insert(operation, okPoint, failPoint, latency, remark, device);
     }
+    insert(operation, okPoint, failPoint, latency, remark, device);
   }
 
   @Override
