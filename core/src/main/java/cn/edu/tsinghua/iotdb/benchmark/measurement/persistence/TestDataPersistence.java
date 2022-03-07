@@ -34,7 +34,6 @@ public abstract class TestDataPersistence {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected ExecutorService service =
       Executors.newFixedThreadPool(config.getTEST_DATA_MAX_CONNECTION());
-  protected Future<?> future;
 
   /**
    * Store system resources metrics data
@@ -79,38 +78,18 @@ public abstract class TestDataPersistence {
    */
   public void saveOperationResultAsync(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    future =
-        service.submit(
-            () -> {
-              saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
-            });
-    try {
-      future.get(config.getTEST_DATA_WRITE_TIME_OUT(), TimeUnit.MILLISECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      future.cancel(true);
-      e.printStackTrace();
-      LOGGER.error(
-          String.format(
-              "Record Error! Operation:%s, OkPoint:%d, FailPoint:%d, Latency:%f, Remark:%s.",
-              operation, okPoint, failPoint, latency, remark));
-    }
+    service.submit(
+        () -> {
+          saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
+        });
   }
 
   /** Save result of operation Async */
   public void saveResultAsync(String operation, String key, String value) {
-    future =
-        service.submit(
-            () -> {
-              saveResult(operation, key, value);
-            });
-    try {
-      future.get(config.getTEST_DATA_WRITE_TIME_OUT(), TimeUnit.MILLISECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      future.cancel(true);
-      LOGGER.error(
-          String.format(
-              "Save Result Error! Operation:%s, Key:%s, Value:%s.", operation, key, value));
-    }
+    service.submit(
+        () -> {
+          saveResult(operation, key, value);
+        });
   }
 
   /** Close record */

@@ -74,7 +74,6 @@ public class CSVRecorder extends TestDataPersistence {
   private static final AtomicLong fileNumber = new AtomicLong(1);
 
   private static ExecutorService service;
-  private static Future<?> future;
 
   private static AtomicBoolean isInit = new AtomicBoolean(false);
   private static AtomicBoolean isRecordConfig = new AtomicBoolean(false);
@@ -310,20 +309,13 @@ public class CSVRecorder extends TestDataPersistence {
       FileWriter oldProjectWriter = projectWriter;
       projectWriter = newProjectWriter;
       try {
-        future =
-            service.submit(
-                () -> {
-                  ZipUtils.toZip(
-                      Collections.singletonList(projectWriterName),
-                      projectWriterName.replace(".csv", ".zip"),
-                      true);
-                });
-        try {
-          future.get(MAX_COMPRESS_TIME, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-          LOGGER.error("Failed to compress files {} in async way", projectWriterName);
-          future.cancel(true);
-        }
+        service.submit(
+            () -> {
+              ZipUtils.toZip(
+                  Collections.singletonList(projectWriterName),
+                  projectWriterName.replace(".csv", ".zip"),
+                  true);
+            });
         projectWriterName = newProjectWriterName;
         oldProjectWriter.close();
       } catch (IOException e) {
