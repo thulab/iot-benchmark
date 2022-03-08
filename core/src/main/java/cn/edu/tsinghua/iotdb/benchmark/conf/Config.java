@@ -326,6 +326,10 @@ public class Config {
   // 输出
   /** Use what to store test data, currently support None, IoTDB, MySQL, CSV */
   private String TEST_DATA_PERSISTENCE = "None";
+  /** Whether split result into different record */
+  private boolean RECORD_SPLIT = true;
+  /** Max line of record line */
+  private long RECORD_SPLIT_MAX_LINE = 10000000;
 
   // 输出：系统性能 Server mode
   /** System performance information recording interval is INTERVAL+2 seconds */
@@ -366,11 +370,7 @@ public class Config {
   /** Whether output the result to an csv file located in data folder */
   private boolean CSV_OUTPUT = true;
   /** Current csv file write line */
-  private AtomicLong CURRENT_CSV_LINE = new AtomicLong();
-  /** Max line of csv line */
-  private long CSV_MAX_LINE = 10000000;
-  /** Whether split result into different csv file */
-  private boolean CSV_FILE_SPLIT = true;
+  private AtomicLong CURRENT_RECORD_LINE = new AtomicLong();
 
   /** Sensors */
   private List<Sensor> SENSORS = new ArrayList<>();
@@ -531,20 +531,20 @@ public class Config {
     return probabilities;
   }
 
-  public long IncrementAndGetCURRENT_CSV_LINE() {
-    return CURRENT_CSV_LINE.incrementAndGet();
+  public long IncrementAndGetCURRENT_RECORD_LINE() {
+    return CURRENT_RECORD_LINE.incrementAndGet();
   }
 
-  public long getCURRENT_CSV_LINE() {
-    return CURRENT_CSV_LINE.get();
+  public long getCURRENT_RECORD_LINE() {
+    return CURRENT_RECORD_LINE.get();
   }
 
-  public void resetCURRENT_CSV_LINE() {
-    CURRENT_CSV_LINE.set(0);
+  public void resetCURRENT_RECORD_LINE() {
+    CURRENT_RECORD_LINE.set(0);
   }
 
-  public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
-    this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
+  public void setCURRENT_RECORD_LINE(AtomicLong CURRENT_RECORD_LINE) {
+    this.CURRENT_RECORD_LINE = CURRENT_RECORD_LINE;
   }
 
   /** Getter and Setter */
@@ -1300,20 +1300,20 @@ public class Config {
     this.CSV_OUTPUT = CSV_OUTPUT;
   }
 
-  public long getCSV_MAX_LINE() {
-    return CSV_MAX_LINE;
+  public long getRECORD_SPLIT_MAX_LINE() {
+    return RECORD_SPLIT_MAX_LINE;
   }
 
-  public void setCSV_MAX_LINE(long CSV_MAX_LINE) {
-    this.CSV_MAX_LINE = CSV_MAX_LINE;
+  public void setRECORD_SPLIT_MAX_LINE(long RECORD_SPLIT_MAX_LINE) {
+    this.RECORD_SPLIT_MAX_LINE = RECORD_SPLIT_MAX_LINE;
   }
 
-  public boolean isCSV_FILE_SPLIT() {
-    return CSV_FILE_SPLIT;
+  public boolean isRECORD_SPLIT() {
+    return RECORD_SPLIT;
   }
 
-  public void setCSV_FILE_SPLIT(boolean CSV_FILE_SPLIT) {
-    this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
+  public void setRECORD_SPLIT(boolean RECORD_SPLIT) {
+    this.RECORD_SPLIT = RECORD_SPLIT;
   }
 
   public List<Sensor> getSENSORS() {
