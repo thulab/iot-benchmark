@@ -258,6 +258,12 @@ public class IotdbRecorder extends TestDataPersistence {
   }
 
   @Override
+  protected void createNewRecord(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    // Do nothing
+  }
+
+  @Override
   protected void saveResult(String operation, String key, String value) {
     StringBuffer builder = new StringBuffer(INSERT_SQL_PREFIX);
     builder.append(".").append(operation).append(INSERT_SQL_STR2);
@@ -301,10 +307,12 @@ public class IotdbRecorder extends TestDataPersistence {
   @Override
   public void close() {
     try {
-      globalStatement.executeBatch();
-      globalStatement.clearBatch();
-      globalStatement.close();
-      connection.close();
+      if (!connection.isClosed()) {
+        globalStatement.executeBatch();
+        globalStatement.clearBatch();
+        globalStatement.close();
+        connection.close();
+      }
     } catch (SQLException e) {
       LOGGER.error("close failed", e);
     }

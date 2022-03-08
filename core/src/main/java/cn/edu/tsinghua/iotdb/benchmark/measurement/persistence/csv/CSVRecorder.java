@@ -74,7 +74,6 @@ public class CSVRecorder extends TestDataPersistence {
   private static final AtomicLong fileNumber = new AtomicLong(1);
 
   private static ExecutorService service;
-  private static Future<?> future;
 
   private static AtomicBoolean isInit = new AtomicBoolean(false);
   private static AtomicBoolean isRecordConfig = new AtomicBoolean(false);
@@ -243,20 +242,17 @@ public class CSVRecorder extends TestDataPersistence {
   @Override
   protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    if (config.isCSV_FILE_SPLIT()) {
-      if (config.IncrementAndGetCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
+    if (config.isRECORD_SPLIT()) {
+      if (config.IncrementAndGetCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
         reentrantLock.lock();
         try {
-          createNewCsvOrInsert(operation, okPoint, failPoint, latency, remark, device);
+          createNewRecord(operation, okPoint, failPoint, latency, remark, device);
         } finally {
           reentrantLock.unlock();
         }
-      } else {
-        insert(operation, okPoint, failPoint, latency, remark, device);
       }
-    } else {
-      insert(operation, okPoint, failPoint, latency, remark, device);
     }
+    insert(operation, okPoint, failPoint, latency, remark, device);
   }
 
   private void insert(
@@ -289,9 +285,10 @@ public class CSVRecorder extends TestDataPersistence {
     }
   }
 
-  private void createNewCsvOrInsert(
+  @Override
+  protected void createNewRecord(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    if (config.getCURRENT_CSV_LINE() >= config.getCSV_MAX_LINE()) {
+    if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       FileWriter newProjectWriter = null;
       String newProjectWriterName = null;
       if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH) {
@@ -309,29 +306,21 @@ public class CSVRecorder extends TestDataPersistence {
       }
       FileWriter oldProjectWriter = projectWriter;
       projectWriter = newProjectWriter;
+      config.resetCURRENT_RECORD_LINE();
+      String toZipFileName = projectWriterName;
       try {
-        future =
-            service.submit(
-                () -> {
-                  ZipUtils.toZip(
-                      Collections.singletonList(projectWriterName),
-                      projectWriterName.replace(".csv", ".zip"),
-                      true);
-                });
-        try {
-          future.get(MAX_COMPRESS_TIME, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-          LOGGER.error("Failed to compress files {} in async way", projectWriterName);
-          future.cancel(true);
-        }
+        service.submit(
+            () -> {
+              ZipUtils.toZip(
+                  Collections.singletonList(toZipFileName),
+                  toZipFileName.replace(".csv", ".zip"),
+                  true);
+            });
         projectWriterName = newProjectWriterName;
         oldProjectWriter.close();
       } catch (IOException e) {
         LOGGER.error("", e);
       }
-      config.resetCURRENT_CSV_LINE();
-    } else {
-      insert(operation, okPoint, failPoint, latency, remark, device);
     }
   }
 

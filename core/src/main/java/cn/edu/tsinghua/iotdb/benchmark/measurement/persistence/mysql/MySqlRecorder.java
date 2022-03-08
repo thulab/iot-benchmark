@@ -33,6 +33,8 @@ import java.net.UnknownHostException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MySqlRecorder extends TestDataPersistence {
 
@@ -40,6 +42,9 @@ public class MySqlRecorder extends TestDataPersistence {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private static final long EXP_TIME = System.currentTimeMillis();
+
+  /** reentrantLock used for writing result into file */
+  private static final ReentrantLock reentrantLock = new ReentrantLock(true);
 
   private static final String SAVE_CONFIG = "insert into CONFIG values(NULL, %s, %s, %s)";
   private static final String SAVE_RESULT =
@@ -70,6 +75,9 @@ public class MySqlRecorder extends TestDataPersistence {
           config.getDbConfig().getDB_SWITCH().getType().toString().split("-")[0].substring(0, 5),
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
+  private static String OPERATION_TABLE_NAME = PROJECT_ID;
+  /** If now line > CSV_MAX_LINE, then the result will write into other files */
+  private static final AtomicLong tableNumber = new AtomicLong(1);
 
   private static final String COMMENT =
       String.format(
@@ -144,20 +152,24 @@ public class MySqlRecorder extends TestDataPersistence {
                 + " result_value VARCHAR(150))AUTO_INCREMENT = 1;");
         LOGGER.info("Table FINAL_RESULT create success!");
       }
-      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
-          && !hasTable(PROJECT_ID)) {
-        statement.executeUpdate(
-            "create table "
-                + PROJECT_ID
-                + "(id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, recordTime varchar(50),"
-                + " clientName varchar(50), operation varchar(50), okPoint INTEGER, failPoint INTEGER,"
-                + " latency DOUBLE, rate DOUBLE, remark varchar(1000))AUTO_INCREMENT = 1 COMMENT = \""
-                + COMMENT
-                + "\";");
-        LOGGER.info("Table {} create success!", PROJECT_ID);
-      }
+      createOperationTable(OPERATION_TABLE_NAME);
     } catch (SQLException e) {
       LOGGER.error("Failed to create tables in MySQL, because: ", e);
+    }
+  }
+
+  private void createOperationTable(String tableName) throws SQLException {
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
+        && !hasTable(tableName)) {
+      statement.executeUpdate(
+          "create table "
+              + tableName
+              + "(id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, recordTime varchar(50),"
+              + " clientName varchar(50), operation varchar(50), okPoint INTEGER, failPoint INTEGER,"
+              + " latency DOUBLE, rate DOUBLE, remark varchar(1000))AUTO_INCREMENT = 1 COMMENT = \""
+              + COMMENT
+              + "\";");
+      LOGGER.info("Table {} create success!", tableName);
     }
   }
 
@@ -196,17 +208,8 @@ public class MySqlRecorder extends TestDataPersistence {
   @Override
   protected void saveOperationResult(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    if (config.IncrementAndGetCURRENT_CSV_LINE() % 10 < config.getMYSQL_REAL_INSERT_RATE() * 10) {
-      double rate = 0;
-      if (latency > 0) {
-        // unit: points/second
-        rate = okPoint * 1000 / latency;
-      }
-      String time = dateFormat.format(new java.util.Date(System.currentTimeMillis()));
-      String mysqlSql =
-          String.format(
-              "insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')",
-              PROJECT_ID, time, device, operation, okPoint, failPoint, latency, rate, remark);
+    if (config.IncrementAndGetCURRENT_RECORD_LINE() % 10
+        < config.getMYSQL_REAL_INSERT_RATE() * 10) {
       // check whether the connection is valid
       try {
         if (!connection.isValid(TIME_OUT)) {
@@ -228,33 +231,85 @@ public class MySqlRecorder extends TestDataPersistence {
       } catch (SQLException ex) {
         LOGGER.error("Test if MySQL connection is valid failed", ex);
       }
-      // execute sql
-      try {
-        statement.execute(mysqlSql);
-        count++;
-        if (count % BATCH_SIZE == 0) {
-          statement.executeBatch();
-          statement.clearBatch();
-        }
-      } catch (Exception e) {
-        LOGGER.error("Exception: {}", e.getMessage(), e);
-        try {
-          if (!connection.isValid(TIME_OUT)) {
-            LOGGER.info("Try to reconnect to MySQL");
-            try {
-              Class.forName(Constants.MYSQL_DRIVENAME);
-              connection = DriverManager.getConnection(URL);
-            } catch (Exception ex) {
-              LOGGER.error("Reconnect to MySQL failed because", ex);
-            }
+      // create table or insert
+      if (config.isRECORD_SPLIT()) {
+        if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
+          reentrantLock.lock();
+          try {
+            createNewRecord(operation, okPoint, failPoint, latency, remark, device);
+          } finally {
+            reentrantLock.unlock();
           }
-        } catch (SQLException ex) {
-          LOGGER.error("Test if MySQL connection is valid failed", ex);
         }
-        LOGGER.error(
-            "{} save saveInsertProcess info into mysql failed! Error：{}", device, e.getMessage());
-        LOGGER.error("{}", mysqlSql);
       }
+      insert(operation, okPoint, failPoint, latency, remark, device);
+    }
+  }
+
+  @Override
+  protected void createNewRecord(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
+      // create table
+      String newTableName = "";
+      try {
+        newTableName = PROJECT_ID + "_split" + tableNumber.getAndIncrement();
+        createOperationTable(newTableName);
+        OPERATION_TABLE_NAME = newTableName;
+        config.resetCURRENT_RECORD_LINE();
+      } catch (SQLException sqlException) {
+        LOGGER.error("Failed to create split table: " + newTableName);
+      }
+    }
+  }
+
+  private void insert(
+      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+    double rate = 0;
+    if (latency > 0) {
+      // unit: points/second
+      rate = okPoint * 1000 / latency;
+    }
+    // execute sql
+    String mysqlSql = "";
+    try {
+      String time = dateFormat.format(new java.util.Date(System.currentTimeMillis()));
+      mysqlSql =
+          String.format(
+              "insert into %s values(NULL,'%s','%s','%s',%d,%d,%f,%f,'%s')",
+              OPERATION_TABLE_NAME,
+              time,
+              device,
+              operation,
+              okPoint,
+              failPoint,
+              latency,
+              rate,
+              remark);
+      statement.execute(mysqlSql);
+      count++;
+      if (count % BATCH_SIZE == 0) {
+        statement.executeBatch();
+        statement.clearBatch();
+      }
+    } catch (Exception e) {
+      LOGGER.error("Exception: {}", e.getMessage(), e);
+      try {
+        if (!connection.isValid(TIME_OUT)) {
+          LOGGER.info("Try to reconnect to MySQL");
+          try {
+            Class.forName(Constants.MYSQL_DRIVENAME);
+            connection = DriverManager.getConnection(URL);
+          } catch (Exception ex) {
+            LOGGER.error("Reconnect to MySQL failed because", ex);
+          }
+        }
+      } catch (SQLException ex) {
+        LOGGER.error("Test if MySQL connection is valid failed", ex);
+      }
+      LOGGER.error(
+          "{} save saveInsertProcess info into mysql failed! Error：{}", device, e.getMessage());
+      LOGGER.error("{}", mysqlSql);
     }
   }
 
@@ -413,8 +468,10 @@ public class MySqlRecorder extends TestDataPersistence {
   public void close() {
     if (connection != null) {
       try {
-        statement.executeBatch();
-        statement.close();
+        if (!statement.isClosed()) {
+          statement.executeBatch();
+          statement.close();
+        }
         connection.close();
       } catch (SQLException e) {
         LOGGER.error("Failed to close connection to MySQL, because: ", e);
