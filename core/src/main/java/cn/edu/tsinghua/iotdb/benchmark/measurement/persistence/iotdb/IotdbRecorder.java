@@ -258,9 +258,9 @@ public class IotdbRecorder extends TestDataPersistence {
   }
 
   @Override
-  protected void createNewRecordOrInsert(
+  protected void createNewRecord(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
-    // TODO
+    // Do nothing
   }
 
   @Override

@@ -236,21 +236,18 @@ public class MySqlRecorder extends TestDataPersistence {
         if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
           reentrantLock.lock();
           try {
-            createNewRecordOrInsert(operation, okPoint, failPoint, latency, remark, device);
+            createNewRecord(operation, okPoint, failPoint, latency, remark, device);
           } finally {
             reentrantLock.unlock();
           }
-        } else {
-          insert(operation, okPoint, failPoint, latency, remark, device);
         }
-      } else {
-        insert(operation, okPoint, failPoint, latency, remark, device);
       }
+      insert(operation, okPoint, failPoint, latency, remark, device);
     }
   }
 
   @Override
-  protected void createNewRecordOrInsert(
+  protected void createNewRecord(
       String operation, int okPoint, int failPoint, double latency, String remark, String device) {
     if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       // create table
@@ -264,7 +261,6 @@ public class MySqlRecorder extends TestDataPersistence {
         LOGGER.error("Failed to create split table: " + newTableName);
       }
     }
-    insert(operation, okPoint, failPoint, latency, remark, device);
   }
 
   private void insert(
