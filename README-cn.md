@@ -69,7 +69,7 @@
   - [7.6. 测试 Victoriametrics](#76-测试-victoriametrics)
   - [7.7. 测试 TimeScaleDB](#77-测试-timescaledb)
   - [7.8. 测试 PI Archive](#78-测试-pi-archive)
-  - [7.9. 测试 TDenginee](#79-测试-tdenginee)
+  - [7.9. 测试 TDengine](#79-测试-tdenginee)
 - [8. 正确性验证的进一步说明](#8-正确性验证的进一步说明)
 - [9. 自动执行多项测试](#9-自动执行多项测试)
   - [9.1. 配置 routine](#91-配置-routine)
@@ -1595,7 +1595,7 @@ VALUE_RANGE_QUERY_DESC5.05        0.59        0.71        0.81        3.36      
 
 [快速指引](./pi/README.md)
 
-## 7.9. 测试 TDenginee
+## 7.9. 测试 TDengine
 [快速指引](./tdengine/README.md)
 
 # 8. 正确性验证的进一步说明
