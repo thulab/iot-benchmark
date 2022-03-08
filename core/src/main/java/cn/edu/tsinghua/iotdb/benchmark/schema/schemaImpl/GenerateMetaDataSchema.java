@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /** Data Schema for generate data */
@@ -52,7 +53,8 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
           (clientId < leftClientDeviceNum) ? eachClientDeviceNum + 1 : eachClientDeviceNum;
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int d = 0; d < deviceNumber; d++) {
-        DeviceSchema deviceSchema = new DeviceSchema(deviceId, sensors);
+        // TODO generate tags
+        DeviceSchema deviceSchema = new DeviceSchema(deviceId, sensors, new HashMap<>());
         NAME_DATA_SCHEMA.put(deviceSchema.getDevice(), deviceSchema);
         deviceSchemaList.add(deviceSchema);
         deviceId++;

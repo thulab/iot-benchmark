@@ -45,7 +45,10 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         maxTimestampIndexMap.put(schema, 0L);
       } else {
         for (Sensor sensor : schema.getSensors()) {
-          DeviceSchema deviceSchema = new DeviceSchema(schema.getDeviceId(), Arrays.asList(sensor));
+          // TODO get tags global
+          DeviceSchema deviceSchema =
+              new DeviceSchema(
+                  schema.getDeviceId(), Collections.singletonList(sensor), new HashMap<>());
           maxTimestampIndexMap.put(deviceSchema, 0L);
         }
       }
@@ -68,7 +71,8 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
     DeviceSchema deviceSchema =
         new DeviceSchema(
             deviceSchemas.get(deviceIndex).getDeviceId(),
-            deviceSchemas.get(deviceIndex).getSensors());
+            deviceSchemas.get(deviceIndex).getSensors(),
+            deviceSchemas.get(deviceIndex).getTags());
     if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
       List<Sensor> sensors = new ArrayList<>();
       sensors.add(deviceSchema.getSensors().get(sensorIndex));

@@ -34,10 +34,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RealMetaDataSchema extends MetaDataSchema {
 
@@ -67,12 +64,18 @@ public class RealMetaDataSchema extends MetaDataSchema {
 
     // Load sensor type from dataset
     Map<String, List<Sensor>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
+    // TODO Load tags from dataset
+    Map<String, Map<String, String>> tagsMap = new HashMap<>();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
     for (Map.Entry<String, List<Sensor>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();
       List<Sensor> sensors = sortSensors(device.getValue());
       DeviceSchema deviceSchema =
-          new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
+          new DeviceSchema(
+              MetaUtil.getGroupIdFromDeviceName(deviceName),
+              deviceName,
+              sensors,
+              tagsMap.get(deviceName));
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
       deviceSchemaList.add(deviceSchema);
     }

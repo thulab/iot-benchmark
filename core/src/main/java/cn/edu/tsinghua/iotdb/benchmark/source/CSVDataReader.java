@@ -75,8 +75,13 @@ public class CSVDataReader extends DataReader {
           for (int i = 1; i < items.length; i++) {
             sensors.add(stringSensorMap.get(items[i]));
           }
+          // TODO get tags
           deviceSchema =
-              new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
+              new DeviceSchema(
+                  MetaUtil.getGroupIdFromDeviceName(deviceName),
+                  deviceName,
+                  sensors,
+                  new HashMap<>());
           firstLine = false;
           continue;
         }

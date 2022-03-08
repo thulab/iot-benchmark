@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -109,8 +110,10 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
       batch.setColIndex(sensorId);
       sensors.add(SENSORS.get(sensorId));
     }
+    // TODO get tags global
     DeviceSchema deviceSchema =
-        new DeviceSchema(MetaUtil.getDeviceId((int) loop % config.getDEVICE_NUMBER()), sensors);
+        new DeviceSchema(
+            MetaUtil.getDeviceId((int) loop % config.getDEVICE_NUMBER()), sensors, new HashMap<>());
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }
