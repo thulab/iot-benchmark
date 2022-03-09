@@ -1707,7 +1707,8 @@ public class Config {
       configProperties.addProperty("Extern Param", "QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
       configProperties.addProperty("Extern Param", "QUERY_SEED", this.QUERY_SEED);
       configProperties.addProperty("Extern Param", "IOTDB_USE_DEBUG", this.IOTDB_USE_DEBUG);
-      configProperties.addProperty("Extern Param", "IOTDB_USE_DEBUG_RATIO", this.IOTDB_USE_DEBUG_RATIO);
+      configProperties.addProperty(
+          "Extern Param", "IOTDB_USE_DEBUG_RATIO", this.IOTDB_USE_DEBUG_RATIO);
     }
 
     /* other config */
