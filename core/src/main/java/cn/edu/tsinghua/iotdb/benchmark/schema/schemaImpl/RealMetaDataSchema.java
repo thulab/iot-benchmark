@@ -64,8 +64,6 @@ public class RealMetaDataSchema extends MetaDataSchema {
 
     // Load sensor type from dataset
     Map<String, List<Sensor>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
-    // TODO Load tags from dataset
-    Map<String, Map<String, String>> tagsMap = new HashMap<>();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
     for (Map.Entry<String, List<Sensor>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();
@@ -75,7 +73,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
               MetaUtil.getGroupIdFromDeviceName(deviceName),
               deviceName,
               sensors,
-              tagsMap.get(deviceName));
+              config.getDEVICE_TAGS());
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
       deviceSchemaList.add(deviceSchema);
     }

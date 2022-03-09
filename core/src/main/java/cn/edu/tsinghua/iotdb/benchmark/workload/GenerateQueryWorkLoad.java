@@ -149,8 +149,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
       return null;
     }
-    // TODO search tags global
-    DeviceSchema deviceSchema = new DeviceSchema(deviceId, config.getSENSORS(), new HashMap<>());
+    DeviceSchema deviceSchema =
+        new DeviceSchema(deviceId, config.getSENSORS(), config.getDEVICE_TAGS());
     return new DeviceQuery(deviceSchema);
   }
 
@@ -214,8 +214,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
         continue;
       }
-      // TODO get tags global
-      DeviceSchema deviceSchema = new DeviceSchema(deviceId, querySensors, new HashMap<>());
+      DeviceSchema deviceSchema = new DeviceSchema(deviceId, querySensors, config.getDEVICE_TAGS());
       queryDevices.add(deviceSchema);
     }
     if (queryDevices.size() == 0) {

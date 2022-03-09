@@ -249,10 +249,7 @@ public class ConfigDescriptor {
             properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
         config.setSENSOR_NAME_PREFIX(
             properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
-        String deviceTags = properties.getProperty("DEVICE_TAGS", "");
-        if(deviceTags.length() != 0) {
-          config.setDEVICE_TAGS(Arrays.asList(deviceTags.split(",")));
-        }
+        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", ""));
 
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(

@@ -45,10 +45,9 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         maxTimestampIndexMap.put(schema, 0L);
       } else {
         for (Sensor sensor : schema.getSensors()) {
-          // TODO get tags global
           DeviceSchema deviceSchema =
               new DeviceSchema(
-                  schema.getDeviceId(), Collections.singletonList(sensor), new HashMap<>());
+                  schema.getDeviceId(), Collections.singletonList(sensor), config.getDEVICE_TAGS());
           maxTimestampIndexMap.put(deviceSchema, 0L);
         }
       }
