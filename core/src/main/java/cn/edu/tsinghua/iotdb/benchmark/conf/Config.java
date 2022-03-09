@@ -226,6 +226,8 @@ public class Config {
   private boolean VECTOR = true;
   /** whether to use debug in iotdb-0.13 */
   private boolean IOTDB_USE_DEBUG = false;
+  /** the ratio of use debug */
+  private double IOTDB_USE_DEBUG_RATIO = 0.01;
 
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
@@ -998,6 +1000,14 @@ public class Config {
     this.IOTDB_USE_DEBUG = IOTDB_USE_DEBUG;
   }
 
+  public double getIOTDB_USE_DEBUG_RATIO() {
+    return IOTDB_USE_DEBUG_RATIO;
+  }
+
+  public void setIOTDB_USE_DEBUG_RATIO(double IOTDB_USE_DEBUG_RATIO) {
+    this.IOTDB_USE_DEBUG_RATIO = IOTDB_USE_DEBUG_RATIO;
+  }
+
   public long getOP_INTERVAL() {
     return OP_INTERVAL;
   }
@@ -1697,6 +1707,7 @@ public class Config {
       configProperties.addProperty("Extern Param", "QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
       configProperties.addProperty("Extern Param", "QUERY_SEED", this.QUERY_SEED);
       configProperties.addProperty("Extern Param", "IOTDB_USE_DEBUG", this.IOTDB_USE_DEBUG);
+      configProperties.addProperty("Extern Param", "IOTDB_USE_DEBUG_RATIO", this.IOTDB_USE_DEBUG_RATIO);
     }
 
     /* other config */

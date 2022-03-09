@@ -191,7 +191,12 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
-    String executeSQL = config.isIOTDB_USE_DEBUG() ? "debug " + sql: sql;
+    String executeSQL;
+    if(config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()){
+      executeSQL = "debug " + sql;
+    }else{
+      executeSQL = sql;
+    }
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
