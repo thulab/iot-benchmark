@@ -190,6 +190,13 @@ public class Config {
    */
   private int CLIENT_NUMBER = 2;
 
+  /** The tags of device. Each device is same. */
+  private String DEVICE_TAGS = "";
+  /** The number of generated tags */
+  private Integer GENERATE_TAG_NUMBER = 0;
+  /** The length of generated tags */
+  private Integer GENERATE_TAG_LENGTH = 0;
+
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
   /** name prefix of device */
@@ -866,6 +873,30 @@ public class Config {
 
   public void setCLIENT_NUMBER(int CLIENT_NUMBER) {
     this.CLIENT_NUMBER = CLIENT_NUMBER;
+  }
+
+  public String getDEVICE_TAGS() {
+    return DEVICE_TAGS;
+  }
+
+  public void setDEVICE_TAGS(String DEVICE_TAGS) {
+    this.DEVICE_TAGS = DEVICE_TAGS;
+  }
+
+  public Integer getGENERATE_TAG_NUMBER() {
+    return GENERATE_TAG_NUMBER;
+  }
+
+  public void setGENERATE_TAG_NUMBER(Integer GENERATE_TAG_NUMBER) {
+    this.GENERATE_TAG_NUMBER = GENERATE_TAG_NUMBER;
+  }
+
+  public Integer getGENERATE_TAG_LENGTH() {
+    return GENERATE_TAG_LENGTH;
+  }
+
+  public void setGENERATE_TAG_LENGTH(Integer GENERATE_TAG_LENGTH) {
+    this.GENERATE_TAG_LENGTH = GENERATE_TAG_LENGTH;
   }
 
   public String getGROUP_NAME_PREFIX() {
@@ -1696,6 +1727,9 @@ public class Config {
     configProperties.addProperty("Extern Param", "GROUP_NAME_PREFIX", this.GROUP_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "DEVICE_NAME_PREFIX", this.DEVICE_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "SENSOR_NAME_PREFIX", this.SENSOR_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "DEVICE_TAGS", this.DEVICE_TAGS);
+    configProperties.addProperty("Extern Param", "GENERATE_TAG_NUMBER", this.GENERATE_TAG_NUMBER);
+    configProperties.addProperty("Extern Param", "GENERATE_TAG_LENGTH", this.GENERATE_TAG_LENGTH);
 
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);

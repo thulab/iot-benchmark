@@ -249,6 +249,16 @@ public class ConfigDescriptor {
             properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
         config.setSENSOR_NAME_PREFIX(
             properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
+        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", config.getDEVICE_TAGS()));
+        config.setGENERATE_TAG_NUMBER(
+            Integer.parseInt(
+                properties.getProperty(
+                    "GENERATE_TAG_NUMBER", config.getGENERATE_TAG_NUMBER() + "")));
+        config.setGENERATE_TAG_LENGTH(
+            Integer.parseInt(
+                properties.getProperty(
+                    "GENERATE_TAG_LENGTH", config.getGENERATE_TAG_LENGTH() + "")));
+
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));
