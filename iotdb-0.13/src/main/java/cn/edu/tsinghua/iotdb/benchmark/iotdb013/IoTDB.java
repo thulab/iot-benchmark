@@ -630,8 +630,14 @@ public class IoTDB implements IDatabase {
    * @param deviceSchema
    * @return format, e.g. root.group_1.d_1
    */
-  private String getDevicePath(DeviceSchema deviceSchema) {
-    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
+  protected String getDevicePath(DeviceSchema deviceSchema) {
+    StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
+    name.append(".").append(deviceSchema.getGroup());
+    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
+      name.append(".").append(pair.getValue());
+    }
+    name.append(".").append(deviceSchema.getDevice());
+    return name.toString();
   }
 
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
@@ -700,15 +706,8 @@ public class IoTDB implements IDatabase {
 
   public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
-    StringBuilder builder = new StringBuilder();
-    builder
-        .append("insert into ")
-        .append(ROOT_SERIES_NAME)
-        .append(".")
-        .append(deviceSchema.getGroup())
-        .append(".")
-        .append(deviceSchema.getDevice())
-        .append("(timestamp");
+    StringBuilder builder = new StringBuilder("insert into ");
+    builder.append(getDevicePath(deviceSchema)).append("(timestamp");
     for (Sensor sensor : deviceSchema.getSensors()) {
       builder.append(",").append(sensor.getName());
     }
@@ -899,12 +898,6 @@ public class IoTDB implements IDatabase {
    * @return
    */
   private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
-    return ROOT_SERIES_NAME
-        + "."
-        + deviceSchema.getGroup()
-        + "."
-        + deviceSchema.getDevice()
-        + "."
-        + sensor;
+    return getDevicePath(deviceSchema) + "." + sensor;
   }
 }
