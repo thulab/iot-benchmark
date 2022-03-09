@@ -199,7 +199,7 @@ public class Config {
   /** name prefix of tag */
   private String TAG_NAME_PREFIX = "tag_";
   /** The tags of device. Each device is same. */
-  private Map<String, String> DEVICE_TAGS = new HashMap<>();
+  private Map<String, String> DEVICE_TAGS = new LinkedHashMap<>();
 
   // 设备、传感器、客户端：生成数据的规律
   /** 线性 默认 9个 0.054 */
@@ -881,12 +881,12 @@ public class Config {
   }
 
   public Map<String, String> getDEVICE_TAGS() {
-    return new HashMap<>(DEVICE_TAGS);
+    return new LinkedHashMap<>(DEVICE_TAGS);
   }
 
   public void setDEVICE_TAGS(String DEVICE_TAGS) {
     if (DEVICE_TAGS.length() != 0) {
-      this.DEVICE_TAGS = new HashMap<>();
+      this.DEVICE_TAGS = new LinkedHashMap<>();
       int tagIndex = 0;
       for (String tagValue : DEVICE_TAGS.split(",")) {
         this.DEVICE_TAGS.put(TAG_NAME_PREFIX + tagIndex, tagValue);

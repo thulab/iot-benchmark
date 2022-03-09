@@ -69,12 +69,7 @@ public class IoTDBSessionBase extends IoTDB {
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
-    String deviceId =
-        ROOT_SERIES_NAME
-            + "."
-            + batch.getDeviceSchema().getGroup()
-            + "."
-            + batch.getDeviceSchema().getDevice();
+    String deviceId = getDevicePath(batch.getDeviceSchema());
     Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
