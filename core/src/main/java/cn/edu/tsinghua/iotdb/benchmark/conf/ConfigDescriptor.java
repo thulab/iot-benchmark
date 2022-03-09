@@ -299,6 +299,10 @@ public class ConfigDescriptor {
         config.setVECTOR(
             Boolean.parseBoolean(
                 properties.getProperty("VECTOR", String.valueOf(config.isVECTOR()))));
+        config.setIOTDB_USE_DEBUG(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IOTDB_USE_DEBUG", String.valueOf(config.isIOTDB_USE_DEBUG()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
 

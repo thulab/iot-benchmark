@@ -183,8 +183,9 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+    String executeSQL = config.isIOTDB_USE_DEBUG() ? "debug " + sql: sql;
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
@@ -196,7 +197,7 @@ public class IoTDBSession extends IoTDBSessionBase {
           service.submit(
               () -> {
                 try {
-                  SessionDataSet sessionDataSet = session.executeQueryStatement(sql);
+                  SessionDataSet sessionDataSet = session.executeQueryStatement(executeSQL);
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
                     line.getAndIncrement();
@@ -228,7 +229,7 @@ public class IoTDBSession extends IoTDBSessionBase {
                   }
                   sessionDataSet.closeOperationHandle();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
-                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                  LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
                 queryResultPointNum.set(
@@ -238,22 +239,22 @@ public class IoTDBSession extends IoTDBSessionBase {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
         future.cancel(true);
-        return new Status(false, queryResultPointNum.get(), e, sql);
+        return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
       if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
-          return new Status(true, queryResultPointNum.get(), sql, records);
+          return new Status(true, queryResultPointNum.get(), executeSQL, records);
         } else {
           return new Status(true, queryResultPointNum.get());
         }
       } else {
         return new Status(
-            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
+            false, queryResultPointNum.get(), new Exception("Failed to execute."), executeSQL);
       }
     } catch (Exception e) {
-      return new Status(false, queryResultPointNum.get(), e, sql);
+      return new Status(false, queryResultPointNum.get(), e, executeSQL);
     } catch (Throwable t) {
-      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+      return new Status(false, queryResultPointNum.get(), new Exception(t), executeSQL);
     }
   }
 

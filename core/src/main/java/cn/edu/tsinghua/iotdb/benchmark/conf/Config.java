@@ -224,6 +224,8 @@ public class Config {
   private boolean TEMPLATE = true;
   /** Whether to use vector */
   private boolean VECTOR = true;
+  /** whether to use debug in iotdb-0.13 */
+  private boolean IOTDB_USE_DEBUG = false;
 
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
@@ -988,6 +990,14 @@ public class Config {
     this.VECTOR = VECTOR;
   }
 
+  public boolean isIOTDB_USE_DEBUG() {
+    return IOTDB_USE_DEBUG;
+  }
+
+  public void setIOTDB_USE_DEBUG(boolean IOTDB_USE_DEBUG) {
+    this.IOTDB_USE_DEBUG = IOTDB_USE_DEBUG;
+  }
+
   public long getOP_INTERVAL() {
     return OP_INTERVAL;
   }
@@ -1686,6 +1696,7 @@ public class Config {
       configProperties.addProperty("Extern Param", "QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
       configProperties.addProperty("Extern Param", "QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
       configProperties.addProperty("Extern Param", "QUERY_SEED", this.QUERY_SEED);
+      configProperties.addProperty("Extern Param", "IOTDB_USE_DEBUG", this.IOTDB_USE_DEBUG);
     }
 
     /* other config */
