@@ -184,9 +184,9 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
     String executeSQL;
-    if(config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()){
+    if (config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()) {
       executeSQL = "debug " + sql;
-    }else{
+    } else {
       executeSQL = sql;
     }
     AtomicInteger line = new AtomicInteger();
