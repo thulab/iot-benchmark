@@ -299,9 +299,16 @@ public class ConfigDescriptor {
         config.setVECTOR(
             Boolean.parseBoolean(
                 properties.getProperty("VECTOR", String.valueOf(config.isVECTOR()))));
+        config.setIOTDB_USE_DEBUG(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IOTDB_USE_DEBUG", String.valueOf(config.isIOTDB_USE_DEBUG()))));
+        config.setIOTDB_USE_DEBUG_RATIO(
+            Double.parseDouble(
+                properties.getProperty(
+                    "IOTDB_USE_DEBUG_RATIO", String.valueOf(config.getIOTDB_USE_DEBUG_RATIO()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
-
         config.setOP_INTERVAL(
             Long.parseLong(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL() + "")));
         if (config.getOP_INTERVAL() == -1L) {
