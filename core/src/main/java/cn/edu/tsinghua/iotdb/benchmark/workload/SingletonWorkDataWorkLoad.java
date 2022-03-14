@@ -110,7 +110,10 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
       sensors.add(SENSORS.get(sensorId));
     }
     DeviceSchema deviceSchema =
-        new DeviceSchema(MetaUtil.getDeviceId((int) loop % config.getDEVICE_NUMBER()), sensors);
+        new DeviceSchema(
+            MetaUtil.getDeviceId((int) loop % config.getDEVICE_NUMBER()),
+            sensors,
+            config.getDEVICE_TAGS());
     batch.setDeviceSchema(deviceSchema);
     return batch;
   }

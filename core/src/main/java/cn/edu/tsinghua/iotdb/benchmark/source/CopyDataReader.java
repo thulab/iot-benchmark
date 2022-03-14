@@ -85,7 +85,11 @@ public class CopyDataReader extends DataReader {
             sensors.add(stringSensorMap.get(items[i]));
           }
           deviceSchema =
-              new DeviceSchema(MetaUtil.getGroupIdFromDeviceName(deviceName), deviceName, sensors);
+              new DeviceSchema(
+                  MetaUtil.getGroupIdFromDeviceName(deviceName),
+                  deviceName,
+                  sensors,
+                  config.getDEVICE_TAGS());
           firstLine = false;
           continue;
         }

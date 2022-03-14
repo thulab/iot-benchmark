@@ -40,6 +40,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateQueryWorkLoad.class);
 
   private static final Random queryDeviceRandom = new Random(config.getQUERY_SEED());
+  private static final Random querySensorRandom = new Random(config.getQUERY_SEED());
   private static final long timeStampConst =
       TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
@@ -149,7 +150,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
       return null;
     }
-    DeviceSchema deviceSchema = new DeviceSchema(deviceId, config.getSENSORS());
+    DeviceSchema deviceSchema =
+        new DeviceSchema(deviceId, config.getSENSORS(), config.getDEVICE_TAGS());
     return new DeviceQuery(deviceSchema);
   }
 
@@ -182,26 +184,32 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   private List<DeviceSchema> getQueryDeviceSchemaList(boolean typeAllow) throws WorkloadException {
     checkQuerySchemaParams();
     List<DeviceSchema> queryDevices = new ArrayList<>();
-    List<Integer> clientDevicesIndex = new ArrayList<>();
-    for (int m = config.getFIRST_DEVICE_INDEX();
-        m
-            < config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE()
-                + config.getFIRST_DEVICE_INDEX();
-        m++) {
-      clientDevicesIndex.add(m);
-    }
-    Collections.shuffle(clientDevicesIndex, queryDeviceRandom);
-    for (int m = 0;
-        queryDevices.size() < config.getQUERY_DEVICE_NUM() && m < clientDevicesIndex.size();
-        m++) {
-      int deviceId = clientDevicesIndex.get(m);
-      List<Sensor> sensors = config.getSENSORS();
-      Collections.shuffle(sensors, queryDeviceRandom);
+    List<Integer> queryDeviceIds = new ArrayList<>();
+    List<Sensor> sensors = config.getSENSORS();
+    while (queryDevices.size() < Math.min(config.getDEVICE_NUMBER(), config.getQUERY_DEVICE_NUM())
+        && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
+      // get a device belong to [first_device_index, first_device_index + device_number)
+      int deviceId =
+          queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+      // avoid duplicate
+      if (!queryDeviceIds.contains(deviceId)) {
+        queryDeviceIds.add(deviceId);
+      } else {
+        continue;
+      }
       List<Sensor> querySensors = new ArrayList<>();
-      for (int i = 0;
-          querySensors.size() < config.getQUERY_SENSOR_NUM() && i < sensors.size();
-          i++) {
-        Sensor sensor = sensors.get(i);
+      List<Integer> querySensorIds = new ArrayList<>();
+      while (querySensors.size() < Math.min(config.getSENSOR_NUMBER(), config.getQUERY_SENSOR_NUM())
+          && querySensorIds.size() < config.getSENSOR_NUMBER()) {
+        // getSensor belong to [0, sensor_number)
+        int sensorId = querySensorRandom.nextInt(config.getSENSOR_NUMBER());
+        // avoid duplicate
+        if (!querySensorIds.contains(sensorId)) {
+          querySensorIds.add(sensorId);
+        } else {
+          continue;
+        }
+        Sensor sensor = sensors.get(sensorId);
         if (!typeAllow) {
           SensorType sensorType = sensor.getSensorType();
           if (sensorType == SensorType.BOOLEAN || sensorType == SensorType.TEXT) {
@@ -213,10 +221,10 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
         continue;
       }
-      DeviceSchema deviceSchema = new DeviceSchema(deviceId, querySensors);
+      DeviceSchema deviceSchema = new DeviceSchema(deviceId, querySensors, config.getDEVICE_TAGS());
       queryDevices.add(deviceSchema);
     }
-    if (queryDevices.size() == 0) {
+    if (queryDevices.size() != config.getQUERY_DEVICE_NUM()) {
       LOGGER.warn("There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
       throw new WorkloadException(
           "There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");

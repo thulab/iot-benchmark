@@ -249,6 +249,8 @@ public class ConfigDescriptor {
             properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
         config.setSENSOR_NAME_PREFIX(
             properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
+        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", ""));
+
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));

@@ -93,12 +93,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   public Status insertOneBatchByRecord(Batch batch) {
-    String deviceId =
-        ROOT_SERIES_NAME
-            + "."
-            + batch.getDeviceSchema().getGroup()
-            + "."
-            + batch.getDeviceSchema().getDevice();
+    String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
@@ -130,12 +125,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecords(Batch batch) {
     List<String> deviceIds = new ArrayList<>();
-    String deviceId =
-        ROOT_SERIES_NAME
-            + "."
-            + batch.getDeviceSchema().getGroup()
-            + "."
-            + batch.getDeviceSchema().getDevice();
+    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
     List<List<TSDataType>> typesList = new ArrayList<>();

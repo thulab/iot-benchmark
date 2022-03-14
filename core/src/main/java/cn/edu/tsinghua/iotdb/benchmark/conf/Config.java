@@ -196,6 +196,10 @@ public class Config {
   private String DEVICE_NAME_PREFIX = "d_";
   /** name prefix of sensor */
   private String SENSOR_NAME_PREFIX = "s_";
+  /** name prefix of tag */
+  private String TAG_NAME_PREFIX = "tag_";
+  /** The tags of device. Each device is same. */
+  private Map<String, String> DEVICE_TAGS = new LinkedHashMap<>();
 
   // 设备、传感器、客户端：生成数据的规律
   /** 线性 默认 9个 0.054 */
@@ -870,6 +874,29 @@ public class Config {
 
   public void setCLIENT_NUMBER(int CLIENT_NUMBER) {
     this.CLIENT_NUMBER = CLIENT_NUMBER;
+  }
+
+  public String getTAG_NAME_PREFIX() {
+    return TAG_NAME_PREFIX;
+  }
+
+  public void setTAG_NAME_PREFIX(String TAG_NAME_PREFIX) {
+    this.TAG_NAME_PREFIX = TAG_NAME_PREFIX;
+  }
+
+  public Map<String, String> getDEVICE_TAGS() {
+    return new LinkedHashMap<>(DEVICE_TAGS);
+  }
+
+  public void setDEVICE_TAGS(String DEVICE_TAGS) {
+    if (DEVICE_TAGS.length() != 0) {
+      this.DEVICE_TAGS = new LinkedHashMap<>();
+      int tagIndex = 0;
+      for (String tagValue : DEVICE_TAGS.split(",")) {
+        this.DEVICE_TAGS.put(TAG_NAME_PREFIX + tagIndex, tagValue);
+        tagIndex++;
+      }
+    }
   }
 
   public String getGROUP_NAME_PREFIX() {
@@ -1719,6 +1746,8 @@ public class Config {
     configProperties.addProperty("Extern Param", "GROUP_NAME_PREFIX", this.GROUP_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "DEVICE_NAME_PREFIX", this.DEVICE_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "SENSOR_NAME_PREFIX", this.SENSOR_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "TAG_NAME_PREFIX", this.TAG_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "DEVICE_TAGS", this.DEVICE_TAGS);
 
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
