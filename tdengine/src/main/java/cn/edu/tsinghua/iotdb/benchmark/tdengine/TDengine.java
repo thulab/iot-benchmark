@@ -69,7 +69,7 @@ public class TDengine implements IDatabase {
     StringBuilder createTable =
         new StringBuilder("create table if not exists %s using %s tags('%s'");
     for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
-      createStable.append(", ").append(pair.getKey()).append("binary(20)");
+      createStable.append(", ").append(pair.getKey()).append(" binary(20)");
       createTable.append(", '").append(pair.getValue()).append("'");
     }
     createStable.append(")");
