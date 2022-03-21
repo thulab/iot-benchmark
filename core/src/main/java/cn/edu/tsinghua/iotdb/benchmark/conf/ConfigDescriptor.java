@@ -249,6 +249,8 @@ public class ConfigDescriptor {
             properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
         config.setSENSOR_NAME_PREFIX(
             properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
+        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", ""));
+
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));
@@ -299,9 +301,16 @@ public class ConfigDescriptor {
         config.setVECTOR(
             Boolean.parseBoolean(
                 properties.getProperty("VECTOR", String.valueOf(config.isVECTOR()))));
+        config.setIOTDB_USE_DEBUG(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IOTDB_USE_DEBUG", String.valueOf(config.isIOTDB_USE_DEBUG()))));
+        config.setIOTDB_USE_DEBUG_RATIO(
+            Double.parseDouble(
+                properties.getProperty(
+                    "IOTDB_USE_DEBUG_RATIO", String.valueOf(config.getIOTDB_USE_DEBUG_RATIO()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
-
         config.setOP_INTERVAL(
             Long.parseLong(properties.getProperty("OP_INTERVAL", config.getOP_INTERVAL() + "")));
         if (config.getOP_INTERVAL() == -1L) {
@@ -388,6 +397,13 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "WORKLOAD_BUFFER_SIZE", config.getWORKLOAD_BUFFER_SIZE() + "")));
         config.setTEST_DATA_PERSISTENCE(properties.getProperty("TEST_DATA_PERSISTENCE", "None"));
+        config.setRECORD_SPLIT(
+            Boolean.parseBoolean(
+                properties.getProperty("RECORD_SPLIT", config.isRECORD_SPLIT() + "")));
+        config.setRECORD_SPLIT_MAX_LINE(
+            Long.parseLong(
+                properties.getProperty(
+                    "RECORD_SPLIT_MAX_LINE", config.getRECORD_SPLIT_MAX_LINE() + "")));
 
         config.setMONITOR_INTERVAL(
             Integer.parseInt(
@@ -435,11 +451,6 @@ public class ConfigDescriptor {
 
         config.setCSV_OUTPUT(
             Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT() + "")));
-        config.setCSV_MAX_LINE(
-            Long.parseLong(properties.getProperty("CSV_MAX_LINE", config.getCSV_MAX_LINE() + "")));
-        config.setCSV_FILE_SPLIT(
-            Boolean.parseBoolean(
-                properties.getProperty("CSV_FILE_SPLIT", config.isCSV_FILE_SPLIT() + "")));
       } catch (IOException e) {
         e.printStackTrace();
       }

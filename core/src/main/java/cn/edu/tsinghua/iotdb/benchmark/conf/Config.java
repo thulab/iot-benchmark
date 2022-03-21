@@ -196,6 +196,10 @@ public class Config {
   private String DEVICE_NAME_PREFIX = "d_";
   /** name prefix of sensor */
   private String SENSOR_NAME_PREFIX = "s_";
+  /** name prefix of tag */
+  private String TAG_NAME_PREFIX = "tag_";
+  /** The tags of device. Each device is same. */
+  private Map<String, String> DEVICE_TAGS = new LinkedHashMap<>();
 
   // 设备、传感器、客户端：生成数据的规律
   /** 线性 默认 9个 0.054 */
@@ -224,6 +228,10 @@ public class Config {
   private boolean TEMPLATE = true;
   /** Whether to use vector */
   private boolean VECTOR = true;
+  /** whether to use debug in iotdb-0.13 */
+  private boolean IOTDB_USE_DEBUG = false;
+  /** the ratio of use debug */
+  private double IOTDB_USE_DEBUG_RATIO = 0.01;
 
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
@@ -326,6 +334,10 @@ public class Config {
   // 输出
   /** Use what to store test data, currently support None, IoTDB, MySQL, CSV */
   private String TEST_DATA_PERSISTENCE = "None";
+  /** Whether split result into different record */
+  private boolean RECORD_SPLIT = true;
+  /** Max line of record line */
+  private long RECORD_SPLIT_MAX_LINE = 10000000;
 
   // 输出：系统性能 Server mode
   /** System performance information recording interval is INTERVAL+2 seconds */
@@ -366,11 +378,7 @@ public class Config {
   /** Whether output the result to an csv file located in data folder */
   private boolean CSV_OUTPUT = true;
   /** Current csv file write line */
-  private AtomicLong CURRENT_CSV_LINE = new AtomicLong();
-  /** Max line of csv line */
-  private long CSV_MAX_LINE = 10000000;
-  /** Whether split result into different csv file */
-  private boolean CSV_FILE_SPLIT = true;
+  private AtomicLong CURRENT_RECORD_LINE = new AtomicLong();
 
   /** Sensors */
   private List<Sensor> SENSORS = new ArrayList<>();
@@ -531,20 +539,20 @@ public class Config {
     return probabilities;
   }
 
-  public long IncrementAndGetCURRENT_CSV_LINE() {
-    return CURRENT_CSV_LINE.incrementAndGet();
+  public long IncrementAndGetCURRENT_RECORD_LINE() {
+    return CURRENT_RECORD_LINE.incrementAndGet();
   }
 
-  public long getCURRENT_CSV_LINE() {
-    return CURRENT_CSV_LINE.get();
+  public long getCURRENT_RECORD_LINE() {
+    return CURRENT_RECORD_LINE.get();
   }
 
-  public void resetCURRENT_CSV_LINE() {
-    CURRENT_CSV_LINE.set(0);
+  public void resetCURRENT_RECORD_LINE() {
+    CURRENT_RECORD_LINE.set(0);
   }
 
-  public void setCURRENT_CSV_LINE(AtomicLong CURRENT_CSV_LINE) {
-    this.CURRENT_CSV_LINE = CURRENT_CSV_LINE;
+  public void setCURRENT_RECORD_LINE(AtomicLong CURRENT_RECORD_LINE) {
+    this.CURRENT_RECORD_LINE = CURRENT_RECORD_LINE;
   }
 
   /** Getter and Setter */
@@ -868,6 +876,29 @@ public class Config {
     this.CLIENT_NUMBER = CLIENT_NUMBER;
   }
 
+  public String getTAG_NAME_PREFIX() {
+    return TAG_NAME_PREFIX;
+  }
+
+  public void setTAG_NAME_PREFIX(String TAG_NAME_PREFIX) {
+    this.TAG_NAME_PREFIX = TAG_NAME_PREFIX;
+  }
+
+  public Map<String, String> getDEVICE_TAGS() {
+    return new LinkedHashMap<>(DEVICE_TAGS);
+  }
+
+  public void setDEVICE_TAGS(String DEVICE_TAGS) {
+    if (DEVICE_TAGS.length() != 0) {
+      this.DEVICE_TAGS = new LinkedHashMap<>();
+      int tagIndex = 0;
+      for (String tagValue : DEVICE_TAGS.split(",")) {
+        this.DEVICE_TAGS.put(TAG_NAME_PREFIX + tagIndex, tagValue);
+        tagIndex++;
+      }
+    }
+  }
+
   public String getGROUP_NAME_PREFIX() {
     return GROUP_NAME_PREFIX;
   }
@@ -986,6 +1017,22 @@ public class Config {
 
   public void setVECTOR(boolean VECTOR) {
     this.VECTOR = VECTOR;
+  }
+
+  public boolean isIOTDB_USE_DEBUG() {
+    return IOTDB_USE_DEBUG;
+  }
+
+  public void setIOTDB_USE_DEBUG(boolean IOTDB_USE_DEBUG) {
+    this.IOTDB_USE_DEBUG = IOTDB_USE_DEBUG;
+  }
+
+  public double getIOTDB_USE_DEBUG_RATIO() {
+    return IOTDB_USE_DEBUG_RATIO;
+  }
+
+  public void setIOTDB_USE_DEBUG_RATIO(double IOTDB_USE_DEBUG_RATIO) {
+    this.IOTDB_USE_DEBUG_RATIO = IOTDB_USE_DEBUG_RATIO;
   }
 
   public long getOP_INTERVAL() {
@@ -1300,20 +1347,20 @@ public class Config {
     this.CSV_OUTPUT = CSV_OUTPUT;
   }
 
-  public long getCSV_MAX_LINE() {
-    return CSV_MAX_LINE;
+  public long getRECORD_SPLIT_MAX_LINE() {
+    return RECORD_SPLIT_MAX_LINE;
   }
 
-  public void setCSV_MAX_LINE(long CSV_MAX_LINE) {
-    this.CSV_MAX_LINE = CSV_MAX_LINE;
+  public void setRECORD_SPLIT_MAX_LINE(long RECORD_SPLIT_MAX_LINE) {
+    this.RECORD_SPLIT_MAX_LINE = RECORD_SPLIT_MAX_LINE;
   }
 
-  public boolean isCSV_FILE_SPLIT() {
-    return CSV_FILE_SPLIT;
+  public boolean isRECORD_SPLIT() {
+    return RECORD_SPLIT;
   }
 
-  public void setCSV_FILE_SPLIT(boolean CSV_FILE_SPLIT) {
-    this.CSV_FILE_SPLIT = CSV_FILE_SPLIT;
+  public void setRECORD_SPLIT(boolean RECORD_SPLIT) {
+    this.RECORD_SPLIT = RECORD_SPLIT;
   }
 
   public List<Sensor> getSENSORS() {
@@ -1686,6 +1733,9 @@ public class Config {
       configProperties.addProperty("Extern Param", "QUERY_AGGREGATE_FUN", this.QUERY_AGGREGATE_FUN);
       configProperties.addProperty("Extern Param", "QUERY_LOWER_VALUE", this.QUERY_LOWER_VALUE);
       configProperties.addProperty("Extern Param", "QUERY_SEED", this.QUERY_SEED);
+      configProperties.addProperty("Extern Param", "IOTDB_USE_DEBUG", this.IOTDB_USE_DEBUG);
+      configProperties.addProperty(
+          "Extern Param", "IOTDB_USE_DEBUG_RATIO", this.IOTDB_USE_DEBUG_RATIO);
     }
 
     /* other config */
@@ -1696,6 +1746,8 @@ public class Config {
     configProperties.addProperty("Extern Param", "GROUP_NAME_PREFIX", this.GROUP_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "DEVICE_NAME_PREFIX", this.DEVICE_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "SENSOR_NAME_PREFIX", this.SENSOR_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "TAG_NAME_PREFIX", this.TAG_NAME_PREFIX);
+    configProperties.addProperty("Extern Param", "DEVICE_TAGS", this.DEVICE_TAGS);
 
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);

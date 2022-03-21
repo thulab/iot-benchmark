@@ -38,6 +38,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class TDengine implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -50,11 +51,10 @@ public class TDengine implements IDatabase {
   private static final String CREATE_DATABASE = "create database if not exists %s";
   private static final String DROP_DATABASE = "drop database if exists %s";
   private static final String USE_DB = "use %s";
-  private static final String CREATE_STABLE =
-      "create stable if not exists %s (time timestamp, %s) tags(device binary(20))";
-  private static final String DROP_STABLE = "drop stables if exists %s";
-  private static final String CREATE_TABLE = "create table if not exists %s using %s tags('%s')";
   private static final String SUPER_TABLE_NAME = "device";
+
+  private final String CREATE_STABLE;
+  private final String CREATE_TABLE;
 
   private Connection connection;
   private DBConfig dbConfig;
@@ -63,6 +63,19 @@ public class TDengine implements IDatabase {
   public TDengine(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
     this.testDatabaseName = dbConfig.getDB_NAME();
+    StringBuilder createStable =
+        new StringBuilder(
+            "create stable if not exists %s (time timestamp, %s) tags(device binary(20)");
+    StringBuilder createTable =
+        new StringBuilder("create table if not exists %s using %s tags('%s'");
+    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
+      createStable.append(", ").append(pair.getKey()).append(" binary(20)");
+      createTable.append(", '").append(pair.getValue()).append("'");
+    }
+    createStable.append(")");
+    createTable.append(")");
+    CREATE_STABLE = createStable.toString();
+    CREATE_TABLE = createTable.toString();
   }
 
   @Override

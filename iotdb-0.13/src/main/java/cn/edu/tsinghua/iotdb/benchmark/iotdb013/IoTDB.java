@@ -69,11 +69,12 @@ public class IoTDB implements IDatabase {
   protected ExecutorService service;
   protected Future<?> future;
   protected DBConfig dbConfig;
+  protected Random random = new Random(config.getDATA_SEED());
 
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
-    DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME();
+    DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
   }
 
   @Override
@@ -630,13 +631,25 @@ public class IoTDB implements IDatabase {
    * @param deviceSchema
    * @return format, e.g. root.group_1.d_1
    */
-  private String getDevicePath(DeviceSchema deviceSchema) {
-    return ROOT_SERIES_NAME + "." + deviceSchema.getGroup() + "." + deviceSchema.getDevice();
+  protected String getDevicePath(DeviceSchema deviceSchema) {
+    StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
+    name.append(".").append(deviceSchema.getGroup());
+    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
+      name.append(".").append(pair.getValue());
+    }
+    name.append(".").append(deviceSchema.getDevice());
+    return name.toString();
   }
 
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+    String executeSQL;
+    if (config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()) {
+      executeSQL = "debug " + sql;
+    } else {
+      executeSQL = sql;
+    }
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
@@ -647,7 +660,7 @@ public class IoTDB implements IDatabase {
           service.submit(
               () -> {
                 try {
-                  try (ResultSet resultSet = statement.executeQuery(sql)) {
+                  try (ResultSet resultSet = statement.executeQuery(executeSQL)) {
                     while (resultSet.next()) {
                       line.getAndIncrement();
                       if (config.isIS_COMPARISON()) {
@@ -669,7 +682,7 @@ public class IoTDB implements IDatabase {
                     }
                   }
                 } catch (SQLException e) {
-                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                  LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
                 queryResultPointNum.set(
@@ -679,36 +692,29 @@ public class IoTDB implements IDatabase {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
         future.cancel(true);
-        return new Status(false, queryResultPointNum.get(), e, sql);
+        return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
       if (isOk.get() == true) {
         if (config.isIS_COMPARISON()) {
-          return new Status(true, queryResultPointNum.get(), sql, records);
+          return new Status(true, queryResultPointNum.get(), executeSQL, records);
         } else {
           return new Status(true, queryResultPointNum.get());
         }
       } else {
         return new Status(
-            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
+            false, queryResultPointNum.get(), new Exception("Failed to execute."), executeSQL);
       }
     } catch (Exception e) {
-      return new Status(false, queryResultPointNum.get(), e, sql);
+      return new Status(false, queryResultPointNum.get(), e, executeSQL);
     } catch (Throwable t) {
-      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+      return new Status(false, queryResultPointNum.get(), new Exception(t), executeSQL);
     }
   }
 
   public String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
-    StringBuilder builder = new StringBuilder();
-    builder
-        .append("insert into ")
-        .append(ROOT_SERIES_NAME)
-        .append(".")
-        .append(deviceSchema.getGroup())
-        .append(".")
-        .append(deviceSchema.getDevice())
-        .append("(timestamp");
+    StringBuilder builder = new StringBuilder("insert into ");
+    builder.append(getDevicePath(deviceSchema)).append("(timestamp");
     for (Sensor sensor : deviceSchema.getSensors()) {
       builder.append(",").append(sensor.getName());
     }
@@ -899,12 +905,6 @@ public class IoTDB implements IDatabase {
    * @return
    */
   private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
-    return ROOT_SERIES_NAME
-        + "."
-        + deviceSchema.getGroup()
-        + "."
-        + deviceSchema.getDevice()
-        + "."
-        + sensor;
+    return getDevicePath(deviceSchema) + "." + sensor;
   }
 }

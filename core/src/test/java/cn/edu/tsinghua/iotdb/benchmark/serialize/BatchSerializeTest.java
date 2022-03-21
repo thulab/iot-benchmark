@@ -30,9 +30,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -51,7 +49,10 @@ public class BatchSerializeTest {
     List<Sensor> sensors = new ArrayList<>();
     sensors.add(new Sensor("s1", SensorType.DOUBLE));
     sensors.add(new Sensor("s2", SensorType.DOUBLE));
-    DeviceSchema deviceSchema = new DeviceSchema(group, device, sensors);
+    Map<String, String> tags = new HashMap<>();
+    tags.put("tag1", "value1");
+    tags.put("tag2", "value2");
+    DeviceSchema deviceSchema = new DeviceSchema(group, device, sensors, tags);
     List<Record> records = new LinkedList<>();
     for (int i = 0; i < 12; i++) {
       records.add(buildRecord(i, 10));

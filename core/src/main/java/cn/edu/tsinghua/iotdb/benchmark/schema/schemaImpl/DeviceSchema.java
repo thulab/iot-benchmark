@@ -32,7 +32,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DeviceSchema implements Cloneable {
 
@@ -43,21 +45,26 @@ public class DeviceSchema implements Cloneable {
   private String group;
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
+  /** List of tags */
+  private Map<String, String> tags;
   /** Sensors in this device */
   private List<Sensor> sensors;
   /** Only used for synthetic data set */
   private int deviceId;
 
-  public DeviceSchema() {}
+  public DeviceSchema() {
+    tags = new HashMap<>();
+  }
 
   /**
    * @param deviceId e.g. FIRST_DEVICE_INDEX + device
    * @param sensors
    */
-  public DeviceSchema(int deviceId, List<Sensor> sensors) {
+  public DeviceSchema(int deviceId, List<Sensor> sensors, Map<String, String> tags) {
     this.deviceId = deviceId;
     this.device = MetaUtil.getDeviceName(deviceId);
     this.sensors = sensors;
+    this.tags = tags;
     try {
       int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
       this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
@@ -66,10 +73,12 @@ public class DeviceSchema implements Cloneable {
     }
   }
 
-  public DeviceSchema(String groupId, String deviceName, List<Sensor> sensors) {
+  public DeviceSchema(
+      String groupId, String deviceName, List<Sensor> sensors, Map<String, String> tags) {
     this.group = MetaUtil.getGroupName(groupId);
     this.device = deviceName;
     this.sensors = sensors;
+    this.tags = tags;
   }
 
   public String getDevice() {
@@ -100,6 +109,14 @@ public class DeviceSchema implements Cloneable {
     this.sensors = sensors;
   }
 
+  public Map<String, String> getTags() {
+    return tags;
+  }
+
+  public void setTags(Map<String, String> tags) {
+    this.tags = tags;
+  }
+
   /**
    * serialize to output stream
    *
@@ -113,6 +130,11 @@ public class DeviceSchema implements Cloneable {
       sensor.serialize(outputStream);
     }
     ReadWriteIOUtils.write(deviceId, outputStream);
+    ReadWriteIOUtils.write(tags.size(), outputStream);
+    for (Map.Entry<String, String> tag : tags.entrySet()) {
+      ReadWriteIOUtils.write(tag.getKey(), outputStream);
+      ReadWriteIOUtils.write(tag.getValue(), outputStream);
+    }
   }
 
   /**
@@ -130,6 +152,12 @@ public class DeviceSchema implements Cloneable {
       result.sensors.add(Sensor.deserialize(inputStream));
     }
     result.deviceId = ReadWriteIOUtils.readInt(inputStream);
+    int tagNumber = ReadWriteIOUtils.readInt(inputStream);
+    for (int i = 0; i < tagNumber; i++) {
+      String key = ReadWriteIOUtils.readString(inputStream);
+      String value = ReadWriteIOUtils.readString(inputStream);
+      result.tags.put(key, value);
+    }
     return result;
   }
 
@@ -146,6 +174,8 @@ public class DeviceSchema implements Cloneable {
         + sensors
         + ", deviceId="
         + deviceId
+        + ", tags="
+        + tags
         + '}';
   }
 
@@ -166,6 +196,7 @@ public class DeviceSchema implements Cloneable {
         .append(group, that.group)
         .append(device, that.device)
         .append(sensors, that.sensors)
+        .append(tags, that.tags)
         .isEquals();
   }
 
@@ -176,6 +207,7 @@ public class DeviceSchema implements Cloneable {
         .append(device)
         .append(sensors)
         .append(deviceId)
+        .append(tags)
         .toHashCode();
   }
 

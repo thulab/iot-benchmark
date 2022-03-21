@@ -210,22 +210,26 @@ public class InfluxDB implements IDatabase {
     List<Record> records = batch.getRecords();
     List<Sensor> sensors = deviceSchema.getSensors();
     LinkedList<InfluxDBModel> models = new LinkedList<>();
+    Map<String, String> tags = batch.getDeviceSchema().getTags();
 
     for (Record record : records) {
       InfluxDBModel model =
-          createModel(deviceSchema.getGroup(), deviceSchema.getDevice(), record, sensors);
+          createModel(deviceSchema.getGroup(), deviceSchema.getDevice(), record, sensors, tags);
       models.addLast(model);
     }
     return models;
   }
 
   private InfluxDBModel createModel(
-      String metric, String device, Record record, List<Sensor> sensors) {
+      String metric, String device, Record record, List<Sensor> sensors, Map<String, String> tags) {
     InfluxDBModel model = new InfluxDBModel();
     model.setMetric(metric);
     model.setTimestamp(record.getTimestamp());
 
     model.addTag("device", device);
+    for (Map.Entry<String, String> pair : tags.entrySet()) {
+      model.addTag(pair.getKey(), pair.getValue());
+    }
 
     for (int i = 0; i < record.getRecordDataValue().size(); i++) {
       model.addField(sensors.get(i), record.getRecordDataValue().get(i));
@@ -241,9 +245,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 preciseQuery.getTimestamp() / 1000,
                 preciseQuery.getTimestamp() / 1000 + 1);
         Status status = executeQueryAndGetStatus(sql);
@@ -261,9 +264,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 rangeQuery.getStartTimestamp() / 1000,
                 rangeQuery.getEndTimestamp() / 1000);
         Status status = executeQueryAndGetStatus(sql);
@@ -281,9 +283,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 valueRangeQuery.getStartTimestamp() / 1000,
                 valueRangeQuery.getEndTimestamp() / 1000);
         sql +=
@@ -295,27 +296,25 @@ public class InfluxDB implements IDatabase {
     return new Status(true, result);
   }
 
-  private String getTimeSQLHeader(
-      String group, String sensor, String device, long start, long end) {
-    String sql =
-        "from(bucket: \""
-            + this.influxDbName
-            + "\")\n"
-            + "  |> range(start: "
-            + start
-            + ", stop:"
-            + end
-            + ")\n"
-            + "  |> filter(fn: (r) => r[\"_measurement\"] == \""
-            + group
-            + "\")\n"
-            + "  |> filter(fn: (r) => r[\"_field\"] == \""
-            + sensor
-            + "\")\n"
-            + "  |> filter(fn: (r) => r[\"device\"] == \""
-            + device
-            + "\")";
-    return sql;
+  private String getTimeSQLHeader(DeviceSchema deviceSchema, String sensor, long start, long end) {
+    StringBuilder sql =
+        new StringBuilder("from(bucket: \"").append(this.influxDbName).append("\")\n");
+    sql.append("  |> range(start: ").append(start).append(", stop:").append(end).append(")\n");
+    sql.append("  |> filter(fn: (r) => r[\"_measurement\"] == \"")
+        .append(deviceSchema.getGroup())
+        .append("\")\n");
+    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
+      sql.append("  |> filter(fn: (r) => r[\"")
+          .append(pair.getKey())
+          .append("\"] == \"")
+          .append(pair.getValue())
+          .append("\")\n");
+    }
+    sql.append("  |> filter(fn: (r) => r[\"device\"] == \"")
+        .append(deviceSchema.getDevice())
+        .append("\")\n");
+    sql.append("  |> filter(fn: (r) => r[\"_field\"] == \"").append(sensor).append("\")");
+    return sql.toString();
   }
 
   @Override
@@ -326,9 +325,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 aggRangeQuery.getStartTimestamp() / 1000,
                 aggRangeQuery.getEndTimestamp() / 1000);
         String aggFun = aggRangeQuery.getAggFun();
@@ -351,9 +349,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 Constants.START_TIMESTAMP / 1000,
                 System.currentTimeMillis() / 1000);
         // note that flux not support without range
@@ -380,9 +377,8 @@ public class InfluxDB implements IDatabase {
         try {
           String sql =
               getTimeSQLHeader(
-                  deviceSchema.getGroup(),
+                  deviceSchema,
                   sensor.getName(),
-                  deviceSchema.getDevice(),
                   aggRangeValueQuery.getStartTimestamp() / 1000,
                   aggRangeValueQuery.getEndTimestamp() / 1000);
           sql +=
@@ -412,9 +408,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 groupByQuery.getStartTimestamp() / 1000,
                 groupByQuery.getEndTimestamp() / 1000);
         sql += "\n  |> integral(unit:" + groupByQuery.getGranularity() + "ms)";
@@ -433,9 +428,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 Constants.START_TIMESTAMP / 1000,
                 System.currentTimeMillis() / 1000);
         sql += "\n  |> last(column: \"_time\")";
@@ -454,9 +448,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 rangeQuery.getStartTimestamp() / 1000,
                 rangeQuery.getEndTimestamp() / 1000);
         sql += "\n  |> sort(columns: [\"_time\"], desc: true)";
@@ -475,9 +468,8 @@ public class InfluxDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
             getTimeSQLHeader(
-                deviceSchema.getGroup(),
+                deviceSchema,
                 sensor.getName(),
-                deviceSchema.getDevice(),
                 valueRangeQuery.getStartTimestamp() / 1000,
                 valueRangeQuery.getEndTimestamp() / 1000);
         sql +=

@@ -569,6 +569,9 @@ public class TimescaleDB implements IDatabase {
   private String getCreateTableSql(String tableName, List<Sensor> sensors) {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
     sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
+    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
+      sqlBuilder.append(", ").append(pair.getKey()).append(" TEXT NOT NULL");
+    }
     for (int i = 0; i < sensors.size(); i++) {
       sqlBuilder
           .append(", ")
@@ -577,7 +580,11 @@ public class TimescaleDB implements IDatabase {
           .append(typeMap(sensors.get(i).getSensorType()))
           .append(" NULL ");
     }
-    sqlBuilder.append(",UNIQUE (time, sGroup, device));");
+    sqlBuilder.append(",UNIQUE (time, sGroup, device");
+    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
+      sqlBuilder.append(", ").append(pair.getKey());
+    }
+    sqlBuilder.append("));");
     return sqlBuilder.toString();
   }
 
@@ -591,7 +598,10 @@ public class TimescaleDB implements IDatabase {
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
     List<Sensor> sensors = deviceSchema.getSensors();
-    builder.append("insert into ").append(tableName).append("(time, sGroup, device");
+    builder.append("insert into ").append(tableName).append("(time,sGroup,device");
+    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
+      builder.append(",").append(pair.getKey());
+    }
     for (Sensor sensor : sensors) {
       builder.append(",").append(sensor.getName());
     }
@@ -599,10 +609,17 @@ public class TimescaleDB implements IDatabase {
     builder.append(timestamp);
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
+    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
+      builder.append(",'").append(pair.getValue()).append(",'");
+    }
     for (Object value : values) {
       builder.append(",'").append(value).append("'");
     }
-    builder.append(") ON CONFLICT(time,sGroup,device) DO UPDATE SET ");
+    builder.append(") ON CONFLICT(time,sGroup,device");
+    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
+      builder.append(", ").append(pair.getKey());
+    }
+    builder.append(") DO UPDATE SET ");
     builder.append(sensors.get(0).getName()).append("=excluded.").append(sensors.get(0).getName());
     for (int i = 1; i < sensors.size(); i++) {
       builder
@@ -611,36 +628,6 @@ public class TimescaleDB implements IDatabase {
           .append("=excluded.")
           .append(sensors.get(i).getName());
     }
-    if (!config.isIS_QUIET_MODE()) {
-      LOGGER.debug("getInsertOneBatchSql: {}", builder);
-    }
-    return builder.toString();
-  }
-
-  /**
-   * eg.
-   *
-   * <p>INSERT INTO conditions(time, group, device, s_0, s_1) VALUES (1535558400000, 'group_0',
-   * 'd_0', 70.0, 50.0);
-   */
-  private String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, Object value, int colIndex) {
-    StringBuilder builder = new StringBuilder();
-    builder
-        .append("insert into ")
-        .append(tableName)
-        .append("(time, sGroup, device, ")
-        .append(deviceSchema.getSensors().get(colIndex));
-    builder.append(") values(");
-    builder.append(timestamp);
-    builder.append(",'").append(deviceSchema.getGroup()).append("'");
-    builder.append(",'").append(deviceSchema.getDevice()).append("'");
-    builder.append(",'").append(value).append("'");
-    builder.append(") ON CONFLICT(time,sGroup,device) DO UPDATE SET ");
-    builder
-        .append(deviceSchema.getSensors().get(0))
-        .append("=excluded.")
-        .append(deviceSchema.getSensors().get(0));
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }

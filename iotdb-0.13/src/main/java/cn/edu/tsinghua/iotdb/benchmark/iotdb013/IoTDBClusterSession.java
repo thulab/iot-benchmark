@@ -93,12 +93,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   public Status insertOneBatchByRecord(Batch batch) {
-    String deviceId =
-        ROOT_SERIES_NAME
-            + "."
-            + batch.getDeviceSchema().getGroup()
-            + "."
-            + batch.getDeviceSchema().getDevice();
+    String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
@@ -130,12 +125,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   @Override
   public Status insertOneBatchByRecords(Batch batch) {
     List<String> deviceIds = new ArrayList<>();
-    String deviceId =
-        ROOT_SERIES_NAME
-            + "."
-            + batch.getDeviceSchema().getGroup()
-            + "."
-            + batch.getDeviceSchema().getDevice();
+    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
     List<List<TSDataType>> typesList = new ArrayList<>();
@@ -191,8 +181,14 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+    String executeSQL;
+    if (config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()) {
+      executeSQL = "debug " + sql;
+    } else {
+      executeSQL = sql;
+    }
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
@@ -205,7 +201,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
               () -> {
                 try {
                   SessionDataSetWrapper sessionDataSet =
-                      sessions[currSession].executeQueryStatement(sql);
+                      sessions[currSession].executeQueryStatement(executeSQL);
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
                     line.getAndIncrement();
@@ -237,7 +233,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
                   }
                   sessionDataSet.close();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
-                  LOGGER.error("exception occurred when execute query={}", sql, e);
+                  LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
                 queryResultPointNum.set(
@@ -247,23 +243,23 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
         future.cancel(true);
-        return new Status(false, queryResultPointNum.get(), e, sql);
+        return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
       currSession = (currSession + 1) % sessions.length;
       if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
-          return new Status(true, queryResultPointNum.get(), sql, records);
+          return new Status(true, queryResultPointNum.get(), executeSQL, records);
         } else {
           return new Status(true, queryResultPointNum.get());
         }
       } else {
         return new Status(
-            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
+            false, queryResultPointNum.get(), new Exception("Failed to execute."), executeSQL);
       }
     } catch (Exception e) {
-      return new Status(false, queryResultPointNum.get(), e, sql);
+      return new Status(false, queryResultPointNum.get(), e, executeSQL);
     } catch (Throwable t) {
-      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+      return new Status(false, queryResultPointNum.get(), new Exception(t), executeSQL);
     }
   }
 
