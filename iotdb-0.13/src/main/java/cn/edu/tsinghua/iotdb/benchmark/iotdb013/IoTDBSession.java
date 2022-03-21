@@ -106,7 +106,7 @@ public class IoTDBSession extends IoTDBSessionBase {
       try {
         if (config.isVECTOR()) {
           session.insertAlignedRecord(
-              deviceId + ".vector", timestamp, sensors, dataTypes, record.getRecordDataValue());
+              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
         } else {
           session.insertRecord(
               deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
@@ -142,7 +142,7 @@ public class IoTDBSession extends IoTDBSessionBase {
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
-      if (config.isVECTOR()) deviceIds.add(deviceId + ".vector");
+      if (config.isVECTOR()) deviceIds.add(deviceId);
       else deviceIds.add(deviceId);
       times.add(record.getTimestamp());
       measurementsList.add(sensors);
