@@ -176,9 +176,13 @@ public class IoTDB implements IDatabase {
 
   private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
       throws IoTDBConnectionException, IOException {
-    Template template = new Template("testTemplate");
+    Template template = null;
+    if (config.isVECTOR()) {
+      template = new Template("testTemplate", true);
+    } else {
+      template = new Template("testTemplate", false);
+    }
     try {
-      InternalNode internalNode = new InternalNode("vector", true);
       for (Sensor sensor : schemaList.get(0).getSensors()) {
         MeasurementNode measurementNode =
             new MeasurementNode(
@@ -186,14 +190,7 @@ public class IoTDB implements IDatabase {
                 Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
                 Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
                 Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        if (config.isVECTOR()) {
-          internalNode.addChild(measurementNode);
-        } else {
-          template.addToTemplate(measurementNode);
-        }
-      }
-      if (config.isVECTOR()) {
-        template.addToTemplate(internalNode);
+        template.addToTemplate(measurementNode);
       }
       metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
@@ -245,23 +242,13 @@ public class IoTDB implements IDatabase {
           encodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
           compressors.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
         }
-        if (config.isTEMPLATE()) {
-          registerAlignedTimeseriesBatch(
-              metaSession,
-              getDevicePath(deviceSchema) + ".vector",
-              multiMeasurementComponents,
-              dataTypes,
-              encodings,
-              compressors);
-        } else {
-          registerAlignedTimeseriesBatch(
-              metaSession,
-              getDevicePath(deviceSchema),
-              multiMeasurementComponents,
-              dataTypes,
-              encodings,
-              compressors);
-        }
+        registerAlignedTimeseriesBatch(
+                metaSession,
+                getDevicePath(deviceSchema),
+                multiMeasurementComponents,
+                dataTypes,
+                encodings,
+                compressors);
       }
     } else {
       List<String> paths = new ArrayList<>();
@@ -561,11 +548,7 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    if (config.isTEMPLATE()) {
-      builder.append(" FROM ").append(getDevicePath(devices.get(0))).append(".vector");
-    } else {
-      builder.append(" FROM ").append(getDevicePath(devices.get(0)));
-    }
+    builder.append(" FROM ").append(getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
       builder.append(", ").append(getDevicePath(devices.get(i)));
     }
