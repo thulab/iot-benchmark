@@ -150,9 +150,9 @@ public class ConfigDescriptor {
         config.setIOTDB_WAL_DIR(Arrays.asList(walDir.split(",")));
         String systemDir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
         config.setIOTDB_SYSTEM_DIR(Arrays.asList(systemDir.split(",")));
-        for (String data_ : config.getIOTDB_DATA_DIR()) {
-          config.getSEQUENCE_DIR().add(data_ + "/sequence");
-          config.getUNSEQUENCE_DIR().add(data_ + "/unsequence");
+        for (String data : config.getIOTDB_DATA_DIR()) {
+          config.getSEQUENCE_DIR().add(data + "/sequence");
+          config.getUNSEQUENCE_DIR().add(data + "/unsequence");
         }
 
         config.setKAFKA_LOCATION(
