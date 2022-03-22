@@ -143,7 +143,7 @@ public class InfluxDB implements IDatabase {
       for (InfluxDBModel influxDBModel : influxDBModels) {
         lines.add(model2write(influxDBModel));
       }
-      HttpRequestUtil.sendPost(
+      HttpRequestUtil.httpPost(
           CREATE_URL, String.join("\n", lines), "text/plain; version=0.0.4; charset=utf-8", token);
       return new Status(true);
     } catch (Exception e) {

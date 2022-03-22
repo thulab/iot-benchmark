@@ -1,11 +1,18 @@
 package cn.edu.tsinghua.iotdb.benchmark.influxdb2;
 
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 
 public class HttpRequestUtil {
   /**
@@ -105,5 +112,51 @@ public class HttpRequestUtil {
       }
     }
     return result.toString();
+  }
+
+  public static String httpPost(String url, String body, String contentType, String token) throws IOException {
+
+    CloseableHttpClient httpClient = GlobalHttpClientConnectionManager.getHttpClient();
+    CloseableHttpResponse httpResponse = null;
+    BufferedReader reader = null;
+    StringBuffer response = new StringBuffer();
+    try {
+      HttpPost httpPost = new HttpPost(url);
+      RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(6000).setConnectTimeout(6000).build();//设置请求和传输超时时间
+      httpPost.setConfig(requestConfig);
+      httpPost.addHeader("User-Agent", "Mozilla/5.0");
+      httpPost.addHeader("accept", "*/*");
+      httpPost.addHeader("connection", "Keep-Alive");
+      httpPost.addHeader(
+              "user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+      httpPost.addHeader("Content-Type", contentType);
+      httpPost.addHeader("Authorization", "Token " + token);
+
+      ByteArrayEntity entity = new ByteArrayEntity(body.getBytes(StandardCharsets.UTF_8));
+      httpPost.setEntity(entity);
+
+      httpResponse = httpClient.execute(httpPost);
+
+      reader = new BufferedReader(new InputStreamReader(
+              httpResponse.getEntity().getContent()));
+
+      String inputLine;
+
+      while ((inputLine = reader.readLine()) != null) {
+        response.append(inputLine);
+      }
+
+    }catch (Exception var){
+      var.printStackTrace();
+    }finally {
+      if(reader != null){
+        reader.close();
+      }
+      if(httpResponse != null){
+        httpResponse.close();
+      }
+      httpClient.close();
+    }
+    return response.toString();
   }
 }
