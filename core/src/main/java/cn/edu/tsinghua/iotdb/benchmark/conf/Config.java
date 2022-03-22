@@ -232,6 +232,10 @@ public class Config {
   /** the ratio of use debug */
   private double IOTDB_USE_DEBUG_RATIO = 0.01;
 
+  // 被测系统使用HTTP Client时的参数
+  /** The size of http client pool */
+  private int HTTP_CLIENT_POOL_SIZE = 1000;
+
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
 
@@ -1032,6 +1036,14 @@ public class Config {
 
   public void setIOTDB_USE_DEBUG_RATIO(double IOTDB_USE_DEBUG_RATIO) {
     this.IOTDB_USE_DEBUG_RATIO = IOTDB_USE_DEBUG_RATIO;
+  }
+
+  public int getHTTP_CLIENT_POOL_SIZE() {
+    return HTTP_CLIENT_POOL_SIZE;
+  }
+
+  public void setHTTP_CLIENT_POOL_SIZE(int HTTP_CLIENT_POOL_SIZE) {
+    this.HTTP_CLIENT_POOL_SIZE = HTTP_CLIENT_POOL_SIZE;
   }
 
   public long getOP_INTERVAL() {

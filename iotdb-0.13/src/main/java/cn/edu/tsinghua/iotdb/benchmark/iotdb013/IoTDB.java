@@ -22,7 +22,6 @@ package cn.edu.tsinghua.iotdb.benchmark.iotdb013;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
-import org.apache.iotdb.session.template.InternalNode;
 import org.apache.iotdb.session.template.MeasurementNode;
 import org.apache.iotdb.session.template.Template;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
@@ -243,12 +242,12 @@ public class IoTDB implements IDatabase {
           compressors.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
         }
         registerAlignedTimeseriesBatch(
-                metaSession,
-                getDevicePath(deviceSchema),
-                multiMeasurementComponents,
-                dataTypes,
-                encodings,
-                compressors);
+            metaSession,
+            getDevicePath(deviceSchema),
+            multiMeasurementComponents,
+            dataTypes,
+            encodings,
+            compressors);
       }
     } else {
       List<String> paths = new ArrayList<>();
