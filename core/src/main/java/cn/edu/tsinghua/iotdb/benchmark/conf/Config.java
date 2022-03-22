@@ -44,20 +44,19 @@ public class Config {
   // 初始化
   // 初始化：清理数据
   /** Whether to clear old data before test */
-  private boolean IS_DELETE_DATA = false;
+  private boolean IS_DELETE_DATA = true;
   /**
-   * The time The time waiting for the init of database under test (unit: ms) it depends on whether
-   * delete of database is asynchronous currently needed by KairosDB, InfluxDb, OpenTSDB,
-   * TimescaleDB
+   * The time waiting for the init of database under test (unit: ms) it depends on whether delete of
+   * database is asynchronous currently needed by KairosDB, InfluxDb, OpenTSDB, TimescaleDB
    */
-  private long INIT_WAIT_TIME = 5000;
+  private long INIT_WAIT_TIME = 1000;
 
   /** System performance detection network card device name eg. eth0 */
   private String NET_DEVICE = "e";
 
   // 初始化：工作状态
   /** Total number of operations that each client process */
-  private long LOOP = 10000;
+  private long LOOP = 1000;
 
   /**
    * The running mode of benchmark 1. testWithDefaultPath: Conventional test mode, supporting mixed
@@ -93,11 +92,11 @@ public class Config {
 
   // 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
   /** The data dir of IoTDB (Split by comma) */
-  private List<String> IOTDB_DATA_DIR = new ArrayList<>();
+  private List<String> IOTDB_DATA_DIR = Collections.singletonList("/home/iotdb/data/data");
   /** The WAL(Write-ahead-log) dir of IoTDB (Split by comma) */
-  private List<String> IOTDB_WAL_DIR = new ArrayList<>();
+  private List<String> IOTDB_WAL_DIR = Collections.singletonList("/home/iotdb/data/wal");
   /** The system dirs of IoTDB */
-  private List<String> IOTDB_SYSTEM_DIR = new ArrayList<>();
+  private List<String> IOTDB_SYSTEM_DIR = Collections.singletonList("/home/iotdb/data/system");
   /** The sequence dirs of IoTDB */
   private List<String> SEQUENCE_DIR = new ArrayList<>();
   /** The unsequence dirs of IoTDB */
@@ -113,7 +112,7 @@ public class Config {
   /** Whether to do point compare */
   private boolean IS_POINT_COMPARISON = false;
   /** The step size of verification query */
-  private int VERIFICATION_STEP_SIZE = 1000;
+  private int VERIFICATION_STEP_SIZE = 10000;
 
   // 初始化：Kafka
   /** Location of Kafka */
@@ -121,11 +120,11 @@ public class Config {
   /** Location of Zookeeper */
   private String ZOOKEEPER_LOCATION = "127.0.0.1:2181";
   /** The name of topic in Kafka */
-  private String TOPIC_NAME = "NULL";
+  private String TOPIC_NAME = "test-topic";
 
   // 时间戳
   /** The interval of timestamp(not real rate) */
-  private long POINT_STEP = 7000L;
+  private long POINT_STEP = 5000L;
   /** The precision of timestamp, currently support ms and us */
   private String TIMESTAMP_PRECISION = "ms";
 
@@ -161,19 +160,19 @@ public class Config {
 
   // 测试数据：外部测试数据
   /** The path of file */
-  private String FILE_PATH;
+  private String FILE_PATH = "data/test";
   /** The size of Big Batch */
-  private int BIG_BATCH_SIZE = 10;
+  private int BIG_BATCH_SIZE = 100;
 
   // 设备、传感器、客户端相关参数
   /** The number of devices of database */
-  private int DEVICE_NUMBER = 2;
+  private int DEVICE_NUMBER = 5;
   /** The ratio of actual write devices. (0,1] */
   private double REAL_INSERT_RATE = 1.0;
   /**
-   * The number of sensors of each device The number of timeseries = DEVICE_NUMBER * SENSOR_NUMBER
+   * The number of sensors of each device. The number of timeseries = DEVICE_NUMBER * SENSOR_NUMBER
    */
-  private int SENSOR_NUMBER = 5;
+  private int SENSOR_NUMBER = 10;
 
   /** Whether the sensor timestamp is aligned */
   private boolean IS_SENSOR_TS_ALIGNMENT = true;
@@ -188,7 +187,7 @@ public class Config {
    * The number of client if IS_CLIENT_BIND = true: this number must be less than or equal to the
    * number of devices.
    */
-  private int CLIENT_NUMBER = 2;
+  private int CLIENT_NUMBER = 5;
 
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
@@ -202,16 +201,16 @@ public class Config {
   private Map<String, String> DEVICE_TAGS = new LinkedHashMap<>();
 
   // 设备、传感器、客户端：生成数据的规律
-  /** 线性 默认 9个 0.054 */
-  private double LINE_RATIO = 0.054;
-  /** 傅里叶函数 6个 0.036 */
-  private double SIN_RATIO = 0.036;
-  /** 方波 9个 0.054 */
-  private double SQUARE_RATIO = 0.054;
-  /** 随机数 默认 86个 0.512 */
-  private double RANDOM_RATIO = 0.512;
-  /** 常数 默认 58个 0.352 */
-  private double CONSTANT_RATIO = 0.352;
+  /** 线性 默认 9个 */
+  private double LINE_RATIO = 1;
+  /** 傅里叶函数 6个 */
+  private double SIN_RATIO = 1;
+  /** 方波 9个 */
+  private double SQUARE_RATIO = 1;
+  /** 随机数 默认 86个 */
+  private double RANDOM_RATIO = 1;
+  /** 常数 默认 58个 */
+  private double CONSTANT_RATIO = 1;
   /** Seed of data */
   private long DATA_SEED = 666L;
 
@@ -219,15 +218,15 @@ public class Config {
   /** if enable the thrift compression */
   private boolean ENABLE_THRIFT_COMPRESSION = false;
   /** Storage Group Allocation Strategy, currently supported hash/mode/div */
-  private String SG_STRATEGY = "hash";
+  private String SG_STRATEGY = "mod";
   /** The number of storage group, must less than or equal to number of devices */
-  private int GROUP_NUMBER = 1;
+  private int GROUP_NUMBER = 20;
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
   /** Whether to use templates */
-  private boolean TEMPLATE = true;
+  private boolean TEMPLATE = false;
   /** Whether to use vector */
-  private boolean VECTOR = true;
+  private boolean VECTOR = false;
   /** whether to use debug in iotdb-0.13 */
   private boolean IOTDB_USE_DEBUG = false;
   /** the ratio of use debug */
@@ -253,7 +252,7 @@ public class Config {
    * device at a certain time stamp the number of data points written in each batch = SENSOR_NUMBER
    * * BATCH_SIZE
    */
-  private int BATCH_SIZE_PER_WRITE = 1;
+  private int BATCH_SIZE_PER_WRITE = 10;
   /** Whether create schema before writing */
   private boolean CREATE_SCHEMA = true;
 
@@ -266,8 +265,8 @@ public class Config {
   // whether to insert/add anomalies to the copied times series
   // TODO: insert anomalies to any kind of series
   private boolean IS_ADD_ANOMALY = false;
-  private double ANOMALY_RATE = 0.1;
-  private int ANOMALY_TIMES = 3;
+  private double ANOMALY_RATE = 0.2;
+  private int ANOMALY_TIMES = 2;
 
   // Operation：乱序写入部分
   /** Whether insert out of order */
@@ -278,14 +277,14 @@ public class Config {
    */
   private OutOfOrderMode OUT_OF_ORDER_MODE = OutOfOrderMode.POISSON;
   /** The out of order ratio of batch inserting */
-  private double OUT_OF_ORDER_RATIO = 1.0;
+  private double OUT_OF_ORDER_RATIO = 0.5;
   /** Whether use random time interval in inorder data need IS_OUT_OF_ORDER = false */
-  private boolean IS_REGULAR_FREQUENCY = false;
+  private boolean IS_REGULAR_FREQUENCY = true;
 
   /** The expectation and variance of Poisson Distribution based on basic model */
-  private double LAMBDA = 3;
+  private double LAMBDA = 2200.0;
   /** The max K of Poisson random variable based on basic model */
-  private int MAX_K = 10;
+  private int MAX_K = 170000;
 
   // Operation：查询相关参数
   /** Whether query recent data, only used in read and write mix mode */
@@ -314,18 +313,18 @@ public class Config {
   /** The number of devices involved in each query */
   private int QUERY_DEVICE_NUM = 1;
   /** Set aggregate function when aggregate query, Eg. count */
-  private String QUERY_AGGREGATE_FUN = "";
+  private String QUERY_AGGREGATE_FUN = "count";
   /**
    * The time interval between the start time and the end time in the query with start and end time
    * the time interval in groupBy (the unit is determined by the accuracy)
    */
-  private long QUERY_INTERVAL = 10000;
+  private long QUERY_INTERVAL = 250000;
   /** Conditional query parameters "where xxx > QUERY_LOWER_VALUE" */
-  private double QUERY_LOWER_VALUE = 0;
+  private double QUERY_LOWER_VALUE = -5;
   /** The size of group in group by query(ms), Eg. 20000 */
-  private long GROUP_BY_TIME_UNIT = QUERY_INTERVAL / 2;
+  private long GROUP_BY_TIME_UNIT = 20000;
   /** Query random seed */
-  private long QUERY_SEED = 1516580959202L;
+  private long QUERY_SEED = 151658L;
 
   // workload 相关部分
   /** The size of workload buffer size */
@@ -351,15 +350,15 @@ public class Config {
 
   // 输出：数据库配置，当前支持IoTDB和MySQL
   /** The Ip of database */
-  private String TEST_DATA_STORE_IP = "";
+  private String TEST_DATA_STORE_IP = "127.0.0.1";
   /** The Port of database */
-  private String TEST_DATA_STORE_PORT = "";
+  private String TEST_DATA_STORE_PORT = "6667";
   /** Which database to use */
-  private String TEST_DATA_STORE_DB = "";
+  private String TEST_DATA_STORE_DB = "result";
   /** Which user to authenticate */
-  private String TEST_DATA_STORE_USER = "";
+  private String TEST_DATA_STORE_USER = "root";
   /** The password of user */
-  private String TEST_DATA_STORE_PW = "";
+  private String TEST_DATA_STORE_PW = "root";
   /** The write time out of database */
   private long TEST_DATA_WRITE_TIME_OUT = 300000;
   /** The max connection of database */
