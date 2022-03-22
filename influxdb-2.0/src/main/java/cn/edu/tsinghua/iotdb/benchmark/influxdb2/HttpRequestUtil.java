@@ -1,109 +1,53 @@
 package cn.edu.tsinghua.iotdb.benchmark.influxdb2;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
+import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
+import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+import java.nio.charset.StandardCharsets;
 
 public class HttpRequestUtil {
-  /**
-   * Send Get Request to target URL
-   *
-   * @param url
-   * @return
-   */
-  public static String sendGet(String url) throws Exception {
-    StringBuffer result = new StringBuffer();
-    BufferedReader in = null;
-    try {
-      URL urlWithParams = new URL(url);
-      // open connection
-      URLConnection connection = urlWithParams.openConnection();
-      // setup property of request
-      connection.setRequestProperty("accept", "*/*");
-      connection.setRequestProperty("connection", "Keep-Alive");
-      connection.setRequestProperty(
-          "user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
-      // create connection
-      connection.connect();
-      // use BufferReader to read response
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-      in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-      String line;
-      while ((line = in.readLine()) != null) {
-        result.append(line);
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw e;
-    } finally {
-      try {
-        if (in != null) {
-          in.close();
-        }
-      } catch (Exception e2) {
-        e2.printStackTrace();
-      }
-    }
-    return result.toString();
-  }
-
-  /**
-   * Send Post request to target url
-   *
-   * @param url
-   * @param body
-   * @param contentType
-   * @return
-   */
-  public static String sendPost(String url, String body, String contentType, String token)
+  public static int writeData(String url, String body, String contentType, String token)
       throws Exception {
-    PrintWriter out = null;
-    BufferedReader in = null;
-    StringBuffer result = new StringBuffer();
+    CloseableHttpClient httpClient = GlobalHttpClientConnectionManager.getHttpClient();
+    int responseCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+    CloseableHttpResponse httpResponse = null;
     try {
-      URL realUrl = new URL(url);
-      // open url
-      URLConnection connection = realUrl.openConnection();
-      // setup property of connection
-      connection.setRequestProperty("accept", "*/*");
-      connection.setRequestProperty("connection", "Keep-Alive");
-      connection.setRequestProperty(
-          "user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
-      connection.setRequestProperty("Content-Type", contentType);
-      connection.setRequestProperty("Authorization", "Token " + token);
-      connection.setDoInput(true);
-      connection.setDoOutput(true);
-      // get output stream
-      out = new PrintWriter(connection.getOutputStream());
-      // send body
-      if (body != null) {
-        out.print(body);
-      }
-      // flush buffer
-      out.flush();
-      // define BufferReader to read response from url
-      in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-      String line;
-      while ((line = in.readLine()) != null) {
-        result.append(line);
-      }
-    } catch (Exception e) {
-      throw e;
+      HttpPost httpPost = new HttpPost(url);
+      // 设置请求和传输超时时间
+      RequestConfig requestConfig =
+          RequestConfig.custom()
+              .setSocketTimeout(config.getWRITE_OPERATION_TIMEOUT_MS() / 2)
+              .setConnectTimeout(config.getWRITE_OPERATION_TIMEOUT_MS() / 2)
+              .build();
+      httpPost.setConfig(requestConfig);
+      httpPost.addHeader("User-Agent", "Mozilla/5.0");
+      httpPost.addHeader("accept", "*/*");
+      httpPost.addHeader("connection", "Keep-Alive");
+      httpPost.addHeader("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+      httpPost.addHeader("Content-Type", contentType);
+      httpPost.addHeader("Authorization", "Token " + token);
+
+      ByteArrayEntity entity = new ByteArrayEntity(body.getBytes(StandardCharsets.UTF_8));
+      httpPost.setEntity(entity);
+
+      httpResponse = httpClient.execute(httpPost);
+      responseCode = httpResponse.getStatusLine().getStatusCode();
+    } catch (Exception var) {
+      var.printStackTrace();
+      throw var;
     } finally {
-      try {
-        if (out != null) {
-          out.close();
-        }
-        if (in != null) {
-          in.close();
-        }
-      } catch (IOException e2) {
-        throw e2;
+      if (httpResponse != null) {
+        httpResponse.close();
       }
     }
-    return result.toString();
+    return responseCode;
   }
 }
