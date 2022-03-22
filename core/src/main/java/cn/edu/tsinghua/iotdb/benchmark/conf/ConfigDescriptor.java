@@ -309,6 +309,10 @@ public class ConfigDescriptor {
             Double.parseDouble(
                 properties.getProperty(
                     "IOTDB_USE_DEBUG_RATIO", String.valueOf(config.getIOTDB_USE_DEBUG_RATIO()))));
+        config.setHTTP_CLIENT_POOL_SIZE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "HTTP_CLIENT_POOL_SIZE", String.valueOf(config.getHTTP_CLIENT_POOL_SIZE()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
         config.setOP_INTERVAL(

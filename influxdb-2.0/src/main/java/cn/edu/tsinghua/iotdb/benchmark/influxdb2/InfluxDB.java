@@ -36,6 +36,7 @@ import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,12 +92,6 @@ public class InfluxDB implements IDatabase {
       } else {
         client.getBucketsApi().deleteBucket(bucket);
       }
-      List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
-      for (Organization organization : organizations) {
-        if (organization.getName().equals(org)) {
-          client.getOrganizationsApi().deleteOrganization(organization);
-        }
-      }
     } catch (Exception e) {
       LOGGER.error("Cleanup InfluxDB failed because ", e);
       throw new TsdbException(e);
@@ -143,9 +138,17 @@ public class InfluxDB implements IDatabase {
       for (InfluxDBModel influxDBModel : influxDBModels) {
         lines.add(model2write(influxDBModel));
       }
-      HttpRequestUtil.httpPost(
-          CREATE_URL, String.join("\n", lines), "text/plain; version=0.0.4; charset=utf-8", token);
-      return new Status(true);
+      int responseCode =
+          HttpRequestUtil.writeData(
+              CREATE_URL,
+              String.join("\n", lines),
+              "text/plain; version=0.0.4; charset=utf-8",
+              token);
+      if (HttpStatus.SC_NO_CONTENT == responseCode) {
+        return new Status(true);
+      } else {
+        return new Status(false, 0);
+      }
     } catch (Exception e) {
       return new Status(false, 0, e, e.getMessage());
     }
