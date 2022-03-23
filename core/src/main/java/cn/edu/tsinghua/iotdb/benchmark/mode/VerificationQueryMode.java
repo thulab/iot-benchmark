@@ -44,7 +44,7 @@ public class VerificationQueryMode extends BaseMode {
         measurement,
         threadsMeasurements,
         start,
-        clients,
+        dataClients,
         Arrays.asList(Operation.VERIFICATION_QUERY));
   }
 }

@@ -30,6 +30,7 @@ import cn.edu.tsinghua.iotdb.benchmark.measurement.persistence.TestDataPersisten
 import com.clearspring.analytics.stream.quantile.TDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.weakref.jmx.internal.guava.util.concurrent.AtomicDouble;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -46,7 +47,7 @@ public class Measurement {
       new EnumMap<>(Operation.class);
   private static final Map<Operation, Double> operationLatencySumAllClient =
       new EnumMap<>(Operation.class);
-  private double createSchemaTime;
+  private AtomicDouble createSchemaTime = new AtomicDouble(0.0);
   private double elapseTime;
   private final Map<Operation, Double> operationLatencySumThisClient;
   private final Map<Operation, Long> okOperationNumMap;
@@ -158,13 +159,14 @@ public class Measurement {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     System.out.println(Thread.currentThread().getName() + " measurements:");
-    System.out.println("Create schema cost " + String.format("%.2f", createSchemaTime) + " second");
+    System.out.println(
+        "Create schema cost " + String.format("%.2f", createSchemaTime.get()) + " second");
     System.out.println(
         "Test elapsed time (not include schema creation): "
             + String.format("%.2f", elapseTime)
             + " second");
     recorder.saveResultAsync(
-        "total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime);
+        "total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime.get());
     recorder.saveResultAsync("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
     System.out.println(
@@ -440,11 +442,11 @@ public class Measurement {
   }
 
   public double getCreateSchemaTime() {
-    return createSchemaTime;
+    return createSchemaTime.get();
   }
 
   public void setCreateSchemaTime(double createSchemaTime) {
-    this.createSchemaTime = createSchemaTime;
+    this.createSchemaTime.set(Math.max(this.createSchemaTime.get(), createSchemaTime));
   }
 
   public double getElapseTime() {
