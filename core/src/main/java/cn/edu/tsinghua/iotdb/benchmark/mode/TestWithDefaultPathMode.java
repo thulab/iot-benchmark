@@ -45,7 +45,7 @@ public class TestWithDefaultPathMode extends BaseMode {
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
-    return registerSchema(dbConfigs, measurement);
+    return cleanUpData(dbConfigs, measurement) && registerSchema(measurement);
   }
 
   @Override
@@ -56,6 +56,6 @@ public class TestWithDefaultPathMode extends BaseMode {
       operations.add(Operation.DEVICE_QUERY);
     }
     List<Measurement> threadsMeasurements = new ArrayList<>();
-    finalMeasure(measurement, threadsMeasurements, start, clients, operations);
+    finalMeasure(measurement, threadsMeasurements, start, dataClients, operations);
   }
 }

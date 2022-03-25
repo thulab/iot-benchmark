@@ -44,9 +44,8 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class Client implements Runnable {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
+public abstract class DataClient implements Runnable {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DataClient.class);
 
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
   protected final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
@@ -80,7 +79,7 @@ public abstract class Client implements Runnable {
 
   private final CyclicBarrier barrier;
 
-  public Client(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public DataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
@@ -92,7 +91,8 @@ public abstract class Client implements Runnable {
     initDBWrappers();
   }
 
-  public static Client getInstance(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public static DataClient getInstance(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_POINT_COMPARISON()) {
@@ -114,7 +114,7 @@ public abstract class Client implements Runnable {
   }
 
   /**
-   * Firstly init dbWrapper After all thread is finished(using barrier), then doTest After test,
+   * Firstly init dbWrapper After all thread is finished(using dataBarrier), then doTest After test,
    * count down latch
    */
   @Override
@@ -124,7 +124,7 @@ public abstract class Client implements Runnable {
         if (dbWrapper != null) {
           dbWrapper.init();
         }
-        // wait for that all clients start test simultaneously
+        // wait for that all dataClients start test simultaneously
         barrier.await();
 
         String currentThread = Thread.currentThread().getName();

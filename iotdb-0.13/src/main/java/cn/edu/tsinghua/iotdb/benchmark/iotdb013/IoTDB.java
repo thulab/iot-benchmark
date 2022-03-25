@@ -64,6 +64,7 @@ public class IoTDB implements IDatabase {
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
   protected Future<?> future;
@@ -211,7 +212,10 @@ public class IoTDB implements IDatabase {
     // get all storage groups
     Set<String> groups = new HashSet<>();
     for (DeviceSchema schema : schemaList) {
-      groups.add(schema.getGroup());
+      if(!storageGroups.contains(schema.getGroup())){
+        groups.add(schema.getGroup());
+        storageGroups.add(schema.getGroup());
+      }
     }
     // register storage groups
     for (String group : groups) {

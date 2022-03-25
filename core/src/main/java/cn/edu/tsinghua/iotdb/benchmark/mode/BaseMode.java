@@ -19,14 +19,13 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.mode;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.DataClient;
+import cn.edu.tsinghua.iotdb.benchmark.client.SchemaClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.TimeClient;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.conf.Config;
 import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
-import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
@@ -47,11 +46,16 @@ public abstract class BaseMode {
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
+  protected ExecutorService schemaExecutorService =
+      Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
   protected ExecutorService executorService =
       Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
-  protected CountDownLatch downLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-  protected CyclicBarrier barrier = new CyclicBarrier(config.getCLIENT_NUMBER());
-  protected List<Client> clients = new ArrayList<>();
+  protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+  protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected CountDownLatch dataDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
+  protected CyclicBarrier dataBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected List<DataClient> dataClients = new ArrayList<>();
+  protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement measurement = new Measurement();
   protected long start = 0;
 
@@ -63,22 +67,22 @@ public abstract class BaseMode {
       return;
     }
     for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
-      Client client = Client.getInstance(i, downLatch, barrier);
+      DataClient client = DataClient.getInstance(i, dataDownLatch, dataBarrier);
       if (client == null) {
         return;
       }
-      clients.add(client);
+      dataClients.add(client);
     }
-    TimeClient timeClient = new TimeClient(clients);
+    TimeClient timeClient = new TimeClient(dataClients);
     timeClient.start();
-    for (Client client : clients) {
+    for (DataClient client : dataClients) {
       executorService.submit(client);
     }
     start = System.nanoTime();
     executorService.shutdown();
     try {
-      // wait for all clients finish test
-      downLatch.await();
+      // wait for all dataClients finish test
+      dataDownLatch.await();
       if (timeClient.isAlive()) {
         timeClient.interrupt();
       }
@@ -91,10 +95,9 @@ public abstract class BaseMode {
 
   protected abstract void postCheck();
 
-  /** Register schema */
-  protected boolean registerSchema(List<DBConfig> dbConfigs, Measurement measurement) {
+  /** Clean up data */
+  protected boolean cleanUpData(List<DBConfig> dbConfigs, Measurement measurement) {
     DBWrapper dbWrapper = new DBWrapper(dbConfigs, measurement);
-    // register schema if needed
     try {
       dbWrapper.init();
       if (config.isIS_DELETE_DATA()) {
@@ -104,16 +107,6 @@ public abstract class BaseMode {
           LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
           return false;
         }
-      }
-      try {
-        MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
-        List<DeviceSchema> schemaList = metaDataSchema.getAllDeviceSchemas();
-        if (!dbWrapper.registerSchema(schemaList)) {
-          return false;
-        }
-      } catch (TsdbException e) {
-        LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
-        return false;
       }
     } catch (TsdbException e) {
       LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
@@ -125,6 +118,27 @@ public abstract class BaseMode {
         LOGGER.error("Close {} failed because ", config.getNET_DEVICE(), e);
       }
     }
+    return true;
+  }
+
+  /** Register schema */
+  protected boolean registerSchema(Measurement measurement) {
+    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+      SchemaClient schemaClient = new SchemaClient(i, measurement, schemaDownLatch, schemaBarrier);
+      schemaClients.add(schemaClient);
+    }
+    for (SchemaClient schemaClient : schemaClients) {
+      schemaExecutorService.submit(schemaClient);
+    }
+    start = System.nanoTime();
+    schemaExecutorService.shutdown();
+    try {
+      // wait for all dataClients finish test
+      schemaDownLatch.await();
+    } catch (InterruptedException e) {
+      LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+      Thread.currentThread().interrupt();
+    }
     LOGGER.info("Registering schema successful!");
     return true;
   }
@@ -134,13 +148,13 @@ public abstract class BaseMode {
       Measurement measurement,
       List<Measurement> threadsMeasurements,
       long st,
-      List<Client> clients,
+      List<DataClient> clients,
       List<Operation> operations) {
     long en = System.nanoTime();
-    LOGGER.info("All clients finished.");
+    LOGGER.info("All dataClients finished.");
     // sum up all the measurements and calculate statistics
     measurement.setElapseTime((en - st) / NANO_TO_SECOND);
-    for (Client client : clients) {
+    for (DataClient client : clients) {
       threadsMeasurements.add(client.getMeasurement());
     }
     for (Measurement m : threadsMeasurements) {
