@@ -44,7 +44,7 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
     }
 
     int eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
-    // The part that cannot be divided equally is given to clients with a smaller number
+    // The part that cannot be divided equally is given to dataClients with a smaller number
     int leftClientDeviceNum = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
     int deviceId = MetaUtil.getDeviceId(0);
     for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {

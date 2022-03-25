@@ -179,8 +179,8 @@ public class Config {
   /** The ratio of not null sensor of one device. */
   private double TS_ALIGNMENT_RATIO = 1.0;
   /**
-   * whether the device is bind to client if true: number of clients <= devices if false: number of
-   * clients can larger than devices
+   * whether the device is bind to client if true: number of dataClients <= devices if false: number
+   * of dataClients can larger than devices
    */
   private boolean IS_CLIENT_BIND = true;
   /**

@@ -19,14 +19,14 @@
 
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
-import cn.edu.tsinghua.iotdb.benchmark.client.Client;
+import cn.edu.tsinghua.iotdb.benchmark.client.DataClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
-public abstract class RealBaseClient extends Client implements Runnable {
+public abstract class RealBaseClient extends DataClient implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
 
