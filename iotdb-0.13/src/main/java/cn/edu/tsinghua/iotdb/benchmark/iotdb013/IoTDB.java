@@ -212,7 +212,7 @@ public class IoTDB implements IDatabase {
     // get all storage groups
     Set<String> groups = new HashSet<>();
     for (DeviceSchema schema : schemaList) {
-      if(!storageGroups.contains(schema.getGroup())){
+      if (!storageGroups.contains(schema.getGroup())) {
         groups.add(schema.getGroup());
         storageGroups.add(schema.getGroup());
       }
