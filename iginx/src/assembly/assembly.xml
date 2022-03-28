@@ -47,27 +47,7 @@
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark_consumer.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/cli-benchmark.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/dae-benchmark.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
             <source>${maven.multiModuleProjectDirectory}/configuration/rep-benchmark.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/ser-benchmark.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/ser_cli-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
