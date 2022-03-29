@@ -43,6 +43,9 @@
     </fileSets>
     <files>
         <file>
+            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark.bat</source>
+        </file>
+        <file>
             <source>${maven.multiModuleProjectDirectory}/configuration/benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
