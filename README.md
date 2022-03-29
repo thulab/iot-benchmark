@@ -1617,13 +1617,7 @@ You can change multiple parameters in each test with format like 'LOOP=20 DEVICE
 
 ## 9.2. Start 
 
-After configuring the file 'routine', you also need to modify rep-benchmark.sh and dea-benchmark.sh. You need to change cli-benchmark.sh to benchmark.sh
-
-```sh
-sh $BENCHMARK_HOME/benchmark.sh
-```
-
-before running you can launch the multi-test task by startup script:
+After configuring the file 'routine', you can launch the multi-test task by startup script:
 
 ```
 > ./rep-benchmark.sh
@@ -1637,7 +1631,7 @@ If you close the terminal or lose connection to client machine, the test process
 Using this interface usually takes a long time, you may want to execute the test process as daemon. In this way, you can just launch the test task as daemon by startup script:
 
 ```sh
-> ./dae-benchmark.sh
+> ./rep-benchmark.sh > /dev/null 2>&1 &
 ```
 
 In this case, if you want to know what is going on, you can check the log information by command as following:

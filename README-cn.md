@@ -69,7 +69,7 @@
   - [7.6. 测试 Victoriametrics](#76-测试-victoriametrics)
   - [7.7. 测试 TimeScaleDB](#77-测试-timescaledb)
   - [7.8. 测试 PI Archive](#78-测试-pi-archive)
-  - [7.9. 测试 TDengine](#79-测试-tdenginee)
+  - [7.9. 测试 TDengine](#79-测试-tdengine)
 - [8. 正确性验证的进一步说明](#8-正确性验证的进一步说明)
 - [9. 自动执行多项测试](#9-自动执行多项测试)
   - [9.1. 配置 routine](#91-配置-routine)
@@ -1623,13 +1623,7 @@ LOOP=50 DEVICE_NUMBER=20 TEST
 
 ## 9.2. 开始测试
 
-配置文件routine后，还需要修改rep-benchmark.sh和dea-benchmark.sh。您需要将 cli-benchmark.sh 更改为 benchmark.sh
-
-```sh
-sh $BENCHMARK_HOME/benchmark.sh
-```
-
-在运行之前，您可以通过启动脚本启动多测试任务：
+配置文件routine后，您可以通过启动脚本启动多测试任务：
 
 ```sh
 > ./rep-benchmark.sh
@@ -1643,7 +1637,7 @@ sh $BENCHMARK_HOME/benchmark.sh
 使用此接口通常需要很长时间，您可能希望将测试过程作为守护程序执行。这样，您可以通过启动脚本将测试任务作为守护程序启动：
 
 ```sh
-> ./dae-benchmark.sh
+> ./rep-benchmark.sh > /dev/null 2>&1 &
 ```
 
 在这种情况下，如果您想知道发生了什么，可以通过以下命令查看日志信息：
