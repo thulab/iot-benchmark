@@ -10,9 +10,9 @@ fi
 # ssh-copy-id [hostname]@[IP]
 
 # configure the related path and host name
-IOTDB_HOME=/home/xzh/iotdb/13.0/apache-iotdb-0.13.0-all-bin
-REMOTE_BENCHMARK_HOME=/home/xzh/benchmark-tool/267/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1
-USER_NAME=xzh
+IOTDB_HOME=/home/user/github/iotdb/iotdb/
+REMOTE_BENCHMARK_HOME=/home/user/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1
+USER_NAME=user
 SSH_PORT=22
 
 #extract parameters from config.properties
