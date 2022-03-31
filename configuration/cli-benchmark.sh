@@ -10,9 +10,9 @@ fi
 # ssh-copy-id [hostname]@[IP]
 
 # configure the related path and host name
-IOTDB_HOME=/home/user/github/iotdb/iotdb/
-REMOTE_BENCHMARK_HOME=/home/user/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1
-USER_NAME=user
+IOTDB_HOME=/home/xzh/iotdb/13.0/apache-iotdb-0.13.0-all-bin
+REMOTE_BENCHMARK_HOME=/home/xzh/benchmark-tool/267/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1
+USER_NAME=xzh
 SSH_PORT=22
 
 #extract parameters from config.properties
@@ -47,7 +47,6 @@ if [[ "${DB#*=}" =~ "IoTDB" ]]; then
        echo 'wait a few seconds for launching IoTDB...'
        sh $IOTDB_HOME/sbin/start-server.sh >/dev/null 2>&1 &
        IOTDB_PID=$!
-       echo ${IOTDB_PID}
      fi
      sleep 20
      echo IOTDB started on $IP with PID: $IOTDB_PID
