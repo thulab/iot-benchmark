@@ -10,9 +10,9 @@ fi
 # ssh-copy-id [hostname]@[IP]
 
 # configure the related path and host name
-IOTDB_HOME=/home/liurui/github/iotdb/iotdb/bin
-REMOTE_BENCHMARK_HOME=/home/admin/git/iotdb-benchmark/influxdb/target/influxdb-0.0.1
-USER_NAME=admin
+IOTDB_HOME=/home/user/github/iotdb/iotdb/
+REMOTE_BENCHMARK_HOME=/home/user/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1
+USER_NAME=user
 SSH_PORT=22
 
 #extract parameters from config.properties
@@ -33,23 +33,36 @@ if [ "${IP#*=}" != "127.0.0.1" ]; then
 fi
 
 # Init IoTDB
-if [ "${DB#*=}" = "IoTDB" -a "${BENCHMARK_WORK_MODE#*=}" = "testWithDefaultPath" ]; then
-   echo "initial database in server..."
-   ssh -p $SSH_PORT $SERVER_HOST "cd $DB_DATA_PATH;rm -rf data;sh $IOTDB_HOME/stop-server.sh;sleep 2"
-   echo 'wait a few seconds for launching IoTDB...'
-   IOTDB_PID=$(ssh -p $SSH_PORT $SERVER_HOST "cd $DB_DATA_PATH;sh $IOTDB_HOME/start-server.sh > /dev/null 2>&1 & echo \$!")
-   sleep 20
-   echo IOTDB started on $IP with PID: $IOTDB_PID
+if [[ "${DB#*=}" =~ "IoTDB" ]]; then
+   if [ "${BENCHMARK_WORK_MODE#*=}" = "testWithDefaultPath" ]; then
+     echo "initial database in server..."
+     if [ "${IP#*=}" != "127.0.0.1" ]; then
+       ssh -p $SSH_PORT $SERVER_HOST "cd $IOTDB_HOME;rm -rf data;sh $IOTDB_HOME/sbin/stop-server.sh;sleep 2"
+       echo 'wait a few seconds for launching IoTDB...'
+       IOTDB_PID=$(ssh -p $SSH_PORT $SERVER_HOST "sh $IOTDB_HOME/sbin/start-server.sh > /dev/null 2>&1 & echo \$!")
+     else
+       if [ "$IOTDB_HOME" ]; then
+          rm -rf "$IOTDB_HOME/data";sh $IOTDB_HOME/sbin/stop-server.sh;sleep 2
+       fi
+       echo 'wait a few seconds for launching IoTDB...'
+       sh $IOTDB_HOME/sbin/start-server.sh >/dev/null 2>&1 &
+       IOTDB_PID=$!
+       echo ${IOTDB_PID}
+     fi
+     sleep 20
+     echo IOTDB started on $IP with PID: $IOTDB_PID
+   fi
 fi
 
 echo '------Client Test Begin Time------'
 date
-cd bin
-sh startup.sh -cf ../conf/config.properties
-wait
+./benchmark.sh
 if [ "${IP#*=}" != "127.0.0.1" ]; then
     echo Stop server system information recording ...
     ssh -p $SSH_PORT $SERVER_HOST "kill $SERVER_PID"
+else
+    echo Stop IoTDB ...
+    sh $IOTDB_HOME/sbin/stop-server.sh
 fi
 
 echo '------Client Test Complete Time------'
