@@ -75,7 +75,7 @@ You can also read [中文版本](README-cn.md).
   - [9.1. Configure routine](#91-configure-routine)
   - [9.2. Start](#92-start)
 - [10. Developer Guidelines](#10-developer-guidelines)
-- [10. Related Article](#10-related-article)
+- [11. Related Article](#11-related-article)
 
 # 3. Overview
 
@@ -1648,7 +1648,7 @@ In this case, if you want to know what is going on, you can check the log inform
     1. You can find TestEntrance in the test file directory under each maven subproject, and run the corresponding test.
     2. Taking IoTDB 0.12 as an example, you can run `iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
-# 10. Related Article
+# 11. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304
