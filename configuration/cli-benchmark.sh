@@ -14,7 +14,7 @@ echo Testing ${DB#*=} ...
 
 # Init ServerMode
 echo Start server system information recording ...
-nohup $BENCHMARK_HOME/ser-benchmark.sh > /dev/null 2>&1 &
+sh $BENCHMARK_HOME/ser-benchmark.sh >/dev/null 2>&1 &
 SERVER_PID=$!
 echo ServerMode started with PID: $SERVER_PID
 
@@ -22,7 +22,6 @@ echo ServerMode started with PID: $SERVER_PID
 # shellcheck disable=SC2039
 if [[ "${DB#*=}" =~ "IoTDB" ]]; then
   # Use default mode
-  sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=testWithDefaultPath/g" $BENCHMARK_HOME/conf/config.propertie
   echo "initial database in server..."
   if [ "$IOTDB_HOME" ]; then
     rm -rf "$IOTDB_HOME/data";sh $IOTDB_HOME/sbin/stop-server.sh;sleep 2
@@ -36,9 +35,10 @@ fi
 
 echo '------Client Test Begin Time------'
 date
+sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=testWithDefaultPath/g" $BENCHMARK_HOME/conf/config.properties
 ./benchmark.sh
 echo Stop Server Mode Benchmark ...
-kill $SERVER_PID
+kill -9 $SERVER_PID
 echo Stop IoTDB ...
 sh $IOTDB_HOME/sbin/stop-server.sh
 

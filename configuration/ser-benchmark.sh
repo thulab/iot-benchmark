@@ -5,7 +5,7 @@ if [ -z "${BENCHMARK_HOME}" ]; then
 fi
 
 echo $BENCHMARK_HOME
-sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_HOME/conf/config.propertie
+sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_HOME/conf/config.properties
 
 echo '------Server Test Begin Time------'
 date
