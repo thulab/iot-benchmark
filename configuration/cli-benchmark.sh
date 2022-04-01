@@ -4,7 +4,7 @@ if [ -z "${BENCHMARK_HOME}" ]; then
   export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.; pwd)"
 fi
 
-# configure the related path and host name
+# configure the path of iotdb
 IOTDB_HOME=/home/user/github/iotdb/iotdb/
 
 #extract parameters from config.properties
