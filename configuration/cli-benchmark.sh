@@ -5,7 +5,7 @@ if [ -z "${BENCHMARK_HOME}" ]; then
 fi
 
 # configure the path of iotdb
-IOTDB_HOME=/home/user/github/iotdb/iotdb/
+IOTDB_HOME=/home/xzh/iotdb/13.0/apache-iotdb-0.13.0-all-bin
 
 #extract parameters from config.properties
 DB=$(grep "^DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
@@ -15,7 +15,8 @@ echo Testing ${DB#*=} ...
 # Init ServerMode
 echo Start server system information recording ...
 sed -i "s/logs/server-logs/g" $BENCHMARK_HOME/conf/logback.xml
-nohup $BENCHMARK_HOME/ser-benchmark.sh >/dev/null 2>&1 &
+sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_HOME/conf/config.properties
+sh $BENCHMARK_HOME/benchmark.sh >/dev/null 2>&1 &
 SERVER_PID=$!
 echo ServerMode started with PID: $SERVER_PID
 

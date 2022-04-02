@@ -13,4 +13,5 @@ $BENCHMARK_HOME/bin/startup.sh -cf $BENCHMARK_HOME/conf/config.properties
 echo '------Server Test Complete Time------'
 date
 
+exit $?
 
