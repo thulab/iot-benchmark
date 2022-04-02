@@ -5,7 +5,7 @@ if [ -z "${BENCHMARK_HOME}" ]; then
 fi
 
 # configure the path of iotdb
-IOTDB_HOME=/home/xzh/iotdb/13.0/apache-iotdb-0.13.0-all-bin
+IOTDB_HOME=/home/user/github/iotdb/iotdb/
 
 #extract parameters from config.properties
 DB=$(grep "^DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
