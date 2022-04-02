@@ -14,7 +14,8 @@ echo Testing ${DB#*=} ...
 
 # Init ServerMode
 echo Start server system information recording ...
-sh $BENCHMARK_HOME/ser-benchmark.sh >/dev/null 2>&1 &
+sed -i "s/logs/server-logs/g" $BENCHMARK_HOME/conf/logback.xml
+nohup $BENCHMARK_HOME/ser-benchmark.sh >/dev/null 2>&1 &
 SERVER_PID=$!
 echo ServerMode started with PID: $SERVER_PID
 
@@ -35,6 +36,7 @@ fi
 
 echo '------Client Test Begin Time------'
 date
+sed -i "s/server-logs/logs/g" $BENCHMARK_HOME/conf/logback.xml
 sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=testWithDefaultPath/g" $BENCHMARK_HOME/conf/config.properties
 ./benchmark.sh
 echo Stop Server Mode Benchmark ...
