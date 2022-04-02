@@ -75,7 +75,7 @@ You can also read [中文版本](README-cn.md).
   - [9.1. Configure routine](#91-configure-routine)
   - [9.2. Start](#92-start)
 - [10. Developer Guidelines](#10-developer-guidelines)
-- [10. Related Article](#10-related-article)
+- [11. Related Article](#11-related-article)
 
 # 3. Overview
 
@@ -1617,13 +1617,7 @@ You can change multiple parameters in each test with format like 'LOOP=20 DEVICE
 
 ## 9.2. Start 
 
-After configuring the file 'routine', you also need to modify rep-benchmark.sh and dea-benchmark.sh. You need to change cli-benchmark.sh to benchmark.sh
-
-```sh
-sh $BENCHMARK_HOME/benchmark.sh
-```
-
-before running you can launch the multi-test task by startup script:
+After configuring the file 'routine', you can launch the multi-test task by startup script:
 
 ```
 > ./rep-benchmark.sh
@@ -1637,7 +1631,7 @@ If you close the terminal or lose connection to client machine, the test process
 Using this interface usually takes a long time, you may want to execute the test process as daemon. In this way, you can just launch the test task as daemon by startup script:
 
 ```sh
-> ./dae-benchmark.sh
+> ./rep-benchmark.sh > /dev/null 2>&1 &
 ```
 
 In this case, if you want to know what is going on, you can check the log information by command as following:
@@ -1654,7 +1648,7 @@ In this case, if you want to know what is going on, you can check the log inform
     1. You can find TestEntrance in the test file directory under each maven subproject, and run the corresponding test.
     2. Taking IoTDB 0.12 as an example, you can run `iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
-# 10. Related Article
+# 11. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304

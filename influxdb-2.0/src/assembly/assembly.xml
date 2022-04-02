@@ -19,7 +19,7 @@
     under the License.
 -->
 <assembly>
-    <id>influxdb-2.0</id>
+    <id>InfluxDB-2.0</id>
     <formats>
         <format>dir</format>
         <format>zip</format>
@@ -43,19 +43,10 @@
     </fileSets>
     <files>
         <file>
+            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark.bat</source>
+        </file>
+        <file>
             <source>${maven.multiModuleProjectDirectory}/configuration/benchmark.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark_consumer.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/cli-benchmark.sh</source>
-            <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/dae-benchmark.sh</source>
             <fileMode>0755</fileMode>
         </file>
         <file>
@@ -67,11 +58,8 @@
             <fileMode>0755</fileMode>
         </file>
         <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/ser_cli-benchmark.sh</source>
+            <source>${maven.multiModuleProjectDirectory}/configuration/cli-benchmark.sh</source>
             <fileMode>0755</fileMode>
-        </file>
-        <file>
-            <source>${maven.multiModuleProjectDirectory}/configuration/benchmark.bat</source>
         </file>
         <file>
             <source>${maven.multiModuleProjectDirectory}/configuration/routine</source>
