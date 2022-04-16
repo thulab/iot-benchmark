@@ -85,6 +85,7 @@ Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
 | :------------------: | :------: | :------------------------------------------------------: |
+|        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.11   |                jdbc、session、sessionPool                |
 |        IoTDB         |  v0.10   |                      jdbc、session                       |
@@ -124,7 +125,7 @@ To use IoTDB-benchmark, you need to have:
 1. Java 8
 2. Maven: It is not recommended to use the mirror.
 3. The appropriate version of the database
-   1. Apache IoTDB >= v0.9 ([Get it!](https://github.com/apache/iotdb))，now mainly supported IoTDB v0.12
+   1. Apache IoTDB >= v0.9 ([Get it!](https://github.com/apache/iotdb))，now mainly supported IoTDB v0.12, v0.13
    2. His corresponding version of the database
 4. ServerMode and CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
@@ -133,8 +134,8 @@ To use IoTDB-benchmark, you need to have:
 | :-----------------------------------: | :-------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
 |        Conventional test mode         |  testWithDefaultPath  | Supports mixed loads of multiple read and write operations                                                                                       |
 |          Generate data mode           |   generateDataMode    | Benchmark generates the data set to the FILE_PATH path                                                                                           |
-|      Write mode of verification       | verificationWriteMode | Load the data set from the FILE_PATH path for writing, currently supports IoTDB v0.12                                                            |
-|      Query mode of verification       | verificationQueryMode | Load the data set from the FILE_PATH path and compare it with the database. Currently, IoTDB v0.12 is supported                                  |
+|      Write mode of verification       | verificationWriteMode | Load the data set from the FILE_PATH path for writing, currently supports IoTDB v0.12 and v0.13                                                  |
+|      Query mode of verification       | verificationQueryMode | Load the data set from the FILE_PATH path and compare it with the database. Currently, IoTDB v0.12 and v0.13 is supported                        |
 | Server resource usage monitoring mode |      serverMODE       | Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter) |
 
 ## 5.3. Build of IoTDB-Benchmark
@@ -147,12 +148,13 @@ mvn clean package -Dmaven.test.skip=true
 
 This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-After, for example, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run `./benchmark.sh` to start IoTDB-Benchmark.
+After, for example, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run `./benchmark.sh` to start IoTDB-Benchmark.
 
-The default configuration file is stored under `iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
+The default configuration file is stored under `iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                  |
 | :------------------: | :------: | :-----------------------: | :---------------------------------------------------------------------------------------------------------: |
+|        IoTDB         |   0.13   |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |        IoTDB         |   0.11   |        iotdb-0.11         |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                        |
 |        IoTDB         |   0.10   |        iotdb-0.10         |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                     |
@@ -194,7 +196,7 @@ edit the corresponding parameters in the ```config.properties``` file as followi
 ```properties
 HOST=127.0.0.1
 PORT=6667
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
@@ -212,7 +214,7 @@ Currently, you can edit other configs, more config in [config.properties](config
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -254,7 +256,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -354,7 +356,7 @@ Edit the corresponding parameters in the ```config.properties``` file as followi
 HOST=127.0.0.1
 PORT=6667
 IS_DELETE_DATA=false
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -389,7 +391,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -430,7 +432,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -497,7 +499,7 @@ Modify the relevant parameters in the ```config.properties``` file as follows (p
 HOST=127.0.0.1
 PORT=6667
 IS_DELETE_DATA=false
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -528,7 +530,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine.
 
-Then you enter `iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -571,7 +573,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -634,7 +636,7 @@ Modify the relevant parameters in the ```config.properties``` file as follows (p
 HOST=127.0.0.1
 PORT=6667
 IS_DELETE_DATA=false
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -665,7 +667,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine.
 
-Then you enter `iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -708,7 +710,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -782,7 +784,7 @@ MONITOR_INTERVAL=0
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -843,7 +845,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Start
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -919,7 +921,7 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 ## 6.8. Write mode for Verificaiton (single database, external data set)
 
-In order to verify the correctness of the data set writing, you can use this mode to write the data set generated in the generated data mode. Currently this mode only supports IoTDB v0.12
+In order to verify the correctness of the data set writing, you can use this mode to write the data set generated in the generated data mode. Currently this mode only supports IoTDB v0.12 and v0.13
 
 ### 6.8.1. Configure
 
@@ -964,7 +966,7 @@ After that, you can start it.
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -1007,7 +1009,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1041,7 +1043,7 @@ INGESTION           0.39        0.10        0.12        0.13        0.15        
 
 Before running this mode, you need to use the correctness write mode to write data to the database.
 
-In order to verify the correctness of the data set writing, you can use this mode to query the data set written to the database. Currently this mode only supports IoTDB v0.12
+In order to verify the correctness of the data set writing, you can use this mode to query the data set written to the database. Currently this mode only supports IoTDB v0.12 and v0.13
 
 ### 6.9.1. Configure
 
@@ -1063,7 +1065,7 @@ BIG_BATCH_SIZE=100
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -1107,7 +1109,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1142,7 +1144,7 @@ VERIFICATION_QUERY  10.25       3.47        6.49        7.90        9.17        
 In order to more conveniently and quickly complete the correctness verification, iotdb-benchmark also supports dual database mode.
 
 1. For all the test scenarios mentioned above, unless otherwise specified, dual databases are supported. Please **start the test** in the `verification` project.
-2. For the relevant test scenarios for correctness verification below, all must be run in dual database mode, and currently **only supports** iotdb-0.12 and timescaledb.
+2. For the relevant test scenarios for correctness verification below, all must be run in dual database mode, and currently **only supports** iotdb-0.12, iotdb-0.13 and timescaledb.
 
 In order to complete the dual database configuration, you need to make the following modifications to `config.properties`:
 
@@ -1181,7 +1183,7 @@ In addition, please modify the following configuration in `config.properties`:
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
@@ -1251,7 +1253,7 @@ ANOTHER DBConfig=
   TOKEN=token
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1321,7 +1323,7 @@ In addition, please modify the following configuration in `config.properties`:
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
@@ -1388,7 +1390,7 @@ ANOTHER DBConfig=
   TOKEN=token
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1441,7 +1443,7 @@ In addition, please modify the following configuration in `config.properties` (N
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
 OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
@@ -1510,7 +1512,7 @@ ANOTHER DBConfig=
   TOKEN=token
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1593,7 +1595,7 @@ VALUE_RANGE_QUERY_DESC5.05        0.59        0.71        0.81        3.36      
 
 # 8. Further explanation of correctness verification
 
-1. Now verification **only support** IoTDB v0.12 and TimescaleDB
+1. Now verification **only support** IoTDB v0.12, IoTDB v0.13 and TimescaleDB
 2. [Quick Start](verification/README.md)
 
 # 9. Perform Multiple Tests Automatically
@@ -1646,7 +1648,7 @@ In this case, if you want to know what is going on, you can check the log inform
 2. The realization of all database tests of IoTDB-Benchmark are in each maven sub-project.
 3. If you want to use an editor such as IDEA to run Benchmark:
     1. You can find TestEntrance in the test file directory under each maven subproject, and run the corresponding test.
-    2. Taking IoTDB 0.12 as an example, you can run `iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
+    2. Taking IoTDB 0.13 as an example, you can run `iotdb-0.13/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 11. Related Article
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
