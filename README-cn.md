@@ -89,6 +89,7 @@ IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进
 
 |        数据库        |   版本   |                         连接方式                         |
 | :------------------: | :------: | :------------------------------------------------------: |
+|        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.11   |                jdbc、session、sessionPool                |
 |        IoTDB         |  v0.10   |                      jdbc、session                       |
@@ -128,7 +129,7 @@ IotDB-Benchmark的特点如下：
 1. Java 8
 2. Maven：不建议使用镜像源，国内可以使用阿里云镜像源。
 3. 合适版本的数据库
-   1. Apache IoTDB >= v0.9([获取方式](https://github.com/apache/iotdb))，并且目前主要支持IoTDB v0.12
+   1. Apache IoTDB >= v0.9([获取方式](https://github.com/apache/iotdb))，并且目前主要支持IoTDB v0.12 和 IoTDB v0.13
    2. 其他的对应版本的数据库
 4. ServerMode和CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
 5. 我们建议使用MacOs或Linux系统，本文以MacOS和Linux系统为例，如果使用Windows系统，请使用`conf`文件夹下的`benchmark.bat`脚本启动benchmark。
@@ -138,8 +139,8 @@ IotDB-Benchmark的特点如下：
 | :--------------------: | :-------------------: | :------------------------------------------------------------------------------------- |
 |      常规测试模式      |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                           |
 |      生成数据模式      |   generateDataMode    | Benchmark生成数据集到FILE_PATH路径中                                                   |
-|     正确性写入模式     | verificationWriteMode | 从FILE_PATH路径中加载数据集进行写入，目前支持IoTDB v0.12                               |
-|     正确性查询模式     | verificationQueryMode | 从FILE_PATH路径中加载数据集和数据库中进行比对，目前支持IoTDB v0.12                     |
+|     正确性写入模式     | verificationWriteMode | 从FILE_PATH路径中加载数据集进行写入，目前支持IoTDB v0.12 和 IoTDB v0.13                  |
+|     正确性查询模式     | verificationQueryMode | 从FILE_PATH路径中加载数据集和数据库中进行比对，目前支持IoTDB v0.12 和 IoTDB v0.13       |
 | 服务器资源使用监控模式 |      serverMODE       | 服务器资源使用监控模式（该模式下运行通过ser-benchmark.sh脚本启动，无需手动配置该参数） |
 
 
@@ -153,12 +154,13 @@ mvn clean package -Dmaven.test.skip=true
 
 该命令会编译IoTDB-Benchmark的core模块，和所有其他相关的数据库。
 
-在完成编译后，以IoTDB v0.12为例，你可以进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`文件夹下，使用`./benchmark.sh`来启动对IoTDB v0.12的测试。
+在完成编译后，以IoTDB v0.13为例，你可以进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`文件夹下，使用`./benchmark.sh`来启动对IoTDB v0.13的测试。
 
-默认的配置文件存放在`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
+默认的配置文件存放在`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
 |        数据库        |   版本   |   对应子项目    |                                                  DB_SWITCH                                                   |
 | :------------------: | :------: | :-------------: | :----------------------------------------------------------------------------------------------------------: |
+|        IoTDB         |   0.13   |   iotdb-0.13    | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |   iotdb-0.12    | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |        IoTDB         |   0.11   |   iotdb-0.11    |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                         |
 |        IoTDB         |   0.10   |   iotdb-0.10    |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                      |
@@ -200,7 +202,7 @@ mvn clean package -Dmaven.test.skip=true
 ```properties
 HOST=127.0.0.1
 PORT=6667
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
@@ -218,7 +220,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -260,7 +262,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -360,7 +362,7 @@ MAX_K=170000
 HOST=127.0.0.1
 PORT=6667
 IS_DELETE_DATA=false
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -394,7 +396,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -436,7 +438,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -502,7 +504,7 @@ VALUE_RANGE_QUERY_DESC1.40        0.61        0.72        0.76        0.89      
 HOST=127.0.0.1
 PORT=6667
 IS_DELETE_DATA=false
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -533,7 +535,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -576,7 +578,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -639,7 +641,7 @@ VALUE_RANGE_QUERY_DESC0.96        0.37        0.44        0.48        0.55      
 HOST=127.0.0.1
 PORT=6667
 IS_DELETE_DATA=false
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
 OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
@@ -670,7 +672,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -713,7 +715,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -788,7 +790,7 @@ MONITOR_INTERVAL=0
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -852,7 +854,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Benchmark的启动
 
-您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -928,7 +930,7 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 ## 6.8. 正确性写入模式（单数据库，外部数据集）
 
-为了验证数据集写入的正确性，您可以使用该模式写入生成数据模式中生成的数据集，目前该模式仅支持IoTDB v0.12
+为了验证数据集写入的正确性，您可以使用该模式写入生成数据模式中生成的数据集，目前该模式仅支持IoTDB v0.12 和 IoTDB v0.13
 
 ### 6.8.1. Benchmark的配置
 
@@ -973,7 +975,7 @@ IS_COPY_MODE=true
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1017,7 +1019,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1051,7 +1053,7 @@ INGESTION           0.39        0.10        0.12        0.13        0.15        
 
 在运行这个模式之前需要先使用正确性写入模式写入数据到数据库。
 
-为了验证数据集写入的正确性，您可以使用该模式查询写入到数据库中的数据集，目前该模式仅支持IoTDB v0.12
+为了验证数据集写入的正确性，您可以使用该模式查询写入到数据库中的数据集，目前该模式仅支持IoTDB v0.13
 
 ### 6.9.1. Benchmark的配置
 
@@ -1073,7 +1075,7 @@ BIG_BATCH_SIZE=100
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1116,7 +1118,7 @@ SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1151,7 +1153,7 @@ VERIFICATION_QUERY  10.25       3.47        6.49        7.90        9.17        
 为了更方便、快速完成正确性验证，iotdb-benchmark也支持双数据库模式。
 
 1. 对于上文中提到的所有测试场景，除特别说明，均支持双数据库进行。请在`verification`项目中**启动测试**。
-2. 对于下文中的正确性验证的相关测试场景，均必须在双数据库模式下运行，并且目前仅仅支持iotdb-0.12和timescaledb两种。
+2. 对于下文中的正确性验证的相关测试场景，均必须在双数据库模式下运行，并且目前仅仅支持iotdb-0.12, iotdb-0.13和timescaledb。
 
 为了完成双数据库配置，您需要对`config.properties`完成如下修改：
 
@@ -1191,7 +1193,7 @@ IS_POINT_COMPARISON=false
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
@@ -1261,7 +1263,7 @@ ANOTHER DBConfig=
   TOKEN=token
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1331,7 +1333,7 @@ IS_POINT_COMPARISON=true
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
 OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
@@ -1398,7 +1400,7 @@ ANOTHER DBConfig=
   TOKEN=token
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1451,7 +1453,7 @@ IS_COMPARISON=true
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
-DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
 OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
@@ -1519,7 +1521,7 @@ ANOTHER DBConfig=
   TOKEN=token
 OUT_OF_ORDER_MODE=POISSON
 DBConfig=
-  DB_SWITCH=IoTDB-012-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
   PORT=[6667]
   USERNAME=root
@@ -1601,7 +1603,7 @@ VALUE_RANGE_QUERY_DESC5.05        0.59        0.71        0.81        3.36      
 [快速指引](./tdengine/README.md)
 
 # 8. 正确性验证的进一步说明
-1. 目前正确性验证部分仅支持IoTDB v0.12和TimeScaleDB
+1. 目前正确性验证部分仅支持IoTDB v0.12, IoTDB v0.13和TimeScaleDB
 2. [快速指引](verification/README.md)
 
 # 9. 自动化脚本
@@ -1669,7 +1671,7 @@ LOOP=50 DEVICE_NUMBER=20 TEST
 2. IoTDB-Benchmark的所有的数据库测试的实现均在各个maven子项目中。
 3. 如果你想要使用IDEA等编辑器运行Benchmark：
    1. 可以在每一个maven子项目下找到test文件目录下的TestEntrance，运行对应测试。
-   2. 以IoTDB 0.12为例，你可以运行`iotdb-0.12/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
+   2. 以IoTDB 0.13为例，你可以运行`iotdb-0.13/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 11. 相关文章
 Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
