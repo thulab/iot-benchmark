@@ -33,7 +33,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class CSVSchemaWriter extends SchemaWriter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CSVSchemaWriter.class);
@@ -44,7 +46,21 @@ public class CSVSchemaWriter extends SchemaWriter {
     try {
       // process target
       Path path = Paths.get(config.getFILE_PATH());
-      Files.deleteIfExists(path);
+      if (Files.isDirectory(path)) {
+        try (Stream<Path> walk = Files.walk(path)) {
+          walk.sorted(Comparator.reverseOrder())
+              .forEach(
+                  subPath -> {
+                    try {
+                      Files.delete(subPath);
+                    } catch (IOException e) {
+                      e.printStackTrace();
+                    }
+                  });
+        }
+      } else {
+        Files.deleteIfExists(path);
+      }
       Files.createDirectories(path);
 
       LOGGER.info("Finish record schema.");
