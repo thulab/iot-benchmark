@@ -578,10 +578,11 @@ public class ConfigDescriptor {
   private boolean checkDatabaseVerification(DBConfig dbConfig) {
     if ((dbConfig.getDB_SWITCH() == DBSwitch.DB_TIMESCALE
             && dbConfig.getDB_SWITCH().getType() == DBType.IoTDB
-            && dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_012)||(
-            dbConfig.getDB_SWITCH().getType()==DBType.InfluxDB&&dbConfig.getDB_SWITCH().getVersion()==null)){
+            && dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_012)
+        || (dbConfig.getDB_SWITCH().getType() == DBType.InfluxDB
+            && dbConfig.getDB_SWITCH().getVersion() == null)) {
       return true;
-    }else {
+    } else {
       LOGGER.error("Verification only support between iotdb v0.12 timescaledb and influxdb 1.x");
       return false;
     }
