@@ -51,7 +51,14 @@ public class InfluxDataModel implements Serializable {
   }
 
   public void setFields(HashMap<String, Object> fields) {
-    this.fields = fields;
+    for (Map.Entry<String, Object> entry : fields.entrySet()) {
+      Object value = entry.getValue();
+      if (value instanceof Float) {
+        // If float type passes through the lineProtocol, there will be a problem with the accuracy
+        value = Double.valueOf(value.toString());
+      }
+      this.fields.put(entry.getKey(), value);
+    }
   }
 
   public void setTimestamp(long timestamp) {

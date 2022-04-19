@@ -921,7 +921,7 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 ## 6.8. Write mode for Verificaiton (single database, external data set)
 
-In order to verify the correctness of the data set writing, you can use this mode to write the data set generated in the generated data mode. Currently this mode only supports IoTDB v0.12 and v0.13
+In order to verify the correctness of the data set writing, you can use this mode to write the data set generated in the generated data mode. Currently this mode only supports IoTDB v0.12 , v0.13 and influxdb v1.x
 
 ### 6.8.1. Configure
 
@@ -1043,7 +1043,7 @@ INGESTION           0.39        0.10        0.12        0.13        0.15        
 
 Before running this mode, you need to use the correctness write mode to write data to the database.
 
-In order to verify the correctness of the data set writing, you can use this mode to query the data set written to the database. Currently this mode only supports IoTDB v0.12 and v0.13
+In order to verify the correctness of the data set writing, you can use this mode to query the data set written to the database. Currently this mode only supports IoTDB v0.12 , v0.13 and influxdb v1.x
 
 ### 6.9.1. Configure
 
