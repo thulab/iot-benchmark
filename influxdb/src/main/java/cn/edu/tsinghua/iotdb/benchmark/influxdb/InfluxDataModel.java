@@ -54,6 +54,7 @@ public class InfluxDataModel implements Serializable {
     for (Map.Entry<String, Object> entry : fields.entrySet()) {
       Object value = entry.getValue();
       if (value instanceof Float) {
+        // If float type passes through the lineProtocol, there will be a problem with the accuracy
         value = Double.valueOf(value.toString());
       }
       this.fields.put(entry.getKey(), value);
