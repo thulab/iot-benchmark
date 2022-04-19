@@ -440,7 +440,7 @@ public class InfluxDB implements IDatabase {
    * @param verificationQuery
    */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery){
+  public Status verificationQuery(VerificationQuery verificationQuery) {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -448,41 +448,41 @@ public class InfluxDB implements IDatabase {
     List<Record> records = verificationQuery.getRecords();
     if (records == null || records.size() == 0) {
       return new Status(
-              false,
-              new TsdbException("There are no records in verficationQuery."),
-              "There are no records in verficationQuery.");
+          false,
+          new TsdbException("There are no records in verficationQuery."),
+          "There are no records in verficationQuery.");
     }
 
     StringBuilder sql = new StringBuilder();
     sql.append(getSimpleQuerySqlHead(deviceSchemas));
-    Map<Long,List<Object>> recordMap = new HashMap<>();
-    if(deviceSchemas.size()!=0){
+    Map<Long, List<Object>> recordMap = new HashMap<>();
+    if (deviceSchemas.size() != 0) {
       sql.append("and (time = ").append(records.get(0).getTimestamp());
-    }else {
+    } else {
       sql.append("WHERE time = ").append(records.get(0).getTimestamp());
     }
-    recordMap.put(records.get(0).getTimestamp(),records.get(0).getRecordDataValue());
-    for (int i = 1; i < records.size();i++){
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
       Record record = records.get(i);
       sql.append(" or time = ").append(record.getTimestamp());
-      recordMap.put(record.getTimestamp(),record.getRecordDataValue());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
-    if (deviceSchemas.size()!=0){
+    if (deviceSchemas.size() != 0) {
       sql.append(")");
     }
     int point = 0;
     int line = 0;
-    QueryResult queryResult = influxDbInstance.query(new Query(sql.toString(),influxDbName));
-    for (QueryResult.Result results : queryResult.getResults()){
-      for (QueryResult.Series series:results.getSeries()){
-        for (List<Object> objects:series.getValues()){
+    QueryResult queryResult = influxDbInstance.query(new Query(sql.toString(), influxDbName));
+    for (QueryResult.Result results : queryResult.getResults()) {
+      for (QueryResult.Series series : results.getSeries()) {
+        for (List<Object> objects : series.getValues()) {
           Long time = ((Double) objects.get(0)).longValue();
           List<Object> values = recordMap.get(time);
           for (int i = 0; i < values.size(); i++) {
-            String result = objects.get(i+1).toString();
-            String target= String.valueOf(values.get(i));
+            String result = objects.get(i + 1).toString();
+            String target = String.valueOf(values.get(i));
             if (!result.equals(target)) {
-              LOGGER.error("Using SQL: " + sql + ",Expected:" + result+ " but was: " + target);
+              LOGGER.error("Using SQL: " + sql + ",Expected:" + result + " but was: " + target);
             } else {
               point++;
             }
@@ -493,12 +493,10 @@ public class InfluxDB implements IDatabase {
     }
     if (recordMap.size() != line) {
       LOGGER.error(
-              "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
     }
-    return new Status(true,point);
+    return new Status(true, point);
   }
-
-
 
   private static long getToNanoConst(String timePrecision) {
     if (timePrecision.equals("ms")) {
