@@ -30,8 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** meta data schema */
@@ -45,6 +47,8 @@ public abstract class MetaDataSchema {
       new ConcurrentHashMap<>();
   /** Name mapping of DeviceSchema */
   protected static final Map<String, DeviceSchema> NAME_DATA_SCHEMA = new ConcurrentHashMap<>();
+  /** The set of group */
+  protected static final Set<String> GROUPS = new HashSet<>();
   /** The singleton of BaseDataSchema */
   private static MetaDataSchema metaDataSchema = null;
   /** The init method of MetaDataSchema */
@@ -82,6 +86,11 @@ public abstract class MetaDataSchema {
   /** Get All Device Schema */
   public List<DeviceSchema> getAllDeviceSchemas() {
     return new ArrayList<>(NAME_DATA_SCHEMA.values());
+  }
+
+  /** Get All Group */
+  public Set<String> getAllGroups() {
+    return GROUPS;
   }
 
   /** Singleton */

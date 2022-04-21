@@ -36,19 +36,41 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
+import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,6 +83,8 @@ public class IoTDB implements IDatabase {
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final CyclicBarrier schemaBarrier =
+      new CyclicBarrier(MetaDataSchema.getInstance().getAllGroups().size());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
@@ -147,11 +171,14 @@ public class IoTDB implements IDatabase {
         }
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
+        }
+        schemaBarrier.await();
+        for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
+          registerStorageGroups(pair.getKey(), pair.getValue());
           if (config.isTEMPLATE()) {
             registerTemplates(pair.getKey(), pair.getValue());
-          } else {
-            registerTimeseries(pair.getKey(), pair.getValue());
           }
+          registerTimeseries(pair.getKey(), pair.getValue());
         }
       } catch (Exception e) {
         throw new TsdbException(e);
