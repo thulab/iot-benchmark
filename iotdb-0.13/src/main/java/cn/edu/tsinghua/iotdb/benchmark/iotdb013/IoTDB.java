@@ -38,7 +38,6 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
@@ -87,8 +86,7 @@ public class IoTDB implements IDatabase {
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-  protected static final CyclicBarrier schemaBarrier =
-      new CyclicBarrier(MetaDataSchema.getInstance().getAllGroups().size());
+  protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
