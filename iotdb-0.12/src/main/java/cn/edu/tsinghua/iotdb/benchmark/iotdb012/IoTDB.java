@@ -169,14 +169,15 @@ public class IoTDB implements IDatabase {
         }
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
-        }
-        schemaBarrier.await();
-        for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
-          registerStorageGroups(pair.getKey(), pair.getValue());
           if (config.isTEMPLATE()) {
             registerTemplates(pair.getKey(), pair.getValue());
           }
-          registerTimeseries(pair.getKey(), pair.getValue());
+        }
+        schemaBarrier.await();
+        if (!config.isTEMPLATE()) {
+          for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
+            registerTimeseries(pair.getKey(), pair.getValue());
+          }
         }
       } catch (Exception e) {
         throw new TsdbException(e);
@@ -223,7 +224,7 @@ public class IoTDB implements IDatabase {
           compressionTypes);
 
     } catch (StatementExecutionException e) {
-      // do notiong
+      // do nothing
     }
     for (DeviceSchema deviceSchema : schemaList) {
       try {
