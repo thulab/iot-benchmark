@@ -576,15 +576,26 @@ public class ConfigDescriptor {
    * @return
    */
   private boolean checkDatabaseVerification(DBConfig dbConfig) {
-    if ((dbConfig.getDB_SWITCH() == DBSwitch.DB_TIMESCALE
-            && dbConfig.getDB_SWITCH().getType() == DBType.IoTDB
-            && dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_012)
-        || (dbConfig.getDB_SWITCH().getType() == DBType.InfluxDB
-            && dbConfig.getDB_SWITCH().getVersion() == null)) {
-      return true;
-    } else {
-      LOGGER.error("Verification only support between iotdb v0.12 timescaledb and influxdb 1.x");
-      return false;
+    boolean result = false;
+    if (dbConfig.getDB_SWITCH().getType() == DBType.IoTDB) {
+      // support iotdb 0.12 & 0.13
+      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_013
+          || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_012) {
+        result = true;
+      }
+    } else if (dbConfig.getDB_SWITCH().getType() == DBType.InfluxDB) {
+      // support influxdb 1.x
+      if (dbConfig.getDB_SWITCH().getVersion() == null) {
+        result = true;
+      }
+    } else if (dbConfig.getDB_SWITCH() == DBSwitch.DB_TIMESCALE) {
+      // support timescaledb
+      result = true;
     }
+    if (!result) {
+      LOGGER.error(
+          "Verification only support between iotdb v0.12, v0.13, timescaledb and influxdb 1.x");
+    }
+    return result;
   }
 }
