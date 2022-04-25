@@ -78,6 +78,8 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
+  private static final String TEMPLATE_NAME = "IoTDB-Benchmark-Template";
+  private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
@@ -169,9 +171,6 @@ public class IoTDB implements IDatabase {
         }
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
-          if (config.isTEMPLATE()) {
-            registerTemplates(pair.getKey(), pair.getValue());
-          }
         }
         schemaBarrier.await();
         if (!config.isTEMPLATE()) {
@@ -197,14 +196,18 @@ public class IoTDB implements IDatabase {
     return true;
   }
 
-  private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
+  private synchronized void createTemplate(Session metaSession, DeviceSchema deviceSchema)
       throws IoTDBConnectionException {
+    if (templateInit.get()) {
+      return;
+    }
+
     List<List<String>> measurementList = new ArrayList<>();
     List<List<TSDataType>> dataTypeList = new ArrayList<>();
     List<List<TSEncoding>> encodingList = new ArrayList<>();
     List<CompressionType> compressionTypes = new ArrayList<>();
     List<String> schemaNames = new ArrayList<>();
-    for (Sensor sensor : schemaList.get(0).getSensors()) {
+    for (Sensor sensor : deviceSchema.getSensors()) {
       measurementList.add(Collections.singletonList(sensor.getName()));
       dataTypeList.add(
           Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
@@ -216,40 +219,39 @@ public class IoTDB implements IDatabase {
     }
     try {
       metaSession.createSchemaTemplate(
-          "testTemplate",
+          TEMPLATE_NAME,
           schemaNames,
           measurementList,
           dataTypeList,
           encodingList,
           compressionTypes);
-
     } catch (StatementExecutionException e) {
       // do nothing
     }
-    for (DeviceSchema deviceSchema : schemaList) {
-      try {
-        metaSession.setSchemaTemplate(
-            "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
-      } catch (StatementExecutionException e) {
-        // do nothing
-      }
-    }
+    templateInit.set(true);
   }
 
   private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)
-      throws TsdbException {
+      throws TsdbException, IoTDBConnectionException {
     // get all storage groups
-    Set<String> groups = new HashSet<>();
+    Set<DeviceSchema> deviceSchemas = new HashSet<>();
     for (DeviceSchema schema : schemaList) {
       if (!storageGroups.contains(schema.getGroup())) {
-        groups.add(schema.getGroup());
+        deviceSchemas.add(schema);
         storageGroups.add(schema.getGroup());
       }
     }
+    if (config.isTEMPLATE() && deviceSchemas.size() != 0) {
+      createTemplate(metaSession, schemaList.get(0));
+    }
     // register storage groups
-    for (String group : groups) {
+    for (DeviceSchema deviceSchema : deviceSchemas) {
       try {
-        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
+        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+        if (config.isTEMPLATE()) {
+          metaSession.setSchemaTemplate(
+              TEMPLATE_NAME, ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+        }
       } catch (Exception e) {
         handleRegisterException(e);
       }
