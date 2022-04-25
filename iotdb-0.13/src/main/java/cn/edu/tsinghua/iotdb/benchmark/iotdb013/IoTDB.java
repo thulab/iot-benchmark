@@ -88,6 +88,8 @@ public class IoTDB implements IDatabase {
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final CyclicBarrier templateBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
@@ -145,7 +147,6 @@ public class IoTDB implements IDatabase {
 
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       Map<Session, List<DeviceSchema>> sessionListMap = new HashMap<>();
-
       try {
         if (!config.isIS_ALL_NODES_VISIBLE()) {
           Session metaSession =
@@ -174,6 +175,10 @@ public class IoTDB implements IDatabase {
             sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
           }
         }
+        int sessionIndex = random.nextInt(sessionListMap.size());
+        Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+        createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+        templateBarrier.await();
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
@@ -201,54 +206,48 @@ public class IoTDB implements IDatabase {
     return true;
   }
 
-  private synchronized void createTemplate(Session metaSession, DeviceSchema deviceSchema)
+  private void createTemplate(Session metaSession, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, IOException {
-    if (templateInit.get()) {
-      return;
-    }
-    Template template = null;
-    if (config.isVECTOR()) {
-      template = new Template(TEMPLATE_NAME, true);
-    } else {
-      template = new Template(TEMPLATE_NAME, false);
-    }
-    try {
-      for (Sensor sensor : deviceSchema.getSensors()) {
-        MeasurementNode measurementNode =
-            new MeasurementNode(
-                sensor.getName(),
-                Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
-                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
-                Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        template.addToTemplate(measurementNode);
+    if (templateInit.compareAndSet(false, true)) {
+      Template template = null;
+      if (config.isVECTOR()) {
+        template = new Template(TEMPLATE_NAME, true);
+      } else {
+        template = new Template(TEMPLATE_NAME, false);
       }
-      metaSession.createSchemaTemplate(template);
-    } catch (StatementExecutionException e) {
-      // do nothing
+      try {
+        for (Sensor sensor : deviceSchema.getSensors()) {
+          MeasurementNode measurementNode =
+              new MeasurementNode(
+                  sensor.getName(),
+                  Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
+                  Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
+                  Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+          template.addToTemplate(measurementNode);
+        }
+        metaSession.createSchemaTemplate(template);
+      } catch (StatementExecutionException e) {
+        // do nothing
+      }
     }
-    templateInit.set(true);
   }
 
   private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)
-      throws TsdbException, IoTDBConnectionException, IOException {
+      throws TsdbException {
     // get all storage groups
-    Set<DeviceSchema> deviceSchemas = new HashSet<>();
+    Set<String> groups = new HashSet<>();
     for (DeviceSchema schema : schemaList) {
       if (!storageGroups.contains(schema.getGroup())) {
-        deviceSchemas.add(schema);
+        groups.add(schema.getGroup());
         storageGroups.add(schema.getGroup());
       }
     }
-    if (config.isTEMPLATE() && deviceSchemas.size() != 0) {
-      createTemplate(metaSession, schemaList.get(0));
-    }
     // register storage groups
-    for (DeviceSchema deviceSchema : deviceSchemas) {
+    for (String group : groups) {
       try {
-        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
         if (config.isTEMPLATE()) {
-          metaSession.setSchemaTemplate(
-              TEMPLATE_NAME, ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+          metaSession.setSchemaTemplate(TEMPLATE_NAME, ROOT_SERIES_NAME + "." + group);
         }
       } catch (Exception e) {
         handleRegisterException(e);

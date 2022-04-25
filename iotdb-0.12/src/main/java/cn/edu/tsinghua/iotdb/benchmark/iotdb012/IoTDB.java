@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
@@ -85,11 +86,14 @@ public class IoTDB implements IDatabase {
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier templateBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
   protected Future<?> future;
   protected DBConfig dbConfig;
+  protected Random random = new Random(config.getDATA_SEED());
 
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -169,6 +173,10 @@ public class IoTDB implements IDatabase {
             sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
           }
         }
+        int sessionIndex = random.nextInt(sessionListMap.size());
+        Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+        createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+        templateBarrier.await();
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
@@ -198,59 +206,52 @@ public class IoTDB implements IDatabase {
 
   private synchronized void createTemplate(Session metaSession, DeviceSchema deviceSchema)
       throws IoTDBConnectionException {
-    if (templateInit.get()) {
-      return;
+    if (templateInit.compareAndSet(false, true)) {
+      List<List<String>> measurementList = new ArrayList<>();
+      List<List<TSDataType>> dataTypeList = new ArrayList<>();
+      List<List<TSEncoding>> encodingList = new ArrayList<>();
+      List<CompressionType> compressionTypes = new ArrayList<>();
+      List<String> schemaNames = new ArrayList<>();
+      for (Sensor sensor : deviceSchema.getSensors()) {
+        measurementList.add(Collections.singletonList(sensor.getName()));
+        dataTypeList.add(
+            Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
+        encodingList.add(
+            Collections.singletonList(
+                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
+        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        schemaNames.add(sensor.getName());
+      }
+      try {
+        metaSession.createSchemaTemplate(
+            TEMPLATE_NAME,
+            schemaNames,
+            measurementList,
+            dataTypeList,
+            encodingList,
+            compressionTypes);
+      } catch (StatementExecutionException e) {
+        // do nothing
+      }
     }
-
-    List<List<String>> measurementList = new ArrayList<>();
-    List<List<TSDataType>> dataTypeList = new ArrayList<>();
-    List<List<TSEncoding>> encodingList = new ArrayList<>();
-    List<CompressionType> compressionTypes = new ArrayList<>();
-    List<String> schemaNames = new ArrayList<>();
-    for (Sensor sensor : deviceSchema.getSensors()) {
-      measurementList.add(Collections.singletonList(sensor.getName()));
-      dataTypeList.add(
-          Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-      encodingList.add(
-          Collections.singletonList(
-              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
-      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-      schemaNames.add(sensor.getName());
-    }
-    try {
-      metaSession.createSchemaTemplate(
-          TEMPLATE_NAME,
-          schemaNames,
-          measurementList,
-          dataTypeList,
-          encodingList,
-          compressionTypes);
-    } catch (StatementExecutionException e) {
-      // do nothing
-    }
-    templateInit.set(true);
   }
 
   private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)
-      throws TsdbException, IoTDBConnectionException {
+      throws TsdbException {
     // get all storage groups
-    Set<DeviceSchema> deviceSchemas = new HashSet<>();
+    Set<String> groups = new HashSet<>();
     for (DeviceSchema schema : schemaList) {
       if (!storageGroups.contains(schema.getGroup())) {
-        deviceSchemas.add(schema);
+        groups.add(schema.getGroup());
         storageGroups.add(schema.getGroup());
       }
     }
-    if (config.isTEMPLATE() && deviceSchemas.size() != 0) {
-      createTemplate(metaSession, schemaList.get(0));
-    }
     // register storage groups
-    for (DeviceSchema deviceSchema : deviceSchemas) {
+    for (String group : groups) {
       try {
-        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
         if (config.isTEMPLATE()) {
-          metaSession.setSchemaTemplate(
-              TEMPLATE_NAME, ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+          metaSession.setSchemaTemplate(TEMPLATE_NAME, ROOT_SERIES_NAME + "." + group);
         }
       } catch (Exception e) {
         handleRegisterException(e);
