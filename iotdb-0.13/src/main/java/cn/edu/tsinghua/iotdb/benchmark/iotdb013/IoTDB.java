@@ -82,7 +82,7 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
-  private static final String TEMPLATE_NAME = "IoTDB-Benchmark-Template";
+  private static final String TEMPLATE_NAME = "BenchmarkTemplate";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
