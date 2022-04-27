@@ -25,7 +25,7 @@ public enum DBVersion {
   IOTDB_011("011"),
   IOTDB_010("010"),
   IOTDB_09("09"),
-  InfluxDB_2("2.0");
+  InfluxDB_2("2.x");
 
   String version;
 
