@@ -174,8 +174,10 @@ public class IoTDB implements IDatabase {
           }
         }
         int sessionIndex = random.nextInt(sessionListMap.size());
-        Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
-        createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+        if (config.isTEMPLATE()) {
+          Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+          createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+        }
         templateBarrier.await();
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
