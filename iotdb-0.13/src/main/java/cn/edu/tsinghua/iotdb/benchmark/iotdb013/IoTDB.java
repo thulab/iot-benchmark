@@ -24,6 +24,7 @@ import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
 import org.apache.iotdb.session.template.Template;
+import org.apache.iotdb.session.util.Version;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
@@ -150,11 +151,13 @@ public class IoTDB implements IDatabase {
       try {
         if (!config.isIS_ALL_NODES_VISIBLE()) {
           Session metaSession =
-              new Session(
-                  dbConfig.getHOST().get(0),
-                  dbConfig.getPORT().get(0),
-                  dbConfig.getUSERNAME(),
-                  dbConfig.getPASSWORD());
+              new Session.Builder()
+                  .host(dbConfig.getHOST().get(0))
+                  .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+                  .username(dbConfig.getUSERNAME())
+                  .password(dbConfig.getPASSWORD())
+                  .version(Version.V_0_13)
+                  .build();
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, schemaList);
         } else {
@@ -162,11 +165,13 @@ public class IoTDB implements IDatabase {
           List<Session> keys = new ArrayList<>();
           for (int i = 0; i < sessionNumber; i++) {
             Session metaSession =
-                new Session(
-                    dbConfig.getHOST().get(i),
-                    dbConfig.getPORT().get(i),
-                    dbConfig.getUSERNAME(),
-                    dbConfig.getPASSWORD());
+                new Session.Builder()
+                    .host(dbConfig.getHOST().get(i))
+                    .port(Integer.parseInt(dbConfig.getPORT().get(i)))
+                    .username(dbConfig.getUSERNAME())
+                    .password(dbConfig.getPASSWORD())
+                    .version(Version.V_0_13)
+                    .build();
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
             sessionListMap.put(metaSession, new ArrayList<>());

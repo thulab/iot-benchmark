@@ -23,6 +23,7 @@ import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.SessionDataSet;
+import org.apache.iotdb.session.util.Version;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.Field;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
@@ -65,12 +66,14 @@ public class IoTDBSession extends IoTDBSessionBase {
   public IoTDBSession(DBConfig dbConfig) {
     super(dbConfig);
     session =
-        new Session(
-            dbConfig.getHOST().get(0),
-            Integer.valueOf(dbConfig.getPORT().get(0)),
-            dbConfig.getUSERNAME(),
-            dbConfig.getPASSWORD(),
-            true);
+        new Session.Builder()
+            .host(dbConfig.getHOST().get(0))
+            .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+            .username(dbConfig.getUSERNAME())
+            .password(dbConfig.getPASSWORD())
+            .enableCacheLeader(true)
+            .version(Version.V_0_13)
+            .build();
   }
 
   @Override
