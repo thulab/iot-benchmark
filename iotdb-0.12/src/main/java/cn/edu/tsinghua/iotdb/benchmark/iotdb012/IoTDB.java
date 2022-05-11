@@ -40,15 +40,37 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,15 +79,21 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
+  private static final String TEMPLATE_NAME = "BenchmarkTemplate";
+  private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier templateBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
   protected Future<?> future;
   protected DBConfig dbConfig;
+  protected Random random = new Random(config.getDATA_SEED());
 
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -145,11 +173,18 @@ public class IoTDB implements IDatabase {
             sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
           }
         }
+        int sessionIndex = random.nextInt(sessionListMap.size());
+        if (config.isTEMPLATE()) {
+          Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+          createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+        }
+        templateBarrier.await();
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
-          if (config.isTEMPLATE()) {
-            registerTemplates(pair.getKey(), pair.getValue());
-          } else {
+        }
+        schemaBarrier.await();
+        if (!config.isTEMPLATE()) {
+          for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
             registerTimeseries(pair.getKey(), pair.getValue());
           }
         }
@@ -171,39 +206,32 @@ public class IoTDB implements IDatabase {
     return true;
   }
 
-  private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
+  private synchronized void createTemplate(Session metaSession, DeviceSchema deviceSchema)
       throws IoTDBConnectionException {
-    List<List<String>> measurementList = new ArrayList<>();
-    List<List<TSDataType>> dataTypeList = new ArrayList<>();
-    List<List<TSEncoding>> encodingList = new ArrayList<>();
-    List<CompressionType> compressionTypes = new ArrayList<>();
-    List<String> schemaNames = new ArrayList<>();
-    for (Sensor sensor : schemaList.get(0).getSensors()) {
-      measurementList.add(Collections.singletonList(sensor.getName()));
-      dataTypeList.add(
-          Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-      encodingList.add(
-          Collections.singletonList(
-              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
-      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-      schemaNames.add(sensor.getName());
-    }
-    try {
-      metaSession.createSchemaTemplate(
-          "testTemplate",
-          schemaNames,
-          measurementList,
-          dataTypeList,
-          encodingList,
-          compressionTypes);
-
-    } catch (StatementExecutionException e) {
-      // do notiong
-    }
-    for (DeviceSchema deviceSchema : schemaList) {
+    if (templateInit.compareAndSet(false, true)) {
+      List<List<String>> measurementList = new ArrayList<>();
+      List<List<TSDataType>> dataTypeList = new ArrayList<>();
+      List<List<TSEncoding>> encodingList = new ArrayList<>();
+      List<CompressionType> compressionTypes = new ArrayList<>();
+      List<String> schemaNames = new ArrayList<>();
+      for (Sensor sensor : deviceSchema.getSensors()) {
+        measurementList.add(Collections.singletonList(sensor.getName()));
+        dataTypeList.add(
+            Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
+        encodingList.add(
+            Collections.singletonList(
+                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
+        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+        schemaNames.add(sensor.getName());
+      }
       try {
-        metaSession.setSchemaTemplate(
-            "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+        metaSession.createSchemaTemplate(
+            TEMPLATE_NAME,
+            schemaNames,
+            measurementList,
+            dataTypeList,
+            encodingList,
+            compressionTypes);
       } catch (StatementExecutionException e) {
         // do nothing
       }
@@ -224,6 +252,9 @@ public class IoTDB implements IDatabase {
     for (String group : groups) {
       try {
         metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
+        if (config.isTEMPLATE()) {
+          metaSession.setSchemaTemplate(TEMPLATE_NAME, ROOT_SERIES_NAME + "." + group);
+        }
       } catch (Exception e) {
         handleRegisterException(e);
       }

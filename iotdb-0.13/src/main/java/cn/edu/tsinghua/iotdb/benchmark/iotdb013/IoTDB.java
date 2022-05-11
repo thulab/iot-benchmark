@@ -24,6 +24,7 @@ import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
 import org.apache.iotdb.session.template.Template;
+import org.apache.iotdb.session.util.Version;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
@@ -42,7 +43,16 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +60,21 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -60,10 +83,15 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
+  private static final String TEMPLATE_NAME = "BenchmarkTemplate";
+  private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected static final CyclicBarrier templateBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
@@ -120,15 +148,16 @@ public class IoTDB implements IDatabase {
 
     if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
       Map<Session, List<DeviceSchema>> sessionListMap = new HashMap<>();
-
       try {
         if (!config.isIS_ALL_NODES_VISIBLE()) {
           Session metaSession =
-              new Session(
-                  dbConfig.getHOST().get(0),
-                  dbConfig.getPORT().get(0),
-                  dbConfig.getUSERNAME(),
-                  dbConfig.getPASSWORD());
+              new Session.Builder()
+                  .host(dbConfig.getHOST().get(0))
+                  .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+                  .username(dbConfig.getUSERNAME())
+                  .password(dbConfig.getPASSWORD())
+                  .version(Version.V_0_13)
+                  .build();
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, schemaList);
         } else {
@@ -136,11 +165,13 @@ public class IoTDB implements IDatabase {
           List<Session> keys = new ArrayList<>();
           for (int i = 0; i < sessionNumber; i++) {
             Session metaSession =
-                new Session(
-                    dbConfig.getHOST().get(i),
-                    dbConfig.getPORT().get(i),
-                    dbConfig.getUSERNAME(),
-                    dbConfig.getPASSWORD());
+                new Session.Builder()
+                    .host(dbConfig.getHOST().get(i))
+                    .port(Integer.parseInt(dbConfig.getPORT().get(i)))
+                    .username(dbConfig.getUSERNAME())
+                    .password(dbConfig.getPASSWORD())
+                    .version(Version.V_0_13)
+                    .build();
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
             sessionListMap.put(metaSession, new ArrayList<>());
@@ -149,12 +180,20 @@ public class IoTDB implements IDatabase {
             sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
           }
         }
+        int sessionIndex = random.nextInt(sessionListMap.size());
+        if (config.isTEMPLATE()) {
+          Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+          createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+        }
+        templateBarrier.await();
         for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
-          if (config.isTEMPLATE()) {
-            registerTemplates(pair.getKey(), pair.getValue());
+        }
+        schemaBarrier.await();
+        if (!config.isTEMPLATE()) {
+          for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
+            registerTimeseries(pair.getKey(), pair.getValue());
           }
-          registerTimeseries(pair.getKey(), pair.getValue());
         }
       } catch (Exception e) {
         throw new TsdbException(e);
@@ -174,33 +213,26 @@ public class IoTDB implements IDatabase {
     return true;
   }
 
-  private void registerTemplates(Session metaSession, List<DeviceSchema> schemaList)
+  private void createTemplate(Session metaSession, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, IOException {
-    Template template = null;
-    if (config.isVECTOR()) {
-      template = new Template("testTemplate", true);
-    } else {
-      template = new Template("testTemplate", false);
-    }
-    try {
-      for (Sensor sensor : schemaList.get(0).getSensors()) {
-        MeasurementNode measurementNode =
-            new MeasurementNode(
-                sensor.getName(),
-                Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
-                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
-                Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        template.addToTemplate(measurementNode);
+    if (templateInit.compareAndSet(false, true)) {
+      Template template = null;
+      if (config.isVECTOR()) {
+        template = new Template(TEMPLATE_NAME, true);
+      } else {
+        template = new Template(TEMPLATE_NAME, false);
       }
-      metaSession.createSchemaTemplate(template);
-    } catch (StatementExecutionException e) {
-      // do noting
-    }
-
-    for (DeviceSchema deviceSchema : schemaList) {
       try {
-        metaSession.setSchemaTemplate(
-            "testTemplate", ROOT_SERIES_NAME + "." + deviceSchema.getGroup());
+        for (Sensor sensor : deviceSchema.getSensors()) {
+          MeasurementNode measurementNode =
+              new MeasurementNode(
+                  sensor.getName(),
+                  Enum.valueOf(TSDataType.class, sensor.getSensorType().name),
+                  Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType())),
+                  Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+          template.addToTemplate(measurementNode);
+        }
+        metaSession.createSchemaTemplate(template);
       } catch (StatementExecutionException e) {
         // do nothing
       }
@@ -221,6 +253,9 @@ public class IoTDB implements IDatabase {
     for (String group : groups) {
       try {
         metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
+        if (config.isTEMPLATE()) {
+          metaSession.setSchemaTemplate(TEMPLATE_NAME, ROOT_SERIES_NAME + "." + group);
+        }
       } catch (Exception e) {
         handleRegisterException(e);
       }
@@ -230,7 +265,6 @@ public class IoTDB implements IDatabase {
   private void registerTimeseries(Session metaSession, List<DeviceSchema> schemaList)
       throws TsdbException {
     // create time series
-
     if (config.isVECTOR()) {
       List<String> multiMeasurementComponents = new ArrayList<>();
       List<TSDataType> dataTypes = new ArrayList<>();
