@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
 import okhttp3.OkHttpClient.Builder;
 import org.influxdb.dto.BatchPoints;
@@ -101,14 +102,18 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    long start;
+    long end;
     try {
+      start = System.nanoTime();
       influxDbInstance.createDatabase(influxDbName);
+      end = System.nanoTime();
     } catch (Exception e) {
       LOGGER.error("RegisterSchema InfluxDB failed because ", e);
       throw new TsdbException(e);
     }
-    return true;
+    return TimeUtils.convertToSeconds(end - start, "ns");
   }
 
   @Override

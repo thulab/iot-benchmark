@@ -497,29 +497,26 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    double createSchemaTimeInSecond;
-    long end = 0;
-    long start = 0;
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    double createSchemaTimeInSecond = 0.0;
     LOGGER.info("Registering schema...");
     try {
-      start = System.nanoTime();
       if (config.isCREATE_SCHEMA()) {
         for (IDatabase database : databases) {
-          if (!database.registerSchema(schemaList)) {
+          Double registerTime = database.registerSchema(schemaList);
+          if (null == registerTime) {
             LOGGER.error("Failed to create schema for {}.", database.getClass().getName());
-            return false;
+            return null;
           }
+          createSchemaTimeInSecond = Math.max(createSchemaTimeInSecond, registerTime);
         }
       }
-      end = System.nanoTime();
-      createSchemaTimeInSecond = (end - start) / NANO_TO_SECOND;
       measurement.setCreateSchemaTime(createSchemaTimeInSecond);
     } catch (Exception e) {
-      measurement.setCreateSchemaTime(0);
+      measurement.setCreateSchemaTime(0.0);
       throw new TsdbException(e);
     }
-    return true;
+    return createSchemaTimeInSecond;
   }
 
   /** Measure ok operation 1. operation is execute as expected way 2. occurs expected exception */

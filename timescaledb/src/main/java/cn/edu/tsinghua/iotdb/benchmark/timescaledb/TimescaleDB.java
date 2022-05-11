@@ -32,12 +32,30 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TimescaleDB implements IDatabase {
 
@@ -114,7 +132,10 @@ public class TimescaleDB implements IDatabase {
    * @return
    */
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    long start;
+    long end;
+    start = System.nanoTime();
     try (Statement statement = connection.createStatement()) {
       String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
       LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
@@ -126,7 +147,8 @@ public class TimescaleDB implements IDatabase {
       LOGGER.error("Can't create PG table because: {}", e.getMessage());
       throw new TsdbException(e);
     }
-    return true;
+    end = System.nanoTime();
+    return TimeUtils.convertToSeconds(end - start, "ns");
   }
 
   @Override
