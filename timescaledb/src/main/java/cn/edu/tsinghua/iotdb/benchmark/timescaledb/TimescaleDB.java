@@ -32,12 +32,31 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimescaleDB implements IDatabase {
 
@@ -51,6 +70,8 @@ public class TimescaleDB implements IDatabase {
   private static final String CONVERT_TO_HYPERTABLE =
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
+  private static final AtomicBoolean schemaInit = new AtomicBoolean(false);
+  protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
   private static String tableName;
   private Connection connection;
@@ -115,16 +136,24 @@ public class TimescaleDB implements IDatabase {
    */
   @Override
   public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    try (Statement statement = connection.createStatement()) {
-      String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
-      LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
-      statement.execute(pgsql);
-      LOGGER.debug(
-          "CONVERT_TO_HYPERTABLE Statement:  {}", String.format(CONVERT_TO_HYPERTABLE, tableName));
-      statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
-    } catch (SQLException e) {
-      LOGGER.error("Can't create PG table because: {}", e.getMessage());
-      throw new TsdbException(e);
+    if (schemaInit.compareAndSet(false, true)) {
+      try (Statement statement = connection.createStatement()) {
+        String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
+        LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
+        statement.execute(pgsql);
+        LOGGER.debug(
+            "CONVERT_TO_HYPERTABLE Statement:  {}",
+            String.format(CONVERT_TO_HYPERTABLE, tableName));
+        statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
+      } catch (SQLException e) {
+        LOGGER.error("Can't create PG table because: {}", e.getMessage());
+        throw new TsdbException(e);
+      }
+    }
+    try {
+      schemaBarrier.await();
+    } catch (Exception e) {
+      throw new TsdbException(e.getMessage());
     }
     return true;
   }
