@@ -40,6 +40,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -138,13 +139,13 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     // create timeseries one by one is too slow in current cluster server.
     // therefore, we use session to create time series in batch.
-
-    if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
-      Map<Session, List<DeviceSchema>> sessionListMap = new HashMap<>();
-
+    long start = System.nanoTime();
+    long end;
+    if (config.hasWrite()) {
+      Map<Session, List<TimeseriesSchema>> sessionListMap = new HashMap<>();
       try {
         if (!config.isIS_ALL_NODES_VISIBLE()) {
           Session metaSession =
@@ -154,7 +155,7 @@ public class IoTDB implements IDatabase {
                   dbConfig.getUSERNAME(),
                   dbConfig.getPASSWORD());
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-          sessionListMap.put(metaSession, schemaList);
+          sessionListMap.put(metaSession, createTimeseries(schemaList));
         } else {
           int sessionNumber = dbConfig.getHOST().size();
           List<Session> keys = new ArrayList<>();
@@ -170,21 +171,30 @@ public class IoTDB implements IDatabase {
             sessionListMap.put(metaSession, new ArrayList<>());
           }
           for (int i = 0; i < schemaList.size(); i++) {
-            sessionListMap.get(keys.get(i % sessionNumber)).add(schemaList.get(i));
+            sessionListMap
+                .get(keys.get(i % sessionNumber))
+                .add(createTimeseries(schemaList.get(i)));
           }
         }
-        int sessionIndex = random.nextInt(sessionListMap.size());
-        if (config.isTEMPLATE()) {
+        if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
+          TemplateSchema templateSchema = null;
+          if (config.isTEMPLATE() && schemaList.size() > 0) {
+            templateSchema = createTemplate(schemaList.get(0));
+          }
+          start = System.nanoTime();
+          int sessionIndex = random.nextInt(sessionListMap.size());
           Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
-          createTemplate(templateSession, sessionListMap.get(templateSession).get(0));
+          registerTemplate(templateSession, templateSchema);
+        } else {
+          start = System.nanoTime();
         }
         templateBarrier.await();
-        for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
+        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
         schemaBarrier.await();
         if (!config.isTEMPLATE()) {
-          for (Map.Entry<Session, List<DeviceSchema>> pair : sessionListMap.entrySet()) {
+          for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             registerTimeseries(pair.getKey(), pair.getValue());
           }
         }
@@ -203,49 +213,56 @@ public class IoTDB implements IDatabase {
         }
       }
     }
-    return true;
+    end = System.nanoTime();
+    return TimeUtils.convertToSeconds(end - start, "ns");
   }
 
-  private synchronized void createTemplate(Session metaSession, DeviceSchema deviceSchema)
+  private TemplateSchema createTemplate(DeviceSchema deviceSchema) {
+    List<List<String>> measurementList = new ArrayList<>();
+    List<List<TSDataType>> dataTypeList = new ArrayList<>();
+    List<List<TSEncoding>> encodingList = new ArrayList<>();
+    List<CompressionType> compressionTypes = new ArrayList<>();
+    List<String> schemaNames = new ArrayList<>();
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      measurementList.add(Collections.singletonList(sensor.getName()));
+      dataTypeList.add(
+          Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
+      encodingList.add(
+          Collections.singletonList(
+              Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
+      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+      schemaNames.add(sensor.getName());
+    }
+    return new TemplateSchema(
+        measurementList, dataTypeList, encodingList, compressionTypes, schemaNames);
+  }
+
+  private void registerTemplate(Session metaSession, TemplateSchema templateSchema)
       throws IoTDBConnectionException {
-    if (templateInit.compareAndSet(false, true)) {
-      List<List<String>> measurementList = new ArrayList<>();
-      List<List<TSDataType>> dataTypeList = new ArrayList<>();
-      List<List<TSEncoding>> encodingList = new ArrayList<>();
-      List<CompressionType> compressionTypes = new ArrayList<>();
-      List<String> schemaNames = new ArrayList<>();
-      for (Sensor sensor : deviceSchema.getSensors()) {
-        measurementList.add(Collections.singletonList(sensor.getName()));
-        dataTypeList.add(
-            Collections.singletonList(Enum.valueOf(TSDataType.class, sensor.getSensorType().name)));
-        encodingList.add(
-            Collections.singletonList(
-                Enum.valueOf(TSEncoding.class, getEncodingType(sensor.getSensorType()))));
-        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        schemaNames.add(sensor.getName());
-      }
-      try {
-        metaSession.createSchemaTemplate(
-            TEMPLATE_NAME,
-            schemaNames,
-            measurementList,
-            dataTypeList,
-            encodingList,
-            compressionTypes);
-      } catch (StatementExecutionException e) {
-        // do nothing
-      }
+    try {
+      metaSession.createSchemaTemplate(
+          TEMPLATE_NAME,
+          templateSchema.getSchemaNames(),
+          templateSchema.getMeasurementList(),
+          templateSchema.getDataTypeList(),
+          templateSchema.getEncodingList(),
+          templateSchema.getCompressionTypes());
+    } catch (StatementExecutionException e) {
+      // do nothing
     }
   }
 
-  private void registerStorageGroups(Session metaSession, List<DeviceSchema> schemaList)
+  private void registerStorageGroups(Session metaSession, List<TimeseriesSchema> schemaList)
       throws TsdbException {
     // get all storage groups
     Set<String> groups = new HashSet<>();
-    for (DeviceSchema schema : schemaList) {
-      if (!storageGroups.contains(schema.getGroup())) {
-        groups.add(schema.getGroup());
-        storageGroups.add(schema.getGroup());
+    for (TimeseriesSchema timeseriesSchema : schemaList) {
+      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
+      synchronized (IoTDB.class) {
+        if (!storageGroups.contains(schema.getGroup())) {
+          groups.add(schema.getGroup());
+          storageGroups.add(schema.getGroup());
+        }
       }
     }
     // register storage groups
@@ -261,50 +278,47 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  private void registerTimeseries(Session metaSession, List<DeviceSchema> schemaList)
-      throws TsdbException {
-    // create time series
+  private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) {
     List<String> paths = new ArrayList<>();
     List<TSDataType> tsDataTypes = new ArrayList<>();
     List<TSEncoding> tsEncodings = new ArrayList<>();
     List<CompressionType> compressionTypes = new ArrayList<>();
-    int count = 0;
-    int createSchemaBatchNum = 10000;
-    for (DeviceSchema deviceSchema : schemaList) {
-      for (Sensor sensor : deviceSchema.getSensors()) {
-        paths.add(getSensorPath(deviceSchema, sensor.getName()));
-        SensorType datatype = sensor.getSensorType();
-        tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
-        tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
-        // TODO remove when [IOTDB-1518] is solved(not supported null)
-        compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
-        if (++count % createSchemaBatchNum == 0) {
-          registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
-        }
-      }
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      paths.add(getSensorPath(deviceSchema, sensor.getName()));
+      SensorType datatype = sensor.getSensorType();
+      tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
+      tsEncodings.add(Enum.valueOf(TSEncoding.class, getEncodingType(datatype)));
+      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
     }
-    if (!paths.isEmpty()) {
-      registerTimeseriesBatch(metaSession, paths, tsEncodings, tsDataTypes, compressionTypes);
-    }
+    return new TimeseriesSchema(deviceSchema, paths, tsDataTypes, tsEncodings, compressionTypes);
   }
 
-  private void registerTimeseriesBatch(
-      Session metaSession,
-      List<String> paths,
-      List<TSEncoding> tsEncodings,
-      List<TSDataType> tsDataTypes,
-      List<CompressionType> compressionTypes)
+  private List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList) {
+    List<TimeseriesSchema> timeseriesSchemas = new ArrayList<>();
+    for (DeviceSchema deviceSchema : schemaList) {
+      TimeseriesSchema timeseriesSchema = createTimeseries(deviceSchema);
+      timeseriesSchemas.add(timeseriesSchema);
+    }
+    return timeseriesSchemas;
+  }
+
+  private void registerTimeseries(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
       throws TsdbException {
-    try {
-      metaSession.createMultiTimeseries(
-          paths, tsDataTypes, tsEncodings, compressionTypes, null, null, null, null);
-    } catch (Exception e) {
-      handleRegisterException(e);
-    } finally {
-      paths.clear();
-      tsDataTypes.clear();
-      tsEncodings.clear();
-      compressionTypes.clear();
+    // create time series
+    for (TimeseriesSchema timeseriesSchema : timeseriesSchemas) {
+      try {
+        metaSession.createMultiTimeseries(
+            timeseriesSchema.getPaths(),
+            timeseriesSchema.getTsDataTypes(),
+            timeseriesSchema.getTsEncodings(),
+            timeseriesSchema.getCompressionTypes(),
+            null,
+            null,
+            null,
+            null);
+      } catch (Exception e) {
+        handleRegisterException(e);
+      }
     }
   }
 

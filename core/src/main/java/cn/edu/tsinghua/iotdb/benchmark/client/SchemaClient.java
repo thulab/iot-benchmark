@@ -91,7 +91,7 @@ public class SchemaClient implements Runnable {
 
         // register
         try {
-          result = dbWrapper.registerSchema(deviceSchemas);
+          result = (null == dbWrapper.registerSchema(deviceSchemas));
         } catch (TsdbException e) {
           LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
           result = false;

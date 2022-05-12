@@ -147,7 +147,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     }
     LOGGER.info("Start Generating WorkLoad");
     Object[][] workloadValues = null;
-    if (!config.getOPERATION_PROPORTION().split(":")[0].equals("0")) {
+    if (config.hasWrite()) {
       int sensorNumber = config.getSENSOR_NUMBER();
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
       workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];

@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
@@ -135,27 +136,28 @@ public class TimescaleDB implements IDatabase {
    * @return
    */
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    if (schemaInit.compareAndSet(false, true)) {
-      try (Statement statement = connection.createStatement()) {
-        String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
-        LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
-        statement.execute(pgsql);
-        LOGGER.debug(
-            "CONVERT_TO_HYPERTABLE Statement:  {}",
-            String.format(CONVERT_TO_HYPERTABLE, tableName));
-        statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
-      } catch (SQLException e) {
-        LOGGER.error("Can't create PG table because: {}", e.getMessage());
-        throw new TsdbException(e);
-      }
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    long start;
+    long end;
+    start = System.nanoTime();
+    try (Statement statement = connection.createStatement()) {
+      String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
+      LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
+      statement.execute(pgsql);
+      LOGGER.debug(
+          "CONVERT_TO_HYPERTABLE Statement:  {}", String.format(CONVERT_TO_HYPERTABLE, tableName));
+      statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
+    } catch (SQLException e) {
+      LOGGER.error("Can't create PG table because: {}", e.getMessage());
+      throw new TsdbException(e);
     }
     try {
       schemaBarrier.await();
     } catch (Exception e) {
       throw new TsdbException(e.getMessage());
     }
-    return true;
+    end = System.nanoTime();
+    return TimeUtils.convertToSeconds(end - start, "ns");
   }
 
   @Override
