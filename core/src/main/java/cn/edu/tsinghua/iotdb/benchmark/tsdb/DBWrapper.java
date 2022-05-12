@@ -598,7 +598,7 @@ public class DBWrapper implements IDatabase {
           && status2.getRecords() != null) {
         int point1 = status1.getQueryResultPointNum();
         int point2 = status2.getQueryResultPointNum();
-        if (!hasGroupByClause(operation) && point1 != point2) {
+        if (!hasDifference(operation) && point1 != point2) {
           isError = true;
         } else if (point1 != 0) {
           List<List<Object>> records1 = status1.getRecords();
@@ -614,7 +614,8 @@ public class DBWrapper implements IDatabase {
             Collections.sort(records2, new RecordComparator());
           }
           // 顺序比较
-          for (int i = 0; i < point1 & i < point2; i++) {
+          int i = 0, j = 0;
+          for (; i < point1 && j < point2; i++, j++) {
             String firstLine =
                 String.join(
                     ",",
@@ -622,16 +623,29 @@ public class DBWrapper implements IDatabase {
             String secondLine =
                 String.join(
                     ",",
-                    records2.get(i).stream().map(String::valueOf).collect(Collectors.toList()));
+                    records2.get(j).stream().map(String::valueOf).collect(Collectors.toList()));
             if (!firstLine.equals(secondLine)) {
-              isError = true;
-              break;
+              if (hasDifference(operation)) {
+                int index = records1.get(i).size() - 1;
+                String value = String.valueOf(records1.get(i).get(index));
+                if (null != value && 0 != Integer.parseInt(value)) {
+                  isError = true;
+                  break;
+                } else {
+                  j--;
+                }
+              } else {
+                isError = true;
+                break;
+              }
             }
           }
-          // 检查 group by 中的空桶
-          if (hasGroupByClause(operation)) {
-            if (point1 >= point2) {
-              for (int i = point2; i < point1; i++) {
+          if (j != point2) {
+            isError = true;
+          }
+          if (i != point1) {
+            if (hasDifference(operation)) {
+              for (; i < point1; i++) {
                 int index = records1.get(i).size() - 1;
                 String value = String.valueOf(records1.get(i).get(index));
                 if (null != value && 0 != Integer.parseInt(value)) {
@@ -652,7 +666,7 @@ public class DBWrapper implements IDatabase {
     return true;
   }
 
-  private boolean hasGroupByClause(Operation operation) {
+  private boolean hasDifference(Operation operation) {
     switch (operation) {
       case GROUP_BY_QUERY:
       case AGG_RANGE_QUERY:
