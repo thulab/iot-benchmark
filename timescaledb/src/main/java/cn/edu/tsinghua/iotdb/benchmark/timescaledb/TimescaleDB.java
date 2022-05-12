@@ -140,16 +140,19 @@ public class TimescaleDB implements IDatabase {
     long start;
     long end;
     start = System.nanoTime();
-    try (Statement statement = connection.createStatement()) {
-      String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
-      LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
-      statement.execute(pgsql);
-      LOGGER.debug(
-          "CONVERT_TO_HYPERTABLE Statement:  {}", String.format(CONVERT_TO_HYPERTABLE, tableName));
-      statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
-    } catch (SQLException e) {
-      LOGGER.error("Can't create PG table because: {}", e.getMessage());
-      throw new TsdbException(e);
+    if (schemaInit.compareAndSet(false, true)) {
+      try (Statement statement = connection.createStatement()) {
+        String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
+        LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
+        statement.execute(pgsql);
+        LOGGER.debug(
+            "CONVERT_TO_HYPERTABLE Statement:  {}",
+            String.format(CONVERT_TO_HYPERTABLE, tableName));
+        statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
+      } catch (SQLException e) {
+        LOGGER.error("Can't create PG table because: {}", e.getMessage());
+        throw new TsdbException(e);
+      }
     }
     try {
       schemaBarrier.await();
