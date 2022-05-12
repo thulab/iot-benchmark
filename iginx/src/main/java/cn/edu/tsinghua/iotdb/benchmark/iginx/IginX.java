@@ -87,8 +87,8 @@ public class IginX implements IDatabase {
   }
 
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    return true;
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    return 0.0;
   }
 
   @Override

@@ -12,11 +12,25 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,8 +165,11 @@ public class MsSQLServerDB implements IDatabase {
    * @return
    */
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    long start;
+    long end;
     try {
+      start = System.nanoTime();
       Statement statement = connection.createStatement();
       for (SensorType sensorType : SensorType.values()) {
         if (sensorType == SensorType.DOUBLE) {
@@ -170,11 +187,12 @@ public class MsSQLServerDB implements IDatabase {
         statement.execute(createSQL);
       }
       statement.close();
+      end = System.nanoTime();
     } catch (SQLException sqlException) {
       LOGGER.warn("Failed to register", sqlException);
       throw new TsdbException(sqlException);
     }
-    return true;
+    return TimeUtils.convertToSeconds(end - start, "ns");
   }
 
   /**

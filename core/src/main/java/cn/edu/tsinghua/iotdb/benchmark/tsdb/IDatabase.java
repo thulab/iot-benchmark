@@ -52,8 +52,9 @@ public interface IDatabase {
    * Called once before each test if CREATE_SCHEMA=true.
    *
    * @param schemaList schema of devices to register
+   * @return register schema time in second, return null when failed
    */
-  boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException;
+  Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException;
 
   /**
    * Insert one batch into the database, the DB implementation needs to resolve the data in batch

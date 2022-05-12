@@ -30,7 +30,15 @@ import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iotdb.benchmark.utils.TimeUtils;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.ValueRangeQuery;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
@@ -106,8 +114,11 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    long start;
+    long end;
     try {
+      start = System.nanoTime();
       List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
       String orgId = "";
       boolean isFind = false;
@@ -123,11 +134,12 @@ public class InfluxDB implements IDatabase {
         orgId = organization.getId();
       }
       client.getBucketsApi().createBucket(influxDbName, orgId);
+      end = System.nanoTime();
     } catch (Exception e) {
       LOGGER.error("RegisterSchema InfluxDB failed because ", e);
       throw new TsdbException(e);
     }
-    return true;
+    return TimeUtils.convertToSeconds(end - start, "ns");
   }
 
   @Override

@@ -101,9 +101,9 @@ public class VictoriaMetrics implements IDatabase {
    * @return
    */
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+  public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     // no need to register
-    return true;
+    return 0.0;
   }
 
   /**
