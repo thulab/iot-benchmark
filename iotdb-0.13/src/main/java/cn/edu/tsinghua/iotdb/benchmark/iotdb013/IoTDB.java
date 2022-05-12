@@ -270,7 +270,7 @@ public class IoTDB implements IDatabase {
     Set<String> groups = new HashSet<>();
     for (TimeseriesSchema timeseriesSchema : schemaList) {
       DeviceSchema schema = timeseriesSchema.getDeviceSchema();
-      synchronized (this) {
+      synchronized (IoTDB.class) {
         if (!storageGroups.contains(schema.getGroup())) {
           groups.add(schema.getGroup());
           storageGroups.add(schema.getGroup());
