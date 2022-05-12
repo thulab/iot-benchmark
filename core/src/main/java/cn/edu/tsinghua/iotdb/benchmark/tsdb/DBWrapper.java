@@ -598,7 +598,7 @@ public class DBWrapper implements IDatabase {
           && status2.getRecords() != null) {
         int point1 = status1.getQueryResultPointNum();
         int point2 = status2.getQueryResultPointNum();
-        if (Operation.GROUP_BY_QUERY != operation && point1 != point2) {
+        if (!hasGroupByClause(operation) && point1 != point2) {
           isError = true;
         } else if (point1 != 0) {
           List<List<Object>> records1 = status1.getRecords();
@@ -629,10 +629,11 @@ public class DBWrapper implements IDatabase {
             }
           }
           // 检查 group by 中的空桶
-          if (Operation.GROUP_BY_QUERY == operation) {
+          if (hasGroupByClause(operation)) {
             if (point1 >= point2) {
               for (int i = point2; i < point1; i++) {
-                if (0 != Integer.parseInt(String.valueOf(records1.get(i).get(1)))) {
+                String value = String.valueOf(records1.get(i).get(1));
+                if (null != value && 0 != Integer.parseInt(value)) {
                   isError = true;
                   break;
                 }
@@ -648,6 +649,18 @@ public class DBWrapper implements IDatabase {
       }
     }
     return true;
+  }
+
+  private boolean hasGroupByClause(Operation operation) {
+    switch (operation) {
+      case GROUP_BY_QUERY:
+      case AGG_RANGE_QUERY:
+      case AGG_RANGE_VALUE_QUERY:
+      case AGG_VALUE_QUERY:
+        return true;
+      default:
+        return false;
+    }
   }
 
   private void doErrorLog(String queryName, Status status1, Status status2) {
