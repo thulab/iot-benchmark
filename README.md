@@ -1192,7 +1192,7 @@ DEVICE_NUMBER=20
 SENSOR_NUMBER=300
 CLIENT_NUMBER=20
 BATCH_SIZE_PER_WRITE=1
-POINT_STEP=5000
+POINT_STEP=200
 LOOP=1000
 ```
 
@@ -1212,95 +1212,85 @@ After writing data is started, you can see the scrolling execution information, 
 
 ```
 ...
-11:49:14.691 [pool-55-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client-pool-1-thread-18 89.90% workload is done.
-11:49:14.691 [pool-16-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client-pool-1-thread-5 90.40% workload is done.
-11:49:14.692 [pool-58-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client-pool-1-thread-19 88.50% workload is done.
-11:49:14.692 [pool-19-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client-pool-1-thread-6 90.40% workload is done.
-11:49:14.691 [pool-52-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.client.Client-pool-1-thread-17 88.10% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 91.40% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-13 90.90% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-16 92.50% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-2 91.90% workload is done.
 ...
 ```
 
 When the test is over, the information written to the data set will be displayed at the end, as shown below:
 
 ```
-11:49:17.634 [main] INFO cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode - All clients finished.
+2022-05-12 09:48:00,160 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished.
 ----------------------Main Configurations----------------------
-CREATE_SCHEMA=true
-START_TIME=2018-9-20T00:00:00+08:00
-INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
-BATCH_SIZE_PER_WRITE=1
-IS_CLIENT_BIND=true
-LOOP=1000
-IS_OUT_OF_ORDER=false
-IS_REGULAR_FREQUENCY=true
-GROUP_NUMBER=20
-IS_COMPASSION=false
-IS_RECENT_QUERY=true
-QUERY_INTERVAL=250000
-SENSOR_NUMBER=300
-RESULT_PRECISION=0.1%
-POINT_STEP=5000
-CLIENT_NUMBER=20
-SG_STRATEGY=mod
-REAL_INSERT_RATE=1.0
-ANOTHER DBConfig=
-  DB_SWITCH=TimescaleDB
-  HOST=[127.0.0.1]
-  PORT=[5432]
-  USERNAME=postgres
-  PASSWORD=postgres
-  DB_NAME=postgres
-  TOKEN=token
-OUT_OF_ORDER_MODE=POISSON
+########### Test Mode ###########
+BENCHMARK_WORK_MODE=testWithDefaultPath
+########### Database Connection Information ###########
+DOUBLE_WRITE=true
 DBConfig=
   DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
-  PORT=[6667]
-  USERNAME=root
-  PASSWORD=root
-  DB_NAME=test
-  TOKEN=token
-DOUBLE_WRITE=true
-BENCHMARK_WORK_MODE=testWithDefaultPath
-OP_INTERVAL=0
-IS_POINT_COMPARISON=false
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+ANOTHER DBConfig=
+  DB_SWITCH=TimescaleDB
+  HOST=[127.0.0.1]
+########### Data Mode ###########
+GROUP_NUMBER=20
 DEVICE_NUMBER=20
-OUT_OF_ORDER_RATIO=0.5
-BENCHMARK_CLUSTER=false
-IS_DELETE_DATA=true
+REAL_INSERT_RATE=1.0
+SENSOR_NUMBER=300
 IS_SENSOR_TS_ALIGNMENT=true
+IS_OUT_OF_ORDER=false
+OUT_OF_ORDER_RATIO=0.5
+########### Data Amount ###########
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+CLIENT_NUMBER=20
+LOOP=1000
+BATCH_SIZE_PER_WRITE=1
+START_TIME=2022-01-01T00:00:00+08:00
+POINT_STEP=200
+OP_INTERVAL=0
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+ENCODINGS=PLAIN/PLAIN/PLAIN/PLAIN/PLAIN/PLAIN
+COMPRESSOR=SNAPPY
+########### Other Param ###########
+IS_DELETE_DATA=true
+CREATE_SCHEMA=true
+IS_COMPASSION=false
+IS_POINT_COMPARISON=false
+BENCHMARK_CLUSTER=false
+
 ---------------------------------------------------------------
 main measurements:
-Create schema cost 0.06 second
-Test elapsed time (not include schema creation): 23.97 second
+Create schema cost 0.35 second
+Test elapsed time (not include schema creation): 74.94 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
-Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           40000               12000000            0                   0                   500551.60           
-PRECISE_POINT       0                   0                   0                   0                   0.00                
-TIME_RANGE          0                   0                   0                   0                   0.00                
-VALUE_RANGE         0                   0                   0                   0                   0.00                
-AGG_RANGE           0                   0                   0                   0                   0.00                
-AGG_VALUE           0                   0                   0                   0                   0.00                
-AGG_RANGE_VALUE     0                   0                   0                   0                   0.00                
-GROUP_BY            0                   0                   0                   0                   0.00                
-LATEST_POINT        0                   0                   0                   0                   0.00                
-RANGE_QUERY_DESC    0                   0                   0                   0                   0.00                
-VALUE_RANGE_QUERY_DESC0                   0                   0                   0                   0.00                
+Operation                okOperation              okPoint                  failOperation            failPoint                throughput(point/s)
+INGESTION                40000                    12000000                 0                        0                        160136.98
+PRECISE_POINT            0                        0                        0                        0                        0.00
+TIME_RANGE               0                        0                        0                        0                        0.00
+VALUE_RANGE              0                        0                        0                        0                        0.00
+AGG_RANGE                0                        0                        0                        0                        0.00
+AGG_VALUE                0                        0                        0                        0                        0.00
+AGG_RANGE_VALUE          0                        0                        0                        0                        0.00
+GROUP_BY                 0                        0                        0                        0                        0.00
+LATEST_POINT             0                        0                        0                        0                        0.00
+RANGE_QUERY_DESC         0                        0                        0                        0                        0.00
+VALUE_RANGE_QUERY_DESC   0                        0                        0                        0                        0.00
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
-Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-INGESTION           11.70       0.34        0.50        0.60        7.75        21.32       27.84       32.53       42.92       65.38       161.62      23740.74    
-PRECISE_POINT       0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-TIME_RANGE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-VALUE_RANGE         0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-AGG_RANGE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-AGG_VALUE           0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-AGG_RANGE_VALUE     0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-GROUP_BY            0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-LATEST_POINT        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-RANGE_QUERY_DESC    0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
-VALUE_RANGE_QUERY_DESC0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        
+Operation                AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+INGESTION                35.76       0.32        1.60        2.01        31.29       65.03       77.32       88.20       130.90      341.19      1457.70     72450.25
+PRECISE_POINT            0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+TIME_RANGE               0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+VALUE_RANGE              0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+AGG_RANGE                0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+AGG_VALUE                0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+AGG_RANGE_VALUE          0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+GROUP_BY                 0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+LATEST_POINT             0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+RANGE_QUERY_DESC         0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
+VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00        0.00
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -1332,7 +1322,7 @@ DEVICE_NUMBER=20
 SENSOR_NUMBER=300
 CLIENT_NUMBER=20
 BATCH_SIZE_PER_WRITE=1
-POINT_STEP=5000
+POINT_STEP=200
 LOOP=1000
 ```
 
@@ -1352,72 +1342,66 @@ After writing data is started, you can see the scrolling execution information, 
 
 ```
 ...
-11:53:02.347 [pool-74-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper - pool-1-thread-11 97.90% syntheticClient for d_0 is done.
-11:53:02.347 [pool-73-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper - pool-1-thread-12 98.90% syntheticClient for d_0 is done.
-11:53:02.354 [pool-76-thread-1] INFO cn.edu.tsinghua.iotdb.benchmark.tsdb.DBWrapper - pool-1-thread-4 100.00% syntheticClient for d_0 is done.
+2022-05-12 09:49:51,591 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_11 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_7 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_16 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_12 have been checked 
 ...
 ```
 
-When the test is over, the information written to the data set will be displayed at the end, as shown below:
+When the test is over, the related information will be displayed at the end, as shown below:
 
 ```
+2022-05-12 09:49:53,669 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
-CREATE_SCHEMA=false
-START_TIME=2018-9-20T00:00:00+08:00
-INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
-BATCH_SIZE_PER_WRITE=1
-IS_CLIENT_BIND=true
-LOOP=1000
-IS_OUT_OF_ORDER=false
-IS_REGULAR_FREQUENCY=true
-GROUP_NUMBER=20
-IS_COMPASSION=false
-IS_RECENT_QUERY=false
-QUERY_INTERVAL=250000
-SENSOR_NUMBER=300
-RESULT_PRECISION=0.1%
-POINT_STEP=5000
-CLIENT_NUMBER=20
-SG_STRATEGY=mod
-REAL_INSERT_RATE=1.0
-ANOTHER DBConfig=
-  DB_SWITCH=TimescaleDB
-  HOST=[127.0.0.1]
-  PORT=[5432]
-  USERNAME=postgres
-  PASSWORD=postgres
-  DB_NAME=postgres
-  TOKEN=token
-OUT_OF_ORDER_MODE=POISSON
+########### Test Mode ###########
+BENCHMARK_WORK_MODE=testWithDefaultPath
+########### Database Connection Information ###########
+DOUBLE_WRITE=true
 DBConfig=
   DB_SWITCH=IoTDB-013-SESSION_BY_TABLET
   HOST=[127.0.0.1]
-  PORT=[6667]
-  USERNAME=root
-  PASSWORD=root
-  DB_NAME=test
-  TOKEN=token
-DOUBLE_WRITE=true
-BENCHMARK_WORK_MODE=testWithDefaultPath
-OP_INTERVAL=0
-IS_POINT_COMPARISON=true
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+ANOTHER DBConfig=
+  DB_SWITCH=TimescaleDB
+  HOST=[127.0.0.1]
+########### Data Mode ###########
+GROUP_NUMBER=20
 DEVICE_NUMBER=20
-OUT_OF_ORDER_RATIO=0.5
-BENCHMARK_CLUSTER=false
-IS_DELETE_DATA=false
+REAL_INSERT_RATE=1.0
+SENSOR_NUMBER=300
 IS_SENSOR_TS_ALIGNMENT=true
+IS_OUT_OF_ORDER=false
+OUT_OF_ORDER_RATIO=0.5
+########### Data Amount ###########
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+CLIENT_NUMBER=20
+LOOP=1000
+BATCH_SIZE_PER_WRITE=1
+START_TIME=2022-01-01T00:00:00+08:00
+POINT_STEP=200
+OP_INTERVAL=0
+INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
+ENCODINGS=PLAIN/PLAIN/PLAIN/PLAIN/PLAIN/PLAIN
+COMPRESSOR=SNAPPY
+########### Other Param ###########
+IS_DELETE_DATA=false
+CREATE_SCHEMA=false
+IS_COMPASSION=false
+IS_POINT_COMPARISON=true
+VERIFICATION_STEP_SIZE=10000
+BENCHMARK_CLUSTER=false
+
 ---------------------------------------------------------------
 main measurements:
 Create schema cost 0.00 second
-Test elapsed time (not include schema creation): 4.17 second
+Test elapsed time (not include schema creation): 4.26 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
-Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-DEVICE_QUERY        40                  12027960            0                   0                   11054800.40         
+Operation                okOperation              okPoint                  failOperation            failPoint                throughput(point/s)      
+DEVICE_QUERY             40                       12000000                 0                        0                        2817131.26               
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
-Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-DEVICE_QUERY        610.61      365.63      383.00      400.94      432.11      838.37      862.54      864.10      866.40      866.31      866.30      1295.73     
+Operation                AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
+DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27      1050.23     1093.01     1103.72     1163.73     1155.33     1154.39     1926.37     
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
