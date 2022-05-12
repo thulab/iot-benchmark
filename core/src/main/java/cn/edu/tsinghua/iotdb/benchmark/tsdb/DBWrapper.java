@@ -632,7 +632,8 @@ public class DBWrapper implements IDatabase {
           if (hasGroupByClause(operation)) {
             if (point1 >= point2) {
               for (int i = point2; i < point1; i++) {
-                String value = String.valueOf(records1.get(i).get(1));
+                int index = records1.get(i).size() - 1;
+                String value = String.valueOf(records1.get(i).get(index));
                 if (null != value && 0 != Integer.parseInt(value)) {
                   isError = true;
                   break;
