@@ -109,9 +109,9 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public boolean registerSchema(List<DeviceSchema> schemaList) {
+  public Double registerSchema(List<DeviceSchema> schemaList) {
     // no need for KairosDB
-    return true;
+    return 0.0;
   }
 
   private LinkedList<KairosDataModel> createDataModel(

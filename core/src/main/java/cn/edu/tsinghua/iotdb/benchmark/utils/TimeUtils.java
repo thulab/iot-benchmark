@@ -37,4 +37,8 @@ public class TimeUtils {
       return 1000000L;
     }
   }
+
+  public static double convertToSeconds(long time, String timePrecision) {
+    return time * 1.0 / (getTimestampConst(timePrecision) * 1000);
+  }
 }
