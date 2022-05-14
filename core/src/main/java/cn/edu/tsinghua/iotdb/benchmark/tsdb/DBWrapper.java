@@ -151,7 +151,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(preciseQuery, statuses);
+      doComparisonByRecord(preciseQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -176,7 +176,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(rangeQuery, statuses);
+      doComparisonByRecord(rangeQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -201,7 +201,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(valueRangeQuery, statuses);
+      doComparisonByRecord(valueRangeQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -226,7 +226,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(aggRangeQuery, statuses);
+      doComparisonByRecord(aggRangeQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -251,7 +251,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(aggValueQuery, statuses);
+      doComparisonByRecord(aggValueQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -276,7 +276,7 @@ public class DBWrapper implements IDatabase {
         statuses.add(status);
       }
       handleQueryOperation(status, operation, device);
-      doComparisonByRecord(aggRangeValueQuery, statuses);
+      doComparisonByRecord(aggRangeValueQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -301,7 +301,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(groupByQuery, statuses);
+      doComparisonByRecord(groupByQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -326,7 +326,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(latestPointQuery, statuses);
+      doComparisonByRecord(latestPointQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -352,7 +352,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(rangeQuery, statuses);
+      doComparisonByRecord(rangeQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -378,7 +378,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(valueRangeQuery, statuses);
+      doComparisonByRecord(valueRangeQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -401,7 +401,7 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      doComparisonByRecord(verificationQuery, statuses);
+      doComparisonByRecord(verificationQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }
@@ -584,7 +584,7 @@ public class DBWrapper implements IDatabase {
     return lines1;
   }
 
-  private boolean doComparisonByRecord(Query query, List<Status> statuses) {
+  private boolean doComparisonByRecord(Query query, Operation operation, List<Status> statuses) {
     if (config.isIS_COMPARISON() && statuses.size() >= 2) {
       Status status1 = statuses.get(0);
       Status status2 = statuses.get(1);
@@ -595,7 +595,7 @@ public class DBWrapper implements IDatabase {
           && status2.getRecords() != null) {
         int point1 = status1.getQueryResultPointNum();
         int point2 = status2.getQueryResultPointNum();
-        if (point1 != point2) {
+        if (!hasDifference(operation) && point1 != point2) {
           isError = true;
         } else if (point1 != 0) {
           List<List<Object>> records1 = status1.getRecords();
@@ -611,7 +611,8 @@ public class DBWrapper implements IDatabase {
             Collections.sort(records2, new RecordComparator());
           }
           // 顺序比较
-          for (int i = 0; i < point1; i++) {
+          int i = 0, j = 0;
+          for (; i < point1 && j < point2; i++, j++) {
             String firstLine =
                 String.join(
                     ",",
@@ -619,10 +620,38 @@ public class DBWrapper implements IDatabase {
             String secondLine =
                 String.join(
                     ",",
-                    records2.get(i).stream().map(String::valueOf).collect(Collectors.toList()));
+                    records2.get(j).stream().map(String::valueOf).collect(Collectors.toList()));
             if (!firstLine.equals(secondLine)) {
+              if (hasDifference(operation)) {
+                int index = records1.get(i).size() - 1;
+                String value = String.valueOf(records1.get(i).get(index));
+                if (null != value && 0 != Integer.parseInt(value)) {
+                  isError = true;
+                  break;
+                } else {
+                  j--;
+                }
+              } else {
+                isError = true;
+                break;
+              }
+            }
+          }
+          if (j != point2) {
+            isError = true;
+          }
+          if (i != point1) {
+            if (hasDifference(operation)) {
+              for (; i < point1; i++) {
+                int index = records1.get(i).size() - 1;
+                String value = String.valueOf(records1.get(i).get(index));
+                if (null != value && 0 != Integer.parseInt(value)) {
+                  isError = true;
+                  break;
+                }
+              }
+            } else {
               isError = true;
-              break;
             }
           }
         }
@@ -632,6 +661,18 @@ public class DBWrapper implements IDatabase {
       }
     }
     return true;
+  }
+
+  private boolean hasDifference(Operation operation) {
+    switch (operation) {
+      case GROUP_BY_QUERY:
+      case AGG_RANGE_QUERY:
+      case AGG_RANGE_VALUE_QUERY:
+      case AGG_VALUE_QUERY:
+        return true;
+      default:
+        return false;
+    }
   }
 
   private void doErrorLog(String queryName, Status status1, Status status2) {
