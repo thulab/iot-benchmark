@@ -142,10 +142,10 @@ public abstract class DataClient implements Runnable {
         }
 
         doTest();
-        service.shutdown();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       } finally {
+        service.shutdown();
         try {
           dbWrapper.close();
         } catch (TsdbException e) {

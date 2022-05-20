@@ -488,11 +488,16 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    for (IDatabase database : databases) {
-      database.close();
-    }
-    if (recorder != null) {
-      recorder.closeAsync();
+    try {
+      for (IDatabase database : databases) {
+        database.close();
+      }
+    } catch (TsdbException e) {
+      throw e;
+    } finally {
+      if (recorder != null) {
+        recorder.closeAsync();
+      }
     }
   }
 
