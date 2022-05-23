@@ -83,7 +83,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
+  public Status insertOneBatch(Batch batch) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -95,9 +95,6 @@ public class DBWrapper implements IDatabase {
         status = database.insertOneBatch(batch);
         status = measureOneBatch(status, operation, batch, start);
       }
-    } catch (DBConnectException ex) {
-      connectionFailedTime.getAndIncrement();
-      throw ex;
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
       measurement.addFailPointNum(operation, batch.pointNum());
@@ -109,6 +106,9 @@ public class DBWrapper implements IDatabase {
           e.toString(),
           batch.getDeviceSchema().getDevice());
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
     }
     return status;
   }
@@ -147,7 +147,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
+  public Status preciseQuery(PreciseQuery preciseQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -178,7 +178,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
+  public Status rangeQuery(RangeQuery rangeQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -209,7 +209,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -240,7 +240,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -271,7 +271,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -302,8 +302,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
-      throws DBConnectException {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -334,7 +333,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
+  public Status groupByQuery(GroupByQuery groupByQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -365,7 +364,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -396,7 +395,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -428,8 +427,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
-      throws DBConnectException {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -462,7 +460,7 @@ public class DBWrapper implements IDatabase {
 
   /** Using in verification */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
+  public Status verificationQuery(VerificationQuery verificationQuery) {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -490,8 +488,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery)
-      throws SQLException, TsdbException, DBConnectException {
+  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     if (!preCheck()) {
       return new Status(false, 0);
     }
@@ -521,8 +518,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery)
-      throws SQLException, TsdbException, DBConnectException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSummary deviceSummary = null;
     try {
       List<DeviceSummary> deviceSummaries = new ArrayList<>();

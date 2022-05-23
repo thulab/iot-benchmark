@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.real;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -45,8 +44,6 @@ public class RealDataSetWriteClient extends RealBaseClient {
         if (isStop.get()) {
           break;
         }
-      } catch (DBConnectException e) {
-        LOGGER.error("Failed to insert one batch data because ", e);
       } catch (Exception e) {
         LOGGER.error("Failed to insert one batch data because ", e);
       }

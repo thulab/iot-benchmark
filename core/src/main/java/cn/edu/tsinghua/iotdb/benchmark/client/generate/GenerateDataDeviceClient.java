@@ -20,14 +20,17 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
-import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
@@ -87,7 +90,7 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
           break;
         }
       }
-    } catch (DBConnectException | SQLException | TsdbException sqlException) {
+    } catch (SQLException | TsdbException sqlException) {
       LOGGER.error("Failed DeviceQuery: " + sqlException.getMessage());
     } finally {
       pointService.shutdown();
