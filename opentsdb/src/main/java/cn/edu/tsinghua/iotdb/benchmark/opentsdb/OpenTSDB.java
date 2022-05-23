@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -111,7 +112,7 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     Map<String, Object> queryMap = new HashMap<>();
     List<Map<String, Object>> list = null;
     queryMap.put("msResolution", true);
@@ -124,7 +125,7 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     Map<String, Object> queryMap = new HashMap<>();
     List<Map<String, Object>> list = null;
     queryMap.put("msResolution", true);
@@ -137,13 +138,13 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     Exception e = new TsdbException("OpenTSDB don't support this kind of query");
     return new Status(false, 0, e, e.getMessage());
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     Map<String, Object> queryMap = new HashMap<>();
     List<Map<String, Object>> list = null;
     queryMap.put("msResolution", true);
@@ -157,19 +158,20 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     Exception e = new TsdbException("OpenTSDB don't support this kind of query");
     return new Status(false, 0, e, e.getMessage());
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     Exception e = new TsdbException("OpenTSDB don't support this kind of query");
     return new Status(false, 0, e, e.getMessage());
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     Map<String, Object> queryMap = new HashMap<>();
     List<Map<String, Object>> list = null;
     queryMap.put("msResolution", true);
@@ -185,7 +187,7 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     Map<String, Object> queryMap = new HashMap<>();
     List<Map<String, Object>> list = null;
     queryMap.put("msResolution", true);
@@ -201,12 +203,13 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     return null;
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     return null;
   }
 

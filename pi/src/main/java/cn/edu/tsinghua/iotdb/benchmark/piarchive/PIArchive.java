@@ -6,6 +6,7 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
@@ -158,7 +159,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     DeviceSchema deviceSchema = preciseQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -174,7 +175,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     DeviceSchema deviceSchema = rangeQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -192,7 +193,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     DeviceSchema deviceSchema = valueRangeQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -211,7 +212,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     DeviceSchema deviceSchema = aggRangeQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -229,7 +230,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     DeviceSchema deviceSchema = aggValueQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -245,7 +246,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) throws DBConnectException {
     DeviceSchema deviceSchema = aggRangeValueQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -264,17 +265,17 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     return null;
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     return null;
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     DeviceSchema deviceSchema = rangeQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()
@@ -292,7 +293,7 @@ public class PIArchive implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     DeviceSchema deviceSchema = valueRangeQuery.getDeviceSchema().get(0);
     String tagName =
         deviceSchema.getGroup()

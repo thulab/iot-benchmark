@@ -275,12 +275,12 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     return executeQueryAndGetStatus(getPreciseQuerySql(preciseQuery));
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     String sql =
         getRangeQuerySql(
             rangeQuery.getDeviceSchema(),
@@ -290,13 +290,13 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     String sql = getValueRangeQuerySql(valueRangeQuery);
     return executeQueryAndGetStatus(sql);
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     String sql =
@@ -306,7 +306,7 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
     String sql =
@@ -319,7 +319,8 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
     String sql =
@@ -334,7 +335,7 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sql =
@@ -347,13 +348,13 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
     return executeQueryAndGetStatus(aggQuerySqlHead);
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     String sql =
         getRangeQuerySql(
                 rangeQuery.getDeviceSchema(),
@@ -364,7 +365,8 @@ public class IoTDBSessionPool implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
     return executeQueryAndGetStatus(sql);
   }

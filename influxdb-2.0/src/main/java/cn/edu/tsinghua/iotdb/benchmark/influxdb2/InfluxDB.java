@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -253,7 +254,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -272,7 +273,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -291,7 +292,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -333,7 +334,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -357,7 +358,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -384,7 +385,8 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -416,7 +418,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -436,7 +438,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -456,7 +458,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -476,7 +478,8 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     int result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {

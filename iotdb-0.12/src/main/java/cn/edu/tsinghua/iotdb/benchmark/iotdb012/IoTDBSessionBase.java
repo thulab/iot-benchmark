@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.enums.DBInsertMode;
@@ -45,15 +46,15 @@ public class IoTDBSessionBase extends IoTDB {
     super(dbConfig);
   }
 
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(Batch batch) throws DBConnectException {
     return new Status(true);
   }
 
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(Batch batch) throws DBConnectException {
     return new Status(true);
   }
 
-  public Status insertOneBatchByRecords(Batch batch) {
+  public Status insertOneBatchByRecords(Batch batch) throws DBConnectException {
     return new Status(true);
   }
 
@@ -149,7 +150,7 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(Batch batch) throws DBConnectException {
     DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
     switch (insertMode) {
       case INSERT_USE_SESSION_TABLET:

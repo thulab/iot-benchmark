@@ -73,7 +73,7 @@ public interface IDatabase {
    * @param preciseQuery universal precise query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status preciseQuery(PreciseQuery preciseQuery);
+  Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors in a time range. e.g. select v1... from data where time
@@ -82,7 +82,7 @@ public interface IDatabase {
    * @param rangeQuery universal range query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status rangeQuery(RangeQuery rangeQuery);
+  Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors in a time range with a value filter. e.g. select v1...
@@ -91,7 +91,7 @@ public interface IDatabase {
    * @param valueRangeQuery contains universal range query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status valueRangeQuery(ValueRangeQuery valueRangeQuery);
+  Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException;
 
   /**
    * Query aggregated data of one or multiple sensors in a time range using aggregation function.
@@ -100,7 +100,7 @@ public interface IDatabase {
    * @param aggRangeQuery contains universal aggregation query with time filter parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status aggRangeQuery(AggRangeQuery aggRangeQuery);
+  Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException;
 
   /**
    * Query aggregated data of one or multiple sensors in the whole time range. e.g. select
@@ -110,7 +110,7 @@ public interface IDatabase {
    * @param aggValueQuery contains universal aggregation query with value filter parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status aggValueQuery(AggValueQuery aggValueQuery);
+  Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException;
 
   /**
    * Query aggregated data of one or multiple sensors with both time and value filters. e.g. select
@@ -121,7 +121,7 @@ public interface IDatabase {
    *     parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery);
+  Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) throws DBConnectException;
 
   /**
    * Query aggregated group-by-time data of one or multiple sensors within a time range. e.g. SELECT
@@ -131,7 +131,7 @@ public interface IDatabase {
    * @param groupByQuery contains universal group by query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status groupByQuery(GroupByQuery groupByQuery);
+  Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException;
 
   /**
    * Query the latest(max-timestamp) data of one or multiple sensors. e.g. select time, v1... where
@@ -140,28 +140,30 @@ public interface IDatabase {
    * @param latestPointQuery contains universal latest point query condition parameters
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status latestPointQuery(LatestPointQuery latestPointQuery);
+  Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException;
 
   /** similar to rangeQuery, but order by time desc. */
-  Status rangeQueryOrderByDesc(RangeQuery rangeQuery);
+  Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException;
 
   /** similar to rangeQuery, but order by time desc. */
-  Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery);
+  Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) throws DBConnectException;
 
   /** Using in verification */
-  default Status verificationQuery(VerificationQuery verificationQuery) {
+  default Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
   };
 
   /** Verification between two database */
-  default Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  default Status deviceQuery(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
   }
 
   /** get summary of device */
-  default DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  default DeviceSummary deviceSummary(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     throw new TsdbException("Not Supported get summary of device.");
   }
 

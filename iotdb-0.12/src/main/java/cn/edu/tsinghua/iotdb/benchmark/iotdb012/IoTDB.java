@@ -341,6 +341,8 @@ public class IoTDB implements IDatabase {
       }
       statement.executeBatch();
       return new Status(true);
+    } catch (SQLException e) {
+      throw new DBConnectException(e.getMessage());
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
@@ -353,7 +355,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     String strTime = preciseQuery.getTimestamp() + "";
     String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
     return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
@@ -367,7 +369,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     String sql =
         getRangeQuerySql(
             rangeQuery.getDeviceSchema(),
@@ -384,7 +386,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     String sql = getValueRangeQuerySql(valueRangeQuery);
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
   }
@@ -397,7 +399,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     String sql =
@@ -413,7 +415,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
     String sql =
@@ -434,7 +436,8 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
     String sql =
@@ -456,7 +459,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sql =
@@ -475,7 +478,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
     return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
   }
@@ -488,7 +491,7 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     String sql =
         getRangeQuerySql(
                 rangeQuery.getDeviceSchema(),
@@ -506,7 +509,8 @@ public class IoTDB implements IDatabase {
    * @return
    */
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
@@ -628,7 +632,8 @@ public class IoTDB implements IDatabase {
     return name.toString();
   }
 
-  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+  protected Status executeQueryAndGetStatus(String sql, Operation operation)
+      throws DBConnectException {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
@@ -675,7 +680,7 @@ public class IoTDB implements IDatabase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (isOk.get() == true) {
+      if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), sql, records);
         } else {
@@ -685,6 +690,8 @@ public class IoTDB implements IDatabase {
         return new Status(
             false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
       }
+    } catch (SQLException e) {
+      throw new DBConnectException(e.getMessage());
     } catch (Exception e) {
       return new Status(false, queryResultPointNum.get(), e, sql);
     } catch (Throwable t) {
@@ -731,7 +738,7 @@ public class IoTDB implements IDatabase {
    * @param verificationQuery
    */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery) {
+  public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -784,7 +791,8 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public Status deviceQuery(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     String sql =
         getDeviceQuerySql(
@@ -824,7 +832,8 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     int totalLineNumber = 0;
     long minTimeStamp = 0, maxTimeStamp = 0;

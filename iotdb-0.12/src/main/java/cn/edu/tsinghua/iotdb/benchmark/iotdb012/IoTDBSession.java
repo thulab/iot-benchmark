@@ -34,6 +34,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -88,7 +89,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(Batch batch) throws DBConnectException {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
@@ -103,7 +104,9 @@ public class IoTDBSession extends IoTDBSessionBase {
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
         session.insertRecord(deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
-      } catch (IoTDBConnectionException | StatementExecutionException e) {
+      } catch (IoTDBConnectionException e) {
+        throw new DBConnectException(e.getMessage());
+      } catch (StatementExecutionException e) {
         failRecord++;
       }
     }
@@ -116,7 +119,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecords(Batch batch) {
+  public Status insertOneBatchByRecords(Batch batch) throws DBConnectException {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
@@ -140,24 +143,29 @@ public class IoTDBSession extends IoTDBSessionBase {
     try {
       session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
       return new Status(true);
-    } catch (IoTDBConnectionException | StatementExecutionException e) {
+    } catch (IoTDBConnectionException e) {
+      throw new DBConnectException(e.getMessage());
+    } catch (StatementExecutionException e) {
       return new Status(false, 0, e, e.toString());
     }
   }
 
   @Override
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(Batch batch) throws DBConnectException {
     Tablet tablet = genTablet(batch);
     try {
       session.insertTablet(tablet);
       return new Status(true);
-    } catch (IoTDBConnectionException | StatementExecutionException e) {
+    } catch (IoTDBConnectionException e) {
+      throw new DBConnectException(e.getMessage());
+    } catch (StatementExecutionException e) {
       return new Status(false, 0, e, e.toString());
     }
   }
 
   @Override
-  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+  protected Status executeQueryAndGetStatus(String sql, Operation operation)
+      throws DBConnectException {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
@@ -165,70 +173,70 @@ public class IoTDBSession extends IoTDBSessionBase {
     AtomicInteger queryResultPointNum = new AtomicInteger();
     AtomicBoolean isOk = new AtomicBoolean(true);
 
-    try {
-      List<List<Object>> records = new ArrayList<>();
-      future =
-          service.submit(
-              () -> {
-                try {
-                  SessionDataSet sessionDataSet = session.executeQueryStatement(sql);
-                  while (sessionDataSet.hasNext()) {
-                    RowRecord rowRecord = sessionDataSet.next();
-                    line.getAndIncrement();
-                    if (config.isIS_COMPARISON()) {
-                      List<Object> record = new ArrayList<>();
-                      switch (operation) {
-                        case AGG_RANGE_QUERY:
-                        case AGG_VALUE_QUERY:
-                        case AGG_RANGE_VALUE_QUERY:
-                          break;
-                        default:
-                          record.add(rowRecord.getTimestamp());
-                          break;
-                      }
-                      List<Field> fields = rowRecord.getFields();
-                      for (int i = 0; i < fields.size(); i++) {
-                        switch (operation) {
-                          case LATEST_POINT_QUERY:
-                            if (i == 0 || i == 2) {
-                              continue;
-                            }
-                          default:
-                            break;
-                        }
-                        record.add(fields.get(i).toString());
-                      }
-                      records.add(record);
+    List<List<Object>> records = new ArrayList<>();
+    AtomicBoolean connectionFailed = new AtomicBoolean(false);
+    future =
+        service.submit(
+            () -> {
+              try {
+                SessionDataSet sessionDataSet = session.executeQueryStatement(sql);
+                while (sessionDataSet.hasNext()) {
+                  RowRecord rowRecord = sessionDataSet.next();
+                  line.getAndIncrement();
+                  if (config.isIS_COMPARISON()) {
+                    List<Object> record = new ArrayList<>();
+                    switch (operation) {
+                      case AGG_RANGE_QUERY:
+                      case AGG_VALUE_QUERY:
+                      case AGG_RANGE_VALUE_QUERY:
+                        break;
+                      default:
+                        record.add(rowRecord.getTimestamp());
+                        break;
                     }
+                    List<Field> fields = rowRecord.getFields();
+                    for (int i = 0; i < fields.size(); i++) {
+                      switch (operation) {
+                        case LATEST_POINT_QUERY:
+                          if (i == 0 || i == 2) {
+                            continue;
+                          }
+                        default:
+                          break;
+                      }
+                      record.add(fields.get(i).toString());
+                    }
+                    records.add(record);
                   }
-                  sessionDataSet.closeOperationHandle();
-                } catch (StatementExecutionException | IoTDBConnectionException e) {
-                  LOGGER.error("exception occurred when execute query={}", sql, e);
-                  isOk.set(false);
                 }
-                queryResultPointNum.set(
-                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
-              });
-      try {
-        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
-      } catch (InterruptedException | ExecutionException | TimeoutException e) {
-        future.cancel(true);
-        return new Status(false, queryResultPointNum.get(), e, sql);
-      }
-      if (isOk.get() == true) {
-        if (config.isIS_COMPARISON()) {
-          return new Status(true, queryResultPointNum.get(), sql, records);
-        } else {
-          return new Status(true, queryResultPointNum.get());
-        }
-      } else {
-        return new Status(
-            false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
-      }
-    } catch (Exception e) {
+                sessionDataSet.closeOperationHandle();
+              } catch (IoTDBConnectionException e) {
+                connectionFailed.set(true);
+                isOk.set(false);
+              } catch (StatementExecutionException e) {
+                LOGGER.error("exception occurred when execute query={}", sql, e);
+                isOk.set(false);
+              }
+              queryResultPointNum.set(
+                  line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+            });
+    try {
+      future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      future.cancel(true);
       return new Status(false, queryResultPointNum.get(), e, sql);
-    } catch (Throwable t) {
-      return new Status(false, queryResultPointNum.get(), new Exception(t), sql);
+    }
+    if (isOk.get()) {
+      if (config.isIS_COMPARISON()) {
+        return new Status(true, queryResultPointNum.get(), sql, records);
+      } else {
+        return new Status(true, queryResultPointNum.get());
+      }
+    } else {
+      if (connectionFailed.get()) {
+        throw new DBConnectException("Failed to connect to database.");
+      }
+      return new Status(false, queryResultPointNum.get(), new Exception("Failed to execute."), sql);
     }
   }
 
@@ -238,7 +246,7 @@ public class IoTDBSession extends IoTDBSessionBase {
    * @param verificationQuery
    */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery) {
+  public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -293,7 +301,8 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public Status deviceQuery(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     String sql =
         getDeviceQuerySql(
@@ -324,7 +333,8 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     int totalLineNumber = 0;
     long minTimeStamp = 0, maxTimeStamp = 0;

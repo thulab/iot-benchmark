@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -187,7 +188,7 @@ public class TimescaleDB implements IDatabase {
    * @param preciseQuery universal precise query condition parameters
    */
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     int sensorNum = preciseQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(preciseQuery.getDeviceSchema());
     builder.append(" AND time = ").append(preciseQuery.getTimestamp());
@@ -201,7 +202,7 @@ public class TimescaleDB implements IDatabase {
    * @param rangeQuery universal range query condition parameters
    */
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     int sensorNum = rangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, rangeQuery);
@@ -214,7 +215,7 @@ public class TimescaleDB implements IDatabase {
    * @param valueRangeQuery contains universal range query with value filter parameters
    */
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, valueRangeQuery);
@@ -230,7 +231,7 @@ public class TimescaleDB implements IDatabase {
    * @param aggRangeQuery contains universal aggregation query with time filter parameters
    */
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     int sensorNum = aggRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
@@ -245,7 +246,7 @@ public class TimescaleDB implements IDatabase {
    * @param aggValueQuery contains universal aggregation query with value filter parameters
    */
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     int sensorNum = aggValueQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
@@ -263,7 +264,8 @@ public class TimescaleDB implements IDatabase {
    *     parameters
    */
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     int sensorNum = aggRangeValueQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
@@ -281,7 +283,7 @@ public class TimescaleDB implements IDatabase {
    * @param groupByQuery contains universal group by query condition parameters
    */
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     int sensorNum = groupByQuery.getDeviceSchema().get(0).getSensors().size();
     long offset = groupByQuery.getStartTimestamp() % groupByQuery.getGranularity();
     StringBuilder builder =
@@ -305,7 +307,7 @@ public class TimescaleDB implements IDatabase {
    * @param latestPointQuery contains universal latest point query condition parameters
    */
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     int sensorNum = latestPointQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(latestPointQuery.getDeviceSchema());
     builder.append("ORDER BY time DESC LIMIT 1");
@@ -313,7 +315,7 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     int sensorNum = rangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(rangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, rangeQuery);
@@ -323,7 +325,8 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     int sensorNum = valueRangeQuery.getDeviceSchema().get(0).getSensors().size();
     StringBuilder builder = getSampleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     addWhereTimeClause(builder, valueRangeQuery);
@@ -340,7 +343,7 @@ public class TimescaleDB implements IDatabase {
    * @param verificationQuery
    */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery) {
+  public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -390,7 +393,8 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+  public Status deviceQuery(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
@@ -417,7 +421,8 @@ public class TimescaleDB implements IDatabase {
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     StringBuilder sql = new StringBuilder("select count(1)");
     sql.append(" FROM ").append(tableName);

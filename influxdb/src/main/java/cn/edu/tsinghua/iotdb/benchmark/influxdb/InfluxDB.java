@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -143,7 +144,7 @@ public class InfluxDB implements IDatabase {
 
   /** eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time = 1535558405000000000. */
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     String sql = getPreciseQuerySql(preciseQuery);
     return executeQueryAndGetStatus(sql);
   }
@@ -153,7 +154,7 @@ public class InfluxDB implements IDatabase {
    * <= 153555800000.
    */
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
     return executeQueryAndGetStatus(sql);
@@ -164,7 +165,7 @@ public class InfluxDB implements IDatabase {
    * <= 153555800000 AND s_3 > -5.0.
    */
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
     String sqlWithValueFilter =
@@ -180,7 +181,7 @@ public class InfluxDB implements IDatabase {
    * AND time <=8660000000000.
    */
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery);
@@ -189,7 +190,7 @@ public class InfluxDB implements IDatabase {
 
   /** eg. SELECT count(s_3) FROM group_3 WHERE ( device = 'd_12' ) AND s_3 > -5.0. */
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
     String sql =
@@ -203,7 +204,8 @@ public class InfluxDB implements IDatabase {
    * time <= 650000000000 AND s_1 > -5.0.
    */
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     String rangeQueryHead =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, aggRangeValueQuery);
@@ -220,7 +222,7 @@ public class InfluxDB implements IDatabase {
    * AND time <=8680000000000 GROUP BY time(20000ms).
    */
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
     String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
@@ -229,13 +231,13 @@ public class InfluxDB implements IDatabase {
 
   /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
     return executeQueryAndGetStatus(sql);
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
     sql = addDescClause(sql);
@@ -243,7 +245,8 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
     String sqlWithValueFilter =
@@ -445,7 +448,7 @@ public class InfluxDB implements IDatabase {
    * @param verificationQuery
    */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery) {
+  public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);

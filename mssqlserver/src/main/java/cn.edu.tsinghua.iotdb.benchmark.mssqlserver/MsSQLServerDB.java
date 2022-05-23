@@ -292,7 +292,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
     Timestamp timestamp = new Timestamp(preciseQuery.getTimestamp());
     try {
@@ -318,7 +318,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(rangeQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(rangeQuery.getEndTimestamp());
@@ -346,7 +346,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(valueRangeQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(valueRangeQuery.getEndTimestamp());
@@ -375,7 +375,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(aggRangeQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(aggRangeQuery.getEndTimestamp());
@@ -407,7 +407,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
     try {
       int result = 0;
@@ -432,7 +432,8 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(aggRangeValueQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(aggRangeValueQuery.getEndTimestamp());
@@ -461,7 +462,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(groupByQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(groupByQuery.getEndTimestamp());
@@ -489,7 +490,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
     try {
       int result = 0;
@@ -515,7 +516,7 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(rangeQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(rangeQuery.getEndTimestamp());
@@ -543,7 +544,8 @@ public class MsSQLServerDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     Timestamp startTime = new Timestamp(valueRangeQuery.getStartTimestamp());
     Timestamp endTime = new Timestamp(valueRangeQuery.getEndTimestamp());

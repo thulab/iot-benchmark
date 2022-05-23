@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class DBWrapper implements IDatabase {
@@ -53,6 +54,7 @@ public class DBWrapper implements IDatabase {
   private List<IDatabase> databases = new ArrayList<>();
   private Measurement measurement;
   private TestDataPersistence recorder;
+  private AtomicLong connectionFailedTime = new AtomicLong(0);
 
   /** Use DBFactory to get database */
   public DBWrapper(List<DBConfig> dbConfigs, Measurement measurement) {
@@ -84,6 +86,7 @@ public class DBWrapper implements IDatabase {
         status = measureOneBatch(status, operation, batch, start);
       }
     } catch (DBConnectException ex) {
+      connectionFailedTime.getAndIncrement();
       throw ex;
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
@@ -134,7 +137,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
     String device = "No Device";
@@ -153,13 +156,16 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(preciseQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.RANGE_QUERY;
     String device = "No Device";
@@ -178,13 +184,16 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(rangeQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY;
     String device = "No Device";
@@ -203,13 +212,16 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(valueRangeQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_QUERY;
     String device = "No Device";
@@ -228,13 +240,16 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(aggRangeQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.AGG_VALUE_QUERY;
     String device = "No Device";
@@ -253,13 +268,17 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(aggValueQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     Status status = null;
     Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
     String device = "No Device";
@@ -278,13 +297,16 @@ public class DBWrapper implements IDatabase {
       handleQueryOperation(status, operation, device);
       doComparisonByRecord(aggRangeValueQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.GROUP_BY_QUERY;
     String device = "No Device";
@@ -303,13 +325,16 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(groupByQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;
     String device = "No Device";
@@ -328,13 +353,16 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(latestPointQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
     String device = "No Device";
@@ -354,13 +382,17 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(rangeQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
     String device = "No Device";
@@ -380,6 +412,9 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(valueRangeQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
@@ -387,7 +422,7 @@ public class DBWrapper implements IDatabase {
 
   /** Using in verification */
   @Override
-  public Status verificationQuery(VerificationQuery verificationQuery) {
+  public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.VERIFICATION_QUERY;
     String device = verificationQuery.getDeviceSchema().getDevice();
@@ -403,13 +438,17 @@ public class DBWrapper implements IDatabase {
       }
       doComparisonByRecord(verificationQuery, operation, statuses);
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException {
+  public Status deviceQuery(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     Status status = null;
     Operation operation = Operation.DEVICE_QUERY;
     String device = deviceQuery.getDeviceSchema().getDevice();
@@ -427,13 +466,17 @@ public class DBWrapper implements IDatabase {
         handleQueryOperation(sta, operation, device);
       }
     } catch (Exception e) {
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
       handleUnexpectedQueryException(operation, e, device);
     }
     return status;
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery)
+      throws SQLException, TsdbException, DBConnectException {
     DeviceSummary deviceSummary = null;
     try {
       List<DeviceSummary> deviceSummaries = new ArrayList<>();
@@ -455,8 +498,10 @@ public class DBWrapper implements IDatabase {
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to get summary of device");
-      e.printStackTrace();
+      if (e instanceof DBConnectException) {
+        connectionFailedTime.getAndIncrement();
+      }
+      LOGGER.error("Failed to get summary of device: " + e.getMessage());
       return null;
     }
     LOGGER.info("Device Summary:" + deviceSummary.toString());

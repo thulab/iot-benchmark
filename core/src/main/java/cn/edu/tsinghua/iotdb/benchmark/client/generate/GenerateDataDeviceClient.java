@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iotdb.benchmark.client.generate;
 
 import cn.edu.tsinghua.iotdb.benchmark.entity.DeviceSummary;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.DeviceQuery;
 import org.slf4j.Logger;
@@ -86,7 +87,7 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
           break;
         }
       }
-    } catch (SQLException | TsdbException sqlException) {
+    } catch (DBConnectException | SQLException | TsdbException sqlException) {
       LOGGER.error("Failed DeviceQuery: " + sqlException.getMessage());
     } finally {
       pointService.shutdown();

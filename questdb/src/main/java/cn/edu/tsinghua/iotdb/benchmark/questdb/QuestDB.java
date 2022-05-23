@@ -253,7 +253,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     DeviceSchema targetDevice = preciseQuery.getDeviceSchema().get(0);
     List<Sensor> sensors = targetDevice.getSensors();
     String table =
@@ -280,7 +280,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     // select * from test_${group}_${device} where ts >= ? and ts <= ?;
     DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
     List<Sensor> sensors = targetDevice.getSensors();
@@ -309,7 +309,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     // select * from test_${group}_${device} where ts >= ? and ts <= ? and s_${sensor} > ?;
     DeviceSchema targetDevice = valueRangeQuery.getDeviceSchema().get(0);
     List<Sensor> sensors = targetDevice.getSensors();
@@ -346,7 +346,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     DeviceSchema targetDevice = aggRangeQuery.getDeviceSchema().get(0);
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
@@ -372,7 +372,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     DeviceSchema targetDevice = aggValueQuery.getDeviceSchema().get(0);
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
@@ -405,7 +405,8 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     DeviceSchema targetDevice = aggRangeValueQuery.getDeviceSchema().get(0);
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
@@ -430,7 +431,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     DeviceSchema targetDevice = groupByQuery.getDeviceSchema().get(0);
     String table =
         dbConfig.getDB_NAME() + "_" + targetDevice.getGroup() + "_" + targetDevice.getDevice();
@@ -453,7 +454,7 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     DeviceSchema targetDevice = latestPointQuery.getDeviceSchema().get(0);
     List<Sensor> sensors = targetDevice.getSensors();
     String table =
@@ -474,7 +475,7 @@ public class QuestDB implements IDatabase {
    * @param rangeQuery
    */
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     DeviceSchema targetDevice = rangeQuery.getDeviceSchema().get(0);
     List<Sensor> sensors = targetDevice.getSensors();
     String table =
@@ -494,7 +495,8 @@ public class QuestDB implements IDatabase {
    * @param valueRangeQuery
    */
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     DeviceSchema targetDevice = valueRangeQuery.getDeviceSchema().get(0);
     List<Sensor> sensors = targetDevice.getSensors();
     String table =

@@ -189,7 +189,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -211,7 +211,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -235,7 +235,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -260,7 +260,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -286,7 +286,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -313,7 +313,8 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -339,7 +340,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -364,7 +365,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -386,7 +387,7 @@ public class VictoriaMetrics implements IDatabase {
    * @param rangeQuery
    */
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
@@ -409,7 +410,8 @@ public class VictoriaMetrics implements IDatabase {
    * @param valueRangeQuery
    */
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     int point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {

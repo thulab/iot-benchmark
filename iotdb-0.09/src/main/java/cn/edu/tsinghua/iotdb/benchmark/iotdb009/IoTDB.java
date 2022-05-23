@@ -202,13 +202,13 @@ public class IoTDB implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     String sql = getPreciseQuerySql(preciseQuery);
     return executeQueryAndGetStatus(sql);
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     String sql =
         getRangeQuerySql(
             rangeQuery.getDeviceSchema(),
@@ -222,7 +222,7 @@ public class IoTDB implements IDatabase {
    * 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     String sql = getvalueRangeQuerySql(valueRangeQuery);
     return executeQueryAndGetStatus(sql);
   }
@@ -232,7 +232,7 @@ public class IoTDB implements IDatabase {
    * 2010-01-01 12:30:00
    */
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     String sql =
@@ -243,7 +243,7 @@ public class IoTDB implements IDatabase {
 
   /** SELECT max_value(s_39) FROM root.group_2.d_29 WHERE root.group_2.d_29.s_39 > 0.0 */
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
     String sql =
@@ -260,7 +260,8 @@ public class IoTDB implements IDatabase {
    * 2010-01-01 12:30:00 AND root.group_2.d_29.s_39 > 0.0
    */
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
     String sql =
@@ -280,7 +281,7 @@ public class IoTDB implements IDatabase {
    * 1262275200000,[2010-01-01 12:00:00,2010-01-01 13:00:00])
    */
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     String aggQuerySqlHead =
         getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sql =
@@ -294,18 +295,19 @@ public class IoTDB implements IDatabase {
 
   /** SELECT last s_76 FROM root.group_3.d_31 */
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     String aggQuerySqlHead = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "max_time");
     return executeQueryAndGetStatus(aggQuerySqlHead);
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     return null;
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     return null;
   }
 

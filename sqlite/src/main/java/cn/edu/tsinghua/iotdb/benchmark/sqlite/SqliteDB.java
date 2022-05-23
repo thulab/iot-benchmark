@@ -211,7 +211,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
     long time = preciseQuery.getTimestamp();
     try {
@@ -238,7 +238,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     long startTime = rangeQuery.getStartTimestamp();
     long endTime = rangeQuery.getEndTimestamp();
@@ -266,7 +266,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     long startTime = valueRangeQuery.getStartTimestamp();
     long endTime = valueRangeQuery.getEndTimestamp();
@@ -295,7 +295,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
     long startTime = aggRangeQuery.getStartTimestamp();
     long endTime = aggRangeQuery.getEndTimestamp();
@@ -328,7 +328,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
     try {
       Statement statement = connection.createStatement();
@@ -355,7 +355,8 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
     long startTime = aggRangeValueQuery.getStartTimestamp();
     long endTime = aggRangeValueQuery.getEndTimestamp();
@@ -386,7 +387,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
     long startTime = groupByQuery.getStartTimestamp();
     long endTime = groupByQuery.getEndTimestamp();
@@ -415,7 +416,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
     try {
       Statement statement = connection.createStatement();
@@ -460,7 +461,7 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
     long startTime = rangeQuery.getStartTimestamp();
     long endTime = rangeQuery.getEndTimestamp();
@@ -489,7 +490,8 @@ public class SqliteDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
     long startTime = valueRangeQuery.getStartTimestamp();
     long endTime = valueRangeQuery.getEndTimestamp();

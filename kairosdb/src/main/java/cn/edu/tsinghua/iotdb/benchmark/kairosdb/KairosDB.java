@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iotdb.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
@@ -174,14 +175,14 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     long time = preciseQuery.getTimestamp();
     QueryBuilder builder = constructBuilder(time, time, preciseQuery.getDeviceSchema());
     return executeOneQuery(builder);
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     long startTime = rangeQuery.getStartTimestamp();
     long endTime = rangeQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, rangeQuery.getDeviceSchema());
@@ -189,7 +190,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     long startTime = valueRangeQuery.getStartTimestamp();
     long endTime = valueRangeQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, valueRangeQuery.getDeviceSchema());
@@ -201,7 +202,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     long startTime = aggRangeQuery.getStartTimestamp();
     long endTime = aggRangeQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, aggRangeQuery.getDeviceSchema());
@@ -214,7 +215,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     long startTime = aggValueQuery.getStartTimestamp();
     long endTime = aggValueQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, aggValueQuery.getDeviceSchema());
@@ -227,7 +228,8 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
+      throws DBConnectException {
     long startTime = aggRangeValueQuery.getStartTimestamp();
     long endTime = aggRangeValueQuery.getEndTimestamp();
     QueryBuilder builder =
@@ -243,7 +245,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     long startTime = groupByQuery.getStartTimestamp();
     long endTime = groupByQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, groupByQuery.getDeviceSchema());
@@ -255,7 +257,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     // latestPointQuery
     long startTime = latestPointQuery.getStartTimestamp();
     long endTime = latestPointQuery.getEndTimestamp();
@@ -266,7 +268,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     long startTime = rangeQuery.getStartTimestamp();
     long endTime = rangeQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, rangeQuery.getDeviceSchema());
@@ -275,7 +277,8 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
+      throws DBConnectException {
     long startTime = valueRangeQuery.getStartTimestamp();
     long endTime = valueRangeQuery.getEndTimestamp();
     QueryBuilder builder = constructBuilder(startTime, endTime, valueRangeQuery.getDeviceSchema());

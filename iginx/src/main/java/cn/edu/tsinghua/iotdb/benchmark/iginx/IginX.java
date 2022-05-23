@@ -124,7 +124,7 @@ public class IginX implements IDatabase {
   }
 
   @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
+  public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
     List<String> paths = new ArrayList<>();
     buildPathsFromSchemaList(preciseQuery.getDeviceSchema(), paths);
     return rangeQuery(
@@ -132,7 +132,7 @@ public class IginX implements IDatabase {
   }
 
   @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
+  public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
     List<String> paths = new ArrayList<>();
     buildPathsFromSchemaList(rangeQuery.getDeviceSchema(), paths);
     return rangeQuery(
@@ -170,7 +170,7 @@ public class IginX implements IDatabase {
   }
 
   @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     List<String> paths = new ArrayList<>();
     buildPathsFromSchemaList(valueRangeQuery.getDeviceSchema(), paths);
 
@@ -212,31 +212,31 @@ public class IginX implements IDatabase {
   }
 
   @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
     // iginx session not support multi Func for now.
     return null;
   }
 
   @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
+  public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
     // iginx session not support for now.
     return null;
   }
 
   @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) throws DBConnectException {
     // iginx session not support for now.
     return null;
   }
 
   @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
+  public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
     // iginx session not support multi func for now.
     return null;
   }
 
   @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
+  public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
     List<String> paths = new ArrayList<>();
     buildPathsFromSchemaList(latestPointQuery.getDeviceSchema(), paths);
 
@@ -258,13 +258,13 @@ public class IginX implements IDatabase {
   }
 
   @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
+  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
     // iginx session not support for now.
     return null;
   }
 
   @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
+  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) throws DBConnectException {
     // iginx session not support for now.
     return null;
   }
