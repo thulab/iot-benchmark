@@ -328,6 +328,11 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "READ_OPERATION_TIMEOUT_MS", config.getREAD_OPERATION_TIMEOUT_MS() + "")));
+        config.setMAX_CONNECTION_FAILED_TIME(
+            Integer.parseInt(
+                properties.getProperty(
+                    "MAX_CONNECTION_FAILED_TIME", config.getMAX_CONNECTION_FAILED_TIME() + "")));
+
         config.setBATCH_SIZE_PER_WRITE(
             Integer.parseInt(
                 properties.getProperty(

@@ -249,6 +249,8 @@ public class Config {
   private int WRITE_OPERATION_TIMEOUT_MS = 120000;
   /** The max time for reading in ms */
   private int READ_OPERATION_TIMEOUT_MS = 300000;
+  /** The max connection failed time, 0 means no control */
+  private int MAX_CONNECTION_FAILED_TIME = 0;
 
   // Operation：写入相关参数
   /**
@@ -1068,6 +1070,14 @@ public class Config {
 
   public void setREAD_OPERATION_TIMEOUT_MS(int READ_OPERATION_TIMEOUT_MS) {
     this.READ_OPERATION_TIMEOUT_MS = READ_OPERATION_TIMEOUT_MS;
+  }
+
+  public int getMAX_CONNECTION_FAILED_TIME() {
+    return MAX_CONNECTION_FAILED_TIME;
+  }
+
+  public void setMAX_CONNECTION_FAILED_TIME(int MAX_CONNECTION_FAILED_TIME) {
+    this.MAX_CONNECTION_FAILED_TIME = MAX_CONNECTION_FAILED_TIME;
   }
 
   public int getBATCH_SIZE_PER_WRITE() {
