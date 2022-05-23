@@ -382,10 +382,11 @@ public class IoTDBSession extends IoTDBSessionBase {
       if (ioTDBConnection != null) {
         ioTDBConnection.close();
       }
-      this.service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
       LOGGER.error("Failed to close session.");
       throw new TsdbException(ioTDBConnectionException);
+    } finally {
+      this.service.shutdown();
     }
   }
 }
