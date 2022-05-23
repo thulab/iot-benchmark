@@ -43,6 +43,7 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
 
   @Override
   protected void doTest() {
+    ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
     try {
       for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
         DeviceQuery deviceQuery = queryWorkLoad.getDeviceQuery();
@@ -53,7 +54,6 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         if (deviceSummary == null) {
           return;
         }
-        ScheduledExecutorService pointService = Executors.newSingleThreadScheduledExecutor();
         String currentThread = Thread.currentThread().getName();
         // print current progress periodically
         now = 0;
@@ -82,13 +82,14 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
         } while (queryStartTime < deviceSummary.getMaxTimeStamp());
         LOGGER.info(
             "All points of {} have been checked", deviceQuery.getDeviceSchema().getDevice());
-        pointService.shutdown();
         if (isStop.get()) {
           break;
         }
       }
     } catch (SQLException | TsdbException sqlException) {
       LOGGER.error("Failed DeviceQuery: " + sqlException.getMessage());
+    } finally {
+      pointService.shutdown();
     }
   }
 }
