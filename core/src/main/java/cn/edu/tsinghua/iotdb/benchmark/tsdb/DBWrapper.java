@@ -75,8 +75,18 @@ public class DBWrapper implements IDatabase {
     recorder = persistenceFactory.getPersistence();
   }
 
+  private boolean preCheck() {
+    if (config.getMAX_CONNECTION_FAILED_TIME() != 0) {
+      return connectionFailedTime.get() < config.getMAX_CONNECTION_FAILED_TIME();
+    }
+    return true;
+  }
+
   @Override
   public Status insertOneBatch(Batch batch) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
@@ -138,6 +148,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.PRECISE_QUERY;
     String device = "No Device";
@@ -166,6 +179,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.RANGE_QUERY;
     String device = "No Device";
@@ -194,6 +210,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY;
     String device = "No Device";
@@ -222,6 +241,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.AGG_RANGE_QUERY;
     String device = "No Device";
@@ -250,6 +272,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.AGG_VALUE_QUERY;
     String device = "No Device";
@@ -279,6 +304,9 @@ public class DBWrapper implements IDatabase {
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery)
       throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
     String device = "No Device";
@@ -307,6 +335,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.GROUP_BY_QUERY;
     String device = "No Device";
@@ -335,6 +366,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;
     String device = "No Device";
@@ -363,6 +397,9 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
     String device = "No Device";
@@ -393,6 +430,9 @@ public class DBWrapper implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery)
       throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
     String device = "No Device";
@@ -423,6 +463,9 @@ public class DBWrapper implements IDatabase {
   /** Using in verification */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) throws DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.VERIFICATION_QUERY;
     String device = verificationQuery.getDeviceSchema().getDevice();
@@ -449,6 +492,9 @@ public class DBWrapper implements IDatabase {
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery)
       throws SQLException, TsdbException, DBConnectException {
+    if (!preCheck()) {
+      return new Status(false, 0);
+    }
     Status status = null;
     Operation operation = Operation.DEVICE_QUERY;
     String device = deviceQuery.getDeviceSchema().getDevice();
