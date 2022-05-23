@@ -79,12 +79,14 @@ public class DBWrapper implements IDatabase {
     boolean result = true;
     if (config.getMAX_CONNECTION_FAILED_TIME() != 0) {
       result = connectionFailedTime.get() < config.getMAX_CONNECTION_FAILED_TIME();
-      measurement.addFailOperationNum(operation);
-      if (Operation.INGESTION == operation) {
-        measurement.addFailPointNum(operation, point);
+      if (!result) {
+        measurement.addFailOperationNum(operation);
+        if (Operation.INGESTION == operation) {
+          measurement.addFailPointNum(operation, point);
+        }
+        recorder.saveOperationResultAsync(
+            operation.getName(), 0, point, 0, "Failed to connect database", device);
       }
-      recorder.saveOperationResultAsync(
-          operation.getName(), 0, point, 0, "Failed to connect database", device);
     }
     return result;
   }
