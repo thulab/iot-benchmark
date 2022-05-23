@@ -75,20 +75,27 @@ public class DBWrapper implements IDatabase {
     recorder = persistenceFactory.getPersistence();
   }
 
-  private boolean preCheck() {
+  private boolean preCheck(Operation operation, int point, String device) {
+    boolean result = true;
     if (config.getMAX_CONNECTION_FAILED_TIME() != 0) {
-      return connectionFailedTime.get() < config.getMAX_CONNECTION_FAILED_TIME();
+      result = connectionFailedTime.get() < config.getMAX_CONNECTION_FAILED_TIME();
+      measurement.addFailOperationNum(operation);
+      if (Operation.INGESTION == operation) {
+        measurement.addFailPointNum(operation, point);
+      }
+      recorder.saveOperationResultAsync(
+          operation.getName(), 0, point, 0, "Failed to connect database", device);
     }
-    return true;
+    return result;
   }
 
   @Override
   public Status insertOneBatch(Batch batch) {
-    if (!preCheck()) {
+    Operation operation = Operation.INGESTION;
+    if (!preCheck(operation, batch.pointNum(), batch.getDeviceSchema().getDevice())) {
       return new Status(false, 0);
     }
     Status status = null;
-    Operation operation = Operation.INGESTION;
     try {
       for (IDatabase database : databases) {
         long start = System.nanoTime();
@@ -148,14 +155,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
-    Operation operation = Operation.PRECISE_QUERY;
     String device = "No Device";
+    Operation operation = Operation.PRECISE_QUERY;
     if (preciseQuery.getDeviceSchema().size() > 0) {
       device = preciseQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -179,14 +186,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.RANGE_QUERY;
     String device = "No Device";
     if (rangeQuery.getDeviceSchema().size() > 0) {
       device = rangeQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -210,14 +217,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY;
     String device = "No Device";
     if (valueRangeQuery.getDeviceSchema().size() > 0) {
       device = valueRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -241,14 +248,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.AGG_RANGE_QUERY;
     String device = "No Device";
     if (aggRangeQuery.getDeviceSchema().size() > 0) {
       device = aggRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -272,14 +279,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.AGG_VALUE_QUERY;
     String device = "No Device";
     if (aggValueQuery.getDeviceSchema().size() > 0) {
       device = aggValueQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -303,14 +310,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.AGG_RANGE_VALUE_QUERY;
     String device = "No Device";
     if (aggRangeValueQuery.getDeviceSchema().size() > 0) {
       device = aggRangeValueQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -334,14 +341,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.GROUP_BY_QUERY;
     String device = "No Device";
     if (groupByQuery.getDeviceSchema().size() > 0) {
       device = groupByQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -365,14 +372,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;
     String device = "No Device";
     if (latestPointQuery.getDeviceSchema().size() > 0) {
       device = latestPointQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       List<Status> statuses = new ArrayList<>();
@@ -396,14 +403,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
     String device = "No Device";
     if (rangeQuery.getDeviceSchema().size() > 0) {
       device = rangeQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       rangeQuery.setDesc(true);
@@ -428,14 +435,14 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
     String device = "No Device";
     if (valueRangeQuery.getDeviceSchema().size() > 0) {
       device = valueRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
     }
     try {
       valueRangeQuery.setDesc(true);
@@ -461,12 +468,12 @@ public class DBWrapper implements IDatabase {
   /** Using in verification */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.VERIFICATION_QUERY;
     String device = verificationQuery.getDeviceSchema().getDevice();
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
+    }
     try {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
@@ -489,12 +496,12 @@ public class DBWrapper implements IDatabase {
 
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    if (!preCheck()) {
-      return new Status(false, 0);
-    }
     Status status = null;
     Operation operation = Operation.DEVICE_QUERY;
     String device = deviceQuery.getDeviceSchema().getDevice();
+    if (!preCheck(operation, 0, device)) {
+      return new Status(false, 0);
+    }
     try {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
