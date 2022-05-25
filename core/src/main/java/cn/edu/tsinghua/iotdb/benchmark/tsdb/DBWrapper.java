@@ -77,8 +77,8 @@ public class DBWrapper implements IDatabase {
 
   private boolean preCheck(Operation operation, int point, String device) {
     boolean result = true;
-    if (config.getMAX_CONNECTION_FAILED_TIME() != 0) {
-      result = connectionFailedTime.get() < config.getMAX_CONNECTION_FAILED_TIME();
+    if (config.getMAX_CONNECTION_FAILED_TIMES() != 0) {
+      result = connectionFailedTime.get() < config.getMAX_CONNECTION_FAILED_TIMES();
       if (!result) {
         measurement.addFailOperationNum(operation);
         if (Operation.INGESTION == operation) {
