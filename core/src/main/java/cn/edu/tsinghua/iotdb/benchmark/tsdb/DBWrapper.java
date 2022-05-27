@@ -98,25 +98,25 @@ public class DBWrapper implements IDatabase {
       return new Status(false, 0);
     }
     Status status = null;
-    try {
-      for (IDatabase database : databases) {
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.insertOneBatch(batch);
         status = measureOneBatch(status, operation, batch, start);
-      }
-    } catch (Exception e) {
-      measurement.addFailOperationNum(operation);
-      measurement.addFailPointNum(operation, batch.pointNum());
-      recorder.saveOperationResultAsync(
-          operation.getName(),
-          0,
-          batch.pointNum(),
-          0,
-          e.toString(),
-          batch.getDeviceSchema().getDevice());
-      LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
+      } catch (Exception e) {
+        measurement.addFailOperationNum(operation);
+        measurement.addFailPointNum(operation, batch.pointNum());
+        recorder.saveOperationResultAsync(
+            operation.getName(),
+            0,
+            batch.pointNum(),
+            0,
+            e.toString(),
+            batch.getDeviceSchema().getDevice());
+        LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
       }
     }
     return status;
@@ -166,23 +166,24 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.preciseQuery(preciseQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(preciseQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(preciseQuery, operation, statuses);
     return status;
   }
 
@@ -197,23 +198,24 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.rangeQuery(rangeQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(rangeQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(rangeQuery, operation, statuses);
+
     return status;
   }
 
@@ -228,23 +230,24 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.valueRangeQuery(valueRangeQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(valueRangeQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(valueRangeQuery, operation, statuses);
+
     return status;
   }
 
@@ -259,23 +262,24 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.aggRangeQuery(aggRangeQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(aggRangeQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(aggRangeQuery, operation, statuses);
+
     return status;
   }
 
@@ -290,23 +294,23 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.aggValueQuery(aggValueQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(aggValueQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(aggValueQuery, operation, statuses);
     return status;
   }
 
@@ -321,23 +325,23 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.aggRangeValueQuery(aggRangeValueQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
+        handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      handleQueryOperation(status, operation, device);
-      doComparisonByRecord(aggRangeValueQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(aggRangeValueQuery, operation, statuses);
     return status;
   }
 
@@ -352,23 +356,23 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.groupByQuery(groupByQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(groupByQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(groupByQuery, operation, statuses);
     return status;
   }
 
@@ -383,23 +387,23 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.latestPointQuery(latestPointQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(latestPointQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(latestPointQuery, operation, statuses);
     return status;
   }
 
@@ -414,24 +418,24 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      rangeQuery.setDesc(true);
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    rangeQuery.setDesc(true);
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.rangeQueryOrderByDesc(rangeQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(rangeQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(rangeQuery, operation, statuses);
     return status;
   }
 
@@ -446,24 +450,24 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      valueRangeQuery.setDesc(true);
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    valueRangeQuery.setDesc(true);
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.valueRangeQueryOrderByDesc(valueRangeQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(valueRangeQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(valueRangeQuery, operation, statuses);
     return status;
   }
 
@@ -476,23 +480,23 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.verificationQuery(verificationQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
         handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doComparisonByRecord(verificationQuery, operation, statuses);
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doComparisonByRecord(verificationQuery, operation, statuses);
     return status;
   }
 
@@ -504,58 +508,56 @@ public class DBWrapper implements IDatabase {
     if (!preCheck(operation, 0, device)) {
       return new Status(false, 0);
     }
-    try {
-      List<Status> statuses = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<Status> statuses = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         long start = System.nanoTime();
         status = database.deviceQuery(deviceQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
+        handleQueryOperation(status, operation, device);
         statuses.add(status);
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
+        }
+        handleUnexpectedQueryException(operation, e, device);
       }
-      doPointComparison(statuses, deviceQuery);
-      for (Status sta : statuses) {
-        handleQueryOperation(sta, operation, device);
-      }
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      handleUnexpectedQueryException(operation, e, device);
     }
+    doPointComparison(statuses, deviceQuery);
     return status;
   }
 
   @Override
   public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSummary deviceSummary = null;
-    try {
-      List<DeviceSummary> deviceSummaries = new ArrayList<>();
-      for (IDatabase database : databases) {
+    List<DeviceSummary> deviceSummaries = new ArrayList<>();
+    for (IDatabase database : databases) {
+      try {
         deviceSummary = database.deviceSummary(deviceQuery);
         if (deviceSummary == null) {
           LOGGER.error("Failed to get summary: {}", database.getClass().getName());
           continue;
         }
         deviceSummaries.add(deviceSummary);
-      }
-      DeviceSummary base = deviceSummaries.get(0);
-      for (int i = 1; i < deviceSummaries.size(); i++) {
-        if (!base.equals(deviceSummaries.get(i))) {
-          LOGGER.error("Error number of different database: ");
-          LOGGER.error("DB1:" + base);
-          LOGGER.error("DB2:" + deviceSummaries.get(i));
-          return null;
+      } catch (Exception e) {
+        if (e instanceof DBConnectException) {
+          connectionFailedTime.getAndIncrement();
         }
+        LOGGER.error("Failed to get summary of device: " + e.getMessage());
+        return null;
       }
-    } catch (Exception e) {
-      if (e instanceof DBConnectException) {
-        connectionFailedTime.getAndIncrement();
-      }
-      LOGGER.error("Failed to get summary of device: " + e.getMessage());
-      return null;
     }
-    LOGGER.info("Device Summary:" + deviceSummary.toString());
+    DeviceSummary base = deviceSummaries.get(0);
+    for (int i = 1; i < deviceSummaries.size(); i++) {
+      if (!base.equals(deviceSummaries.get(i))) {
+        LOGGER.error("Error number of different database: ");
+        LOGGER.error("DB1:" + base);
+        LOGGER.error("DB2:" + deviceSummaries.get(i));
+        return null;
+      }
+    }
+    LOGGER.info("Device Summary:" + deviceSummary);
     return deviceSummary;
   }
 
