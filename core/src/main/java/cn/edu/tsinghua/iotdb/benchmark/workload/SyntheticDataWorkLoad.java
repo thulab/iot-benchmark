@@ -62,6 +62,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       long stepOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
     }
+    next();
     return batch;
   }
 
@@ -79,7 +80,6 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       batch.setColIndex(sensorIndex);
     }
     batch.setDeviceSchema(deviceSchema);
-    next();
     return batch;
   }
 
@@ -102,6 +102,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       }
       addOneRowIntoBatch(batch, stepOffset);
     }
+    next();
     return batch;
   }
 
@@ -113,6 +114,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
       addOneRowIntoBatch(batch, stepOffset);
     }
+    next();
     return batch;
   }
 
