@@ -405,7 +405,8 @@ public class Measurement {
       bw.newLine();
       bw.write(String.format("Schema cost(s),%.2f", createSchemaTime.get()));
       bw.newLine();
-      bw.write(String.format("Test elapsed time (not include schema creation)(s),%.2f",elapseTime));
+      bw.write(
+          String.format("Test elapsed time (not include schema creation)(s),%.2f", elapseTime));
       bw.newLine();
       bw.close();
     } catch (IOException e) {
