@@ -270,6 +270,7 @@ public class Measurement {
         if (config.isUSE_MEASUREMENT()) {
           outputResultMetricToCSV(csv);
           outputLatencyMetricsToCSV(csv);
+          outputSchemaMetricsToCSV(csv);
         }
 
       } catch (IOException e) {
@@ -395,6 +396,20 @@ public class Measurement {
       } catch (IOException e) {
         LOGGER.error("Exception occurred during operating buffer writer because: ", e);
       }
+    }
+  }
+
+  private void outputSchemaMetricsToCSV(File csv) {
+    try {
+      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+      bw.newLine();
+      bw.write("Schema cost(s)," + createSchemaTime.get());
+      bw.newLine();
+      bw.write("Test elapsed time (not include schema creation)(s)," + elapseTime);
+      bw.newLine();
+      bw.close();
+    } catch (IOException e) {
+      LOGGER.error("Exception occurred during operating buffer writer because: ", e);
     }
   }
 
