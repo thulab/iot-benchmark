@@ -403,9 +403,9 @@ public class Measurement {
     try {
       BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
       bw.newLine();
-      bw.write("Schema cost(s)," + createSchemaTime.get());
+      bw.write(String.format("Schema cost(s),%.2f", createSchemaTime.get()));
       bw.newLine();
-      bw.write("Test elapsed time (not include schema creation)(s)," + elapseTime);
+      bw.write(String.format("Test elapsed time (not include schema creation)(s),%.2f",elapseTime));
       bw.newLine();
       bw.close();
     } catch (IOException e) {
