@@ -1709,6 +1709,12 @@ public class Config {
       configProperties.addProperty(
           "Other Param", "IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     }
+    if (this.TEMPLATE) {
+      configProperties.addProperty("Other Param", "TEMPLATE", this.TEMPLATE);
+    }
+    if (this.VECTOR) {
+      configProperties.addProperty("Other Param", "VECTOR", this.VECTOR);
+    }
     return configProperties;
   }
 
