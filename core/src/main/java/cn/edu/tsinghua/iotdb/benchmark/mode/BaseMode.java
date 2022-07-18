@@ -164,10 +164,16 @@ public abstract class BaseMode {
     measurement.showConfigs();
     if (config.isUSE_MEASUREMENT()) {
       // must call calculateMetrics() before using the Metrics
-      measurement.calculateMetrics(operations);
-      if (operations.size() != 0) {
-        measurement.showMeasurements(operations);
-        measurement.showMetrics(operations);
+      try {
+        measurement.calculateMetrics(operations);
+        if (operations.size() != 0) {
+          measurement.showMeasurements(operations);
+          measurement.showMetrics(operations);
+        }
+      } catch (IllegalArgumentException e) {
+        LOGGER.error(
+            "Failed to show metric, please check the relation between LOOP and OPERATION_PROPORTION");
+        return;
       }
     }
     if (config.isCSV_OUTPUT()) {
