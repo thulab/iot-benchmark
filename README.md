@@ -199,6 +199,10 @@ Suppose you are going to test data ingestion performance of IoTDB. You have inst
 +--------------------------+------------+--------------+-------------+------------+--------------------+--------+
 ```
 
+Notice: Under this configuration, the total timeseries number is ```deivce * sensor = 25,000```, the number of data points
+in each timeseries is ```batch size * loop = 20,000```, total data points is ```deivce * sensor * batch size * loop = 500,000,000```.
+According to 16bytes of each data point, the total raw data size is 8G.
+
 edit the corresponding parameters in the ```config.properties``` file as following:
 
 ```properties
