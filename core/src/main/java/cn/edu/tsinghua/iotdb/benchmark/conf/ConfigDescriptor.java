@@ -316,10 +316,15 @@ public class ConfigDescriptor {
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
         config.setOP_MIN_INTERVAL(
-            Long.parseLong(properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));
+            Long.parseLong(
+                properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));
         if (config.getOP_MIN_INTERVAL() == -1L) {
           config.setOP_MIN_INTERVAL(config.getPOINT_STEP());
         }
+        config.setOP_MIN_INTERVAL_RANDOM(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "OP_MIN_INTERVAL_RANDOM", config.isOP_MIN_INTERVAL_RANDOM() + "")));
         config.setWRITE_OPERATION_TIMEOUT_MS(
             Integer.parseInt(
                 properties.getProperty(

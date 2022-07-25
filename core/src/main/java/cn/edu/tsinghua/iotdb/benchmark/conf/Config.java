@@ -241,10 +241,12 @@ public class Config {
 
   // Operation 相关参数
   /**
-   * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next operations
-   * right now. else wait (OP_MIN_INTERVAL - operation time) unit: ms
+   * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
+   * operations right now. else wait (OP_MIN_INTERVAL - operation time) unit: ms
    */
   private long OP_MIN_INTERVAL = 0;
+  /** Whether to randomly select the minimum execution interval of the operation */
+  private boolean OP_MIN_INTERVAL_RANDOM = false;
   /** The max time for writing in ms */
   private int WRITE_OPERATION_TIMEOUT_MS = 120000;
   /** The max time for reading in ms */
@@ -1054,6 +1056,14 @@ public class Config {
     this.OP_MIN_INTERVAL = OP_MIN_INTERVAL;
   }
 
+  public boolean isOP_MIN_INTERVAL_RANDOM() {
+    return OP_MIN_INTERVAL_RANDOM;
+  }
+
+  public void setOP_MIN_INTERVAL_RANDOM(boolean OP_MIN_INTERVAL_RANDOM) {
+    this.OP_MIN_INTERVAL_RANDOM = OP_MIN_INTERVAL_RANDOM;
+  }
+
   public int getWRITE_OPERATION_TIMEOUT_MS() {
     return WRITE_OPERATION_TIMEOUT_MS;
   }
@@ -1668,6 +1678,8 @@ public class Config {
     configProperties.addProperty("Data Amount", "START_TIME", this.START_TIME);
     configProperties.addProperty("Data Amount", "POINT_STEP", this.POINT_STEP);
     configProperties.addProperty("Data Amount", "OP_MIN_INTERVAL", this.OP_MIN_INTERVAL);
+    configProperties.addProperty(
+        "Data Amount", "OP_MIN_INTERVAL_RANDOM", this.OP_MIN_INTERVAL_RANDOM);
     configProperties.addProperty(
         "Data Amount", "INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
     configProperties.addProperty(
