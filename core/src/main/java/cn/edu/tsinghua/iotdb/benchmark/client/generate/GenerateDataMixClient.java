@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -30,6 +31,8 @@ public class GenerateDataMixClient extends GenerateBaseClient {
 
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
+
+  private final Random random = new Random(config.getDATA_SEED());
 
   public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
@@ -103,8 +106,14 @@ public class GenerateDataMixClient extends GenerateBaseClient {
         break;
       }
       if (config.getOP_MIN_INTERVAL() > 0) {
+        long opMinInterval;
+        if (config.isOP_MIN_INTERVAL_RANDOM()) {
+          opMinInterval = (long) (random.nextDouble() * config.getOP_MIN_INTERVAL());
+        } else {
+          opMinInterval = config.getOP_MIN_INTERVAL();
+        }
         long elapsed = System.currentTimeMillis() - start;
-        if (elapsed < config.getOP_MIN_INTERVAL()) {
+        if (elapsed < opMinInterval) {
           try {
             Thread.sleep(config.getOP_MIN_INTERVAL() - elapsed);
           } catch (InterruptedException e) {
