@@ -43,7 +43,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
     long start = 0;
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       Operation operation = operationController.getNextOperationType();
-      if (config.getOP_INTERVAL() > 0) {
+      if (config.getOP_MIN_INTERVAL() > 0) {
         start = System.currentTimeMillis();
       }
       if (operation == Operation.INGESTION) {
@@ -102,11 +102,11 @@ public class GenerateDataMixClient extends GenerateBaseClient {
       if (isStop.get()) {
         break;
       }
-      if (config.getOP_INTERVAL() > 0) {
+      if (config.getOP_MIN_INTERVAL() > 0) {
         long elapsed = System.currentTimeMillis() - start;
-        if (elapsed < config.getOP_INTERVAL()) {
+        if (elapsed < config.getOP_MIN_INTERVAL()) {
           try {
-            Thread.sleep(config.getOP_INTERVAL() - elapsed);
+            Thread.sleep(config.getOP_MIN_INTERVAL() - elapsed);
           } catch (InterruptedException e) {
             LOGGER.error("Wait for next operation failed because ", e);
           }
