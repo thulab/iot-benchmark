@@ -96,6 +96,10 @@ public class ConfigDescriptor {
         config.setRESULT_PRECISION(
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
+        config.setCLIENT_MAX_SLEEP_TIME(
+            Integer.parseInt(
+                properties.getProperty(
+                    "CLIENT_MAX_SLEEP_TIME", config.getCLIENT_MAX_SLEEP_TIME() + "")));
 
         config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");

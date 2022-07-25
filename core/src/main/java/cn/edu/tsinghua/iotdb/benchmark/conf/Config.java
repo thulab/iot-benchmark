@@ -77,6 +77,8 @@ public class Config {
   private boolean USE_MEASUREMENT = true;
   /** Precision of result, unit: % */
   private double RESULT_PRECISION = 0.1;
+  /** The max sleep time of client after one loop, unit: ms */
+  private int CLIENT_MAX_SLEEP_TIME = 0;
 
   /** Whether to use benchmark in cluster * */
   private boolean BENCHMARK_CLUSTER = false;
@@ -621,6 +623,14 @@ public class Config {
 
   public void setRESULT_PRECISION(double RESULT_PRECISION) {
     this.RESULT_PRECISION = RESULT_PRECISION;
+  }
+
+  public int getCLIENT_MAX_SLEEP_TIME() {
+    return CLIENT_MAX_SLEEP_TIME;
+  }
+
+  public void setCLIENT_MAX_SLEEP_TIME(int CLIENT_MAX_SLEEP_TIME) {
+    this.CLIENT_MAX_SLEEP_TIME = CLIENT_MAX_SLEEP_TIME;
   }
 
   public boolean isBENCHMARK_CLUSTER() {
@@ -1759,6 +1769,8 @@ public class Config {
     configProperties.addProperty("Extern Param", "TEST_MAX_TIME", this.TEST_MAX_TIME);
 
     configProperties.addProperty("Extern Param", "RESULT_PRECISION", this.RESULT_PRECISION + "%");
+    configProperties.addProperty(
+        "Extern Param", "CLIENT_MAX_SLEEP_TIME", this.CLIENT_MAX_SLEEP_TIME + "ms");
     configProperties.addProperty("Extern Param", "WORKLOAD_BUFFER_SIZE", this.WORKLOAD_BUFFER_SIZE);
     configProperties.addProperty("Extern Param", "GROUP_NAME_PREFIX", this.GROUP_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "DEVICE_NAME_PREFIX", this.DEVICE_NAME_PREFIX);
