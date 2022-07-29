@@ -32,7 +32,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
 
-  private final Random random = new Random(config.getDATA_SEED());
+  private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
   public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
