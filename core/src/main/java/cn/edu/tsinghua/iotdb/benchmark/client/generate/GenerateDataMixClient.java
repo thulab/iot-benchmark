@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iotdb.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iotdb.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
@@ -30,6 +31,8 @@ public class GenerateDataMixClient extends GenerateBaseClient {
 
   /** Control operation according to OPERATION_PROPORTION */
   private final OperationController operationController;
+
+  private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
   public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
@@ -43,7 +46,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
     long start = 0;
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       Operation operation = operationController.getNextOperationType();
-      if (config.getOP_INTERVAL() > 0) {
+      if (config.getOP_MIN_INTERVAL() > 0) {
         start = System.currentTimeMillis();
       }
       if (operation == Operation.INGESTION) {
@@ -102,11 +105,18 @@ public class GenerateDataMixClient extends GenerateBaseClient {
       if (isStop.get()) {
         break;
       }
-      if (config.getOP_INTERVAL() > 0) {
+      if (config.getOP_MIN_INTERVAL() > 0) {
+        long opMinInterval;
+        if (config.isOP_MIN_INTERVAL_RANDOM()) {
+          opMinInterval = (long) (random.nextDouble() * config.getOP_MIN_INTERVAL());
+        } else {
+          opMinInterval = config.getOP_MIN_INTERVAL();
+        }
         long elapsed = System.currentTimeMillis() - start;
-        if (elapsed < config.getOP_INTERVAL()) {
+        if (elapsed < opMinInterval) {
           try {
-            Thread.sleep(config.getOP_INTERVAL() - elapsed);
+            LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opMinInterval - elapsed);
+            Thread.sleep(opMinInterval - elapsed);
           } catch (InterruptedException e) {
             LOGGER.error("Wait for next operation failed because ", e);
           }
