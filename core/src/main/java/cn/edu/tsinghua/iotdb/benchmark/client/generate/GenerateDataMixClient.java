@@ -112,6 +112,9 @@ public class GenerateDataMixClient extends GenerateBaseClient {
         } else {
           opMinInterval = config.getOP_MIN_INTERVAL();
         }
+        if (loopIndex % 10 == 0) {
+          LOGGER.info("[Client-{}]'s operation min interval is {}", clientThreadId, opMinInterval);
+        }
         long elapsed = System.currentTimeMillis() - start;
         if (elapsed < opMinInterval) {
           try {
