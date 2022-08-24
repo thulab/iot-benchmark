@@ -296,7 +296,7 @@ public class Config {
   /** Whether query recent data, only used in read and write mix mode */
   private boolean IS_RECENT_QUERY = false;
   /** The change step size of the time starting point of the time filter condition */
-  private int STEP_SIZE = 1;
+  private long STEP_SIZE = 1;
   /**
    * The ratio of each operation, INGESTION:Q1:Q2:Q3:Q4:Q5:Q6:Q7:Q8:Q9:Q10 INGESTION Q1: Precise
    * point query, Eg. select v1... from data where time = ? and device in ? Q2: Time range query,
@@ -1192,11 +1192,11 @@ public class Config {
     this.IS_RECENT_QUERY = IS_RECENT_QUERY;
   }
 
-  public int getSTEP_SIZE() {
+  public long getSTEP_SIZE() {
     return STEP_SIZE;
   }
 
-  public void setSTEP_SIZE(int STEP_SIZE) {
+  public void setSTEP_SIZE(long STEP_SIZE) {
     this.STEP_SIZE = STEP_SIZE;
   }
 
