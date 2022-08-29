@@ -377,8 +377,7 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("IS_RECENT_QUERY", config.isIS_RECENT_QUERY() + "")));
         config.setSTEP_SIZE(
-                Long.parseLong(
-                        properties.getProperty("STEP_SIZE",config.getSTEP_SIZE()+ "")));
+            Long.parseLong(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
         config.setOPERATION_PROPORTION(
             properties.getProperty("OPERATION_PROPORTION", config.getOPERATION_PROPORTION()));
         config.setQUERY_SENSOR_NUM(
