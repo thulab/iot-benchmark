@@ -60,6 +60,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
     Batch batch = getBatchWithSchema();
     for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
       long stepOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+      stepOffset += Math.exp(dataRandom.nextGaussian());
       addOneRowIntoBatch(batch, stepOffset);
     }
     next();

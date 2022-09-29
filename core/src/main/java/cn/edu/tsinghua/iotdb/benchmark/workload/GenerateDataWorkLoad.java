@@ -102,6 +102,20 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     batch.add(currentTimestamp, values);
   }
 
+  private Object addValue(Object object) {
+    double value = Math.exp(dataRandom.nextGaussian());
+    if (object instanceof Integer) {
+      object = (int) object + (int) value;
+    } else if (object instanceof Long) {
+      object = (long) object + (long) value;
+    } else if (object instanceof Float) {
+      object = (float) object + (float) value;
+    } else if (object instanceof Double) {
+      object = (double) object + value;
+    }
+    return object;
+  }
+
   /** Get timestamp according to stepOffset */
   protected long getCurrentTimestamp(long stepOffset) {
     // offset of data ahead
@@ -120,6 +134,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     if (config.isIS_RECENT_QUERY()) {
       this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
     }
+    currentTimestamp += Math.exp(timestampRandom.nextGaussian()) * config.getPOINT_STEP();
     return currentTimestamp;
   }
 
