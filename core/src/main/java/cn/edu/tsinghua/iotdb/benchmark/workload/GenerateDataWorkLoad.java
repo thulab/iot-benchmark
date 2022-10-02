@@ -131,10 +131,11 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
     }
     long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
+    double result = Math.exp(timestampRandom.nextGaussian() * Math.sqrt(config.getSIGMA()) + config.getMU());
+    currentTimestamp += result * config.getPOINT_STEP();
     if (config.isIS_RECENT_QUERY()) {
       this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
     }
-    currentTimestamp += Math.exp(timestampRandom.nextGaussian()) * config.getPOINT_STEP();
     return currentTimestamp;
   }
 

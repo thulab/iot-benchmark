@@ -291,6 +291,8 @@ public class Config {
   private double LAMBDA = 2200.0;
   /** The max K of Poisson random variable based on basic model */
   private int MAX_K = 170000;
+  private double SIGMA = 1.0;
+  private double MU = 0;
 
   // Operation：查询相关参数
   /** Whether query recent data, only used in read and write mix mode */
@@ -1184,6 +1186,22 @@ public class Config {
     this.MAX_K = MAX_K;
   }
 
+  public double getSIGMA() {
+    return SIGMA;
+  }
+
+  public void setSIGMA(double SIGMA) {
+    this.SIGMA = SIGMA;
+  }
+
+  public double getMU() {
+    return MU;
+  }
+
+  public void setMU(double MU) {
+    this.MU = MU;
+  }
+
   public boolean isIS_RECENT_QUERY() {
     return IS_RECENT_QUERY;
   }
@@ -1727,6 +1745,8 @@ public class Config {
     if (this.VECTOR) {
       configProperties.addProperty("Other Param", "VECTOR", this.VECTOR);
     }
+    configProperties.addProperty("Extern Param", "SIGMA", this.SIGMA);
+    configProperties.addProperty("Extern Param", "MU", this.MU);
     return configProperties;
   }
 
