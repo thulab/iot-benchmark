@@ -291,6 +291,7 @@ public class Config {
   private double LAMBDA = 2200.0;
   /** The max K of Poisson random variable based on basic model */
   private int MAX_K = 170000;
+
   private double SIGMA = 1.0;
   private double MU = 0;
 

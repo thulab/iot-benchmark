@@ -372,7 +372,8 @@ public class ConfigDescriptor {
         config.setLAMBDA(
             Double.parseDouble(properties.getProperty("LAMBDA", config.getLAMBDA() + "")));
         config.setMAX_K(Integer.parseInt(properties.getProperty("MAX_K", config.getMAX_K() + "")));
-        config.setSIGMA(Double.parseDouble(properties.getProperty("SIGMA", config.getSIGMA() + "")));
+        config.setSIGMA(
+            Double.parseDouble(properties.getProperty("SIGMA", config.getSIGMA() + "")));
         config.setMU(Double.parseDouble(properties.getProperty("MU", config.getMU() + "")));
 
         config.setIS_RECENT_QUERY(
