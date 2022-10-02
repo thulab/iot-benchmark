@@ -172,7 +172,7 @@ public class Measurement {
     System.out.println(
         "----------------------------------------------------------Result Matrix----------------------------------------------------------");
     StringBuffer format = new StringBuffer();
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
       format.append(RESULT_ITEM);
     }
     format.append("\n");
@@ -183,9 +183,14 @@ public class Measurement {
         "okPoint",
         "failOperation",
         "failPoint",
-        "throughput(point/s)");
+        "throughput(point/s)",
+        "single-throughput(point/s)");
     for (Operation operation : operations) {
       String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+      String singleThroughPut =
+          String.format(
+              "%.2f",
+              okPointNumMap.get(operation) * 1000 / operationLatencySumThisClient.get(operation));
       System.out.printf(
           format.toString(),
           operation.getName(),
@@ -193,7 +198,8 @@ public class Measurement {
           okPointNumMap.get(operation),
           failOperationNumMap.get(operation),
           failPointNumMap.get(operation),
-          throughput);
+          throughput,
+          singleThroughPut);
 
       recorder.saveResultAsync(
           operation.toString(),
@@ -349,9 +355,17 @@ public class Measurement {
                 + ","
                 + "failPoint"
                 + ","
-                + "throughput(point/s)");
+                + "throughput(point/s)"
+                + ","
+                + "single-throughput(point/s)");
         for (Operation operation : Operation.values()) {
           String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+          String singleThroughPut =
+              String.format(
+                  "%.2f",
+                  okPointNumMap.get(operation)
+                      * 1000
+                      / operationLatencySumThisClient.get(operation));
           bw.newLine();
           bw.write(
               operation.getName()
@@ -364,7 +378,9 @@ public class Measurement {
                   + ","
                   + failPointNumMap.get(operation)
                   + ","
-                  + throughput);
+                  + throughput
+                  + ","
+                  + singleThroughPut);
         }
         bw.close();
       } catch (IOException e) {
