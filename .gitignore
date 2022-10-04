@@ -4,6 +4,9 @@ iotdb-benchmark.iws
 **/.classpath
 **/.project
 **/.settings/
+mvnw
+mvnw.cmd
+.mvn/
 # src/main/resources/
 # intellij IDE files
 **/*.iml
