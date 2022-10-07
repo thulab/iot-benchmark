@@ -190,6 +190,9 @@ public class ConfigDescriptor {
             Long.parseLong(
                 properties.getProperty(
                     "MAX_TIMESTAMP_VALUE", config.getMAX_TIMESTAMP_VALUE() + "")));
+        if (config.getMAX_TIMESTAMP_VALUE() == -1L) {
+          config.setMAX_TIMESTAMP_VALUE(Long.MAX_VALUE);
+        }
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));
@@ -486,7 +489,6 @@ public class ConfigDescriptor {
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
-        String[] operations = config.getOPERATION_PROPORTION().split(":");
         if (!config.hasWrite()) {
           // no write
           checkQuery();
