@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Config {
-  private static Logger LOGGER = LoggerFactory.getLogger(Config.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
   // 初始化
   // 初始化：清理数据
@@ -127,7 +127,10 @@ public class Config {
   private long POINT_STEP = 5000L;
   /** The precision of timestamp, currently support ms and us */
   private String TIMESTAMP_PRECISION = "ms";
-
+  /** Whether to generate random timestamp for debug */
+  private boolean RANDOM_TIMESTAMP = false;
+  /** If set, restrict the upper bound of timestamp value */
+  private long MAX_TIMESTAMP_VALUE = Long.MAX_VALUE;
   // 数据
 
   // 数据：格式与编码
@@ -735,6 +738,22 @@ public class Config {
 
   public void setTIMESTAMP_PRECISION(String TIMESTAMP_PRECISION) {
     this.TIMESTAMP_PRECISION = TIMESTAMP_PRECISION;
+  }
+
+  public boolean getRANDOM_TIMESTAMP() {
+    return RANDOM_TIMESTAMP;
+  }
+
+  public void setRANDOM_TIMESTAMP(boolean RANDOM_TIMESTAMP) {
+    this.RANDOM_TIMESTAMP = RANDOM_TIMESTAMP;
+  }
+
+  public long getMAX_TIMESTAMP_VALUE() {
+    return MAX_TIMESTAMP_VALUE;
+  }
+
+  public void setMAX_TIMESTAMP_VALUE(long MAX_TIMESTAMP_VALUE) {
+    this.MAX_TIMESTAMP_VALUE = MAX_TIMESTAMP_VALUE;
   }
 
   public int getSTRING_LENGTH() {
@@ -1570,6 +1589,10 @@ public class Config {
         + "\nTIMESTAMP_PRECISION='"
         + TIMESTAMP_PRECISION
         + '\''
+        + "\nRANDOM_TIMESTAMP="
+        + RANDOM_TIMESTAMP
+        + "\nMAX_TIMESTAMP_VALUE="
+        + MAX_TIMESTAMP_VALUE
         + "\nSTRING_LENGTH="
         + STRING_LENGTH
         + "\nDOUBLE_LENGTH="
@@ -1697,6 +1720,8 @@ public class Config {
             + "/"
             + this.ENCODING_TEXT);
     configProperties.addProperty("Data Amount", "COMPRESSOR", this.COMPRESSOR);
+    configProperties.addProperty("Data Amount", "RANDOM_TIMESTAMP", this.RANDOM_TIMESTAMP);
+    configProperties.addProperty("Data Amount", "MAX_TIMESTAMP_VALUE", this.MAX_TIMESTAMP_VALUE);
     if (hasQuery()) {
       configProperties.addProperty("Query Param", "QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
       configProperties.addProperty("Query Param", "QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);

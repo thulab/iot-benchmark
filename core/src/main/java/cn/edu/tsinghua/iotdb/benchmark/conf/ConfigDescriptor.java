@@ -69,7 +69,7 @@ public class ConfigDescriptor {
     if (url != null) {
       InputStream inputStream;
       try {
-        inputStream = new FileInputStream(new File(url));
+        inputStream = new FileInputStream(url);
       } catch (FileNotFoundException e) {
         LOGGER.warn("Fail to find config file {}", url);
         return;
@@ -183,6 +183,13 @@ public class ConfigDescriptor {
                 "not support timestamp precision: " + config.getTIMESTAMP_PRECISION());
         }
 
+        config.setRANDOM_TIMESTAMP(
+            Boolean.parseBoolean(
+                properties.getProperty("RANDOM_TIMESTAMP", config.getRANDOM_TIMESTAMP() + "")));
+        config.setMAX_TIMESTAMP_VALUE(
+            Long.parseLong(
+                properties.getProperty(
+                    "MAX_TIMESTAMP_VALUE", config.getMAX_TIMESTAMP_VALUE() + "")));
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));
