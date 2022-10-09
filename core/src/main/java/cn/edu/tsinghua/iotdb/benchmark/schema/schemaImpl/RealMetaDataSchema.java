@@ -51,11 +51,6 @@ public class RealMetaDataSchema extends MetaDataSchema {
       LOGGER.error("{} dataset does not exit", config.getFILE_PATH());
       return false;
     }
-    // Check the validation of config between benchmark and dataset
-    if (!config.isIS_COPY_MODE() && !schemaReader.checkDataSet()) {
-      LOGGER.error("There are difference between benchmark and dataset");
-      return false;
-    }
     // Load file from dataset
     List<String> files = new ArrayList<>();
     getAllFiles(pathStr, files);
