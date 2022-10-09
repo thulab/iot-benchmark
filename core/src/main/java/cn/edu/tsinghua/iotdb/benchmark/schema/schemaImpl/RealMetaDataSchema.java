@@ -64,11 +64,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
       String deviceName = device.getKey();
       List<Sensor> sensors = sortSensors(device.getValue());
       DeviceSchema deviceSchema =
-          new DeviceSchema(
-              MetaUtil.getGroupIdFromDeviceName(deviceName),
-              deviceName,
-              sensors,
-              config.getDEVICE_TAGS());
+          new DeviceSchema("0", deviceName, sensors, config.getDEVICE_TAGS());
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
       GROUPS.add(deviceSchema.getGroup());
       deviceSchemaList.add(deviceSchema);

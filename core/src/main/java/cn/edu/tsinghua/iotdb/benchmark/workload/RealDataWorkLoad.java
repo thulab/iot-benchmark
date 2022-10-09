@@ -23,7 +23,6 @@ import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
 import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iotdb.benchmark.exception.WorkloadException;
-import cn.edu.tsinghua.iotdb.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
 import com.opencsv.CSVReaderBuilder;
 import org.slf4j.Logger;
@@ -88,12 +87,7 @@ public class RealDataWorkLoad extends DataWorkLoad {
             for (int i = 1; i < items.length; i++) {
               sensors.add(stringSensorMap.get(items[i]));
             }
-            deviceSchema =
-                new DeviceSchema(
-                    MetaUtil.getGroupIdFromDeviceName(deviceName),
-                    deviceName,
-                    sensors,
-                    config.getDEVICE_TAGS());
+            deviceSchema = new DeviceSchema("0", deviceName, sensors, config.getDEVICE_TAGS());
             firstLine = false;
             continue;
           }
