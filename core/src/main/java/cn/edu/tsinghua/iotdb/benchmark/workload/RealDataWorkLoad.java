@@ -156,6 +156,7 @@ public class RealDataWorkLoad extends DataWorkLoad {
         currentTimestamp = Math.max(currentTimestamp, record.getTimestamp());
       }
       batchRecord.add(record);
+      size++;
     }
     if (deviceSchema != null) {
       return new Batch(deviceSchema, batchRecord);
@@ -166,6 +167,6 @@ public class RealDataWorkLoad extends DataWorkLoad {
 
   @Override
   public long getBatchNumber() {
-    return batchNumber;
+    return batchNumber / config.getBATCH_SIZE_PER_WRITE();
   }
 }
