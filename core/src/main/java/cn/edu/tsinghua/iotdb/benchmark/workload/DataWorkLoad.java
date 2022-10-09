@@ -36,7 +36,8 @@ public abstract class DataWorkLoad implements IDataWorkLoad {
   protected long currentTimestamp = 0;
 
   public static IDataWorkLoad getInstance(int clientId) {
-    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_WRITE
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.TEST_WITH_DEFAULT_PATH
+        || config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_WRITE
         || config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_QUERY) {
       List<String> files = MetaUtil.getClientFiles().get(clientId);
       return new RealDataWorkLoad(files);
