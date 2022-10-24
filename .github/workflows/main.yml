@@ -4,7 +4,7 @@ on:
   #    branches:
   #      - master
   schedule:
-      - cron: "* */2 * * *"
+      - cron: "* */24 * * *"
   workflow_dispatch:
 jobs:
   #--------
@@ -34,19 +34,11 @@ jobs:
           echo "::set-output name=commit_id_short::$( git rev-parse --short HEAD )"
           echo "::set-output name=commit_time::$(git log -n1 --pretty='format:%cd' --date=iso)"
           echo $(git rev-parse HEAD)
-      # git this repository
-      - name: checkout thulab/iotdb-benchmark-bin-resources
-        uses: actions/checkout@v2
-        with:
-          path: iotdb-benchmark-bin-resources
-          repository: 'xiaoyekanren/iotdb-benchmark-bin-resources'
-          ref: 'master'
-          fetch-depth: 0
       # check update
       - name: check
         id: check-old-commit
         run: |
-          cd ${{ github.workspace }}/iotdb-benchmark-bin-resources
+          cd ${{ github.workspace }}/iotdb-benchmark
           echo "::set-output name=last_commit::$(cat .github/release_history.txt | tail -n 1)"
           echo $(cat .github/release_history.txt | tail -n 1)
       # compare
@@ -150,7 +142,7 @@ jobs:
         env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd ${{ github.workspace }}/iotdb-benchmark-bin-resources
+          cd ${{ github.workspace }}/iotdb-benchmark
           git config --local user.email "876670773+github-actions[bot]@qq.com"
           git config --local user.name "github-actions[bot]"
           echo ${{ steps.bm-info.outputs.commit_id }} >> .github/release_history.txt
