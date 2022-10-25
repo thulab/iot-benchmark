@@ -33,6 +33,7 @@ jobs:
           echo "::set-output name=commit_id::$( git rev-parse HEAD )"
           echo "::set-output name=commit_id_short::$( git rev-parse --short HEAD )"
           echo "::set-output name=commit_time::$(git log -n1 --pretty='format:%cd' --date=iso)"
+          echo "::set-output name=commit_user::$(git log | head -n 2 | tail -n 1 | cut -d ' ' -f 2)"
           echo $(git rev-parse HEAD)
       # check update
       - name: check
@@ -49,7 +50,7 @@ jobs:
       # equal means no update
       # "exit 0" is exits normally，"exit other" is exception exit
       - name: check check's results
-        if: ${{ steps.check-old-commit.outputs.last_commit == steps.bm-info.outputs.commit_id }}
+        if: ${{ steps.bm-info.outputs.commit_id == steps.check-old-commit.outputs.last_commit || steps.bm-info.outputs.commit_user == 'github-actions[bot]' }}
         run: exit 1
       # set java
       - name: Set java ${{ matrix.java_version }}
