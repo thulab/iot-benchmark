@@ -88,7 +88,12 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   /** Add one row into batch, row contains data from all sensors */
   protected void addOneRowIntoBatch(Batch batch, long stepOffset) {
     List<Object> values = new ArrayList<>();
-    long currentTimestamp = getCurrentTimestamp(stepOffset);
+    long currentTimestamp;
+    if (!config.getRANDOM_TIMESTAMP()) {
+      currentTimestamp = getCurrentTimestamp(stepOffset) % config.getMAX_TIMESTAMP_VALUE();
+    } else {
+      currentTimestamp = Math.abs(dataRandom.nextLong()) % config.getMAX_TIMESTAMP_VALUE();
+    }
     if (batch.getColIndex() == -1) {
       for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
         values.add(

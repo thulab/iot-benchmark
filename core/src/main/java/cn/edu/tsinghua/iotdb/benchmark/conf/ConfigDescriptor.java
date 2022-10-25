@@ -69,7 +69,7 @@ public class ConfigDescriptor {
     if (url != null) {
       InputStream inputStream;
       try {
-        inputStream = new FileInputStream(new File(url));
+        inputStream = new FileInputStream(url);
       } catch (FileNotFoundException e) {
         LOGGER.warn("Fail to find config file {}", url);
         return;
@@ -183,6 +183,16 @@ public class ConfigDescriptor {
                 "not support timestamp precision: " + config.getTIMESTAMP_PRECISION());
         }
 
+        config.setRANDOM_TIMESTAMP(
+            Boolean.parseBoolean(
+                properties.getProperty("RANDOM_TIMESTAMP", config.getRANDOM_TIMESTAMP() + "")));
+        config.setMAX_TIMESTAMP_VALUE(
+            Long.parseLong(
+                properties.getProperty(
+                    "MAX_TIMESTAMP_VALUE", config.getMAX_TIMESTAMP_VALUE() + "")));
+        if (config.getMAX_TIMESTAMP_VALUE() == -1L) {
+          config.setMAX_TIMESTAMP_VALUE(Long.MAX_VALUE);
+        }
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));
@@ -479,7 +489,6 @@ public class ConfigDescriptor {
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
-        String[] operations = config.getOPERATION_PROPORTION().split(":");
         if (!config.hasWrite()) {
           // no write
           checkQuery();
