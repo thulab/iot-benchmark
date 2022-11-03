@@ -647,7 +647,7 @@ public class TimescaleDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
-    builder.append(",'").append(deviceSchema.getDevice()).append("zzm'");
+    builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
     for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
