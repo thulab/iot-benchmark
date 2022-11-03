@@ -68,8 +68,10 @@ public class TimescaleDB implements IDatabase {
   private static final String POSTGRESQL_URL = "jdbc:postgresql://%s:%s/%s";
 
   // chunk_time_interval=7d
+  //  private static final String CONVERT_TO_HYPERTABLE =
+  //      "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String CONVERT_TO_HYPERTABLE =
-      "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
+      "SELECT create_distributed_hypertable('%s', 'time', 'location', replication_factor => 3, chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
   private static final AtomicBoolean schemaInit = new AtomicBoolean(false);
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
@@ -143,6 +145,9 @@ public class TimescaleDB implements IDatabase {
     if (schemaInit.compareAndSet(false, true)) {
       try (Statement statement = connection.createStatement()) {
         String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
+        System.out.print(pgsql);
+        System.out.print('\n');
+        System.out.printf((CONVERT_TO_HYPERTABLE) + "%n", tableName);
         LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
         statement.execute(pgsql);
         LOGGER.debug(
@@ -602,7 +607,8 @@ public class TimescaleDB implements IDatabase {
    */
   private String getCreateTableSql(String tableName, List<Sensor> sensors) {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
-    sqlBuilder.append("time BIGINT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
+    sqlBuilder.append(
+        "time BIGINT NOT NULL, location TEXT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
     for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
       sqlBuilder.append(", ").append(pair.getKey()).append(" TEXT NOT NULL");
     }
@@ -614,7 +620,7 @@ public class TimescaleDB implements IDatabase {
           .append(typeMap(sensors.get(i).getSensorType()))
           .append(" NULL ");
     }
-    sqlBuilder.append(",UNIQUE (time, sGroup, device");
+    sqlBuilder.append(",UNIQUE (time, location, sGroup, device");
     for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
       sqlBuilder.append(", ").append(pair.getKey());
     }
@@ -632,7 +638,7 @@ public class TimescaleDB implements IDatabase {
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
     List<Sensor> sensors = deviceSchema.getSensors();
-    builder.append("insert into ").append(tableName).append("(time,sGroup,device");
+    builder.append("insert into ").append(tableName).append("(time,location,sGroup,device");
     for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
       builder.append(",").append(pair.getKey());
     }
@@ -641,6 +647,7 @@ public class TimescaleDB implements IDatabase {
     }
     builder.append(") values(");
     builder.append(timestamp);
+    builder.append(",'").append(deviceSchema.getDevice()).append("zzm'");
     builder.append(",'").append(deviceSchema.getGroup()).append("'");
     builder.append(",'").append(deviceSchema.getDevice()).append("'");
     for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
@@ -649,19 +656,21 @@ public class TimescaleDB implements IDatabase {
     for (Object value : values) {
       builder.append(",'").append(value).append("'");
     }
-    builder.append(") ON CONFLICT(time,sGroup,device");
-    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
-      builder.append(", ").append(pair.getKey());
-    }
-    builder.append(") DO UPDATE SET ");
-    builder.append(sensors.get(0).getName()).append("=excluded.").append(sensors.get(0).getName());
-    for (int i = 1; i < sensors.size(); i++) {
-      builder
-          .append(",")
-          .append(sensors.get(i).getName())
-          .append("=excluded.")
-          .append(sensors.get(i).getName());
-    }
+    builder.append(");");
+    //    builder.append(") ON CONFLICT(time,location,sGroup,device");
+    //    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
+    //      builder.append(", ").append(pair.getKey());
+    //    }
+    //    builder.append(") DO UPDATE SET ");
+    //
+    // builder.append(sensors.get(0).getName()).append("=excluded.").append(sensors.get(0).getName());
+    //    for (int i = 1; i < sensors.size(); i++) {
+    //      builder
+    //          .append(",")
+    //          .append(sensors.get(i).getName())
+    //          .append("=excluded.")
+    //          .append(sensors.get(i).getName());
+    //    }
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }
