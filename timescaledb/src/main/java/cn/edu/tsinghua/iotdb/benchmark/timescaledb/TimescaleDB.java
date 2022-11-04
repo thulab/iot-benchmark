@@ -656,12 +656,14 @@ public class TimescaleDB implements IDatabase {
     for (Object value : values) {
       builder.append(",'").append(value).append("'");
     }
-    builder.append(");");
-    //    builder.append(") ON CONFLICT(time,location,sGroup,device");
+    builder.append(") ");
+
+    //    builder.append("ON CONFLICT(time,location,sGroup,device");
     //    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
     //      builder.append(", ").append(pair.getKey());
     //    }
-    //    builder.append(") DO UPDATE SET ");
+    //    builder.append(") ");
+    //    builder.append("DO UPDATE SET ");
     //
     // builder.append(sensors.get(0).getName()).append("=excluded.").append(sensors.get(0).getName());
     //    for (int i = 1; i < sensors.size(); i++) {
@@ -671,6 +673,7 @@ public class TimescaleDB implements IDatabase {
     //          .append("=excluded.")
     //          .append(sensors.get(i).getName());
     //    }
+
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("getInsertOneBatchSql: {}", builder);
     }
