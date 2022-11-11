@@ -83,7 +83,7 @@ public abstract class DataClient implements Runnable {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
-    this.queryWorkLoad = QueryWorkLoad.getInstance();
+    this.queryWorkLoad = QueryWorkLoad.getInstance(id);
     this.clientThreadId = id;
     this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
     this.deviceSchemasSize = deviceSchemas.size();
