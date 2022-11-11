@@ -696,17 +696,17 @@ public class DBWrapper implements IDatabase {
   public void handleQueryOperation(Status status, Operation operation, String device) {
     if (status.isOk()) {
       measureOkOperation(status, operation, status.getQueryResultPointNum(), device);
-      //      if (!config.isIS_QUIET_MODE()) {
-      //        double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
-      //        String formatTimeInMillis = String.format("%.2f", timeInMillis);
-      //        String currentThread = Thread.currentThread().getName();
-      //        LOGGER.info(
-      //            "{} complete {} with latency ,{}, ms ,{}, result points",
-      //            currentThread,
-      //            operation,
-      //            formatTimeInMillis,
-      //            status.getQueryResultPointNum());
-      //      }
+      if (!config.isIS_QUIET_MODE()) {
+        double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
+        String formatTimeInMillis = String.format("%.2f", timeInMillis);
+        String currentThread = Thread.currentThread().getName();
+        LOGGER.info(
+            "{} complete {} with latency ,{}, ms ,{}, result points",
+            currentThread,
+            operation,
+            formatTimeInMillis,
+            status.getQueryResultPointNum());
+      }
     } else {
       LOGGER.error("Execution fail: {}", status.getErrorMessage(), status.getException());
       if (config.isUSE_MEASUREMENT()) {
