@@ -4,8 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ConfigProperties {
-  private Map<String, Map<String, Object>> properties = new LinkedHashMap<>();
-  private Map<String, Object> allProperties = new LinkedHashMap<>();
+  private final Map<String, Map<String, Object>> properties = new LinkedHashMap<>();
+  private final Map<String, Object> allProperties = new LinkedHashMap<>();
 
   public void addProperty(String groupName, String name, Object value) {
     if (!properties.containsKey(groupName)) {
