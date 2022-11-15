@@ -460,6 +460,13 @@ public class ConfigDescriptor {
 
         config.setCSV_OUTPUT(
             Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT() + "")));
+
+        config.setTIMESCALEDB_REPLICATION_FACTOR(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TIMESCALEDB_REPLICATION_FACTOR",
+                    config.getTIMESCALEDB_REPLICATION_FACTOR() + "")));
+
       } catch (IOException e) {
         e.printStackTrace();
       }

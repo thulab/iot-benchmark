@@ -71,7 +71,7 @@ public class TimescaleDB implements IDatabase {
   //  private static final String CONVERT_TO_HYPERTABLE =
   //      "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String CONVERT_TO_HYPERTABLE =
-      "SELECT create_distributed_hypertable('%s', 'time', 'location', replication_factor => 3, chunk_time_interval => 604800000);";
+      "SELECT create_distributed_hypertable('%s', 'time', 'location', replication_factor => %s, chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
   private static final AtomicBoolean schemaInit = new AtomicBoolean(false);
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
@@ -147,13 +147,17 @@ public class TimescaleDB implements IDatabase {
         String pgsql = getCreateTableSql(tableName, schemaList.get(0).getSensors());
         System.out.print(pgsql);
         System.out.print('\n');
-        System.out.printf((CONVERT_TO_HYPERTABLE) + "%n", tableName);
+        System.out.printf(
+            (CONVERT_TO_HYPERTABLE) + "%n", tableName, config.getTIMESCALEDB_REPLICATION_FACTOR());
         LOGGER.debug("CreateTableSQL Statement:  {}", pgsql);
         statement.execute(pgsql);
         LOGGER.debug(
             "CONVERT_TO_HYPERTABLE Statement:  {}",
-            String.format(CONVERT_TO_HYPERTABLE, tableName));
-        statement.execute(String.format(CONVERT_TO_HYPERTABLE, tableName));
+            String.format(
+                CONVERT_TO_HYPERTABLE, tableName, config.getTIMESCALEDB_REPLICATION_FACTOR()));
+        statement.execute(
+            String.format(
+                CONVERT_TO_HYPERTABLE, tableName, config.getTIMESCALEDB_REPLICATION_FACTOR()));
       } catch (SQLException e) {
         LOGGER.error("Can't create PG table because: {}", e.getMessage());
         throw new TsdbException(e);
@@ -658,6 +662,7 @@ public class TimescaleDB implements IDatabase {
     }
     builder.append(") ");
 
+    /* ON CONFLICT DO UPDATE not supported on distributed hypertables */
     //    builder.append("ON CONFLICT(time,location,sGroup,device");
     //    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
     //      builder.append(", ").append(pair.getKey());

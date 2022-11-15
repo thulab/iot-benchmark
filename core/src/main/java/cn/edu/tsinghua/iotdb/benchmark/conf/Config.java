@@ -348,6 +348,10 @@ public class Config {
   /** System performance information recording interval is INTERVAL+2 seconds */
   private int MONITOR_INTERVAL = 0;
 
+  // timescaledb：副本数量
+  /** defaults 1 */
+  private int TIMESCALEDB_REPLICATION_FACTOR = 1;
+
   // 输出：日志
   /** Whether use quiet mode. Quiet mode will mute some log output and computations */
   private boolean IS_QUIET_MODE = true;
@@ -1555,6 +1559,14 @@ public class Config {
 
   public void setVERIFICATION_STEP_SIZE(int VERIFICATION_STEP_SIZE) {
     this.VERIFICATION_STEP_SIZE = VERIFICATION_STEP_SIZE;
+  }
+
+  public int getTIMESCALEDB_REPLICATION_FACTOR() {
+    return TIMESCALEDB_REPLICATION_FACTOR;
+  }
+
+  public void setTIMESCALEDB_REPLICATION_FACTOR(int TIMESCALEDB_REPLICATION_FACTOR) {
+    this.TIMESCALEDB_REPLICATION_FACTOR = TIMESCALEDB_REPLICATION_FACTOR;
   }
 
   /** write dataset config to info */
