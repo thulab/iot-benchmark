@@ -87,8 +87,9 @@ IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进
 
 目前支持如下数据库、版本和连接方式：
 
-|        数据库        |   版本   |                         连接方式                         |
-| :------------------: | :------: | :------------------------------------------------------: |
+|        数据库        |    版本    |                         连接方式                         |
+| :------------------: |:--------:| :------------------------------------------------------: |
+|        IoTDB         |  v0.14   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.11   |                jdbc、session、sessionPool                |
