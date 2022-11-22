@@ -71,7 +71,7 @@ public class IoTDBSession extends IoTDBSessionBase {
             .port(Integer.parseInt(dbConfig.getPORT().get(0)))
             .username(dbConfig.getUSERNAME())
             .password(dbConfig.getPASSWORD())
-            .enableCacheLeader(true)
+            .enableRedirection(true)
             .version(Version.V_0_13)
             .build();
   }
