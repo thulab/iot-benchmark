@@ -19,7 +19,7 @@
     under the License.
 -->
 <assembly>
-    <id>TaosDB</id>
+    <id>Tdengine</id>
     <formats>
         <format>dir</format>
         <format>zip</format>
