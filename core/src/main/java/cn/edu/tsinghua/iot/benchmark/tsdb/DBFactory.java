@@ -39,16 +39,16 @@ public class DBFactory {
     try {
       switch (dbConfig.getDB_SWITCH()) {
           // IoTDB 0.14
-        case DB_IOT_014_JDBC:
-          dbClass = Constants.IOTDB014_JDBC_CLASS;
+        case DB_IOT_100_JDBC:
+          dbClass = Constants.IOTDB100_JDBC_CLASS;
           break;
-        case DB_IOT_014_SESSION_BY_TABLET:
-        case DB_IOT_014_SESSION_BY_RECORD:
-        case DB_IOT_014_SESSION_BY_RECORDS:
+        case DB_IOT_100_SESSION_BY_TABLET:
+        case DB_IOT_100_SESSION_BY_RECORD:
+        case DB_IOT_100_SESSION_BY_RECORDS:
           if (config.isIS_ALL_NODES_VISIBLE()) {
-            dbClass = Constants.IOTDB014_ROUNDROBIN_SESSION_CLASS;
+            dbClass = Constants.IOTDB100_ROUNDROBIN_SESSION_CLASS;
           } else {
-            dbClass = Constants.IOTDB014_SESSION_CLASS;
+            dbClass = Constants.IOTDB100_SESSION_CLASS;
           }
           break;
           // IoTDB 0.13
