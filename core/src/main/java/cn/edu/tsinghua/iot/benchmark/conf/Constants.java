@@ -72,12 +72,7 @@ public class Constants {
       "cn.edu.tsinghua.iot.benchmark.iotdb011.IoTDBSession";
   public static final String IOTDB011_SESSION_POOL_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb011.IoTDBSessionPool";
-  public static final String IOTDB010_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb010.IoTDB";
-  public static final String IOTDB010_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb010.IoTDBSession";
-  public static final String IOTDB009_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb009.IoTDB";
-  public static final String IOTDB009_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb009.IoTDBSession";
+
   public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb.InfluxDB";
   public static final String INFLUXDB2_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb2.InfluxDB";
 
