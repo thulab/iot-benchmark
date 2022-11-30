@@ -116,6 +116,7 @@ jobs:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1.zip
           asset_name: benchmark-iotdb-0.13-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
       #---0.14
       - name: Upload benchmark-iotdb-0.14
         uses: actions/upload-release-asset@v1
