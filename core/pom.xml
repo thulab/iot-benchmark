@@ -23,7 +23,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>cn.edu.tsinghua</groupId>
-    <artifactId>iotdb-benchmark</artifactId>
+    <artifactId>iot-benchmark</artifactId>
     <version>0.0.1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>

@@ -1,6 +1,6 @@
 Benchmark influxdb 2.0
 ---
-This project is using iotdb-benchmark to test influxdb 2
+This project is using iot-benchmark to test influxdb 2
 
 Notice, default config of influxdb2 is not support too many write in a short time.
 

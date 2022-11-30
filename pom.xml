@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.edu.tsinghua</groupId>
-    <artifactId>iotdb-benchmark</artifactId>
+    <artifactId>iot-benchmark</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
 
-    <name>iotdb-benchmark</name>
+    <name>iot-benchmark</name>
     <url>http://maven.apache.org</url>
     <modules>
         <module>core</module>
@@ -19,7 +19,7 @@
         <module>questdb</module>
         <module>timescaledb</module>
         <module>victoriametrics</module>
-        <module>iotdb-0.14</module>
+        <module>iotdb-1.0</module>
         <module>iotdb-0.13</module>
         <module>iotdb-0.12</module>
         <module>iotdb-0.11</module>
@@ -28,7 +28,7 @@
         <module>mssqlserver</module>
         <module>sqlite</module>
         <module>verification</module>
-<!--        <module>pi</module>-->
+        <module>pi</module>
 <!--        <module>iginx</module>-->
     </modules>
 
