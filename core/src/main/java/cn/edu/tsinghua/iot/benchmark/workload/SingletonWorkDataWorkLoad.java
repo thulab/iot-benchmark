@@ -19,13 +19,11 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload;
 
-import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,13 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SingletonWorkDataWorkLoad.class);
   private static final List<Sensor> SENSORS = Collections.synchronizedList(config.getSENSORS());
   private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
-  private static AtomicInteger sensorIndex = new AtomicInteger();
-  private AtomicLong insertLoop = new AtomicLong(0);
+  private static final AtomicInteger sensorIndex = new AtomicInteger();
+  private final AtomicLong insertLoop = new AtomicLong(0);
 
   private SingletonWorkDataWorkLoad() {
     if (config.isIS_OUT_OF_ORDER()) {
@@ -66,41 +62,10 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   }
 
   @Override
-  protected Batch getOrderedBatch() {
+  public Batch getOneBatch() throws WorkloadException {
     long curLoop = insertLoop.getAndIncrement();
-    Batch batch = getBatchWithDeviceSchema(curLoop);
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      long stepOffset =
-          (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
-    }
-    return batch;
-  }
-
-  @Override
-  protected Batch getDistOutOfOrderBatch() {
-    long curLoop = insertLoop.getAndIncrement();
-    Batch batch = getBatchWithDeviceSchema(curLoop);
-    int deviceId = batch.getDeviceSchema().getDeviceId();
-    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
-    int nextDelta;
-    long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
-        // generate out of order timestamp
-        nextDelta = poissonDistribution.getNextPoissonDelta();
-        stepOffset = deviceMaxTimeIndexMap.get(deviceId).get() - nextDelta;
-      } else {
-        // generate normal increasing timestamp
-        stepOffset = deviceMaxTimeIndexMap.get(deviceId).getAndIncrement();
-      }
-      addOneRowIntoBatch(batch, stepOffset);
-    }
-    return batch;
-  }
-
-  private Batch getBatchWithDeviceSchema(long loop) {
     Batch batch = new Batch();
+    // create schema of batch
     List<Sensor> sensors = new ArrayList<>();
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {
       sensors = SENSORS;
@@ -111,19 +76,14 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
     }
     DeviceSchema deviceSchema =
         new DeviceSchema(
-            MetaUtil.getDeviceId((int) loop % config.getDEVICE_NUMBER()),
+            MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
             sensors,
             config.getDEVICE_TAGS());
     batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
-
-  @Override
-  protected Batch getLocalOutOfOrderBatch() {
-    long loopIndex = insertLoop.getAndIncrement() % config.getLOOP();
-    Batch batch = getBatchWithDeviceSchema(loopIndex);
-    for (int i = 0; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
+    // create data of batch
+    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+      long stepOffset =
+          (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
       addOneRowIntoBatch(batch, stepOffset);
     }
     return batch;
