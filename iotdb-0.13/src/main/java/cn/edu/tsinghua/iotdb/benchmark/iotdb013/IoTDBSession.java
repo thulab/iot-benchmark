@@ -181,6 +181,9 @@ public class IoTDBSession extends IoTDBSessionBase {
     } else {
       executeSQL = sql;
     }
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
+    }
     AtomicInteger line = new AtomicInteger();
     AtomicInteger queryResultPointNum = new AtomicInteger();
     AtomicBoolean isOk = new AtomicBoolean(true);

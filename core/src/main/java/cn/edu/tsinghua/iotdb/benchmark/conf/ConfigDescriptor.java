@@ -377,7 +377,7 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty("IS_RECENT_QUERY", config.isIS_RECENT_QUERY() + "")));
         config.setSTEP_SIZE(
-            Integer.parseInt(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
+            Long.parseLong(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
         config.setOPERATION_PROPORTION(
             properties.getProperty("OPERATION_PROPORTION", config.getOPERATION_PROPORTION()));
         config.setQUERY_SENSOR_NUM(
@@ -479,7 +479,11 @@ public class ConfigDescriptor {
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
-        String[] operations = config.getOPERATION_PROPORTION().split(":");
+        if (config.isIS_CLIENT_BIND() && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+          LOGGER.error(
+              "In client bind way, the number of client should be greater than the number of device");
+          result = false;
+        }
         if (!config.hasWrite()) {
           // no write
           checkQuery();

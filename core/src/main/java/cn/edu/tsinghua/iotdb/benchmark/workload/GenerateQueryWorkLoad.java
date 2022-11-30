@@ -33,24 +33,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateQueryWorkLoad.class);
 
-  private static final Random queryDeviceRandom = new Random(config.getQUERY_SEED());
-  private static final Random querySensorRandom = new Random(config.getQUERY_SEED());
+  private final Random queryDeviceRandom;
+  private final Random querySensorRandom;
   private static final long timeStampConst =
       TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
-  private static AtomicInteger nowDeviceId = new AtomicInteger(config.getFIRST_DEVICE_INDEX());
-  private Long currentTimestamp = null;
+  private static final AtomicInteger nowDeviceId =
+      new AtomicInteger(config.getFIRST_DEVICE_INDEX());
+  private Long currentWriteTimestamp = null;
+  private final Map<Operation, AtomicLong> operationLoops = new ConcurrentHashMap<>();
 
-  private static final Map<Operation, Long> operationLoops = new EnumMap<>(Operation.class);;
-
-  public GenerateQueryWorkLoad() {
+  public GenerateQueryWorkLoad(int id) {
+    super(id);
+    this.queryDeviceRandom = new Random(config.getQUERY_SEED() + id);
+    this.querySensorRandom = new Random(config.getQUERY_SEED() + id);
     for (Operation operation : Operation.values()) {
-      operationLoops.put(operation, 0L);
+      operationLoops.put(operation, new AtomicLong(0L));
     }
   }
 
@@ -157,22 +162,21 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public void updateTime(long currentTimestamp) {
-    this.currentTimestamp = currentTimestamp;
+    this.currentWriteTimestamp = currentTimestamp;
   }
 
   private long getQueryStartTimestamp(Operation operation) {
-    if (currentTimestamp != null) {
+    if (currentWriteTimestamp != null) {
       if (operation == Operation.PRECISE_QUERY) {
-        return currentTimestamp;
+        return currentWriteTimestamp;
       } else {
-        return currentTimestamp >= config.getQUERY_INTERVAL()
-            ? currentTimestamp - config.getQUERY_INTERVAL()
+        return currentWriteTimestamp >= config.getQUERY_INTERVAL()
+            ? currentWriteTimestamp - config.getQUERY_INTERVAL()
             : 0;
       }
     }
-    long currentQueryLoop = operationLoops.get(operation);
+    long currentQueryLoop = operationLoops.get(operation).getAndIncrement();
     long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
-    operationLoops.put(operation, currentQueryLoop + 1);
     return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
   }
 
