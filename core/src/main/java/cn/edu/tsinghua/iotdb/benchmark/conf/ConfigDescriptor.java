@@ -479,7 +479,11 @@ public class ConfigDescriptor {
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
-        String[] operations = config.getOPERATION_PROPORTION().split(":");
+        if (config.isIS_CLIENT_BIND() && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+          LOGGER.error(
+              "In client bind way, the number of client should be greater than the number of device");
+          result = false;
+        }
         if (!config.hasWrite()) {
           // no write
           checkQuery();
