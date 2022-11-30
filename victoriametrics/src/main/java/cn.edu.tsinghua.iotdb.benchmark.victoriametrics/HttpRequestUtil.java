@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
+package cn.edu.tsinghua.iot.benchmark.victoriametrics;
 
 import java.io.BufferedReader;
 import java.io.IOException;

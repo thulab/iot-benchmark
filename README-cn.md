@@ -1,4 +1,4 @@
-# 1. IoTDB-Benchmark
+# 1. iot-benchmark
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
@@ -6,15 +6,15 @@
 
 <!-- TOC -->
 
-- [1. IoTDB-Benchmark](#1-iotdb-benchmark)
+- [1. iot-benchmark](#1-iot-benchmark)
 - [2. 内容目录](#2-内容目录)
 - [3. 概述](#3-概述)
 - [4. 主要特点](#4-主要特点)
-- [5. IoTDB-Benchmark的使用](#5-iotdb-benchmark的使用)
-  - [5.1. IoTDB-Benchmark运行的前置条件](#51-iotdb-benchmark运行的前置条件)
-  - [5.2. IoTDB-Benchmark支持的运行模式](#52-iotdb-benchmark支持的运行模式)
-  - [5.3. IoTDB-Benchmark的编译构建](#53-iotdb-benchmark的编译构建)
-- [6. IoTDB-Benchmark的不同运行模式的说明](#6-iotdb-benchmark的不同运行模式的说明)
+- [5. iot-benchmark的使用](#5-iot-benchmark的使用)
+  - [5.1. iot-benchmark运行的前置条件](#51-iot-benchmark运行的前置条件)
+  - [5.2. iot-benchmark支持的运行模式](#52-iot-benchmark支持的运行模式)
+  - [5.3. iot-benchmark的编译构建](#53-iot-benchmark的编译构建)
+- [6. iot-benchmark的不同运行模式的说明](#6-iot-benchmark的不同运行模式的说明)
   - [6.1. 常规测试模式之写入(单数据库)](#61-常规测试模式之写入单数据库)
     - [6.1.1. Benchmark的配置](#611-benchmark的配置)
     - [6.1.2. Benchmark的启动](#612-benchmark的启动)
@@ -60,7 +60,7 @@
     - [6.13.1. Benchmark的配置](#6131-benchmark的配置)
     - [6.13.2. Benchmark的启动](#6132-benchmark的启动)
     - [6.13.3. Benchmark的执行](#6133-benchmark的执行)
-- [7. 使用IoTDB Benchmark测试其他数据库(部分)](#7-使用iotdb-benchmark测试其他数据库部分)
+- [7. 使用IoTDB Benchmark测试其他数据库(部分)](#7-使用iot-benchmark测试其他数据库部分)
   - [7.1. 测试 InfluxDB v1.x](#71-测试-influxdb-v1x)
   - [7.2. 测试 InfluxDB v2.0](#72-测试-influxdb-v20)
   - [7.3. 测试 Microsoft SQL Server](#73-测试-microsoft-sql-server)
@@ -83,7 +83,7 @@
 
 # 3. 概述
 
-IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进行基准测试的工具。
+iot-benchmark是用来将IoTDB和其他数据库和时间序列解决方案进行基准测试的工具。
 
 目前支持如下数据库、版本和连接方式：
 
@@ -110,9 +110,9 @@ IoTDB-Benchmark是用来将IoTDB和其他数据库和时间序列解决方案进
 
 # 4. 主要特点
 
-IotDB-Benchmark的特点如下：
+iot-benchmark的特点如下：
 
-1. 使用方便：IoTDB-benchmark是一个结合了多种测试功能的工具，用户不需要切换不同的工具。
+1. 使用方便：iot-benchmark是一个结合了多种测试功能的工具，用户不需要切换不同的工具。
 2. 多种数据插入和测试模式：
    1. 按照配置生成周期性的时间序列数据并直接插入和查询。
    2. 将生成的数据写入到磁盘中对应位置。
@@ -121,11 +121,11 @@ IotDB-Benchmark的特点如下：
 3. 测试报告与结果：支持存储测试信息和结果以供进一步查询或分析。
 4. 可视化测试结果：与Tableau集成以可视化测试结果。
 
-# 5. IoTDB-Benchmark的使用
+# 5. iot-benchmark的使用
 
-## 5.1. IoTDB-Benchmark运行的前置条件
+## 5.1. iot-benchmark运行的前置条件
 
-为了使用IoTDB-Benchmark，你需要拥有：
+为了使用iot-benchmark，你需要拥有：
 
 1. Java 8
 2. Maven：不建议使用镜像源，国内可以使用阿里云镜像源。
@@ -135,7 +135,7 @@ IotDB-Benchmark的特点如下：
 4. ServerMode和CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
 5. 我们建议使用MacOs或Linux系统，本文以MacOS和Linux系统为例，如果使用Windows系统，请使用`conf`文件夹下的`benchmark.bat`脚本启动benchmark。
 
-## 5.2. IoTDB-Benchmark支持的运行模式
+## 5.2. iot-benchmark支持的运行模式
 |        模式名称        |  BENCHMARK_WORK_MODE  | 模式内容                                                                               |
 | :--------------------: | :-------------------: | :------------------------------------------------------------------------------------- |
 |      常规测试模式      |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                           |
@@ -145,19 +145,19 @@ IotDB-Benchmark的特点如下：
 | 服务器资源使用监控模式 |      serverMODE       | 服务器资源使用监控模式（该模式下运行通过ser-benchmark.sh脚本启动，无需手动配置该参数） |
 
 
-## 5.3. IoTDB-Benchmark的编译构建
+## 5.3. iot-benchmark的编译构建
 
-你可以使用Maven完成IoTDB-Benchmark的构建，在项目**根目录**中使用如下命令：
+你可以使用Maven完成iot-benchmark的构建，在项目**根目录**中使用如下命令：
 
 ```sh
 mvn clean package -Dmaven.test.skip=true
 ```
 
-该命令会编译IoTDB-Benchmark的core模块，和所有其他相关的数据库。
+该命令会编译iot-benchmark的core模块，和所有其他相关的数据库。
 
-在完成编译后，以IoTDB v0.13为例，你可以进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`文件夹下，使用`./benchmark.sh`来启动对IoTDB v0.13的测试。
+在完成编译后，以IoTDB v0.13为例，你可以进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`文件夹下，使用`./benchmark.sh`来启动对IoTDB v0.13的测试。
 
-默认的配置文件存放在`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
+默认的配置文件存放在`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
 |        数据库        |   版本   |   对应子项目    |                                                  DB_SWITCH                                                   |
 | :------------------: | :------: | :-------------: | :----------------------------------------------------------------------------------------------------------: |
@@ -178,7 +178,7 @@ mvn clean package -Dmaven.test.skip=true
 |       TDengine       | 2.2.0.2  |    TDengine     |                                                   TDengine                                                   |
 |      PI Archive      |   2016   |    PIArchive    |                                                  PIArchive                                                   |
 
-# 6. IoTDB-Benchmark的不同运行模式的说明
+# 6. iot-benchmark的不同运行模式的说明
 以下所有测试均在如下环境中进行：
 
 ```
@@ -190,7 +190,7 @@ CPU：I7-11700
 
 ## 6.1. 常规测试模式之写入(单数据库)
 
-这个简单的指引将以常规测试模式为例带你快速熟悉IoTDB-Benchmark的使用基本流程。
+这个简单的指引将以常规测试模式为例带你快速熟悉iot-benchmark的使用基本流程。
 
 ### 6.1.1. Benchmark的配置
 
@@ -232,7 +232,7 @@ LOOP=10000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -244,10 +244,10 @@ LOOP=10000
 
 ```
 ...
-2022-05-08 14:26:36,478 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 17.10% workload is done. 
-2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-13 56.59% workload is done. 
-2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-2 18.01% workload is done. 
-2022-05-08 14:26:41,480 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-14 54.01% workload is done. 
+2022-05-08 14:26:36,478 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 17.10% workload is done. 
+2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-13 56.59% workload is done. 
+2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-2 18.01% workload is done. 
+2022-05-08 14:26:41,480 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-14 54.01% workload is done. 
 ...
 ```
 
@@ -255,7 +255,7 @@ LOOP=10000
 
 ```
 ...
-2022-05-08 14:40:54,243 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 14:40:54,243 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -404,7 +404,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -416,17 +416,17 @@ GROUP_BY_TIME_UNIT=20000
 
 ```
 ...
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-14 93.37% workload is done. 
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-17 94.40% workload is done. 
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-8 99.43% workload is done. 
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-18 97.40% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-14 93.37% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-17 94.40% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-8 99.43% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-18 97.40% workload is done. 
 ...
 ```
 
 当测试结束后，最后会显示出本次测试的统计信息，如下所示：
 
 ```
-2022-05-08 14:55:47,915 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 14:55:47,915 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -546,7 +546,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -558,17 +558,17 @@ GROUP_BY_TIME_UNIT=20000
 
 ```
 ...
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 39.63% workload is done. 
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-1 39.26% workload is done. 
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-19 43.91% workload is done. 
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-16 45.84% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-10 39.63% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-1 39.26% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-19 43.91% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-16 45.84% workload is done. 
 ...
 ```
 
 当测试结束后，最后会显示出本次测试的统计信息，如下所示：
 
 ```
-2022-05-08 15:02:03,959 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:02:03,959 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -685,7 +685,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -697,7 +697,7 @@ GROUP_BY_TIME_UNIT=20000
 
 ```
 ...
-2022-05-08 15:06:34,593 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:06:34,593 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -776,7 +776,7 @@ IoTDB Benchmark支持您使用数据库存储测试过程中的系统数据，�
 
 ### 6.5.1. Benchmark的配置
 
-假设您的 IoTDB 服务器 IP 是 192.168.130.9，并且您安装了 IoTDB-benchmark 的测试客户端服务器已授权访问 IoTDB 服务器。
+假设您的 IoTDB 服务器 IP 是 192.168.130.9，并且您安装了 iot-benchmark 的测试客户端服务器已授权访问 IoTDB 服务器。
 
 当前版本的信息记录依赖于 iostat。请确保 iostat 已安装在 IoTDB 服务器中。
 
@@ -795,7 +795,7 @@ MONITOR_INTERVAL=0
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -805,7 +805,7 @@ MONITOR_INTERVAL=0
 
 ## 6.6. 常规测试模式之测试过程持久化（单数据库）
 
-为了后续的分析，IoTDB-Benchmark可以将测试信息存储到数据库中(如果你不想存储测试数据，那么设置```TEST_DATA_PERSISTENCE=None```即可)
+为了后续的分析，iot-benchmark可以将测试信息存储到数据库中(如果你不想存储测试数据，那么设置```TEST_DATA_PERSISTENCE=None```即可)
 
 目前支持的存储数据库为IoTDB和MySQL，以MySQL为例，你需要修改```config.properties```文件中的如下配置：
 
@@ -835,7 +835,7 @@ REMARK=
 
 ### 6.7.1. Benchmark的配置
 
-为了生成可以重复使用的数据集，IoTDB-Benchmark提供生成数据集的模式，生成数据集到FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
+为了生成可以重复使用的数据集，iot-benchmark提供生成数据集的模式，生成数据集到FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
 
 用户可以通过修改`BIG_BATCH_SIZE`来控制每个文件中包含的batch的个数
 
@@ -859,7 +859,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Benchmark的启动
 
-您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -870,9 +870,9 @@ BIG_BATCH_SIZE=100
 生成数据启动后，你可以看到滚动的执行信息。当测试结束后，最后会显示出本次生成的数据集的信息，如下所示：
 
 ```
-2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode:43 - Data Location: data/test 
-2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode:44 - Schema Location: data/test/schema.txt 
-2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode:45 - Generate Info Location: data/test/info.txt 
+2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:43 - Data Location: data/test 
+2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:44 - Schema Location: data/test/schema.txt 
+2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:45 - Generate Info Location: data/test/info.txt 
 ```
 
 > 注意：
@@ -966,7 +966,7 @@ IS_COPY_MODE=true
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -978,17 +978,17 @@ IS_COPY_MODE=true
 
 ```
 ...
-2022-05-08 15:08:31,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 9.86% workload is done. 
-2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 98.24% workload is done. 
-2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-5 97.08% workload is done. 
-2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-3 96.54% workload is done. 
+2022-05-08 15:08:31,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 9.86% workload is done. 
+2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 98.24% workload is done. 
+2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-5 97.08% workload is done. 
+2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-3 96.54% workload is done. 
 ...
 ```
 
 当测试结束后，最后会显示出写入数据集的信息，如下所示：
 
 ```
-2022-05-08 15:08:38,751 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:08:38,751 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=verificationWriteMode
@@ -1061,7 +1061,7 @@ BIG_BATCH_SIZE=100
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1072,17 +1072,17 @@ BIG_BATCH_SIZE=100
 
 ```
 ...
-2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-3 11.15% workload is done. 
-2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 11.16% workload is done. 
-2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-1 11.32% workload is done. 
-2022-05-08 15:09:43,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 14.92% workload is done. 
+2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-3 11.15% workload is done. 
+2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 11.16% workload is done. 
+2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-1 11.32% workload is done. 
+2022-05-08 15:09:43,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 14.92% workload is done. 
 ...
 ```
 
 当测试结束后，最后会显示出写入数据集的信息，如下所示：
 
 ```
-2022-05-08 15:11:50,033 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:11:50,033 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=verificationQueryMode
@@ -1131,7 +1131,7 @@ VERIFICATION_QUERY       14.48       0.96        11.40       12.67       14.43  
 
 ## 6.10. 双数据库模式
 
-为了更方便、快速完成正确性验证，iotdb-benchmark也支持双数据库模式。
+为了更方便、快速完成正确性验证，iot-benchmark也支持双数据库模式。
 
 1. 对于上文中提到的所有测试场景，除特别说明，均支持双数据库进行。请在`verification`项目中**启动测试**。
 2. 对于下文中的正确性验证的相关测试场景，均必须在双数据库模式下运行，并且目前仅仅支持iotdb-0.12, iotdb-0.13和timescaledb。
@@ -1191,7 +1191,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iotdb-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1203,17 +1203,17 @@ LOOP=1000
 
 ```
 ...
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 91.40% workload is done.
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-13 90.90% workload is done.
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-16 92.50% workload is done.
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-2 91.90% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-10 91.40% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-13 90.90% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-16 92.50% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-2 91.90% workload is done.
 ...
 ```
 
 当测试结束后，最后会显示出写入数据集的信息，如下所示：
 
 ```
-2022-05-12 09:48:00,160 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished.
+2022-05-12 09:48:00,160 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished.
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -1287,7 +1287,7 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 
 ## 6.12. 正确性单点查询模式（双数据库比较）
 
-为了更高效的验证数据库数据的正确性，iotdb-benchmark提供通过对比两个数据库间的数据来完成正确性验证。
+为了更高效的验证数据库数据的正确性，iot-benchmark提供通过对比两个数据库间的数据来完成正确性验证。
 
 注意，在进行该测试前，请先使用上文中的常规测试模式之写入（双数据库）完成数据库写入，目前建议使用JDBC方式。
 
@@ -1321,7 +1321,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iotdb-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1333,17 +1333,17 @@ LOOP=1000
 
 ```
 ...
-2022-05-12 09:49:51,591 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_11 have been checked 
-2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_7 have been checked 
-2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_16 have been checked 
-2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_12 have been checked 
+2022-05-12 09:49:51,591 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_11 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_7 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_16 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_12 have been checked 
 ...
 ```
 
 当测试结束后，最后会显示相关的信息，如下所示：
 
 ```
-2022-05-12 09:49:53,669 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-12 09:49:53,669 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -1398,7 +1398,7 @@ DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27 
 
 ## 6.13. 正确性功能查询模式（双数据库比较）
 
-为了更高效的验证数据库查询的正确性，iotdb-benchmark提供通过对比两个数据库间的数据查询结果的差异来完成正确性验证。
+为了更高效的验证数据库查询的正确性，iot-benchmark提供通过对比两个数据库间的数据查询结果的差异来完成正确性验证。
 
 注意:
 
@@ -1435,7 +1435,7 @@ LOOP=100
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iotdb-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1446,17 +1446,17 @@ LOOP=100
 
 ```
 ...
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 9.80% workload is done. 
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-11 8.80% workload is done. 
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-9 8.20% workload is done. 
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-20 8.70% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-10 9.80% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-11 8.80% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-9 8.20% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-20 8.70% workload is done. 
 ...
 ```
 
 当测试结束后，最后会显示出写入数据集的信息，如下所示：
 
 ```
-2022-05-12 09:53:55,078 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-12 09:53:55,078 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -1629,13 +1629,13 @@ LOOP=50 DEVICE_NUMBER=20 TEST
 ```
 
 # 10. 开发者指引
-1. IoTDB-Benchmark的所有的接口均在core模块中。
-2. IoTDB-Benchmark的所有的数据库测试的实现均在各个maven子项目中。
+1. iot-benchmark的所有的接口均在core模块中。
+2. iot-benchmark的所有的数据库测试的实现均在各个maven子项目中。
 3. 如果你想要使用IDEA等编辑器运行Benchmark：
    1. 可以在每一个maven子项目下找到test文件目录下的TestEntrance，运行对应测试。
    2. 以IoTDB 0.13为例，你可以运行`iotdb-0.13/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 11. 相关文章
-Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
+Benchmark Time Series Database with iot-benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304
