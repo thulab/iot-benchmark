@@ -21,8 +21,8 @@ package cn.edu.tsinghua.iot.benchmark;
 
 import java.sql.SQLException;
 
-public class TestEntrance {
-  public static void main(String[] args) throws SQLException {
-    App.main(args);
-  }
+public class MSSQLServerTestEntrance {
+    public static void main(String[] args) throws SQLException {
+        App.main(args);
+    }
 }

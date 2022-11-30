@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -21,8 +21,8 @@ package cn.edu.tsinghua.iot.benchmark;
 
 import java.sql.SQLException;
 
-public class TestEntrance {
-    public static void main(String[] args) throws SQLException {
-        App.main(args);
-    }
+public class IginxTestEntrance {
+  public static void main(String[] args) throws SQLException {
+    App.main(args);
+  }
 }
