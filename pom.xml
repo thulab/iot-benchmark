@@ -18,6 +18,7 @@
         <module>tdengine</module>
         <module>questdb</module>
         <module>timescaledb</module>
+        <module>timescaledb-cluster</module>
         <module>victoriametrics</module>
         <module>iotdb-1.0</module>
         <module>iotdb-0.13</module>
