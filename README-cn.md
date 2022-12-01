@@ -60,7 +60,7 @@
     - [6.13.1. Benchmark的配置](#6131-benchmark的配置)
     - [6.13.2. Benchmark的启动](#6132-benchmark的启动)
     - [6.13.3. Benchmark的执行](#6133-benchmark的执行)
-- [7. 使用IoTDB Benchmark测试其他数据库(部分)](#7-使用iot-benchmark测试其他数据库部分)
+- [7. 使用IoTDB Benchmark测试其他数据库(部分)](#7-使用iotdb-benchmark测试其他数据库部分)
   - [7.1. 测试 InfluxDB v1.x](#71-测试-influxdb-v1x)
   - [7.2. 测试 InfluxDB v2.0](#72-测试-influxdb-v20)
   - [7.3. 测试 Microsoft SQL Server](#73-测试-microsoft-sql-server)
@@ -154,12 +154,12 @@ mvn clean package -Dmaven.test.skip=true
 
 该命令会编译iot-benchmark的core模块，和所有其他相关的数据库。
 
-在完成编译后，以IoTDB v0.13为例，你可以进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`文件夹下，使用`./benchmark.sh`来启动对IoTDB v0.13的测试。
+在完成编译后，以IoTDB v0.13为例，你可以进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`文件夹下，使用`./benchmark.sh`来启动对IoTDB v0.13的测试。
 
-默认的配置文件存放在`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
+默认的配置文件存放在`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
-|        数据库        |    版本    |     对应子项目      |                                                  DB_SWITCH                                                   |
-| :------------------: |:--------:| :-----------------: |:------------------------------------------------------------------------------------------------------------:|
+|        数据库        |   版本   |     对应子项目      |                                                  DB_SWITCH                                                   |
+| :------------------: | :------: | :-----------------: | :----------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   0.13   |      iotdb-1.0      | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   0.13   |     iotdb-0.13      | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |     iotdb-0.12      | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
@@ -231,7 +231,7 @@ LOOP=10000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -403,7 +403,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -545,7 +545,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -684,7 +684,7 @@ GROUP_BY_TIME_UNIT=20000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -794,7 +794,7 @@ MONITOR_INTERVAL=0
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -858,7 +858,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Benchmark的启动
 
-您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -965,7 +965,7 @@ IS_COPY_MODE=true
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1060,7 +1060,7 @@ BIG_BATCH_SIZE=100
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
-之后您进入到`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1190,7 +1190,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iot-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1320,7 +1320,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iot-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1434,7 +1434,7 @@ LOOP=100
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iot-benchmark/verfication/target/verification-0.0.1`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
