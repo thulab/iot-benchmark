@@ -61,7 +61,8 @@ public class TDengine implements IDatabase {
 
   private static final String TDENGINE_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String TDENGINE_URL = "jdbc:TAOS://%s:%s/test?user=%s&password=%s";
-  protected static final CyclicBarrier superTableBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier superTableBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final String USE_DB = "use %s";
   private static final String SUPER_TABLE_NAME = "device";
 
@@ -156,11 +157,12 @@ public class TDengine implements IDatabase {
         // create tables
         statement.execute(String.format(USE_DB, testDatabaseName));
         for (DeviceSchema deviceSchema : schemaList) {
-          statement.execute(String.format(
-              CREATE_TABLE,
-              deviceSchema.getDevice(),
-              SUPER_TABLE_NAME,
-              deviceSchema.getDevice()));
+          statement.execute(
+              String.format(
+                  CREATE_TABLE,
+                  deviceSchema.getDevice(),
+                  SUPER_TABLE_NAME,
+                  deviceSchema.getDevice()));
         }
       } catch (SQLException | BrokenBarrierException | InterruptedException e) {
         // ignore if already has the time series
@@ -333,9 +335,9 @@ public class TDengine implements IDatabase {
     String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
     String sqlWithValueFilter =
         addWhereValueClause(
-            valueRangeQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            valueRangeQuery.getValueThreshold())
+                valueRangeQuery.getDeviceSchema(),
+                sqlWithTimeFilter,
+                valueRangeQuery.getValueThreshold())
             + " order by timestamp desc";
     return executeQueryAndGetStatus(sqlWithValueFilter);
   }
