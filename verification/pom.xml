@@ -224,6 +224,18 @@
 
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
+            <artifactId>iotdb-1.0</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.edu.tsinghua</groupId>
+                    <artifactId>core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.edu.tsinghua</groupId>
             <artifactId>iotdb-0.13</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -237,42 +249,6 @@
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
             <artifactId>iotdb-0.12</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.edu.tsinghua</groupId>
-                    <artifactId>core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.edu.tsinghua</groupId>
-            <artifactId>iotdb-0.11</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.edu.tsinghua</groupId>
-                    <artifactId>core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.edu.tsinghua</groupId>
-            <artifactId>iotdb-0.10</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.edu.tsinghua</groupId>
-                    <artifactId>core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.edu.tsinghua</groupId>
-            <artifactId>iotdb-0.09</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

@@ -75,7 +75,7 @@ jobs:
         id: compile-benchmark
         run: |
           cd ${{ github.workspace }}/iot-benchmark
-          mvn clean package -am -pl core,influxdb,influxdb-2.0,tdengine,timescaledb,iotdb-1.0,iotdb-0.13,iotdb-0.12,iotdb-0.11 -DskipTests
+          mvn clean package -am -pl core,influxdb,influxdb-2.0,tdengine,timescaledb,iotdb-1.0,iotdb-0.13,iotdb-0.12 -DskipTests
       # get time
       - name: collect common info
         shell: bash

@@ -88,9 +88,6 @@ Databases currently supported:
 |        IoTDB         |   v1.0    | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.11   |                jdbc、session、sessionPool                |
-|        IoTDB         |  v0.10   |                      jdbc、session                       |
-|        IoTDB         |   v0.9   |                      jdbc、session                       |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
@@ -126,7 +123,7 @@ To use iot-benchmark, you need to have:
 1. Java 8
 2. Maven: It is not recommended to use the mirror.
 3. The appropriate version of the database
-   1. Apache IoTDB >= v0.9 ([Get it!](https://github.com/apache/iotdb))，now mainly supported IoTDB v0.12, v0.13
+   1. Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
    2. His corresponding version of the database
 4. ServerMode and CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
@@ -158,9 +155,6 @@ The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/
 |        IoTDB         |   0.13   |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   1.0    |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
-|        IoTDB         |   0.11   |        iotdb-0.11         |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                         |
-|        IoTDB         |   0.10   |        iotdb-0.10         |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                      |
-|        IoTDB         |   0.9    |        iotdb-0.09         |                                      IoTDB-09-JDBC<br>IoTDB-09-SESSION                                       |
 |       InfluxDB       |   v1.x   |         influxdb          |                                                   InfluxDB                                                   |
 |       InfluxDB       |   v2.0   |       influxdb-2.0        |                                                 InfluxDB-2.0                                                 |
 |       QuestDB        |  v6.0.7  |          questdb          |                                                   QuestDB                                                    |
