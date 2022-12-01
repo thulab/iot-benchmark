@@ -92,6 +92,9 @@ public class DBFactory {
         case DB_TIMESCALE:
           dbClass = Constants.TIMESCALEDB_CLASS;
           break;
+        case DB_TIMESCALE_CLUSTER:
+          dbClass = Constants.TIMESCALEDB_CLUSTER_CLASS;
+          break;
         case DB_TDENGINE:
           dbClass = Constants.TDENGINE_CLASS;
           break;

@@ -75,6 +75,9 @@ public class Constants {
   public static final String OPENTSDB_CLASS = "cn.edu.tsinghua.iot.benchmark.opentsdb.OpenTSDB";
   public static final String TIMESCALEDB_CLASS =
       "cn.edu.tsinghua.iot.benchmark.timescaledb.TimescaleDB";
+  public static final String TIMESCALEDB_CLUSTER_CLASS =
+      "cn.edu.tsinghua.iot.benchmark.timescaledbCluster.TimescaleDB";
+
   public static final String TDENGINE_CLASS = "cn.edu.tsinghua.iot.benchmark.tdengine.TDengine";
   public static final String MSSQLSERVER_CLASS =
       "cn.edu.tsinghua.iot.benchmark.mssqlserver.MsSQLServerDB";
