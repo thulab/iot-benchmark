@@ -163,7 +163,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ${{ github.workspace }}/iot-benchmark
-          git config --local user.email "876670773+github-actions[bot]@qq.com"
+          git config --local user.email "${{ secrets.MAIL_FOR_BOT }}"
           git config --local user.name "github-actions[bot]"
           echo ${{ steps.bm-info.outputs.commit_id }} >> .github/release_history.txt
           git add .github/release_history.txt

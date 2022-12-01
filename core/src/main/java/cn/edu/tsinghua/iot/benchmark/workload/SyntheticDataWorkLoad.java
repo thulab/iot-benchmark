@@ -19,9 +19,9 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload;
 
-import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.*;
@@ -34,10 +34,6 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   private int sensorIndex = 0;
 
   public SyntheticDataWorkLoad(List<DeviceSchema> deviceSchemas) {
-    if (config.isIS_OUT_OF_ORDER()) {
-      long startIndex = (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
-      insertLoop = startIndex;
-    }
     this.deviceSchemas = deviceSchemas;
     maxTimestampIndexMap = new HashMap<>();
     for (DeviceSchema schema : deviceSchemas) {
@@ -56,18 +52,9 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   }
 
   @Override
-  protected Batch getOrderedBatch() {
-    Batch batch = getBatchWithSchema();
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      long stepOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-      addOneRowIntoBatch(batch, stepOffset);
-    }
-    next();
-    return batch;
-  }
-
-  private Batch getBatchWithSchema() {
+  public Batch getOneBatch() throws WorkloadException {
     Batch batch = new Batch();
+    // create the schema of batch
     DeviceSchema deviceSchema =
         new DeviceSchema(
             deviceSchemas.get(deviceIndex).getDeviceId(),
@@ -80,45 +67,13 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       batch.setColIndex(sensorIndex);
     }
     batch.setDeviceSchema(deviceSchema);
-    return batch;
-  }
-
-  @Override
-  protected Batch getDistOutOfOrderBatch() {
-    Batch batch = getBatchWithSchema();
-    DeviceSchema deviceSchema = batch.getDeviceSchema();
-    PoissonDistribution poissonDistribution = new PoissonDistribution(poissonRandom);
-    int nextDelta;
-    long stepOffset;
-    for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
-      if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
-        // generate out of order timestamp
-        nextDelta = poissonDistribution.getNextPoissonDelta();
-        stepOffset = maxTimestampIndexMap.get(deviceSchema) - nextDelta;
-      } else {
-        // generate normal increasing timestamp
-        maxTimestampIndexMap.put(deviceSchema, maxTimestampIndexMap.get(deviceSchema) + 1);
-        stepOffset = maxTimestampIndexMap.get(deviceSchema);
-      }
-      addOneRowIntoBatch(batch, stepOffset);
+    // create the data of batch
+    long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
+    for (long offset = 0; offset < config.getBATCH_SIZE_PER_WRITE(); offset++, rowOffset++) {
+      addOneRowIntoBatch(batch, rowOffset);
     }
-    next();
-    return batch;
-  }
 
-  @Override
-  protected Batch getLocalOutOfOrderBatch() {
-    long loopIndex = insertLoop % config.getLOOP();
-    Batch batch = getBatchWithSchema();
-    for (int i = 0; i < config.getBATCH_SIZE_PER_WRITE(); i++) {
-      long stepOffset = loopIndex * config.getBATCH_SIZE_PER_WRITE() + i;
-      addOneRowIntoBatch(batch, stepOffset);
-    }
-    next();
-    return batch;
-  }
-
-  private void next() {
+    // move
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {
       deviceIndex++;
     } else {
@@ -132,5 +87,6 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       deviceIndex = 0;
       insertLoop++;
     }
+    return batch;
   }
 }

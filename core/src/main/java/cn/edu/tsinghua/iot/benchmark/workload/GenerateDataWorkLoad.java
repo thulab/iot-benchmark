@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.workload;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -40,53 +41,35 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataWorkLoad.class);
 
-  protected static final Random poissonRandom = new Random(config.getDATA_SEED());
-  protected static final Random dataRandom = new Random(config.getDATA_SEED());
-  protected static final Random timestampRandom = new Random(config.getDATA_SEED());
-  protected static final String CHAR_TABLE =
+  private static final Random poissonRandom = new Random(config.getDATA_SEED());
+  private static final PoissonDistribution poissonDistribution =
+      new PoissonDistribution(poissonRandom);
+  private static final Random dataRandom = new Random(config.getDATA_SEED());
+  private static final Random timestampRandom = new Random(config.getDATA_SEED());
+  private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  protected static final long timeStampConst =
+  private static final long timeStampConst =
       TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
   /**
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
    */
-  protected static final Object[][] workloadValues = initWorkloadValues();
+  private static final Object[][] workloadValues = initWorkloadValues();
+
+  private static final long OUT_OF_ORDER_BASE =
+      (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
+  private final ProbTool probTool = new ProbTool();
 
   protected List<DeviceSchema> deviceSchemas = new ArrayList<>();
-  protected final ProbTool probTool = new ProbTool();
   protected int deviceSchemaSize = 0;
-
-  @Override
-  public Batch getOneBatch() throws WorkloadException {
-    if (!config.isIS_OUT_OF_ORDER()) {
-      return getOrderedBatch();
-    } else {
-      switch (config.getOUT_OF_ORDER_MODE()) {
-        case POISSON:
-          return getDistOutOfOrderBatch();
-        case BATCH:
-          return getLocalOutOfOrderBatch();
-        default:
-          throw new WorkloadException(
-              "Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
-      }
-    }
-  }
 
   @Override
   public long getBatchNumber() {
     return config.getDEVICE_NUMBER() * config.getLOOP();
   }
 
-  protected abstract Batch getOrderedBatch();
-
-  protected abstract Batch getDistOutOfOrderBatch();
-
-  protected abstract Batch getLocalOutOfOrderBatch();
-
   /** Add one row into batch, row contains data from all sensors */
-  protected void addOneRowIntoBatch(Batch batch, long stepOffset) {
+  protected void addOneRowIntoBatch(Batch batch, long stepOffset) throws WorkloadException {
     List<Object> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     if (batch.getColIndex() == -1) {
@@ -103,7 +86,24 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Get timestamp according to stepOffset */
-  protected long getCurrentTimestamp(long stepOffset) {
+  protected long getCurrentTimestamp(long stepOffset) throws WorkloadException {
+    if (config.isIS_OUT_OF_ORDER()) {
+      // change offset according to out of order mode
+      switch (config.getOUT_OF_ORDER_MODE()) {
+        case POISSON:
+          if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
+            stepOffset -= poissonDistribution.getNextPoissonDelta();
+          }
+          break;
+        case BATCH:
+          stepOffset = (stepOffset + OUT_OF_ORDER_BASE) % config.getLOOP();
+          break;
+        default:
+          throw new WorkloadException(
+              "Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
+      }
+    }
+
     // offset of data ahead
     long offset = config.getPOINT_STEP() * stepOffset;
     // timestamp for next data
