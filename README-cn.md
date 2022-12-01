@@ -103,6 +103,7 @@ iot-benchmark是用来将IoTDB和其他数据库和时间序列解决方案进�
 |     TimescaleDB      |    --    |                           jdbc                           |
 |     TimescaleDB      | Cluster  |                           jdbc                           |
 |       TDengine       | 2.2.0.2  |                           jdbc                           |
+|       TDengine       |  3.0.1   |                           jdbc                           |
 |      PI Archive      |   2016   |                           jdbc                           |
 
 
@@ -157,8 +158,8 @@ mvn clean package -Dmaven.test.skip=true
 
 默认的配置文件存放在`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
-|        数据库        |   版本   |     对应子项目      |                                                  DB_SWITCH                                                   |
-| :------------------: | :------: | :-----------------: | :----------------------------------------------------------------------------------------------------------: |
+|        数据库        |    版本    |     对应子项目      |                                                  DB_SWITCH                                                   |
+| :------------------: |:--------:| :-----------------: |:------------------------------------------------------------------------------------------------------------:|
 |        IoTDB         |   0.13   |      iotdb-1.0      | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   0.13   |     iotdb-0.13      | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |     iotdb-0.12      | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
@@ -173,6 +174,7 @@ mvn clean package -Dmaven.test.skip=true
 |       OpenTSDB       |    --    |      opentsdb       |                                                   OpenTSDB                                                   |
 |       KairosDB       |    --    |      kairosdb       |                                                   KairosDB                                                   |
 |       TDengine       | 2.2.0.2  |      TDengine       |                                                   TDengine                                                   |
+|       TDengine       |  3.0.1   |      TDengine       |                                                  TDengine-3                                                  |
 |      PI Archive      |   2016   |      PIArchive      |                                                  PIArchive                                                   |
 
 # 6. iot-benchmark的不同运行模式的说明

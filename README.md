@@ -84,7 +84,7 @@ iot-benchmark is a tool for benchmarking IoTDB against other databases and time 
 Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
-| :------------------: | :------: | :------------------------------------------------------: |
+| :------------------: |:--------:| :------------------------------------------------------: |
 |        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
@@ -99,6 +99,7 @@ Databases currently supported:
 |     TimescaleDB      |    --    |                           jdbc                           |
 |     TimescaleDB      | Cluster  |                           jdbc                           |
 |       TDengine       | 2.2.0.2  |                           jdbc                           |
+|       TDengine       |  3.0.1   |                           jdbc                           |
 |      PI Archive      |   2016   |                           jdbc                           |
 
 # 4. Main Features
@@ -167,6 +168,7 @@ The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/
 |       OpenTSDB       |  2.4.1   |         opentsdb          |                                                   OpenTSDB                                                   |
 |       KairosDB       |    --    |         kairosdb          |                                                   KairosDB                                                   |
 |       TDengine       | 2.2.0.2  |         TDengine          |                                                   TDengine                                                   |
+|       TDengine       |  3.0.1   |      TDengine       |                                                  TDengine-3                                                  |
 |      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
 # 6. Explanation of different operating modes of iot-benchmark
