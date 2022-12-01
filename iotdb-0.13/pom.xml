@@ -24,7 +24,7 @@
   <parent>
     <groupId>cn.edu.tsinghua</groupId>
     <artifactId>iot-benchmark</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>iotdb-0.13</artifactId>
@@ -49,6 +49,7 @@
 
   </dependencies>
   <build>
+    <finalName>iot-benchmark-iotdb-0.13</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -104,7 +104,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.12/target/iotdb-0.12-0.0.1.zip
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.12/target/iot-benchmark-iotdb-0.12.zip
           asset_name: benchmark-iotdb-0.12-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---0.13
@@ -114,7 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1.zip
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13.zip
           asset_name: benchmark-iotdb-0.13-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---1.0
@@ -124,7 +124,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.0/target/iotdb-1.0-0.0.1.zip
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0.zip
           asset_name: benchmark-iotdb-1.0-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---influxdb
@@ -134,7 +134,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/iot-benchmark/influxdb/target/influxdb-0.0.1.zip
+          asset_path: ${{ github.workspace }}/iot-benchmark/influxdb/target/iot-benchmark-influxdb.zip
           asset_name: benchmark-influxdb-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---influxdb2.0
@@ -144,7 +144,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/iot-benchmark/influxdb-2.0/target/influxdb-2.0-0.0.1.zip
+          asset_path: ${{ github.workspace }}/iot-benchmark/influxdb-2.0/target/iot-benchmark-influxdb-2.0.zip
           asset_name: benchmark-influxdb-2.0-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---timescaledb
@@ -154,7 +154,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/iot-benchmark/timescaledb/target/timescaledb-0.0.1.zip
+          asset_path: ${{ github.workspace }}/iot-benchmark/timescaledb/target/iot-benchmark-timescaledb.zip
           asset_name: benchmark-timescaledb-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       # git push commit
