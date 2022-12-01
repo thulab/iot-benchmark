@@ -84,7 +84,7 @@ iot-benchmark is a tool for benchmarking IoTDB against other databases and time 
 Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
-| :------------------: |:--------:| :------------------------------------------------------: |
+| :------------------: | :------: | :------------------------------------------------------: |
 |        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
@@ -148,9 +148,9 @@ mvn clean package -Dmaven.test.skip=true
 
 This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run `./benchmark.sh` to start iot-benchmark.
+After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run `./benchmark.sh` to start iot-benchmark.
 
-The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
+The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                   |
 | :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------: |
@@ -168,7 +168,7 @@ The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/
 |       OpenTSDB       |  2.4.1   |         opentsdb          |                                                   OpenTSDB                                                   |
 |       KairosDB       |    --    |         kairosdb          |                                                   KairosDB                                                   |
 |       TDengine       | 2.2.0.2  |         TDengine          |                                                   TDengine                                                   |
-|       TDengine       |  3.0.1   |      TDengine       |                                                  TDengine-3                                                  |
+|       TDengine       |  3.0.1   |         TDengine          |                                                  TDengine-3                                                  |
 |      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
 # 6. Explanation of different operating modes of iot-benchmark
@@ -226,7 +226,7 @@ Currently, you can edit other configs, more config in [config.properties](config
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -399,7 +399,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -542,7 +542,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine.
 
-Then you enter `iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -681,7 +681,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine.
 
-Then you enter `iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -800,7 +800,7 @@ MONITOR_INTERVAL=0
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -861,7 +861,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Start
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -967,7 +967,7 @@ After that, you can start it.
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -1061,7 +1061,7 @@ BIG_BATCH_SIZE=100
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -1191,7 +1191,7 @@ LOOP=1000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine, and start the TimescaleDB service on port 5432
 
-Then you enter `iot-benchmark/verfication/target/verification-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -1321,7 +1321,7 @@ LOOP=1000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine, and start the TimescaleDB service on port 5432
 
-Then you enter `iot-benchmark/verfication/target/verification-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -1435,7 +1435,7 @@ LOOP=100
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine, and start the TimescaleDB service on port 5432
 
-Then you enter `iot-benchmark/verfication/target/verification-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
