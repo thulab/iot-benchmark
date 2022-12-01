@@ -19,7 +19,7 @@
     under the License.
 -->
 <assembly>
-    <id>IoTDB-1.0</id>
+    <id>TaosDB-3.0</id>
     <formats>
         <format>dir</format>
         <format>zip</format>

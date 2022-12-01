@@ -55,6 +55,7 @@ public enum DBSwitch {
   DB_TIMESCALE_CLUSTER(DBType.TimescaleDB, DBVersion.TimescaleDB_Cluster, null),
   DB_FAKE(DBType.FakeDB, null, null),
   DB_TDENGINE(DBType.TDengine, null, null),
+  DB_TDENGINE_3(DBType.TDengine, DBVersion.TDengine_3, null),
   DB_QUESTDB(DBType.QuestDB, null, null),
   DB_MSSQLSERVER(DBType.MSSQLSERVER, null, null),
   DB_VICTORIAMETRICS(DBType.VictoriaMetrics, null, null),
