@@ -4,21 +4,7 @@ You need to firstly install the PI JDBC on the test machine, if you want to star
 The module of PI will not compile in default. Therefore, you need to cancel the annotation of PI module in `pom.xml`, if you want to compile the module.
 ```xml
 <modules>
-        <module>core</module>
-        <module>influxdb</module>
-        <module>influxdb-2.0</module>
-        <module>kairosdb</module>
-        <module>opentsdb</module>
-        <module>taosdb</module>
-        <module>questdb</module>
-        <module>timescaledb</module>
-        <module>victoriametrics</module>
-        <module>iotdb-0.12</module>
-        <module>iotdb-0.11</module>
-        <module>iotdb-0.10</module>
-        <module>iotdb-0.09</module>
-        <module>mssqlserver</module>
-        <module>sqlite</module>
+        ...
         <module>verification</module>
         <!-- cancel this annotation -->
 <!--        <module>pi</module>-->

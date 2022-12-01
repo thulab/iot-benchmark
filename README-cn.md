@@ -92,7 +92,6 @@ iot-benchmark是用来将IoTDB和其他数据库和时间序列解决方案进�
 |        IoTDB         |   v1.0    | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.11   |                jdbc、session、sessionPool                |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
@@ -128,7 +127,7 @@ iot-benchmark的特点如下：
 1. Java 8
 2. Maven：不建议使用镜像源，国内可以使用阿里云镜像源。
 3. 合适版本的数据库
-   1. Apache IoTDB >= v0.11([获取方式](https://github.com/apache/iotdb))，并且目前主要支持IoTDB v0.12 和 IoTDB v0.13
+   1. Apache IoTDB >= v0.12([获取方式](https://github.com/apache/iotdb))
    2. 其他的对应版本的数据库
 4. ServerMode和CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
 5. 我们建议使用MacOs或Linux系统，本文以MacOS和Linux系统为例，如果使用Windows系统，请使用`conf`文件夹下的`benchmark.bat`脚本启动benchmark。
@@ -162,7 +161,6 @@ mvn clean package -Dmaven.test.skip=true
 |        IoTDB         |   0.13   |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   0.13   |   iotdb-0.13    | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |   iotdb-0.12    | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
-|        IoTDB         |   0.11   |   iotdb-0.11    |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                         |
 |       InfluxDB       |   v1.x   |    influxdb     |                                                   InfluxDB                                                   |
 |       InfluxDB       |   v2.0   |  influxdb-2.0   |                                                 InfluxDB-2.0                                                 |
 |       QuestDB        |  v6.0.7  |     questdb     |                                                   QuestDB                                                    |
