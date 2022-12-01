@@ -77,30 +77,6 @@ public class DBFactory {
             dbClass = Constants.IOTDB012_SESSION_CLASS;
           }
           break;
-          // IoTDB 0.11
-        case DB_IOT_011_JDBC:
-          dbClass = Constants.IOTDB011_JDBC_CLASS;
-          break;
-        case DB_IOT_011_SESSION_POOL:
-          dbClass = Constants.IOTDB011_SESSION_POOL_CLASS;
-          break;
-        case DB_IOT_011_SESSION:
-          dbClass = Constants.IOTDB011_SESSION_CLASS;
-          break;
-          // IoTDB 0.10
-        case DB_IOT_010_JDBC:
-          dbClass = Constants.IOTDB010_JDBC_CLASS;
-          break;
-        case DB_IOT_010_SESSION:
-          dbClass = Constants.IOTDB010_SESSION_CLASS;
-          break;
-          // IoTDB 0.9
-        case DB_IOT_09_JDBC:
-          dbClass = Constants.IOTDB009_JDBC_CLASS;
-          break;
-        case DB_IOT_09_SESSION:
-          dbClass = Constants.IOTDB009_SESSION_CLASS;
-          break;
         case DB_INFLUX:
           dbClass = Constants.INFLUXDB_CLASS;
           break;
