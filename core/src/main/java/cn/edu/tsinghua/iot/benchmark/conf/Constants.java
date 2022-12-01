@@ -79,7 +79,7 @@ public class Constants {
       "cn.edu.tsinghua.iot.benchmark.timescaledbCluster.TimescaleDB";
 
   public static final String TDENGINE_CLASS = "cn.edu.tsinghua.iot.benchmark.tdengine.TDengine";
-  public static final String TDENGINE3_CLASS = "cn.edu.tsinghua.iotdb.benchmark.tdengine3.TDengine";
+  public static final String TDENGINE3_CLASS = "cn.edu.tsinghua.iot.benchmark.tdengine3.TDengine";
   public static final String MSSQLSERVER_CLASS =
       "cn.edu.tsinghua.iot.benchmark.mssqlserver.MsSQLServerDB";
   public static final String VICTORIAMETRICS =
