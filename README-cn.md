@@ -87,9 +87,9 @@ iot-benchmark是用来将IoTDB和其他数据库和时间序列解决方案进�
 
 目前支持如下数据库、版本和连接方式：
 
-|        数据库        |    版本    |                         连接方式                         |
-| :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |   v1.0    | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
+|        数据库        |   版本   |                         连接方式                         |
+| :------------------: | :------: | :------------------------------------------------------: |
+|        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |       InfluxDB       |   v1.x   |                           SDK                            |
@@ -101,6 +101,7 @@ iot-benchmark是用来将IoTDB和其他数据库和时间序列解决方案进�
 |       OpenTSDB       |    --    |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
+|     TimescaleDB      | Cluster  |                           jdbc                           |
 |       TDengine       | 2.2.0.2  |                           jdbc                           |
 |      PI Archive      |   2016   |                           jdbc                           |
 
@@ -137,8 +138,8 @@ iot-benchmark的特点如下：
 | :--------------------: | :-------------------: | :------------------------------------------------------------------------------------- |
 |      常规测试模式      |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                           |
 |      生成数据模式      |   generateDataMode    | Benchmark生成数据集到FILE_PATH路径中                                                   |
-|     正确性写入模式     | verificationWriteMode | 从FILE_PATH路径中加载数据集进行写入，目前支持IoTDB v0.12 和 IoTDB v0.13                  |
-|     正确性查询模式     | verificationQueryMode | 从FILE_PATH路径中加载数据集和数据库中进行比对，目前支持IoTDB v0.12 和 IoTDB v0.13       |
+|     正确性写入模式     | verificationWriteMode | 从FILE_PATH路径中加载数据集进行写入，目前支持IoTDB v0.12 和 IoTDB v0.13                |
+|     正确性查询模式     | verificationQueryMode | 从FILE_PATH路径中加载数据集和数据库中进行比对，目前支持IoTDB v0.12 和 IoTDB v0.13      |
 | 服务器资源使用监控模式 |      serverMODE       | 服务器资源使用监控模式（该模式下运行通过ser-benchmark.sh脚本启动，无需手动配置该参数） |
 
 
@@ -156,22 +157,23 @@ mvn clean package -Dmaven.test.skip=true
 
 默认的配置文件存放在`iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
-|        数据库        |   版本   |   对应子项目    |                                                  DB_SWITCH                                                   |
-| :------------------: | :------: | :-------------: | :----------------------------------------------------------------------------------------------------------: |
-|        IoTDB         |   0.13   |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
-|        IoTDB         |   0.13   |   iotdb-0.13    | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
-|        IoTDB         |   0.12   |   iotdb-0.12    | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
-|       InfluxDB       |   v1.x   |    influxdb     |                                                   InfluxDB                                                   |
-|       InfluxDB       |   v2.0   |  influxdb-2.0   |                                                 InfluxDB-2.0                                                 |
-|       QuestDB        |  v6.0.7  |     questdb     |                                                   QuestDB                                                    |
-| Microsoft SQL Server | 2016 SP2 |   mssqlserver   |                                                 MSSQLSERVER                                                  |
-|   VictoriaMetrics    | v1.64.0  | victoriametrics |                                               VictoriaMetrics                                                |
-|     TimescaleDB      |          |   timescaledb   |                                                 TimescaleDB                                                  |
-|        SQLite        |    --    |     sqlite      |                                                    SQLite                                                    |
-|       OpenTSDB       |    --    |    opentsdb     |                                                   OpenTSDB                                                   |
-|       KairosDB       |    --    |    kairosdb     |                                                   KairosDB                                                   |
-|       TDengine       | 2.2.0.2  |    TDengine     |                                                   TDengine                                                   |
-|      PI Archive      |   2016   |    PIArchive    |                                                  PIArchive                                                   |
+|        数据库        |   版本   |     对应子项目      |                                                  DB_SWITCH                                                   |
+| :------------------: | :------: | :-----------------: | :----------------------------------------------------------------------------------------------------------: |
+|        IoTDB         |   0.13   |      iotdb-1.0      | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
+|        IoTDB         |   0.13   |     iotdb-0.13      | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
+|        IoTDB         |   0.12   |     iotdb-0.12      | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
+|       InfluxDB       |   v1.x   |      influxdb       |                                                   InfluxDB                                                   |
+|       InfluxDB       |   v2.0   |    influxdb-2.0     |                                                 InfluxDB-2.0                                                 |
+|       QuestDB        |  v6.0.7  |       questdb       |                                                   QuestDB                                                    |
+| Microsoft SQL Server | 2016 SP2 |     mssqlserver     |                                                 MSSQLSERVER                                                  |
+|   VictoriaMetrics    | v1.64.0  |   victoriametrics   |                                               VictoriaMetrics                                                |
+|     TimescaleDB      |          |     timescaledb     |                                                 TimescaleDB                                                  |
+|     TimescaleDB      | Cluster  | timescaledb-cluster |                                             TimescaleDB-Cluster                                              |
+|        SQLite        |    --    |       sqlite        |                                                    SQLite                                                    |
+|       OpenTSDB       |    --    |      opentsdb       |                                                   OpenTSDB                                                   |
+|       KairosDB       |    --    |      kairosdb       |                                                   KairosDB                                                   |
+|       TDengine       | 2.2.0.2  |      TDengine       |                                                   TDengine                                                   |
+|      PI Archive      |   2016   |      PIArchive      |                                                  PIArchive                                                   |
 
 # 6. iot-benchmark的不同运行模式的说明
 以下所有测试均在如下环境中进行：

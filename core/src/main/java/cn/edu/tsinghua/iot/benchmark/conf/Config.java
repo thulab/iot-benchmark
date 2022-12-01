@@ -239,6 +239,10 @@ public class Config {
   // 被测系统是MS SQL Server时的参数
   private String COMPRESSION = "NONE";
 
+  // 被测系统是TimescaleDB Cluster时的参数
+  /** the replication factor of timescaledb cluster */
+  private int TIMESCALEDB_REPLICATION_FACTOR = 1;
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
@@ -1442,6 +1446,14 @@ public class Config {
 
   public void setCOMPRESSION(String COMPRESSION) {
     this.COMPRESSION = COMPRESSION;
+  }
+
+  public int getTIMESCALEDB_REPLICATION_FACTOR() {
+    return TIMESCALEDB_REPLICATION_FACTOR;
+  }
+
+  public void setTIMESCALEDB_REPLICATION_FACTOR(int TIMESCALEDB_REPLICATION_FACTOR) {
+    this.TIMESCALEDB_REPLICATION_FACTOR = TIMESCALEDB_REPLICATION_FACTOR;
   }
 
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {

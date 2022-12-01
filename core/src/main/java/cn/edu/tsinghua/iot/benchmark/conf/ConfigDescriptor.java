@@ -315,6 +315,12 @@ public class ConfigDescriptor {
                     "HTTP_CLIENT_POOL_SIZE", String.valueOf(config.getHTTP_CLIENT_POOL_SIZE()))));
 
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
+        config.setTIMESCALEDB_REPLICATION_FACTOR(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TIMESCALEDB_REPLICATION_FACTOR",
+                    config.getTIMESCALEDB_REPLICATION_FACTOR() + "")));
+
         config.setOP_MIN_INTERVAL(
             Long.parseLong(
                 properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));

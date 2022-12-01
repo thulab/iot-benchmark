@@ -52,6 +52,7 @@ public enum DBSwitch {
   DB_CTS(DBType.CTSDB, null, null),
   DB_KAIROS(DBType.KairosDB, null, null),
   DB_TIMESCALE(DBType.TimescaleDB, null, null),
+  DB_TIMESCALE_CLUSTER(DBType.TimescaleDB, DBVersion.TimescaleDB_Cluster, null),
   DB_FAKE(DBType.FakeDB, null, null),
   DB_TDENGINE(DBType.TDengine, null, null),
   DB_QUESTDB(DBType.QuestDB, null, null),

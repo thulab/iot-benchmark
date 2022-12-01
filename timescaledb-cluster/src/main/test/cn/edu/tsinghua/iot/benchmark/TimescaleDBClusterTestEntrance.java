@@ -17,23 +17,12 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
+package cn.edu.tsinghua.iot.benchmark;
 
-public enum DBVersion {
-  IOTDB_100("100"),
-  IOTDB_013("013"),
-  IOTDB_012("012"),
-  InfluxDB_2("2.x"),
-  TimescaleDB_Cluster("cluster");
+import java.sql.SQLException;
 
-  String version;
-
-  DBVersion(String version) {
-    this.version = version;
-  }
-
-  @Override
-  public String toString() {
-    return version;
-  }
+public class TimescaleDBClusterTestEntrance {
+    public static void main(String[] args) throws SQLException {
+        App.main(args);
+    }
 }
