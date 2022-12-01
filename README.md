@@ -84,8 +84,8 @@ iot-benchmark is a tool for benchmarking IoTDB against other databases and time 
 Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
-| :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |   v1.0    | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
+| :------------------: | :------: | :------------------------------------------------------: |
+|        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |       InfluxDB       |   v1.x   |                           SDK                            |
@@ -97,8 +97,9 @@ Databases currently supported:
 |       OpenTSDB       |  2.4.1   |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
-|        TDengine        | 2.2.0.2  |                           jdbc                           |
-|       PI Archive     |   2016   |                           jdbc                        |
+|     TimescaleDB      | Cluster  |                           jdbc                           |
+|       TDengine       | 2.2.0.2  |                           jdbc                           |
+|      PI Archive      |   2016   |                           jdbc                           |
 
 # 4. Main Features
 
@@ -151,7 +152,7 @@ After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iotdb-0.13-0
 The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                   |
-| :------------------: |:--------:|:-------------------------:|:------------------------------------------------------------------------------------------------------------:|
+| :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   0.13   |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   1.0    |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
@@ -161,11 +162,12 @@ The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/
 | Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                  |
 |   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                                |
 |     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                  |
+|     TimescaleDB      | Cluster  |    timescaledb-cluster    |                                             TimescaleDB-Cluster                                              |
 |        SQLite        |    --    |          sqlite           |                                                    SQLite                                                    |
 |       OpenTSDB       |  2.4.1   |         opentsdb          |                                                   OpenTSDB                                                   |
 |       KairosDB       |    --    |         kairosdb          |                                                   KairosDB                                                   |
-|        TDengine        | 2.2.0.2  |         TDengine          |                                                   TDengine                                                   |
-|       PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
+|       TDengine       | 2.2.0.2  |         TDengine          |                                                   TDengine                                                   |
+|      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
 # 6. Explanation of different operating modes of iot-benchmark
 All of the following tests were performed in the following environment:
