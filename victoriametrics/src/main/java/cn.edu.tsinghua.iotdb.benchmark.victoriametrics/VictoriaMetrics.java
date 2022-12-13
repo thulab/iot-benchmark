@@ -17,19 +17,26 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iotdb.benchmark.victoriametrics;
+package cn.edu.tsinghua.iot.benchmark.victoriametrics;
 
-import cn.edu.tsinghua.iotdb.benchmark.conf.Constants;
-import cn.edu.tsinghua.iotdb.benchmark.entity.Batch;
-import cn.edu.tsinghua.iotdb.benchmark.entity.Record;
-import cn.edu.tsinghua.iotdb.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iotdb.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iotdb.benchmark.measurement.Status;
-import cn.edu.tsinghua.iotdb.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.IDatabase;
-import cn.edu.tsinghua.iotdb.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iotdb.benchmark.workload.query.impl.*;
+import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iot.benchmark.measurement.Status;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
+import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;

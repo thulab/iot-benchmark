@@ -1,4 +1,4 @@
-# 1. IoTDB-Benchmark
+# 1. iot-benchmark
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
@@ -6,15 +6,15 @@ You can also read [中文版本](README-cn.md).
 
 # 2. Table of Contents
 
-- [1. IoTDB-Benchmark](#1-iotdb-benchmark)
+- [1. iot-benchmark](#1-iot-benchmark)
 - [2. Table of Contents](#2-table-of-contents)
 - [3. Overview](#3-overview)
 - [4. Main Features](#4-main-features)
-- [5. Usage of IoTDB-Benchmark](#5-usage-of-iotdb-benchmark)
-  - [5.1. Prerequisites of IoTDB-Benchmark](#51-prerequisites-of-iotdb-benchmark)
-  - [5.2. Working modes of IoTDB-Benchmark](#52-working-modes-of-iotdb-benchmark)
-  - [5.3. Build of IoTDB-Benchmark](#53-build-of-iotdb-benchmark)
-- [6. Explanation of different operating modes of IoTDB-Benchmark](#6-explanation-of-different-operating-modes-of-iotdb-benchmark)
+- [5. Usage of iot-benchmark](#5-usage-of-iot-benchmark)
+  - [5.1. Prerequisites of iot-benchmark](#51-prerequisites-of-iot-benchmark)
+  - [5.2. Working modes of iot-benchmark](#52-working-modes-of-iot-benchmark)
+  - [5.3. Build of iot-benchmark](#53-build-of-iot-benchmark)
+- [6. Explanation of different operating modes of iot-benchmark](#6-explanation-of-different-operating-modes-of-iot-benchmark)
   - [6.1. Write of Conventional test mode(Single database)](#61-write-of-conventional-test-modesingle-database)
     - [6.1.1. Configure](#611-configure)
     - [6.1.2. Start(Without Server System Information Recording)](#612-startwithout-server-system-information-recording)
@@ -79,18 +79,15 @@ You can also read [中文版本](README-cn.md).
 
 # 3. Overview
 
-IoTDB-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
+iot-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
 
 Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
-| :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |  v0.14   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
+| :------------------: | :------: | :------------------------------------------------------: |
+|        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.11   |                jdbc、session、sessionPool                |
-|        IoTDB         |  v0.10   |                      jdbc、session                       |
-|        IoTDB         |   v0.9   |                      jdbc、session                       |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
@@ -100,14 +97,16 @@ Databases currently supported:
 |       OpenTSDB       |  2.4.1   |                       Http Request                       |
 |       KairosDB       |    --    |                       Http Request                       |
 |     TimescaleDB      |    --    |                           jdbc                           |
-|        TDengine        | 2.2.0.2  |                           jdbc                           |
-|       PI Archive     |   2016   |                           jdbc                        |
+|     TimescaleDB      | Cluster  |                           jdbc                           |
+|       TDengine       | 2.2.0.2  |                           jdbc                           |
+|       TDengine       |  3.0.1   |                           jdbc                           |
+|      PI Archive      |   2016   |                           jdbc                           |
 
 # 4. Main Features
 
-IoTDB-benchmark's features are as following:
+iot-benchmark's features are as following:
 
-1. Easy to use: IoTDB-benchmark is a tool combined multiple testing functions so users do not need to switch different tools. 
+1. Easy to use: iot-benchmark is a tool combined multiple testing functions so users do not need to switch different tools. 
 2. Various data ingestion and testing mode:
    1. Generate periodic time series data according to the configuration and insert and query directly.
    2. Write the generated data to the corresponding location on the disk.
@@ -117,20 +116,20 @@ IoTDB-benchmark's features are as following:
 4. Visualize test results: Integration with Tableau to visualize the test result.
 5. We recommend using MacOs or Linux systems. This article takes MacOS and Linux systems as examples. If you use Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
 
-# 5. Usage of IoTDB-Benchmark
+# 5. Usage of iot-benchmark
 
-## 5.1. Prerequisites of IoTDB-Benchmark
+## 5.1. Prerequisites of iot-benchmark
 
-To use IoTDB-benchmark, you need to have:
+To use iot-benchmark, you need to have:
 
 1. Java 8
 2. Maven: It is not recommended to use the mirror.
 3. The appropriate version of the database
-   1. Apache IoTDB >= v0.9 ([Get it!](https://github.com/apache/iotdb))，now mainly supported IoTDB v0.12, v0.13
+   1. Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
    2. His corresponding version of the database
 4. ServerMode and CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
-## 5.2. Working modes of IoTDB-Benchmark
+## 5.2. Working modes of iot-benchmark
 |           The name of mode            |  BENCHMARK_WORK_MODE  | The content of mode                                                                                                                              |
 | :-----------------------------------: | :-------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
 |        Conventional test mode         |  testWithDefaultPath  | Supports mixed loads of multiple read and write operations                                                                                       |
@@ -139,9 +138,9 @@ To use IoTDB-benchmark, you need to have:
 |      Query mode of verification       | verificationQueryMode | Load the data set from the FILE_PATH path and compare it with the database. Currently, IoTDB v0.12 and v0.13 is supported                        |
 | Server resource usage monitoring mode |      serverMODE       | Server resource usage monitoring mode (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this parameter) |
 
-## 5.3. Build of IoTDB-Benchmark
+## 5.3. Build of iot-benchmark
 
-You can build IoTDB-benchmark using Maven, running following command in the **root** of project:
+You can build iot-benchmark using Maven, running following command in the **root** of project:
 
 ```
 mvn clean package -Dmaven.test.skip=true
@@ -149,30 +148,30 @@ mvn clean package -Dmaven.test.skip=true
 
 This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
 
-After, for example, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run `./benchmark.sh` to start IoTDB-Benchmark.
+After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run `./benchmark.sh` to start iot-benchmark.
 
-The default configuration file is stored under `iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
+The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
-|       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                  |
-| :------------------: | :------: | :-----------------------: | :---------------------------------------------------------------------------------------------------------: |
-|        IoTDB         |   0.13   |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
+|       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                   |
+| :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------: |
+|        IoTDB         |   0.13   |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
+|        IoTDB         |   1.0    |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
-|        IoTDB         |   0.11   |        iotdb-0.11         |                        IoTDB-011-JDBC<br>IoTDB-011-SESSION<br>IoTDB-011-SESSION_POOL                        |
-|        IoTDB         |   0.10   |        iotdb-0.10         |                                     IoTDB-010-JDBC<br>IoTDB-010-SESSION                                     |
-|        IoTDB         |   0.9    |        iotdb-0.09         |                                      IoTDB-09-JDBC<br>IoTDB-09-SESSION                                      |
-|       InfluxDB       |   v1.x   |         influxdb          |                                                  InfluxDB                                                   |
-|       InfluxDB       |   v2.0   |       influxdb-2.0        |                                                InfluxDB-2.0                                                 |
-|       QuestDB        |  v6.0.7  |          questdb          |                                                   QuestDB                                                   |
-| Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                 |
-|   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                               |
-|     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                 |
-|        SQLite        |    --    |          sqlite           |                                                   SQLite                                                    |
-|       OpenTSDB       |    2.4.1    |         opentsdb          |                                                  OpenTSDB                                                   |
-|       KairosDB       |    --    |         kairosdb          |                                                  KairosDB                                                   |
-|        TDengine        |    2.2.0.2    |          TDengine           |                                                   TDengine                                                    |
-|       PI Archive      |   2016  |         PIArchive         |                                                     PIArchive                                                |
+|       InfluxDB       |   v1.x   |         influxdb          |                                                   InfluxDB                                                   |
+|       InfluxDB       |   v2.0   |       influxdb-2.0        |                                                 InfluxDB-2.0                                                 |
+|       QuestDB        |  v6.0.7  |          questdb          |                                                   QuestDB                                                    |
+| Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                  |
+|   VictoriaMetrics    | v1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                                |
+|     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                  |
+|     TimescaleDB      | Cluster  |    timescaledb-cluster    |                                             TimescaleDB-Cluster                                              |
+|        SQLite        |    --    |          sqlite           |                                                    SQLite                                                    |
+|       OpenTSDB       |  2.4.1   |         opentsdb          |                                                   OpenTSDB                                                   |
+|       KairosDB       |    --    |         kairosdb          |                                                   KairosDB                                                   |
+|       TDengine       | 2.2.0.2  |         TDengine          |                                                   TDengine                                                   |
+|       TDengine       |  3.0.1   |         TDengine          |                                                  TDengine-3                                                  |
+|      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
-# 6. Explanation of different operating modes of IoTDB-Benchmark
+# 6. Explanation of different operating modes of iot-benchmark
 All of the following tests were performed in the following environment:
 
 ```
@@ -184,7 +183,7 @@ Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 
 ## 6.1. Write of Conventional test mode(Single database)
 
-This short guide will walk you through the basic process of using IoTDB-benchmark.
+This short guide will walk you through the basic process of using iot-benchmark.
 
 ### 6.1.1. Configure
 
@@ -227,7 +226,7 @@ Currently, you can edit other configs, more config in [config.properties](config
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -239,10 +238,10 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ...
-2022-05-08 14:26:36,478 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 17.10% workload is done. 
-2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-13 56.59% workload is done. 
-2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-2 18.01% workload is done. 
-2022-05-08 14:26:41,480 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-14 54.01% workload is done. 
+2022-05-08 14:26:36,478 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 17.10% workload is done. 
+2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-13 56.59% workload is done. 
+2022-05-08 14:26:41,479 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-2 18.01% workload is done. 
+2022-05-08 14:26:41,480 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-14 54.01% workload is done. 
 ...
 ```
 
@@ -250,7 +249,7 @@ When test is done, the last output of the test information will be like followin
 
 ```
 ...
-2022-05-08 14:40:54,243 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 14:40:54,243 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -400,7 +399,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -412,17 +411,17 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ...
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-14 93.37% workload is done. 
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-17 94.40% workload is done. 
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-8 99.43% workload is done. 
-2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-18 97.40% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-14 93.37% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-17 94.40% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-8 99.43% workload is done. 
+2022-05-08 14:55:37,228 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-18 97.40% workload is done. 
 ...
 ```
 
 When test is done, the last testing information will be like the following: 
 
 ```
-2022-05-08 14:55:47,915 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 14:55:47,915 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -543,7 +542,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine.
 
-Then you enter `iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -555,17 +554,17 @@ After the test is started, you can see the rolling test execution information, s
 
 ```
 ...
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 39.63% workload is done. 
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-1 39.26% workload is done. 
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-19 43.91% workload is done. 
-2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-16 45.84% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-10 39.63% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-1 39.26% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-19 43.91% workload is done. 
+2022-05-08 15:00:23,000 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-16 45.84% workload is done. 
 ...
 ```
 
 When the test is over, the statistical information of this test will be displayed at last, as shown below:
 
 ```
-2022-05-08 15:02:03,959 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:02:03,959 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -682,7 +681,7 @@ GROUP_BY_TIME_UNIT=20000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine.
 
-Then you enter `iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -694,17 +693,17 @@ After the test is started, you can see the rolling test execution information, s
 
 ```
 ...
-2022-05-08 15:06:15,298 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-6 88.36% workload is done. 
-2022-05-08 15:06:15,298 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-2 88.95% workload is done. 
-2022-05-08 15:06:20,298 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-1 97.39% workload is done. 
-2022-05-08 15:06:20,298 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-8 95.43% workload is done. 
+2022-05-08 15:06:15,298 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-6 88.36% workload is done. 
+2022-05-08 15:06:15,298 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-2 88.95% workload is done. 
+2022-05-08 15:06:20,298 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-1 97.39% workload is done. 
+2022-05-08 15:06:20,298 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-8 95.43% workload is done. 
 ...
 ```
 
 When the test is over, the statistical information of this test will be displayed at last, as shown below:
 
 ```
-2022-05-08 15:06:34,593 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:06:34,593 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -783,7 +782,7 @@ IoTDB Benchmark allows you to use a database to store system data during the tes
 
 ### 6.5.1. Configure
 
-Suppose your IoTDB server IP is 192.168.130.9 and your test client server which installed IoTDB-benchmark has authorized ssh access to the IoTDB server.
+Suppose your IoTDB server IP is 192.168.130.9 and your test client server which installed iot-benchmark has authorized ssh access to the IoTDB server.
 Current version of information recording is dependent on iostat. Please make sure iostat is installed in IoTDB server.
 
 Configure ```config.properties```
@@ -801,7 +800,7 @@ MONITOR_INTERVAL=0
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -811,7 +810,7 @@ The test results will be saved in the path ```data``` in CSV format
 
 ## 6.6. Persistence of the test process in conventional test mode (single database)
 
-For subsequent analysis, IoTDB-Benchmark can store test information in the database (if you don't want to store test data, then set ```TEST_DATA_PERSISTENCE=None```)
+For subsequent analysis, iot-benchmark can store test information in the database (if you don't want to store test data, then set ```TEST_DATA_PERSISTENCE=None```)
 
 The currently supported storage databases are IoTDB and MySQL. Taking MySQL as an example, you need to modify the following configuration in the ```config.properties``` file:
 
@@ -841,7 +840,7 @@ Follow-up operations are the same as above.
 
 ### 6.7.1. Configure
 
-In order to generate a data set that can be reused, IoTDB-Benchmark provides a data set generation mode, and the data set is generated to FILE_PATH for subsequent use in the correctness write mode and correctness query mode.
+In order to generate a data set that can be reused, iot-benchmark provides a data set generation mode, and the data set is generated to FILE_PATH for subsequent use in the correctness write mode and correctness query mode.
 
 For this, you need to modify the following configuration in ```config.properties```:
 
@@ -862,7 +861,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Start
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -873,9 +872,9 @@ Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and r
 Now after launching the test, you will see testing information rolling. When test is done, the last testing information will be like the following: 
 
 ```
-2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode:43 - Data Location: data/test 
-2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode:44 - Schema Location: data/test/schema.txt 
-2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.GenerateDataMode:45 - Generate Info Location: data/test/info.txt 
+2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:43 - Data Location: data/test 
+2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:44 - Schema Location: data/test/schema.txt 
+2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:45 - Generate Info Location: data/test/info.txt 
 ```
 
 > Note:
@@ -968,7 +967,7 @@ After that, you can start it.
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -979,17 +978,17 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ...
-2022-05-08 15:08:31,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 9.86% workload is done. 
-2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 98.24% workload is done. 
-2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-5 97.08% workload is done. 
-2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-3 96.54% workload is done. 
+2022-05-08 15:08:31,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 9.86% workload is done. 
+2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 98.24% workload is done. 
+2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-5 97.08% workload is done. 
+2022-05-08 15:08:36,735 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-3 96.54% workload is done. 
 ...
 ```
 
 When test is done, the last testing information will be like the following:
 
 ```
-2022-05-08 15:08:38,751 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:08:38,751 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=verificationWriteMode
@@ -1062,7 +1061,7 @@ BIG_BATCH_SIZE=100
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iotdb-benchmark/iotdb-0.13/target/iotdb-0.13-0.0.1`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
 
 ```sh
 > ./benchmark.sh
@@ -1074,17 +1073,17 @@ Now after launching the test, you will see testing information rolling like foll
 
 ```
 ...
-2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-3 11.15% workload is done. 
-2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 11.16% workload is done. 
-2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-1 11.32% workload is done. 
-2022-05-08 15:09:43,358 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-4 14.92% workload is done. 
+2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-3 11.15% workload is done. 
+2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 11.16% workload is done. 
+2022-05-08 15:09:38,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-1 11.32% workload is done. 
+2022-05-08 15:09:43,358 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-4 14.92% workload is done. 
 ...
 ```
 
 When test is done, the last testing information will be like the following:
 
 ```
-2022-05-08 15:11:50,033 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-08 15:11:50,033 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=verificationQueryMode
@@ -1133,7 +1132,7 @@ VERIFICATION_QUERY       14.48       0.96        11.40       12.67       14.43  
 
 ## 6.10. Dual database mode
 
-In order to more conveniently and quickly complete the correctness verification, iotdb-benchmark also supports dual database mode.
+In order to more conveniently and quickly complete the correctness verification, iot-benchmark also supports dual database mode.
 
 1. For all the test scenarios mentioned above, unless otherwise specified, dual databases are supported. Please **start the test** in the `verification` project.
 2. For the relevant test scenarios for correctness verification below, all must be run in dual database mode, and currently **only supports** iotdb-0.12, iotdb-0.13 and timescaledb.
@@ -1192,7 +1191,7 @@ LOOP=1000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine, and start the TimescaleDB service on port 5432
 
-Then you enter `iotdb-benchmark/verfication/target/verification-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -1204,17 +1203,17 @@ After writing data is started, you can see the scrolling execution information, 
 
 ```
 ...
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 91.40% workload is done.
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-13 90.90% workload is done.
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-16 92.50% workload is done.
-2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-2 91.90% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-10 91.40% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-13 90.90% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-16 92.50% workload is done.
+2022-05-12 09:47:51,233 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-2 91.90% workload is done.
 ...
 ```
 
 When the test is over, the information written to the data set will be displayed at the end, as shown below:
 
 ```
-2022-05-12 09:48:00,160 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished.
+2022-05-12 09:48:00,160 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished.
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -1288,7 +1287,7 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 
 ## 6.12. Single-point query mode for correctness (dual database comparison)
 
-In order to verify the correctness of the database data more efficiently, iotdb-benchmark provides to complete the correctness verification by comparing the data between the two databases.
+In order to verify the correctness of the database data more efficiently, iot-benchmark provides to complete the correctness verification by comparing the data between the two databases.
 
 Note that before performing this test, please use the regular test mode write (dual database) above to complete the database write, it is currently recommended using the JDBC method
 
@@ -1322,7 +1321,7 @@ LOOP=1000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine, and start the TimescaleDB service on port 5432
 
-Then you enter `iotdb-benchmark/verfication/target/verification-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -1334,17 +1333,17 @@ After writing data is started, you can see the scrolling execution information, 
 
 ```
 ...
-2022-05-12 09:49:51,591 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_11 have been checked 
-2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_7 have been checked 
-2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_16 have been checked 
-2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iotdb.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_12 have been checked 
+2022-05-12 09:49:51,591 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_11 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_7 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_16 have been checked 
+2022-05-12 09:49:51,596 INFO  cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient:83 - All points of d_12 have been checked 
 ...
 ```
 
 When the test is over, the related information will be displayed at the end, as shown below:
 
 ```
-2022-05-12 09:49:53,669 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-12 09:49:53,669 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -1399,7 +1398,7 @@ DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27 
 
 ## 6.13. Correctness function query mode (dual database comparison)
 
-In order to verify the correctness of the database query more efficiently, iotdb-benchmark provides to complete the correctness verification by comparing the difference of the data query results between the two databases.
+In order to verify the correctness of the database query more efficiently, iot-benchmark provides to complete the correctness verification by comparing the difference of the data query results between the two databases.
 
 Notice:
 
@@ -1436,7 +1435,7 @@ LOOP=100
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the machine, and start the TimescaleDB service on port 5432
 
-Then you enter `iotdb-benchmark/verfication/target/verification-0.0.1` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
+Then you enter `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start Benchmark (currently only execute the following script in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
@@ -1448,17 +1447,17 @@ After writing data is started, you can see the scrolling execution information, 
 
 ```
 ...
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-10 9.80% workload is done. 
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-11 8.80% workload is done. 
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-9 8.20% workload is done. 
-2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iotdb.benchmark.client.DataClient:137 - pool-2-thread-20 8.70% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-10 9.80% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-11 8.80% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-9 8.20% workload is done. 
+2022-05-12 09:53:50,435 INFO  cn.edu.tsinghua.iot.benchmark.client.DataClient:137 - pool-2-thread-20 8.70% workload is done. 
 ...
 ```
 
 When the test is over, the information written to the data set will be displayed at the end, as shown below:
 
 ```
-2022-05-12 09:53:55,078 INFO  cn.edu.tsinghua.iotdb.benchmark.mode.BaseMode:154 - All dataClients finished. 
+2022-05-12 09:53:55,078 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
 ----------------------Main Configurations----------------------
 ########### Test Mode ###########
 BENCHMARK_WORK_MODE=testWithDefaultPath
@@ -1617,14 +1616,14 @@ In this case, if you want to know what is going on, you can check the log inform
 ```
 
 # 10. Developer Guidelines
-1. All the interfaces of IoTDB-Benchmark are in the core module.
-2. The realization of all database tests of IoTDB-Benchmark are in each maven sub-project.
+1. All the interfaces of iot-benchmark are in the core module.
+2. The realization of all database tests of iot-benchmark are in each maven sub-project.
 3. If you want to use an editor such as IDEA to run Benchmark:
     1. You can find TestEntrance in the test file directory under each maven subproject, and run the corresponding test.
     2. Taking IoTDB 0.13 as an example, you can run `iotdb-0.13/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 11. Related Article
-Benchmark Time Series Database with IoTDB-Benchmark for IoT Scenarios
+Benchmark Time Series Database with iot-benchmark for IoT Scenarios
 
 Arxiv: https://arxiv.org/abs/1901.08304
 

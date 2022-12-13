@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cn.edu.tsinghua</groupId>
-        <artifactId>iotdb-benchmark</artifactId>
-        <version>0.0.1</version>
+        <artifactId>iot-benchmark</artifactId>
+        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -224,6 +224,18 @@
 
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
+            <artifactId>iotdb-1.0</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.edu.tsinghua</groupId>
+                    <artifactId>core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.edu.tsinghua</groupId>
             <artifactId>iotdb-0.13</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -237,42 +249,6 @@
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
             <artifactId>iotdb-0.12</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.edu.tsinghua</groupId>
-                    <artifactId>core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.edu.tsinghua</groupId>
-            <artifactId>iotdb-0.11</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.edu.tsinghua</groupId>
-                    <artifactId>core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.edu.tsinghua</groupId>
-            <artifactId>iotdb-0.10</artifactId>
-            <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>cn.edu.tsinghua</groupId>
-                    <artifactId>core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.edu.tsinghua</groupId>
-            <artifactId>iotdb-0.09</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -341,6 +317,7 @@
     </dependencies>
 
     <build>
+        <finalName>iot-benchmark-verification</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

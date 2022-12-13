@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>cn.edu.tsinghua</groupId>
-        <artifactId>iotdb-benchmark</artifactId>
-        <version>0.0.1</version>
+        <artifactId>iot-benchmark</artifactId>
+        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -52,6 +52,7 @@
     </dependencies>
 
     <build>
+        <finalName>iot-benchmark-influxdb-2.0</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

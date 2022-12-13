@@ -1,6 +1,6 @@
 Benchmark influxdb
 ---
-This project is using iotdb-benchmark to test influxdb
+This project is using iot-benchmark to test influxdb
 
 # 1. environment
 1. influxdb: 1.8.6-1

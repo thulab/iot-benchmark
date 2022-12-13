@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.edu.tsinghua</groupId>
-    <artifactId>iotdb-benchmark</artifactId>
-    <version>0.0.1</version>
+    <artifactId>iot-benchmark</artifactId>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
-    <name>iotdb-benchmark</name>
+    <name>iot-benchmark</name>
     <url>http://maven.apache.org</url>
     <modules>
         <module>core</module>
@@ -16,15 +16,14 @@
         <module>kairosdb</module>
         <module>opentsdb</module>
         <module>tdengine</module>
+        <module>tdengine-3.0</module>
         <module>questdb</module>
         <module>timescaledb</module>
+        <module>timescaledb-cluster</module>
         <module>victoriametrics</module>
-        <module>iotdb-0.14</module>
+        <module>iotdb-1.0</module>
         <module>iotdb-0.13</module>
         <module>iotdb-0.12</module>
-        <module>iotdb-0.11</module>
-        <module>iotdb-0.10</module>
-        <module>iotdb-0.09</module>
         <module>mssqlserver</module>
         <module>sqlite</module>
         <module>verification</module>
@@ -43,7 +42,7 @@
         <common.cli.version>1.3.1</common.cli.version>
         <skip.ut>false</skip.ut>
         <skip.it>false</skip.it>
-        <spotless.version>2.4.2</spotless.version>
+        <spotless.version>2.27.1</spotless.version>
         <org.slf4j.version>1.7.30</org.slf4j.version>
     </properties>
 

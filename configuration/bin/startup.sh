@@ -25,7 +25,7 @@ fi
 
 echo $BENCHMARK_HOME
 
-MAIN_CLASS=cn.edu.tsinghua.iotdb.benchmark.App
+MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App
 
 CLASSPATH=""
 for f in ${BENCHMARK_HOME}/lib/*.jar; do
