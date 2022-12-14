@@ -47,8 +47,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
@@ -57,7 +55,6 @@ import java.util.concurrent.CyclicBarrier;
 public class TDengine implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
-  private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
   private static final String TDENGINE_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String TDENGINE_URL = "jdbc:TAOS://%s:%s/test?user=%s&password=%s";
@@ -199,7 +196,7 @@ public class TDengine implements IDatabase {
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
     builder.append(" ('");
-    builder.append(sdf.format(new Date(timestamp))).append("'");
+    builder.append(timestamp).append("'");
     List<Sensor> sensors = deviceSchema.getSensors();
     int sensorIndex = 0;
     for (Object value : values) {
