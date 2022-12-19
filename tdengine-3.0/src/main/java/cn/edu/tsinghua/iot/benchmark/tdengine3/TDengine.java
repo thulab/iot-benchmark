@@ -58,7 +58,7 @@ public class TDengine implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
 
   private static final String TDENGINE_DRIVER = "com.taosdata.jdbc.TSDBDriver";
-  private static final String TDENGINE_URL = "jdbc:TAOS://%s:%s/test?user=%s&password=%s";
+  private static final String TDENGINE_URL = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
   protected static final CyclicBarrier superTableBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final String USE_DB = "use %s";
@@ -118,7 +118,8 @@ public class TDengine implements IDatabase {
   public void cleanup() throws TsdbException {
     // Do nothing
     try (Statement statement = connection.createStatement()) {
-      statement.execute(testDatabaseName);
+      LOGGER.info("Clean up: {}", DROP_DATABASE);
+      statement.execute(DROP_DATABASE);
     } catch (SQLException e) {
       LOGGER.info("Failed to clean up", e);
       throw new TsdbException(e);
@@ -155,12 +156,15 @@ public class TDengine implements IDatabase {
         // create tables
         statement.execute(String.format(USE_DB, testDatabaseName));
         for (DeviceSchema deviceSchema : schemaList) {
-          statement.execute(
-              String.format(
-                  CREATE_TABLE,
-                  deviceSchema.getDevice(),
-                  SUPER_TABLE_NAME,
-                  deviceSchema.getDevice()));
+          synchronized (TDengine.class) {
+            String createTable =
+                String.format(
+                    CREATE_TABLE,
+                    deviceSchema.getDevice(),
+                    SUPER_TABLE_NAME,
+                    deviceSchema.getDevice());
+            statement.execute(createTable);
+          }
         }
       } catch (SQLException | BrokenBarrierException | InterruptedException e) {
         // ignore if already has the time series
