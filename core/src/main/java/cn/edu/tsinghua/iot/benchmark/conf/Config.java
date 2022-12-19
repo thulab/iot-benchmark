@@ -243,6 +243,12 @@ public class Config {
   /** the replication factor of timescaledb cluster */
   private int TIMESCALEDB_REPLICATION_FACTOR = 1;
 
+  // 被测系统是TDengine 3时的参数
+  /** the wal level of tdegine */
+  private int TDENGINE_WAL_LEVEL = 2;
+  /** the replica number of tdegine */
+  private int TDENGINE_REPLICA = 0;
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
@@ -1454,6 +1460,22 @@ public class Config {
 
   public void setTIMESCALEDB_REPLICATION_FACTOR(int TIMESCALEDB_REPLICATION_FACTOR) {
     this.TIMESCALEDB_REPLICATION_FACTOR = TIMESCALEDB_REPLICATION_FACTOR;
+  }
+
+  public int getTDENGINE_WAL_LEVEL() {
+    return TDENGINE_WAL_LEVEL;
+  }
+
+  public void setTDENGINE_WAL_LEVEL(int TDENGINE_WAL_LEVEL) {
+    this.TDENGINE_WAL_LEVEL = TDENGINE_WAL_LEVEL;
+  }
+
+  public int getTDENGINE_REPLICA() {
+    return TDENGINE_REPLICA;
+  }
+
+  public void setTDENGINE_REPLICA(int TDENGINE_REPLICA) {
+    this.TDENGINE_REPLICA = TDENGINE_REPLICA;
   }
 
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {
