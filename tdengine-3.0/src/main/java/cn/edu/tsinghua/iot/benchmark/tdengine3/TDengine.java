@@ -195,8 +195,8 @@ public class TDengine implements IDatabase {
   private String getInsertOneRecordSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder();
-    builder.append(" ('");
-    builder.append(timestamp).append("'");
+    builder.append(" (");
+    builder.append(timestamp);
     List<Sensor> sensors = deviceSchema.getSensors();
     int sensorIndex = 0;
     for (Object value : values) {
