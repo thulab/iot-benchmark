@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TDengine implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -62,13 +63,16 @@ public class TDengine implements IDatabase {
       new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final String USE_DB = "use %s";
   private static final String SUPER_TABLE_NAME = "device";
+  private static final AtomicBoolean isInit = new AtomicBoolean(false);
 
   private final String CREATE_STABLE;
   private final String CREATE_TABLE;
+  private final String CREATE_DATABASE;
+  private final String DROP_DATABASE;
 
   private Connection connection;
-  private DBConfig dbConfig;
-  private String testDatabaseName;
+  private final DBConfig dbConfig;
+  private final String testDatabaseName;
 
   public TDengine(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -86,6 +90,11 @@ public class TDengine implements IDatabase {
     createTable.append(")");
     CREATE_STABLE = createStable.toString();
     CREATE_TABLE = createTable.toString();
+    CREATE_DATABASE =
+        String.format(
+            "create database if not exists %s WAL_LEVEL %d REPLICA %d",
+            testDatabaseName, config.getTDENGINE_WAL_LEVEL(), config.getTDENGINE_REPLICA());
+    DROP_DATABASE = String.format("drop database if exists %s", testDatabaseName);
   }
 
   @Override
@@ -108,6 +117,12 @@ public class TDengine implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     // Do nothing
+    try (Statement statement = connection.createStatement()) {
+      statement.execute(testDatabaseName);
+    } catch (SQLException e) {
+      LOGGER.info("Failed to clean up", e);
+      throw new TsdbException(e);
+    }
   }
 
   @Override
@@ -116,7 +131,7 @@ public class TDengine implements IDatabase {
       try {
         connection.close();
       } catch (SQLException e) {
-        LOGGER.error("Failed to close TaosDB connection because ", e);
+        LOGGER.error("Failed to close TDengine connection because ", e);
         throw new TsdbException(e);
       }
     }
@@ -135,21 +150,7 @@ public class TDengine implements IDatabase {
         throw new TsdbException("TDengine do not support more than 1024 column for one table.");
       }
       try (Statement statement = connection.createStatement()) {
-        // use database
-        statement.execute(String.format(USE_DB, testDatabaseName));
-
-        // create super table
-        StringBuilder superSql = new StringBuilder();
-        for (Sensor sensor : config.getSENSORS()) {
-          String dataType = typeMap(sensor.getSensorType());
-          if (dataType.equals("BINARY")) {
-            superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
-          } else {
-            superSql.append(sensor).append(" ").append(dataType).append(",");
-          }
-        }
-        superSql.deleteCharAt(superSql.length() - 1);
-        statement.execute(String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql));
+        initOnlyOnce();
         superTableBarrier.await();
         // create tables
         statement.execute(String.format(USE_DB, testDatabaseName));
@@ -163,12 +164,42 @@ public class TDengine implements IDatabase {
         }
       } catch (SQLException | BrokenBarrierException | InterruptedException e) {
         // ignore if already has the time series
-        LOGGER.error("Register TaosDB schema failed because ", e);
+        LOGGER.error("Register TDengine schema failed because ", e);
         throw new TsdbException(e);
       }
     }
     end = System.nanoTime();
     return TimeUtils.convertToSeconds(end - start, "ns");
+  }
+
+  private synchronized void initOnlyOnce()
+      throws TsdbException, BrokenBarrierException, InterruptedException {
+    if (!isInit.getAndSet(true)) {
+      try (Statement statement = connection.createStatement()) {
+        LOGGER.info("Create Database: {}", CREATE_DATABASE);
+        // create database
+        statement.execute(CREATE_DATABASE);
+        LOGGER.info("Use Database: {}", String.format(USE_DB, testDatabaseName));
+        // use database
+        statement.execute(String.format(USE_DB, testDatabaseName));
+        // create super table
+        StringBuilder superSql = new StringBuilder();
+        for (Sensor sensor : config.getSENSORS()) {
+          String dataType = typeMap(sensor.getSensorType());
+          if (dataType.equals("BINARY")) {
+            superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
+          } else {
+            superSql.append(sensor).append(" ").append(dataType).append(",");
+          }
+        }
+        superSql.deleteCharAt(superSql.length() - 1);
+        LOGGER.info("Create Stable: {}", String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql));
+        statement.execute(String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql));
+      } catch (SQLException e) {
+        LOGGER.error("Failed to create database in Tdengine ", e);
+        throw new TsdbException(e);
+      }
+    }
   }
 
   @Override
