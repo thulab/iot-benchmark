@@ -320,6 +320,12 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "TIMESCALEDB_REPLICATION_FACTOR",
                     config.getTIMESCALEDB_REPLICATION_FACTOR() + "")));
+        config.setTDENGINE_WAL_LEVEL(
+            Integer.parseInt(
+                properties.getProperty("TDENGINE_WAL_LEVEL", config.getTDENGINE_WAL_LEVEL() + "")));
+        config.setTDENGINE_REPLICA(
+            Integer.parseInt(
+                properties.getProperty("TDENGINE_REPLICA", config.getTDENGINE_REPLICA() + "")));
 
         config.setOP_MIN_INTERVAL(
             Long.parseLong(
