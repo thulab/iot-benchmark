@@ -357,7 +357,7 @@ public class TDengine implements IDatabase {
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
-    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery) + " order by timestamp desc";
+    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery) + " order by time desc";
     return executeQueryAndGetStatus(sql);
   }
 
@@ -370,7 +370,7 @@ public class TDengine implements IDatabase {
                 valueRangeQuery.getDeviceSchema(),
                 sqlWithTimeFilter,
                 valueRangeQuery.getValueThreshold())
-            + " order by timestamp desc";
+            + " order by time desc";
     return executeQueryAndGetStatus(sqlWithValueFilter);
   }
 
