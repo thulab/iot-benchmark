@@ -506,7 +506,7 @@ public class Config {
       return;
     }
     for (int sensorIndex = 0; sensorIndex < SENSOR_NUMBER; sensorIndex++) {
-      double sensorPosition = sensorIndex * 1.0 / SENSOR_NUMBER;
+      double sensorPosition = (sensorIndex + 1) * 1.0 / SENSOR_NUMBER;
       int i;
       for (i = 1; i <= TYPE_NUMBER; i++) {
         if (sensorPosition >= probabilities[i - 1] && sensorPosition < probabilities[i]) {
