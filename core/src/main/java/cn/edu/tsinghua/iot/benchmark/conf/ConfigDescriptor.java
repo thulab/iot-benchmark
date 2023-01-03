@@ -170,6 +170,7 @@ public class ConfigDescriptor {
           case "ms":
             break;
           case "us":
+          case "ns":
             if (config.getDbConfig().getDB_SWITCH().getType() != DBType.IoTDB
                 && config.getDbConfig().getDB_SWITCH().getType() != DBType.InfluxDB) {
               throw new RuntimeException(

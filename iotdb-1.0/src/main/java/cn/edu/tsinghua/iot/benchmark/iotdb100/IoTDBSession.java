@@ -35,6 +35,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -96,7 +97,7 @@ public class IoTDBSession extends IoTDBSessionBase {
     int failRecord = 0;
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(sensor -> sensor.getName())
+            .map(Sensor::getName)
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
@@ -134,7 +135,7 @@ public class IoTDBSession extends IoTDBSessionBase {
     List<List<Object>> valuesList = new ArrayList<>();
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(sensor -> sensor.getName())
+            .map(Sensor::getName)
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
