@@ -509,7 +509,7 @@ public class Config {
       double sensorPosition = (sensorIndex + 1) * 1.0 / SENSOR_NUMBER;
       int i;
       for (i = 1; i <= TYPE_NUMBER; i++) {
-        if (sensorPosition >= probabilities[i - 1] && sensorPosition < probabilities[i]) {
+        if (sensorPosition > probabilities[i - 1] && sensorPosition <= probabilities[i]) {
           break;
         }
       }
