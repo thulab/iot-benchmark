@@ -125,7 +125,7 @@ public class Config {
   // 时间戳
   /** The interval of timestamp(not real rate) */
   private long POINT_STEP = 5000L;
-  /** The precision of timestamp, currently support ms and us */
+  /** The precision of timestamp, currently support ns, ms and us */
   private String TIMESTAMP_PRECISION = "ms";
 
   // 数据
