@@ -105,8 +105,13 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
           constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
-        sessions[currSession].insertRecord(
-            deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+        if (config.isTEMPLATE()) {
+          sessions[currSession].insertAlignedRecord(
+              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+        } else {
+          sessions[currSession].insertRecord(
+              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+        }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         LOGGER.error("insert record failed", e);
         failRecord++;
@@ -148,8 +153,13 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         service.submit(
             () -> {
               try {
-                sessions[currSession].insertRecords(
-                    deviceIds, times, measurementsList, typesList, valuesList);
+                if (config.isVECTOR()) {
+                  sessions[currSession].insertAlignedRecords(
+                      deviceIds, times, measurementsList, typesList, valuesList);
+                } else {
+                  sessions[currSession].insertRecords(
+                      deviceIds, times, measurementsList, typesList, valuesList);
+                }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 LOGGER.error("insert records failed", e);
               }
@@ -168,7 +178,11 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         service.submit(
             () -> {
               try {
-                sessions[currSession].insertTablet(tablet);
+                if (config.isVECTOR()) {
+                  sessions[currSession].insertAlignedTablet(tablet);
+                } else {
+                  sessions[currSession].insertTablet(tablet);
+                }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 LOGGER.error("insert tablet failed", e);
               }
