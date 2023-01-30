@@ -28,7 +28,7 @@ public class Status {
   /** The cost time of query */
   private long costTime;
   /** The result point of query */
-  private int queryResultPointNum;
+  private long queryResultPointNum;
   /** The exception occurred */
   private Exception exception;
   /** errorMessage is our self-defined message used to logged, it can be error SQL or anything */
@@ -42,12 +42,12 @@ public class Status {
     this.isOk = isOk;
   }
 
-  public Status(boolean isOk, int queryResultPointNum) {
+  public Status(boolean isOk, long queryResultPointNum) {
     this.isOk = isOk;
     this.queryResultPointNum = queryResultPointNum;
   }
 
-  public Status(boolean isOk, int queryResultPointNum, String sql, List<List<Object>> records) {
+  public Status(boolean isOk, long queryResultPointNum, String sql, List<List<Object>> records) {
     this.isOk = isOk;
     this.queryResultPointNum = queryResultPointNum;
     this.sql = sql;
@@ -60,18 +60,18 @@ public class Status {
     this.errorMessage = errorMessage;
   }
 
-  public Status(boolean isOk, int queryResultPointNum, Exception exception, String errorMessage) {
+  public Status(boolean isOk, long queryResultPointNum, Exception exception, String errorMessage) {
     this.isOk = isOk;
     this.exception = exception;
     this.errorMessage = errorMessage;
     this.queryResultPointNum = queryResultPointNum;
   }
 
-  public int getQueryResultPointNum() {
+  public long getQueryResultPointNum() {
     return queryResultPointNum;
   }
 
-  public void setQueryResultPointNum(int queryResultPointNum) {
+  public void setQueryResultPointNum(long queryResultPointNum) {
     this.queryResultPointNum = queryResultPointNum;
   }
 

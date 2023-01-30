@@ -56,11 +56,11 @@ public abstract class TestDataPersistence {
    * @param device
    */
   protected abstract void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device);
+      String operation, long okPoint, long failPoint, double latency, String remark, String device);
 
   /** Create new record when line meet max line */
   protected abstract void createNewRecord(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device);
+      String operation, long okPoint, long failPoint, double latency, String remark, String device);
 
   /**
    * Save result of operation
@@ -81,7 +81,12 @@ public abstract class TestDataPersistence {
    * @param remark remark of operation
    */
   public void saveOperationResultAsync(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     service.submit(
         () -> {
           saveOperationResult(operation, okPoint, failPoint, latency, remark, device);

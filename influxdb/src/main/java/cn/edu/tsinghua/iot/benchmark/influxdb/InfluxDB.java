@@ -31,15 +31,6 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import okhttp3.OkHttpClient.Builder;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Query;
@@ -49,12 +40,7 @@ import org.influxdb.dto.QueryResult.Series;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class InfluxDB implements IDatabase {
@@ -309,7 +295,7 @@ public class InfluxDB implements IDatabase {
     }
 
     QueryResult results = influxDbInstance.query(new Query(sql, influxDbName));
-    int cnt = 0;
+    long cnt = 0;
     for (Result result : results.getResults()) {
       List<Series> series = result.getSeries();
       if (series == null) {
@@ -484,7 +470,7 @@ public class InfluxDB implements IDatabase {
     if (deviceSchemas.size() != 0) {
       sql.append(")");
     }
-    int point = 0;
+    long point = 0;
     int line = 0;
     QueryResult queryResult = influxDbInstance.query(new Query(sql.toString(), influxDbName));
     for (QueryResult.Result results : queryResult.getResults()) {

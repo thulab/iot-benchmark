@@ -241,7 +241,12 @@ public class CSVRecorder extends TestDataPersistence {
 
   @Override
   protected void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     if (config.isRECORD_SPLIT()) {
       if (config.IncrementAndGetCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
         reentrantLock.lock();
@@ -256,7 +261,12 @@ public class CSVRecorder extends TestDataPersistence {
   }
 
   private void insert(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     double rate = 0;
     if (latency > 0) {
       // unit: points/second
@@ -287,7 +297,12 @@ public class CSVRecorder extends TestDataPersistence {
 
   @Override
   protected void createNewRecord(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       FileWriter newProjectWriter = null;
       String newProjectWriterName = null;

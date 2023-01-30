@@ -48,7 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -532,7 +531,7 @@ public class DBWrapper implements IDatabase {
 
   /** Measure ok operation 1. operation is execute as expected way 2. occurs expected exception */
   private void measureOkOperation(
-      Status status, Operation operation, int okPointNum, String device) {
+      Status status, Operation operation, long okPointNum, String device) {
     double latencyInMillis = status.getTimeCost() / NANO_TO_MILLIS;
     if (config.isUSE_MEASUREMENT()) {
       if (latencyInMillis < 0) {
@@ -604,8 +603,8 @@ public class DBWrapper implements IDatabase {
           && status2 != null
           && status1.getRecords() != null
           && status2.getRecords() != null) {
-        int point1 = status1.getQueryResultPointNum();
-        int point2 = status2.getQueryResultPointNum();
+        long point1 = status1.getQueryResultPointNum();
+        long point2 = status2.getQueryResultPointNum();
         if (!hasDifference(operation) && point1 != point2) {
           isError = true;
         } else if (point1 != 0) {
@@ -618,20 +617,16 @@ public class DBWrapper implements IDatabase {
             }
           }
           if (needSort) {
-            Collections.sort(records1, new RecordComparator());
-            Collections.sort(records2, new RecordComparator());
+            records1.sort(new RecordComparator());
+            records2.sort(new RecordComparator());
           }
           // 顺序比较
           int i = 0, j = 0;
           for (; i < point1 && j < point2; i++, j++) {
             String firstLine =
-                String.join(
-                    ",",
-                    records1.get(i).stream().map(String::valueOf).collect(Collectors.toList()));
+                records1.get(i).stream().map(String::valueOf).collect(Collectors.joining(","));
             String secondLine =
-                String.join(
-                    ",",
-                    records2.get(j).stream().map(String::valueOf).collect(Collectors.toList()));
+                records2.get(j).stream().map(String::valueOf).collect(Collectors.joining(","));
             if (!firstLine.equals(secondLine)) {
               if (hasDifference(operation)) {
                 int index = records1.get(i).size() - 1;

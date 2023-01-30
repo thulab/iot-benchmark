@@ -198,7 +198,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_URL);
@@ -220,7 +220,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -244,7 +244,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -269,7 +269,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -295,7 +295,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -322,7 +322,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -348,7 +348,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -373,7 +373,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -395,7 +395,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -418,7 +418,7 @@ public class VictoriaMetrics implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    int point = 0;
+    long point = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         StringBuffer url = new StringBuffer(QUERY_RANGE_URL);
@@ -456,8 +456,8 @@ public class VictoriaMetrics implements IDatabase {
    * @param url
    * @return
    */
-  private int queryAndGetPoint(String url) {
-    int point = 0;
+  private long queryAndGetPoint(String url) {
+    long point = 0;
     try {
       String result = HttpRequestUtil.sendGet(url);
       JSONObject jsonObject = JSONObject.parseObject(result);

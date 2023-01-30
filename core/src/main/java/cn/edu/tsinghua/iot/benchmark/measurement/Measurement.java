@@ -47,7 +47,7 @@ public class Measurement {
       new EnumMap<>(Operation.class);
   private static final Map<Operation, Double> operationLatencySumAllClient =
       new EnumMap<>(Operation.class);
-  private AtomicDouble createSchemaTime = new AtomicDouble(0.0);
+  private final AtomicDouble createSchemaTime = new AtomicDouble(0.0);
   private double elapseTime;
   private final Map<Operation, Double> operationLatencySumThisClient;
   private final Map<Operation, Long> okOperationNumMap;
@@ -441,11 +441,11 @@ public class Measurement {
     operationLatencySumThisClient.put(op, operationLatencySumThisClient.get(op) + latency);
   }
 
-  public void addOkPointNum(Operation operation, int pointNum) {
+  public void addOkPointNum(Operation operation, long pointNum) {
     okPointNumMap.put(operation, okPointNumMap.get(operation) + pointNum);
   }
 
-  public void addFailPointNum(Operation operation, int pointNum) {
+  public void addFailPointNum(Operation operation, long pointNum) {
     failPointNumMap.put(operation, failPointNumMap.get(operation) + pointNum);
   }
 

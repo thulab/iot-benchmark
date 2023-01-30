@@ -54,8 +54,8 @@ public class Batch {
    *
    * @return data point number in this batch
    */
-  public int pointNum() {
-    int pointNum = 0;
+  public long pointNum() {
+    long pointNum = 0;
     for (Record record : records) {
       pointNum += record.size();
     }
