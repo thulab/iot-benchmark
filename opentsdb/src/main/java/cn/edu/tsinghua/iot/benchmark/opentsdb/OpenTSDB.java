@@ -31,14 +31,6 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -267,7 +259,7 @@ public class OpenTSDB implements IDatabase {
     try {
       String response;
       response = HttpRequest.sendPost(queryUrl, sql);
-      int pointNum = getOneQueryPointNum(response, isLatestPoint);
+      long pointNum = getOneQueryPointNum(response, isLatestPoint);
       LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), pointNum);
       return new Status(true, pointNum);
     } catch (Exception e) {
@@ -276,8 +268,8 @@ public class OpenTSDB implements IDatabase {
     }
   }
 
-  private int getOneQueryPointNum(String str, boolean isLatestPoint) {
-    int pointNum = 0;
+  private long getOneQueryPointNum(String str, boolean isLatestPoint) {
+    long pointNum = 0;
     if (!isLatestPoint) {
       JSONArray jsonArray = JSON.parseArray(str);
       for (int i = 0; i < jsonArray.size(); i++) {

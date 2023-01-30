@@ -54,7 +54,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class IoTDBClusterSession extends IoTDBSessionBase {
@@ -204,8 +204,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
-    AtomicInteger line = new AtomicInteger();
-    AtomicInteger queryResultPointNum = new AtomicInteger();
+    AtomicLong queryResultPointNum = new AtomicLong();
     AtomicBoolean isOk = new AtomicBoolean(true);
 
     try {
@@ -213,12 +212,20 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       future =
           service.submit(
               () -> {
+                long resultNum = 0;
                 try {
                   SessionDataSetWrapper sessionDataSet =
                       sessions[currSession].executeQueryStatement(executeSQL);
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
-                    line.getAndIncrement();
+                    switch (operation) {
+                      case LATEST_POINT_QUERY:
+                        resultNum++;
+                        break;
+                      default:
+                        resultNum += rowRecord.getFields().size();
+                        break;
+                    }
                     if (config.isIS_COMPARISON()) {
                       List<Object> record = new ArrayList<>();
                       switch (operation) {
@@ -250,8 +257,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
                   LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
-                queryResultPointNum.set(
-                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+                queryResultPointNum.set(resultNum);
               });
       try {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
@@ -306,7 +312,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       sql.append(" or time = ").append(record.getTimestamp());
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
-    int point = 0;
+    long point = 0;
     int line = 0;
     try {
       SessionDataSetWrapper sessionDataSet =

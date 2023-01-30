@@ -255,7 +255,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     List<DeviceSchema> deviceSchemas = preciseQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -274,7 +274,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -293,7 +293,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -335,7 +335,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -359,7 +359,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     List<DeviceSchema> deviceSchemas = aggValueQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -386,7 +386,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     List<DeviceSchema> deviceSchemas = aggRangeValueQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         try {
@@ -418,7 +418,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     List<DeviceSchema> deviceSchemas = groupByQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -438,7 +438,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     List<DeviceSchema> deviceSchemas = latestPointQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -458,7 +458,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     List<DeviceSchema> deviceSchemas = rangeQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -478,7 +478,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> deviceSchemas = valueRangeQuery.getDeviceSchema();
-    int result = 0;
+    long result = 0;
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String sql =
@@ -502,7 +502,7 @@ public class InfluxDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
-    int cnt = 0;
+    long cnt = 0;
     List<FluxTable> tables = new ArrayList<>();
     try {
       tables = client.getQueryApi().query(sql);

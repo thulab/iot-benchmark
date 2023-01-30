@@ -22,7 +22,6 @@ package cn.edu.tsinghua.iot.benchmark.measurement.persistence.iotdb;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.measurement.enums.*;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.Metric;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SingleTestMetrics;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
@@ -244,7 +243,12 @@ public class IotdbRecorder extends TestDataPersistence {
 
   @Override
   protected void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     StringBuffer builder = new StringBuffer(OPERATION_RESULT_PREFIX);
     long currTime = System.currentTimeMillis();
     currTime = currTime * 1000000 + this.getThreadID();
@@ -264,7 +268,12 @@ public class IotdbRecorder extends TestDataPersistence {
 
   @Override
   protected void createNewRecord(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     // Do nothing
   }
 

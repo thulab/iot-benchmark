@@ -360,7 +360,7 @@ public class TimescaleDB implements IDatabase {
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
     sql.append(")");
-    int point = 0;
+    long point = 0;
     int line = 0;
     try (Statement statement = connection.createStatement()) {
       ResultSet resultSet = statement.executeQuery(sql.toString());
@@ -451,7 +451,7 @@ public class TimescaleDB implements IDatabase {
     }
     List<List<Object>> records = new ArrayList<>();
     int line = 0;
-    int queryResultPointNum = 0;
+    long queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {

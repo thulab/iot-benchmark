@@ -41,39 +41,17 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -632,42 +610,46 @@ public class IoTDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
-    AtomicInteger line = new AtomicInteger();
-    AtomicInteger queryResultPointNum = new AtomicInteger();
+    AtomicLong queryResultPointNum = new AtomicLong();
     AtomicBoolean isOk = new AtomicBoolean(true);
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       List<List<Object>> records = new ArrayList<>();
       future =
           service.submit(
               () -> {
-                try {
-                  try (ResultSet resultSet = statement.executeQuery(sql)) {
-                    while (resultSet.next()) {
-                      line.getAndIncrement();
-                      if (config.isIS_COMPARISON()) {
-                        List<Object> record = new ArrayList<>();
-                        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                          switch (operation) {
-                            case LATEST_POINT_QUERY:
-                              if (i == 2 || i >= 4) {
-                                continue;
-                              }
-                              break;
-                            default:
-                              break;
-                          }
-                          record.add(resultSet.getObject(i));
+                long resultNum = 0;
+                try (ResultSet resultSet = statement.executeQuery(sql)) {
+                  while (resultSet.next()) {
+                    switch (operation) {
+                      case LATEST_POINT_QUERY:
+                        resultNum++;
+                        break;
+                      default:
+                        resultNum += resultSet.getMetaData().getColumnCount() - 1;
+                        break;
+                    }
+                    if (config.isIS_COMPARISON()) {
+                      List<Object> record = new ArrayList<>();
+                      for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                        switch (operation) {
+                          case LATEST_POINT_QUERY:
+                            if (i == 2 || i >= 4) {
+                              continue;
+                            }
+                            break;
+                          default:
+                            break;
                         }
-                        records.add(record);
+                        record.add(resultSet.getObject(i));
                       }
+                      records.add(record);
                     }
                   }
                 } catch (SQLException e) {
                   LOGGER.error("exception occurred when execute query={}", sql, e);
                   isOk.set(false);
                 }
-                queryResultPointNum.set(
-                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+                queryResultPointNum.set(resultNum);
               });
       try {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
@@ -675,7 +657,7 @@ public class IoTDB implements IDatabase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, sql);
       }
-      if (isOk.get() == true) {
+      if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), sql, records);
         } else {
@@ -754,7 +736,7 @@ public class IoTDB implements IDatabase {
       sql.append(" or time = ").append(record.getTimestamp());
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
-    int point = 0;
+    long point = 0;
     int line = 0;
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       ResultSet resultSet = statement.executeQuery(sql.toString());

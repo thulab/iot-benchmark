@@ -207,7 +207,12 @@ public class MySqlRecorder extends TestDataPersistence {
 
   @Override
   protected void saveOperationResult(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     if (config.IncrementAndGetCURRENT_RECORD_LINE() % 10
         < config.getMYSQL_REAL_INSERT_RATE() * 10) {
       // check whether the connection is valid
@@ -248,7 +253,12 @@ public class MySqlRecorder extends TestDataPersistence {
 
   @Override
   protected void createNewRecord(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     if (config.getCURRENT_RECORD_LINE() >= config.getRECORD_SPLIT_MAX_LINE()) {
       // create table
       String newTableName = "";
@@ -264,7 +274,12 @@ public class MySqlRecorder extends TestDataPersistence {
   }
 
   private void insert(
-      String operation, int okPoint, int failPoint, double latency, String remark, String device) {
+      String operation,
+      long okPoint,
+      long failPoint,
+      double latency,
+      String remark,
+      String device) {
     double rate = 0;
     if (latency > 0) {
       // unit: points/second
