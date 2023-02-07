@@ -106,7 +106,7 @@ public class IoTDBSession extends IoTDBSessionBase {
           constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
-        if (config.isTEMPLATE()) {
+        if (config.isVECTOR()) {
           session.insertAlignedRecord(
               deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
         } else {
