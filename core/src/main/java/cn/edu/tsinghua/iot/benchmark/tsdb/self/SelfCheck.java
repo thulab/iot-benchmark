@@ -84,11 +84,11 @@ public class SelfCheck implements IDatabase {
     if (totalPoint
         == config.getLOOP() * config.getBATCH_SIZE_PER_WRITE() * config.getSENSOR_NUMBER()) {
       logger.info(
-          "Device: {}, total point: {}, out of order point: {}, out of order point ratio: {}",
+          "Device: {}, total point: {}, out of order point: {}, out of order point ratio: {} %",
           deviceName,
           totalPoint,
           outOfOrderPoint,
-          outOfOrderPoint * 1.0 / totalPoint);
+          outOfOrderPoint * 100.0 / totalPoint);
     }
     return new Status(true);
   }
