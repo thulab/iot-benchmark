@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
@@ -42,7 +43,7 @@ public class SelfCheck implements IDatabase {
   private final Map<String, Long> deviceNameToTotalPoints = new HashMap<>();
   private final Map<String, Long> deviceNameToOutOfOrderPoints = new HashMap<>();
 
-  public SelfCheck() {
+  public SelfCheck(DBConfig dbConfig) {
     // empty constructor
   }
 
