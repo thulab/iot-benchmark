@@ -122,6 +122,9 @@ public class DBFactory {
         case DB_IginX:
           dbClass = Constants.IGINX_CLASS;
           break;
+        case DB_SelfCheck:
+          dbClass = Constants.SELF_CHECK_CLASS;
+          break;
         default:
           throw new SQLException("didn't support this database");
       }
