@@ -42,6 +42,10 @@ public class SelfCheck implements IDatabase {
   private final Map<String, Long> deviceNameToTotalPoints = new HashMap<>();
   private final Map<String, Long> deviceNameToOutOfOrderPoints = new HashMap<>();
 
+  public SelfCheck() {
+    // empty constructor
+  }
+
   @Override
   public void init() throws TsdbException {}
 
