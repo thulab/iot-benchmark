@@ -35,10 +35,12 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SelfCheck implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger logger = LoggerFactory.getLogger(SelfCheck.class);
+  private long loop = 0;
   private final Map<String, Long> deviceNameToMaxTime = new HashMap<>();
   private final Map<String, Long> deviceNameToTotalPoints = new HashMap<>();
   private final Map<String, Long> deviceNameToOutOfOrderPoints = new HashMap<>();
@@ -81,65 +83,71 @@ public class SelfCheck implements IDatabase {
     deviceNameToMaxTime.put(deviceName, maxTime);
     deviceNameToTotalPoints.put(deviceName, totalPoint);
     deviceNameToOutOfOrderPoints.put(deviceName, outOfOrderPoint);
-    if (totalPoint
-        == config.getLOOP() * config.getBATCH_SIZE_PER_WRITE() * config.getSENSOR_NUMBER()) {
-      logger.info(
-          "Device: {}, total point: {}, out of order point: {}, out of order point ratio: {} %",
-          deviceName,
-          totalPoint,
-          outOfOrderPoint,
-          outOfOrderPoint * 100.0 / totalPoint);
+    return check(new Status(true));
+  }
+
+  private Status check(Status status) {
+    loop++;
+    if (loop == config.getLOOP()) {
+      Set<String> deviceNames = deviceNameToMaxTime.keySet();
+      for (String deviceName : deviceNames) {
+        long totalPoint = deviceNameToTotalPoints.get(deviceName);
+        long outOfOrderPoint = deviceNameToOutOfOrderPoints.get(deviceName);
+        logger.info(
+            "Device: {}, total point: {}, out of order point: {}, out of order point ratio: {} %",
+            deviceName, totalPoint, outOfOrderPoint, outOfOrderPoint * 100.0 / totalPoint);
+      }
     }
-    return new Status(true);
+    return status;
   }
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return new Status(true, 0);
+    return check(new Status(true, 0));
   }
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return new Status(true, null, null);
+    return check(new Status(true, null, null));
   }
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return null;
+    return check(new Status(true));
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return null;
+    return check(new Status(true));
   }
 }
