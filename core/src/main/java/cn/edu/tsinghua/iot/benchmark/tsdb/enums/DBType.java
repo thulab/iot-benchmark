@@ -34,7 +34,8 @@ public enum DBType {
   VictoriaMetrics("VictoriaMetrics"),
   PIArchive("PIArchive"),
   SQLite("SQLite"),
-  IginX("IginX");
+  IginX("IginX"),
+  SelfCheck("SelfCheck");
 
   private String DBType;
 
