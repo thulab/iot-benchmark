@@ -601,7 +601,8 @@ public class ConfigDescriptor {
     boolean result = false;
     if (dbConfig.getDB_SWITCH().getType() == DBType.IoTDB) {
       // support iotdb 0.12 & 0.13
-      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_013
+      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_100
+          || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_013
           || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_012) {
         result = true;
       }
