@@ -35,6 +35,10 @@ public class DBConfig {
   private List<String> HOST = Arrays.asList("127.0.0.1");
   /** The port of database server */
   private List<String> PORT = Arrays.asList("6667");
+
+  /** use session with all datanode */
+  private boolean sessionUseAllDataNode = false;
+
   /** The user name of database to use */
   private String USERNAME = "root";
   /** The password of user */
@@ -60,6 +64,14 @@ public class DBConfig {
 
   public void setHOST(List<String> HOST) {
     this.HOST = HOST;
+  }
+
+  public void setUseSessionWithAllDataNode(boolean useSessionWithAllDataNode) {
+    this.sessionUseAllDataNode = useSessionWithAllDataNode;
+  }
+
+  public boolean hasUseSessionWithAllDataNode() {
+    return this.sessionUseAllDataNode;
   }
 
   public List<String> getPORT() {

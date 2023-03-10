@@ -1507,6 +1507,10 @@ public class Config {
     this.dbConfig.setHOST(HOST);
   }
 
+  public void setUseSessionWithAllDataNode(String useAllDataNode) {
+    this.dbConfig.setUseSessionWithAllDataNode(Boolean.parseBoolean(useAllDataNode));
+  }
+
   public void setPORT(List<String> PORT) {
     this.dbConfig.setPORT(PORT);
   }

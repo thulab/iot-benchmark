@@ -66,15 +66,32 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   public IoTDBSession(DBConfig dbConfig) {
     super(dbConfig);
-    session =
-        new Session.Builder()
-            .host(dbConfig.getHOST().get(0))
-            .port(Integer.parseInt(dbConfig.getPORT().get(0)))
-            .username(dbConfig.getUSERNAME())
-            .password(dbConfig.getPASSWORD())
-            .enableRedirection(true)
-            .version(Version.V_0_13)
-            .build();
+    if (dbConfig.hasUseSessionWithAllDataNode()) {
+      List<String> nodeUrls = new ArrayList<>();
+      int hostSize = dbConfig.getHOST().size();
+      for (int i = 0; i < hostSize; i++) {
+        nodeUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
+      }
+      LOGGER.info("use session with all DN: {}", nodeUrls);
+      session =
+          new Session.Builder()
+              .nodeUrls(nodeUrls)
+              .username(dbConfig.getUSERNAME())
+              .password(dbConfig.getPASSWORD())
+              .enableRedirection(true)
+              .version(Version.V_0_13)
+              .build();
+    } else {
+      session =
+          new Session.Builder()
+              .host(dbConfig.getHOST().get(0))
+              .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+              .username(dbConfig.getUSERNAME())
+              .password(dbConfig.getPASSWORD())
+              .enableRedirection(true)
+              .version(Version.V_0_13)
+              .build();
+    }
   }
 
   @Override
