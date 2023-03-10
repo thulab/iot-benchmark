@@ -100,6 +100,7 @@ public class ConfigDescriptor {
         config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
         config.setHOST(Arrays.asList(hosts.split(",")));
+        config.setUseSessionWithAllDataNode(properties.getProperty("SESSION_USE_ALL_DN", "false"));
         String ports = properties.getProperty("PORT", config.getDbConfig().getPORT() + "");
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
