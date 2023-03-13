@@ -36,7 +36,7 @@ public class RealDataWorkLoad extends DataWorkLoad {
 
   public RealDataWorkLoad(List<String> files) {
     dataReader = DataReader.getInstance(files);
-    batchNumber = files.size() * config.getBIG_BATCH_SIZE();
+    batchNumber = (long) files.size() * config.getBIG_BATCH_SIZE();
   }
 
   @Override

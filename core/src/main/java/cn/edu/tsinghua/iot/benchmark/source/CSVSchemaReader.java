@@ -33,7 +33,7 @@ public class CSVSchemaReader extends SchemaReader {
       List<String> schemaLines = Files.readAllLines(path);
       for (String schemaLine : schemaLines) {
         if (schemaLine.trim().length() != 0) {
-          String line[] = schemaLine.split(" ");
+          String[] line = schemaLine.split(" ");
           String deviceName = line[0];
           if (!result.containsKey(deviceName)) {
             result.put(deviceName, new ArrayList<>());

@@ -1673,9 +1673,7 @@ public class Config {
         + "\nQUERY_SEED="
         + QUERY_SEED
         + "\nWORKLOAD_BUFFER_SIZE="
-        + WORKLOAD_BUFFER_SIZE
-        + "\nSENSORS="
-        + SENSORS;
+        + WORKLOAD_BUFFER_SIZE;
   }
 
   /** get properties from config, one property in one line. */

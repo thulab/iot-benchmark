@@ -76,13 +76,13 @@ public class CopyDataReader extends DataReader {
           String[] items = iterator.next();
           // TODO Optimize
           DeviceSchema originMetaSchema = metaDataSchema.getDeviceSchemaByName(deviceName);
-          Map<String, Sensor> stringSensorMap = new HashMap<>();
+          Map<String, Sensor> stringToSensorMap = new HashMap<>();
           for (Sensor sensor : originMetaSchema.getSensors()) {
-            stringSensorMap.put(sensor.getName(), sensor);
+            stringToSensorMap.put(sensor.getName(), sensor);
           }
           sensors = new ArrayList<>();
           for (int i = 1; i < items.length; i++) {
-            sensors.add(stringSensorMap.get(items[i]));
+            sensors.add(stringToSensorMap.get(items[i]));
           }
           deviceSchema =
               new DeviceSchema(
