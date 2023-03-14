@@ -65,15 +65,14 @@ public class CSVDataReader extends DataReader {
       while (iterator.hasNext() && records.size() < config.getBATCH_SIZE_PER_WRITE()) {
         if (firstLine) {
           String[] items = iterator.next();
-          // TODO Optimize
           DeviceSchema originMetaSchema = metaDataSchema.getDeviceSchemaByName(deviceName);
-          Map<String, Sensor> stringSensorMap = new HashMap<>();
+          Map<String, Sensor> stringToSensorMap = new HashMap<>();
           for (Sensor sensor : originMetaSchema.getSensors()) {
-            stringSensorMap.put(sensor.getName(), sensor);
+            stringToSensorMap.put(sensor.getName(), sensor);
           }
           sensors = new ArrayList<>();
           for (int i = 1; i < items.length; i++) {
-            sensors.add(stringSensorMap.get(items[i]));
+            sensors.add(stringToSensorMap.get(items[i]));
           }
           deviceSchema =
               new DeviceSchema(

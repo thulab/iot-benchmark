@@ -67,7 +67,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
     for (Map.Entry<String, List<Sensor>> device : deviceSchemaMap.entrySet()) {
       String deviceName = device.getKey();
-      List<Sensor> sensors = sortSensors(device.getValue());
+      List<Sensor> sensors = device.getValue();
       DeviceSchema deviceSchema =
           new DeviceSchema(
               MetaUtil.getGroupIdFromDeviceName(deviceName),

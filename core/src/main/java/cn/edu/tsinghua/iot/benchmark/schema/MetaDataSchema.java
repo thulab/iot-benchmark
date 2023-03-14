@@ -21,19 +21,13 @@ package cn.edu.tsinghua.iot.benchmark.schema;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.GenerateMetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.RealMetaDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** meta data schema */
@@ -60,13 +54,6 @@ public abstract class MetaDataSchema {
 
   /** init data schema for each device */
   protected abstract boolean createMetaDataSchema();
-
-  protected List<Sensor> sortSensors(List<Sensor> sensors) {
-    sensors.sort(
-        Comparator.comparingInt(
-            o -> Integer.parseInt(o.getName().replace(config.getSENSOR_NAME_PREFIX(), ""))));
-    return sensors;
-  }
 
   /** Get DeviceSchema by device */
   public DeviceSchema getDeviceSchemaByName(String deviceName) {
