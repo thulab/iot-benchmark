@@ -66,7 +66,7 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   public IoTDBSession(DBConfig dbConfig) {
     super(dbConfig);
-    if (dbConfig.hasUseSessionWithAllDataNode()) {
+    if (dbConfig.isAllNodesVisible()) {
       List<String> nodeUrls = new ArrayList<>();
       int hostSize = dbConfig.getHOST().size();
       for (int i = 0; i < hostSize; i++) {

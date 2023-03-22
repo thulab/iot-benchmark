@@ -37,7 +37,7 @@ public class DBConfig {
   private List<String> PORT = Arrays.asList("6667");
 
   /** use session with all datanode */
-  private boolean sessionUseAllDataNode = false;
+  private boolean isAllNodesVisible = false;
 
   /** The user name of database to use */
   private String USERNAME = "root";
@@ -66,12 +66,12 @@ public class DBConfig {
     this.HOST = HOST;
   }
 
-  public void setUseSessionWithAllDataNode(boolean useSessionWithAllDataNode) {
-    this.sessionUseAllDataNode = useSessionWithAllDataNode;
+  public void setIsAllNodesVisible(boolean isAllNodesVisible) {
+    this.isAllNodesVisible = isAllNodesVisible;
   }
 
-  public boolean hasUseSessionWithAllDataNode() {
-    return this.sessionUseAllDataNode;
+  public boolean isAllNodesVisible() {
+    return this.isAllNodesVisible;
   }
 
   public List<String> getPORT() {
