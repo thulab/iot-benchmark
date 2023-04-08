@@ -19,11 +19,11 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb100;
 
+import org.apache.iotdb.isession.SessionDataSet;
+import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
-import org.apache.iotdb.session.SessionDataSet;
-import org.apache.iotdb.session.util.Version;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.Field;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
@@ -73,7 +73,7 @@ public class IoTDBSession extends IoTDBSessionBase {
             .username(dbConfig.getUSERNAME())
             .password(dbConfig.getPASSWORD())
             .enableRedirection(true)
-            .version(Version.V_0_13)
+            .version(Version.V_1_0)
             .build();
   }
 
