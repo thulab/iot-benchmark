@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb013;
+package cn.edu.tsinghua.iot.benchmark.iotdb100;
 
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
@@ -77,7 +77,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -159,7 +159,7 @@ public class IoTDB implements IDatabase {
                   .port(Integer.parseInt(dbConfig.getPORT().get(0)))
                   .username(dbConfig.getUSERNAME())
                   .password(dbConfig.getPASSWORD())
-                  .version(Version.V_0_13)
+                  .version(Version.V_1_0)
                   .build();
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, createTimeseries(schemaList));
@@ -173,7 +173,7 @@ public class IoTDB implements IDatabase {
                     .port(Integer.parseInt(dbConfig.getPORT().get(i)))
                     .username(dbConfig.getUSERNAME())
                     .password(dbConfig.getPASSWORD())
-                    .version(Version.V_0_13)
+                    .version(Version.V_1_0)
                     .build();
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
@@ -669,46 +669,42 @@ public class IoTDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
-    AtomicLong queryResultPointNum = new AtomicLong();
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
     AtomicBoolean isOk = new AtomicBoolean(true);
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       List<List<Object>> records = new ArrayList<>();
       future =
           service.submit(
               () -> {
-                long resultNum = 0;
-                try (ResultSet resultSet = statement.executeQuery(executeSQL)) {
-                  while (resultSet.next()) {
-                    switch (operation) {
-                      case LATEST_POINT_QUERY:
-                        resultNum++;
-                        break;
-                      default:
-                        resultNum += resultSet.getMetaData().getColumnCount() - 1;
-                        break;
-                    }
-                    if (config.isIS_COMPARISON()) {
-                      List<Object> record = new ArrayList<>();
-                      for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                        switch (operation) {
-                          case LATEST_POINT_QUERY:
-                            if (i == 2 || i >= 4) {
-                              continue;
-                            }
-                            break;
-                          default:
-                            break;
+                try {
+                  try (ResultSet resultSet = statement.executeQuery(executeSQL)) {
+                    while (resultSet.next()) {
+                      line.getAndIncrement();
+                      if (config.isIS_COMPARISON()) {
+                        List<Object> record = new ArrayList<>();
+                        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                          switch (operation) {
+                            case LATEST_POINT_QUERY:
+                              if (i == 2 || i >= 4) {
+                                continue;
+                              }
+                              break;
+                            default:
+                              break;
+                          }
+                          record.add(resultSet.getObject(i));
                         }
-                        record.add(resultSet.getObject(i));
+                        records.add(record);
                       }
-                      records.add(record);
                     }
                   }
                 } catch (SQLException e) {
                   LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
-                queryResultPointNum.set(resultNum);
+                queryResultPointNum.set(
+                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
               });
       try {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
@@ -716,7 +712,7 @@ public class IoTDB implements IDatabase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
-      if (isOk.get()) {
+      if (isOk.get() == true) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), executeSQL, records);
         } else {
@@ -797,7 +793,7 @@ public class IoTDB implements IDatabase {
       sql.append(" or time = ").append(record.getTimestamp());
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
-    long point = 0;
+    int point = 0;
     int line = 0;
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       ResultSet resultSet = statement.executeQuery(sql.toString());
