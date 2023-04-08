@@ -19,12 +19,12 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb100;
 
+import org.apache.iotdb.isession.template.Template;
+import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
-import org.apache.iotdb.session.template.Template;
-import org.apache.iotdb.session.util.Version;
 import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
@@ -159,7 +159,7 @@ public class IoTDB implements IDatabase {
                   .port(Integer.parseInt(dbConfig.getPORT().get(0)))
                   .username(dbConfig.getUSERNAME())
                   .password(dbConfig.getPASSWORD())
-                  .version(Version.V_0_13)
+                  .version(Version.V_1_0)
                   .build();
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, createTimeseries(schemaList));
@@ -173,7 +173,7 @@ public class IoTDB implements IDatabase {
                     .port(Integer.parseInt(dbConfig.getPORT().get(i)))
                     .username(dbConfig.getUSERNAME())
                     .password(dbConfig.getPASSWORD())
-                    .version(Version.V_0_13)
+                    .version(Version.V_1_0)
                     .build();
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
