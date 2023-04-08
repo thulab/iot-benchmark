@@ -84,7 +84,8 @@ iot-benchmark is a tool for benchmarking IoTDB against other databases and time 
 Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
-| :------------------: | :------: | :------------------------------------------------------: |
+| :------------------: |:--------:| :------------------------------------------------------: |
+|        IoTDB         |   v1.1   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
@@ -153,9 +154,10 @@ After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmar
 The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                   |
-| :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------: |
-|        IoTDB         |   0.13   |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
-|        IoTDB         |   1.0    |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
+| :------------------: |:--------:|:-------------------------:|:------------------------------------------------------------------------------------------------------------:|
+|        IoTDB         |   1.1    |         iotdb-1.1         | IoTDB-110-JDBC<br>IoTDB-110-SESSION_BY_TABLET<br>IoTDB-110-SESSION_BY_RECORD<br>IoTDB-110-SESSION_BY_RECORDS |
+|        IoTDB         |   1.0    |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
+|        IoTDB         |   0.13   |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
 |        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |       InfluxDB       |   v1.x   |         influxdb          |                                                   InfluxDB                                                   |
 |       InfluxDB       |   v2.0   |       influxdb-2.0        |                                                 InfluxDB-2.0                                                 |
