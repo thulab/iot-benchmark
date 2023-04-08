@@ -17,13 +17,13 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb013;
+package cn.edu.tsinghua.iot.benchmark.iotdb100;
 
+import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
-import org.apache.iotdb.session.SessionDataSet;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.Field;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
@@ -35,7 +35,6 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
-import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -55,7 +54,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class IoTDBSession extends IoTDBSessionBase {
@@ -72,8 +71,8 @@ public class IoTDBSession extends IoTDBSessionBase {
             .port(Integer.parseInt(dbConfig.getPORT().get(0)))
             .username(dbConfig.getUSERNAME())
             .password(dbConfig.getPASSWORD())
-            .enableCacheLeader(true)
-            .version(Version.V_0_13)
+            .enableRedirection(true)
+            .version(Version.V_1_0)
             .build();
   }
 
@@ -97,7 +96,7 @@ public class IoTDBSession extends IoTDBSessionBase {
     int failRecord = 0;
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(Sensor::getName)
+            .map(sensor -> sensor.getName())
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
@@ -135,7 +134,7 @@ public class IoTDBSession extends IoTDBSessionBase {
     List<List<Object>> valuesList = new ArrayList<>();
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(Sensor::getName)
+            .map(sensor -> sensor.getName())
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
@@ -185,7 +184,8 @@ public class IoTDBSession extends IoTDBSessionBase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
-    AtomicLong queryResultPointNum = new AtomicLong();
+    AtomicInteger line = new AtomicInteger();
+    AtomicInteger queryResultPointNum = new AtomicInteger();
     AtomicBoolean isOk = new AtomicBoolean(true);
 
     try {
@@ -193,19 +193,11 @@ public class IoTDBSession extends IoTDBSessionBase {
       future =
           service.submit(
               () -> {
-                long resultNum = 0;
                 try {
                   SessionDataSet sessionDataSet = session.executeQueryStatement(executeSQL);
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
-                    switch (operation) {
-                      case LATEST_POINT_QUERY:
-                        resultNum++;
-                        break;
-                      default:
-                        resultNum += rowRecord.getFields().size();
-                        break;
-                    }
+                    line.getAndIncrement();
                     if (config.isIS_COMPARISON()) {
                       List<Object> record = new ArrayList<>();
                       switch (operation) {
@@ -237,7 +229,8 @@ public class IoTDBSession extends IoTDBSessionBase {
                   LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
-                queryResultPointNum.set(resultNum);
+                queryResultPointNum.set(
+                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
               });
       try {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
@@ -291,7 +284,7 @@ public class IoTDBSession extends IoTDBSessionBase {
       sql.append(" or time = ").append(record.getTimestamp());
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
-    long point = 0;
+    int point = 0;
     int line = 0;
     try {
       SessionDataSet sessionDataSet = session.executeQueryStatement(sql.toString());
