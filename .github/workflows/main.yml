@@ -57,19 +57,19 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java_version }}
-      # checkout iotdb
-      - name: Checkout iotdb-1.0
-        uses: actions/checkout@v2
-        with:
-          path: iotdb-1.0
-          repository: 'apache/iotdb'
-          ref: rel/1.0
-          fetch-depth: 0
-      # compile iotdb
-      - name: compile iotdb
-        run: |
-          cd ${{ github.workspace }}/iotdb-1.0
-          mvn install -DskipTests -am -pl distribution
+#      # checkout iotdb
+#      - name: Checkout iotdb-1.0
+#        uses: actions/checkout@v2
+#        with:
+#          path: iotdb-1.0
+#          repository: 'apache/iotdb'
+#          ref: rel/1.0
+#          fetch-depth: 0
+#      # compile iotdb
+#      - name: compile iotdb
+#        run: |
+#          cd ${{ github.workspace }}/iotdb-1.0
+#          mvn install -DskipTests -am -pl distribution
       # compile benchmark
       - name: Build benchmark binaries
         id: compile-benchmark
@@ -126,6 +126,16 @@ jobs:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0.zip
           asset_name: benchmark-iotdb-1.0-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---1.1
+      - name: Upload benchmark-iotdb-1.1
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.1/target/iot-benchmark-iotdb-1.1.zip
+          asset_name: benchmark-iotdb-1.1-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---influxdb
       - name: Upload benchmark-influxdb
