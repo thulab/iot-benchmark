@@ -61,8 +61,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBClusterSession.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
-  private SessionPool[] sessions;
-  private int currSession;
+  private SessionPool sessionPool;
   private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
 
   public IoTDBClusterSession(DBConfig dbConfig) {
@@ -71,18 +70,18 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   }
 
   private void createSessions() {
-    sessions = new SessionPool[dbConfig.getHOST().size()];
-    for (int i = 0; i < sessions.length; i++) {
-      sessions[i] =
-          new SessionPool(
-              dbConfig.getHOST().get(i),
-              Integer.parseInt(dbConfig.getPORT().get(i)),
-              dbConfig.getUSERNAME(),
-              dbConfig.getPASSWORD(),
-              MAX_SESSION_CONNECTION_PER_CLIENT,
-              config.isENABLE_THRIFT_COMPRESSION(),
-              true);
+    List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
+    for (int i = 0; i < dbConfig.getHOST().size(); i++) {
+      hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
+    sessionPool =
+        new SessionPool(
+            hostUrls,
+            dbConfig.getUSERNAME(),
+            dbConfig.getPASSWORD(),
+            MAX_SESSION_CONNECTION_PER_CLIENT,
+            config.isENABLE_THRIFT_COMPRESSION(),
+            true);
   }
 
   @Override
@@ -105,11 +104,11 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
           constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       try {
-        if (config.isTEMPLATE()) {
-          sessions[currSession].insertAlignedRecord(
+        if (config.isVECTOR()) {
+          sessionPool.insertAlignedRecord(
               deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
         } else {
-          sessions[currSession].insertRecord(
+          sessionPool.insertRecord(
               deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
@@ -117,7 +116,6 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         failRecord++;
       }
     }
-    currSession = (currSession + 1) % sessions.length;
 
     if (failRecord == 0) {
       return new Status(true);
@@ -154,10 +152,10 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
             () -> {
               try {
                 if (config.isVECTOR()) {
-                  sessions[currSession].insertAlignedRecords(
+                  sessionPool.insertAlignedRecords(
                       deviceIds, times, measurementsList, typesList, valuesList);
                 } else {
-                  sessions[currSession].insertRecords(
+                  sessionPool.insertRecords(
                       deviceIds, times, measurementsList, typesList, valuesList);
                 }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
@@ -165,9 +163,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
               }
             });
 
-    Status status = waitFuture();
-    currSession = (currSession + 1) % sessions.length;
-    return status;
+    return waitFuture();
   }
 
   @Override
@@ -179,18 +175,16 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
             () -> {
               try {
                 if (config.isVECTOR()) {
-                  sessions[currSession].insertAlignedTablet(tablet);
+                  sessionPool.insertAlignedTablet(tablet);
                 } else {
-                  sessions[currSession].insertTablet(tablet);
+                  sessionPool.insertTablet(tablet);
                 }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 LOGGER.error("insert tablet failed", e);
               }
             });
 
-    Status status = waitFuture();
-    currSession = (currSession + 1) % sessions.length;
-    return status;
+    return waitFuture();
   }
 
   @Override
@@ -215,7 +209,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
                 long resultNum = 0;
                 try {
                   SessionDataSetWrapper sessionDataSet =
-                      sessions[currSession].executeQueryStatement(executeSQL);
+                      sessionPool.executeQueryStatement(executeSQL);
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
                     switch (operation) {
@@ -265,7 +259,6 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         future.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
-      currSession = (currSession + 1) % sessions.length;
       if (isOk.get()) {
         if (config.isIS_COMPARISON()) {
           return new Status(true, queryResultPointNum.get(), executeSQL, records);
@@ -315,8 +308,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     long point = 0;
     int line = 0;
     try {
-      SessionDataSetWrapper sessionDataSet =
-          sessions[currSession].executeQueryStatement(sql.toString());
+      SessionDataSetWrapper sessionDataSet = sessionPool.executeQueryStatement(sql.toString());
       while (sessionDataSet.hasNext()) {
         RowRecord rowRecord = sessionDataSet.next();
         long timeStamp = rowRecord.getTimestamp();
@@ -333,7 +325,6 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         line++;
       }
       sessionDataSet.close();
-      currSession = (currSession + 1) % sessions.length;
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
@@ -356,7 +347,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
     List<List<Object>> result = new ArrayList<>();
     try {
-      SessionDataSetWrapper sessionDataSet = sessions[currSession].executeQueryStatement(sql);
+      SessionDataSetWrapper sessionDataSet = sessionPool.executeQueryStatement(sql);
       while (sessionDataSet.hasNext()) {
         List<Object> line = new ArrayList<>();
         RowRecord rowRecord = sessionDataSet.next();
@@ -368,7 +359,6 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         result.add(line);
       }
       sessionDataSet.close();
-      currSession = (currSession + 1) % sessions.length;
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
@@ -384,19 +374,17 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     long minTimeStamp = 0, maxTimeStamp = 0;
     try {
       SessionDataSetWrapper sessionDataSet =
-          sessions[currSession].executeQueryStatement(getTotalLineNumberSql(deviceSchema));
+          sessionPool.executeQueryStatement(getTotalLineNumberSql(deviceSchema));
       RowRecord rowRecord = sessionDataSet.next();
       totalLineNumber = Integer.parseInt(rowRecord.getFields().get(0).toString());
       sessionDataSet.close();
 
-      sessionDataSet =
-          sessions[currSession].executeQueryStatement(getMaxTimeStampSql(deviceSchema));
+      sessionDataSet = sessionPool.executeQueryStatement(getMaxTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
       maxTimeStamp = rowRecord.getTimestamp();
       sessionDataSet.close();
 
-      sessionDataSet =
-          sessions[currSession].executeQueryStatement(getMinTimeStampSql(deviceSchema));
+      sessionDataSet = sessionPool.executeQueryStatement(getMinTimeStampSql(deviceSchema));
       rowRecord = sessionDataSet.next();
       minTimeStamp = rowRecord.getTimestamp();
       sessionDataSet.close();
@@ -421,10 +409,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
 
   @Override
   public void close() throws TsdbException {
-    for (SessionPool sessionPool : sessions) {
-      if (sessionPool != null) {
-        sessionPool.close();
-      }
+    if (sessionPool != null) {
+      sessionPool.close();
     }
     if (ioTDBConnection != null) {
       ioTDBConnection.close();
