@@ -148,17 +148,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
             () -> {
               try {
                 if (config.isVECTOR()) {
-                  // TODO @Spricoder optimize the performance of this part
-                  List<List<String>> valuesStringLists = new ArrayList<>();
-                  for (List<Object> values : valuesList) {
-                    List<String> valuesStringList = new ArrayList<>();
-                    for (Object value : values) {
-                      valuesStringList.add(value.toString());
-                    }
-                    valuesStringLists.add(valuesStringList);
-                  }
                   sessionPool.insertAlignedRecords(
-                      deviceIds, times, measurementsList, valuesStringLists);
+                      deviceIds, times, measurementsList, typesList, valuesList);
                 } else {
                   sessionPool.insertRecords(
                       deviceIds, times, measurementsList, typesList, valuesList);
