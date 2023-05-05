@@ -350,6 +350,10 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE() + "")));
+        config.setDEVICE_NUM_PER_WRITE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "DEVICE_NUM_PER_WRITE", config.getDEVICE_NUM_PER_WRITE() + "")));
 
         config.setCREATE_SCHEMA(
             Boolean.parseBoolean(
@@ -571,6 +575,15 @@ public class ConfigDescriptor {
     }
     if (config.getCLIENT_NUMBER() == 0) {
       LOGGER.error("Client number can't be zero");
+      result = false;
+    }
+    // check DEVICE_NUM_PER_WRITE
+    if (config.getDEVICE_NUM_PER_WRITE() <= 1) {
+      LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
+      result = false;
+    }
+    if (config.getBATCH_SIZE_PER_WRITE() % config.getDEVICE_NUM_PER_WRITE() != 0) {
+      LOGGER.error("BATCH_SIZE_PER_WRITE % DEVICE_NUM_PER_WRITE must be zero");
       result = false;
     }
     return result;
