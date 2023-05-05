@@ -17,8 +17,9 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.entity;
+package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -30,7 +31,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Batch {
+public class Batch implements IBatch{
 
   private DeviceSchema deviceSchema;
   private List<Record> records;
@@ -109,6 +110,14 @@ public class Batch {
 
   public List<Record> getRecords() {
     return records;
+  }
+
+  public boolean hasNext() {
+    return false;
+  }
+
+  public void next() {
+    throw new UnsupportedOperationException("SingleDeviceBatch not support next()");
   }
 
   @Override

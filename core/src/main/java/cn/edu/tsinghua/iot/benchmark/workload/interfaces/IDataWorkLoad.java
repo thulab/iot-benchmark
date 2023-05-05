@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload.interfaces;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 
 /** interface of data workload */

@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.client.generate;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;

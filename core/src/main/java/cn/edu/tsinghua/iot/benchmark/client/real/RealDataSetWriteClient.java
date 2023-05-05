@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.real;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 
 import java.util.concurrent.CountDownLatch;
