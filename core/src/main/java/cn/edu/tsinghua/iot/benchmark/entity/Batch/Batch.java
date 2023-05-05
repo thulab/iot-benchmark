@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Batch implements IBatch{
+public class Batch {
 
   private DeviceSchema deviceSchema;
   private List<Record> records;
