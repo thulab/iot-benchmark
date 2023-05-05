@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.extern;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.utils.FileUtils;
@@ -39,7 +39,7 @@ public class CSVDataWriter extends DataWriter {
   private static final Logger LOGGER = LoggerFactory.getLogger(CSVDataWriter.class);
 
   @Override
-  public boolean writeBatch(Batch batch, long insertLoopIndex) {
+  public boolean writeBatch(IBatch batch, long insertLoopIndex) {
     String device = batch.getDeviceSchema().getDevice();
     try {
       Path dirFile = Paths.get(FileUtils.union(config.getFILE_PATH(), device));

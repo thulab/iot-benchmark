@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.serialize;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
@@ -62,7 +63,7 @@ public class BatchSerializeTest {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     batch.serialize(outputStream);
     ByteArrayInputStream inputStreamStream = new ByteArrayInputStream(outputStream.toByteArray());
-    Batch deserializeBatch = Batch.deserialize(inputStreamStream);
+    IBatch deserializeBatch = Batch.deserialize(inputStreamStream);
 
     assertEquals(batch, deserializeBatch);
   }

@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.client.generate.RecordComparator;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
@@ -83,7 +83,7 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
+  public Status insertOneBatch(IBatch batch) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
@@ -110,7 +110,7 @@ public class DBWrapper implements IDatabase {
   }
 
   /** Measure one batch */
-  private Status measureOneBatch(Status status, Operation operation, Batch batch, long start) {
+  private Status measureOneBatch(Status status, Operation operation, IBatch batch, long start) {
     long end = System.nanoTime();
     status.setTimeCost(end - start);
     if (status.isOk()) {

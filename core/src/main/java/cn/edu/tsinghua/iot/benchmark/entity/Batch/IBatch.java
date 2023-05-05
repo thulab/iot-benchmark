@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -17,24 +17,29 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.extern;
+package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 
-import cn.edu.tsinghua.iot.benchmark.conf.Config;
-import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
-public abstract class DataWriter {
+import java.util.List;
 
-  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+public interface IBatch {
+  void add(long timestamp, List<Object> values);
 
-  public static DataWriter getDataWriter() {
-    return new CSVDataWriter();
-  }
+  long pointNum();
 
-  /**
-   * Write Batch to the file
-   *
-   * @param insertLoopIndex loop index of batch
-   */
-  public abstract boolean writeBatch(IBatch batch, long insertLoopIndex);
+  DeviceSchema getDeviceSchema();
+
+  void setDeviceSchema(DeviceSchema deviceSchema);
+
+  void setColIndex(int colIndex);
+
+  int getColIndex();
+
+  List<Record> getRecords();
+
+  boolean hasNext();
+
+  void next();
 }

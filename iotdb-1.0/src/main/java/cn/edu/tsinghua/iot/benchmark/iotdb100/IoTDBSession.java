@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb100;
 
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -32,7 +33,6 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -92,7 +92,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(IBatch batch) {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
@@ -126,7 +126,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecords(Batch batch) {
+  public Status insertOneBatchByRecords(IBatch batch) {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
@@ -160,7 +160,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
     try {
       if (config.isVECTOR()) {

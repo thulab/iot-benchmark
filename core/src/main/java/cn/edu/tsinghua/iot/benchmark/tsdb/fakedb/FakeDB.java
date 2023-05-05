@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.tsdb.fakedb;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
@@ -52,7 +52,7 @@ public class FakeDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     return new Status(true);
   }
 

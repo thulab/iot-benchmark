@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.source;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
@@ -50,7 +51,7 @@ public class CSVDataReader extends DataReader {
 
   /** convert the cachedLines to Record list */
   @Override
-  public Batch nextBatch() {
+  public IBatch nextBatch() {
     String separator = File.separator;
     if (separator.equals("\\")) {
       separator = "\\\\";

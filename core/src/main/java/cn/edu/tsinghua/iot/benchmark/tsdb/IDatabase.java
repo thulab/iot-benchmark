@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.tsdb;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
@@ -73,7 +73,7 @@ public interface IDatabase {
    * @param batch universal insertion data structure
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status insertOneBatch(Batch batch) throws DBConnectException;
+  Status insertOneBatch(IBatch batch) throws DBConnectException;
 
   /**
    * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where

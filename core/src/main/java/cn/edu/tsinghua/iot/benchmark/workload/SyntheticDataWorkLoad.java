@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.workload;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -52,8 +53,8 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   }
 
   @Override
-  public Batch getOneBatch() throws WorkloadException {
-    Batch batch = new Batch();
+  public IBatch getOneBatch() throws WorkloadException {
+    IBatch batch = new Batch();
     // create the schema of batch
     DeviceSchema deviceSchema =
         new DeviceSchema(

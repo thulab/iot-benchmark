@@ -19,13 +19,13 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload.interfaces;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 
 /** interface of data workload */
 public interface IDataWorkLoad extends IWorkLoad {
   /** Insert one batch into database NOTICE: every row contains data from all sensors */
-  Batch getOneBatch() throws WorkloadException;
+  IBatch getOneBatch() throws WorkloadException;
 
   /** Get Batch Number */
   long getBatchNumber();

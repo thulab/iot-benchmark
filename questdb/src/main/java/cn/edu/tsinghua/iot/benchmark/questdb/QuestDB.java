@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.questdb;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
@@ -192,11 +192,11 @@ public class QuestDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
+  public Status insertOneBatch(IBatch batch) throws DBConnectException {
     return insertBatch(batch);
   }
 
-  private Status insertBatch(Batch batch) {
+  private Status insertBatch(IBatch batch) {
     try (Statement statement = connection.createStatement()) {
       DeviceSchema deviceSchema = batch.getDeviceSchema();
       StringBuffer tableName = new StringBuffer(dbConfig.getDB_NAME());

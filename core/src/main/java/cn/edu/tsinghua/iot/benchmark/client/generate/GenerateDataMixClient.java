@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.client.generate;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -140,7 +140,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
           }
         }
         for (int j = 0; j < innerLoop; j++) {
-          Batch batch = dataWorkLoad.getOneBatch();
+          IBatch batch = dataWorkLoad.getOneBatch();
           if (checkBatch(batch)) {
             dbWrapper.insertOneBatch(batch);
           }

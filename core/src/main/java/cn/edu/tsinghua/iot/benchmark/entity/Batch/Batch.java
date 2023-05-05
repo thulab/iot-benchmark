@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Batch {
+public class Batch implements IBatch {
 
   private DeviceSchema deviceSchema;
   private List<Record> records;
@@ -46,6 +46,7 @@ public class Batch {
     this.records = records;
   }
 
+  @Override
   public void add(long timestamp, List<Object> values) {
     records.add(new Record(timestamp, values));
   }
@@ -55,6 +56,7 @@ public class Batch {
    *
    * @return data point number in this batch
    */
+  @Override
   public long pointNum() {
     long pointNum = 0;
     for (Record record : records) {
@@ -81,7 +83,7 @@ public class Batch {
    *
    * @param inputStream input stream
    */
-  public static Batch deserialize(ByteArrayInputStream inputStream) throws IOException {
+  public static IBatch deserialize(ByteArrayInputStream inputStream) throws IOException {
     DeviceSchema deviceSchema = DeviceSchema.deserialize(inputStream);
     int size = ReadWriteIOUtils.readInt(inputStream);
     List<Record> records = new LinkedList<>();
@@ -92,30 +94,37 @@ public class Batch {
     return new Batch(deviceSchema, records);
   }
 
+  @Override
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
   }
 
+  @Override
   public void setDeviceSchema(DeviceSchema deviceSchema) {
     this.deviceSchema = deviceSchema;
   }
 
+  @Override
   public void setColIndex(int colIndex) {
     this.colIndex = colIndex;
   }
 
+  @Override
   public int getColIndex() {
     return colIndex;
   }
 
+  @Override
   public List<Record> getRecords() {
     return records;
   }
 
+  @Override
   public boolean hasNext() {
     return false;
   }
 
+  @Override
   public void next() {
     throw new UnsupportedOperationException("SingleDeviceBatch not support next()");
   }

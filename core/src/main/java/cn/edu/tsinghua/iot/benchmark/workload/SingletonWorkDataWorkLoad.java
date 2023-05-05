@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.workload;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -62,9 +63,9 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   }
 
   @Override
-  public Batch getOneBatch() throws WorkloadException {
+  public IBatch getOneBatch() throws WorkloadException {
     long curLoop = insertLoop.getAndIncrement();
-    Batch batch = new Batch();
+    IBatch batch = new Batch();
     // create schema of batch
     List<Sensor> sensors = new ArrayList<>();
     if (config.isIS_SENSOR_TS_ALIGNMENT()) {

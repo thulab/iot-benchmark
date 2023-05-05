@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.influxdb2;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
@@ -143,7 +143,7 @@ public class InfluxDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     try {
       LinkedList<InfluxDBModel> influxDBModels = createDataModelByBatch(batch);
       List<String> lines = new ArrayList<>();
@@ -220,7 +220,7 @@ public class InfluxDB implements IDatabase {
     return result.toString();
   }
 
-  private LinkedList<InfluxDBModel> createDataModelByBatch(Batch batch) {
+  private LinkedList<InfluxDBModel> createDataModelByBatch(IBatch batch) {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     List<Record> records = batch.getRecords();
     List<Sensor> sensors = deviceSchema.getSensors();

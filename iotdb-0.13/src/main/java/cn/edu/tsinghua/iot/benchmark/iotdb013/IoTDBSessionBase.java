@@ -19,13 +19,13 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb013;
 
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.utils.Binary;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
@@ -45,19 +45,19 @@ public class IoTDBSessionBase extends IoTDB {
     super(dbConfig);
   }
 
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(IBatch batch) {
     return new Status(true);
   }
 
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(IBatch batch) {
     return new Status(true);
   }
 
-  public Status insertOneBatchByRecords(Batch batch) {
+  public Status insertOneBatchByRecords(IBatch batch) {
     return new Status(true);
   }
 
-  protected Tablet genTablet(Batch batch) {
+  protected Tablet genTablet(IBatch batch) {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
@@ -149,7 +149,7 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
     switch (insertMode) {
       case INSERT_USE_SESSION_TABLET:

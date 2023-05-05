@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.victoriametrics;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
@@ -122,7 +122,7 @@ public class VictoriaMetrics implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
+  public Status insertOneBatch(IBatch batch) throws DBConnectException {
     try {
       LinkedList<VictoriaMetricsModel> models = createDataModelByBatch(batch);
       StringBuffer body = new StringBuffer();
@@ -138,7 +138,7 @@ public class VictoriaMetrics implements IDatabase {
     }
   }
 
-  private LinkedList<VictoriaMetricsModel> createDataModelByBatch(Batch batch) {
+  private LinkedList<VictoriaMetricsModel> createDataModelByBatch(IBatch batch) {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     String device = deviceSchema.getDevice();
     List<Record> records = batch.getRecords();

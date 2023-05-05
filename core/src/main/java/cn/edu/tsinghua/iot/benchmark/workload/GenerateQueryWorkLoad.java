@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.workload;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
@@ -154,7 +154,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   }
 
   @Override
-  public VerificationQuery getVerifiedQuery(Batch batch) throws WorkloadException {
+  public VerificationQuery getVerifiedQuery(IBatch batch) throws WorkloadException {
     return new VerificationQuery(batch);
   }
 

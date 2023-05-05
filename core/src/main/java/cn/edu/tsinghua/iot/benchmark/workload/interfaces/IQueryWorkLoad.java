@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.iot.benchmark.workload.interfaces;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -52,7 +52,7 @@ public interface IQueryWorkLoad extends IWorkLoad {
    *
    * @param batch have the data to check
    */
-  VerificationQuery getVerifiedQuery(Batch batch) throws WorkloadException;
+  VerificationQuery getVerifiedQuery(IBatch batch) throws WorkloadException;
 
   /** Get device query, Eg. select time, v1... where device = ? */
   DeviceQuery getDeviceQuery();

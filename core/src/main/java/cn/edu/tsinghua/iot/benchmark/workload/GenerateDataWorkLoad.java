@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.workload;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
@@ -69,7 +69,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Add one row into batch, row contains data from all sensors */
-  protected void addOneRowIntoBatch(Batch batch, long stepOffset) throws WorkloadException {
+  protected void addOneRowIntoBatch(IBatch batch, long stepOffset) throws WorkloadException {
     List<Object> values = new ArrayList<>();
     long currentTimestamp = getCurrentTimestamp(stepOffset);
     if (batch.getColIndex() == -1) {

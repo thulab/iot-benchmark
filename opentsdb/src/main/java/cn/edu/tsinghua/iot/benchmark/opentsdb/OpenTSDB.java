@@ -22,7 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.opentsdb;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
@@ -97,7 +97,7 @@ public class OpenTSDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     try {
       // create dataModel
       LinkedList<OpenTSDBDataModel> models = createDataModelByBatch(batch);
@@ -213,7 +213,7 @@ public class OpenTSDB implements IDatabase {
   @Override
   public void close() {}
 
-  private LinkedList<OpenTSDBDataModel> createDataModelByBatch(Batch batch) throws TsdbException {
+  private LinkedList<OpenTSDBDataModel> createDataModelByBatch(IBatch batch) throws TsdbException {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     String device = deviceSchema.getDevice();
     List<Record> records = batch.getRecords();
