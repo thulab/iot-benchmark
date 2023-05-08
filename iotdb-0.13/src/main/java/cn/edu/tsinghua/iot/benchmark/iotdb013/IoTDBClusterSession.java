@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb013;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.pool.SessionDataSetWrapper;
@@ -32,6 +31,7 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;

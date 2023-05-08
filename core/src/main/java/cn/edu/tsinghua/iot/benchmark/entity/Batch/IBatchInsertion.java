@@ -22,5 +22,5 @@ package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 
 public interface IBatchInsertion {
-  Status insert(IBatchBackup batch);
+  Status insert(IBatch batch);
 }

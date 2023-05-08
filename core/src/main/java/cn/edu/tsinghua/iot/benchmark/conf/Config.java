@@ -269,6 +269,7 @@ public class Config {
    * * BATCH_SIZE
    */
   private int BATCH_SIZE_PER_WRITE = 10;
+
   private int DEVICE_NUM_PER_WRITE = 1;
   /** Whether create schema before writing */
   private boolean CREATE_SCHEMA = true;

@@ -54,6 +54,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
 
   @Override
   public IBatch getOneBatch() throws WorkloadException {
+    // TODO: 适配多设备Batch
     IBatch batch = new Batch();
     // create the schema of batch
     DeviceSchema deviceSchema =

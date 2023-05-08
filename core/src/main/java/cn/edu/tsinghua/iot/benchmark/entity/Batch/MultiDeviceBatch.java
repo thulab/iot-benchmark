@@ -23,9 +23,10 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-public class MultiDeviceBatch implements IBatchBackup {
+public class MultiDeviceBatch implements IBatch {
 
   private final ArrayList<DeviceSchema> deviceSchemas;
 
@@ -36,6 +37,10 @@ public class MultiDeviceBatch implements IBatchBackup {
   public MultiDeviceBatch(int size) {
     this.deviceSchemas = new ArrayList<>(size);
     this.recordLists = new ArrayList<>(size);
+    for (int i = 0; i < size; i++) {
+      deviceSchemas.add(null);
+      recordLists.add(new LinkedList<>());
+    }
   }
 
   @Override
@@ -50,7 +55,7 @@ public class MultiDeviceBatch implements IBatchBackup {
 
   @Override
   public boolean hasNext() {
-    return index < deviceSchemas.size();
+    return index < deviceSchemas.size() - 1;
   }
 
   @Override
@@ -88,5 +93,13 @@ public class MultiDeviceBatch implements IBatchBackup {
       pointNum += record.size();
     }
     return pointNum;
+  }
+
+  // every MultiDeviceBatch needs to be totally consumed before gc
+  @Override
+  protected void finalize() throws Throwable {
+    if (this.hasNext()) {
+      throw new Exception("a MultiDeviceBatch hasn't been consumed yet");
+    }
   }
 }
