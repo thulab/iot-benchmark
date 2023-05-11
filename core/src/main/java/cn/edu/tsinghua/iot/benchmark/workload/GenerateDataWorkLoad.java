@@ -59,8 +59,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final long OUT_OF_ORDER_BASE =
       (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
   private final ProbTool probTool = new ProbTool();
-
-  protected List<DeviceSchema> deviceSchemas = new ArrayList<>();
   protected int deviceSchemaSize = 0;
 
   @Override

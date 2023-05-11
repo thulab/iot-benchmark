@@ -41,6 +41,7 @@ public class RealDataSetWriteClient extends RealBaseClient {
           break;
         }
         dbWrapper.insertOneBatch(batch);
+        batch.finishCheck();
         loopIndex++;
         if (isStop.get()) {
           break;

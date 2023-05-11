@@ -29,7 +29,6 @@ import java.util.List;
 public class MultiDeviceBatch implements IBatch {
 
   private final ArrayList<DeviceSchema> deviceSchemas;
-
   private final ArrayList<List<Record>> recordLists;
 
   private int index = 0;
@@ -60,10 +59,10 @@ public class MultiDeviceBatch implements IBatch {
 
   @Override
   public void next() {
-    index++;
     if (index >= deviceSchemas.size()) {
       throw new IndexOutOfBoundsException("MultiDeviceBatch index out of bound");
     }
+    index++;
   }
 
   @Override
@@ -95,11 +94,8 @@ public class MultiDeviceBatch implements IBatch {
     return pointNum;
   }
 
-  // every MultiDeviceBatch needs to be totally consumed before gc
   @Override
-  protected void finalize() throws Throwable {
-    if (this.hasNext()) {
-      throw new Exception("a MultiDeviceBatch hasn't been consumed yet");
-    }
+  public void reset() {
+    index = 0;
   }
 }

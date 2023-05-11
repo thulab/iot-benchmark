@@ -92,6 +92,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
       }
     } else {
       batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
+      final int recordsNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
       for (int deviceID = 0; deviceID < config.getDEVICE_NUM_PER_WRITE(); deviceID++) {
         long curLoop = insertLoop.getAndIncrement();
         // create schema of batch
@@ -110,7 +111,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
                 config.getDEVICE_TAGS());
         batch.setDeviceSchema(deviceSchema);
         // create data of batch
-        for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+        for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
           long stepOffset =
               (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
                   + batchOffset;

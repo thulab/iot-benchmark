@@ -42,4 +42,12 @@ public interface IBatch {
   boolean hasNext();
 
   void next();
+
+  default void finishCheck() throws Exception {
+    if (hasNext()) {
+      throw new Exception("batch should have been consumed, but it hasn't. check your code.");
+    }
+  }
+
+  void reset();
 }

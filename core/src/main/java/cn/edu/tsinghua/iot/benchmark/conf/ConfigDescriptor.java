@@ -583,7 +583,7 @@ public class ConfigDescriptor {
       result = false;
     }
     // check DEVICE_NUM_PER_WRITE
-    if (config.getDEVICE_NUM_PER_WRITE() <= 1) {
+    if (config.getDEVICE_NUM_PER_WRITE() <= 0) {
       LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
       result = false;
     }

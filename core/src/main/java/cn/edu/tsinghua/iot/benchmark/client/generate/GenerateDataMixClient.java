@@ -143,6 +143,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
           IBatch batch = dataWorkLoad.getOneBatch();
           if (checkBatch(batch)) {
             dbWrapper.insertOneBatch(batch);
+            batch.finishCheck();
           }
         }
       }

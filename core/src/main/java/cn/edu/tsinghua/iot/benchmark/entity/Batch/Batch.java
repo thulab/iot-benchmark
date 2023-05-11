@@ -130,6 +130,11 @@ public class Batch implements IBatch {
   }
 
   @Override
+  public void reset() {
+
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;

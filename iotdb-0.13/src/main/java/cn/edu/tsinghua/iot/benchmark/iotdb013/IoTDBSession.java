@@ -127,7 +127,7 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public Status insertOneBatchByRecords(IBatch batch) {
-    String deviceId = getDevicePath(batch.getDeviceSchema());
+//    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
@@ -137,10 +137,10 @@ public class IoTDBSession extends IoTDBSessionBase {
         batch.getDeviceSchema().getSensors().stream()
             .map(Sensor::getName)
             .collect(Collectors.toList());
-
+    batch.reset();
     while (true) {
       for (Record record : batch.getRecords()) {
-        deviceIds.add(deviceId);
+        deviceIds.add(getDevicePath(batch.getDeviceSchema()));
         times.add(record.getTimestamp());
         measurementsList.add(sensors);
         valuesList.add(record.getRecordDataValue());
@@ -148,19 +148,19 @@ public class IoTDBSession extends IoTDBSessionBase {
             constructDataTypes(
                 batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
       }
-      try {
-        if (config.isVECTOR()) {
-          session.insertAlignedRecords(deviceIds, times, measurementsList, typesList, valuesList);
-        } else {
-          session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
-        }
-      } catch (IoTDBConnectionException | StatementExecutionException e) {
-        return new Status(false, 0, e, e.toString());
-      }
       if (!batch.hasNext()) {
         break;
       }
       batch.next();
+    }
+    try {
+      if (config.isVECTOR()) {
+        session.insertAlignedRecords(deviceIds, times, measurementsList, typesList, valuesList);
+      } else {
+        session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+      }
+    } catch (IoTDBConnectionException | StatementExecutionException e) {
+      return new Status(false, 0, e, e.toString());
     }
     return new Status(true);
   }
