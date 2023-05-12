@@ -57,9 +57,14 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   public IBatch getOneBatch() throws WorkloadException {
     IBatch batch;
+    final int recordNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
     // create the schema of batch
     if (config.getDEVICE_NUM_PER_WRITE() == 1) {
       batch = new Batch();
+    } else {
+      batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
+    }
+    for (int i = 0; i < config.getDEVICE_NUM_PER_WRITE(); i++) {
       DeviceSchema deviceSchema =
           new DeviceSchema(
               deviceSchemas.get(deviceIndex).getDeviceId(),
@@ -74,10 +79,9 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       batch.setDeviceSchema(deviceSchema);
       // create the data of batch
       long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
-      for (long offset = 0; offset < config.getBATCH_SIZE_PER_WRITE(); offset++, rowOffset++) {
+      for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
         addOneRowIntoBatch(batch, rowOffset);
       }
-
       // move
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         deviceIndex++;
@@ -92,48 +96,11 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         deviceIndex = 0;
         insertLoop++;
       }
-    }
-    else {
-      // TODO: 这样正确吗？
-      batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
-      final int recordNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
-      for (int i = 0; i < config.getDEVICE_NUM_PER_WRITE(); i++) {
-        DeviceSchema deviceSchema =
-            new DeviceSchema(
-                deviceSchemas.get(deviceIndex).getDeviceId(),
-                deviceSchemas.get(deviceIndex).getSensors(),
-                deviceSchemas.get(deviceIndex).getTags());
-        if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
-          List<Sensor> sensors = new ArrayList<>();
-          sensors.add(deviceSchema.getSensors().get(sensorIndex));
-          deviceSchema.setSensors(sensors);
-          batch.setColIndex(sensorIndex);
-        }
-        batch.setDeviceSchema(deviceSchema);
-        // create the data of batch
-        long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
-        for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
-          addOneRowIntoBatch(batch, rowOffset);
-        }
-
-        // move
-        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-          deviceIndex++;
-        } else {
-          sensorIndex++;
-          if (sensorIndex >= deviceSchemas.get(deviceIndex).getSensors().size()) {
-            deviceIndex++;
-            sensorIndex = 0;
-          }
-        }
-        if (deviceIndex >= deviceSchemaSize) {
-          deviceIndex = 0;
-          insertLoop++;
-        }
+      if (batch.hasNext()) {
         batch.next();
       }
-      batch.reset();
     }
+    batch.reset();
     return batch;
   }
 }

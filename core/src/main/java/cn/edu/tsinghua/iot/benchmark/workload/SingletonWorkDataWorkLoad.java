@@ -66,8 +66,13 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   public IBatch getOneBatch() throws WorkloadException {
     IBatch batch = null;
+    final int recordsNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
     if (config.getDEVICE_NUM_PER_WRITE() == 1) {
       batch = new Batch();
+    } else {
+      batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
+    }
+    for (int deviceID = 0; deviceID < config.getDEVICE_NUM_PER_WRITE(); deviceID++) {
       long curLoop = insertLoop.getAndIncrement();
       // create schema of batch
       List<Sensor> sensors = new ArrayList<>();
@@ -85,44 +90,16 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
               config.getDEVICE_TAGS());
       batch.setDeviceSchema(deviceSchema);
       // create data of batch
-      for (long batchOffset = 0; batchOffset < config.getBATCH_SIZE_PER_WRITE(); batchOffset++) {
+      for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
         long stepOffset =
-            (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+            (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
+                + batchOffset;
         addOneRowIntoBatch(batch, stepOffset);
       }
-    } else {
-      batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
-      final int recordsNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
-      for (int deviceID = 0; deviceID < config.getDEVICE_NUM_PER_WRITE(); deviceID++) {
-        long curLoop = insertLoop.getAndIncrement();
-        // create schema of batch
-        List<Sensor> sensors = new ArrayList<>();
-        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-          sensors = SENSORS;
-        } else {
-          int sensorId = sensorIndex.getAndIncrement() % config.getSENSOR_NUMBER();
-          batch.setColIndex(sensorId);
-          sensors.add(SENSORS.get(sensorId));
-        }
-        DeviceSchema deviceSchema =
-            new DeviceSchema(
-                MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
-                sensors,
-                config.getDEVICE_TAGS());
-        batch.setDeviceSchema(deviceSchema);
-        // create data of batch
-        for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
-          long stepOffset =
-              (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
-                  + batchOffset;
-          addOneRowIntoBatch(batch, stepOffset);
-        }
-        if (batch.hasNext()) {
-          batch.next();
-        }
+      if (batch.hasNext()) {
+        batch.next();
       }
     }
-
     return batch;
   }
 }
