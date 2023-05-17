@@ -76,6 +76,7 @@ public class MultiDeviceBatch implements IBatch {
     return -1;
   }
 
+  // TODO: 合并80-85
   @Override
   public void setDeviceSchema(DeviceSchema deviceSchema) {
     deviceSchemas.set(index, deviceSchema);
