@@ -75,6 +75,12 @@ public interface IDatabase {
    */
   Status insertOneBatch(IBatch batch) throws DBConnectException;
 
+  default Status insertOneBatchWithCheck(IBatch batch) throws Exception {
+    Status status = insertOneBatch(batch);
+    batch.finishCheck();
+    return status;
+  }
+
   /**
    * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where
    * time = ? and device in ?
