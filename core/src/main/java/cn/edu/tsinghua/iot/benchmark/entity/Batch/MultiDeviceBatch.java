@@ -72,7 +72,8 @@ public class MultiDeviceBatch implements IBatch {
 
   @Override
   public int getColIndex() {
-    return -1; // always treated as align
+    // For now, always treated as align
+    return -1;
   }
 
   @Override

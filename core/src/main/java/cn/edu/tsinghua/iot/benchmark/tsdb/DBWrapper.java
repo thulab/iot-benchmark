@@ -90,7 +90,6 @@ public class DBWrapper implements IDatabase {
       for (IDatabase database : databases) {
         long start = System.nanoTime();
         status = database.insertOneBatchWithCheck(batch);
-        batch.finishCheck();
         status = measureOneBatch(status, operation, batch, start);
       }
     } catch (DBConnectException ex) {
