@@ -25,13 +25,12 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import java.util.List;
 
 public interface IBatch {
-  void add(long timestamp, List<Object> values);
 
   long pointNum();
 
   DeviceSchema getDeviceSchema();
 
-  void setDeviceSchema(DeviceSchema deviceSchema);
+  void addSchemaAndContent(DeviceSchema deviceSchema, List<Record> records);
 
   void setColIndex(int colIndex);
 

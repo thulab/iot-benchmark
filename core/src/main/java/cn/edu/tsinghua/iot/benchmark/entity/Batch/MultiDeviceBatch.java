@@ -23,7 +23,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class MultiDeviceBatch implements IBatch {
@@ -36,15 +35,17 @@ public class MultiDeviceBatch implements IBatch {
   public MultiDeviceBatch(int size) {
     this.deviceSchemas = new ArrayList<>(size);
     this.recordLists = new ArrayList<>(size);
-    for (int i = 0; i < size; i++) {
-      deviceSchemas.add(null);
-      recordLists.add(new LinkedList<>());
-    }
   }
 
   @Override
   public DeviceSchema getDeviceSchema() {
     return deviceSchemas.get(index);
+  }
+
+  @Override
+  public void addSchemaAndContent(DeviceSchema deviceSchema, List<Record> records) {
+    deviceSchemas.add(deviceSchema);
+    recordLists.add(records);
   }
 
   @Override
@@ -74,17 +75,6 @@ public class MultiDeviceBatch implements IBatch {
   public int getColIndex() {
     // For now, always treated as align
     return -1;
-  }
-
-  // TODO: 合并80-85
-  @Override
-  public void setDeviceSchema(DeviceSchema deviceSchema) {
-    deviceSchemas.set(index, deviceSchema);
-  }
-
-  @Override
-  public void add(long currentTimestamp, List<Object> values) {
-    recordLists.get(index).add(new Record(currentTimestamp, values));
   }
 
   @Override

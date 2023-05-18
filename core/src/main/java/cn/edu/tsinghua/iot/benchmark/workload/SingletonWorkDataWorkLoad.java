@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.workload;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.MultiDeviceBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -30,6 +31,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -72,6 +74,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
     } else {
       batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
     }
+    List<Record> records = new ArrayList<>();
     for (int deviceID = 0; deviceID < config.getDEVICE_NUM_PER_WRITE(); deviceID++) {
       long curLoop = insertLoop.getAndIncrement();
       // create schema of batch
@@ -88,14 +91,16 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
               MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
               sensors,
               config.getDEVICE_TAGS());
-      batch.setDeviceSchema(deviceSchema);
       // create data of batch
       for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
         long stepOffset =
             (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
                 + batchOffset;
-        addOneRowIntoBatch(batch, stepOffset);
+        records.add(new Record(
+                getCurrentTimestamp(stepOffset),
+                generateOneRow(batch.getColIndex(), stepOffset)));
       }
+      batch.addSchemaAndContent(deviceSchema, records);
       if (batch.hasNext()) {
         batch.next();
       }

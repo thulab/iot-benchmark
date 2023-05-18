@@ -137,7 +137,6 @@ public class IoTDBSession extends IoTDBSessionBase {
         batch.getDeviceSchema().getSensors().stream()
             .map(Sensor::getName)
             .collect(Collectors.toList());
-    batch.reset();
     while (true) {
       for (Record record : batch.getRecords()) {
         deviceIds.add(getDevicePath(batch.getDeviceSchema()));

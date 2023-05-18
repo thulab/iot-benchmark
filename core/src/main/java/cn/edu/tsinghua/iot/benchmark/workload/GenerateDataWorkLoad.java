@@ -67,20 +67,19 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Add one row into batch, row contains data from all sensors */
-  protected void addOneRowIntoBatch(IBatch batch, long stepOffset) throws WorkloadException {
+  protected List<Object> generateOneRow(int colIndex, long stepOffset) throws WorkloadException {
     List<Object> values = new ArrayList<>();
-    long currentTimestamp = getCurrentTimestamp(stepOffset);
-    if (batch.getColIndex() == -1) {
+    if (colIndex == -1) {
       for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
         values.add(
             workloadValues[i][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
       }
     } else {
       values.add(
-          workloadValues[batch.getColIndex()][
+          workloadValues[colIndex][
               (int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     }
-    batch.add(currentTimestamp, values);
+    return values;
   }
 
   /** Get timestamp according to stepOffset */

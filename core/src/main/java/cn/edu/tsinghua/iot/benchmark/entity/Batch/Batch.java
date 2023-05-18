@@ -32,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Batch implements IBatch {
-
   private DeviceSchema deviceSchema;
   private List<Record> records;
   private int colIndex = -1;
@@ -44,11 +43,6 @@ public class Batch implements IBatch {
   public Batch(DeviceSchema deviceSchema, List<Record> records) {
     this.deviceSchema = deviceSchema;
     this.records = records;
-  }
-
-  @Override
-  public void add(long timestamp, List<Object> values) {
-    records.add(new Record(timestamp, values));
   }
 
   /**
@@ -100,8 +94,9 @@ public class Batch implements IBatch {
   }
 
   @Override
-  public void setDeviceSchema(DeviceSchema deviceSchema) {
+  public void addSchemaAndContent(DeviceSchema deviceSchema, List<Record> records) {
     this.deviceSchema = deviceSchema;
+    this.records = records;
   }
 
   @Override

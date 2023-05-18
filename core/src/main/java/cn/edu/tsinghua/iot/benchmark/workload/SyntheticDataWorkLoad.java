@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.workload;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.MultiDeviceBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -64,6 +65,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
     } else {
       batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
     }
+    List<Record> records = new ArrayList<>();
     for (int i = 0; i < config.getDEVICE_NUM_PER_WRITE(); i++) {
       DeviceSchema deviceSchema =
           new DeviceSchema(
@@ -76,11 +78,12 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         deviceSchema.setSensors(sensors);
         batch.setColIndex(sensorIndex);
       }
-      batch.setDeviceSchema(deviceSchema);
       // create the data of batch
       long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
       for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
-        addOneRowIntoBatch(batch, rowOffset);
+        records.add(new Record(
+                getCurrentTimestamp(rowOffset),
+                generateOneRow(batch.getColIndex(), rowOffset)));
       }
       // move
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
@@ -96,11 +99,11 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         deviceIndex = 0;
         insertLoop++;
       }
+      batch.addSchemaAndContent(deviceSchema, records);
       if (batch.hasNext()) {
         batch.next();
       }
     }
-    batch.reset();
     return batch;
   }
 }
