@@ -32,7 +32,7 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -92,7 +92,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(IBatch batch) {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
@@ -126,8 +126,8 @@ public class IoTDBSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecords(Batch batch) {
-    String deviceId = getDevicePath(batch.getDeviceSchema());
+  public Status insertOneBatchByRecords(IBatch batch) {
+    //    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
@@ -137,15 +137,20 @@ public class IoTDBSession extends IoTDBSessionBase {
         batch.getDeviceSchema().getSensors().stream()
             .map(Sensor::getName)
             .collect(Collectors.toList());
-
-    for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId);
-      times.add(record.getTimestamp());
-      measurementsList.add(sensors);
-      valuesList.add(record.getRecordDataValue());
-      typesList.add(
-          constructDataTypes(
-              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+    while (true) {
+      for (Record record : batch.getRecords()) {
+        deviceIds.add(getDevicePath(batch.getDeviceSchema()));
+        times.add(record.getTimestamp());
+        measurementsList.add(sensors);
+        valuesList.add(record.getRecordDataValue());
+        typesList.add(
+            constructDataTypes(
+                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+      }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
     }
     try {
       if (config.isVECTOR()) {
@@ -153,14 +158,14 @@ public class IoTDBSession extends IoTDBSessionBase {
       } else {
         session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
       }
-      return new Status(true);
     } catch (IoTDBConnectionException | StatementExecutionException e) {
       return new Status(false, 0, e, e.toString());
     }
+    return new Status(true);
   }
 
   @Override
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
     try {
       if (config.isVECTOR()) {

@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload.query.impl;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
@@ -31,7 +31,7 @@ public class VerificationQuery extends Query {
 
   public VerificationQuery() {}
 
-  public VerificationQuery(Batch batch) {
+  public VerificationQuery(IBatch batch) {
     this.deviceSchema = batch.getDeviceSchema();
     this.records = batch.getRecords();
   }

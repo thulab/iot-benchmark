@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.conf;
 
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBType;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBVersion;
@@ -31,6 +32,10 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Properties;
+
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORD;
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
 public class ConfigDescriptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
@@ -350,6 +355,10 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "BATCH_SIZE_PER_WRITE", config.getBATCH_SIZE_PER_WRITE() + "")));
+        config.setDEVICE_NUM_PER_WRITE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "DEVICE_NUM_PER_WRITE", config.getDEVICE_NUM_PER_WRITE() + "")));
 
         config.setCREATE_SCHEMA(
             Boolean.parseBoolean(
@@ -571,6 +580,38 @@ public class ConfigDescriptor {
     }
     if (config.getCLIENT_NUMBER() == 0) {
       LOGGER.error("Client number can't be zero");
+      result = false;
+    }
+    // check DEVICE_NUM_PER_WRITE
+    if (config.getDEVICE_NUM_PER_WRITE() <= 0) {
+      LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
+      result = false;
+    }
+    if (config.getBATCH_SIZE_PER_WRITE() % config.getDEVICE_NUM_PER_WRITE() != 0) {
+      LOGGER.error("BATCH_SIZE_PER_WRITE % DEVICE_NUM_PER_WRITE must be zero");
+      result = false;
+    }
+    // check insert mode
+    int rowNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
+    DBInsertMode insertMode = config.getDbConfig().getDB_SWITCH().getInsertMode();
+    boolean wrongInsertMode = false;
+    if (config.getDEVICE_NUM_PER_WRITE() == 1) {
+      if (rowNumPerDevice == 1) {
+        // all four insert mode in allowed
+        wrongInsertMode =
+            insertMode != INSERT_USE_SESSION_RECORD
+                && insertMode != INSERT_USE_SESSION_RECORDS
+                && insertMode != INSERT_USE_SESSION_TABLET;
+      } else {
+        wrongInsertMode =
+            insertMode != INSERT_USE_SESSION_RECORDS && insertMode != INSERT_USE_SESSION_TABLET;
+      }
+    } else {
+      wrongInsertMode = insertMode != INSERT_USE_SESSION_RECORDS;
+    }
+    if (wrongInsertMode) {
+      LOGGER.error(
+          "The combination of BATCH_SIZE_PER_WRITE, DEVICE_NUM_PER_WRITE, and insert-mode is not supported");
       result = false;
     }
     return result;
