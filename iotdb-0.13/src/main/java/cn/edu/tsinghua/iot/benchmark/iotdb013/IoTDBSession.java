@@ -127,7 +127,7 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public Status insertOneBatchByRecords(IBatch batch) {
-//    String deviceId = getDevicePath(batch.getDeviceSchema());
+    //    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();

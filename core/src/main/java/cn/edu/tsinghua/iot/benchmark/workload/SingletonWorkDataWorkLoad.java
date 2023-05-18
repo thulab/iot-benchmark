@@ -31,7 +31,6 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -68,7 +67,8 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   public IBatch getOneBatch() throws WorkloadException {
     IBatch batch = null;
-    final int recordsNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
+    final int recordsNumPerDevice =
+        config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
     if (config.getDEVICE_NUM_PER_WRITE() == 1) {
       batch = new Batch();
     } else {
@@ -94,11 +94,10 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
       // create data of batch
       for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
         long stepOffset =
-            (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
-                + batchOffset;
-        records.add(new Record(
-                getCurrentTimestamp(stepOffset),
-                generateOneRow(batch.getColIndex(), stepOffset)));
+            (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
+        records.add(
+            new Record(
+                getCurrentTimestamp(stepOffset), generateOneRow(batch.getColIndex(), stepOffset)));
       }
       batch.addSchemaAndContent(deviceSchema, records);
       if (batch.hasNext()) {

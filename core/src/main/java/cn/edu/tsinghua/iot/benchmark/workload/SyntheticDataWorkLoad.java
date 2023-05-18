@@ -58,7 +58,8 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   public IBatch getOneBatch() throws WorkloadException {
     IBatch batch;
-    final int recordNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
+    final int recordNumPerDevice =
+        config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
     // create the schema of batch
     if (config.getDEVICE_NUM_PER_WRITE() == 1) {
       batch = new Batch();
@@ -81,9 +82,9 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       // create the data of batch
       long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
       for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
-        records.add(new Record(
-                getCurrentTimestamp(rowOffset),
-                generateOneRow(batch.getColIndex(), rowOffset)));
+        records.add(
+            new Record(
+                getCurrentTimestamp(rowOffset), generateOneRow(batch.getColIndex(), rowOffset)));
       }
       // move
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {

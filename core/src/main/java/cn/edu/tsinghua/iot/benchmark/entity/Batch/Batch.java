@@ -120,9 +120,7 @@ public class Batch implements IBatch {
   }
 
   @Override
-  public void reset() {
-
-  }
+  public void reset() {}
 
   @Override
   public boolean equals(Object o) {

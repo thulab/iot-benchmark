@@ -37,6 +37,7 @@ public interface IBatch {
 
   /**
    * Append deviceSchema and records
+   *
    * @param deviceSchema the schema of a device
    * @param records the data which needs to be written
    */
@@ -50,17 +51,17 @@ public interface IBatch {
 
   /**
    * Check if there are some devices still need to be scanned
+   *
    * @return true or false
    */
   boolean hasNext();
 
-  /**
-   * Change the index to scan next device
-   */
+  /** Change the index to scan next device */
   void next();
 
   /**
    * To make sure that MultiDeviceBatch has been totally scanned
+   *
    * @throws Exception if scanning hasn't finished
    */
   default void finishCheck() throws Exception {
