@@ -10,13 +10,5 @@ public interface ISessionDataSet {
     RowRecord next() throws IoTDBConnectionException, StatementExecutionException;
     boolean hasNext() throws IoTDBConnectionException, StatementExecutionException;
     void close() throws IoTDBConnectionException, StatementExecutionException;
-
-    static ISessionDataSet getISessionDataSet(SessionDataSet sessionDataSet) {
-        return new SessionDataSet1(sessionDataSet);
-    }
-
-    static ISessionDataSet getISessionDataSet(SessionDataSetWrapper sessionDataSetWrapper) {
-        return new SessionDataSet2(sessionDataSetWrapper);
-    }
 }
 

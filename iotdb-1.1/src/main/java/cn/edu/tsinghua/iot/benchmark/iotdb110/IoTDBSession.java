@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -59,44 +60,52 @@ import java.util.stream.Collectors;
 public class IoTDBSession extends IoTDBSessionBase {
   private class BenchmarkSession implements IBenchmarkSession {
     private final Session session;
-
-    private BenchmarkSession(Session session) {
+    public BenchmarkSession(Session session) {
       this.session = session;
     }
-
+    @Override
+    public void open() throws IoTDBConnectionException {
+      session.open();
+    }
+    @Override
+    public void open(boolean enableRPCCompression) throws IoTDBConnectionException {
+      session.open(enableRPCCompression);
+    }
     @Override
     public void insertRecord(String deviceId, long time, List<String> measurements, List<TSDataType> types, List<Object> values) throws IoTDBConnectionException, StatementExecutionException {
       session.insertRecord(deviceId, time, measurements, types, values);
     }
-
     @Override
     public void insertAlignedRecord(String multiSeriesId, long time, List<String> multiMeasurementComponents, List<TSDataType> types, List<Object> values) throws IoTDBConnectionException, StatementExecutionException {
       session.insertAlignedRecord(multiSeriesId, time, multiMeasurementComponents, types, values);
     }
-
     @Override
     public void insertRecords(List<String> deviceIds, List<Long> times, List<List<String>> measurementsList, List<List<TSDataType>> typesList, List<List<Object>> valuesList) throws IoTDBConnectionException, StatementExecutionException {
       session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
     }
-
     @Override
     public void insertAlignedRecords(List<String> multiSeriesIds, List<Long> times, List<List<String>> multiMeasurementComponentsList, List<List<TSDataType>> typesList, List<List<Object>> valuesList) throws IoTDBConnectionException, StatementExecutionException {
       session.insertAlignedRecords(multiSeriesIds, times, multiMeasurementComponentsList, typesList, valuesList);
     }
-
     @Override
     public void insertTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
       session.insertTablet(tablet);
     }
-
     @Override
     public void insertAlignedTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
       session.insertAlignedTablet(tablet);
     }
-
     @Override
     public ISessionDataSet executeQueryStatement(String sql) throws IoTDBConnectionException, StatementExecutionException {
       return new SessionDataSet1(session.executeQueryStatement(sql));
+    }
+    @Override
+    public void close() throws IoTDBConnectionException {
+      session.close();
+    }
+    @Override
+    public void executeNonQueryStatement(String deleteSeriesSql) throws IoTDBConnectionException, StatementExecutionException {
+      session.executeNonQueryStatement(deleteSeriesSql);
     }
   }
 
@@ -138,7 +147,7 @@ public class IoTDBSession extends IoTDBSessionBase {
     int failRecord = 0;
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(sensor -> sensor.getName())
+            .map(Sensor::getName)
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
@@ -176,7 +185,7 @@ public class IoTDBSession extends IoTDBSessionBase {
     List<List<Object>> valuesList = new ArrayList<>();
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(sensor -> sensor.getName())
+            .map(Sensor::getName)
             .collect(Collectors.toList());
 
     for (Record record : batch.getRecords()) {
