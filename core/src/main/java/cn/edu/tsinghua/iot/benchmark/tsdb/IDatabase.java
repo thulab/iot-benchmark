@@ -76,6 +76,7 @@ public interface IDatabase {
   Status insertOneBatch(IBatch batch) throws DBConnectException;
 
   default Status insertOneBatchWithCheck(IBatch batch) throws Exception {
+    batch.reset();
     Status status = insertOneBatch(batch);
     batch.finishCheck();
     return status;
@@ -167,7 +168,7 @@ public interface IDatabase {
   default Status verificationQuery(VerificationQuery verificationQuery) {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
-  };
+  }
 
   /** Verification between two database */
   default Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
