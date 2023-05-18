@@ -45,11 +45,6 @@ public class Batch implements IBatch {
     this.records = records;
   }
 
-  /**
-   * use the row protocol which means data are organized in List[timestamp, List[value]]
-   *
-   * @return data point number in this batch
-   */
   @Override
   public long pointNum() {
     long pointNum = 0;

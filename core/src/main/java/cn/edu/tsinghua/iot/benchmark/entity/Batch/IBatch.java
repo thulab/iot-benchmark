@@ -26,10 +26,20 @@ import java.util.List;
 
 public interface IBatch {
 
+  /**
+   * Use the row protocol which means data are organized in List[timestamp, List[value]]
+   *
+   * @return data point number of one device in this batch
+   */
   long pointNum();
 
   DeviceSchema getDeviceSchema();
 
+  /**
+   * Append deviceSchema and records
+   * @param deviceSchema the schema of a device
+   * @param records the data which needs to be written
+   */
   void addSchemaAndContent(DeviceSchema deviceSchema, List<Record> records);
 
   void setColIndex(int colIndex);
@@ -38,10 +48,21 @@ public interface IBatch {
 
   List<Record> getRecords();
 
+  /**
+   * Check if there are some devices still need to be scanned
+   * @return true or false
+   */
   boolean hasNext();
 
+  /**
+   * Change the index to scan next device
+   */
   void next();
 
+  /**
+   * To make sure that MultiDeviceBatch has been totally scanned
+   * @throws Exception if scanning hasn't finished
+   */
   default void finishCheck() throws Exception {
     if (hasNext()) {
       throw new Exception("batch should have been consumed, but it hasn't. check your code.");
