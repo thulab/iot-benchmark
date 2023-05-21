@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -134,18 +135,24 @@ public class IoTDBSession extends IoTDBSessionBase {
     List<List<Object>> valuesList = new ArrayList<>();
     List<String> sensors =
         batch.getDeviceSchema().getSensors().stream()
-            .map(sensor -> sensor.getName())
+            .map(Sensor::getName)
             .collect(Collectors.toList());
-
-    for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId);
-      times.add(record.getTimestamp());
-      measurementsList.add(sensors);
-      valuesList.add(record.getRecordDataValue());
-      typesList.add(
-          constructDataTypes(
-              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+    while (true) {
+      for (Record record : batch.getRecords()) {
+        deviceIds.add(deviceId);
+        times.add(record.getTimestamp());
+        measurementsList.add(sensors);
+        valuesList.add(record.getRecordDataValue());
+        typesList.add(
+                constructDataTypes(
+                        batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+      }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
     }
+
     try {
       if (config.isVECTOR()) {
         session.insertAlignedRecords(deviceIds, times, measurementsList, typesList, valuesList);

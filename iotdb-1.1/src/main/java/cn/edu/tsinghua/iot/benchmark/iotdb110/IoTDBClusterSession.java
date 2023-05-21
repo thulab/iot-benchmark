@@ -133,15 +133,22 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         batch.getDeviceSchema().getSensors().stream()
             .map(Sensor::getName)
             .collect(Collectors.toList());
-    for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId);
-      times.add(record.getTimestamp());
-      measurementsList.add(sensors);
-      valuesList.add(record.getRecordDataValue());
-      typesList.add(
-          constructDataTypes(
-              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+    while (true) {
+      for (Record record : batch.getRecords()) {
+        deviceIds.add(deviceId);
+        times.add(record.getTimestamp());
+        measurementsList.add(sensors);
+        valuesList.add(record.getRecordDataValue());
+        typesList.add(
+                constructDataTypes(
+                        batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+      }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
     }
+
 
     future =
         service.submit(

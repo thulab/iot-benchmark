@@ -13,7 +13,7 @@
 DNW=1时，搭配效果应与加入跨设备Batch之前完全一致，**此处分析DNW＞1的情况**
 
 - 与DB_SWITCH：
-  - 数据库版本：目前只支持了IoTDB-013
+  - 数据库版本：目前支持IoTDB-013、IoTDB-110
   - insert方式：SESSION_BY_RECORDS模式允许DNW>1，SESSION_BY_RECORD、SESSION_BY_TABLET模式只允许DNW=1，参数不匹配则报错
 - 与BATCH_SIZE_PER_WRITE：
   - BATCH_SIZE_PER_WRITE含义为单次写入的record总数，而DNW则决定这些record会被平均分配到多少个设备上
