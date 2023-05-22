@@ -30,6 +30,20 @@
   <artifactId>iotdb-1.1</artifactId>
   <name>Benchmark IoTDB 1.1</name>
 
+  <repositories>
+    <repository>
+      <id>snapshot_id</id>
+      <name>snapshot_name</name>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>cn.edu.tsinghua</groupId>
@@ -44,7 +58,7 @@
     <dependency>
       <groupId>org.apache.iotdb</groupId>
       <artifactId>iotdb-session</artifactId>
-      <version>1.1.0</version>
+      <version>1.1.1-SNAPSHOT</version>
     </dependency>
 
   </dependencies>
