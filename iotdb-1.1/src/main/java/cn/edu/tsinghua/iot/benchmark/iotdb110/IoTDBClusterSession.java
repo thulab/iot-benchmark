@@ -140,15 +140,14 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         measurementsList.add(sensors);
         valuesList.add(record.getRecordDataValue());
         typesList.add(
-                constructDataTypes(
-                        batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+            constructDataTypes(
+                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
       }
       if (!batch.hasNext()) {
         break;
       }
       batch.next();
     }
-
 
     future =
         service.submit(

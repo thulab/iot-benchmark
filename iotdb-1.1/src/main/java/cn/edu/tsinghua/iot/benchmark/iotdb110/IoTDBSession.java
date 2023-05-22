@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -36,6 +35,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -144,8 +144,8 @@ public class IoTDBSession extends IoTDBSessionBase {
         measurementsList.add(sensors);
         valuesList.add(record.getRecordDataValue());
         typesList.add(
-                constructDataTypes(
-                        batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+            constructDataTypes(
+                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
       }
       if (!batch.hasNext()) {
         break;
