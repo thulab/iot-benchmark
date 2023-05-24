@@ -78,6 +78,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -287,6 +288,17 @@ public class IoTDB implements IDatabase {
       } catch (Exception e) {
         handleRegisterException(e);
       }
+    }
+    // activate template
+    try {
+      if (config.isTEMPLATE()) {
+        metaSession.createTimeseriesUsingSchemaTemplate(
+            groups.stream()
+                .map(group -> ROOT_SERIES_NAME + "." + group)
+                .collect(Collectors.toList()));
+      }
+    } catch (Exception e) {
+      handleRegisterException(e);
     }
   }
 
