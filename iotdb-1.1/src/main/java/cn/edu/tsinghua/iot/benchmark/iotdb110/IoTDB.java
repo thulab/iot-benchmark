@@ -94,6 +94,7 @@ public class IoTDB implements IDatabase {
   protected static final CyclicBarrier templateBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier activateTemplateBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
@@ -205,6 +206,10 @@ public class IoTDB implements IDatabase {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
         schemaBarrier.await();
+        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+          activateTemplate(pair.getKey(), pair.getValue());
+        }
+        activateTemplateBarrier.await();
         if (!config.isTEMPLATE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             registerTimeseries(pair.getKey(), pair.getValue());
@@ -293,17 +298,27 @@ public class IoTDB implements IDatabase {
         handleRegisterException(e);
       }
     }
-    // activate template
-    if (config.isTEMPLATE() && !groups.isEmpty()) {
-      try {
-        List<String> paths =
-            groups.stream()
-                .map(group -> ROOT_SERIES_NAME + "." + group)
-                .collect(Collectors.toList());
-        metaSession.createTimeseriesUsingSchemaTemplate(paths);
-      } catch (Throwable e) {
-        e.printStackTrace();
-      }
+
+//    if (config.isTEMPLATE() && !groups.isEmpty()) {
+//      try {
+//        List<String> paths =
+//            groups.stream()
+//                .map(group -> ROOT_SERIES_NAME + "." + group)
+//                .collect(Collectors.toList());
+//        metaSession.createTimeseriesUsingSchemaTemplate(paths);
+//      } catch (Throwable e) {
+//        e.printStackTrace();
+//      }
+//    }
+  }
+
+  private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
+    try {
+      List<String> devicePaths = schemaList.stream().map(
+          schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath()).collect(Collectors.toList());
+      metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
+    } catch (Throwable t) {
+      t.printStackTrace();
     }
   }
 
