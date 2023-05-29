@@ -78,6 +78,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -93,6 +94,8 @@ public class IoTDB implements IDatabase {
   protected static final CyclicBarrier templateBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier activateTemplateBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
@@ -203,6 +206,10 @@ public class IoTDB implements IDatabase {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
         schemaBarrier.await();
+        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+          activateTemplate(pair.getKey(), pair.getValue());
+        }
+        activateTemplateBarrier.await();
         if (!config.isTEMPLATE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             registerTimeseries(pair.getKey(), pair.getValue());
@@ -261,6 +268,7 @@ public class IoTDB implements IDatabase {
       metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
       // do nothing
+      e.printStackTrace();
     }
   }
 
@@ -287,6 +295,18 @@ public class IoTDB implements IDatabase {
       } catch (Exception e) {
         handleRegisterException(e);
       }
+    }
+  }
+
+  private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
+    try {
+      List<String> devicePaths =
+          schemaList.stream()
+              .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
+              .collect(Collectors.toList());
+      metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
+    } catch (Throwable t) {
+      t.printStackTrace();
     }
   }
 
