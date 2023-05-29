@@ -85,7 +85,6 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
-  private static final String TEMPLATE_NAME = "BenchmarkTemplate";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
@@ -239,9 +238,9 @@ public class IoTDB implements IDatabase {
     Template template = null;
     if (config.isTEMPLATE()) {
       if (config.isVECTOR()) {
-        template = new Template(TEMPLATE_NAME, true);
+        template = new Template(config.getTEMPLATE_NAME(), true);
       } else {
-        template = new Template(TEMPLATE_NAME, false);
+        template = new Template(config.getTEMPLATE_NAME(), false);
       }
       try {
         for (Sensor sensor : deviceSchema.getSensors()) {
@@ -290,7 +289,7 @@ public class IoTDB implements IDatabase {
       try {
         metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
         if (config.isTEMPLATE()) {
-          metaSession.setSchemaTemplate(TEMPLATE_NAME, ROOT_SERIES_NAME + "." + group);
+          metaSession.setSchemaTemplate(config.getTEMPLATE_NAME(), ROOT_SERIES_NAME + "." + group);
         }
       } catch (Exception e) {
         handleRegisterException(e);
