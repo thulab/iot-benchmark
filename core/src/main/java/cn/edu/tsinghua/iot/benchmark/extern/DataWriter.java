@@ -36,5 +36,5 @@ public abstract class DataWriter {
    *
    * @param insertLoopIndex loop index of batch
    */
-  public abstract boolean writeBatch(IBatch batch, long insertLoopIndex);
+  public abstract boolean writeBatch(IBatch batch, long insertLoopIndex) throws Exception;
 }

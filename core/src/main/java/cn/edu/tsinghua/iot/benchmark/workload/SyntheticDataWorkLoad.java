@@ -58,8 +58,8 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   public IBatch getOneBatch() throws WorkloadException {
     IBatch batch;
-    final int recordNumPerDevice =
-        config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
+    // TODO: bad, should be fixed in the future
+    final int recordNumPerDevice = config.getBATCH_SIZE_PER_WRITE();
     // create the schema of batch
     if (config.getDEVICE_NUM_PER_WRITE() == 1) {
       batch = new Batch();
@@ -101,9 +101,6 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
         insertLoop++;
       }
       batch.addSchemaAndContent(deviceSchema, records);
-      if (batch.hasNext()) {
-        batch.next();
-      }
     }
     return batch;
   }

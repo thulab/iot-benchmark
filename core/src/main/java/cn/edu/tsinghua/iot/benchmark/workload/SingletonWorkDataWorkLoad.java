@@ -67,8 +67,8 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   @Override
   public IBatch getOneBatch() throws WorkloadException {
     IBatch batch = null;
-    final int recordsNumPerDevice =
-        config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
+    // TODO: bad, should be fixed in the future
+    final int recordsNumPerDevice = config.getBATCH_SIZE_PER_WRITE();
     if (config.getDEVICE_NUM_PER_WRITE() == 1) {
       batch = new Batch();
     } else {
@@ -100,9 +100,6 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
                 getCurrentTimestamp(stepOffset), generateOneRow(batch.getColIndex(), stepOffset)));
       }
       batch.addSchemaAndContent(deviceSchema, records);
-      if (batch.hasNext()) {
-        batch.next();
-      }
     }
     return batch;
   }

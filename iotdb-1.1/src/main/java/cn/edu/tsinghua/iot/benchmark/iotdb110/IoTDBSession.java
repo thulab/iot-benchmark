@@ -127,7 +127,6 @@ public class IoTDBSession extends IoTDBSessionBase {
 
   @Override
   public Status insertOneBatchByRecords(IBatch batch) {
-    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
@@ -138,6 +137,7 @@ public class IoTDBSession extends IoTDBSessionBase {
             .map(Sensor::getName)
             .collect(Collectors.toList());
     while (true) {
+      String deviceId = getDevicePath(batch.getDeviceSchema());
       for (Record record : batch.getRecords()) {
         deviceIds.add(deviceId);
         times.add(record.getTimestamp());
