@@ -299,6 +299,7 @@ public class ConfigDescriptor {
         config.setTEMPLATE(
             Boolean.parseBoolean(
                 properties.getProperty("TEMPLATE", String.valueOf(config.isTEMPLATE()))));
+        config.setTEMPLATE_NAME(properties.getProperty("TEMPLATE_NAME", String.valueOf(config.getTEMPLATE_NAME())));
         config.setVECTOR(
             Boolean.parseBoolean(
                 properties.getProperty("VECTOR", String.valueOf(config.isVECTOR()))));
