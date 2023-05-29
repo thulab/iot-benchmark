@@ -191,7 +191,6 @@ public class IoTDB implements IDatabase {
         if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
           Template template = null;
           if (config.isTEMPLATE() && schemaList.size() > 0) {
-            LOGGER.error("888");
             template = createTemplate(schemaList.get(0));
           }
           start = System.nanoTime();
@@ -215,9 +214,7 @@ public class IoTDB implements IDatabase {
             registerTimeseries(pair.getKey(), pair.getValue());
           }
         }
-      } catch (Throwable e) {
-        e.printStackTrace();
-        System.out.println("?????");
+      } catch (Exception e) {
         throw new TsdbException(e);
       } finally {
         if (sessionListMap.size() != 0) {
@@ -298,18 +295,6 @@ public class IoTDB implements IDatabase {
         handleRegisterException(e);
       }
     }
-
-//    if (config.isTEMPLATE() && !groups.isEmpty()) {
-//      try {
-//        List<String> paths =
-//            groups.stream()
-//                .map(group -> ROOT_SERIES_NAME + "." + group)
-//                .collect(Collectors.toList());
-//        metaSession.createTimeseriesUsingSchemaTemplate(paths);
-//      } catch (Throwable e) {
-//        e.printStackTrace();
-//      }
-//    }
   }
 
   private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
