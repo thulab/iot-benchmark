@@ -66,7 +66,6 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
     } else {
       batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
     }
-    List<Record> records = new ArrayList<>();
     for (int i = 0; i < config.getDEVICE_NUM_PER_WRITE(); i++) {
       DeviceSchema deviceSchema =
           new DeviceSchema(
@@ -81,6 +80,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       }
       // create the data of batch
       long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
+      List<Record> records = new ArrayList<>();
       for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
         records.add(
             new Record(

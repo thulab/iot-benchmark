@@ -587,10 +587,6 @@ public class ConfigDescriptor {
       LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
       result = false;
     }
-    if (config.getBATCH_SIZE_PER_WRITE() % config.getDEVICE_NUM_PER_WRITE() != 0) {
-      LOGGER.error("BATCH_SIZE_PER_WRITE % DEVICE_NUM_PER_WRITE must be zero");
-      result = false;
-    }
     // check insert mode
     int rowNumPerDevice = config.getBATCH_SIZE_PER_WRITE() / config.getDEVICE_NUM_PER_WRITE();
     DBInsertMode insertMode = config.getDbConfig().getDB_SWITCH().getInsertMode();

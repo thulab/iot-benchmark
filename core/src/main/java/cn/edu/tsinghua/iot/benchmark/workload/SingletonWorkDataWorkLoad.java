@@ -74,7 +74,6 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
     } else {
       batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
     }
-    List<Record> records = new ArrayList<>();
     for (int deviceID = 0; deviceID < config.getDEVICE_NUM_PER_WRITE(); deviceID++) {
       long curLoop = insertLoop.getAndIncrement();
       // create schema of batch
@@ -92,6 +91,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
               sensors,
               config.getDEVICE_TAGS());
       // create data of batch
+      List<Record> records = new ArrayList<>();
       for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
         long stepOffset =
             (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
