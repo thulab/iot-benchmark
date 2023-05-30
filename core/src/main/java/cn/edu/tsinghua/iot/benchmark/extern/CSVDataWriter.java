@@ -48,11 +48,11 @@ public class CSVDataWriter extends DataWriter {
           Files.createDirectories(dirFile);
         }
         Path dataFile =
-                Paths.get(
-                        FileUtils.union(
-                                config.getFILE_PATH(),
-                                device,
-                                "BigBatch_" + (insertLoopIndex / config.getBIG_BATCH_SIZE()) + ".csv"));
+            Paths.get(
+                FileUtils.union(
+                    config.getFILE_PATH(),
+                    device,
+                    "BigBatch_" + (insertLoopIndex / config.getBIG_BATCH_SIZE()) + ".csv"));
         if (!Files.exists(dataFile)) {
           Files.createFile(dataFile);
         }
@@ -63,9 +63,9 @@ public class CSVDataWriter extends DataWriter {
         }
         sensorLine.append("\n");
         Files.write(
-                dataFile,
-                sensorLine.toString().getBytes(StandardCharsets.UTF_8),
-                StandardOpenOption.APPEND);
+            dataFile,
+            sensorLine.toString().getBytes(StandardCharsets.UTF_8),
+            StandardOpenOption.APPEND);
         for (Record record : batch.getRecords()) {
           StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
           for (int i = 0; i < sensors.size(); i++) {
@@ -78,7 +78,9 @@ public class CSVDataWriter extends DataWriter {
           }
           line.append("\n");
           Files.write(
-                  dataFile, line.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+              dataFile,
+              line.toString().getBytes(StandardCharsets.UTF_8),
+              StandardOpenOption.APPEND);
         }
       } catch (IOException ioException) {
         LOGGER.error("Write batch Error!" + batch);
