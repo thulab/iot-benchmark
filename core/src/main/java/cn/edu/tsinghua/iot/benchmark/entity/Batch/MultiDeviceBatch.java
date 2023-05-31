@@ -80,8 +80,10 @@ public class MultiDeviceBatch implements IBatch {
   @Override
   public long pointNum() {
     long pointNum = 0;
-    for (Record record : recordLists.get(index)) {
-      pointNum += record.size();
+    for (List<Record> recordList : recordLists) {
+      for (Record record : recordList) {
+        pointNum += record.size();
+      }
     }
     return pointNum;
   }
