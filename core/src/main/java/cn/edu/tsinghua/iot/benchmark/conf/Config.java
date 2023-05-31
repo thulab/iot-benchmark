@@ -1727,6 +1727,7 @@ public class Config {
     configProperties.addProperty("Data Amount", "CLIENT_NUMBER", this.CLIENT_NUMBER);
     configProperties.addProperty("Data Amount", "LOOP", this.LOOP);
     configProperties.addProperty("Data Amount", "BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
+    configProperties.addProperty("Data Amount", "DEVICE_NUM_PER_WRITE", this.DEVICE_NUM_PER_WRITE);
     configProperties.addProperty("Data Amount", "START_TIME", this.START_TIME);
     configProperties.addProperty("Data Amount", "POINT_STEP", this.POINT_STEP);
     configProperties.addProperty("Data Amount", "OP_MIN_INTERVAL", this.OP_MIN_INTERVAL);
