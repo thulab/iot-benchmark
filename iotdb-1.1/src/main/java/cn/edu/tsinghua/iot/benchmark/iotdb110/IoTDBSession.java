@@ -45,7 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -379,7 +378,8 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public void cleanup() {
     try {
-      session.executeNonQueryStatement("drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+      session.executeNonQueryStatement(
+          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {

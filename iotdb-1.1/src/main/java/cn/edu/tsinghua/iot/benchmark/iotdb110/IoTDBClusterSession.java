@@ -411,7 +411,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   @Override
   public void cleanup() {
     try {
-      sessionPool.executeNonQueryStatement("drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+      sessionPool.executeNonQueryStatement(
+          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
