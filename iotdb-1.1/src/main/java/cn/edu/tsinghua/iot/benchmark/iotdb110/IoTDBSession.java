@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -378,7 +379,22 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public void cleanup() {
     try {
+
+//      List<String> templates = session.showAllTemplates();
+//      System.out.println(templates);
+      // DEACTIVATE schema template BenchmarkTemplate from root.**
+//      for (String template : templates) {
+      session.executeNonQueryStatement("deactivate schema template " + config.getTEMPLATE_NAME() + " from root." + config.getDbConfig().getDB_NAME() + ".**");
+      LOGGER.info("1");
+//      session.executeNonQueryStatement("unset schema template " + config.getTEMPLATE_NAME() + " from root." + config.getDbConfig().getDB_NAME() + ".**");
+//      LOGGER.info("2");
+      session.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
+      LOGGER.info("3");
+//      LOGGER.info("Schema template ");
       session.executeNonQueryStatement(DELETE_SERIES_SQL);
+//      }
+//      session.deleteDatabase();
+//      session.deactivateTemplateOn();
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
