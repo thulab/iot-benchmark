@@ -205,10 +205,12 @@ public class IoTDB implements IDatabase {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
         schemaBarrier.await();
-        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-          activateTemplate(pair.getKey(), pair.getValue());
+        if (config.isTEMPLATE()) {
+          for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+            activateTemplate(pair.getKey(), pair.getValue());
+          }
+          activateTemplateBarrier.await();
         }
-        activateTemplateBarrier.await();
         if (!config.isTEMPLATE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             registerTimeseries(pair.getKey(), pair.getValue());
