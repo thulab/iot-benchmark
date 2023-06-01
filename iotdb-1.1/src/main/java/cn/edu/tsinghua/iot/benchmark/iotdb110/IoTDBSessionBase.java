@@ -37,6 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class IoTDBSessionBase extends IoTDB {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBSessionBase.class);
@@ -161,5 +164,15 @@ public class IoTDBSessionBase extends IoTDB {
       default:
         throw new IllegalStateException("Unexpected INSERT_MODE value: " + insertMode);
     }
+  }
+
+  Status waitFuture() {
+    try {
+      future.get(config.getWRITE_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      future.cancel(true);
+      return new Status(false, 0, e, e.toString());
+    }
+    return new Status(true);
   }
 }
