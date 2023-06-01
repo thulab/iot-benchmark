@@ -140,7 +140,16 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public void cleanup() {
     try {
-      sessionWrapper.executeNonQueryStatement(DELETE_SERIES_SQL);
+      sessionWrapper.executeNonQueryStatement(
+          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
+
+    try {
+      sessionWrapper.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {

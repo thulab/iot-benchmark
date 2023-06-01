@@ -146,4 +146,24 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
     this.service.shutdown();
   }
+
+  @Override
+  public void cleanup() {
+    try {
+      sessionPool.executeNonQueryStatement(
+          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
+
+    try {
+      sessionPool.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
+  }
 }
