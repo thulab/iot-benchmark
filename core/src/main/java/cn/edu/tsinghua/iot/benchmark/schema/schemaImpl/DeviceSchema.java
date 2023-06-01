@@ -215,4 +215,8 @@ public class DeviceSchema implements Cloneable {
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
   }
+
+  public String getDevicePath() {
+    return group + "." + device;
+  }
 }

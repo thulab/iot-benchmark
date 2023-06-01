@@ -225,6 +225,8 @@ public class Config {
   private int IOTDB_SESSION_POOL_SIZE = 50;
   /** Whether to use templates */
   private boolean TEMPLATE = false;
+  /** Name of template */
+  private String TEMPLATE_NAME = "BenchmarkTemplate";
   /** Whether to use vector */
   private boolean VECTOR = false;
   /** whether to use debug in iotdb-0.13 */
@@ -1024,6 +1026,14 @@ public class Config {
 
   public void setTEMPLATE(boolean TEMPLATE) {
     this.TEMPLATE = TEMPLATE;
+  }
+
+  public String getTEMPLATE_NAME() {
+    return TEMPLATE_NAME;
+  }
+
+  public void setTEMPLATE_NAME(String TEMPLATE_NAME) {
+    this.TEMPLATE_NAME = TEMPLATE_NAME;
   }
 
   public boolean isVECTOR() {

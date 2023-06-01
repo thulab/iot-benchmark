@@ -78,13 +78,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
-  private static final String TEMPLATE_NAME = "BenchmarkTemplate";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
@@ -93,6 +93,8 @@ public class IoTDB implements IDatabase {
   protected static final CyclicBarrier templateBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier activateTemplateBarrier =
+      new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
@@ -203,6 +205,12 @@ public class IoTDB implements IDatabase {
           registerStorageGroups(pair.getKey(), pair.getValue());
         }
         schemaBarrier.await();
+        if (config.isTEMPLATE()) {
+          for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+            activateTemplate(pair.getKey(), pair.getValue());
+          }
+          activateTemplateBarrier.await();
+        }
         if (!config.isTEMPLATE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             registerTimeseries(pair.getKey(), pair.getValue());
@@ -232,9 +240,9 @@ public class IoTDB implements IDatabase {
     Template template = null;
     if (config.isTEMPLATE()) {
       if (config.isVECTOR()) {
-        template = new Template(TEMPLATE_NAME, true);
+        template = new Template(config.getTEMPLATE_NAME(), true);
       } else {
-        template = new Template(TEMPLATE_NAME, false);
+        template = new Template(config.getTEMPLATE_NAME(), false);
       }
       try {
         for (Sensor sensor : deviceSchema.getSensors()) {
@@ -261,6 +269,7 @@ public class IoTDB implements IDatabase {
       metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
       // do nothing
+      e.printStackTrace();
     }
   }
 
@@ -282,11 +291,23 @@ public class IoTDB implements IDatabase {
       try {
         metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
         if (config.isTEMPLATE()) {
-          metaSession.setSchemaTemplate(TEMPLATE_NAME, ROOT_SERIES_NAME + "." + group);
+          metaSession.setSchemaTemplate(config.getTEMPLATE_NAME(), ROOT_SERIES_NAME + "." + group);
         }
       } catch (Exception e) {
         handleRegisterException(e);
       }
+    }
+  }
+
+  private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
+    try {
+      List<String> devicePaths =
+          schemaList.stream()
+              .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
+              .collect(Collectors.toList());
+      metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
+    } catch (Throwable t) {
+      t.printStackTrace();
     }
   }
 
