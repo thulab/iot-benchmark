@@ -19,8 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
-import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -29,6 +27,9 @@ import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
+
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -37,53 +38,95 @@ import java.util.concurrent.Executors;
 public class IoTDBSession extends IoTDBSessionBase {
   private class BenchmarkSession implements IBenchmarkSession {
     private final Session session;
+
     public BenchmarkSession(Session session) {
       this.session = session;
     }
+
     @Override
     public void open() throws IoTDBConnectionException {
       session.open();
     }
+
     @Override
     public void open(boolean enableRPCCompression) throws IoTDBConnectionException {
       session.open(enableRPCCompression);
     }
+
     @Override
-    public void insertRecord(String deviceId, long time, List<String> measurements, List<TSDataType> types, List<Object> values) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertRecord(
+        String deviceId,
+        long time,
+        List<String> measurements,
+        List<TSDataType> types,
+        List<Object> values)
+        throws IoTDBConnectionException, StatementExecutionException {
       session.insertRecord(deviceId, time, measurements, types, values);
     }
+
     @Override
-    public void insertAlignedRecord(String multiSeriesId, long time, List<String> multiMeasurementComponents, List<TSDataType> types, List<Object> values) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertAlignedRecord(
+        String multiSeriesId,
+        long time,
+        List<String> multiMeasurementComponents,
+        List<TSDataType> types,
+        List<Object> values)
+        throws IoTDBConnectionException, StatementExecutionException {
       session.insertAlignedRecord(multiSeriesId, time, multiMeasurementComponents, types, values);
     }
+
     @Override
-    public void insertRecords(List<String> deviceIds, List<Long> times, List<List<String>> measurementsList, List<List<TSDataType>> typesList, List<List<Object>> valuesList) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertRecords(
+        List<String> deviceIds,
+        List<Long> times,
+        List<List<String>> measurementsList,
+        List<List<TSDataType>> typesList,
+        List<List<Object>> valuesList)
+        throws IoTDBConnectionException, StatementExecutionException {
       session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
     }
+
     @Override
-    public void insertAlignedRecords(List<String> multiSeriesIds, List<Long> times, List<List<String>> multiMeasurementComponentsList, List<List<TSDataType>> typesList, List<List<Object>> valuesList) throws IoTDBConnectionException, StatementExecutionException {
-      session.insertAlignedRecords(multiSeriesIds, times, multiMeasurementComponentsList, typesList, valuesList);
+    public void insertAlignedRecords(
+        List<String> multiSeriesIds,
+        List<Long> times,
+        List<List<String>> multiMeasurementComponentsList,
+        List<List<TSDataType>> typesList,
+        List<List<Object>> valuesList)
+        throws IoTDBConnectionException, StatementExecutionException {
+      session.insertAlignedRecords(
+          multiSeriesIds, times, multiMeasurementComponentsList, typesList, valuesList);
     }
+
     @Override
-    public void insertTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
       session.insertTablet(tablet);
     }
+
     @Override
-    public void insertAlignedTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertAlignedTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
       session.insertAlignedTablet(tablet);
     }
+
     @Override
-    public ISessionDataSet executeQueryStatement(String sql) throws IoTDBConnectionException, StatementExecutionException {
+    public ISessionDataSet executeQueryStatement(String sql)
+        throws IoTDBConnectionException, StatementExecutionException {
       return new SessionDataSet1(session.executeQueryStatement(sql));
     }
+
     @Override
     public void close() throws IoTDBConnectionException {
       session.close();
     }
+
     @Override
-    public void executeNonQueryStatement(String deleteSeriesSql) throws IoTDBConnectionException, StatementExecutionException {
+    public void executeNonQueryStatement(String deleteSeriesSql)
+        throws IoTDBConnectionException, StatementExecutionException {
       session.executeNonQueryStatement(deleteSeriesSql);
     }
+
     private class SessionDataSet1 implements ISessionDataSet {
       SessionDataSet sessionDataSet;
 
@@ -111,16 +154,16 @@ public class IoTDBSession extends IoTDBSessionBase {
   public IoTDBSession(DBConfig dbConfig) {
     super(dbConfig);
     LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
-    sessionWrapper = new BenchmarkSession(
+    sessionWrapper =
+        new BenchmarkSession(
             new Session.Builder()
-                    .host(dbConfig.getHOST().get(0))
-                    .port(Integer.parseInt(dbConfig.getPORT().get(0)))
-                    .username(dbConfig.getUSERNAME())
-                    .password(dbConfig.getPASSWORD())
-                    .enableRedirection(true)
-                    .version(Version.V_1_0)
-                    .build()
-    );
+                .host(dbConfig.getHOST().get(0))
+                .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+                .username(dbConfig.getUSERNAME())
+                .password(dbConfig.getPASSWORD())
+                .enableRedirection(true)
+                .version(Version.V_1_0)
+                .build());
   }
 
   @Override

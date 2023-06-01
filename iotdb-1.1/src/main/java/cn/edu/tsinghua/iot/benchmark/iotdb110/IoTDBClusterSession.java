@@ -19,8 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
-import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.iotdb.isession.pool.SessionDataSetWrapper;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -28,6 +26,9 @@ import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
+
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -37,59 +38,99 @@ import java.util.concurrent.Executors;
 public class IoTDBClusterSession extends IoTDBSessionBase {
   private class BenchmarkSessionPool implements IBenchmarkSession {
     private final SessionPool sessionPool;
+
     public BenchmarkSessionPool(SessionPool sessionPool) {
       this.sessionPool = sessionPool;
     }
+
     @Override
-    public void open() {
-      
-    }
+    public void open() {}
+
     @Override
-    public void open(boolean enableRPCCompression) {
-      
-    }
+    public void open(boolean enableRPCCompression) {}
+
     @Override
-    public void insertRecord(String deviceId, long time, List<String> measurements, List<TSDataType> types, List<Object> values) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertRecord(
+        String deviceId,
+        long time,
+        List<String> measurements,
+        List<TSDataType> types,
+        List<Object> values)
+        throws IoTDBConnectionException, StatementExecutionException {
       sessionPool.insertRecord(deviceId, time, measurements, types, values);
     }
+
     @Override
-    public void insertAlignedRecord(String multiSeriesId, long time, List<String> multiMeasurementComponents, List<TSDataType> types, List<Object> values) throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertAlignedRecord(multiSeriesId, time, multiMeasurementComponents, types, values);
+    public void insertAlignedRecord(
+        String multiSeriesId,
+        long time,
+        List<String> multiMeasurementComponents,
+        List<TSDataType> types,
+        List<Object> values)
+        throws IoTDBConnectionException, StatementExecutionException {
+      sessionPool.insertAlignedRecord(
+          multiSeriesId, time, multiMeasurementComponents, types, values);
     }
+
     @Override
-    public void insertRecords(List<String> deviceIds, List<Long> times, List<List<String>> measurementsList, List<List<TSDataType>> typesList, List<List<Object>> valuesList) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertRecords(
+        List<String> deviceIds,
+        List<Long> times,
+        List<List<String>> measurementsList,
+        List<List<TSDataType>> typesList,
+        List<List<Object>> valuesList)
+        throws IoTDBConnectionException, StatementExecutionException {
       sessionPool.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
     }
+
     @Override
-    public void insertAlignedRecords(List<String> multiSeriesIds, List<Long> times, List<List<String>> multiMeasurementComponentsList, List<List<TSDataType>> typesList, List<List<Object>> valuesList) throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertAlignedRecords(multiSeriesIds, times, multiMeasurementComponentsList, typesList, valuesList);
+    public void insertAlignedRecords(
+        List<String> multiSeriesIds,
+        List<Long> times,
+        List<List<String>> multiMeasurementComponentsList,
+        List<List<TSDataType>> typesList,
+        List<List<Object>> valuesList)
+        throws IoTDBConnectionException, StatementExecutionException {
+      sessionPool.insertAlignedRecords(
+          multiSeriesIds, times, multiMeasurementComponentsList, typesList, valuesList);
     }
+
     @Override
-    public void insertTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
       sessionPool.insertTablet(tablet);
     }
+
     @Override
-    public void insertAlignedTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
+    public void insertAlignedTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
       sessionPool.insertAlignedTablet(tablet);
     }
+
     @Override
-    public ISessionDataSet executeQueryStatement(String sql) throws IoTDBConnectionException, StatementExecutionException {
+    public ISessionDataSet executeQueryStatement(String sql)
+        throws IoTDBConnectionException, StatementExecutionException {
       return new SessionDataSet2(sessionPool.executeQueryStatement(sql));
     }
+
     @Override
     public void close() {
       sessionPool.close();
     }
+
     @Override
-    public void executeNonQueryStatement(String deleteSeriesSql) throws IoTDBConnectionException, StatementExecutionException {
+    public void executeNonQueryStatement(String deleteSeriesSql)
+        throws IoTDBConnectionException, StatementExecutionException {
       sessionPool.executeNonQueryStatement(deleteSeriesSql);
     }
+
     private class SessionDataSet2 implements ISessionDataSet {
       SessionDataSetWrapper sessionDataSet;
 
       public SessionDataSet2(SessionDataSetWrapper sessionDataSetWrapper) {
         this.sessionDataSet = sessionDataSetWrapper;
       }
+
       @Override
       public RowRecord next() throws IoTDBConnectionException, StatementExecutionException {
         return sessionDataSet.next();
@@ -106,6 +147,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       }
     }
   }
+
   private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
 
   public IoTDBClusterSession(DBConfig dbConfig) {
@@ -115,15 +157,15 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-    sessionWrapper = new BenchmarkSessionPool(
-        new SessionPool(
-            hostUrls,
-            dbConfig.getUSERNAME(),
-            dbConfig.getPASSWORD(),
-            MAX_SESSION_CONNECTION_PER_CLIENT,
-            config.isENABLE_THRIFT_COMPRESSION(),
-            true)
-    );
+    sessionWrapper =
+        new BenchmarkSessionPool(
+            new SessionPool(
+                hostUrls,
+                dbConfig.getUSERNAME(),
+                dbConfig.getPASSWORD(),
+                MAX_SESSION_CONNECTION_PER_CLIENT,
+                config.isENABLE_THRIFT_COMPRESSION(),
+                true));
   }
 
   @Override

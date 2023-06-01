@@ -19,6 +19,16 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.iotdb.tsfile.read.common.Field;
+import org.apache.iotdb.tsfile.read.common.RowRecord;
+import org.apache.iotdb.tsfile.utils.Binary;
+import org.apache.iotdb.tsfile.write.record.Tablet;
+import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
+
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
@@ -34,15 +44,6 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
-import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-import org.apache.iotdb.tsfile.read.common.Field;
-import org.apache.iotdb.tsfile.read.common.RowRecord;
-import org.apache.iotdb.tsfile.utils.Binary;
-import org.apache.iotdb.tsfile.write.record.Tablet;
-import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 import org.slf4j.Logger;
 
 import java.sql.SQLException;
@@ -69,18 +70,19 @@ public class IoTDBSessionBase extends IoTDB {
 
   public Status insertOneBatchByTablet(Batch batch) {
     Tablet tablet = genTablet(batch);
-    future = service.submit(
-        () -> {
-          try {
-            if (config.isVECTOR()) {
-              sessionWrapper.insertAlignedTablet(tablet);
-            } else {
-              sessionWrapper.insertTablet(tablet);
-            }
-          } catch (IoTDBConnectionException | StatementExecutionException e) {
-            LOGGER.error("insert tablet failed", e);
-          }
-        });
+    future =
+        service.submit(
+            () -> {
+              try {
+                if (config.isVECTOR()) {
+                  sessionWrapper.insertAlignedTablet(tablet);
+                } else {
+                  sessionWrapper.insertTablet(tablet);
+                }
+              } catch (IoTDBConnectionException | StatementExecutionException e) {
+                LOGGER.error("insert tablet failed", e);
+              }
+            });
     return waitFuture();
   }
 
@@ -136,18 +138,21 @@ public class IoTDBSessionBase extends IoTDB {
           constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
     }
-    future = service.submit(
-        () -> {
-          try {
-            if (config.isVECTOR()) {
-              sessionWrapper.insertAlignedRecords(deviceIds, times, measurementsList, typesList, valuesList);
-            } else {
-              sessionWrapper.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
-            }
-          } catch (IoTDBConnectionException | StatementExecutionException e) {
-            LOGGER.error("insert records failed", e);
-          }
-        });
+    future =
+        service.submit(
+            () -> {
+              try {
+                if (config.isVECTOR()) {
+                  sessionWrapper.insertAlignedRecords(
+                      deviceIds, times, measurementsList, typesList, valuesList);
+                } else {
+                  sessionWrapper.insertRecords(
+                      deviceIds, times, measurementsList, typesList, valuesList);
+                }
+              } catch (IoTDBConnectionException | StatementExecutionException e) {
+                LOGGER.error("insert records failed", e);
+              }
+            });
     return waitFuture();
   }
 
