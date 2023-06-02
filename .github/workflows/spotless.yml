@@ -1,7 +1,20 @@
-name: spotless
-on: [push]
+name: spotless-check
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
-  have_a_try:
+  spotless-check:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "hello world!"
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          path: iot-benchmark
+      - name: spotless-check
+        run: |
+          cd ${{ github.workspace }}/iot-benchmark
+          mvn spotless:check
