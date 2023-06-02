@@ -1,0 +1,7 @@
+name: spotless
+on: [push]
+jobs:
+  have_a_try:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello world!"
