@@ -19,14 +19,13 @@
 
 package cn.edu.tsinghua.iot.benchmark.tsdb;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
@@ -74,7 +73,14 @@ public interface IDatabase {
    * @param batch universal insertion data structure
    * @return status which contains successfully executed flag, error message and so on.
    */
-  Status insertOneBatch(Batch batch) throws DBConnectException;
+  Status insertOneBatch(IBatch batch) throws DBConnectException;
+
+  default Status insertOneBatchWithCheck(IBatch batch) throws Exception {
+    batch.reset();
+    Status status = insertOneBatch(batch);
+    batch.finishCheck();
+    return status;
+  }
 
   /**
    * Query data of one or multiple sensors at a precise timestamp. e.g. select v1... from data where
@@ -162,7 +168,7 @@ public interface IDatabase {
   default Status verificationQuery(VerificationQuery verificationQuery) {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");
     return new Status(false, 0, workloadException, workloadException.getMessage());
-  };
+  }
 
   /** Verification between two database */
   default Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {

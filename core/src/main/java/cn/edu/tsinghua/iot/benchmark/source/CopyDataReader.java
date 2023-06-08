@@ -19,7 +19,8 @@
 
 package cn.edu.tsinghua.iot.benchmark.source;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
@@ -41,7 +42,7 @@ public class CopyDataReader extends DataReader {
   private static final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
   private Iterator<String[]> iterator = null;
   private long loopTimes = config.getLOOP();
-  private Batch copyBatch = null;
+  private IBatch batch = null;
   private long deltaTimeStamp = 0;
   private DeviceSchema deviceSchema = null;
   private List<Sensor> sensors = null;
@@ -135,7 +136,7 @@ public class CopyDataReader extends DataReader {
       exception.printStackTrace();
       LOGGER.error("Failed to read file:" + exception.getMessage());
     }
-    copyBatch = new Batch(deviceSchema, records);
+    batch = new Batch(deviceSchema, records);
     deltaTimeStamp = curtimestamp - begin;
   }
 
@@ -145,15 +146,15 @@ public class CopyDataReader extends DataReader {
   }
 
   @Override
-  public Batch nextBatch() {
+  public IBatch nextBatch() {
     loopTimes -= 1;
     // TODO add white noise to differ the Batch
     // We need to change the timestamp
     if (!config.isIS_ADD_ANOMALY()) {
-      for (Record record : copyBatch.getRecords()) {
+      for (Record record : batch.getRecords()) {
         record.setTimestamp(record.getTimestamp() + deltaTimeStamp);
       }
-      return copyBatch;
+      return batch;
     } else {
       List<Record> anomalyRecords = new ArrayList<>();
       // 特定长度的添加异常值

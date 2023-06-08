@@ -23,7 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.client.generate.RecordComparator;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
@@ -31,7 +31,6 @@ import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
@@ -84,13 +83,13 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
+  public Status insertOneBatch(IBatch batch) throws DBConnectException {
     Status status = null;
     Operation operation = Operation.INGESTION;
     try {
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.insertOneBatch(batch);
+        status = database.insertOneBatchWithCheck(batch);
         status = measureOneBatch(status, operation, batch, start);
       }
     } catch (DBConnectException ex) {
@@ -111,7 +110,7 @@ public class DBWrapper implements IDatabase {
   }
 
   /** Measure one batch */
-  private Status measureOneBatch(Status status, Operation operation, Batch batch, long start) {
+  private Status measureOneBatch(Status status, Operation operation, IBatch batch, long start) {
     long end = System.nanoTime();
     status.setTimeCost(end - start);
     if (status.isOk()) {

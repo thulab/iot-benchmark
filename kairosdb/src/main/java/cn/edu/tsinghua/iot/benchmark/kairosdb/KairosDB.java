@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.kairosdb;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
@@ -29,7 +29,6 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
@@ -161,7 +160,7 @@ public class KairosDB implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     LinkedList<KairosDataModel> models = new LinkedList<>();
     for (Record record : batch.getRecords()) {
       models.addAll(

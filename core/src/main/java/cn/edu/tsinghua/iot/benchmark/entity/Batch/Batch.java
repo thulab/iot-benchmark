@@ -17,8 +17,9 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.entity;
+package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -30,8 +31,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Batch {
-
+public class Batch implements IBatch {
   private DeviceSchema deviceSchema;
   private List<Record> records;
   private int colIndex = -1;
@@ -45,15 +45,7 @@ public class Batch {
     this.records = records;
   }
 
-  public void add(long timestamp, List<Object> values) {
-    records.add(new Record(timestamp, values));
-  }
-
-  /**
-   * use the row protocol which means data are organized in List[timestamp, List[value]]
-   *
-   * @return data point number in this batch
-   */
+  @Override
   public long pointNum() {
     long pointNum = 0;
     for (Record record : records) {
@@ -80,7 +72,7 @@ public class Batch {
    *
    * @param inputStream input stream
    */
-  public static Batch deserialize(ByteArrayInputStream inputStream) throws IOException {
+  public static IBatch deserialize(ByteArrayInputStream inputStream) throws IOException {
     DeviceSchema deviceSchema = DeviceSchema.deserialize(inputStream);
     int size = ReadWriteIOUtils.readInt(inputStream);
     List<Record> records = new LinkedList<>();
@@ -91,25 +83,44 @@ public class Batch {
     return new Batch(deviceSchema, records);
   }
 
+  @Override
   public DeviceSchema getDeviceSchema() {
     return deviceSchema;
   }
 
-  public void setDeviceSchema(DeviceSchema deviceSchema) {
+  @Override
+  public void addSchemaAndContent(DeviceSchema deviceSchema, List<Record> records) {
     this.deviceSchema = deviceSchema;
+    this.records = records;
   }
 
+  @Override
   public void setColIndex(int colIndex) {
     this.colIndex = colIndex;
   }
 
+  @Override
   public int getColIndex() {
     return colIndex;
   }
 
+  @Override
   public List<Record> getRecords() {
     return records;
   }
+
+  @Override
+  public boolean hasNext() {
+    return false;
+  }
+
+  @Override
+  public void next() {
+    throw new UnsupportedOperationException("SingleDeviceBatch not support next()");
+  }
+
+  @Override
+  public void reset() {}
 
   @Override
   public boolean equals(Object o) {
