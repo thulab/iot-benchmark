@@ -31,7 +31,7 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -87,7 +87,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(IBatch batch) {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
@@ -122,9 +122,8 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByRecords(Batch batch) {
+  public Status insertOneBatchByRecords(IBatch batch) {
     List<String> deviceIds = new ArrayList<>();
-    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
     List<List<TSDataType>> typesList = new ArrayList<>();
@@ -133,14 +132,21 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         batch.getDeviceSchema().getSensors().stream()
             .map(Sensor::getName)
             .collect(Collectors.toList());
-    for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId);
-      times.add(record.getTimestamp());
-      measurementsList.add(sensors);
-      valuesList.add(record.getRecordDataValue());
-      typesList.add(
-          constructDataTypes(
-              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+    while (true) {
+      String deviceId = getDevicePath(batch.getDeviceSchema());
+      for (Record record : batch.getRecords()) {
+        deviceIds.add(deviceId);
+        times.add(record.getTimestamp());
+        measurementsList.add(sensors);
+        valuesList.add(record.getRecordDataValue());
+        typesList.add(
+            constructDataTypes(
+                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+      }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
     }
 
     future =
@@ -163,7 +169,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   }
 
   @Override
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
 
     future =
@@ -406,5 +412,25 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       ioTDBConnection.close();
     }
     this.service.shutdown();
+  }
+
+  @Override
+  public void cleanup() {
+    try {
+      sessionPool.executeNonQueryStatement(
+          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
+
+    try {
+      sessionPool.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
+    } catch (StatementExecutionException e) {
+      LOGGER.error("Failed to execute statement:" + e.getMessage());
+    }
   }
 }

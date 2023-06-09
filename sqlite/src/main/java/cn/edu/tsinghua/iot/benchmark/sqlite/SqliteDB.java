@@ -2,7 +2,7 @@ package cn.edu.tsinghua.iot.benchmark.sqlite;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
@@ -139,7 +139,7 @@ public class SqliteDB implements IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   @Override
-  public Status insertOneBatch(Batch batch) throws DBConnectException {
+  public Status insertOneBatch(IBatch batch) throws DBConnectException {
     DeviceSchema deviceSchema = batch.getDeviceSchema();
     long idPredix = getId(deviceSchema.getGroup(), deviceSchema.getDevice(), null);
     try {

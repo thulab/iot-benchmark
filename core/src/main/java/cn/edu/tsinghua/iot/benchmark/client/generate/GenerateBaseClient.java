@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.client.generate;
 
 import cn.edu.tsinghua.iot.benchmark.client.DataClient;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
   }
 
   /** Check whether write batch */
-  protected boolean checkBatch(Batch batch) {
+  protected boolean checkBatch(IBatch batch) {
     if (batch.getDeviceSchema().getDeviceId() > actualDeviceFloor) {
       return false;
     }
