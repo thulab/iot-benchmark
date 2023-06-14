@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.tdengine;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
@@ -184,7 +184,7 @@ public class TDengine implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     try (Statement statement = connection.createStatement()) {
       statement.execute(String.format(USE_DB, testDatabaseName));
       StringBuilder builder = new StringBuilder();
