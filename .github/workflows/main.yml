@@ -19,10 +19,10 @@ jobs:
     steps:
       # checkout iot-benchmark
       - name: checkout thulab/iot-benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
         with:
           path: iot-benchmark
-          repository: 'xiaoyekanren/fork-iot-benchmark'
+          repository: 'thulab/iot-benchmark'
           ref: 'master'
           fetch-depth: 0
       # collect iot-benchmark
@@ -59,7 +59,7 @@ jobs:
           java-version: ${{ matrix.java_version }}
 #      # checkout iotdb
 #      - name: Checkout iotdb-1.0
-#        uses: actions/checkout@v2
+#        uses: actions/checkout@master
 #        with:
 #          path: iotdb-1.0
 #          repository: 'apache/iotdb'
