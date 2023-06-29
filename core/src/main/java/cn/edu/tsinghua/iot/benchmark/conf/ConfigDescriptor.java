@@ -33,9 +33,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Properties;
 
-import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORD;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
-import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
 public class ConfigDescriptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
@@ -593,8 +591,7 @@ public class ConfigDescriptor {
     if (config.getDbConfig().getDB_SWITCH().getType() == DBType.IoTDB) {
       DBInsertMode insertMode = config.getDbConfig().getDB_SWITCH().getInsertMode();
       if (config.getDEVICE_NUM_PER_WRITE() != 1 && insertMode != INSERT_USE_SESSION_RECORDS) {
-        LOGGER.error(
-                "The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
+        LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
         result = false;
       }
     }
