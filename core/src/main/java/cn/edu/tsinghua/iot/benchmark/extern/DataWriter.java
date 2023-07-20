@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.extern;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 
 public abstract class DataWriter {
 
@@ -36,5 +36,5 @@ public abstract class DataWriter {
    *
    * @param insertLoopIndex loop index of batch
    */
-  public abstract boolean writeBatch(Batch batch, long insertLoopIndex);
+  public abstract boolean writeBatch(IBatch batch, long insertLoopIndex) throws Exception;
 }

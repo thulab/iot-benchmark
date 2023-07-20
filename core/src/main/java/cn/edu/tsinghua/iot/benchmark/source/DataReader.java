@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.source;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 
 import java.util.List;
 
@@ -48,5 +48,5 @@ public abstract class DataReader {
   public abstract boolean hasNextBatch();
 
   /** convert the cachedLines to Record list */
-  public abstract Batch nextBatch();
+  public abstract IBatch nextBatch();
 }
