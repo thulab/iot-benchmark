@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.extern.DataWriter;
 
 import java.util.concurrent.CountDownLatch;
@@ -54,7 +54,7 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
         int innerLoop =
             config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
         for (int j = 0; j < innerLoop; j++) {
-          Batch batch = dataWorkLoad.getOneBatch();
+          IBatch batch = dataWorkLoad.getOneBatch();
           if (checkBatch(batch)) {
             dataWriter.writeBatch(batch, insertLoopIndex);
           }

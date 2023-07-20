@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.real;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 
 import java.util.concurrent.CountDownLatch;
@@ -36,11 +36,11 @@ public class RealDataSetWriteClient extends RealBaseClient {
   protected void doTest() {
     while (true) {
       try {
-        Batch batch = dataWorkLoad.getOneBatch();
+        IBatch batch = dataWorkLoad.getOneBatch();
         if (batch == null) {
           break;
         }
-        dbWrapper.insertOneBatch(batch);
+        dbWrapper.insertOneBatchWithCheck(batch);
         loopIndex++;
         if (isStop.get()) {
           break;

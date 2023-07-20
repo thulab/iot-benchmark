@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.tsdb.self;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -64,7 +64,7 @@ public class SelfCheck implements IDatabase {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     String deviceName = batch.getDeviceSchema().getDevice();
     long maxTime = deviceNameToMaxTime.getOrDefault(deviceName, 0L);
     long totalPoint = deviceNameToTotalPoints.getOrDefault(deviceName, 0L);

@@ -22,13 +22,11 @@ package cn.edu.tsinghua.iot.benchmark.workload;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +57,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final long OUT_OF_ORDER_BASE =
       (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
   private final ProbTool probTool = new ProbTool();
-
-  protected List<DeviceSchema> deviceSchemas = new ArrayList<>();
   protected int deviceSchemaSize = 0;
 
   @Override
@@ -69,20 +65,19 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Add one row into batch, row contains data from all sensors */
-  protected void addOneRowIntoBatch(Batch batch, long stepOffset) throws WorkloadException {
+  protected List<Object> generateOneRow(int colIndex, long stepOffset) throws WorkloadException {
     List<Object> values = new ArrayList<>();
-    long currentTimestamp = getCurrentTimestamp(stepOffset);
-    if (batch.getColIndex() == -1) {
+    if (colIndex == -1) {
       for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
         values.add(
             workloadValues[i][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
       }
     } else {
       values.add(
-          workloadValues[batch.getColIndex()][
+          workloadValues[colIndex][
               (int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
     }
-    batch.add(currentTimestamp, values);
+    return values;
   }
 
   /** Get timestamp according to stepOffset */

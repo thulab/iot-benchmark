@@ -30,17 +30,17 @@ jobs:
         id: bm-info
         run: |
           cd ${{ github.workspace }}/iot-benchmark
-          echo "::set-output name=commit_id::$( git rev-parse HEAD )"
-          echo "::set-output name=commit_id_short::$( git rev-parse --short HEAD )"
-          echo "::set-output name=commit_time::$(git log -n1 --pretty='format:%cd' --date=iso)"
-          echo "::set-output name=commit_user::$(git log | head -n 2 | tail -n 1 | cut -d ' ' -f 2)"
+          echo "commit_id=$( git rev-parse HEAD )" >> "$GITHUB_OUTPUT"
+          echo "commit_id_short=$( git rev-parse --short HEAD )" >> "$GITHUB_OUTPUT"
+          echo "commit_time=$(git log -n1 --pretty='format:%cd' --date=iso)" >> "$GITHUB_OUTPUT"
+          echo "commit_user=$(git log | head -n 2 | tail -n 1 | cut -d ' ' -f 2)" >> "$GITHUB_OUTPUT"
           echo $(git rev-parse HEAD)
       # check update
       - name: check
         id: check-old-commit
         run: |
           cd ${{ github.workspace }}/iot-benchmark
-          echo "::set-output name=last_commit::$(cat .github/release_history.txt | tail -n 1)"
+          echo "last_commit=$(cat .github/release_history.txt | tail -n 1)" >> "$GITHUB_OUTPUT"
           echo $(cat .github/release_history.txt | tail -n 1)
       # compare
       - name: check check's results
@@ -80,7 +80,8 @@ jobs:
       - name: collect common info
         shell: bash
         id: sys-info
-        run: echo "::set-output name=date::$(date +"%Y-%m-%d")"
+        run: |
+          echo "date=$(date +"%Y-%m-%d")" >> "$GITHUB_OUTPUT"
       # create release
       - name: Create release
         id: create-release

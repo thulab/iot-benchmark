@@ -19,20 +19,10 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
-import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-import org.apache.iotdb.tsfile.read.common.Field;
-import org.apache.iotdb.tsfile.read.common.RowRecord;
-import org.apache.iotdb.tsfile.utils.Binary;
-import org.apache.iotdb.tsfile.write.record.Tablet;
-import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
-
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -44,9 +34,17 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
+import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.iotdb.tsfile.read.common.Field;
+import org.apache.iotdb.tsfile.read.common.RowRecord;
+import org.apache.iotdb.tsfile.utils.Binary;
+import org.apache.iotdb.tsfile.write.record.Tablet;
+import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 import org.slf4j.Logger;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +66,7 @@ public class IoTDBSessionBase extends IoTDB {
     super(dbConfig);
   }
 
-  public Status insertOneBatchByTablet(Batch batch) {
+  public Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
     future =
         service.submit(
@@ -86,7 +84,7 @@ public class IoTDBSessionBase extends IoTDB {
     return waitFuture();
   }
 
-  public Status insertOneBatchByRecord(Batch batch) {
+  public Status insertOneBatchByRecord(IBatch batch) {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     int failRecord = 0;
     List<String> sensors =
@@ -118,7 +116,7 @@ public class IoTDBSessionBase extends IoTDB {
     }
   }
 
-  public Status insertOneBatchByRecords(Batch batch) {
+  public Status insertOneBatchByRecords(IBatch batch) {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
@@ -241,7 +239,7 @@ public class IoTDBSessionBase extends IoTDB {
   /**
    * Using in verification
    *
-   * @param verificationQuery
+   * @param verificationQuery the query of verification
    */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) {
@@ -253,8 +251,8 @@ public class IoTDBSessionBase extends IoTDB {
     if (records == null || records.size() == 0) {
       return new Status(
           false,
-          new TsdbException("There are no records in verficationQuery."),
-          "There are no records in verficationQuery.");
+          new TsdbException("There are no records in verificationQuery."),
+          "There are no records in verificationQuery.");
     }
 
     StringBuffer sql = new StringBuffer();
@@ -299,7 +297,7 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public Status deviceQuery(DeviceQuery deviceQuery) {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
     String sql =
         getDeviceQuerySql(
@@ -315,8 +313,8 @@ public class IoTDBSessionBase extends IoTDB {
         RowRecord rowRecord = sessionDataSet.next();
         line.add(rowRecord.getTimestamp());
         List<Field> fields = rowRecord.getFields();
-        for (int i = 0; i < fields.size(); i++) {
-          line.add(fields.get(i).getStringValue());
+        for (Field field : fields) {
+          line.add(field.getStringValue());
         }
         result.add(line);
       }
@@ -330,10 +328,10 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws TsdbException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
-    int totalLineNumber = 0;
-    long minTimeStamp = 0, maxTimeStamp = 0;
+    int totalLineNumber;
+    long minTimeStamp, maxTimeStamp;
     try {
       ISessionDataSet sessionDataSet =
           sessionWrapper.executeQueryStatement(getTotalLineNumberSql(deviceSchema));
@@ -358,7 +356,7 @@ public class IoTDBSessionBase extends IoTDB {
     return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
-  protected Tablet genTablet(Batch batch) {
+  protected Tablet genTablet(IBatch batch) {
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
@@ -450,7 +448,7 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  public Status insertOneBatch(Batch batch) {
+  public Status insertOneBatch(IBatch batch) {
     DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
     switch (insertMode) {
       case INSERT_USE_SESSION_TABLET:

@@ -271,6 +271,8 @@ public class Config {
    * * BATCH_SIZE
    */
   private int BATCH_SIZE_PER_WRITE = 10;
+
+  private int DEVICE_NUM_PER_WRITE = 1;
   /** Whether create schema before writing */
   private boolean CREATE_SCHEMA = true;
 
@@ -1104,6 +1106,14 @@ public class Config {
     return BATCH_SIZE_PER_WRITE;
   }
 
+  public void setDEVICE_NUM_PER_WRITE(int DEVICE_NUM_PER_WRITE) {
+    this.DEVICE_NUM_PER_WRITE = DEVICE_NUM_PER_WRITE;
+  }
+
+  public int getDEVICE_NUM_PER_WRITE() {
+    return DEVICE_NUM_PER_WRITE;
+  }
+
   public void setBATCH_SIZE_PER_WRITE(int BATCH_SIZE_PER_WRITE) {
     this.BATCH_SIZE_PER_WRITE = BATCH_SIZE_PER_WRITE;
   }
@@ -1717,6 +1727,7 @@ public class Config {
     configProperties.addProperty("Data Amount", "CLIENT_NUMBER", this.CLIENT_NUMBER);
     configProperties.addProperty("Data Amount", "LOOP", this.LOOP);
     configProperties.addProperty("Data Amount", "BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
+    configProperties.addProperty("Data Amount", "DEVICE_NUM_PER_WRITE", this.DEVICE_NUM_PER_WRITE);
     configProperties.addProperty("Data Amount", "START_TIME", this.START_TIME);
     configProperties.addProperty("Data Amount", "POINT_STEP", this.POINT_STEP);
     configProperties.addProperty("Data Amount", "OP_MIN_INTERVAL", this.OP_MIN_INTERVAL);

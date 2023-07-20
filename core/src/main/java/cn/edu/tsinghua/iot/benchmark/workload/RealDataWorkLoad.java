@@ -19,7 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload;
 
-import cn.edu.tsinghua.iot.benchmark.entity.Batch;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.source.DataReader;
@@ -40,9 +40,9 @@ public class RealDataWorkLoad extends DataWorkLoad {
   }
 
   @Override
-  public Batch getOneBatch() throws WorkloadException {
+  public IBatch getOneBatch() throws WorkloadException {
     if (dataReader.hasNextBatch()) {
-      Batch batch = dataReader.nextBatch();
+      IBatch batch = dataReader.nextBatch();
       if (config.isIS_RECENT_QUERY()) {
         for (Record record : batch.getRecords()) {
           currentTimestamp = Math.max(currentTimestamp, record.getTimestamp());
