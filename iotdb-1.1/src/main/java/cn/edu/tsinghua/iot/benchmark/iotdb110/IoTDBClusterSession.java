@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.iotdb.isession.pool.SessionDataSetWrapper;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -26,18 +28,6 @@ import org.apache.iotdb.session.pool.SessionPool;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
-
-import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
-import cn.edu.tsinghua.iot.benchmark.conf.Config;
-import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
-import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
-import cn.edu.tsinghua.iot.benchmark.entity.Record;
-import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.measurement.Status;
-import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
-import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -48,8 +38,14 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   private class BenchmarkSessionPool implements IBenchmarkSession {
     private final SessionPool sessionPool;
 
-    public BenchmarkSessionPool(SessionPool sessionPool) {
-      this.sessionPool = sessionPool;
+    public BenchmarkSessionPool(List<String> hostUrls, String user, String password, int maxSize, boolean enableCompression, boolean enableRedirection) {
+      this.sessionPool = new SessionPool(
+          hostUrls,
+          dbConfig.getUSERNAME(),
+          dbConfig.getPASSWORD(),
+          MAX_SESSION_CONNECTION_PER_CLIENT,
+          config.isENABLE_THRIFT_COMPRESSION(),
+          true);
     }
 
     @Override
@@ -168,13 +164,12 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
     sessionWrapper =
         new BenchmarkSessionPool(
-            new SessionPool(
                 hostUrls,
                 dbConfig.getUSERNAME(),
                 dbConfig.getPASSWORD(),
                 MAX_SESSION_CONNECTION_PER_CLIENT,
                 config.isENABLE_THRIFT_COMPRESSION(),
-                true));
+                true);
   }
 
   @Override
