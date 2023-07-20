@@ -19,8 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
-import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -29,6 +27,9 @@ import org.apache.iotdb.session.Session;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
+
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
