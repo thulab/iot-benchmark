@@ -117,7 +117,6 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   public Status insertOneBatchByRecords(IBatch batch) {
-    String deviceId = getDevicePath(batch.getDeviceSchema());
     List<String> deviceIds = new ArrayList<>();
     List<Long> times = new ArrayList<>();
     List<List<String>> measurementsList = new ArrayList<>();
@@ -127,14 +126,21 @@ public class IoTDBSessionBase extends IoTDB {
         batch.getDeviceSchema().getSensors().stream()
             .map(Sensor::getName)
             .collect(Collectors.toList());
-    for (Record record : batch.getRecords()) {
-      deviceIds.add(deviceId);
-      times.add(record.getTimestamp());
-      measurementsList.add(sensors);
-      valuesList.add(record.getRecordDataValue());
-      typesList.add(
-          constructDataTypes(
-              batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+    while (true) {
+      String deviceId = getDevicePath(batch.getDeviceSchema());
+      for (Record record : batch.getRecords()) {
+        deviceIds.add(deviceId);
+        times.add(record.getTimestamp());
+        measurementsList.add(sensors);
+        valuesList.add(record.getRecordDataValue());
+        typesList.add(
+            constructDataTypes(
+                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+      }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
     }
     future =
         service.submit(
