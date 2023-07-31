@@ -67,5 +67,8 @@
         <file>
             <source>${maven.multiModuleProjectDirectory}/LICENSE</source>
         </file>
+        <file>
+            <source>${project.build.outputDirectory}/git.properties</source>
+        </file>
     </files>
 </assembly>
