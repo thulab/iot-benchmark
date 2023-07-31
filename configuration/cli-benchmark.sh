@@ -12,14 +12,6 @@ DB=$(grep "^DB_SWITCH" $BENCHMARK_HOME/conf/config.properties)
 
 echo Testing ${DB#*=} ...
 
-# Init ServerMode
-echo Start server system information recording ...
-sed -i "s/logs/server-logs/g" $BENCHMARK_HOME/conf/logback.xml
-sed -i "s/^BENCHMARK_WORK_MODE.*$/BENCHMARK_WORK_MODE=serverMODE/g" $BENCHMARK_HOME/conf/config.properties
-sh $BENCHMARK_HOME/benchmark.sh >/dev/null 2>&1 &
-SERVER_PID=$!
-echo ServerMode started with PID: $SERVER_PID
-
 # Init IoTDB
 # shellcheck disable=SC2039
 if [[ "${DB#*=}" =~ "IoTDB" ]]; then

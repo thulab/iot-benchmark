@@ -132,7 +132,7 @@ iot-benchmark的特点如下：
 3. 合适版本的数据库
    1. Apache IoTDB >= v0.12([获取方式](https://github.com/apache/iotdb))
    2. 其他的对应版本的数据库
-4. ServerMode和CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
+4. CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
 5. 我们建议使用MacOs或Linux系统，本文以MacOS和Linux系统为例，如果使用Windows系统，请使用`conf`文件夹下的`benchmark.bat`脚本启动benchmark。
 
 ## 5.2. iot-benchmark支持的运行模式

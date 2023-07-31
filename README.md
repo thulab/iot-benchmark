@@ -128,7 +128,7 @@ To use iot-benchmark, you need to have:
 3. The appropriate version of the database
    1. Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
    2. His corresponding version of the database
-4. ServerMode and CSV recording modes can only be used in Linux systems to record relevant system information during the test.
+4. CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
 ## 5.2. Working modes of iot-benchmark
 |           The name of mode            |  BENCHMARK_WORK_MODE  | The content of mode                                                                                                                              |
