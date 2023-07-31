@@ -64,9 +64,7 @@ public class Config {
    * mode, you need to configure FILE_PATH and DATA_SET, currently supported 3.
    * queryWithRealDataSet: To query the real data set mode, you need to configure
    * REAL_QUERY_START_TIME, REAL_QUERY_STOP_TIME, DATA_SET and testWithDefaultPath mode to query
-   * related parameters currently supported 4. serverMODE: Server resource usage monitoring mode
-   * (run in this mode is started by the ser-benchmark.sh script, no need to manually configure this
-   * parameter)
+   * related parameters currently supported
    */
   private BenchmarkMode BENCHMARK_WORK_MODE = BenchmarkMode.TEST_WITH_DEFAULT_PATH;
 
