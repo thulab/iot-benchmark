@@ -119,17 +119,12 @@ public class CSVRecorder extends TestDataPersistence {
       }
     }
     try {
-      if (config.getBENCHMARK_WORK_MODE() != BenchmarkMode.SERVER) {
-        if (!isRecordConfig.get()) {
-          confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
-          projectWriterName = csvDir + "/" + projectID + "_DETAIL.csv";
-          projectWriter = new FileWriter(projectWriterName, true);
-        }
-        finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
-      } else {
-        serverInfoWriter =
-            new FileWriter(csvDir + "/SERVER_MODE_" + localName + "_" + day + ".csv", true);
+      if (!isRecordConfig.get()) {
+        confWriter = new FileWriter(csvDir + "/" + projectID + "_CONF.csv", true);
+        projectWriterName = csvDir + "/" + projectID + "_DETAIL.csv";
+        projectWriter = new FileWriter(projectWriterName, true);
       }
+      finalResultWriter = new FileWriter(csvDir + "/" + projectID + "_FINAL_RESULT.csv", true);
       initCSVFile();
     } catch (IOException e) {
       LOGGER.error("Failed to init csv", e);

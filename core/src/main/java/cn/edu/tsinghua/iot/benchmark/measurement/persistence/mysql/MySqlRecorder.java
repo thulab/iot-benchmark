@@ -121,23 +121,6 @@ public class MySqlRecorder extends TestDataPersistence {
   /** Check whether the table is created, if not then create */
   private void initTable() {
     try {
-      if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.SERVER) {
-        if (!hasTable("SERVER_MODE_" + localName + "_" + day)) {
-          statement.executeUpdate(
-              "create table SERVER_MODE_"
-                  + localName
-                  + "_"
-                  + day
-                  + "(id BIGINT, "
-                  + "cpu_usage DOUBLE,mem_usage DOUBLE,diskIo_usage DOUBLE,net_recv_rate DOUBLE,"
-                  + "net_send_rate DOUBLE, pro_mem_size DOUBLE, dataFileSize DOUBLE,systemFizeSize DOUBLE,"
-                  + "sequenceFileSize DOUBLE,unsequenceFileSize DOUBLE, walFileSize DOUBLE,"
-                  + "tps DOUBLE,MB_read DOUBLE,MB_wrtn DOUBLE,"
-                  + "primary key(id))");
-          LOGGER.info("Table SERVER_MODE create success!");
-        }
-        return;
-      }
       if (!hasTable("CONFIG")) {
         statement.executeUpdate(
             "create table CONFIG (id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,"
