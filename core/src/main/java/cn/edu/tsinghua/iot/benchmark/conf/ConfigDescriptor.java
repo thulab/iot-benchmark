@@ -596,7 +596,8 @@ public class ConfigDescriptor {
       }
     }
     if (config.getDEVICE_NUM_PER_WRITE() != 1 && !config.isIS_SENSOR_TS_ALIGNMENT()) {
-      LOGGER.error("The combination of \"DEVICE_NUM_PER_WRITE > 1\" and \"IS_SENSOR_TS_ALIGNMENT == false\" is not supported");
+      LOGGER.error(
+          "The combination of \"DEVICE_NUM_PER_WRITE > 1\" and \"IS_SENSOR_TS_ALIGNMENT == false\" is not supported");
       result = false;
     }
     return result;
