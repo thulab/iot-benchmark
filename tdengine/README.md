@@ -1,11 +1,15 @@
 # Benchmark for TDengine
 
 ## The Environment of Test
-Firstly, you need to add a static routing of the server's ip address and hostname to `hosts` file.
+Firstly, you need to install TDengine-server on the server machine and change the hostname to `tdengine` in`hostname` file.
+Then restart the server machine.
+
+
+Secondly, you need to add a static routing of the server's ip address and hostname to `hosts` file on the test machine.
 ```properties
 192.168.0.11    tdengine
 ```
-Secondly, You need to install the client of TDengine on the test machine.
+Lastly, You need to install the TDengine-client on the test machine.
 ## Configuration of Benchmark
 There is a [sample configuration file](./config.properties).
 ## The Result of Test
