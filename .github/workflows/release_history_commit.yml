@@ -1,4 +1,4 @@
-name: compile benchmark
+name: compile benchmark from history commit
 on:
   #  push:
   #    branches:
@@ -91,12 +91,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.sys-info.outputs.date }}-${{ RELEASE_COMMIT_ID }}-java${{ matrix.java_version }}
-          release_name: ${{ steps.sys-info.outputs.date }} ${{ RELEASE_COMMIT_ID }} java${{ matrix.java_version }}
+          tag_name: ${{ steps.sys-info.outputs.date }}-$RELEASE_COMMIT_ID-java${{ matrix.java_version }}
+          release_name: ${{ steps.sys-info.outputs.date }} $RELEASE_COMMIT_ID java${{ matrix.java_version }}
           body: |
             Auto build...
             Commit Time: ${{ steps.bm-info.outputs.commit_time }}
-            Commit ID: ${{ RELEASE_COMMIT_ID }}
+            Commit ID: $RELEASE_COMMIT_ID
             Java Version: java${{ matrix.java_version }}
           draft: false
           prerelease: false
