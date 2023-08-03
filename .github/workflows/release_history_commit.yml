@@ -171,14 +171,14 @@ jobs:
           asset_name: benchmark-timescaledb-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       # git push commit
-      - name: push commit
-        env:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd ${{ github.workspace }}/iot-benchmark
-          git config --local user.email "${{ secrets.MAIL_FOR_BOT }}"
-          git config --local user.name "github-actions[bot]"
-          echo ${{ steps.bm-info.outputs.commit_id }} >> .github/release_history.txt
-          git add .github/release_history.txt
-          git commit -m "${{ steps.sys-info.outputs.date }}-${{ steps.bm-info.outputs.commit_id_short }}"
-          git push -u origin master
+#      - name: push commit
+#        env:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          cd ${{ github.workspace }}/iot-benchmark
+#          git config --local user.email "${{ secrets.MAIL_FOR_BOT }}"
+#          git config --local user.name "github-actions[bot]"
+#          echo ${{ steps.bm-info.outputs.commit_id }} >> .github/release_history.txt
+#          git add .github/release_history.txt
+#          git commit -m "${{ steps.sys-info.outputs.date }}-${{ steps.bm-info.outputs.commit_id_short }}"
+#          git push -u origin master
