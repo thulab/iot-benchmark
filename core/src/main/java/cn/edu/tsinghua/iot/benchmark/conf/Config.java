@@ -290,7 +290,7 @@ public class Config {
 
   // Operation：乱序写入部分
   /** Whether insert out of order */
-  private boolean IS_OUT_OF_ORDER = false;
+  private boolean IS_OUT_OF_ORDER = true;
   /**
    * The mode of out-of-order insertion 0: Out-of-order mode of Poisson distribution 1: Out-of-order
    * mode of batch
