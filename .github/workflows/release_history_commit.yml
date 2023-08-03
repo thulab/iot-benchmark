@@ -16,12 +16,16 @@ jobs:
 #        java_version: [ 8,11 ]
     steps:
       # checkout iot-benchmark
+      - name: Set the commit ID you want to release
+        run: |
+          echo "RELEASE_COMMIT_ID=5e754fe5bf1258385f4701bc1923e328a1c01292" >> $GITHUB_ENV
+          echo "the version you want to release is ${{ env.RELEASE_COMMIT_ID }}"
       - name: checkout thulab/iot-benchmark
         uses: actions/checkout@v2
         with:
           path: iot-benchmark
           repository: 'thulab/iot-benchmark'
-          ref: 'master'
+          ref: ${{ env.RELEASE_COMMIT_ID }}
           fetch-depth: 0
       # collect iot-benchmark
       - name: collect Benchmark information
@@ -51,10 +55,6 @@ jobs:
 #        if: ${{ steps.bm-info.outputs.commit_id == steps.check-old-commit.outputs.last_commit || steps.bm-info.outputs.commit_user == 'github-actions[bot]' }}
 #        run: exit 1
       # set java
-      - name: Set the commit ID you want to release
-        run: |
-          echo "RELEASE_COMMIT_ID=5e754fe5bf1258385f4701bc1923e328a1c01292" >> $GITHUB_ENV
-          echo "the version you want to release is ${{ env.RELEASE_COMMIT_ID }}"
       - name: Set java ${{ matrix.java_version }}
         uses: actions/setup-java@v1
         with:
