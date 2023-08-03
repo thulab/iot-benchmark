@@ -54,7 +54,7 @@ jobs:
       - name: Set the commit ID you want to release
         run: |
           echo "RELEASE_COMMIT_ID=5e754fe5bf1258385f4701bc1923e328a1c01292" >> $GITHUB_ENV
-          echo "the version you want to release is $RELEASE_COMMIT_ID"
+          echo "the version you want to release is ${{ env.RELEASE_COMMIT_ID }}"
       - name: Set java ${{ matrix.java_version }}
         uses: actions/setup-java@v1
         with:
@@ -91,12 +91,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.sys-info.outputs.date }}-$RELEASE_COMMIT_ID-java${{ matrix.java_version }}
-          release_name: ${{ steps.sys-info.outputs.date }} $RELEASE_COMMIT_ID java${{ matrix.java_version }}
+          tag_name: ${{ steps.sys-info.outputs.date }}-${{ env.RELEASE_COMMIT_ID }}-java${{ matrix.java_version }}
+          release_name: ${{ steps.sys-info.outputs.date }} ${{ env.RELEASE_COMMIT_ID }} java${{ matrix.java_version }}
           body: |
             Auto build...
             Commit Time: ${{ steps.bm-info.outputs.commit_time }}
-            Commit ID: $RELEASE_COMMIT_ID
+            Commit ID: ${{ env.RELEASE_COMMIT_ID }}
             Java Version: java${{ matrix.java_version }}
           draft: false
           prerelease: false
