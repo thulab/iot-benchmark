@@ -1,0 +1,184 @@
+name: compile benchmark from history commit
+on:
+  #  push:
+  #    branches:
+  #      - master
+  workflow_dispatch:
+jobs:
+  #--------
+  check-commit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        java_version: [ 8 ]
+#        java_version: [ 8,11 ]
+    steps:
+      # checkout iot-benchmark
+      - name: Set the commit ID you want to release
+        run: |
+          echo "RELEASE_COMMIT_ID=5e754fe5bf1258385f4701bc1923e328a1c01292" >> $GITHUB_ENV
+          echo "the version you want to release is ${{ env.RELEASE_COMMIT_ID }}"
+      - name: checkout thulab/iot-benchmark
+        uses: actions/checkout@v2
+        with:
+          path: iot-benchmark
+          repository: 'thulab/iot-benchmark'
+          ref: ${{ env.RELEASE_COMMIT_ID }}
+          fetch-depth: 0
+      # collect iot-benchmark
+      - name: collect Benchmark information
+        id: bm-info
+        run: |
+          cd ${{ github.workspace }}/iot-benchmark
+          echo "commit_id=$( git rev-parse HEAD )" >> "$GITHUB_OUTPUT"
+          echo "commit_id_short=$( git rev-parse --short HEAD )" >> "$GITHUB_OUTPUT"
+          echo "commit_time=$(git log -n1 --pretty='format:%cd' --date=iso)" >> "$GITHUB_OUTPUT"
+          echo "commit_user=$(git log | head -n 2 | tail -n 1 | cut -d ' ' -f 2)" >> "$GITHUB_OUTPUT"
+          echo $(git rev-parse HEAD)
+#      # check update
+#      - name: check
+#        id: check-old-commit
+#        run: |
+#          cd ${{ github.workspace }}/iot-benchmark
+#          echo "last_commit=$(cat .github/release_history.txt | tail -n 1)" >> "$GITHUB_OUTPUT"
+#          echo $(cat .github/release_history.txt | tail -n 1)
+#      # compare
+#      - name: check check's results
+#        run: |
+#          echo "txt pid: ${{ steps.check-old-commit.outputs.last_commit }}"
+#          echo "res pid: ${{ steps.bm-info.outputs.commit_id }}"
+#      # equal means no update
+#      # "exit 0" is exits normally，"exit other" is exception exit
+#      - name: check check's results
+#        if: ${{ steps.bm-info.outputs.commit_id == steps.check-old-commit.outputs.last_commit || steps.bm-info.outputs.commit_user == 'github-actions[bot]' }}
+#        run: exit 1
+      # set java
+      - name: Set java ${{ matrix.java_version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java_version }}
+#      # checkout iotdb
+#      - name: Checkout iotdb-1.0
+#        uses: actions/checkout@v2
+#        with:
+#          path: iotdb-1.0
+#          repository: 'apache/iotdb'
+#          ref: rel/1.0
+#          fetch-depth: 0
+#      # compile iotdb
+#      - name: compile iotdb
+#        run: |
+#          cd ${{ github.workspace }}/iotdb-1.0
+#          mvn install -DskipTests -am -pl distribution
+      # compile benchmark
+      - name: Build benchmark binaries
+        id: compile-benchmark
+        run: |
+          cd ${{ github.workspace }}/iot-benchmark
+          mvn clean package -am -pl core,influxdb,influxdb-2.0,tdengine,timescaledb,iotdb-1.0,iotdb-1.1,iotdb-0.13,iotdb-0.12 -DskipTests
+      # get time
+      - name: collect common info
+        shell: bash
+        id: sys-info
+        run: |
+          echo "date=$(date +"%Y-%m-%d")" >> "$GITHUB_OUTPUT"
+      # create release
+      - name: Create release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.sys-info.outputs.date }}-${{ env.RELEASE_COMMIT_ID }}-java${{ matrix.java_version }}
+          release_name: ${{ steps.sys-info.outputs.date }} ${{ env.RELEASE_COMMIT_ID }} java${{ matrix.java_version }}
+          body: |
+            Auto build...
+            Commit Time: ${{ steps.bm-info.outputs.commit_time }}
+            Commit ID: ${{ env.RELEASE_COMMIT_ID }}
+            Java Version: java${{ matrix.java_version }}
+          draft: false
+          prerelease: false
+      #---0.12
+      - name: Upload benchmark-iotdb-0.12
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.12/target/iot-benchmark-iotdb-0.12.zip
+          asset_name: benchmark-iotdb-0.12-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---0.13
+      - name: Upload benchmark-iotdb-0.13
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13.zip
+          asset_name: benchmark-iotdb-0.13-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---1.0
+      - name: Upload benchmark-iotdb-1.0
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0.zip
+          asset_name: benchmark-iotdb-1.0-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---1.1
+      - name: Upload benchmark-iotdb-1.1
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.1/target/iot-benchmark-iotdb-1.1.zip
+          asset_name: benchmark-iotdb-1.1-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---influxdb
+      - name: Upload benchmark-influxdb
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/influxdb/target/iot-benchmark-influxdb.zip
+          asset_name: benchmark-influxdb-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---influxdb2.0
+      - name: Upload benchmark-influxdb2.0
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/influxdb-2.0/target/iot-benchmark-influxdb-2.0.zip
+          asset_name: benchmark-influxdb-2.0-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---timescaledb
+      - name: Upload benchmark-timescaledb
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/timescaledb/target/iot-benchmark-timescaledb.zip
+          asset_name: benchmark-timescaledb-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      # git push commit
+#      - name: push commit
+#        env:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          cd ${{ github.workspace }}/iot-benchmark
+#          git config --local user.email "${{ secrets.MAIL_FOR_BOT }}"
+#          git config --local user.name "github-actions[bot]"
+#          echo ${{ steps.bm-info.outputs.commit_id }} >> .github/release_history.txt
+#          git add .github/release_history.txt
+#          git commit -m "${{ steps.sys-info.outputs.date }}-${{ steps.bm-info.outputs.commit_id_short }}"
+#          git push -u origin master
