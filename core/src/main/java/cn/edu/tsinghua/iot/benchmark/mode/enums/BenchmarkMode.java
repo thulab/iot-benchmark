@@ -26,8 +26,7 @@ public enum BenchmarkMode {
   TEST_WITH_DEFAULT_PATH("testWithDefaultPath"),
   GENERATE_DATA("generateDataMode"),
   VERIFICATION_WRITE("verificationWriteMode"),
-  VERIFICATION_QUERY("verificationQueryMode"),
-  SERVER("serverMODE");
+  VERIFICATION_QUERY("verificationQueryMode");
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BenchmarkMode.class);
   public String mode;

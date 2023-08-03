@@ -117,9 +117,6 @@ public class IotdbRecorder extends TestDataPersistence {
       initSingleTestMetrics();
       initResultMetrics();
     }
-    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.SERVER) {
-      initSystemMetrics();
-    }
   }
 
   /** System metrics include: root.test.localName. */
