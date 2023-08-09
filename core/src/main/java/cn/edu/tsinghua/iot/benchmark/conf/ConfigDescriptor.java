@@ -68,7 +68,7 @@ public class ConfigDescriptor {
 
   /** load properties from config.properties */
   private void loadPropsFrom(String path) {
-    LOGGER.info("load config from "+path+" ......");
+    LOGGER.info("load config from " + path + " ......");
     if (path != null) {
       InputStream inputStream;
       try {
@@ -89,7 +89,9 @@ public class ConfigDescriptor {
         config.setNET_DEVICE(properties.getProperty("NET_DEVICE", config.getNET_DEVICE()));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
-            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
+            BenchmarkMode.getBenchmarkMode(
+                properties.getProperty(
+                    "BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
@@ -100,12 +102,14 @@ public class ConfigDescriptor {
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
 
-        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
+        config.setDB_SWITCH(
+            DBSwitch.getDBType(
+                properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
         config.setHOST(Arrays.asList(hosts.split(",")));
         String ports = properties.getProperty("PORT", config.getDbConfig().getPORT().toString());
-        if (ports.charAt(ports.length()-1) == ']') {
-          ports = ports.substring(0, ports.length()-1);
+        if (ports.charAt(ports.length() - 1) == ']') {
+          ports = ports.substring(0, ports.length() - 1);
         }
         if (ports.charAt(0) == '[') {
           ports = ports.substring(1);
@@ -121,7 +125,9 @@ public class ConfigDescriptor {
                 properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
         if (config.isIS_DOUBLE_WRITE()) {
           config.setANOTHER_DB_SWITCH(
-              DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
+              DBSwitch.getDBType(
+                  properties.getProperty(
+                      "ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
           String anotherHosts =
               properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
           config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
