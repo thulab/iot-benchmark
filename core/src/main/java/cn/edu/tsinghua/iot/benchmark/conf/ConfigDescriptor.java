@@ -47,7 +47,8 @@ public class ConfigDescriptor {
   private ConfigDescriptor() {
     config = new Config();
     // load properties and call init methods
-    loadProps();
+    loadPropsFrom("configuration/conf/config.properties");
+    loadPropsFrom("configuration/conf/user_config.properties");
     // check properties
     if (!checkConfig()) {
       System.exit(1);
@@ -66,15 +67,14 @@ public class ConfigDescriptor {
   }
 
   /** load properties from config.properties */
-  private void loadProps() {
-    String url =
-        System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf/config.properties");
-    if (url != null) {
+  private void loadPropsFrom(String path) {
+    LOGGER.info("load config from "+path+" ......");
+    if (path != null) {
       InputStream inputStream;
       try {
-        inputStream = new FileInputStream(new File(url));
+        inputStream = new FileInputStream(path);
       } catch (FileNotFoundException e) {
-        LOGGER.warn("Fail to find config file {}", url);
+        LOGGER.warn("Fail to find config file {}", path);
         return;
       }
       Properties properties = new Properties();
@@ -89,7 +89,7 @@ public class ConfigDescriptor {
         config.setNET_DEVICE(properties.getProperty("NET_DEVICE", config.getNET_DEVICE()));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
-            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
@@ -100,10 +100,16 @@ public class ConfigDescriptor {
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
 
-        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
+        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
         config.setHOST(Arrays.asList(hosts.split(",")));
-        String ports = properties.getProperty("PORT", config.getDbConfig().getPORT() + "");
+        String ports = properties.getProperty("PORT", config.getDbConfig().getPORT().toString());
+        if (ports.charAt(ports.length()-1) == ']') {
+          ports = ports.substring(0, ports.length()-1);
+        }
+        if (ports.charAt(0) == '[') {
+          ports = ports.substring(1);
+        }
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
@@ -115,7 +121,7 @@ public class ConfigDescriptor {
                 properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
         if (config.isIS_DOUBLE_WRITE()) {
           config.setANOTHER_DB_SWITCH(
-              DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", "")));
+              DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
           String anotherHosts =
               properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
           config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
@@ -253,7 +259,7 @@ public class ConfigDescriptor {
             properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
         config.setSENSOR_NAME_PREFIX(
             properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
-        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", ""));
+        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", config.getDEVICE_TAGS() + ""));
 
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
