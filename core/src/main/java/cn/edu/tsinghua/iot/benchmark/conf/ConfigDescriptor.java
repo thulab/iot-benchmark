@@ -47,8 +47,8 @@ public class ConfigDescriptor {
   private ConfigDescriptor() {
     config = new Config();
     // load properties and call init methods
-    loadPropsFrom("configuration/conf/config.properties");
-    loadPropsFrom("configuration/conf/user_config.properties");
+    loadDefaultProps();
+    loadUserProps();
     // check properties
     if (!checkConfig()) {
       System.exit(1);
@@ -66,19 +66,18 @@ public class ConfigDescriptor {
     return config;
   }
 
-  /** load properties from config.properties */
-  private void loadPropsFrom(String path) {
-    LOGGER.info("load config from " + path + " ......");
-    if (path != null) {
+  private void loadPropsFrom(String url) {
+    if (url != null) {
       InputStream inputStream;
       try {
-        inputStream = new FileInputStream(path);
+        inputStream = new FileInputStream(new File(url));
       } catch (FileNotFoundException e) {
-        LOGGER.warn("Fail to find config file {}", path);
+        LOGGER.warn("Fail to find config file {}", url);
         return;
       }
-      Properties properties = new Properties();
+      LOGGER.info("load config from " + url + " ......");
       try {
+        Properties properties = new Properties();
         properties.load(inputStream);
         config.setIS_DELETE_DATA(
             Boolean.parseBoolean(
@@ -505,6 +504,21 @@ public class ConfigDescriptor {
     } else {
       LOGGER.warn("{} No config file path, use default config", Constants.CONSOLE_PREFIX);
     }
+  }
+
+  /** load properties from config.properties */
+  private void loadDefaultProps() {
+    String url =
+        System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf/config.properties");
+    loadPropsFrom(url);
+  }
+
+  /** load properties from user_config.properties */
+  private void loadUserProps() {
+    String url =
+        System.getProperty(
+            Constants.BENCHMARK_USER_CONF, "configuration/conf/user_config.properties");
+    loadPropsFrom(url);
   }
 
   /** Check validation of config */
