@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -20,10 +20,10 @@
 
 
 if [ -z "${BENCHMARK_HOME}" ]; then
-  export BENCHMARK_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+  export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.. && pwd)"
 fi
 
-echo $BENCHMARK_HOME
+echo Set BENCHMARK_HOME=$BENCHMARK_HOME
 
 MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App
 
@@ -32,9 +32,8 @@ for f in ${BENCHMARK_HOME}/lib/*.jar; do
   CLASSPATH=${CLASSPATH}":"$f
 done
 
-
 if [ -n "$JAVA_HOME" ]; then
-    for java in "$JAVA_HOME"/bin/amd64/java "$JAVA_HOME"/bin/java; do
+    for java in "$JAVA_HOME"/bin/java "$JAVA_HOME"/bin/amd64/java; do
         if [ -x "$java" ]; then
             JAVA="$java"
             break
@@ -44,7 +43,44 @@ else
     JAVA=java
 fi
 
+if [ -z $JAVA ] ; then
+    echo Unable to find java executable. Check JAVA_HOME and PATH environment variables.  > /dev/stderr
+    exit 1;
+fi
 
-exec "$JAVA" -Duser.timezone=GMT+8 -Dlogback.configurationFile=${BENCHMARK_HOME}/conf/logback.xml -cp "$CLASSPATH" "$MAIN_CLASS" "$@"
+# Maximum heap size
+#MAX_HEAP_SIZE="2G"
+# Minimum heap size
+#HEAP_NEWSIZE="2G"
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    -cf)
+      benchmark_conf="$2"
+      ;;
+  esac
+  shift
+done
+
+if [ -z $benchmark_conf ] ; then
+  benchmark_conf=${BENCHMARK_HOME}/conf/config.properties
+else
+  benchmark_conf="$(cd "$(dirname "$benchmark_conf")" && pwd)/$(basename "$benchmark_conf")"
+fi
+echo Using configuration file: $benchmark_conf
+
+benchmark_parms="$benchmark_parms -Duser.timezone=GMT+8"
+benchmark_parms="$benchmark_parms -Dlogback.configurationFile=${BENCHMARK_HOME}/conf/logback.xml"
+
+if [ -n $MAX_HEAP_SIZE ] && [ -n "$HEAP_NEWSIZE" ];then
+  echo Set MAX_HEAP_SIZE=$MAX_HEAP_SIZE, HEAP_NEWSIZE=$HEAP_NEWSIZE
+  benchmark_parms="$benchmark_parms -Xms${HEAP_NEWSIZE} -Xmx${MAX_HEAP_SIZE}"
+else
+  echo Using default memory configuration to startup.
+
+fi
+
+exec "$JAVA" $benchmark_parms -cp "$CLASSPATH" "$MAIN_CLASS" -cf "$benchmark_conf"
 
 exit $?
