@@ -27,12 +27,24 @@ import cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode;
 import cn.edu.tsinghua.iot.benchmark.mode.TestWithDefaultPathMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationQueryMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationWriteMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 
 public class App {
+  private static Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
   public static void main(String[] args) throws SQLException {
+    long initialHeapSize = Runtime.getRuntime().totalMemory();
+    long maxHeapSize = Runtime.getRuntime().maxMemory();
+    LOGGER.info(
+        "Initial Heap Size: "
+            + initialHeapSize
+            + "bytes, Max Heap Size: "
+            + maxHeapSize
+            + "bytes.");
+
     if (args == null || args.length == 0) {
       args = new String[] {"-cf", "configuration/conf/config.properties"};
     }
