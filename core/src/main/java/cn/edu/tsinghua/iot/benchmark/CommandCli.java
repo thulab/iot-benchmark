@@ -90,7 +90,8 @@ public class CommandCli {
             Constants.BENCHMARK_USER_CONF, commandLine.getOptionValue(USER_CONFIG_ARGS));
       }
     } catch (ParseException e) {
-      System.out.println("Require more params input, please check the following hint.");
+      System.out.println(
+          "ParseException, require more params input, please check the following hint.");
       hf.printHelp(Constants.CONSOLE_PREFIX, options, true);
       return false;
     } catch (Exception e) {
@@ -109,7 +110,8 @@ public class CommandCli {
     CommandLineParser parser = new DefaultParser();
 
     if (args == null || args.length == 0) {
-      System.out.println("Require more params input, please check the following hint.");
+      System.out.println(
+          "args is null or args is 0, require more params input, please check the following hint.");
       hf.printHelp(Constants.CONSOLE_PREFIX, options, true);
       return false;
     }
