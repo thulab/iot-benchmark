@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.tsdb;
 
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /** Hold all configuration of database */
@@ -32,9 +32,9 @@ public class DBConfig {
    */
   private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_012_SESSION_BY_TABLET;
   /** The host of database server for IoTDB */
-  private List<String> HOST = Arrays.asList("127.0.0.1");
+  private List<String> HOST = Collections.singletonList("127.0.0.1");
   /** The port of database server */
-  private List<String> PORT = Arrays.asList("6667");
+  private List<String> PORT = Collections.singletonList("6667");
   /** The user name of database to use */
   private String USERNAME = "root";
   /** The password of user */

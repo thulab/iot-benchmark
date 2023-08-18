@@ -32,7 +32,10 @@ public class CommandCli {
   private final String HELP_ARGS = "help";
 
   private final String CONFIG_ARGS = "cf";
+  private final String USER_CONFIG_ARGS = "uf";
   private final String CONFIG_NAME = "config file";
+
+  private final String USER_CONFIG_NAME = "user config file";
 
   private static final int MAX_HELP_CONSOLE_WIDTH = 88;
 
@@ -49,7 +52,14 @@ public class CommandCli {
             .hasArg()
             .desc("Config file path (optional)")
             .build();
+    Option userConfig =
+        Option.builder(USER_CONFIG_ARGS)
+            .argName(USER_CONFIG_NAME)
+            .hasArg()
+            .desc("User config file path (optional)")
+            .build();
     options.addOption(config);
+    options.addOption(userConfig);
 
     return options;
   }
@@ -75,8 +85,13 @@ public class CommandCli {
         System.setProperty(Constants.BENCHMARK_CONF, commandLine.getOptionValue(CONFIG_ARGS));
       }
 
+      if (commandLine.hasOption(USER_CONFIG_ARGS)) {
+        System.setProperty(
+            Constants.BENCHMARK_USER_CONF, commandLine.getOptionValue(USER_CONFIG_ARGS));
+      }
     } catch (ParseException e) {
-      System.out.println("Require more params input, please check the following hint.");
+      System.out.println(
+          "ParseException, require more params input, please check the following hint.");
       hf.printHelp(Constants.CONSOLE_PREFIX, options, true);
       return false;
     } catch (Exception e) {
@@ -95,7 +110,8 @@ public class CommandCli {
     CommandLineParser parser = new DefaultParser();
 
     if (args == null || args.length == 0) {
-      System.out.println("Require more params input, please check the following hint.");
+      System.out.println(
+          "args is null or args is 0, require more params input, please check the following hint.");
       hf.printHelp(Constants.CONSOLE_PREFIX, options, true);
       return false;
     }
