@@ -5,4 +5,7 @@ query-memory-bytes: 104857600
 query-max-memory-bytes: 10485760000
 query-queue-size: 100
 nats-max-payload-bytes: 1073741824
-storage-cache-max-memory-size: 2147483648
+storage-cache-max-memory-size: 5368709120
+storage-cache-snapshot-memory-size: 1073741824
+bolt-path: /path/.influxdbv2/influxd.bolt
+engine-path: /path/.influxdbv2/engine

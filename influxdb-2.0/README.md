@@ -16,7 +16,7 @@ Notice, default config of influxdb2 is not support too many write in a short tim
 
 # config
 1. This is [Demo config](config.properties)
-2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.0/reference/config-options/
+2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.7/reference/config-options/
 3. [Syntax](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
 4. In config.properties, you should pay attention to 
    1. DB_SWITCH=InfluxDB-2.x 
