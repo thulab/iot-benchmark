@@ -71,7 +71,7 @@ public class InfluxDB implements IDatabase {
     influxUrl = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
     influxDbName = dbConfig.getDB_NAME();
     token = dbConfig.getTOKEN();
-    org = dbConfig.getDB_NAME();
+    org = config.getINFLUXDB_ORG();
     CREATE_URL =
         String.format(
             CREATE_URL,
@@ -117,8 +117,8 @@ public class InfluxDB implements IDatabase {
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     long start;
     long end;
+    start = System.nanoTime();
     try {
-      start = System.nanoTime();
       List<Organization> organizations = client.getOrganizationsApi().findOrganizations();
       String orgId = "";
       boolean isFind = false;
@@ -136,8 +136,14 @@ public class InfluxDB implements IDatabase {
       client.getBucketsApi().createBucket(influxDbName, orgId);
       end = System.nanoTime();
     } catch (Exception e) {
-      LOGGER.error("RegisterSchema InfluxDB failed because ", e);
-      throw new TsdbException(e);
+      String message = e.getMessage();
+      String bucketRepeatCreate = "bucket with name " + influxDbName + " already exists";
+      end = System.nanoTime();
+      // don't throw exception when bucket already exists
+      if (!message.equals(bucketRepeatCreate)) {
+        LOGGER.error("RegisterSchema InfluxDB failed because ", e);
+        throw new TsdbException(e);
+      }
     }
     return TimeUtils.convertToSeconds(end - start, "ns");
   }
