@@ -56,14 +56,14 @@ import java.util.Map;
 public class InfluxDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(InfluxDB.class);
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private final String token;
   private final String org;
   private String CREATE_URL = "http://%s/api/v2/write?org=%s&bucket=%s&precision=%s";
 
-  private String influxUrl;
-  private String influxDbName;
+  private final String influxUrl;
+  private final String influxDbName;
   private com.influxdb.client.InfluxDBClient client;
 
   private static long timeStampConst;
