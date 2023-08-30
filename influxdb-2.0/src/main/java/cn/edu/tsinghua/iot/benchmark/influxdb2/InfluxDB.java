@@ -451,7 +451,12 @@ public class InfluxDB implements IDatabase {
                 sensor.getName(),
                 groupByQuery.getStartTimestamp(),
                 groupByQuery.getEndTimestamp());
-        sql += "\n  |> integral(unit:" + groupByQuery.getGranularity() + "ms)";
+        sql +=
+            "\n  |> aggregateWindow(every : "
+                + groupByQuery.getGranularity()
+                + "ms , fn: "
+                + groupByQuery.getAggFun()
+                + " )";
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
