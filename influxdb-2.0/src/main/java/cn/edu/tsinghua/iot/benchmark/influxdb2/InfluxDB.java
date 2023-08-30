@@ -66,6 +66,8 @@ public class InfluxDB implements IDatabase {
   private String influxDbName;
   private com.influxdb.client.InfluxDBClient client;
 
+  private static long timeStampConst;
+
   /** constructor. */
   public InfluxDB(DBConfig dbConfig) {
     influxUrl = "http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
@@ -79,6 +81,18 @@ public class InfluxDB implements IDatabase {
             org,
             influxDbName,
             config.getTIMESTAMP_PRECISION());
+    // in range Query , the time must be in nano time, so we need to convert the time to nano time
+    switch (config.getTIMESTAMP_PRECISION()) {
+      case "ms":
+        timeStampConst = 1000000;
+        break;
+      case "us":
+        timeStampConst = 1000;
+        break;
+      case "ns":
+        timeStampConst = 1;
+        break;
+    }
   }
 
   @Override
@@ -268,8 +282,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                preciseQuery.getTimestamp() / 1000,
-                preciseQuery.getTimestamp() / 1000 + 1);
+                preciseQuery.getTimestamp(),
+                preciseQuery.getTimestamp() + 1);
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -287,8 +301,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                rangeQuery.getStartTimestamp() / 1000,
-                rangeQuery.getEndTimestamp() / 1000);
+                rangeQuery.getStartTimestamp(),
+                rangeQuery.getEndTimestamp());
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
       }
@@ -306,8 +320,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                valueRangeQuery.getStartTimestamp() / 1000,
-                valueRangeQuery.getEndTimestamp() / 1000);
+                valueRangeQuery.getStartTimestamp(),
+                valueRangeQuery.getEndTimestamp());
         sql +=
             "\n  |> filter(fn: (r) => r[\"_value\"] > " + valueRangeQuery.getValueThreshold() + ")";
         Status status = executeQueryAndGetStatus(sql);
@@ -320,7 +334,11 @@ public class InfluxDB implements IDatabase {
   private String getTimeSQLHeader(DeviceSchema deviceSchema, String sensor, long start, long end) {
     StringBuilder sql =
         new StringBuilder("from(bucket: \"").append(this.influxDbName).append("\")\n");
-    sql.append("  |> range(start: ").append(start).append(", stop:").append(end).append(")\n");
+    sql.append("  |> range(start: time(v: ")
+        .append(start * timeStampConst)
+        .append("), stop: time(v: ")
+        .append(end * timeStampConst)
+        .append("))\n");
     sql.append("  |> filter(fn: (r) => r[\"_measurement\"] == \"")
         .append(deviceSchema.getGroup())
         .append("\")\n");
@@ -348,8 +366,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                aggRangeQuery.getStartTimestamp() / 1000,
-                aggRangeQuery.getEndTimestamp() / 1000);
+                aggRangeQuery.getStartTimestamp(),
+                aggRangeQuery.getEndTimestamp());
         String aggFun = aggRangeQuery.getAggFun();
         if (!aggFun.contains("()")) {
           aggFun += "()";
@@ -372,8 +390,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                Constants.START_TIMESTAMP / 1000,
-                System.currentTimeMillis() / 1000);
+                Constants.START_TIMESTAMP,
+                System.currentTimeMillis());
         // note that flux not support without range
         sql +=
             "\n  |> filter(fn: (r) => r[\"_value\"] > " + aggValueQuery.getValueThreshold() + ")";
@@ -400,8 +418,8 @@ public class InfluxDB implements IDatabase {
               getTimeSQLHeader(
                   deviceSchema,
                   sensor.getName(),
-                  aggRangeValueQuery.getStartTimestamp() / 1000,
-                  aggRangeValueQuery.getEndTimestamp() / 1000);
+                  aggRangeValueQuery.getStartTimestamp(),
+                  aggRangeValueQuery.getEndTimestamp());
           sql +=
               "\n  |> filter(fn: (r) => r[\"_value\"] > "
                   + aggRangeValueQuery.getValueThreshold()
@@ -431,8 +449,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                groupByQuery.getStartTimestamp() / 1000,
-                groupByQuery.getEndTimestamp() / 1000);
+                groupByQuery.getStartTimestamp(),
+                groupByQuery.getEndTimestamp());
         sql += "\n  |> integral(unit:" + groupByQuery.getGranularity() + "ms)";
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
@@ -451,8 +469,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                Constants.START_TIMESTAMP / 1000,
-                System.currentTimeMillis() / 1000);
+                Constants.START_TIMESTAMP,
+                System.currentTimeMillis());
         sql += "\n  |> last(column: \"_time\")";
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
@@ -471,8 +489,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                rangeQuery.getStartTimestamp() / 1000,
-                rangeQuery.getEndTimestamp() / 1000);
+                rangeQuery.getStartTimestamp(),
+                rangeQuery.getEndTimestamp());
         sql += "\n  |> sort(columns: [\"_time\"], desc: true)";
         Status status = executeQueryAndGetStatus(sql);
         result += status.getQueryResultPointNum();
@@ -491,8 +509,8 @@ public class InfluxDB implements IDatabase {
             getTimeSQLHeader(
                 deviceSchema,
                 sensor.getName(),
-                valueRangeQuery.getStartTimestamp() / 1000,
-                valueRangeQuery.getEndTimestamp() / 1000);
+                valueRangeQuery.getStartTimestamp(),
+                valueRangeQuery.getEndTimestamp());
         sql +=
             "\n  |> filter(fn: (r) => r[\"_value\"] > " + valueRangeQuery.getValueThreshold() + ")";
         sql += "\n  |> sort(columns: [\"_time\"], desc: true)";
