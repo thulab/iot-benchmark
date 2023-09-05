@@ -86,7 +86,6 @@ public class ConfigDescriptor {
         config.setINIT_WAIT_TIME(
             Long.parseLong(
                 properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME() + "")));
-        config.setNET_DEVICE(properties.getProperty("NET_DEVICE", config.getNET_DEVICE()));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
             BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
@@ -145,17 +144,6 @@ public class ConfigDescriptor {
                     properties.getProperty(
                         "VERIFICATION_STEP_SIZE", config.getVERIFICATION_STEP_SIZE() + "")));
           }
-        }
-
-        String dataDir = properties.getProperty("IOTDB_DATA_DIR", "/home/liurui/data/data");
-        config.setIOTDB_DATA_DIR(Arrays.asList(dataDir.split(",")));
-        String walDir = properties.getProperty("IOTDB_WAL_DIR", "/home/liurui/data/wal");
-        config.setIOTDB_WAL_DIR(Arrays.asList(walDir.split(",")));
-        String systemDir = properties.getProperty("IOTDB_SYSTEM_DIR", "/home/liurui/data/system");
-        config.setIOTDB_SYSTEM_DIR(Arrays.asList(systemDir.split(",")));
-        for (String data : config.getIOTDB_DATA_DIR()) {
-          config.getSEQUENCE_DIR().add(data + "/sequence");
-          config.getUNSEQUENCE_DIR().add(data + "/unsequence");
         }
 
         config.setKAFKA_LOCATION(

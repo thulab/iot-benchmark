@@ -668,46 +668,6 @@ public class Config {
     this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
   }
 
-  public List<String> getIOTDB_DATA_DIR() {
-    return IOTDB_DATA_DIR;
-  }
-
-  public void setIOTDB_DATA_DIR(List<String> IOTDB_DATA_DIR) {
-    this.IOTDB_DATA_DIR = IOTDB_DATA_DIR;
-  }
-
-  public List<String> getIOTDB_WAL_DIR() {
-    return IOTDB_WAL_DIR;
-  }
-
-  public void setIOTDB_WAL_DIR(List<String> IOTDB_WAL_DIR) {
-    this.IOTDB_WAL_DIR = IOTDB_WAL_DIR;
-  }
-
-  public List<String> getIOTDB_SYSTEM_DIR() {
-    return IOTDB_SYSTEM_DIR;
-  }
-
-  public void setIOTDB_SYSTEM_DIR(List<String> IOTDB_SYSTEM_DIR) {
-    this.IOTDB_SYSTEM_DIR = IOTDB_SYSTEM_DIR;
-  }
-
-  public List<String> getSEQUENCE_DIR() {
-    return SEQUENCE_DIR;
-  }
-
-  public void setSEQUENCE_DIR(List<String> SEQUENCE_DIR) {
-    this.SEQUENCE_DIR = SEQUENCE_DIR;
-  }
-
-  public List<String> getUNSEQUENCE_DIR() {
-    return UNSEQUENCE_DIR;
-  }
-
-  public void setUNSEQUENCE_DIR(List<String> UNSEQUENCE_DIR) {
-    this.UNSEQUENCE_DIR = UNSEQUENCE_DIR;
-  }
-
   public String getKAFKA_LOCATION() {
     return KAFKA_LOCATION;
   }
