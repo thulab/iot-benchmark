@@ -88,18 +88,6 @@ public class Config {
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
 
-  // 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
-  /** The data dir of IoTDB (Split by comma) */
-  private List<String> IOTDB_DATA_DIR = Collections.singletonList("/home/iotdb/data/data");
-  /** The WAL(Write-ahead-log) dir of IoTDB (Split by comma) */
-  private List<String> IOTDB_WAL_DIR = Collections.singletonList("/home/iotdb/data/wal");
-  /** The system dirs of IoTDB */
-  private List<String> IOTDB_SYSTEM_DIR = Collections.singletonList("/home/iotdb/data/system");
-  /** The sequence dirs of IoTDB */
-  private List<String> SEQUENCE_DIR = Collections.singletonList("/home/iotdb/data/data/sequence");
-  /** The unsequence dirs of IoTDB */
-  private List<String> UNSEQUENCE_DIR = Collections.singletonList("/home/iotdb/data/data/unsequence");
-
   // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
