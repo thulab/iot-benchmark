@@ -27,7 +27,6 @@ show_help() {
   echo "usage: benchmark.sh [-cf configuration_file] [-heapsize HEAP_SIZE] [-maxheapsize MAX_HEAP_SIZE]"
   echo " -h           Show help."
   echo " -cf          Specify configuration file."
-  echo " -uf          Specify user configuration file, priority higher than -cf."
   echo " -heapsize    Specify HEAP_SIZE."
   echo " -maxheapsize Specify MAX_HEAP_SIZE."
   echo "example: ./benchmark.sh -cf conf/config.properties -heapsize 1G -maxheapsize 2G"
@@ -42,11 +41,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -cf)
       benchmark_conf="$2"
-      shift
-      shift
-      ;;
-    -uf)
-      benchmark_user_conf="$2"
       shift
       shift
       ;;
@@ -101,19 +95,6 @@ else
 fi
 echo Using configuration file: $benchmark_conf
 
-# check $benchmark_user_conf
-if [ -z "$benchmark_user_conf" ] ; then
-  benchmark_user_conf=${BENCHMARK_HOME}/conf/user_config.properties
-else
-  benchmark_user_conf="$(cd "$(dirname "$benchmark_user_conf")" && pwd)/$(basename "$benchmark_user_conf")"
-  if [ ! -e "$benchmark_user_conf" ]; then
-    echo "The file $benchmark_user_conf does not exist."
-    exit 1
-  fi
-fi
-echo Using user configuration file: $benchmark_user_conf
-
-
 # set MAIN_CLASS
 MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App
 # set CLASSPATH
@@ -138,6 +119,6 @@ if [ -z $MAX_HEAP_SIZE ] && [ -z "$HEAP_NEWSIZE" ]; then
 fi
 
 # startup
-exec "$JAVA" $benchmark_parms -cp "$CLASSPATH" "$MAIN_CLASS" -cf "$benchmark_conf" -uf "$benchmark_user_conf"
+exec "$JAVA" $benchmark_parms -cp "$CLASSPATH" "$MAIN_CLASS" -cf "$benchmark_conf"
 
 exit $?

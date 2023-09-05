@@ -28,7 +28,6 @@ public class Constants {
       TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
   public static final String CONSOLE_PREFIX = "iot-benchmark>";
   public static final String BENCHMARK_CONF = "benchmark-conf";
-  public static final String BENCHMARK_USER_CONF = "benchmark-user-conf";
 
   public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 
