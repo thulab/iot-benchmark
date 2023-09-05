@@ -56,7 +56,7 @@ public class Config {
 
   // 初始化：工作状态
   /** Total number of operations that each client process */
-  private long LOOP = 1000;
+  private long LOOP = 100;
 
   /**
    * The running mode of benchmark 1. testWithDefaultPath: Conventional test mode, supporting mixed
@@ -87,18 +87,6 @@ public class Config {
 
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
-
-  // 初始化：被测数据库IoTDB相关参数 监控模式(Server Mode)
-  /** The data dir of IoTDB (Split by comma) */
-  private List<String> IOTDB_DATA_DIR = Collections.singletonList("/home/iotdb/data/data");
-  /** The WAL(Write-ahead-log) dir of IoTDB (Split by comma) */
-  private List<String> IOTDB_WAL_DIR = Collections.singletonList("/home/iotdb/data/wal");
-  /** The system dirs of IoTDB */
-  private List<String> IOTDB_SYSTEM_DIR = Collections.singletonList("/home/iotdb/data/system");
-  /** The sequence dirs of IoTDB */
-  private List<String> SEQUENCE_DIR = new ArrayList<>();
-  /** The unsequence dirs of IoTDB */
-  private List<String> UNSEQUENCE_DIR = new ArrayList<>();
 
   // 初始化：双写模式
   /** whether to operate another database */
@@ -164,13 +152,13 @@ public class Config {
 
   // 设备、传感器、客户端相关参数
   /** The number of devices of database */
-  private int DEVICE_NUMBER = 5;
+  private int DEVICE_NUMBER = 6000;
   /** The ratio of actual write devices. (0,1] */
   private double REAL_INSERT_RATE = 1.0;
   /**
    * The number of sensors of each device. The number of timeseries = DEVICE_NUMBER * SENSOR_NUMBER
    */
-  private int SENSOR_NUMBER = 10;
+  private int SENSOR_NUMBER = 200;
 
   /** Whether the sensor timestamp is aligned */
   private boolean IS_SENSOR_TS_ALIGNMENT = true;
@@ -185,7 +173,7 @@ public class Config {
    * The number of client if IS_CLIENT_BIND = true: this number must be less than or equal to the
    * number of devices.
    */
-  private int CLIENT_NUMBER = 5;
+  private int CLIENT_NUMBER = 20;
 
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
@@ -218,7 +206,7 @@ public class Config {
   /** Storage Group Allocation Strategy, currently supported hash/mode/div */
   private String SG_STRATEGY = "mod";
   /** The number of storage group, must less than or equal to number of devices */
-  private int GROUP_NUMBER = 20;
+  private int GROUP_NUMBER = 1;
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
   /** Whether to use templates */
@@ -226,7 +214,7 @@ public class Config {
   /** Name of template */
   private String TEMPLATE_NAME = "BenchmarkTemplate";
   /** Whether to use vector */
-  private boolean VECTOR = false;
+  private boolean VECTOR = true;
   /** whether to use debug in iotdb-0.13 */
   private boolean IOTDB_USE_DEBUG = false;
   /** the ratio of use debug */
@@ -247,7 +235,7 @@ public class Config {
   /** the wal level of tdegine */
   private int TDENGINE_WAL_LEVEL = 2;
   /** the replica number of tdegine */
-  private int TDENGINE_REPLICA = 0;
+  private int TDENGINE_REPLICA = 3;
 
   // Operation 相关参数
   /**
@@ -268,14 +256,14 @@ public class Config {
    * device at a certain time stamp the number of data points written in each batch = SENSOR_NUMBER
    * * BATCH_SIZE
    */
-  private int BATCH_SIZE_PER_WRITE = 10;
+  private int BATCH_SIZE_PER_WRITE = 100;
 
   private int DEVICE_NUM_PER_WRITE = 1;
   /** Whether create schema before writing */
   private boolean CREATE_SCHEMA = true;
 
   /** Start time of writing data */
-  private String START_TIME = "2018-8-30T00:00:00+08:00";
+  private String START_TIME = "2022-01-01T00:00:00+08:00";
 
   // whether copy files or just use the generated synthetic data, in VerifyWriteMode
   private boolean IS_COPY_MODE = false;
@@ -297,7 +285,7 @@ public class Config {
   /** The out of order ratio of batch inserting */
   private double OUT_OF_ORDER_RATIO = 0.5;
   /** Whether use random time interval in inorder data need IS_OUT_OF_ORDER = false */
-  private boolean IS_REGULAR_FREQUENCY = true;
+  private boolean IS_REGULAR_FREQUENCY = false;
 
   /** The expectation and variance of Poisson Distribution based on basic model */
   private double LAMBDA = 2200.0;
@@ -396,7 +384,6 @@ public class Config {
   private boolean CSV_OUTPUT = true;
   /** Current csv file write line */
   private AtomicLong CURRENT_RECORD_LINE = new AtomicLong();
-
   /** Sensors */
   private List<Sensor> SENSORS = new ArrayList<>();
   /** Built-in function parameters */
@@ -667,46 +654,6 @@ public class Config {
 
   public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
     this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
-  }
-
-  public List<String> getIOTDB_DATA_DIR() {
-    return IOTDB_DATA_DIR;
-  }
-
-  public void setIOTDB_DATA_DIR(List<String> IOTDB_DATA_DIR) {
-    this.IOTDB_DATA_DIR = IOTDB_DATA_DIR;
-  }
-
-  public List<String> getIOTDB_WAL_DIR() {
-    return IOTDB_WAL_DIR;
-  }
-
-  public void setIOTDB_WAL_DIR(List<String> IOTDB_WAL_DIR) {
-    this.IOTDB_WAL_DIR = IOTDB_WAL_DIR;
-  }
-
-  public List<String> getIOTDB_SYSTEM_DIR() {
-    return IOTDB_SYSTEM_DIR;
-  }
-
-  public void setIOTDB_SYSTEM_DIR(List<String> IOTDB_SYSTEM_DIR) {
-    this.IOTDB_SYSTEM_DIR = IOTDB_SYSTEM_DIR;
-  }
-
-  public List<String> getSEQUENCE_DIR() {
-    return SEQUENCE_DIR;
-  }
-
-  public void setSEQUENCE_DIR(List<String> SEQUENCE_DIR) {
-    this.SEQUENCE_DIR = SEQUENCE_DIR;
-  }
-
-  public List<String> getUNSEQUENCE_DIR() {
-    return UNSEQUENCE_DIR;
-  }
-
-  public void setUNSEQUENCE_DIR(List<String> UNSEQUENCE_DIR) {
-    this.UNSEQUENCE_DIR = UNSEQUENCE_DIR;
   }
 
   public String getKAFKA_LOCATION() {
