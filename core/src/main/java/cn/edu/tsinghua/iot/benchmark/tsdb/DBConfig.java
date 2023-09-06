@@ -133,10 +133,16 @@ public class DBConfig {
 
   @Override
   public boolean equals(Object obj) {
-    if (! (obj instanceof DBConfig)) {
+    if (!(obj instanceof DBConfig)) {
       return false;
     }
     DBConfig c = (DBConfig) obj;
-    return this.DB_SWITCH.equals(c.DB_SWITCH) && this.HOST.equals(c.HOST) && this.PORT.equals(c.PORT) && this.USERNAME.equals(c.USERNAME) && this.PASSWORD.equals(c.PASSWORD) && this.TOKEN.equals(c.TOKEN) && this.DB_NAME.equals(c.DB_NAME);
+    return this.DB_SWITCH.equals(c.DB_SWITCH)
+        && this.HOST.equals(c.HOST)
+        && this.PORT.equals(c.PORT)
+        && this.USERNAME.equals(c.USERNAME)
+        && this.PASSWORD.equals(c.PASSWORD)
+        && this.TOKEN.equals(c.TOKEN)
+        && this.DB_NAME.equals(c.DB_NAME);
   }
 }

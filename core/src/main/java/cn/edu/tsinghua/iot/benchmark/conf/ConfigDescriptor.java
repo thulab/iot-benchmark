@@ -89,7 +89,9 @@ public class ConfigDescriptor {
                 properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME() + "")));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
-            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
+            BenchmarkMode.getBenchmarkMode(
+                properties.getProperty(
+                    "BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
@@ -100,13 +102,15 @@ public class ConfigDescriptor {
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
 
-        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
+        config.setDB_SWITCH(
+            DBSwitch.getDBType(
+                properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
         String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
         if (hosts.startsWith("[")) {
           hosts = hosts.substring(1);
         }
         if (hosts.endsWith("]")) {
-          hosts = hosts.substring(0, hosts.length()-1);
+          hosts = hosts.substring(0, hosts.length() - 1);
         }
         config.setHOST(Arrays.asList(hosts.split(",")));
         String ports = properties.getProperty("PORT", config.getDbConfig().getPORT() + "");
@@ -114,7 +118,7 @@ public class ConfigDescriptor {
           ports = ports.substring(1);
         }
         if (ports.endsWith("]")) {
-          ports = ports.substring(0, ports.length()-1);
+          ports = ports.substring(0, ports.length() - 1);
         }
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
@@ -127,7 +131,9 @@ public class ConfigDescriptor {
                 properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
         if (config.isIS_DOUBLE_WRITE()) {
           config.setANOTHER_DB_SWITCH(
-              DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
+              DBSwitch.getDBType(
+                  properties.getProperty(
+                      "ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
           String anotherHosts =
               properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
           config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
@@ -651,17 +657,13 @@ public class ConfigDescriptor {
   }
 
   /**
-   * Compare whether each field of the two objects is the same.
-   * This function is not used in the normal operation of the benchmark，
-   * but is used when adding parameters or when the default values of parameters change.
-   * If config.properties is empty,
-   * the Config object should remain consistent before and after loadprops().
-   * You can temporarily add the following code to ConfigDescriptor's constructor to check this.
-   *     config = new Config();
-   *     loadProps();
-   *     Config anotherConfig = new Config();
-   *     compareInstanceFields(config, anotherConfig);
-   * If some fields are different,  you will see read prompts in the command line.
+   * Compare whether each field of the two objects is the same. This function is not used in the
+   * normal operation of the benchmark， but is used when adding parameters or when the default
+   * values of parameters change. If config.properties is empty, the Config object should remain
+   * consistent before and after loadprops(). You can temporarily add the following code to
+   * ConfigDescriptor's constructor to check this. config = new Config(); loadProps(); Config
+   * anotherConfig = new Config(); compareInstanceFields(config, anotherConfig); If some fields are
+   * different, you will see read prompts in the command line.
    *
    * @param obj1 first object you want to compare
    * @param obj2 second object you want to compare
@@ -680,17 +682,17 @@ public class ConfigDescriptor {
     Class<?> clazz = obj1.getClass();
     boolean result = true;
     for (Field field : clazz.getDeclaredFields()) {
-      field.setAccessible(true);  // make private member accessible
+      field.setAccessible(true); // make private member accessible
       try {
         Object value1 = field.get(obj1);
         Object value2 = field.get(obj2);
         if (value1 == null) {
           if (value2 != null) {
-            System.out.println(ANSI_RED+field+": "+value1+" != "+value2+ANSI_RESET);
+            System.out.println(ANSI_RED + field + ": " + value1 + " != " + value2 + ANSI_RESET);
             result = false;
           }
         } else if (!value1.equals(value2)) {
-          System.out.println(ANSI_RED+field+": "+value1+" != "+value2+ANSI_RESET);
+          System.out.println(ANSI_RED + field + ": " + value1 + " != " + value2 + ANSI_RESET);
           result = false;
         }
       } catch (IllegalAccessException e) {
