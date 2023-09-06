@@ -58,12 +58,34 @@ public class DBConfig {
     return HOST;
   }
 
+  public String getHOSTString() {
+    String hosts = HOST.toString();
+    if (hosts.startsWith("[")) {
+      hosts = hosts.substring(1);
+    }
+    if (hosts.endsWith("]")) {
+      hosts = hosts.substring(0, hosts.length() - 1);
+    }
+    return hosts;
+  }
+
   public void setHOST(List<String> HOST) {
     this.HOST = HOST;
   }
 
   public List<String> getPORT() {
     return PORT;
+  }
+
+  public String getPORTString() {
+    String ports = PORT.toString();
+    if (ports.startsWith("[")) {
+      ports = ports.substring(1);
+    }
+    if (ports.endsWith("]")) {
+      ports = ports.substring(0, ports.length() - 1);
+    }
+    return ports;
   }
 
   public void setPORT(List<String> PORT) {

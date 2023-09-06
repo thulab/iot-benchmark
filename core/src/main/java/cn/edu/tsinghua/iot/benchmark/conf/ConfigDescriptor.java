@@ -105,21 +105,9 @@ public class ConfigDescriptor {
         config.setDB_SWITCH(
             DBSwitch.getDBType(
                 properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
-        String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
-        if (hosts.startsWith("[")) {
-          hosts = hosts.substring(1);
-        }
-        if (hosts.endsWith("]")) {
-          hosts = hosts.substring(0, hosts.length() - 1);
-        }
+        String hosts = properties.getProperty("HOST", config.getDbConfig().getHOSTString());
         config.setHOST(Arrays.asList(hosts.split(",")));
-        String ports = properties.getProperty("PORT", config.getDbConfig().getPORT() + "");
-        if (ports.startsWith("[")) {
-          ports = ports.substring(1);
-        }
-        if (ports.endsWith("]")) {
-          ports = ports.substring(0, ports.length() - 1);
-        }
+        String ports = properties.getProperty("PORT", config.getDbConfig().getPORTString());
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
@@ -169,7 +157,7 @@ public class ConfigDescriptor {
             properties.getProperty("KAFKA_LOCATION", config.getKAFKA_LOCATION() + ""));
         config.setZOOKEEPER_LOCATION(
             properties.getProperty("ZOOKEEPER_LOCATION", config.getZOOKEEPER_LOCATION() + ""));
-        config.setTOPIC_NAME(properties.getProperty("# TOPIC_NAME", config.getTOPIC_NAME()));
+        config.setTOPIC_NAME(properties.getProperty("TOPIC_NAME", config.getTOPIC_NAME()));
 
         config.setPOINT_STEP(
             Long.parseLong(properties.getProperty("POINT_STEP", config.getPOINT_STEP() + "")));
