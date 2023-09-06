@@ -237,6 +237,10 @@ public class Config {
   /** the replica number of tdegine */
   private int TDENGINE_REPLICA = 3;
 
+  // 被测试系统是Influxdb2.x时的参数
+  /** the org name of influxdb */
+  private String INFLUXDB_ORG = "admin";
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
@@ -1441,6 +1445,14 @@ public class Config {
 
   public void setTDENGINE_REPLICA(int TDENGINE_REPLICA) {
     this.TDENGINE_REPLICA = TDENGINE_REPLICA;
+  }
+
+  public String getINFLUXDB_ORG() {
+    return INFLUXDB_ORG;
+  }
+
+  public void setINFLUXDB_ORG(String INFLUXDB_ORG) {
+    this.INFLUXDB_ORG = INFLUXDB_ORG;
   }
 
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {
