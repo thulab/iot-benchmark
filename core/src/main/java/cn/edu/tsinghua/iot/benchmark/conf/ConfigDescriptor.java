@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -88,7 +89,9 @@ public class ConfigDescriptor {
                 properties.getProperty("INIT_WAIT_TIME", config.getINIT_WAIT_TIME() + "")));
         config.setLOOP(Long.parseLong(properties.getProperty("LOOP", config.getLOOP() + "")));
         config.setBENCHMARK_WORK_MODE(
-            BenchmarkMode.getBenchmarkMode(properties.getProperty("BENCHMARK_WORK_MODE", "")));
+            BenchmarkMode.getBenchmarkMode(
+                properties.getProperty(
+                    "BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
@@ -99,10 +102,12 @@ public class ConfigDescriptor {
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
 
-        config.setDB_SWITCH(DBSwitch.getDBType(properties.getProperty("DB_SWITCH", "")));
-        String hosts = properties.getProperty("HOST", config.getDbConfig().getHOST() + "");
+        config.setDB_SWITCH(
+            DBSwitch.getDBType(
+                properties.getProperty("DB_SWITCH", config.getDbConfig().getDB_SWITCH() + "")));
+        String hosts = properties.getProperty("HOST", config.getDbConfig().getHOSTString());
         config.setHOST(Arrays.asList(hosts.split(",")));
-        String ports = properties.getProperty("PORT", config.getDbConfig().getPORT() + "");
+        String ports = properties.getProperty("PORT", config.getDbConfig().getPORTString());
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
@@ -114,7 +119,9 @@ public class ConfigDescriptor {
                 properties.getProperty("IS_DOUBLE_WRITE", config.isIS_DOUBLE_WRITE() + "")));
         if (config.isIS_DOUBLE_WRITE()) {
           config.setANOTHER_DB_SWITCH(
-              DBSwitch.getDBType(properties.getProperty("ANOTHER_DB_SWITCH", "")));
+              DBSwitch.getDBType(
+                  properties.getProperty(
+                      "ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
           String anotherHosts =
               properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
           config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
@@ -150,7 +157,7 @@ public class ConfigDescriptor {
             properties.getProperty("KAFKA_LOCATION", config.getKAFKA_LOCATION() + ""));
         config.setZOOKEEPER_LOCATION(
             properties.getProperty("ZOOKEEPER_LOCATION", config.getZOOKEEPER_LOCATION() + ""));
-        config.setTOPIC_NAME(properties.getProperty("TOPIC_NAME", "NULL"));
+        config.setTOPIC_NAME(properties.getProperty("TOPIC_NAME", config.getTOPIC_NAME()));
 
         config.setPOINT_STEP(
             Long.parseLong(properties.getProperty("POINT_STEP", config.getPOINT_STEP() + "")));
@@ -279,7 +286,7 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty(
                     "ENABLE_THRIFT_COMPRESSION", config.isENABLE_THRIFT_COMPRESSION() + "")));
-        config.setSG_STRATEGY(properties.getProperty("SG_STRATEGY", "hash"));
+        config.setSG_STRATEGY(properties.getProperty("SG_STRATEGY", config.getSG_STRATEGY()));
         config.setGROUP_NUMBER(
             Integer.parseInt(
                 properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER() + "")));
@@ -457,7 +464,7 @@ public class ConfigDescriptor {
           config.setTEST_DATA_MAX_CONNECTION(1);
         }
 
-        config.setREMARK(properties.getProperty("REMARK", "-"));
+        config.setREMARK(properties.getProperty("REMARK", config.getREMARK()));
         config.setMYSQL_REAL_INSERT_RATE(
             Double.parseDouble(
                 properties.getProperty(
@@ -634,6 +641,53 @@ public class ConfigDescriptor {
       LOGGER.error(
           "Verification only support between iotdb v0.12, v0.13, timescaledb and influxdb 1.x");
     }
+    return result;
+  }
+
+  /**
+   * Compare whether each field of the two objects is the same. This function is not used in the
+   * normal operation of the benchmark， but is used when adding parameters or when the default
+   * values of parameters change. If config.properties is empty, the Config object should remain
+   * consistent before and after loadprops(). You can temporarily add the following code to
+   * ConfigDescriptor's constructor to check this. config = new Config(); loadProps(); Config
+   * anotherConfig = new Config(); compareInstanceFields(config, anotherConfig); If some fields are
+   * different, you will see read prompts in the command line.
+   *
+   * @param obj1 first object you want to compare
+   * @param obj2 second object you want to compare
+   * @return whether they are same
+   */
+  private static boolean compareInstanceFields(Object obj1, Object obj2) {
+    // ANSI escape codes
+    final String ANSI_RESET = "\u001B[0m";
+    final String ANSI_RED = "\u001B[31m";
+    if (obj1 == null || obj2 == null) {
+      return false;
+    }
+    if (obj1.getClass() != obj2.getClass()) {
+      return false;
+    }
+    Class<?> clazz = obj1.getClass();
+    boolean result = true;
+    for (Field field : clazz.getDeclaredFields()) {
+      field.setAccessible(true); // make private member accessible
+      try {
+        Object value1 = field.get(obj1);
+        Object value2 = field.get(obj2);
+        if (value1 == null) {
+          if (value2 != null) {
+            System.out.println(ANSI_RED + field + ": " + value1 + " != " + value2 + ANSI_RESET);
+            result = false;
+          }
+        } else if (!value1.equals(value2)) {
+          System.out.println(ANSI_RED + field + ": " + value1 + " != " + value2 + ANSI_RESET);
+          result = false;
+        }
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Error accessing field values", e);
+      }
+    }
+
     return result;
   }
 }

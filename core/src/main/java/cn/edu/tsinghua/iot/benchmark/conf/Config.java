@@ -128,19 +128,19 @@ public class Config {
   private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
 
   /** The compress of data */
-  private String COMPRESSOR = "SNAPPY";
+  private String COMPRESSOR = "LZ4";
   /** The encoding of boolean */
-  private String ENCODING_BOOLEAN = "PLAIN";
+  private String ENCODING_BOOLEAN = "RLE";
   /** The encoding of int32 */
-  private String ENCODING_INT32 = "PLAIN";
+  private String ENCODING_INT32 = "TS_2DIFF";
   /** The encoding of int64 */
-  private String ENCODING_INT64 = "PLAIN";
+  private String ENCODING_INT64 = "TS_2DIFF";
   /** The encoding of float */
-  private String ENCODING_FLOAT = "PLAIN";
+  private String ENCODING_FLOAT = "GORILLA";
   /** The encoding of double */
-  private String ENCODING_DOUBLE = "PLAIN";
+  private String ENCODING_DOUBLE = "GORILLA";
   /** The encoding of text */
-  private String ENCODING_TEXT = "PLAIN";
+  private String ENCODING_TEXT = "DICTIONARY";
 
   // 测试数据相关参数
 
