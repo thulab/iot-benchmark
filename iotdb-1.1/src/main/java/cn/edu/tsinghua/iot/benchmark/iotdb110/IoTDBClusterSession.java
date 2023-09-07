@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.pool.SessionDataSetWrapper;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -157,6 +158,11 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
       @Override
       public void close() throws IoTDBConnectionException, StatementExecutionException {
         sessionDataSet.close();
+      }
+
+      @Override
+      public SessionDataSet.DataIterator iterator() {
+        return sessionDataSet.iterator();
       }
     }
   }

@@ -148,6 +148,11 @@ public class IoTDBSession extends IoTDBSessionBase {
       public void close() throws IoTDBConnectionException, StatementExecutionException {
         sessionDataSet.close();
       }
+
+      @Override
+      public SessionDataSet.DataIterator iterator() {
+        return sessionDataSet.iterator();
+      }
     }
   }
 
