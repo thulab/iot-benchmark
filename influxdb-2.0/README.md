@@ -11,9 +11,9 @@ Notice, default config of influxdb2 is not support too many write in a short tim
 1. visit http://{ip}:8086/ to set up user
     1. username: admin
     2. password: 12345678
-    3. org: admin
-    4. bucket: admin
-
+    3. Initial Organization Name: company1
+    4. Initial Bucket Name: test
+![img.png](https://github.com/thulab/iot-benchmark/assets/38746920/cc6612a5-8a42-4e21-a609-c80e632da1fc)
 # config
 1. This is [Demo config](config.properties)
 2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.7/reference/config-options/
@@ -23,9 +23,9 @@ Notice, default config of influxdb2 is not support too many write in a short tim
    2. PORT=8086
    3. USERNAME=admin(same with username in http://{ip}:8086/)
    4. PASSWORD=12345678(same with password in http://{ip}:8086/)
-   5. DB_NAME=admin(same with bucket in http://{ip}:8086/)
-   6. INFLUXDB_ORG=admin(same with org in http://{ip}:8086/)
-   7. TOKEN(can be found at http://{ip}:8086/) .
+   5. DB_NAME=test(same with Initial Bucket Name in http://{ip}:8086/)
+   6. INFLUXDB_ORG=company1(same with Initial Organization Name in http://{ip}:8086/)
+   7. TOKEN(can be found at http://{ip}:8086/)
    ![image](https://user-images.githubusercontent.com/34939716/149779954-29d9485d-d750-4313-ab45-2e4aaff9c7e8.png)
    ![image](https://user-images.githubusercontent.com/34939716/149780004-fc430061-5e4a-4ea2-8cbc-730cb6e518e0.png)
 
