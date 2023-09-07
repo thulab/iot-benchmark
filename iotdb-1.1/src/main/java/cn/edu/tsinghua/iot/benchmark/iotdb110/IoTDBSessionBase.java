@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -183,10 +184,10 @@ public class IoTDBSessionBase extends IoTDB {
               () -> {
                 try {
                   ISessionDataSet sessionDataSet = sessionWrapper.executeQueryStatement(executeSQL);
-                  while (sessionDataSet.hasNext()) {
-                    RowRecord rowRecord = sessionDataSet.next();
-                    line.getAndIncrement();
-                    if (config.isIS_COMPARISON()) {
+                  if (config.isIS_COMPARISON()) {
+                    while (sessionDataSet.hasNext()) {
+                      RowRecord rowRecord = sessionDataSet.next();
+                      line.getAndIncrement();
                       List<Object> record = new ArrayList<>();
                       switch (operation) {
                         case AGG_RANGE_QUERY:
@@ -211,7 +212,13 @@ public class IoTDBSessionBase extends IoTDB {
                       }
                       records.add(record);
                     }
+                  } else {
+                    SessionDataSet.DataIterator iterator = sessionDataSet.iterator();
+                    while (iterator.next()) {
+                      line.getAndIncrement();
+                    }
                   }
+
                   sessionDataSet.close();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", executeSQL, e);
