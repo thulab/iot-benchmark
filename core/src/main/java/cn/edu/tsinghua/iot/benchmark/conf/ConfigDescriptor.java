@@ -327,7 +327,8 @@ public class ConfigDescriptor {
         config.setTDENGINE_REPLICA(
             Integer.parseInt(
                 properties.getProperty("TDENGINE_REPLICA", config.getTDENGINE_REPLICA() + "")));
-
+        config.setINFLUXDB_ORG(
+            properties.getProperty("INFLUXDB_ORG", String.valueOf(config.getINFLUXDB_ORG())));
         config.setOP_MIN_INTERVAL(
             Long.parseLong(
                 properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));

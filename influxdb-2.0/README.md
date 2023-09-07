@@ -5,7 +5,7 @@ This project is using iot-benchmark to test influxdb 2
 Notice, default config of influxdb2 is not support too many write in a short time.
 
 # environment
-1. influxdb: 2.0.7
+1. influxdb: 2.7.0
 
 # database setup
 1. visit http://{ip}:8086/ to set up user
@@ -16,11 +16,18 @@ Notice, default config of influxdb2 is not support too many write in a short tim
 
 # config
 1. This is [Demo config](config.properties)
-2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.0/reference/config-options/
+2. This is [config.yaml for InfluxDB v2.0](config.yaml), more details: https://docs.influxdata.com/influxdb/v2.7/reference/config-options/
 3. [Syntax](https://docs.influxdata.com/influxdb/v2.0/reference/flux/)
-4. You should pay attention to DB_SWITCH=InfluxDB-2.0, PORT=8086, USERNAME=admin, PASSWORD=12345678, DB_NAME=org, TOKEN(can be found at http://{ip}:8086/) in config.properties.
-![image](https://user-images.githubusercontent.com/34939716/149779954-29d9485d-d750-4313-ab45-2e4aaff9c7e8.png)
-![image](https://user-images.githubusercontent.com/34939716/149780004-fc430061-5e4a-4ea2-8cbc-730cb6e518e0.png)
+4. In config.properties, you should pay attention to 
+   1. DB_SWITCH=InfluxDB-2.x 
+   2. PORT=8086
+   3. USERNAME=admin(same with username in http://{ip}:8086/)
+   4. PASSWORD=12345678(same with password in http://{ip}:8086/)
+   5. DB_NAME=admin(same with bucket in http://{ip}:8086/)
+   6. INFLUXDB_ORG=admin(same with org in http://{ip}:8086/)
+   7. TOKEN(can be found at http://{ip}:8086/) .
+   ![image](https://user-images.githubusercontent.com/34939716/149779954-29d9485d-d750-4313-ab45-2e4aaff9c7e8.png)
+   ![image](https://user-images.githubusercontent.com/34939716/149780004-fc430061-5e4a-4ea2-8cbc-730cb6e518e0.png)
 
 # test result
 ```
