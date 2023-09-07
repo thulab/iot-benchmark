@@ -239,7 +239,7 @@ public class Config {
 
   // 被测试系统是Influxdb2.x时的参数
   /** the org name of influxdb */
-  private String INFLUXDB_ORG = "admin";
+  private String INFLUXDB_ORG = "company1";
 
   // Operation 相关参数
   /**
