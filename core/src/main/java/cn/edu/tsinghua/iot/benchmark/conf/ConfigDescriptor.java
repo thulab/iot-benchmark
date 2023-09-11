@@ -174,7 +174,7 @@ public class ConfigDescriptor {
               throw new RuntimeException(
                   "The database "
                       + config.getDbConfig().getDB_SWITCH()
-                      + " can't use microsecond precision");
+                      + " can't use us/ns precision");
             }
             break;
           default:
