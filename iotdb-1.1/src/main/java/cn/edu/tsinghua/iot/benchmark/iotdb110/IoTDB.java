@@ -726,8 +726,10 @@ public class IoTDB implements IDatabase {
                   isOk.set(false);
                 }
                 long resultPointNum = line.get();
-                resultPointNum *= config.getQUERY_SENSOR_NUM();
-                resultPointNum *= config.getQUERY_DEVICE_NUM();
+                if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
+                  resultPointNum *= config.getQUERY_SENSOR_NUM();
+                  resultPointNum *= config.getQUERY_DEVICE_NUM();
+                }
                 queryResultPointNum.set(resultPointNum);
               });
       try {
