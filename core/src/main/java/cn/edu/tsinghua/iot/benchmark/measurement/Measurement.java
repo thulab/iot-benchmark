@@ -120,36 +120,39 @@ public class Measurement {
         Metric.MAX_THREAD_LATENCY_SUM
             .getTypeValueMap()
             .put(operation, operationLatencySumThisClient.get(operation));
-        Metric.MIN_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.0));
-        Metric.MAX_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(1.0));
-        Metric.P10_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.1));
-        Metric.P25_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.25));
-        Metric.MEDIAN_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.50));
-        Metric.P75_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.75));
-        Metric.P90_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.90));
-        Metric.P95_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.95));
-        Metric.P99_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.99));
-        Metric.P999_LATENCY
-            .getTypeValueMap()
-            .put(operation, operationLatencyDigest.get(operation).quantile(0.999));
+        if (operationLatencyDigest.get(operation).size() > 1) {
+          // com.clearspring.analytics.stream.quantile.TDigest.quantile needs result size greater than 1 to calculate
+          Metric.MIN_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.0));
+          Metric.MAX_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(1.0));
+          Metric.P10_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.1));
+          Metric.P25_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.25));
+          Metric.MEDIAN_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.50));
+          Metric.P75_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.75));
+          Metric.P90_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.90));
+          Metric.P95_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.95));
+          Metric.P99_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.99));
+          Metric.P999_LATENCY
+              .getTypeValueMap()
+              .put(operation, operationLatencyDigest.get(operation).quantile(0.999));
+        }
       }
     }
   }
