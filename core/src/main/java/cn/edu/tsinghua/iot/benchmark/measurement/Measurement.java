@@ -121,7 +121,8 @@ public class Measurement {
             .getTypeValueMap()
             .put(operation, operationLatencySumThisClient.get(operation));
         if (operationLatencyDigest.get(operation).size() > 1) {
-          // com.clearspring.analytics.stream.quantile.TDigest.quantile needs result size greater than 1 to calculate
+          // com.clearspring.analytics.stream.quantile.TDigest.quantile needs result size greater
+          // than 1 to calculate
           Metric.MIN_LATENCY
               .getTypeValueMap()
               .put(operation, operationLatencyDigest.get(operation).quantile(0.0));
