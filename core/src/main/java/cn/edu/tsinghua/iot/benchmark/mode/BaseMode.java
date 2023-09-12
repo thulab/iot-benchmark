@@ -173,6 +173,7 @@ public abstract class BaseMode {
       } catch (IllegalArgumentException e) {
         LOGGER.error(
             "Failed to show metric, please check the relation between LOOP and OPERATION_PROPORTION");
+        e.printStackTrace();
         return;
       }
     }

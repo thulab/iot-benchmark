@@ -78,6 +78,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
@@ -691,7 +692,7 @@ public class IoTDB implements IDatabase {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
     AtomicInteger line = new AtomicInteger();
-    AtomicInteger queryResultPointNum = new AtomicInteger();
+    AtomicLong queryResultPointNum = new AtomicLong();
     AtomicBoolean isOk = new AtomicBoolean(true);
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       List<List<Object>> records = new ArrayList<>();
@@ -724,8 +725,12 @@ public class IoTDB implements IDatabase {
                   LOGGER.error("exception occurred when execute query={}", executeSQL, e);
                   isOk.set(false);
                 }
-                queryResultPointNum.set(
-                    line.get() * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM());
+                long resultPointNum = line.get();
+                if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
+                  resultPointNum *= config.getQUERY_SENSOR_NUM();
+                  resultPointNum *= config.getQUERY_DEVICE_NUM();
+                }
+                queryResultPointNum.set(resultPointNum);
               });
       try {
         future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
