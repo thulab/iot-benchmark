@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class DataClient implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataClient.class);
@@ -90,7 +89,9 @@ public abstract class DataClient implements Runnable {
     this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
     this.deviceSchemasSize = deviceSchemas.size();
     this.measurement = new Measurement();
-    this.service = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ShowWorkProgress-"+String.valueOf(clientThreadId)));
+    this.service =
+        Executors.newSingleThreadScheduledExecutor(
+            new NamedThreadFactory("ShowWorkProgress-" + String.valueOf(clientThreadId)));
     initDBWrappers();
   }
 

@@ -34,7 +34,8 @@ public abstract class TestDataPersistence {
   protected static final Logger LOGGER = LoggerFactory.getLogger(TestDataPersistence.class);
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected ExecutorService service =
-      Executors.newFixedThreadPool(config.getTEST_DATA_MAX_CONNECTION(), new NamedThreadFactory("ResultPersistence"));
+      Executors.newFixedThreadPool(
+          config.getTEST_DATA_MAX_CONNECTION(), new NamedThreadFactory("ResultPersistence"));
 
   /**
    * Store system resources metrics data

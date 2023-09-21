@@ -48,7 +48,8 @@ public abstract class BaseMode {
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
   protected ExecutorService schemaExecutorService =
-      Executors.newFixedThreadPool(config.getCLIENT_NUMBER(), new NamedThreadFactory("SchemaClient"));
+      Executors.newFixedThreadPool(
+          config.getCLIENT_NUMBER(), new NamedThreadFactory("SchemaClient"));
   protected ExecutorService executorService =
       Executors.newFixedThreadPool(config.getCLIENT_NUMBER(), new NamedThreadFactory("DataClient"));
   protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
