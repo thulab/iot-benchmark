@@ -71,20 +71,16 @@ public class IoTDBSessionBase extends IoTDB {
 
   public Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
-    future =
-        service.submit(
-            () -> {
-              try {
-                if (config.isVECTOR()) {
-                  sessionWrapper.insertAlignedTablet(tablet);
-                } else {
-                  sessionWrapper.insertTablet(tablet);
-                }
-              } catch (IoTDBConnectionException | StatementExecutionException e) {
-                LOGGER.error("insert tablet failed", e);
-              }
-            });
-    return waitFuture();
+    try {
+      if (config.isVECTOR()) {
+        sessionWrapper.insertAlignedTablet(tablet);
+      } else {
+        sessionWrapper.insertTablet(tablet);
+      }
+      return new Status(true);
+    } catch (IoTDBConnectionException | StatementExecutionException e) {
+      return new Status(false, 0, e, e.toString());
+    }
   }
 
   public Status insertOneBatchByRecord(IBatch batch) {
