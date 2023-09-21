@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.measurement.persistence;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,8 @@ public abstract class TestDataPersistence {
   protected static final Logger LOGGER = LoggerFactory.getLogger(TestDataPersistence.class);
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected ExecutorService service =
-      Executors.newFixedThreadPool(config.getTEST_DATA_MAX_CONNECTION());
+      Executors.newFixedThreadPool(
+          config.getTEST_DATA_MAX_CONNECTION(), new NamedThreadFactory("ResultPersistence"));
 
   /**
    * Store system resources metrics data

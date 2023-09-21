@@ -43,6 +43,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -115,7 +116,8 @@ public class IoTDB implements IDatabase {
       try {
         ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
         ioTDBConnection.init();
-        this.service = Executors.newSingleThreadExecutor();
+        this.service =
+            Executors.newSingleThreadExecutor(new NamedThreadFactory("DataClientExecuteJob"));
       } catch (Exception e) {
         throw new TsdbException(e);
       }

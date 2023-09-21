@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import cn.edu.tsinghua.iot.benchmark.workload.DataWorkLoad;
 import cn.edu.tsinghua.iot.benchmark.workload.QueryWorkLoad;
 import cn.edu.tsinghua.iot.benchmark.workload.interfaces.IDataWorkLoad;
@@ -57,7 +58,7 @@ public abstract class DataClient implements Runnable {
   /** QueryWorkload */
   protected final IQueryWorkLoad queryWorkLoad;
   /** Log related */
-  protected final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+  protected final ScheduledExecutorService service;
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
@@ -88,6 +89,9 @@ public abstract class DataClient implements Runnable {
     this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
     this.deviceSchemasSize = deviceSchemas.size();
     this.measurement = new Measurement();
+    this.service =
+        Executors.newSingleThreadScheduledExecutor(
+            new NamedThreadFactory("ShowWorkProgress-" + String.valueOf(clientThreadId)));
     initDBWrappers();
   }
 

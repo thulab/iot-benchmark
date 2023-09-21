@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +48,10 @@ public abstract class BaseMode {
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
   protected ExecutorService schemaExecutorService =
-      Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+      Executors.newFixedThreadPool(
+          config.getCLIENT_NUMBER(), new NamedThreadFactory("SchemaClient"));
   protected ExecutorService executorService =
-      Executors.newFixedThreadPool(config.getCLIENT_NUMBER());
+      Executors.newFixedThreadPool(config.getCLIENT_NUMBER(), new NamedThreadFactory("DataClient"));
   protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
   protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   protected CountDownLatch dataDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
