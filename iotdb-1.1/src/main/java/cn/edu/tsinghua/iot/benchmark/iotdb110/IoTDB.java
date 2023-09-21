@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb110;
 
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -115,7 +116,7 @@ public class IoTDB implements IDatabase {
       try {
         ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
         ioTDBConnection.init();
-        this.service = Executors.newSingleThreadExecutor();
+        this.service = Executors.newSingleThreadExecutor(new NamedThreadFactory("DataClientExecuteJob"));
       } catch (Exception e) {
         throw new TsdbException(e);
       }
