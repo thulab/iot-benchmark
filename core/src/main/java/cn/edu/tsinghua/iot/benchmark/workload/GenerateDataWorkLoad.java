@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.SplittableRandom;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
@@ -43,7 +44,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final PoissonDistribution poissonDistribution =
       new PoissonDistribution(poissonRandom);
   private static final Random dataRandom = new Random(config.getDATA_SEED());
-  private static final Random timestampRandom = new Random(config.getDATA_SEED());
+  private static final SplittableRandom timestampRandom = new SplittableRandom();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
