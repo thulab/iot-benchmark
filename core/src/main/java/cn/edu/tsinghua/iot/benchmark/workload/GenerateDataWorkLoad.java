@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.SplittableRandom;
+import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
@@ -44,7 +44,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final PoissonDistribution poissonDistribution =
       new PoissonDistribution(poissonRandom);
   private static final Random dataRandom = new Random(config.getDATA_SEED());
-  private static final SplittableRandom timestampRandom = new SplittableRandom();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
@@ -110,7 +109,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       timestamp += config.getPOINT_STEP();
     } else {
       // data is not in regular frequency, then use random
-      timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
+      timestamp += config.getPOINT_STEP() * ThreadLocalRandom.current().nextDouble();
     }
     long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
     if (config.isIS_RECENT_QUERY()) {
@@ -130,7 +129,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       timestamp += config.getPOINT_STEP();
     } else {
       // data is not in regular frequency, then use random
-      timestamp += config.getPOINT_STEP() * timestampRandom.nextDouble();
+      timestamp += config.getPOINT_STEP() * ThreadLocalRandom.current().nextDouble();
     }
     return Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
   }
