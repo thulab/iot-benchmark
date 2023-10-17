@@ -846,11 +846,6 @@ public class Config {
     this.CLIENT_NUMBER = CLIENT_NUMBER;
   }
 
-  public Map<String, String> getDEVICE_TAGS() {
-    // TODO: remove this
-    return null;
-  }
-
   public int getTAG_NUMBER() {
     return TAG_NUMBER;
   }

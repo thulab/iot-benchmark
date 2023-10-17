@@ -26,6 +26,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
@@ -47,8 +48,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -82,9 +83,9 @@ public class TDengine implements IDatabase {
             "create stable if not exists %s (time timestamp, %s) tags(device binary(20)");
     StringBuilder createTable =
         new StringBuilder("create table if not exists %s using %s tags('%s'");
-    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
-      createStable.append(", ").append(pair.getKey()).append(" binary(20)");
-      createTable.append(", '").append(pair.getValue()).append("'");
+    for (int i = 0; i < config.getTAG_NUMBER(); i++) {
+      createStable.append(", ").append(config.getTAG_KEY_PREFIX()).append(i).append(" binary(20)");
+      createTable.append(", '").append("%s").append("'");
     }
     createStable.append(")");
     createTable.append(")");
@@ -157,13 +158,12 @@ public class TDengine implements IDatabase {
         statement.execute(String.format(USE_DB, testDatabaseName));
         for (DeviceSchema deviceSchema : schemaList) {
           synchronized (TDengine.class) {
-            String createTable =
-                String.format(
-                    CREATE_TABLE,
-                    deviceSchema.getDevice(),
-                    SUPER_TABLE_NAME,
-                    deviceSchema.getDevice());
-            statement.execute(createTable);
+            List<String> params = new ArrayList<>();
+            params.add(deviceSchema.getDevice());
+            params.add(SUPER_TABLE_NAME);
+            params.add(deviceSchema.getDevice());
+            params.addAll(MetaUtil.getTag(deviceSchema.getDeviceId()).values());
+            statement.execute(String.format(CREATE_TABLE, params.toArray()));
           }
         }
       } catch (SQLException | BrokenBarrierException | InterruptedException e) {

@@ -98,7 +98,7 @@ public class MetaUtil {
     }
     int id = deviceName.hashCode();
     Map<String, String> res = new HashMap<>();
-    for (int i = 0; i < LEVEL_CARDINALITY.length; i++) {
+    for (int i = 0; i < LEVEL_CARDINALITY.length - 1; i++) {
       id = id % LEVEL_CARDINALITY[i];
       int tagValueId = id / LEVEL_CARDINALITY[i + 1];
       res.put(TAG_KEY_PREFIX + i, TAG_VALUE_PREFIX + tagValueId);

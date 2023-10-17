@@ -261,6 +261,7 @@ public class ConfigDescriptor {
                         .getProperty(
                             "TAG_VALUE_CARDINALITY", config.getTAG_VALUE_CARDINALITY() + "")
                         .split(","))
+                .filter(s -> !s.isEmpty())
                 .mapToInt(Integer::parseInt)
                 .boxed()
                 .collect(Collectors.toList()));
