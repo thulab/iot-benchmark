@@ -5,11 +5,30 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MetaUtil {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final String TAG_KEY_PREFIX = config.getTAG_KEY_PREFIX();
+  private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
+  private static final int TAG_NUMBER = config.getTAG_NUMBER();
+  private static final List<Integer> TAG_VALUE_CARDINALITY = config.getTAG_VALUE_CARDINALITY();
+  private static final int[] LEVEL_CARDINALITY = new int[TAG_VALUE_CARDINALITY.size() + 1];
+
+  static {
+    int idx = TAG_VALUE_CARDINALITY.size();
+    int sum = 1;
+    LEVEL_CARDINALITY[idx--] = 1;
+    for (; idx >= 0; idx--) {
+      sum *= TAG_VALUE_CARDINALITY.get(idx);
+      LEVEL_CARDINALITY[idx] = sum;
+    }
+  }
+
   private static List<List<String>> CLIENT_FILES;
 
   /** Used under cluster mode of benchmark */
@@ -71,5 +90,23 @@ public class MetaUtil {
 
   public static void setClientFiles(List<List<String>> clientFiles) {
     CLIENT_FILES = clientFiles;
+  }
+
+  public static Map<String, String> getTag(String deviceName) {
+    if (TAG_NUMBER == 0) {
+      return Collections.emptyMap();
+    }
+    int id = deviceName.hashCode();
+    Map<String, String> res = new HashMap<>();
+    for (int i = 0; i < LEVEL_CARDINALITY.length; i++) {
+      id = id % LEVEL_CARDINALITY[i];
+      int tagValueId = id / LEVEL_CARDINALITY[i + 1];
+      res.put(TAG_KEY_PREFIX + i, TAG_VALUE_PREFIX + tagValueId);
+    }
+    return res;
+  }
+
+  public static Map<String, String> getTag(int deviceId) {
+    return getTag(getDeviceName(deviceId));
   }
 }

@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
@@ -165,7 +166,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       return null;
     }
     DeviceSchema deviceSchema =
-        new DeviceSchema(deviceId, config.getSENSORS(), config.getDEVICE_TAGS());
+        new DeviceSchema(deviceId, config.getSENSORS(), MetaUtil.getTag(deviceId));
     return new DeviceQuery(deviceSchema);
   }
 
@@ -234,7 +235,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       if (querySensors.size() != config.getQUERY_SENSOR_NUM()) {
         continue;
       }
-      DeviceSchema deviceSchema = new DeviceSchema(deviceId, querySensors, config.getDEVICE_TAGS());
+      DeviceSchema deviceSchema =
+          new DeviceSchema(deviceId, querySensors, MetaUtil.getTag(deviceId));
       queryDevices.add(deviceSchema);
     }
     if (queryDevices.size() != config.getQUERY_DEVICE_NUM()) {

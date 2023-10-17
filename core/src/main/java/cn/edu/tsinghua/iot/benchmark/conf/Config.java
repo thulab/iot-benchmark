@@ -182,9 +182,11 @@ public class Config {
   /** name prefix of sensor */
   private String SENSOR_NAME_PREFIX = "s_";
   /** name prefix of tag */
-  private String TAG_NAME_PREFIX = "tag_";
-  /** The tags of device. Each device is same. */
-  private Map<String, String> DEVICE_TAGS = new LinkedHashMap<>();
+  private int TAG_NUMBER = 0;
+
+  private String TAG_KEY_PREFIX = "tag_";
+  private String TAG_VALUE_PREFIX = "value_";
+  private List<Integer> TAG_VALUE_CARDINALITY = new ArrayList<>();
 
   // 设备、传感器、客户端：生成数据的规律
   /** 线性 默认 9个 */
@@ -844,27 +846,41 @@ public class Config {
     this.CLIENT_NUMBER = CLIENT_NUMBER;
   }
 
-  public String getTAG_NAME_PREFIX() {
-    return TAG_NAME_PREFIX;
-  }
-
-  public void setTAG_NAME_PREFIX(String TAG_NAME_PREFIX) {
-    this.TAG_NAME_PREFIX = TAG_NAME_PREFIX;
-  }
-
   public Map<String, String> getDEVICE_TAGS() {
-    return new LinkedHashMap<>(DEVICE_TAGS);
+    // TODO: remove this
+    return null;
   }
 
-  public void setDEVICE_TAGS(String DEVICE_TAGS) {
-    if (DEVICE_TAGS.length() != 0) {
-      this.DEVICE_TAGS = new LinkedHashMap<>();
-      int tagIndex = 0;
-      for (String tagValue : DEVICE_TAGS.split(",")) {
-        this.DEVICE_TAGS.put(TAG_NAME_PREFIX + tagIndex, tagValue);
-        tagIndex++;
-      }
-    }
+  public int getTAG_NUMBER() {
+    return TAG_NUMBER;
+  }
+
+  public void setTAG_NUMBER(int TAG_NUMBER) {
+    this.TAG_NUMBER = TAG_NUMBER;
+  }
+
+  public String getTAG_KEY_PREFIX() {
+    return TAG_KEY_PREFIX;
+  }
+
+  public void setTAG_KEY_PREFIX(String TAG_KEY_PREFIX) {
+    this.TAG_KEY_PREFIX = TAG_KEY_PREFIX;
+  }
+
+  public String getTAG_VALUE_PREFIX() {
+    return TAG_VALUE_PREFIX;
+  }
+
+  public void setTAG_VALUE_PREFIX(String TAG_VALUE_PREFIX) {
+    this.TAG_VALUE_PREFIX = TAG_VALUE_PREFIX;
+  }
+
+  public List<Integer> getTAG_VALUE_CARDINALITY() {
+    return TAG_VALUE_CARDINALITY;
+  }
+
+  public void setTAG_VALUE_CARDINALITY(List<Integer> TAG_VALUE_CARDINALITY) {
+    this.TAG_VALUE_CARDINALITY = TAG_VALUE_CARDINALITY;
   }
 
   public String getGROUP_NAME_PREFIX() {
@@ -1785,8 +1801,11 @@ public class Config {
     configProperties.addProperty("Extern Param", "GROUP_NAME_PREFIX", this.GROUP_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "DEVICE_NAME_PREFIX", this.DEVICE_NAME_PREFIX);
     configProperties.addProperty("Extern Param", "SENSOR_NAME_PREFIX", this.SENSOR_NAME_PREFIX);
-    configProperties.addProperty("Extern Param", "TAG_NAME_PREFIX", this.TAG_NAME_PREFIX);
-    configProperties.addProperty("Extern Param", "DEVICE_TAGS", this.DEVICE_TAGS);
+    configProperties.addProperty("Extern Param", "TAG_NUMBER", this.TAG_NUMBER);
+    configProperties.addProperty("Extern Param", "TAG_KEY_PREFIX", this.TAG_KEY_PREFIX);
+    configProperties.addProperty("Extern Param", "TAG_VALUE_PREFIX", this.TAG_VALUE_PREFIX);
+    configProperties.addProperty(
+        "Extern Param", "TAG_VALUE_CARDINALITY", this.TAG_VALUE_CARDINALITY);
 
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);

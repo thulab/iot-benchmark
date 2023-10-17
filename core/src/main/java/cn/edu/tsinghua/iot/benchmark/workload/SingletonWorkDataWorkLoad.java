@@ -89,7 +89,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
           new DeviceSchema(
               MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
               sensors,
-              config.getDEVICE_TAGS());
+              MetaUtil.getTag((int) curLoop % config.getDEVICE_NUMBER()));
       // create data of batch
       List<Record> records = new ArrayList<>();
       for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
