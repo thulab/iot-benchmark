@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -159,11 +160,14 @@ public class IoTDBSession extends IoTDBSessionBase {
   public IoTDBSession(DBConfig dbConfig) {
     super(dbConfig);
     LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
+    List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
+    for (int i = 0; i < dbConfig.getHOST().size(); i++) {
+      hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
+    }
     sessionWrapper =
         new BenchmarkSession(
             new Session.Builder()
-                .host(dbConfig.getHOST().get(0))
-                .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+                .nodeUrls(hostUrls)
                 .username(dbConfig.getUSERNAME())
                 .password(dbConfig.getPASSWORD())
                 .enableRedirection(true)
