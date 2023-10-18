@@ -72,9 +72,9 @@ public enum DBSwitch {
   DB_SelfCheck(DBType.SelfCheck, null, null);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DBSwitch.class);
-  DBType type;
-  DBVersion version;
-  DBInsertMode insertMode;
+  final DBType type;
+  final DBVersion version;
+  final DBInsertMode insertMode;
 
   DBSwitch(DBType Type, DBVersion version, DBInsertMode insertMode) {
     this.type = Type;
@@ -100,9 +100,7 @@ public enum DBSwitch {
         return db;
       }
     }
-    DBSwitch db = DBSwitch.DB_IOT_012_SESSION_BY_TABLET;
-    LOGGER.warn("Using default DBType: " + db);
-    return db;
+    throw new RuntimeException(String.format("Parameter dbSwitch %s is not supported", dbSwitch));
   }
 
   @Override
