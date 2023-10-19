@@ -256,15 +256,18 @@ public class ConfigDescriptor {
         config.setTAG_VALUE_PREFIX(
             properties.getProperty("TAG_VALUE_PREFIX", config.getTAG_VALUE_PREFIX()));
         config.setTAG_VALUE_CARDINALITY(
-            Arrays.stream(
-                    properties
-                        .getProperty(
-                            "TAG_VALUE_CARDINALITY", config.getTAG_VALUE_CARDINALITY() + "")
-                        .split(","))
-                .filter(s -> !s.isEmpty())
-                .mapToInt(Integer::parseInt)
-                .boxed()
-                .collect(Collectors.toList()));
+                Arrays.stream(
+                                properties
+                                        .getProperty(
+                                                "TAG_VALUE_CARDINALITY",
+                                                config.getTAG_VALUE_CARDINALITY().stream()
+                                                        .map(Object::toString)
+                                                        .collect(Collectors.joining(",")))
+                                        .split(","))
+                        .filter(s -> !s.isEmpty())
+                        .mapToInt(Integer::parseInt)
+                        .boxed()
+                        .collect(Collectors.toList()));
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));
