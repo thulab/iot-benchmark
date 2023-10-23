@@ -17,11 +17,11 @@ public class MetaUtil {
   private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
   private static final int TAG_NUMBER = config.getTAG_NUMBER();
   private static final List<Integer> TAG_VALUE_CARDINALITY = config.getTAG_VALUE_CARDINALITY();
-  private static final int[] LEVEL_CARDINALITY = new int[TAG_VALUE_CARDINALITY.size() + 1];
+  private static final long[] LEVEL_CARDINALITY = new long[TAG_VALUE_CARDINALITY.size() + 1];
 
   static {
     int idx = TAG_VALUE_CARDINALITY.size();
-    int sum = 1;
+    long sum = 1;
     LEVEL_CARDINALITY[idx--] = 1;
     for (; idx >= 0; idx--) {
       sum *= TAG_VALUE_CARDINALITY.get(idx);
@@ -96,11 +96,11 @@ public class MetaUtil {
     if (TAG_NUMBER == 0) {
       return Collections.emptyMap();
     }
-    int id = deviceName.hashCode();
+    long id = Math.abs(deviceName.hashCode());
     Map<String, String> res = new HashMap<>();
     for (int i = 0; i < LEVEL_CARDINALITY.length - 1; i++) {
       id = id % LEVEL_CARDINALITY[i];
-      int tagValueId = id / LEVEL_CARDINALITY[i + 1];
+      long tagValueId = id / LEVEL_CARDINALITY[i + 1];
       res.put(TAG_KEY_PREFIX + i, TAG_VALUE_PREFIX + tagValueId);
     }
     return res;
