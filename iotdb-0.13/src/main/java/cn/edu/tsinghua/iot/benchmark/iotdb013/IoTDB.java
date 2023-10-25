@@ -39,7 +39,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
-import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
@@ -653,7 +652,7 @@ public class IoTDB implements IDatabase {
   protected String getDevicePath(DeviceSchema deviceSchema) {
     StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
     name.append(".").append(deviceSchema.getGroup());
-    for (Map.Entry<String, String> pair : MetaUtil.getTag(deviceSchema.getDevice()).entrySet()) {
+    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
       name.append(".").append(pair.getValue());
     }
     name.append(".").append(deviceSchema.getDevice());
