@@ -5,11 +5,32 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MetaUtil {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final String TAG_KEY_PREFIX = config.getTAG_KEY_PREFIX();
+  private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
+  private static final int TAG_NUMBER = config.getTAG_NUMBER();
+  private static final List<Integer> TAG_VALUE_CARDINALITY = config.getTAG_VALUE_CARDINALITY();
+  private static final List<Long> LEVEL_CARDINALITY =
+      Arrays.asList(new Long[TAG_VALUE_CARDINALITY.size() + 1]);
+
+  static {
+    int idx = TAG_VALUE_CARDINALITY.size();
+    long sum = 1;
+    LEVEL_CARDINALITY.set(idx--, 1L);
+    for (; idx >= 0; idx--) {
+      sum *= TAG_VALUE_CARDINALITY.get(idx);
+      LEVEL_CARDINALITY.set(idx, sum);
+    }
+  }
+
   private static List<List<String>> CLIENT_FILES;
 
   /** Used under cluster mode of benchmark */
@@ -71,5 +92,37 @@ public class MetaUtil {
 
   public static void setClientFiles(List<List<String>> clientFiles) {
     CLIENT_FILES = clientFiles;
+  }
+
+  /**
+   * Get tags pair by deviceName. Tags are allocated based on hashCode to ensure an even number of
+   * devices under each tag as much as possible.
+   *
+   * @param deviceName deviceName
+   * @return tags pair
+   */
+  public static Map<String, String> getTags(String deviceName) {
+    if (TAG_NUMBER == 0) {
+      return Collections.emptyMap();
+    }
+    long id = Math.abs(deviceName.hashCode());
+    Map<String, String> res = new HashMap<>();
+    for (int i = 0; i < LEVEL_CARDINALITY.size() - 1; i++) {
+      id = id % LEVEL_CARDINALITY.get(i);
+      long tagValueId = id / LEVEL_CARDINALITY.get(i + 1);
+      res.put(TAG_KEY_PREFIX + i, TAG_VALUE_PREFIX + tagValueId);
+    }
+    return res;
+  }
+
+  /**
+   * Get tags pair by deviceId. Tags are allocated based on hashCode to ensure an even number of
+   * devices under each tag as much as possible.
+   *
+   * @param deviceId deviceId
+   * @return tags pair
+   */
+  public static Map<String, String> getTags(int deviceId) {
+    return getTags(getDeviceName(deviceId));
   }
 }

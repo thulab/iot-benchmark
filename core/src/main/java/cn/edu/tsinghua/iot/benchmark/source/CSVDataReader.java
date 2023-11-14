@@ -80,7 +80,7 @@ public class CSVDataReader extends DataReader {
                   MetaUtil.getGroupIdFromDeviceName(deviceName),
                   deviceName,
                   sensors,
-                  config.getDEVICE_TAGS());
+                  MetaUtil.getTags(deviceName));
           firstLine = false;
           continue;
         }

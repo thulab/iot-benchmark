@@ -607,8 +607,8 @@ public class TimescaleDB implements IDatabase {
     StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE ").append(tableName).append(" (");
     sqlBuilder.append(
         "time BIGINT NOT NULL, location TEXT NOT NULL, sGroup TEXT NOT NULL, device TEXT NOT NULL");
-    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
-      sqlBuilder.append(", ").append(pair.getKey()).append(" TEXT NOT NULL");
+    for (int i = 0; i < config.getTAG_NUMBER(); i++) {
+      sqlBuilder.append(", ").append(config.getTAG_KEY_PREFIX()).append(i).append(" TEXT NOT NULL");
     }
     for (int i = 0; i < sensors.size(); i++) {
       sqlBuilder
@@ -619,8 +619,8 @@ public class TimescaleDB implements IDatabase {
           .append(" NULL ");
     }
     sqlBuilder.append(",UNIQUE (time, location, sGroup, device");
-    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
-      sqlBuilder.append(", ").append(pair.getKey());
+    for (int i = 0; i < config.getTAG_NUMBER(); i++) {
+      sqlBuilder.append(", ").append(config.getTAG_KEY_PREFIX()).append(i);
     }
     sqlBuilder.append("));");
     return sqlBuilder.toString();
