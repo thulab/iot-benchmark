@@ -166,7 +166,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       return null;
     }
     DeviceSchema deviceSchema =
-        new DeviceSchema(deviceId, config.getSENSORS(), MetaUtil.getTag(deviceId));
+        new DeviceSchema(deviceId, config.getSENSORS(), MetaUtil.getTags(deviceId));
     return new DeviceQuery(deviceSchema);
   }
 
@@ -236,7 +236,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
         continue;
       }
       DeviceSchema deviceSchema =
-          new DeviceSchema(deviceId, querySensors, MetaUtil.getTag(deviceId));
+          new DeviceSchema(deviceId, querySensors, MetaUtil.getTags(deviceId));
       queryDevices.add(deviceSchema);
     }
     if (queryDevices.size() != config.getQUERY_DEVICE_NUM()) {

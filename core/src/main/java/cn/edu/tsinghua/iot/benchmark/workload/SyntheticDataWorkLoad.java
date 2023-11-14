@@ -50,7 +50,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
               new DeviceSchema(
                   schema.getDeviceId(),
                   Collections.singletonList(sensor),
-                  MetaUtil.getTag(schema.getDeviceId()));
+                  MetaUtil.getTags(schema.getDeviceId()));
           maxTimestampIndexMap.put(deviceSchema, 0L);
         }
       }

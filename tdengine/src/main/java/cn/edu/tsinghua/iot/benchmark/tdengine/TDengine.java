@@ -171,7 +171,7 @@ public class TDengine implements IDatabase {
           params.add(deviceSchema.getDevice());
           params.add(SUPER_TABLE_NAME);
           params.add(deviceSchema.getDevice());
-          params.addAll(MetaUtil.getTag(deviceSchema.getDeviceId()).values());
+          params.addAll(MetaUtil.getTags(deviceSchema.getDeviceId()).values());
           statement.execute(String.format(CREATE_TABLE, params.toArray()));
         }
       } catch (SQLException e) {

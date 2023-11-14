@@ -5,6 +5,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -17,15 +18,16 @@ public class MetaUtil {
   private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
   private static final int TAG_NUMBER = config.getTAG_NUMBER();
   private static final List<Integer> TAG_VALUE_CARDINALITY = config.getTAG_VALUE_CARDINALITY();
-  private static final long[] LEVEL_CARDINALITY = new long[TAG_VALUE_CARDINALITY.size() + 1];
+  private static final List<Long> LEVEL_CARDINALITY =
+      Arrays.asList(new Long[TAG_VALUE_CARDINALITY.size() + 1]);
 
   static {
     int idx = TAG_VALUE_CARDINALITY.size();
     long sum = 1;
-    LEVEL_CARDINALITY[idx--] = 1;
+    LEVEL_CARDINALITY.set(idx--, 1L);
     for (; idx >= 0; idx--) {
       sum *= TAG_VALUE_CARDINALITY.get(idx);
-      LEVEL_CARDINALITY[idx] = sum;
+      LEVEL_CARDINALITY.set(idx, sum);
     }
   }
 
@@ -92,21 +94,33 @@ public class MetaUtil {
     CLIENT_FILES = clientFiles;
   }
 
-  public static Map<String, String> getTag(String deviceName) {
+  /**
+   * Get tags pair by deviceName.
+   *
+   * @param deviceName deviceName
+   * @return tags pair
+   */
+  public static Map<String, String> getTags(String deviceName) {
     if (TAG_NUMBER == 0) {
       return Collections.emptyMap();
     }
     long id = Math.abs(deviceName.hashCode());
     Map<String, String> res = new HashMap<>();
-    for (int i = 0; i < LEVEL_CARDINALITY.length - 1; i++) {
-      id = id % LEVEL_CARDINALITY[i];
-      long tagValueId = id / LEVEL_CARDINALITY[i + 1];
+    for (int i = 0; i < LEVEL_CARDINALITY.size() - 1; i++) {
+      id = id % LEVEL_CARDINALITY.get(i);
+      long tagValueId = id / LEVEL_CARDINALITY.get(i + 1);
       res.put(TAG_KEY_PREFIX + i, TAG_VALUE_PREFIX + tagValueId);
     }
     return res;
   }
 
-  public static Map<String, String> getTag(int deviceId) {
-    return getTag(getDeviceName(deviceId));
+  /**
+   * Get tags pair by deviceId.
+   *
+   * @param deviceId deviceId
+   * @return tags pair
+   */
+  public static Map<String, String> getTags(int deviceId) {
+    return getTags(getDeviceName(deviceId));
   }
 }

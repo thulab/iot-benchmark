@@ -90,7 +90,7 @@ public class CopyDataReader extends DataReader {
                   MetaUtil.getGroupIdFromDeviceName(deviceName),
                   deviceName,
                   sensors,
-                  MetaUtil.getTag(deviceName));
+                  MetaUtil.getTags(deviceName));
           firstLine = false;
           continue;
         }
