@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iot.benchmark.mode;
 
 import cn.edu.tsinghua.iot.benchmark.client.DataClient;
 import cn.edu.tsinghua.iot.benchmark.client.SchemaClient;
-import cn.edu.tsinghua.iot.benchmark.client.TimeClient;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
@@ -35,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -75,24 +76,36 @@ public abstract class BaseMode {
       }
       dataClients.add(client);
     }
-    TimeClient timeClient = new TimeClient(dataClients);
-    timeClient.start();
     for (DataClient client : dataClients) {
       executorService.submit(client);
     }
+    setTimeLimitTask();
     start = System.nanoTime();
     executorService.shutdown();
     try {
       // wait for all dataClients finish test
       dataDownLatch.await();
-      if (timeClient.isAlive()) {
-        timeClient.interrupt();
-      }
     } catch (InterruptedException e) {
       LOGGER.error("Exception occurred during waiting for all threads finish.", e);
       Thread.currentThread().interrupt();
     }
     postCheck();
+  }
+
+  private void setTimeLimitTask() {
+    if (config.getTEST_MAX_TIME() != 0) {
+      TimerTask stopAllDataClient =
+          new TimerTask() {
+            @Override
+            public void run() {
+              LOGGER.info(
+                  "It has been tested for {} ms, start to stop all dataClients.",
+                  config.getTEST_MAX_TIME());
+              dataClients.forEach(DataClient::stopClient);
+            }
+          };
+      new Timer().schedule(stopAllDataClient, config.getTEST_MAX_TIME());
+    }
   }
 
   protected abstract void postCheck();
