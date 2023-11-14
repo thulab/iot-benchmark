@@ -95,7 +95,8 @@ public class MetaUtil {
   }
 
   /**
-   * Get tags pair by deviceName.
+   * Get tags pair by deviceName. Tags are allocated based on hashCode to ensure an even number of
+   * devices under each tag as much as possible.
    *
    * @param deviceName deviceName
    * @return tags pair
@@ -115,7 +116,8 @@ public class MetaUtil {
   }
 
   /**
-   * Get tags pair by deviceId.
+   * Get tags pair by deviceId. Tags are allocated based on hashCode to ensure an even number of
+   * devices under each tag as much as possible.
    *
    * @param deviceId deviceId
    * @return tags pair
