@@ -580,33 +580,29 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    // check config
-    String[] op = config.getOPERATION_PROPORTION().split(":");
-    int minOps = 0;
-    for (int i = 0; i < op.length; i++) {
-      if (Double.valueOf(op[i]) > 1e-7) {
-        minOps++;
-      }
-    }
-    if (minOps > config.getLOOP()) {
-      LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
-      result = false;
-    }
+    result &= checkOperationProportion();
     if (config.getCLIENT_NUMBER() == 0) {
       LOGGER.error("Client number can't be zero");
       result = false;
     }
     result &= checkDeviceNumPerWrite();
-    // check tag
-    if (config.getTAG_NUMBER() != config.getTAG_VALUE_CARDINALITY().size()) {
-      LOGGER.error(
-          "TAG_NUMBER must be equal to TAG_VALUE_CARDINALITY's size. Currently, "
-              + "TAG_NUMBER = {}, TAG_VALUE_CARDINALITY = {}.",
-          config.getTAG_NUMBER(),
-          config.getTAG_VALUE_CARDINALITY().size());
-      result = false;
-    }
+    result &= checkTag();
     return result;
+  }
+
+  private boolean checkOperationProportion() {
+    String[] op = config.getOPERATION_PROPORTION().split(":");
+    int minOps = 0;
+    for (String s : op) {
+      if (Double.parseDouble(s) > 1e-7) {
+        minOps++;
+      }
+    }
+    if (minOps > config.getLOOP()) {
+      LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
+      return false;
+    }
+    return true;
   }
 
   private boolean checkDeviceNumPerWrite() {
@@ -627,19 +623,31 @@ public class ConfigDescriptor {
       return false;
     }
     for (int deviceNum :
-            CommonAlgorithms.distributeDevicesToClients(
-                            config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
-                    .values()) {
+        CommonAlgorithms.distributeDevicesToClients(
+                config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
+            .values()) {
       if (deviceNum % dnw != 0) {
         LOGGER.error(
-                "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
-                        + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
-                deviceNum, dnw);
+            "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
+                + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
+            deviceNum, dnw);
         return false;
       }
     }
     if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
       LOGGER.error("When DEVICE_NUM_PER_WRITE > 1, IS_SENSOR_TS_ALIGNMENT must be true");
+      return false;
+    }
+    return true;
+  }
+
+  private boolean checkTag() {
+    if (config.getTAG_NUMBER() != config.getTAG_VALUE_CARDINALITY().size()) {
+      LOGGER.error(
+          "TAG_NUMBER must be equal to TAG_VALUE_CARDINALITY's size. Currently, "
+              + "TAG_NUMBER = {}, TAG_VALUE_CARDINALITY = {}.",
+          config.getTAG_NUMBER(),
+          config.getTAG_VALUE_CARDINALITY().size());
       return false;
     }
     return true;
