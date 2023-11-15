@@ -577,6 +577,7 @@ public class ConfigDescriptor {
         if (config.isIS_DOUBLE_WRITE()) {
           result &= checkDatabaseVerification(config.getANOTHER_DBConfig());
         }
+        break;
       default:
         break;
     }
