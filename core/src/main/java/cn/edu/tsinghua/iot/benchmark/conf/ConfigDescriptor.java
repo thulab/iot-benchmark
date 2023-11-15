@@ -21,10 +21,10 @@ package cn.edu.tsinghua.iot.benchmark.conf;
 
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBType;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBVersion;
+import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 import cn.edu.tsinghua.iot.benchmark.workload.enums.OutOfOrderMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -578,25 +578,44 @@ public class ConfigDescriptor {
       LOGGER.error("Client number can't be zero");
       result = false;
     }
-    // check DEVICE_NUM_PER_WRITE
-    if (config.getDEVICE_NUM_PER_WRITE() <= 0) {
+    result &= checkDeviceNumPerWrite();
+    return result;
+  }
+
+  private boolean checkDeviceNumPerWrite() {
+    final int dnw = config.getDEVICE_NUM_PER_WRITE();
+    if (dnw <= 0) {
       LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
-      result = false;
+      return false;
     }
-    // check insert mode
-    if (config.getDbConfig().getDB_SWITCH().getType() == DBType.IoTDB) {
-      DBInsertMode insertMode = config.getDbConfig().getDB_SWITCH().getInsertMode();
-      if (config.getDEVICE_NUM_PER_WRITE() != 1 && insertMode != INSERT_USE_SESSION_RECORDS) {
-        LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
-        result = false;
+    if (dnw == 1) {
+      return true;
+    }
+    if (config.getDbConfig().getDB_SWITCH().getType() != DBType.IoTDB) {
+      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB");
+      return false;
+    }
+    if (config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_RECORDS) {
+      LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
+      return false;
+    }
+    for (int deviceNum :
+        CommonAlgorithms.distributeDevicesToClients(
+                config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
+            .values()) {
+      if (deviceNum % dnw != 0) {
+        LOGGER.error(
+            "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
+                + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
+            deviceNum, dnw);
+        return false;
       }
     }
-    if (config.getDEVICE_NUM_PER_WRITE() != 1 && !config.isIS_SENSOR_TS_ALIGNMENT()) {
-      LOGGER.error(
-          "The combination of \"DEVICE_NUM_PER_WRITE > 1\" and \"IS_SENSOR_TS_ALIGNMENT == false\" is not supported");
-      result = false;
+    if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
+      LOGGER.error("When DEVICE_NUM_PER_WRITE > 1, IS_SENSOR_TS_ALIGNMENT must be true");
+      return false;
     }
-    return result;
+    return true;
   }
 
   private void checkQuery() {

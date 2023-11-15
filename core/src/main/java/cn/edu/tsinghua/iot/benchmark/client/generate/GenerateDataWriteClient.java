@@ -36,10 +36,9 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   /** Do Operations */
   @Override
   protected void doTest() {
-    loop:
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
       if (!doGenerate()) {
-        break loop;
+        break;
       }
       if (isStop.get()) {
         break;
@@ -50,9 +49,8 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   /** Do Ingestion Operation @Return when connect failed return false */
   private boolean doGenerate() {
     try {
-      for (int i = 0; i < deviceSchemas.size(); i++) {
-        int innerLoop =
-            config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : deviceSchemas.get(i).getSensors().size();
+      final int innerLoop = config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : config.getSENSOR_NUMBER();
+      for (int i = 0; i < clientDeviceSchemas.size(); i += config.getDEVICE_NUM_PER_WRITE()) {
         for (int j = 0; j < innerLoop; j++) {
           IBatch batch = dataWorkLoad.getOneBatch();
           if (checkBatch(batch)) {
