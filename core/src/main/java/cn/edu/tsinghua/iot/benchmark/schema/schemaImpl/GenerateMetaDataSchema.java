@@ -53,7 +53,7 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
       int deviceNumber = deviceDistribution.get(clientId);
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int d = 0; d < deviceNumber; d++) {
-        DeviceSchema deviceSchema = new DeviceSchema(deviceId, sensors, config.getDEVICE_TAGS());
+        DeviceSchema deviceSchema = new DeviceSchema(deviceId, sensors, MetaUtil.getTags(deviceId));
         NAME_DATA_SCHEMA.put(deviceSchema.getDevice(), deviceSchema);
         GROUPS.add(deviceSchema.getGroup());
         deviceSchemaList.add(deviceSchema);

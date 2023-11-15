@@ -599,7 +599,7 @@ public class IoTDB implements IDatabase {
   protected String getDevicePath(DeviceSchema deviceSchema) {
     StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
     name.append(".").append(deviceSchema.getGroup());
-    for (Map.Entry<String, String> pair : config.getDEVICE_TAGS().entrySet()) {
+    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
       name.append(".").append(pair.getValue());
     }
     name.append(".").append(deviceSchema.getDevice());

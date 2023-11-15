@@ -33,6 +33,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
 
@@ -248,8 +249,25 @@ public class ConfigDescriptor {
             properties.getProperty("DEVICE_NAME_PREFIX", config.getDEVICE_NAME_PREFIX()));
         config.setSENSOR_NAME_PREFIX(
             properties.getProperty("SENSOR_NAME_PREFIX", config.getSENSOR_NAME_PREFIX()));
-        config.setDEVICE_TAGS(properties.getProperty("DEVICE_TAGS", ""));
-
+        config.setTAG_NUMBER(
+            Integer.parseInt(properties.getProperty("TAG_NUMBER", config.getTAG_NUMBER() + "")));
+        config.setTAG_KEY_PREFIX(
+            properties.getProperty("TAG_KEY_PREFIX", config.getTAG_KEY_PREFIX()));
+        config.setTAG_VALUE_PREFIX(
+            properties.getProperty("TAG_VALUE_PREFIX", config.getTAG_VALUE_PREFIX()));
+        config.setTAG_VALUE_CARDINALITY(
+            Arrays.stream(
+                    properties
+                        .getProperty(
+                            "TAG_VALUE_CARDINALITY",
+                            config.getTAG_VALUE_CARDINALITY().stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining(",")))
+                        .split(","))
+                .filter(s -> !s.isEmpty())
+                .mapToInt(Integer::parseInt)
+                .boxed()
+                .collect(Collectors.toList()));
         config.setBENCHMARK_CLUSTER(
             Boolean.parseBoolean(
                 properties.getProperty("BENCHMARK_CLUSTER", config.isBENCHMARK_CLUSTER() + "")));
@@ -579,6 +597,15 @@ public class ConfigDescriptor {
       result = false;
     }
     result &= checkDeviceNumPerWrite();
+    // check tag
+    if (config.getTAG_NUMBER() != config.getTAG_VALUE_CARDINALITY().size()) {
+      LOGGER.error(
+          "TAG_NUMBER must be equal to TAG_VALUE_CARDINALITY's size. Currently, "
+              + "TAG_NUMBER = {}, TAG_VALUE_CARDINALITY = {}.",
+          config.getTAG_NUMBER(),
+          config.getTAG_VALUE_CARDINALITY().size());
+      result = false;
+    }
     return result;
   }
 
@@ -600,14 +627,14 @@ public class ConfigDescriptor {
       return false;
     }
     for (int deviceNum :
-        CommonAlgorithms.distributeDevicesToClients(
-                config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
-            .values()) {
+            CommonAlgorithms.distributeDevicesToClients(
+                            config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
+                    .values()) {
       if (deviceNum % dnw != 0) {
         LOGGER.error(
-            "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
-                + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
-            deviceNum, dnw);
+                "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
+                        + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
+                deviceNum, dnw);
         return false;
       }
     }
