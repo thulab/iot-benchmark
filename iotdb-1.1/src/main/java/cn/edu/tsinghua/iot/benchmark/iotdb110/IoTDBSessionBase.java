@@ -38,6 +38,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -71,7 +72,7 @@ public class IoTDBSessionBase extends IoTDB {
 
   public Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
-    future =
+    task =
         service.submit(
             () -> {
               try {
@@ -81,10 +82,10 @@ public class IoTDBSessionBase extends IoTDB {
                   sessionWrapper.insertTablet(tablet);
                 }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
-                LOGGER.error("insert tablet failed", e);
+                throw new OperationFailException(e);
               }
             });
-    return waitFuture();
+    return waitWriteTaskToFinishAndGetStatus();
   }
 
   public Status insertOneBatchByRecord(IBatch batch) {
@@ -145,7 +146,7 @@ public class IoTDBSessionBase extends IoTDB {
       }
       batch.next();
     }
-    future =
+    task =
         service.submit(
             () -> {
               try {
@@ -157,10 +158,10 @@ public class IoTDBSessionBase extends IoTDB {
                       deviceIds, times, measurementsList, typesList, valuesList);
                 }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
-                LOGGER.error("insert records failed", e);
+                throw new OperationFailException(e);
               }
             });
-    return waitFuture();
+    return waitWriteTaskToFinishAndGetStatus();
   }
 
   @Override
@@ -179,7 +180,7 @@ public class IoTDBSessionBase extends IoTDB {
     AtomicBoolean isOk = new AtomicBoolean(true);
     try {
       List<List<Object>> records = new ArrayList<>();
-      future =
+      task =
           service.submit(
               () -> {
                 try {
@@ -232,9 +233,9 @@ public class IoTDBSessionBase extends IoTDB {
                 queryResultPointNum.set(resultPointNum);
               });
       try {
-        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+        task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
-        future.cancel(true);
+        task.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
       if (isOk.get()) {
@@ -480,11 +481,12 @@ public class IoTDBSessionBase extends IoTDB {
     }
   }
 
-  Status waitFuture() {
+  Status waitWriteTaskToFinishAndGetStatus() {
     try {
-      future.get(config.getWRITE_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+      task.get(config.getWRITE_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      future.cancel(true);
+      task.cancel(true);
+      LOGGER.error("insertion failed", e);
       return new Status(false, 0, e, e.toString());
     }
     return new Status(true);

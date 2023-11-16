@@ -100,7 +100,7 @@ public class IoTDB implements IDatabase {
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
-  protected Future<?> future;
+  protected Future<?> task;
   protected DBConfig dbConfig;
   protected Random random = new Random(config.getDATA_SEED());
 
@@ -142,8 +142,8 @@ public class IoTDB implements IDatabase {
     if (service != null) {
       service.shutdownNow();
     }
-    if (future != null) {
-      future.cancel(true);
+    if (task != null) {
+      task.cancel(true);
     }
   }
 
@@ -698,7 +698,7 @@ public class IoTDB implements IDatabase {
     AtomicBoolean isOk = new AtomicBoolean(true);
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       List<List<Object>> records = new ArrayList<>();
-      future =
+      task =
           service.submit(
               () -> {
                 try {
@@ -735,9 +735,9 @@ public class IoTDB implements IDatabase {
                 queryResultPointNum.set(resultPointNum);
               });
       try {
-        future.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+        task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
-        future.cancel(true);
+        task.cancel(true);
         return new Status(false, queryResultPointNum.get(), e, executeSQL);
       }
       if (isOk.get() == true) {
