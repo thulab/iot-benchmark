@@ -41,8 +41,8 @@ public abstract class DataWorkLoad implements IDataWorkLoad {
       List<String> files = MetaUtil.getClientFiles().get(clientId);
       return new RealDataWorkLoad(files);
     } else {
-      List<DeviceSchema> deviceSchemas = metaDataSchema.getDeviceSchemaByClientId(clientId);
       if (config.isIS_CLIENT_BIND()) {
+        List<DeviceSchema> deviceSchemas = metaDataSchema.getDeviceSchemaByClientId(clientId);
         return new SyntheticDataWorkLoad(deviceSchemas);
       } else {
         return SingletonWorkDataWorkLoad.getInstance();

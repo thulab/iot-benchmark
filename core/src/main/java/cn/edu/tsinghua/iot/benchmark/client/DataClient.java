@@ -62,9 +62,7 @@ public abstract class DataClient implements Runnable {
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
-  protected final List<DeviceSchema> deviceSchemas;
-  /** Related Schema Size */
-  protected final int deviceSchemasSize;
+  protected final List<DeviceSchema> clientDeviceSchemas;
   /** Measurement */
   protected Measurement measurement;
   /** Total number of loop */
@@ -86,12 +84,12 @@ public abstract class DataClient implements Runnable {
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
     this.queryWorkLoad = QueryWorkLoad.getInstance(id);
     this.clientThreadId = id;
-    this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
-    this.deviceSchemasSize = deviceSchemas.size();
+    this.clientDeviceSchemas =
+        MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
     this.measurement = new Measurement();
     this.service =
         Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory("ShowWorkProgress-" + String.valueOf(clientThreadId)));
+            new NamedThreadFactory("ShowWorkProgress-" + clientThreadId));
     initDBWrappers();
   }
 

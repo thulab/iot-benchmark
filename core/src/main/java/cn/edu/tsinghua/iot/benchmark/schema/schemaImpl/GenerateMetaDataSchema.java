@@ -24,11 +24,13 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
+import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /** Data Schema for generate data */
 public class GenerateMetaDataSchema extends MetaDataSchema {
@@ -43,13 +45,12 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
       return false;
     }
 
-    int eachClientDeviceNum = config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER();
-    // The part that cannot be divided equally is given to dataClients with a smaller number
-    int leftClientDeviceNum = config.getDEVICE_NUMBER() % config.getCLIENT_NUMBER();
     int deviceId = MetaUtil.getDeviceId(0);
+    Map<Integer, Integer> deviceDistribution =
+        CommonAlgorithms.distributeDevicesToClients(
+            config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER());
     for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
-      int deviceNumber =
-          (clientId < leftClientDeviceNum) ? eachClientDeviceNum + 1 : eachClientDeviceNum;
+      int deviceNumber = deviceDistribution.get(clientId);
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int d = 0; d < deviceNumber; d++) {
         DeviceSchema deviceSchema = new DeviceSchema(deviceId, sensors, MetaUtil.getTags(deviceId));
