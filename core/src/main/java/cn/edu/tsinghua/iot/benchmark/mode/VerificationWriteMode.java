@@ -40,7 +40,8 @@ public class VerificationWriteMode extends BaseMode {
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
-    return cleanUpData(dbConfigs, measurement) && registerSchema(measurement);
+    return cleanUpData(dbConfigs, measurement)
+        && (!config.isCREATE_SCHEMA() || registerSchema(measurement));
   }
 
   @Override
