@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -65,6 +66,9 @@ public class IoTDBSessionBase extends IoTDB {
 
   static final Config config = ConfigDescriptor.getInstance().getConfig();
   IBenchmarkSession sessionWrapper;
+
+  private static final Map<String, Binary> binaryCache =
+      new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE());
 
   public IoTDBSessionBase(DBConfig dbConfig) {
     super(dbConfig);
@@ -376,6 +380,7 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   protected Tablet genTablet(IBatch batch) {
+    config.getWORKLOAD_BUFFER_SIZE();
     List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
@@ -428,10 +433,11 @@ public class IoTDBSessionBase extends IoTDB {
           case TEXT:
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
             sensorsText[recordIndex] =
-                Binary.valueOf((String) record.getRecordDataValue().get(recordValueIndex));
+                binaryCache.computeIfAbsent(
+                    (String) record.getRecordDataValue().get(recordValueIndex), Binary::valueOf);
             break;
           default:
-            LOGGER.error("Unsupported Type:" + sensors.get(sensorIndex).getSensorType());
+            LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
         }
         sensorIndex++;
       }
