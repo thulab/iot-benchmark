@@ -27,6 +27,7 @@ import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.iotdb.tsfile.read.common.Field;
 import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.utils.Binary;
+import org.apache.iotdb.tsfile.utils.BytesUtils;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
@@ -434,7 +435,8 @@ public class IoTDBSessionBase extends IoTDB {
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
             sensorsText[recordIndex] =
                 binaryCache.computeIfAbsent(
-                    (String) record.getRecordDataValue().get(recordValueIndex), Binary::valueOf);
+                    (String) record.getRecordDataValue().get(recordValueIndex),
+                    BytesUtils::valueOf);
             break;
           default:
             LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
