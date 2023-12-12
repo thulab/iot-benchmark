@@ -19,7 +19,7 @@
     under the License.
 -->
 <assembly>
-    <id>IoTDB-1.1</id>
+    <id>IoTDB-1.3</id>
     <formats>
         <format>dir</format>
         <format>zip</format>

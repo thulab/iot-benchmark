@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
 
 public enum DBVersion {
+  IOTDB_130("130"),
   IOTDB_110("110"),
   IOTDB_100("100"),
   IOTDB_013("013"),
