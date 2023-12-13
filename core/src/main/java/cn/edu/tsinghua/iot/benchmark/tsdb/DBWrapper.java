@@ -510,15 +510,13 @@ public class DBWrapper implements IDatabase {
     double createSchemaTimeInSecond = 0.0;
     LOGGER.info("Registering schema...");
     try {
-      if (config.isCREATE_SCHEMA()) {
-        for (IDatabase database : databases) {
-          Double registerTime = database.registerSchema(schemaList);
-          if (null == registerTime) {
-            LOGGER.error("Failed to create schema for {}.", database.getClass().getName());
-            return null;
-          }
-          createSchemaTimeInSecond = Math.max(createSchemaTimeInSecond, registerTime);
+      for (IDatabase database : databases) {
+        Double registerTime = database.registerSchema(schemaList);
+        if (null == registerTime) {
+          LOGGER.error("Failed to create schema for {}.", database.getClass().getName());
+          return null;
         }
+        createSchemaTimeInSecond = Math.max(createSchemaTimeInSecond, registerTime);
       }
       measurement.setCreateSchemaTime(createSchemaTimeInSecond);
     } catch (Exception e) {
