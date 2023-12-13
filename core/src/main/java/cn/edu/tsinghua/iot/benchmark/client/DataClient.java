@@ -135,7 +135,7 @@ public abstract class DataClient implements Runnable {
           // print current progress periodically
           service.scheduleAtFixedRate(
               () -> {
-                String percent = String.format("%.2f", (loopIndex + 1) * 100.0D / this.totalLoop);
+                String percent = String.format("%.2f", loopIndex * 100.0D / this.totalLoop);
                 LOGGER.info("{} {}% workload is done.", currentThread, percent);
               },
               1,
