@@ -115,13 +115,11 @@ public abstract class BaseMode {
     DBWrapper dbWrapper = new DBWrapper(dbConfigs, measurement);
     try {
       dbWrapper.init();
-      if (config.isIS_DELETE_DATA()) {
-        try {
-          dbWrapper.cleanup();
-        } catch (TsdbException e) {
-          LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
-          return false;
-        }
+      try {
+        dbWrapper.cleanup();
+      } catch (TsdbException e) {
+        LOGGER.error("Cleanup {} failed because ", config.getNET_DEVICE(), e);
+        return false;
       }
     } catch (TsdbException e) {
       LOGGER.error("Initialize {} failed because ", config.getNET_DEVICE(), e);
