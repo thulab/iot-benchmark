@@ -504,12 +504,13 @@ public class IoTDBSessionBase extends IoTDB {
       if (sessionWrapper != null) {
         sessionWrapper.close();
       }
+      if (ioTDBConnection != null) {
+        ioTDBConnection.close();
+      }
     } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to close session.", e);
+      throw new TsdbException(e);
+    } finally {
+      this.service.shutdown();
     }
-    if (ioTDBConnection != null) {
-      ioTDBConnection.close();
-    }
-    this.service.shutdown();
   }
 }
