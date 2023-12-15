@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import cn.edu.tsinghua.iot.benchmark.utils.ZipUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,7 +142,7 @@ public class CSVRecorder extends TestDataPersistence {
         LOGGER.error("", ioException);
       }
     }
-    service = Executors.newSingleThreadExecutor();
+    service = Executors.newSingleThreadExecutor(new NamedThreadFactory("CSVRecorder"));
   }
 
   /** write header of csv file */

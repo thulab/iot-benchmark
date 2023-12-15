@@ -497,4 +497,19 @@ public class IoTDBSessionBase extends IoTDB {
     }
     return new Status(true);
   }
+
+  @Override
+  public void close() throws TsdbException {
+    try {
+      if (sessionWrapper != null) {
+        sessionWrapper.close();
+      }
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to close session.", e);
+    }
+    if (ioTDBConnection != null) {
+      ioTDBConnection.close();
+    }
+    this.service.shutdown();
+  }
 }
