@@ -29,7 +29,7 @@ import org.apache.iotdb.tsfile.read.common.RowRecord;
 import org.apache.iotdb.tsfile.write.record.Tablet;
 
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public class IoTDBSession extends IoTDBSessionBase {
       } else {
         sessionWrapper.open();
       }
-      this.service = Executors.newSingleThreadExecutor();
+      this.service = Executors.newSingleThreadExecutor(new NamedThreadFactory("Session"));
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to add session", e);
     }
@@ -206,22 +206,6 @@ public class IoTDBSession extends IoTDBSessionBase {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
       LOGGER.error("Failed to execute statement:" + e.getMessage());
-    }
-  }
-
-  @Override
-  public void close() throws TsdbException {
-    try {
-      if (sessionWrapper != null) {
-        sessionWrapper.close();
-      }
-      if (ioTDBConnection != null) {
-        ioTDBConnection.close();
-      }
-      this.service.shutdown();
-    } catch (IoTDBConnectionException ioTDBConnectionException) {
-      LOGGER.error("Failed to close session.");
-      throw new TsdbException(ioTDBConnectionException);
     }
   }
 }

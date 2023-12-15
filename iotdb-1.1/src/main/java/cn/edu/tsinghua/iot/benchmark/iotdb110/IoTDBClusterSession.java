@@ -30,6 +30,7 @@ import org.apache.iotdb.tsfile.write.record.Tablet;
 
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -189,22 +190,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
   @Override
   public void init() throws TsdbException {
     // do nothing
-    this.service = Executors.newSingleThreadExecutor();
-  }
-
-  @Override
-  public void close() throws TsdbException {
-    if (sessionWrapper != null) {
-      try {
-        sessionWrapper.close();
-      } catch (IoTDBConnectionException ignored) {
-        // should never happen
-      }
-    }
-    if (ioTDBConnection != null) {
-      ioTDBConnection.close();
-    }
-    this.service.shutdown();
+    this.service = Executors.newSingleThreadExecutor(new NamedThreadFactory("ClusterSession"));
   }
 
   @Override
