@@ -303,32 +303,28 @@ public class IoTDB implements IDatabase {
   }
 
   private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
-    try {
-      List<String> someDevicePaths = new ArrayList<>();
-      AtomicLong activatedDeviceCount = new AtomicLong();
-      schemaList.stream()
-          .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
-          .forEach(
-              path -> {
-                someDevicePaths.add(path);
-                if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
-                  try {
-                    metaSession.createTimeseriesUsingSchemaTemplate(someDevicePaths);
-                  } catch (Exception e) {
-                    LOGGER.error(
-                        "Activate {}~{} devices' schema template fail",
-                        activatedDeviceCount.get(),
-                        activatedDeviceCount.get() + someDevicePaths.size(),
-                        e);
-                    System.exit(1);
-                  }
-                  activatedDeviceCount.addAndGet(someDevicePaths.size());
-                  someDevicePaths.clear();
+    List<String> someDevicePaths = new ArrayList<>();
+    AtomicLong activatedDeviceCount = new AtomicLong();
+    schemaList.stream()
+        .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
+        .forEach(
+            path -> {
+              someDevicePaths.add(path);
+              if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
+                try {
+                  metaSession.createTimeseriesUsingSchemaTemplate(someDevicePaths);
+                } catch (Exception e) {
+                  LOGGER.error(
+                      "Activate {}~{} devices' schema template fail",
+                      activatedDeviceCount.get(),
+                      activatedDeviceCount.get() + someDevicePaths.size(),
+                      e);
+                  System.exit(1);
                 }
-              });
-    } catch (Throwable t) {
-      t.printStackTrace();
-    }
+                activatedDeviceCount.addAndGet(someDevicePaths.size());
+                someDevicePaths.clear();
+              }
+            });
   }
 
   private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) {
