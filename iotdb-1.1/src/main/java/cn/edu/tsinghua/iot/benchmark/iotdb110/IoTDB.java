@@ -80,7 +80,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -99,6 +98,7 @@ public class IoTDB implements IDatabase {
       new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
+  private final int ACTIVATE_TEMPLATE_THRESHOLD = 1000;
   protected ExecutorService service;
   protected Future<?> task;
   protected DBConfig dbConfig;
@@ -304,11 +304,28 @@ public class IoTDB implements IDatabase {
 
   private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
     try {
-      List<String> devicePaths =
-          schemaList.stream()
-              .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
-              .collect(Collectors.toList());
-      metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
+      List<String> someDevicePaths = new ArrayList<>();
+      AtomicLong activatedDeviceCount = new AtomicLong();
+      schemaList.stream()
+          .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
+          .forEach(
+              path -> {
+                someDevicePaths.add(path);
+                if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
+                  try {
+                    metaSession.createTimeseriesUsingSchemaTemplate(someDevicePaths);
+                  } catch (Exception e) {
+                    LOGGER.error(
+                        "Activate {}~{} devices' schema template fail",
+                        activatedDeviceCount.get(),
+                        activatedDeviceCount.get() + someDevicePaths.size(),
+                        e);
+                    System.exit(1);
+                  }
+                  activatedDeviceCount.addAndGet(someDevicePaths.size());
+                  someDevicePaths.clear();
+                }
+              });
     } catch (Throwable t) {
       t.printStackTrace();
     }
