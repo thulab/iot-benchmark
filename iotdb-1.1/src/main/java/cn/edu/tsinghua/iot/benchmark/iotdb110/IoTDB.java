@@ -87,6 +87,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
+  private static final int ACTIVATE_TEMPLATE_THRESHOLD = 1000;
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
@@ -98,7 +99,6 @@ public class IoTDB implements IDatabase {
       new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
-  private final int ACTIVATE_TEMPLATE_THRESHOLD = 1000;
   protected ExecutorService service;
   protected Future<?> task;
   protected DBConfig dbConfig;
