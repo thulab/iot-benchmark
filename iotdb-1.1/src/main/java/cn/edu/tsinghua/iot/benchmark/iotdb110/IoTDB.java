@@ -303,26 +303,26 @@ public class IoTDB implements IDatabase {
   }
 
   private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
-    List<String> someDevicePaths = new ArrayList<>();
+    List<String> partialDevicePaths = new ArrayList<>();
     AtomicLong activatedDeviceCount = new AtomicLong();
     schemaList.stream()
         .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
         .forEach(
             path -> {
-              someDevicePaths.add(path);
-              if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
+              partialDevicePaths.add(path);
+              if (partialDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
                 try {
-                  metaSession.createTimeseriesUsingSchemaTemplate(someDevicePaths);
+                  metaSession.createTimeseriesUsingSchemaTemplate(partialDevicePaths);
                 } catch (Exception e) {
                   LOGGER.error(
                       "Activate {}~{} devices' schema template fail",
                       activatedDeviceCount.get(),
-                      activatedDeviceCount.get() + someDevicePaths.size(),
+                      activatedDeviceCount.get() + partialDevicePaths.size(),
                       e);
                   System.exit(1);
                 }
-                activatedDeviceCount.addAndGet(someDevicePaths.size());
-                someDevicePaths.clear();
+                activatedDeviceCount.addAndGet(partialDevicePaths.size());
+                partialDevicePaths.clear();
               }
             });
   }
