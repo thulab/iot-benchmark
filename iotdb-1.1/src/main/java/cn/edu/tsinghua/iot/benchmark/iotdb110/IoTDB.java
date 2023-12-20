@@ -80,7 +80,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -88,6 +87,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
+  private static final int ACTIVATE_TEMPLATE_THRESHOLD = 1000;
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
@@ -303,15 +303,28 @@ public class IoTDB implements IDatabase {
   }
 
   private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
-    try {
-      List<String> devicePaths =
-          schemaList.stream()
-              .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
-              .collect(Collectors.toList());
-      metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
-    } catch (Throwable t) {
-      t.printStackTrace();
-    }
+    List<String> partialDevicePaths = new ArrayList<>();
+    AtomicLong activatedDeviceCount = new AtomicLong();
+    schemaList.stream()
+        .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
+        .forEach(
+            path -> {
+              partialDevicePaths.add(path);
+              if (partialDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
+                try {
+                  metaSession.createTimeseriesUsingSchemaTemplate(partialDevicePaths);
+                } catch (Exception e) {
+                  LOGGER.error(
+                      "Activate {}~{} devices' schema template fail",
+                      activatedDeviceCount.get(),
+                      activatedDeviceCount.get() + partialDevicePaths.size(),
+                      e);
+                  System.exit(1);
+                }
+                activatedDeviceCount.addAndGet(partialDevicePaths.size());
+                partialDevicePaths.clear();
+              }
+            });
   }
 
   private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) {
