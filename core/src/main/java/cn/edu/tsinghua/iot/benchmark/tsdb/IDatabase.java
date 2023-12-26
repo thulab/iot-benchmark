@@ -189,4 +189,8 @@ public interface IDatabase {
   default String typeMap(SensorType iotdbSensorType) {
     return iotdbSensorType.name;
   }
+  //
+  //  Status executeQueryAndGetStatus(String sql);
+  //
+  //  Status executeQueryAndGetStatus(String sql, Operation operation);
 }

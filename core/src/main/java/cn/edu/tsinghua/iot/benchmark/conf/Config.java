@@ -338,6 +338,10 @@ public class Config {
   /** Query random seed */
   private long QUERY_SEED = 151658L;
 
+  private boolean ORDER_BY_TIME_DESC = false;
+  private long ROW_LIMIT = -1;
+  private boolean ALIGN_BY_DEVICE = false;
+
   // workload 相关部分
   /** The size of workload buffer size */
   private int WORKLOAD_BUFFER_SIZE = 100;
@@ -1252,6 +1256,30 @@ public class Config {
 
   public void setQUERY_SEED(long QUERY_SEED) {
     this.QUERY_SEED = QUERY_SEED;
+  }
+
+  public boolean isORDER_BY_TIME_DESC() {
+    return ORDER_BY_TIME_DESC;
+  }
+
+  public void setORDER_BY_TIME_DESC(boolean ORDER_BY_TIME_DESC) {
+    this.ORDER_BY_TIME_DESC = ORDER_BY_TIME_DESC;
+  }
+
+  public long getROW_LIMIT() {
+    return ROW_LIMIT;
+  }
+
+  public void setROW_LIMIT(long ROW_LIMIT) {
+    this.ROW_LIMIT = ROW_LIMIT;
+  }
+
+  public boolean isALIGN_BY_DEVICE() {
+    return ALIGN_BY_DEVICE;
+  }
+
+  public void setALIGN_BY_DEVICE(boolean ALIGN_BY_DEVICE) {
+    this.ALIGN_BY_DEVICE = ALIGN_BY_DEVICE;
   }
 
   public int getWORKLOAD_BUFFER_SIZE() {
