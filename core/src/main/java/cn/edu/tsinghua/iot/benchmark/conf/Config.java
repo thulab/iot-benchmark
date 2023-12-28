@@ -338,8 +338,7 @@ public class Config {
   /** Query random seed */
   private long QUERY_SEED = 151658L;
 
-  private boolean ORDER_BY_TIME_DESC = false;
-  private long ROW_LIMIT = -1;
+  private long RESULT_ROW_LIMIT = -1;
   private boolean ALIGN_BY_DEVICE = false;
 
   // workload 相关部分
@@ -1258,20 +1257,12 @@ public class Config {
     this.QUERY_SEED = QUERY_SEED;
   }
 
-  public boolean isORDER_BY_TIME_DESC() {
-    return ORDER_BY_TIME_DESC;
+  public long getRESULT_ROW_LIMIT() {
+    return RESULT_ROW_LIMIT;
   }
 
-  public void setORDER_BY_TIME_DESC(boolean ORDER_BY_TIME_DESC) {
-    this.ORDER_BY_TIME_DESC = ORDER_BY_TIME_DESC;
-  }
-
-  public long getROW_LIMIT() {
-    return ROW_LIMIT;
-  }
-
-  public void setROW_LIMIT(long ROW_LIMIT) {
-    this.ROW_LIMIT = ROW_LIMIT;
+  public void setRESULT_ROW_LIMIT(long RESULT_ROW_LIMIT) {
+    this.RESULT_ROW_LIMIT = RESULT_ROW_LIMIT;
   }
 
   public boolean isALIGN_BY_DEVICE() {

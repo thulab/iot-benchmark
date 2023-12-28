@@ -436,6 +436,12 @@ public class ConfigDescriptor {
                 properties.getProperty("GROUP_BY_TIME_UNIT", config.getGROUP_BY_TIME_UNIT() + "")));
         config.setQUERY_SEED(
             Long.parseLong(properties.getProperty("QUERY_SEED", config.getQUERY_SEED() + "")));
+        config.setRESULT_ROW_LIMIT(
+            Long.parseLong(
+                properties.getProperty("RESULT_ROW_LIMIT", config.getRESULT_ROW_LIMIT() + "")));
+        config.setALIGN_BY_DEVICE(
+            Boolean.parseBoolean(
+                properties.getProperty("ALIGN_BY_DEVICE", config.isALIGN_BY_DEVICE() + "")));
 
         config.setWORKLOAD_BUFFER_SIZE(
             Integer.parseInt(
@@ -588,7 +594,23 @@ public class ConfigDescriptor {
     }
     result &= checkDeviceNumPerWrite();
     result &= checkTag();
+    if (!isGoodDB()) {
+      if (config.isALIGN_BY_DEVICE()) {
+        LOGGER.error("ALIGN_BY_DEVICE is not supported for this database");
+      }
+      if (config.getRESULT_ROW_LIMIT() >= 0) {
+        LOGGER.error("RESULT_ROW_LIMIT is not supported for this database");
+      }
+    }
     return result;
+  }
+
+  private boolean isGoodDB() {
+    DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
+    DBVersion dbVersion = config.getDbConfig().getDB_SWITCH().getVersion();
+    return dbType.equals(DBType.IoTDB)
+        || dbVersion.equals(DBVersion.TDengine_3)
+        || dbVersion.equals(DBVersion.InfluxDB_2);
   }
 
   private boolean checkOperationProportion() {
