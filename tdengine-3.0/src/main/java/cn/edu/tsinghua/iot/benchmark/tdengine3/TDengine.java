@@ -279,6 +279,7 @@ public class TDengine implements IDatabase {
     String sql =
         addWhereClause(
             rangeQueryHead, rangeQuery, null, getTableNameFilterForAlignByDevice(rangeQuery));
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -297,6 +298,7 @@ public class TDengine implements IDatabase {
                 valueRangeQuery.getValueThreshold(),
                 valueRangeQuery.getDeviceSchema().get(0).getSensors()),
             getTableNameFilterForAlignByDevice(valueRangeQuery));
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -314,6 +316,7 @@ public class TDengine implements IDatabase {
             aggRangeQuery,
             null,
             getTableNameFilterForAlignByDevice(aggRangeQuery));
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -330,6 +333,7 @@ public class TDengine implements IDatabase {
                 aggValueQuery.getValueThreshold(),
                 aggValueQuery.getDeviceSchema().get(0).getSensors()),
             getTableNameFilterForAlignByDevice(aggValueQuery));
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -349,6 +353,7 @@ public class TDengine implements IDatabase {
                 aggRangeValueQuery.getValueThreshold(),
                 aggRangeValueQuery.getDeviceSchema().get(0).getSensors()),
             getTableNameFilterForAlignByDevice(aggRangeValueQuery));
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -359,11 +364,12 @@ public class TDengine implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sqlWithTimeFilter =
+    String sql =
         addWhereClause(
             sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
-    String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sqlWithGroupBy);
+    sql = addGroupByClause(sql, groupByQuery.getGranularity());
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
+    return executeQueryAndGetStatus(sql);
   }
 
   /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
@@ -380,6 +386,7 @@ public class TDengine implements IDatabase {
         addWhereClause(
             rangeQueryHead, rangeQuery, null, getTableNameFilterForAlignByDevice(rangeQuery));
     sql += " order by time desc";
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -395,6 +402,7 @@ public class TDengine implements IDatabase {
                 valueRangeQuery.getDeviceSchema().get(0).getSensors()),
             getTableNameFilterForAlignByDevice(valueRangeQuery));
     sql += " order by time desc";
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
 
@@ -517,6 +525,13 @@ public class TDengine implements IDatabase {
       return rangeQuery.getDeviceSchema();
     }
     return null;
+  }
+
+  private static String addLimitClause(String sql, long limitation) {
+    if (config.getRESULT_ROW_LIMIT() >= 0) {
+      sql += " limit " + limitation;
+    }
+    return sql;
   }
 
   /**
