@@ -424,7 +424,7 @@ public class IoTDB implements IDatabase {
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String strTime = preciseQuery.getTimestamp() + "";
     String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
-    return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
   }
 
   /**
@@ -441,7 +441,7 @@ public class IoTDB implements IDatabase {
             rangeQuery.getDeviceSchema(),
             rangeQuery.getStartTimestamp(),
             rangeQuery.getEndTimestamp());
-    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY);
   }
 
   /**
@@ -454,7 +454,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery);
-    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
   }
 
   /**
@@ -471,7 +471,7 @@ public class IoTDB implements IDatabase {
     String sql =
         addWhereTimeClause(
             aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
-    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
   }
 
   /**
@@ -490,7 +490,7 @@ public class IoTDB implements IDatabase {
             + getValueFilterClause(
                     aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
                 .substring(4);
-    return executeQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
   }
 
   /**
@@ -513,7 +513,7 @@ public class IoTDB implements IDatabase {
     sql +=
         getValueFilterClause(
             aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
   }
 
   /**
@@ -533,7 +533,7 @@ public class IoTDB implements IDatabase {
             groupByQuery.getStartTimestamp(),
             groupByQuery.getEndTimestamp(),
             groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
   /**
@@ -545,7 +545,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
   }
 
   /**
@@ -563,7 +563,7 @@ public class IoTDB implements IDatabase {
                 rangeQuery.getStartTimestamp(),
                 rangeQuery.getEndTimestamp())
             + " order by time desc";
-    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -576,7 +576,8 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
-    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
+    return addSomeClauseAndExecuteQueryAndGetStatus(
+        sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -696,7 +697,13 @@ public class IoTDB implements IDatabase {
     return name.toString();
   }
 
-  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+  protected Status addSomeClauseAndExecuteQueryAndGetStatus(String sql, Operation operation) {
+    if (config.getRESULT_ROW_LIMIT() >= 0) {
+      sql += " limit " + config.getRESULT_ROW_LIMIT();
+    }
+    if (config.isALIGN_BY_DEVICE()) {
+      sql += " align by device";
+    }
     String executeSQL;
     if (config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()) {
       executeSQL = "debug " + sql;

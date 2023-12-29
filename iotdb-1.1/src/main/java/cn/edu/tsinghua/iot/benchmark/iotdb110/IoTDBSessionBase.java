@@ -169,7 +169,13 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  protected Status executeQueryAndGetStatus(String sql, Operation operation) {
+  protected Status addSomeClauseAndExecuteQueryAndGetStatus(String sql, Operation operation) {
+    if (config.getRESULT_ROW_LIMIT() >= 0) {
+      sql += " limit " + config.getRESULT_ROW_LIMIT();
+    }
+    if (config.isALIGN_BY_DEVICE()) {
+      sql += " align by device";
+    }
     String executeSQL;
     if (config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()) {
       executeSQL = "debug " + sql;
