@@ -319,7 +319,7 @@ public class Config {
    * value filtering in reverse order, Eg. select v1... from data where time > ? and time < ? and v1
    * > ? and device in ? order by time desc
    */
-  private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0";
+  private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0";
   /** The number of sensors involved in each query */
   private int QUERY_SENSOR_NUM = 1;
   /** The number of devices involved in each query */

@@ -89,6 +89,7 @@ public class IoTDB implements IDatabase {
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   private static final int ACTIVATE_TEMPLATE_THRESHOLD = 1000;
   protected final String DELETE_SERIES_SQL;
+  private final String ORDER_BY_TIME_DESC = " order by time desc ";
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -562,7 +563,7 @@ public class IoTDB implements IDatabase {
                 rangeQuery.getDeviceSchema(),
                 rangeQuery.getStartTimestamp(),
                 rangeQuery.getEndTimestamp())
-            + " order by time desc";
+            + ORDER_BY_TIME_DESC;
     return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -575,9 +576,24 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
+    String sql = getValueRangeQuerySql(valueRangeQuery) + ORDER_BY_TIME_DESC;
     return addSomeClauseAndExecuteQueryAndGetStatus(
         sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
+  }
+
+  /** Q11: Q7 order by time desc */
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sql =
+        addGroupByClause(
+            aggQuerySqlHead,
+            groupByQuery.getStartTimestamp(),
+            groupByQuery.getEndTimestamp(),
+            groupByQuery.getGranularity());
+    sql += ORDER_BY_TIME_DESC;
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
   /**
@@ -906,7 +922,7 @@ public class IoTDB implements IDatabase {
     sql.append(getSimpleQuerySqlHead(deviceSchemas));
     sql.append(" where time >= ").append(startTimeStamp);
     sql.append(" and time <").append(endTimeStamp);
-    sql.append(" order by time desc");
+    sql.append(ORDER_BY_TIME_DESC);
     return sql.toString();
   }
 
@@ -940,7 +956,7 @@ public class IoTDB implements IDatabase {
   }
 
   protected String getMaxTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
+    return "select * from " + getDevicePath(deviceSchema) + ORDER_BY_TIME_DESC + " limit 1";
   }
 
   String getEncodingType(SensorType dataSensorType) {

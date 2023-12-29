@@ -65,6 +65,7 @@ public class TDengine implements IDatabase {
       new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final String USE_DB = "use %s";
   private static final String SUPER_TABLE_NAME = "device";
+  private static final String ORDER_BY_TIME_DESC = " order by time desc ";
   private static final AtomicBoolean isInit = new AtomicBoolean(false);
 
   private final String CREATE_STABLE;
@@ -385,7 +386,7 @@ public class TDengine implements IDatabase {
     String sql =
         addWhereClause(
             rangeQueryHead, rangeQuery, null, getTableNameFilterForAlignByDevice(rangeQuery));
-    sql += " order by time desc";
+    sql += ORDER_BY_TIME_DESC;
     sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
@@ -401,7 +402,19 @@ public class TDengine implements IDatabase {
                 valueRangeQuery.getValueThreshold(),
                 valueRangeQuery.getDeviceSchema().get(0).getSensors()),
             getTableNameFilterForAlignByDevice(valueRangeQuery));
-    sql += " order by time desc";
+    sql += ORDER_BY_TIME_DESC;
+    sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
+    return executeQueryAndGetStatus(sql);
+  }
+
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sql =
+        addWhereClause(
+            sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
+    sql = addGroupByClause(sql, groupByQuery.getGranularity());
+    sql += ORDER_BY_TIME_DESC;
     sql = addLimitClause(sql, config.getRESULT_ROW_LIMIT());
     return executeQueryAndGetStatus(sql);
   }
