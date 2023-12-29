@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.tdengine3;
 
+import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
@@ -180,6 +181,7 @@ public class TDengine implements IDatabase {
 
   private synchronized void initOnlyOnce()
       throws TsdbException, BrokenBarrierException, InterruptedException {
+    new OperationController(1).getNextOperationType();
     if (!isInit.getAndSet(true)) {
       try (Statement statement = connection.createStatement()) {
         LOGGER.info("Create Database: {}", CREATE_DATABASE);
@@ -504,23 +506,24 @@ public class TDengine implements IDatabase {
       return sql;
     }
     StringBuilder sqlBuilder = new StringBuilder(sql);
-    sqlBuilder.append(" WHERE");
+    sqlBuilder.append(" WHERE ");
     if (timeRangeQuery != null) {
       String startTime = "" + timeRangeQuery.getStartTimestamp();
       String endTime = "" + timeRangeQuery.getEndTimestamp();
       sqlBuilder.append(" time >= ").append(startTime).append(" AND time <= ").append(endTime);
     }
     if (valueRangeFilter != null) {
-      if (!sqlBuilder.toString().endsWith("WHERE")) {
+      if (!sqlBuilder.toString().endsWith("WHERE ")) {
         sqlBuilder.append(" AND ");
       }
       double valueThreshold = valueRangeFilter.getMinValue();
       for (Sensor sensor : valueRangeFilter.getSensors()) {
         sqlBuilder.append(sensor.getName()).append(" > ").append(valueThreshold).append(" AND ");
       }
+      sqlBuilder.delete(sqlBuilder.length() - 4, sqlBuilder.length());
     }
     if (alignByDeviceTableNameFilter != null) {
-      if (!sqlBuilder.toString().endsWith("WHERE")) {
+      if (!sqlBuilder.toString().endsWith("WHERE ")) {
         sqlBuilder.append(" AND ");
       }
       sqlBuilder.append(" tbname in (");
