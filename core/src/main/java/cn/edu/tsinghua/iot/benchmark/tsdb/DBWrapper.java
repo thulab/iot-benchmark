@@ -318,6 +318,31 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    Status status = null;
+    Operation operation = Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC;
+    String device = "No Device";
+    if (groupByQuery.getDeviceSchema().size() > 0) {
+      device = groupByQuery.getDeviceSchema().get(0).getDevice();
+    }
+    try {
+      List<Status> statuses = new ArrayList<>();
+      for (IDatabase database : databases) {
+        long start = System.nanoTime();
+        status = database.groupByQueryOrderByDesc(groupByQuery);
+        long end = System.nanoTime();
+        status.setTimeCost(end - start);
+        handleQueryOperation(status, operation, device);
+        statuses.add(status);
+      }
+      doComparisonByRecord(groupByQuery, operation, statuses);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e, device);
+    }
+    return status;
+  }
+
+  @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     Status status = null;
     Operation operation = Operation.LATEST_POINT_QUERY;

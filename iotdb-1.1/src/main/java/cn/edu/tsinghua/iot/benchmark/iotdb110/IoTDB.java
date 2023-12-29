@@ -593,7 +593,8 @@ public class IoTDB implements IDatabase {
             groupByQuery.getEndTimestamp(),
             groupByQuery.getGranularity());
     sql += ORDER_BY_TIME_DESC;
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
+    return addSomeClauseAndExecuteQueryAndGetStatus(
+        sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -764,7 +765,8 @@ public class IoTDB implements IDatabase {
                   isOk.set(false);
                 }
                 long resultPointNum = line.get();
-                if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
+                if (!Operation.LATEST_POINT_QUERY.equals(operation)
+                    && !config.isALIGN_BY_DEVICE()) {
                   resultPointNum *= config.getQUERY_SENSOR_NUM();
                   resultPointNum *= config.getQUERY_DEVICE_NUM();
                 }

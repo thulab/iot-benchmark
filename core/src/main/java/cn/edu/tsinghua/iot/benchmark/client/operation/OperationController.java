@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataMixClient;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ import java.util.Random;
 
 public class OperationController {
 
-  private static final Logger LOGGER = null;
+  private static final Logger LOGGER = LoggerFactory.getLogger(OperationController.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
   private List<Double> proportion = new ArrayList<>();
   private List<Operation> operations = Operation.getNormalOperation();
@@ -108,6 +109,8 @@ public class OperationController {
         return Operation.RANGE_QUERY_ORDER_BY_TIME_DESC;
       case 11:
         return Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
+      case 12:
+        return Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC;
       default:
         LOGGER.error("Unsupported operation {}, use default operation: INGESTION.", i);
         return Operation.INGESTION;
