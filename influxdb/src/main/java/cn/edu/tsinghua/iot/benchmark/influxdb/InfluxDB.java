@@ -140,7 +140,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String sql = getPreciseQuerySql(preciseQuery);
-    return executeQueryAndGetStatus(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -151,7 +151,7 @@ public class InfluxDB implements IDatabase {
   public Status rangeQuery(RangeQuery rangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
-    return executeQueryAndGetStatus(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -167,7 +167,7 @@ public class InfluxDB implements IDatabase {
             valueRangeQuery.getDeviceSchema(),
             sqlWithTimeFilter,
             valueRangeQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
   /**
@@ -179,7 +179,7 @@ public class InfluxDB implements IDatabase {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery);
-    return executeQueryAndGetStatus(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
   }
 
   /** eg. SELECT count(s_3) FROM group_3 WHERE ( device = 'd_12' ) AND s_3 > -5.0. */
@@ -190,7 +190,7 @@ public class InfluxDB implements IDatabase {
     String sql =
         addWhereValueClause(
             aggValueQuery.getDeviceSchema(), aggQuerySqlHead, aggValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -207,7 +207,7 @@ public class InfluxDB implements IDatabase {
             aggRangeValueQuery.getDeviceSchema(),
             sqlWithTimeFilter,
             aggRangeValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
   /**
@@ -219,14 +219,14 @@ public class InfluxDB implements IDatabase {
     String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
     String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sqlWithGroupBy);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithGroupBy);
   }
 
   /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
-    return executeQueryAndGetStatus(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
   }
 
   @Override
@@ -234,7 +234,7 @@ public class InfluxDB implements IDatabase {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
     sql = addDescClause(sql);
-    return executeQueryAndGetStatus(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
   }
 
   @Override
@@ -247,7 +247,7 @@ public class InfluxDB implements IDatabase {
             sqlWithTimeFilter,
             valueRangeQuery.getValueThreshold());
     sqlWithValueFilter = addDescClause(sqlWithValueFilter);
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
   private String addDescClause(String sql) {
@@ -289,7 +289,11 @@ public class InfluxDB implements IDatabase {
     return model;
   }
 
-  private Status executeQueryAndGetStatus(String sql) {
+  private Status addSomeClauseAndExecuteQueryAndGetStatus(String sql) {
+    if (config.getRESULT_ROW_LIMIT() >= 0) {
+      sql += " limit " + config.getRESULT_ROW_LIMIT();
+    }
+    LOGGER.info("do query: {}", sql);
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
