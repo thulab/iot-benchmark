@@ -302,9 +302,8 @@ public class InfluxDB implements IDatabase {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
     }
-    LOGGER.info("do query: {}", sql);
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.debug("{} query SQL: {}", Thread.currentThread().getName(), sql);
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
 
     QueryResult results = influxDbInstance.query(new Query(sql, influxDbName));
