@@ -67,6 +67,7 @@ public class TDengine implements IDatabase {
   private static final String USE_DB = "use %s";
   private static final String SUPER_TABLE_NAME = "device";
   private static final String ORDER_BY_TIME_DESC = " order by time desc ";
+  private static final String ORDER_BY_WSTART_DESC = " order by _wstart desc ";
   private static final AtomicBoolean isInit = new AtomicBoolean(false);
 
   private final String CREATE_STABLE;
@@ -407,7 +408,7 @@ public class TDengine implements IDatabase {
         addWhereClause(
             sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
     sql = addGroupByClause(sql, groupByQuery.getGranularity());
-    sql += ORDER_BY_TIME_DESC;
+    sql += ORDER_BY_WSTART_DESC;
     return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
