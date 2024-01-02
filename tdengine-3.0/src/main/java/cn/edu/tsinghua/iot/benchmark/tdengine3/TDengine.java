@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.tdengine3;
 
-import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;

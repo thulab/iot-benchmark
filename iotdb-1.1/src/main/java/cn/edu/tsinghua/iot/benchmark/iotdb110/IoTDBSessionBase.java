@@ -236,7 +236,8 @@ public class IoTDBSessionBase extends IoTDB {
                   isOk.set(false);
                 }
                 long resultPointNum = line.get();
-                if (!Operation.LATEST_POINT_QUERY.equals(operation) && !config.isALIGN_BY_DEVICE()) {
+                if (!Operation.LATEST_POINT_QUERY.equals(operation)
+                    && !config.isALIGN_BY_DEVICE()) {
                   resultPointNum *= config.getQUERY_SENSOR_NUM();
                   resultPointNum *= config.getQUERY_DEVICE_NUM();
                 }

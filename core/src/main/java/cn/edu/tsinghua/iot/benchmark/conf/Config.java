@@ -320,6 +320,7 @@ public class Config {
    * > ? and device in ? order by time desc
    */
   private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0";
+
   private final int OPERATION_PROPORTION_LEN = 12;
   /** The number of sensors involved in each query */
   private int QUERY_SENSOR_NUM = 1;

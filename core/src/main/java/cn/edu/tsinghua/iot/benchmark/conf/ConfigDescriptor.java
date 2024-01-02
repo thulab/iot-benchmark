@@ -617,7 +617,8 @@ public class ConfigDescriptor {
   }
 
   private boolean checkOperationProportion() {
-    while (config.getOPERATION_PROPORTION().split(":").length != config.getOPERATION_PROPORTION_LEN()) {
+    while (config.getOPERATION_PROPORTION().split(":").length
+        != config.getOPERATION_PROPORTION_LEN()) {
       config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
     }
     String[] op = config.getOPERATION_PROPORTION().split(":");
