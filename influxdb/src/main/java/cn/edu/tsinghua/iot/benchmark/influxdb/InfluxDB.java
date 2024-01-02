@@ -250,6 +250,15 @@ public class InfluxDB implements IDatabase {
     return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    String sql = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    sql = addWhereTimeClause(sql, groupByQuery);
+    sql = addGroupByClause(sql, groupByQuery.getGranularity());
+    sql = addDescClause(sql);
+    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+  }
+
   private String addDescClause(String sql) {
     return sql + " ORDER BY time DESC";
   }
