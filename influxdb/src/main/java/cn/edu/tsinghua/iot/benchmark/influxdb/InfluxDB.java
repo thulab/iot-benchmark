@@ -140,7 +140,7 @@ public class InfluxDB implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String sql = getPreciseQuerySql(preciseQuery);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -151,7 +151,7 @@ public class InfluxDB implements IDatabase {
   public Status rangeQuery(RangeQuery rangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -167,7 +167,7 @@ public class InfluxDB implements IDatabase {
             valueRangeQuery.getDeviceSchema(),
             sqlWithTimeFilter,
             valueRangeQuery.getValueThreshold());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
+    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
   /**
@@ -179,7 +179,7 @@ public class InfluxDB implements IDatabase {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
     String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /** eg. SELECT count(s_3) FROM group_3 WHERE ( device = 'd_12' ) AND s_3 > -5.0. */
@@ -190,7 +190,7 @@ public class InfluxDB implements IDatabase {
     String sql =
         addWhereValueClause(
             aggValueQuery.getDeviceSchema(), aggQuerySqlHead, aggValueQuery.getValueThreshold());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -207,7 +207,7 @@ public class InfluxDB implements IDatabase {
             aggRangeValueQuery.getDeviceSchema(),
             sqlWithTimeFilter,
             aggRangeValueQuery.getValueThreshold());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
+    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
   /**
@@ -219,14 +219,14 @@ public class InfluxDB implements IDatabase {
     String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
     String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithGroupBy);
+    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithGroupBy);
   }
 
   /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   @Override
@@ -234,7 +234,7 @@ public class InfluxDB implements IDatabase {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
     String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
     sql = addDescClause(sql);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   @Override
@@ -247,7 +247,7 @@ public class InfluxDB implements IDatabase {
             sqlWithTimeFilter,
             valueRangeQuery.getValueThreshold());
     sqlWithValueFilter = addDescClause(sqlWithValueFilter);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sqlWithValueFilter);
+    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithValueFilter);
   }
 
   @Override
@@ -256,7 +256,7 @@ public class InfluxDB implements IDatabase {
     sql = addWhereTimeClause(sql, groupByQuery);
     sql = addGroupByClause(sql, groupByQuery.getGranularity());
     sql = addDescClause(sql);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   private String addDescClause(String sql) {
@@ -298,7 +298,7 @@ public class InfluxDB implements IDatabase {
     return model;
   }
 
-  private Status addSomeClauseAndExecuteQueryAndGetStatus(String sql) {
+  private Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
     }

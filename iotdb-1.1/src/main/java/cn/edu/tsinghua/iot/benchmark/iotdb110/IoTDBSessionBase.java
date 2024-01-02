@@ -169,7 +169,7 @@ public class IoTDBSessionBase extends IoTDB {
   }
 
   @Override
-  protected Status addSomeClauseAndExecuteQueryAndGetStatus(String sql, Operation operation) {
+  protected Status addTailClausesAndExecuteQueryAndGetStatus(String sql, Operation operation) {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
     }
@@ -237,7 +237,7 @@ public class IoTDBSessionBase extends IoTDB {
                 }
                 long resultPointNum = line.get();
                 if (!Operation.LATEST_POINT_QUERY.equals(operation)
-                    && !config.isALIGN_BY_DEVICE()) {
+                    || !config.isALIGN_BY_DEVICE()) {
                   resultPointNum *= config.getQUERY_SENSOR_NUM();
                   resultPointNum *= config.getQUERY_DEVICE_NUM();
                 }

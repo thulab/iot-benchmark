@@ -425,7 +425,7 @@ public class IoTDB implements IDatabase {
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String strTime = preciseQuery.getTimestamp() + "";
     String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
   }
 
   /**
@@ -442,7 +442,7 @@ public class IoTDB implements IDatabase {
             rangeQuery.getDeviceSchema(),
             rangeQuery.getStartTimestamp(),
             rangeQuery.getEndTimestamp());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY);
   }
 
   /**
@@ -455,7 +455,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
   }
 
   /**
@@ -472,7 +472,7 @@ public class IoTDB implements IDatabase {
     String sql =
         addWhereTimeClause(
             aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
   }
 
   /**
@@ -491,7 +491,7 @@ public class IoTDB implements IDatabase {
             + getValueFilterClause(
                     aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
                 .substring(4);
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
   }
 
   /**
@@ -514,7 +514,7 @@ public class IoTDB implements IDatabase {
     sql +=
         getValueFilterClause(
             aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
   }
 
   /**
@@ -534,7 +534,7 @@ public class IoTDB implements IDatabase {
             groupByQuery.getStartTimestamp(),
             groupByQuery.getEndTimestamp(),
             groupByQuery.getGranularity());
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
   /**
@@ -546,7 +546,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return addSomeClauseAndExecuteQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
+    return addTailClausesAndExecuteQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
   }
 
   /**
@@ -564,7 +564,7 @@ public class IoTDB implements IDatabase {
                 rangeQuery.getStartTimestamp(),
                 rangeQuery.getEndTimestamp())
             + ORDER_BY_TIME_DESC;
-    return addSomeClauseAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -577,7 +577,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery) + ORDER_BY_TIME_DESC;
-    return addSomeClauseAndExecuteQueryAndGetStatus(
+    return addTailClausesAndExecuteQueryAndGetStatus(
         sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -593,7 +593,7 @@ public class IoTDB implements IDatabase {
             groupByQuery.getEndTimestamp(),
             groupByQuery.getGranularity());
     sql += ORDER_BY_TIME_DESC;
-    return addSomeClauseAndExecuteQueryAndGetStatus(
+    return addTailClausesAndExecuteQueryAndGetStatus(
         sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -714,7 +714,7 @@ public class IoTDB implements IDatabase {
     return name.toString();
   }
 
-  protected Status addSomeClauseAndExecuteQueryAndGetStatus(String sql, Operation operation) {
+  protected Status addTailClausesAndExecuteQueryAndGetStatus(String sql, Operation operation) {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
     }
@@ -766,7 +766,7 @@ public class IoTDB implements IDatabase {
                 }
                 long resultPointNum = line.get();
                 if (!Operation.LATEST_POINT_QUERY.equals(operation)
-                    && !config.isALIGN_BY_DEVICE()) {
+                    || !config.isALIGN_BY_DEVICE()) {
                   resultPointNum *= config.getQUERY_SENSOR_NUM();
                   resultPointNum *= config.getQUERY_DEVICE_NUM();
                 }
