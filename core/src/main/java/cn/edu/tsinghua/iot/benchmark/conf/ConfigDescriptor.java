@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -594,26 +595,31 @@ public class ConfigDescriptor {
     }
     result &= checkDeviceNumPerWrite();
     result &= checkTag();
-    if (!isGoodDB()) {
+    if (!commonlyUseDB()) {
       if (config.isALIGN_BY_DEVICE()) {
+        result = false;
         LOGGER.error("ALIGN_BY_DEVICE is not supported for this database");
       }
       if (config.getRESULT_ROW_LIMIT() >= 0) {
+        result = false;
         LOGGER.error("RESULT_ROW_LIMIT is not supported for this database");
       }
     }
     return result;
   }
 
-  private boolean isGoodDB() {
+  private boolean commonlyUseDB() {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     DBVersion dbVersion = config.getDbConfig().getDB_SWITCH().getVersion();
-    return dbType.equals(DBType.IoTDB)
-        || dbVersion.equals(DBVersion.TDengine_3)
-        || dbVersion.equals(DBVersion.InfluxDB_2);
+    return Objects.equals(dbVersion, DBVersion.IOTDB_110)
+        || Objects.equals(dbVersion, DBVersion.TDengine_3)
+        || (Objects.equals(dbType, DBType.InfluxDB) && dbVersion == null);
   }
 
   private boolean checkOperationProportion() {
+    while (config.getOPERATION_PROPORTION().split(":").length != config.getOPERATION_PROPORTION_LEN()) {
+      config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
+    }
     String[] op = config.getOPERATION_PROPORTION().split(":");
     int minOps = 0;
     for (String s : op) {

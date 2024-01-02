@@ -320,6 +320,7 @@ public class Config {
    * > ? and device in ? order by time desc
    */
   private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0";
+  private final int OPERATION_PROPORTION_LEN = 12;
   /** The number of sensors involved in each query */
   private int QUERY_SENSOR_NUM = 1;
   /** The number of devices involved in each query */
@@ -1199,6 +1200,10 @@ public class Config {
 
   public void setOPERATION_PROPORTION(String OPERATION_PROPORTION) {
     this.OPERATION_PROPORTION = OPERATION_PROPORTION;
+  }
+
+  public int getOPERATION_PROPORTION_LEN() {
+    return this.OPERATION_PROPORTION_LEN;
   }
 
   public int getQUERY_SENSOR_NUM() {

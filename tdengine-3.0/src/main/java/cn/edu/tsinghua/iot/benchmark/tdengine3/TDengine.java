@@ -51,6 +51,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -181,7 +182,6 @@ public class TDengine implements IDatabase {
 
   private synchronized void initOnlyOnce()
       throws TsdbException, BrokenBarrierException, InterruptedException {
-    new OperationController(1).getNextOperationType();
     if (!isInit.getAndSet(true)) {
       try (Statement statement = connection.createStatement()) {
         LOGGER.info("Create Database: {}", CREATE_DATABASE);
@@ -502,7 +502,7 @@ public class TDengine implements IDatabase {
       List<DeviceSchema> alignByDeviceTableNameFilter) {
     if (timeRangeQuery == null
         && valueRangeFilter == null
-        && alignByDeviceTableNameFilter == null) {
+        && !alignByDeviceTableNameFilter.isEmpty()) {
       return sql;
     }
     StringBuilder sqlBuilder = new StringBuilder(sql);
@@ -522,7 +522,7 @@ public class TDengine implements IDatabase {
       }
       sqlBuilder.delete(sqlBuilder.length() - 4, sqlBuilder.length());
     }
-    if (alignByDeviceTableNameFilter != null) {
+    if (!alignByDeviceTableNameFilter.isEmpty()) {
       if (!sqlBuilder.toString().endsWith("WHERE ")) {
         sqlBuilder.append(" AND ");
       }
@@ -540,7 +540,7 @@ public class TDengine implements IDatabase {
     if (config.isALIGN_BY_DEVICE()) {
       return rangeQuery.getDeviceSchema();
     }
-    return null;
+    return Collections.emptyList();
   }
 
   private static String addLimitClause(String sql, long limitation) {
