@@ -80,7 +80,7 @@ fi
 
 # check BENCHMARK_HOME
 if [ -z "${BENCHMARK_HOME}" ]; then
-  export BENCHMARK_HOME="$(cd "$(dirname "$0")" && pwd)"
+  export BENCHMARK_HOME="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
 # check $benchmark_conf
