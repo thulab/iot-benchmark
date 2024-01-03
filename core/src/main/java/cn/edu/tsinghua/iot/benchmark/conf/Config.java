@@ -408,12 +408,6 @@ public class Config {
   /** Sensor function */
   private Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
 
-  public String getHomeDir() {
-    // When start benchmark with the script, the environment variables will be set.
-    // But in developer mode it will return another dir to find resources.
-    return System.getProperty(Constants.BENCHMARK_HOME, null);
-  }
-
   /** init inner functions */
   public void initInnerFunction() {
     FunctionXml xml = null;
