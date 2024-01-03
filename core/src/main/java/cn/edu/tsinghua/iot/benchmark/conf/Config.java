@@ -21,7 +21,6 @@ package cn.edu.tsinghua.iot.benchmark.conf;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
@@ -41,7 +40,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Config {
-  private static Logger LOGGER = LoggerFactory.getLogger(Config.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
   // 初始化
   // 初始化：清理数据
@@ -413,13 +412,9 @@ public class Config {
   /** init inner functions */
   public void initInnerFunction() {
     FunctionXml xml = null;
+    String configFolder = System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf");
     try {
-      InputStream input;
-      if (getHomeDir() == null) {
-        input = Function.class.getResourceAsStream("/function.xml");
-      } else {
-        input = Files.newInputStream(Paths.get(getHomeDir() + "/resources/function.xml"));
-      }
+      InputStream input = Files.newInputStream(Paths.get(configFolder + "/function.xml"));
       JAXBContext context = JAXBContext.newInstance(FunctionXml.class, FunctionParam.class);
       Unmarshaller unmarshaller = context.createUnmarshaller();
       xml = (FunctionXml) unmarshaller.unmarshal(input);

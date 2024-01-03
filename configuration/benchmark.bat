@@ -84,7 +84,7 @@ goto :eof
 
 rem echo CLASSPATH: %CLASSPATH%
 
-"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp .;./lib/* %MAIN_CLASS% -cf %BENCHMARK_HOME%/conf/config.properties
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp .;./lib/* %MAIN_CLASS% -cf %BENCHMARK_HOME%/conf
 goto finally
 
 :err

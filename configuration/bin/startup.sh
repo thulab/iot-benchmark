@@ -29,7 +29,7 @@ show_help() {
   echo " -cf          Specify configuration file."
   echo " -heapsize    Specify HEAP_SIZE."
   echo " -maxheapsize Specify MAX_HEAP_SIZE."
-  echo "example: ./benchmark.sh -cf conf/config.properties -heapsize 1G -maxheapsize 2G"
+  echo "example: ./benchmark.sh -cf conf -heapsize 1G -maxheapsize 2G"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -85,7 +85,7 @@ fi
 
 # check $benchmark_conf
 if [ -z "${benchmark_conf}" ] ; then
-  benchmark_conf=${BENCHMARK_HOME}/conf/config.properties
+  benchmark_conf=${BENCHMARK_HOME}/conf
 else
   benchmark_conf="$(cd "$(dirname "$benchmark_conf")" && pwd)/$(basename "$benchmark_conf")"
   if [ ! -e "$benchmark_conf" ]; then
@@ -106,7 +106,6 @@ done
 # set benchmark_parms
 benchmark_parms="$benchmark_parms -Duser.timezone=GMT+8"
 benchmark_parms="$benchmark_parms -Dlogback.configurationFile=${BENCHMARK_HOME}/conf/logback.xml"
-benchmark_parms="$benchmark_parms -DBENCHMARK_HOME=${BENCHMARK_HOME}"
 if [ -n "$MAX_HEAP_SIZE" ]; then
   echo Set MAX_HEAP_SIZE=$MAX_HEAP_SIZE
   benchmark_parms="$benchmark_parms -Xmx${MAX_HEAP_SIZE}"

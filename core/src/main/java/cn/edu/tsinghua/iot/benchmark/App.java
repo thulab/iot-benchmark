@@ -46,7 +46,7 @@ public class App {
             + "bytes.");
 
     if (args == null || args.length == 0) {
-      args = new String[] {"-cf", "configuration/conf/config.properties"};
+      args = new String[] {"-cf", "configuration/conf"};
     }
     CommandCli cli = new CommandCli();
     if (!cli.init(args)) {
