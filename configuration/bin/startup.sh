@@ -80,11 +80,11 @@ fi
 
 # check BENCHMARK_HOME
 if [ -z "${BENCHMARK_HOME}" ]; then
-  export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.. && pwd)"
+  export BENCHMARK_HOME="$(cd "$(dirname "$0")" && pwd)"
 fi
 
 # check $benchmark_conf
-if [ -z $benchmark_conf ] ; then
+if [ -z "${benchmark_conf}" ] ; then
   benchmark_conf=${BENCHMARK_HOME}/conf/config.properties
 else
   benchmark_conf="$(cd "$(dirname "$benchmark_conf")" && pwd)/$(basename "$benchmark_conf")"
@@ -93,7 +93,7 @@ else
     exit 1
   fi
 fi
-echo Using configuration file: $benchmark_conf
+echo Using configuration file: "${benchmark_conf}"
 
 # set MAIN_CLASS
 MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App
@@ -106,6 +106,7 @@ done
 # set benchmark_parms
 benchmark_parms="$benchmark_parms -Duser.timezone=GMT+8"
 benchmark_parms="$benchmark_parms -Dlogback.configurationFile=${BENCHMARK_HOME}/conf/logback.xml"
+benchmark_parms="$benchmark_parms -DBENCHMARK_HOME=${BENCHMARK_HOME}"
 if [ -n "$MAX_HEAP_SIZE" ]; then
   echo Set MAX_HEAP_SIZE=$MAX_HEAP_SIZE
   benchmark_parms="$benchmark_parms -Xmx${MAX_HEAP_SIZE}"

@@ -40,6 +40,10 @@
             <directory>${maven.multiModuleProjectDirectory}/configuration/conf/</directory>
             <outputDirectory>conf</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>${maven.multiModuleProjectDirectory}/core/src/main/resources</directory>
+            <outputDirectory>resources</outputDirectory>
+        </fileSet>
     </fileSets>
     <files>
         <file>
