@@ -29,7 +29,7 @@ show_help() {
   echo " -cf          Specify configuration file."
   echo " -heapsize    Specify HEAP_SIZE."
   echo " -maxheapsize Specify MAX_HEAP_SIZE."
-  echo "example: ./benchmark.sh -cf conf/config.properties -heapsize 1G -maxheapsize 2G"
+  echo "example: ./benchmark.sh -cf conf -heapsize 1G -maxheapsize 2G"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -80,12 +80,12 @@ fi
 
 # check BENCHMARK_HOME
 if [ -z "${BENCHMARK_HOME}" ]; then
-  export BENCHMARK_HOME="$(cd "`dirname "$0"`"/.. && pwd)"
+  export BENCHMARK_HOME="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
 # check $benchmark_conf
-if [ -z $benchmark_conf ] ; then
-  benchmark_conf=${BENCHMARK_HOME}/conf/config.properties
+if [ -z "${benchmark_conf}" ] ; then
+  benchmark_conf=${BENCHMARK_HOME}/conf
 else
   benchmark_conf="$(cd "$(dirname "$benchmark_conf")" && pwd)/$(basename "$benchmark_conf")"
   if [ ! -e "$benchmark_conf" ]; then
@@ -93,7 +93,7 @@ else
     exit 1
   fi
 fi
-echo Using configuration file: $benchmark_conf
+echo Using configuration file: "${benchmark_conf}"
 
 # set MAIN_CLASS
 MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App

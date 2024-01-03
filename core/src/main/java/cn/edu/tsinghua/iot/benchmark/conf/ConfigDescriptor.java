@@ -70,12 +70,12 @@ public class ConfigDescriptor {
 
   /** load properties from config.properties */
   private void loadProps() {
-    String url =
-        System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf/config.properties");
+    String url = System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf");
     if (url != null) {
+      url += "/config.properties";
       InputStream inputStream;
       try {
-        inputStream = new FileInputStream(new File(url));
+        inputStream = new FileInputStream(url);
       } catch (FileNotFoundException e) {
         LOGGER.warn("Fail to find config file {}", url);
         return;
