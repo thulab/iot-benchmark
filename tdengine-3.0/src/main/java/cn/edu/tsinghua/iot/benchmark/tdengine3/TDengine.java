@@ -65,7 +65,10 @@ public class TDengine implements IDatabase {
   protected static final CyclicBarrier superTableBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final String USE_DB = "use %s";
+
   private static final String SUPER_TABLE_NAME = "device";
+  private static final String FROM = " FROM ";
+  private static final String WHERE = " WHERE ";
   private static final String ORDER_BY_TIME_DESC = " order by time desc ";
   private static final String ORDER_BY_WSTART_DESC = " order by _wstart desc ";
   private static final AtomicBoolean isInit = new AtomicBoolean(false);
@@ -434,7 +437,7 @@ public class TDengine implements IDatabase {
       builder.append(", ").append(querySensors.get(i).getName());
     }
 
-    builder.append(generateConstrainForDevices(devices));
+    builder.append(generateFromClause(devices));
     return builder.toString();
   }
 
@@ -444,12 +447,17 @@ public class TDengine implements IDatabase {
    * @param devices schema list of query devices
    * @return from and where clause
    */
-  private static String generateConstrainForDevices(List<DeviceSchema> devices) {
+  private static String generateFromClause(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
+    builder.append(FROM);
     if (config.isALIGN_BY_DEVICE()) {
-      builder.append(" FROM ").append(SUPER_TABLE_NAME);
+      builder.append(SUPER_TABLE_NAME);
     } else {
-      builder.append(" FROM ").append(devices.get(0).getDevice());
+      for (DeviceSchema deviceSchema : devices) {
+        builder.append(deviceSchema.getDevice()).append(",");
+      }
+      // delete last ","
+      builder.delete(builder.length() - 1, builder.length());
     }
     return builder.toString();
   }
@@ -500,14 +508,14 @@ public class TDengine implements IDatabase {
       return sql;
     }
     StringBuilder sqlBuilder = new StringBuilder(sql);
-    sqlBuilder.append(" WHERE ");
+    sqlBuilder.append(WHERE);
     if (timeRangeQuery != null) {
       String startTime = "" + timeRangeQuery.getStartTimestamp();
       String endTime = "" + timeRangeQuery.getEndTimestamp();
       sqlBuilder.append(" time >= ").append(startTime).append(" AND time <= ").append(endTime);
     }
     if (valueRangeFilter != null) {
-      if (!sqlBuilder.toString().endsWith("WHERE ")) {
+      if (!sqlBuilder.toString().endsWith(WHERE)) {
         sqlBuilder.append(" AND ");
       }
       double valueThreshold = valueRangeFilter.getMinValue();
@@ -517,7 +525,7 @@ public class TDengine implements IDatabase {
       sqlBuilder.delete(sqlBuilder.length() - 4, sqlBuilder.length());
     }
     if (!alignByDeviceTableNameFilter.isEmpty()) {
-      if (!sqlBuilder.toString().endsWith("WHERE ")) {
+      if (!sqlBuilder.toString().endsWith(WHERE)) {
         sqlBuilder.append(" AND ");
       }
       sqlBuilder.append(" tbname in (");
@@ -559,7 +567,7 @@ public class TDengine implements IDatabase {
           .append(")");
     }
 
-    builder.append(generateConstrainForDevices(devices));
+    builder.append(generateFromClause(devices));
     return builder.toString();
   }
 
