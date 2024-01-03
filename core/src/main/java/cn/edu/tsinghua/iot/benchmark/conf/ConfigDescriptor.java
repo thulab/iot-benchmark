@@ -49,12 +49,13 @@ public class ConfigDescriptor {
 
   private ConfigDescriptor() {
     config = new Config();
-    // load properties and call init methods
+    // load properties
     loadProps();
     // check properties
     if (!checkConfig()) {
       System.exit(1);
     }
+    // load functions
     config.initInnerFunction();
     config.initSensorCodes();
     config.initSensorFunction();
@@ -212,6 +213,10 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty("BIG_BATCH_SIZE", config.getBIG_BATCH_SIZE() + "")));
 
+        config.setIS_SENSOR_TS_ALIGNMENT(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IS_SENSOR_TS_ALIGNMENT", config.isIS_SENSOR_TS_ALIGNMENT() + "")));
         config.setDEVICE_NUMBER(
             Integer.parseInt(
                 properties.getProperty("DEVICE_NUMBER", config.getDEVICE_NUMBER() + "")));

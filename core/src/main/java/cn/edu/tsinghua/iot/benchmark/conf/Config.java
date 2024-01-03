@@ -150,8 +150,10 @@ public class Config {
   private String FILE_PATH = "data/test";
   /** The size of Big Batch */
   private int BIG_BATCH_SIZE = 100;
+  /** Whether to generate schema */
+  private boolean IS_GENERATE_SCHEMA = true;
 
-  // 设备、传感器、客户端相关参数
+  // 设备、传感器相关参数
   /** The number of devices of database */
   private int DEVICE_NUMBER = 6000;
   /** The ratio of actual write devices. (0,1] */
@@ -165,16 +167,6 @@ public class Config {
   private boolean IS_SENSOR_TS_ALIGNMENT = true;
   /** The ratio of not null sensor of one device. */
   private double TS_ALIGNMENT_RATIO = 1.0;
-  /**
-   * whether the device is bind to client if true: number of dataClients <= devices if false: number
-   * of dataClients can larger than devices
-   */
-  private boolean IS_CLIENT_BIND = true;
-  /**
-   * The number of client if IS_CLIENT_BIND = true: this number must be less than or equal to the
-   * number of devices.
-   */
-  private int CLIENT_NUMBER = 20;
 
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
@@ -188,6 +180,18 @@ public class Config {
   private String TAG_KEY_PREFIX = "tag_";
   private String TAG_VALUE_PREFIX = "value_";
   private List<Integer> TAG_VALUE_CARDINALITY = new ArrayList<>();
+
+  // 写入线程配置
+  /**
+   * whether the device is bind to client if true: number of dataClients <= devices if false: number
+   * of dataClients can larger than devices
+   */
+  private boolean IS_CLIENT_BIND = true;
+  /**
+   * The number of client if IS_CLIENT_BIND = true: this number must be less than or equal to the
+   * number of devices.
+   */
+  private int CLIENT_NUMBER = 20;
 
   // 设备、传感器、客户端：生成数据的规律
   /** 线性 默认 9个 */
@@ -795,6 +799,14 @@ public class Config {
 
   public void setFILE_PATH(String FILE_PATH) {
     this.FILE_PATH = FILE_PATH;
+  }
+
+  public boolean isIS_GENERATE_SCHEMA() {
+    return IS_GENERATE_SCHEMA;
+  }
+
+  public void setIS_GENERATE_SCHEMA(boolean IS_GENERATE_SCHEMA) {
+    this.IS_GENERATE_SCHEMA = IS_GENERATE_SCHEMA;
   }
 
   public int getDEVICE_NUMBER() {
