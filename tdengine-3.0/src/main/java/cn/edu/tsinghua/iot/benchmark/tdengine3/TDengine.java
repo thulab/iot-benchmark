@@ -508,12 +508,15 @@ public class TDengine implements IDatabase {
       return sql;
     }
     StringBuilder sqlBuilder = new StringBuilder(sql);
+
     sqlBuilder.append(WHERE);
+
     if (timeRangeQuery != null) {
       String startTime = "" + timeRangeQuery.getStartTimestamp();
       String endTime = "" + timeRangeQuery.getEndTimestamp();
       sqlBuilder.append(" time >= ").append(startTime).append(" AND time <= ").append(endTime);
     }
+
     if (valueRangeFilter != null) {
       if (!sqlBuilder.toString().endsWith(WHERE)) {
         sqlBuilder.append(" AND ");
@@ -524,6 +527,7 @@ public class TDengine implements IDatabase {
       }
       sqlBuilder.delete(sqlBuilder.length() - 4, sqlBuilder.length());
     }
+
     if (!alignByDeviceTableNameFilter.isEmpty()) {
       if (!sqlBuilder.toString().endsWith(WHERE)) {
         sqlBuilder.append(" AND ");
@@ -535,6 +539,7 @@ public class TDengine implements IDatabase {
       sqlBuilder.deleteCharAt(sqlBuilder.length() - 1);
       sqlBuilder.append(')');
     }
+
     return sqlBuilder.toString();
   }
 
