@@ -659,16 +659,8 @@ public class IoTDB implements IDatabase {
 
   private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
     StringBuilder builder = new StringBuilder();
-    for (DeviceSchema deviceSchema : deviceSchemas) {
-      for (Sensor sensor : deviceSchema.getSensors()) {
-        builder
-            .append(" AND ")
-            .append(getDevicePath(deviceSchema))
-            .append(".")
-            .append(sensor.getName())
-            .append(" > ")
-            .append(valueThreshold);
-      }
+    for (Sensor sensor : deviceSchemas.get(0).getSensors()) {
+      builder.append(" AND ").append(sensor.getName()).append(" > ").append(valueThreshold);
     }
     return builder.toString();
   }
