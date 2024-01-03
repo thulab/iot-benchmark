@@ -164,6 +164,10 @@ public interface IDatabase {
   /** similar to rangeQuery, but order by time desc. */
   Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery);
 
+  default Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    throw new UnsupportedOperationException("This operation is not supported for this database");
+  }
+
   /** Using in verification */
   default Status verificationQuery(VerificationQuery verificationQuery) {
     WorkloadException workloadException = new WorkloadException("Not Supported Verification Query");

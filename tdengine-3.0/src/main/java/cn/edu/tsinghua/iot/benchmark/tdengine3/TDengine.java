@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
+import cn.edu.tsinghua.iot.benchmark.workload.ValueRangeFilter;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
@@ -49,6 +50,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -64,6 +66,8 @@ public class TDengine implements IDatabase {
       new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final String USE_DB = "use %s";
   private static final String SUPER_TABLE_NAME = "device";
+  private static final String ORDER_BY_TIME_DESC = " order by time desc ";
+  private static final String ORDER_BY_WSTART_DESC = " order by _wstart desc ";
   private static final AtomicBoolean isInit = new AtomicBoolean(false);
 
   private final String CREATE_STABLE;
@@ -265,7 +269,7 @@ public class TDengine implements IDatabase {
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String sql = getPreciseQuerySql(preciseQuery);
-    return executeQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -275,8 +279,10 @@ public class TDengine implements IDatabase {
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
-    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
-    return executeQueryAndGetStatus(sql);
+    String sql =
+        addWhereClause(
+            rangeQueryHead, rangeQuery, null, getTableNameFilterForAlignByDevice(rangeQuery));
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -286,13 +292,15 @@ public class TDengine implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            valueRangeQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            valueRangeQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    String sql =
+        addWhereClause(
+            rangeQueryHead,
+            valueRangeQuery,
+            new ValueRangeFilter(
+                valueRangeQuery.getValueThreshold(),
+                valueRangeQuery.getDeviceSchema().get(0).getSensors()),
+            getTableNameFilterForAlignByDevice(valueRangeQuery));
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -303,8 +311,13 @@ public class TDengine implements IDatabase {
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
-    String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery);
-    return executeQueryAndGetStatus(sql);
+    String sql =
+        addWhereClause(
+            aggQuerySqlHead,
+            aggRangeQuery,
+            null,
+            getTableNameFilterForAlignByDevice(aggRangeQuery));
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /** eg. SELECT count(s_3) FROM group_3 WHERE ( device = 'd_12' ) AND s_3 > -5.0. */
@@ -313,9 +326,14 @@ public class TDengine implements IDatabase {
     String aggQuerySqlHead =
         getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
     String sql =
-        addWhereValueWithoutTimeClause(
-            aggValueQuery.getDeviceSchema(), aggQuerySqlHead, aggValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sql);
+        addWhereClause(
+            aggQuerySqlHead,
+            null,
+            new ValueRangeFilter(
+                aggValueQuery.getValueThreshold(),
+                aggValueQuery.getDeviceSchema().get(0).getSensors()),
+            getTableNameFilterForAlignByDevice(aggValueQuery));
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -326,13 +344,15 @@ public class TDengine implements IDatabase {
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     String rangeQueryHead =
         getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, aggRangeValueQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            aggRangeValueQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            aggRangeValueQuery.getValueThreshold());
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    String sql =
+        addWhereClause(
+            rangeQueryHead,
+            aggRangeValueQuery,
+            new ValueRangeFilter(
+                aggRangeValueQuery.getValueThreshold(),
+                aggRangeValueQuery.getDeviceSchema().get(0).getSensors()),
+            getTableNameFilterForAlignByDevice(aggRangeValueQuery));
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /**
@@ -342,36 +362,54 @@ public class TDengine implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
-    String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
-    return executeQueryAndGetStatus(sqlWithGroupBy);
+    String sql =
+        addWhereClause(
+            sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
+    sql = addGroupByClause(sql, groupByQuery.getGranularity());
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
-    return executeQueryAndGetStatus(sql);
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
-    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery) + " order by time desc";
-    return executeQueryAndGetStatus(sql);
+    String sql =
+        addWhereClause(
+            rangeQueryHead, rangeQuery, null, getTableNameFilterForAlignByDevice(rangeQuery));
+    sql += ORDER_BY_TIME_DESC;
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-                valueRangeQuery.getDeviceSchema(),
-                sqlWithTimeFilter,
-                valueRangeQuery.getValueThreshold())
-            + " order by time desc";
-    return executeQueryAndGetStatus(sqlWithValueFilter);
+    String sql =
+        addWhereClause(
+            rangeQueryHead,
+            valueRangeQuery,
+            new ValueRangeFilter(
+                valueRangeQuery.getValueThreshold(),
+                valueRangeQuery.getDeviceSchema().get(0).getSensors()),
+            getTableNameFilterForAlignByDevice(valueRangeQuery));
+    sql += ORDER_BY_TIME_DESC;
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
+  }
+
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sql =
+        addWhereClause(
+            sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
+    sql = addGroupByClause(sql, groupByQuery.getGranularity());
+    sql += ORDER_BY_WSTART_DESC;
+    return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
   private String getPreciseQuerySql(PreciseQuery preciseQuery) {
@@ -408,18 +446,18 @@ public class TDengine implements IDatabase {
    */
   private static String generateConstrainForDevices(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
-    builder.append(" FROM ").append(devices.get(0).getDevice());
-    // builder.append(" WHERE ");
-    /*for (DeviceSchema d : devices) {
-      builder.append(" device = '").append(d.getDevice()).append("' OR");
+    if (config.isALIGN_BY_DEVICE()) {
+      builder.append(" FROM ").append(SUPER_TABLE_NAME);
+    } else {
+      builder.append(" FROM ").append(devices.get(0).getDevice());
     }
-    builder.delete(builder.lastIndexOf("OR"), builder.length());
-    builder.append(")");
-    */
     return builder.toString();
   }
 
-  private Status executeQueryAndGetStatus(String sql) {
+  private Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
+    if (config.getRESULT_ROW_LIMIT() >= 0) {
+      sql += " limit " + config.getRESULT_ROW_LIMIT();
+    }
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
@@ -443,52 +481,60 @@ public class TDengine implements IDatabase {
   }
 
   /**
-   * add time filter for query statements.
+   * Add WHERE clause. Include time filter, value filter, table name filter
    *
-   * @param sql sql header
-   * @param rangeQuery range query
-   * @return sql with time filter
+   * @param sql The original sql
+   * @param timeRangeQuery
+   * @param valueRangeFilter
+   * @param alignByDeviceTableNameFilter
+   * @return New sql, with WHERE clause
    */
-  private static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
-    String startTime = "" + rangeQuery.getStartTimestamp();
-    String endTime = "" + rangeQuery.getEndTimestamp();
-    return sql + " Where time >= " + startTime + " AND time <= " + endTime;
+  private static String addWhereClause(
+      String sql,
+      RangeQuery timeRangeQuery,
+      ValueRangeFilter valueRangeFilter,
+      List<DeviceSchema> alignByDeviceTableNameFilter) {
+    if (timeRangeQuery == null
+        && valueRangeFilter == null
+        && !alignByDeviceTableNameFilter.isEmpty()) {
+      return sql;
+    }
+    StringBuilder sqlBuilder = new StringBuilder(sql);
+    sqlBuilder.append(" WHERE ");
+    if (timeRangeQuery != null) {
+      String startTime = "" + timeRangeQuery.getStartTimestamp();
+      String endTime = "" + timeRangeQuery.getEndTimestamp();
+      sqlBuilder.append(" time >= ").append(startTime).append(" AND time <= ").append(endTime);
+    }
+    if (valueRangeFilter != null) {
+      if (!sqlBuilder.toString().endsWith("WHERE ")) {
+        sqlBuilder.append(" AND ");
+      }
+      double valueThreshold = valueRangeFilter.getMinValue();
+      for (Sensor sensor : valueRangeFilter.getSensors()) {
+        sqlBuilder.append(sensor.getName()).append(" > ").append(valueThreshold).append(" AND ");
+      }
+      sqlBuilder.delete(sqlBuilder.length() - 4, sqlBuilder.length());
+    }
+    if (!alignByDeviceTableNameFilter.isEmpty()) {
+      if (!sqlBuilder.toString().endsWith("WHERE ")) {
+        sqlBuilder.append(" AND ");
+      }
+      sqlBuilder.append(" tbname in (");
+      for (DeviceSchema deviceSchema : alignByDeviceTableNameFilter) {
+        sqlBuilder.append('"').append(deviceSchema.getDevice()).append('"').append(',');
+      }
+      sqlBuilder.deleteCharAt(sqlBuilder.length() - 1);
+      sqlBuilder.append(')');
+    }
+    return sqlBuilder.toString();
   }
 
-  /**
-   * add value filter for query statements.
-   *
-   * @param devices query device schema
-   * @param sqlHeader sql header
-   * @param valueThreshold lower bound of query value filter
-   * @return sql with value filter
-   */
-  private static String addWhereValueClause(
-      List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
-    StringBuilder builder = new StringBuilder(sqlHeader);
-    for (Sensor sensor : devices.get(0).getSensors()) {
-      builder.append(" AND ").append(sensor.getName()).append(" > ").append(valueThreshold);
+  private static List<DeviceSchema> getTableNameFilterForAlignByDevice(RangeQuery rangeQuery) {
+    if (config.isALIGN_BY_DEVICE()) {
+      return rangeQuery.getDeviceSchema();
     }
-    return builder.toString();
-  }
-
-  /**
-   * add value filter without time filter for query statements.
-   *
-   * @param devices query device schema
-   * @param sqlHeader sql header
-   * @param valueThreshold lower bound of query value filter
-   * @return sql with value filter
-   */
-  private static String addWhereValueWithoutTimeClause(
-      List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
-    StringBuilder builder = new StringBuilder(sqlHeader);
-    builder.append(" Where ");
-    for (Sensor sensor : devices.get(0).getSensors()) {
-      builder.append(sensor.getName()).append(" > ").append(valueThreshold).append(" AND ");
-    }
-    builder.delete(builder.lastIndexOf("AND"), builder.length());
-    return builder.toString();
+    return Collections.emptyList();
   }
 
   /**

@@ -319,7 +319,9 @@ public class Config {
    * value filtering in reverse order, Eg. select v1... from data where time > ? and time < ? and v1
    * > ? and device in ? order by time desc
    */
-  private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0";
+  private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0";
+
+  private final int OPERATION_PROPORTION_LEN = 12;
   /** The number of sensors involved in each query */
   private int QUERY_SENSOR_NUM = 1;
   /** The number of devices involved in each query */
@@ -337,6 +339,9 @@ public class Config {
   private long GROUP_BY_TIME_UNIT = 20000;
   /** Query random seed */
   private long QUERY_SEED = 151658L;
+
+  private long RESULT_ROW_LIMIT = -1;
+  private boolean ALIGN_BY_DEVICE = false;
 
   // workload 相关部分
   /** The size of workload buffer size */
@@ -1198,6 +1203,10 @@ public class Config {
     this.OPERATION_PROPORTION = OPERATION_PROPORTION;
   }
 
+  public int getOPERATION_PROPORTION_LEN() {
+    return this.OPERATION_PROPORTION_LEN;
+  }
+
   public int getQUERY_SENSOR_NUM() {
     return QUERY_SENSOR_NUM;
   }
@@ -1252,6 +1261,22 @@ public class Config {
 
   public void setQUERY_SEED(long QUERY_SEED) {
     this.QUERY_SEED = QUERY_SEED;
+  }
+
+  public long getRESULT_ROW_LIMIT() {
+    return RESULT_ROW_LIMIT;
+  }
+
+  public void setRESULT_ROW_LIMIT(long RESULT_ROW_LIMIT) {
+    this.RESULT_ROW_LIMIT = RESULT_ROW_LIMIT;
+  }
+
+  public boolean isALIGN_BY_DEVICE() {
+    return ALIGN_BY_DEVICE;
+  }
+
+  public void setALIGN_BY_DEVICE(boolean ALIGN_BY_DEVICE) {
+    this.ALIGN_BY_DEVICE = ALIGN_BY_DEVICE;
   }
 
   public int getWORKLOAD_BUFFER_SIZE() {
