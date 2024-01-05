@@ -96,6 +96,9 @@ public class DBFactory {
         case DB_INFLUX_2:
           dbClass = Constants.INFLUXDB2_CLASS;
           break;
+        case DB_CNOS:
+          dbClass = Constants.CNOSDB_CLASS;
+          break;
         case DB_KAIROS:
           dbClass = Constants.KAIROSDB_CLASS;
           break;

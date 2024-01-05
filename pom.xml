@@ -28,7 +28,8 @@
         <module>mssqlserver</module>
         <module>sqlite</module>
         <module>verification</module>
-<!--        <module>pi</module>-->
+        <module>cnosdb</module>
+        <!--        <module>pi</module>-->
 <!--        <module>iginx</module>-->
     </modules>
 

@@ -721,6 +721,8 @@ public class ConfigDescriptor {
     } else if (dbConfig.getDB_SWITCH() == DBSwitch.DB_TIMESCALE) {
       // support timescaledb
       result = true;
+    } else if (dbConfig.getDB_SWITCH() == DBSwitch.DB_CNOS) {
+      result = true;
     }
     if (!result) {
       LOGGER.error(
