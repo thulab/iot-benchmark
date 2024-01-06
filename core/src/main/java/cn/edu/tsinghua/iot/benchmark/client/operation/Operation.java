@@ -38,11 +38,11 @@ public enum Operation {
   VERIFICATION_QUERY("VERIFICATION_QUERY"),
   DEVICE_QUERY("DEVICE_QUERY");
 
+  final String name;
+
   public String getName() {
     return name;
   }
-
-  String name;
 
   Operation(String name) {
     this.name = name;

@@ -49,7 +49,6 @@ public abstract class DataClient implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataClient.class);
 
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
-  protected final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   /** The id of client */
   protected final int clientThreadId;

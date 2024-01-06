@@ -45,8 +45,6 @@ public class RealDataSetWriteClient extends RealBaseClient {
         if (isStop.get()) {
           break;
         }
-      } catch (DBConnectException e) {
-        LOGGER.error("Failed to insert one batch data because ", e);
       } catch (Exception e) {
         LOGGER.error("Failed to insert one batch data because ", e);
       }

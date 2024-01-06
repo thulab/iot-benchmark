@@ -31,11 +31,11 @@ import java.util.concurrent.*;
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateDataDeviceClient.class);
-  private long verificationStepSize =
+  private final long verificationStepSize =
       config.getVERIFICATION_STEP_SIZE()
           * config.getPOINT_STEP()
           * config.getBATCH_SIZE_PER_WRITE();
-  private int now = 0;
+  private long now = 0;
 
   public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);

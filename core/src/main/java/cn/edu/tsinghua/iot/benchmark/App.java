@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 
 public class App {
-  private static Logger LOGGER = LoggerFactory.getLogger(Config.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
   public static void main(String[] args) throws SQLException {
     long initialHeapSize = Runtime.getRuntime().totalMemory();

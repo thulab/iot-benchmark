@@ -36,7 +36,7 @@ public class OperationController {
   private List<Double> proportion = new ArrayList<>();
   private List<Operation> operations = Operation.getNormalOperation();
   private boolean isAllWrite = false;
-  private Random random;
+  private final Random random;
 
   public OperationController(int seed) {
     random = new Random(seed);
