@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schema>
 	<device name="d1">
-		<tags>
-			<tag>
-				<key>单位</key>
-				<value>km</value>
-			</tag>
-		</tags>
 		<sensor name="s1">
 			<type>boolean</type>
-			<functionId>f1</functionId>
+			<functionId>random1</functionId>
+			<bindInterval>interval1</bindInterval>
 		</sensor>
 		<sensor name="s2">
 			<type>int32</type>
-			<functionId>f2</functionId>
+			<functionId>random2</functionId>
+			<bindInterval>interval2</bindInterval>
 		</sensor>
 		<sensor name="s3">
 			<type>int64</type>
-			<functionId>f3</functionId>
+			<functionId>random3</functionId>
+			<bindInterval>interval1</bindInterval>
 		</sensor>
 		<sensor name="s4">
 			<type>float</type>
-			<functionId>f4</functionId>
+			<functionId>random4</functionId>
+			<bindInterval>interval2</bindInterval>
 		</sensor>
 		<sensor name="s5">
 			<type>double</type>
-			<functionId>f5</functionId>
+			<functionId>random5</functionId>
+			<bindInterval>interval1</bindInterval>
 		</sensor>
 		<sensor name="s6">
 			<type>text</type>
-			<functionId>f6</functionId>
+			<functionId>random6</functionId>
+			<bindInterval>interval2</bindInterval>
 		</sensor>
 	</device>
 	<device name="d2">
@@ -41,27 +41,55 @@
 		</tags>
 		<sensor name="s7">
 			<type>boolean</type>
-			<functionId>f1</functionId>
+			<functionId>random1</functionId>
+			<bindInterval>interval1</bindInterval>
 		</sensor>
 		<sensor name="s8">
 			<type>int32</type>
-			<functionId>f2</functionId>
+			<functionId>random2</functionId>
+			<bindInterval>interval2</bindInterval>
 		</sensor>
 		<sensor name="s9">
 			<type>int64</type>
-			<functionId>f3</functionId>
+			<functionId>random3</functionId>
+			<bindInterval>interval1</bindInterval>
 		</sensor>
 		<sensor name="s10">
 			<type>float</type>
-			<functionId>f4</functionId>
+			<functionId>random4</functionId>
+			<bindInterval>interval2</bindInterval>
 		</sensor>
 		<sensor name="s11">
 			<type>double</type>
-			<functionId>f5</functionId>
+			<functionId>random5</functionId>
+			<bindInterval>interval1</bindInterval>
 		</sensor>
 		<sensor name="s12">
 			<type>text</type>
-			<functionId>f6</functionId>
+			<functionId>random6</functionId>
+			<bindInterval>interval2</bindInterval>
 		</sensor>
 	</device>
+	<intervals>
+		<interval id = "interval1">
+			<timeInterval>
+				<lowerBound>1000</lowerBound>
+				<upperBound>2000</upperBound>
+			</timeInterval>
+			<writeInterval>
+				<lowerBound>1000</lowerBound>
+				<upperBound>2000</upperBound>
+			</writeInterval>
+		</interval>
+		<interval id = "interval2">
+			<timeInterval>
+				<lowerBound>2000</lowerBound>
+				<upperBound>3000</upperBound>
+			</timeInterval>
+			<writeInterval>
+				<lowerBound>2000</lowerBound>
+				<upperBound>3000</upperBound>
+			</writeInterval>
+		</interval>
+	</intervals>
 </schema>
