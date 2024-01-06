@@ -149,20 +149,25 @@ public class TDengine implements IDatabase {
         // use database
         statement.execute(String.format(USE_DB, testDatabaseName));
 
-        // create super table
-        StringBuilder superSql = new StringBuilder();
-        for (Sensor sensor : config.getSENSORS()) {
-          String dataType = typeMap(sensor.getSensorType());
-          if (dataType.equals("BINARY")) {
-            superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
-          } else {
-            superSql.append(sensor).append(" ").append(dataType).append(",");
-          }
-        }
-        superSql.deleteCharAt(superSql.length() - 1);
-        String superTableCreateSql = String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql);
-        LOGGER.info(superTableCreateSql);
-        statement.execute(superTableCreateSql);
+        // TODO spricoder if we support write in not aligned way, we should create table for each
+        // device
+
+        //        // create super table
+        //        StringBuilder superSql = new StringBuilder();
+        //        for (Sensor sensor : config.getSENSORS()) {
+        //          String dataType = typeMap(sensor.getSensorType());
+        //          if (dataType.equals("BINARY")) {
+        //            superSql.append(sensor).append("
+        // ").append(dataType).append("(100)").append(",");
+        //          } else {
+        //            superSql.append(sensor).append(" ").append(dataType).append(",");
+        //          }
+        //        }
+        //        superSql.deleteCharAt(superSql.length() - 1);
+        //        String superTableCreateSql = String.format(CREATE_STABLE, SUPER_TABLE_NAME,
+        // superSql);
+        //        LOGGER.info(superTableCreateSql);
+        //        statement.execute(superTableCreateSql);
 
         // create tables
         statement.execute(String.format(USE_DB, testDatabaseName));

@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.SensorSchemaGenerator;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,8 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
   private final ProbTool probTool = new ProbTool();
   protected int deviceSchemaSize = 0;
+  private static final SensorSchemaGenerator sensorSchemaGenerator =
+      SensorSchemaGenerator.getInstance();
 
   @Override
   public long getBatchNumber() {
@@ -146,8 +149,9 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       int sensorNumber = config.getSENSOR_NUMBER();
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
       workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
+      List<Sensor> sensors = sensorSchemaGenerator.generateSensor();
       for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
-        Sensor sensor = config.getSENSORS().get(sensorIndex);
+        Sensor sensor = sensors.get(sensorIndex);
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
@@ -162,7 +166,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
             value = builder.toString();
           } else {
             // not TEXT case
-            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
+            FunctionParam param = sensor.getFunctionParam();
             Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
             switch (sensor.getSensorType()) {
               case BOOLEAN:

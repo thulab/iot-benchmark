@@ -25,8 +25,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +33,13 @@ import java.util.Map;
 /** Data Schema for generate data */
 public class GenerateMetaDataSchema extends MetaDataSchema {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateMetaDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final SensorSchemaGenerator sensorSchemaGenerator =
+      SensorSchemaGenerator.getInstance();
 
   @Override
   public boolean createMetaDataSchema() {
-    List<Sensor> sensors = config.getSENSORS();
+    List<Sensor> sensors = sensorSchemaGenerator.generateSensor();
     if (sensors == null) {
       return false;
     }

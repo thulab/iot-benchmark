@@ -55,9 +55,6 @@ public class ConfigDescriptor {
     if (!checkConfig()) {
       System.exit(1);
     }
-    // load functions
-    config.initInnerFunction();
-    config.initSensorCodes();
   }
 
   public static ConfigDescriptor getInstance() {

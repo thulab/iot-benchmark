@@ -159,6 +159,8 @@ public class TDengine implements IDatabase {
         throw new TsdbException("TDengine do not support more than 1024 column for one table.");
       }
       try (Statement statement = connection.createStatement()) {
+        // TODO spricoder if we support write in not aligned way, we should create table for each
+        // device
         initOnlyOnce();
         superTableBarrier.await();
         // create tables
@@ -185,32 +187,33 @@ public class TDengine implements IDatabase {
 
   private synchronized void initOnlyOnce()
       throws TsdbException, BrokenBarrierException, InterruptedException {
-    if (!isInit.getAndSet(true)) {
-      try (Statement statement = connection.createStatement()) {
-        LOGGER.info("Create Database: {}", CREATE_DATABASE);
-        // create database
-        statement.execute(CREATE_DATABASE);
-        LOGGER.info("Use Database: {}", String.format(USE_DB, testDatabaseName));
-        // use database
-        statement.execute(String.format(USE_DB, testDatabaseName));
-        // create super table
-        StringBuilder superSql = new StringBuilder();
-        for (Sensor sensor : config.getSENSORS()) {
-          String dataType = typeMap(sensor.getSensorType());
-          if (dataType.equals("BINARY")) {
-            superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
-          } else {
-            superSql.append(sensor).append(" ").append(dataType).append(",");
-          }
-        }
-        superSql.deleteCharAt(superSql.length() - 1);
-        LOGGER.info("Create Stable: {}", String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql));
-        statement.execute(String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql));
-      } catch (SQLException e) {
-        LOGGER.error("Failed to create database in Tdengine ", e);
-        throw new TsdbException(e);
-      }
-    }
+    //    if (!isInit.getAndSet(true)) {
+    //      try (Statement statement = connection.createStatement()) {
+    //        LOGGER.info("Create Database: {}", CREATE_DATABASE);
+    //        // create database
+    //        statement.execute(CREATE_DATABASE);
+    //        LOGGER.info("Use Database: {}", String.format(USE_DB, testDatabaseName));
+    //        // use database
+    //        statement.execute(String.format(USE_DB, testDatabaseName));
+    //        // create super table
+    //        StringBuilder superSql = new StringBuilder();
+    //        for (Sensor sensor : config.getSENSORS()) {
+    //          String dataType = typeMap(sensor.getSensorType());
+    //          if (dataType.equals("BINARY")) {
+    //            superSql.append(sensor).append(" ").append(dataType).append("(100)").append(",");
+    //          } else {
+    //            superSql.append(sensor).append(" ").append(dataType).append(",");
+    //          }
+    //        }
+    //        superSql.deleteCharAt(superSql.length() - 1);
+    //        LOGGER.info("Create Stable: {}", String.format(CREATE_STABLE, SUPER_TABLE_NAME,
+    // superSql));
+    //        statement.execute(String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql));
+    //      } catch (SQLException e) {
+    //        LOGGER.error("Failed to create database in Tdengine ", e);
+    //        throw new TsdbException(e);
+    //      }
+    //    }
   }
 
   @Override

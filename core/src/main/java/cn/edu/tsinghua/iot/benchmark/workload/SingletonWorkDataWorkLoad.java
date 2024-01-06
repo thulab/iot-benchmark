@@ -29,14 +29,12 @@ import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
-  private static final List<Sensor> SENSORS = Collections.synchronizedList(config.getSENSORS());
   private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
   private static final AtomicInteger sensorIndex = new AtomicInteger();
@@ -76,20 +74,21 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
     }
     for (int i = 0; i < config.getDEVICE_NUM_PER_WRITE(); i++) {
       long curLoop = insertLoop.getAndIncrement();
+      int deviceId = MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER());
+      List<Sensor> allSensors =
+          metaDataSchema.getDeviceSchemaByName(MetaUtil.getDeviceName(deviceId)).getSensors();
       // create schema of batch
       List<Sensor> sensors = new ArrayList<>();
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        sensors = SENSORS;
+        sensors = allSensors;
       } else {
         int sensorId = sensorIndex.getAndIncrement() % config.getSENSOR_NUMBER();
         batch.setColIndex(sensorId);
-        sensors.add(SENSORS.get(sensorId));
+        sensors.add(allSensors.get(sensorId));
       }
       DeviceSchema deviceSchema =
           new DeviceSchema(
-              MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
-              sensors,
-              MetaUtil.getTags((int) curLoop % config.getDEVICE_NUMBER()));
+              deviceId, sensors, MetaUtil.getTags((int) curLoop % config.getDEVICE_NUMBER()));
       // create data of batch
       List<Record> records = new ArrayList<>();
       for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {

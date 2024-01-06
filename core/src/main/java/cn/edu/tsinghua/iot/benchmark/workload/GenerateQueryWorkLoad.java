@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
@@ -59,6 +60,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentWriteTimestamp = null;
   private final Map<Operation, AtomicLong> operationLoops = new ConcurrentHashMap<>();
+  private final MetaDataSchema metaDataSchema = MetaDataSchema.getInstance();
 
   public GenerateQueryWorkLoad(int id) {
     super(id);
@@ -165,8 +167,12 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     if (deviceId >= config.getFIRST_DEVICE_INDEX() + config.getDEVICE_NUMBER()) {
       return null;
     }
+    // TODO spricoder optimize
     DeviceSchema deviceSchema =
-        new DeviceSchema(deviceId, config.getSENSORS(), MetaUtil.getTags(deviceId));
+        new DeviceSchema(
+            deviceId,
+            metaDataSchema.getDeviceSchemaByName(MetaUtil.getDeviceName(deviceId)).getSensors(),
+            MetaUtil.getTags(deviceId));
     return new DeviceQuery(deviceSchema);
   }
 
@@ -199,12 +205,13 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     checkQuerySchemaParams();
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> queryDeviceIds = new ArrayList<>();
-    List<Sensor> sensors = config.getSENSORS();
     while (queryDevices.size() < Math.min(config.getDEVICE_NUMBER(), config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
       // get a device belong to [first_device_index, first_device_index + device_number)
       int deviceId =
           queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+      List<Sensor> sensors =
+          metaDataSchema.getDeviceSchemaByName(MetaUtil.getDeviceName(deviceId)).getSensors();
       // avoid duplicate
       if (!queryDeviceIds.contains(deviceId)) {
         queryDeviceIds.add(deviceId);
