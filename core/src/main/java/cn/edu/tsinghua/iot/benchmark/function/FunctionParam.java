@@ -20,11 +20,16 @@
 package cn.edu.tsinghua.iot.benchmark.function;
 
 import cn.edu.tsinghua.iot.benchmark.function.enums.FunctionType;
+import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 public class FunctionParam {
-  /** Id of function */
+  /** id of function */
   private String id;
   /**
    * Type of function
@@ -117,5 +122,33 @@ public class FunctionParam {
       return true;
     }
     return super.equals(obj);
+  }
+
+  /**
+   * serialize to output stream
+   *
+   * @param outputStream output stream
+   */
+  public void serialize(ByteArrayOutputStream outputStream) throws IOException {
+    ReadWriteIOUtils.write(id, outputStream);
+    ReadWriteIOUtils.write(functionType, outputStream);
+    ReadWriteIOUtils.write(max, outputStream);
+    ReadWriteIOUtils.write(min, outputStream);
+    ReadWriteIOUtils.write(cycle, outputStream);
+  }
+
+  /**
+   * deserialize from input stream
+   *
+   * @param inputStream input stream
+   */
+  public static FunctionParam deserialize(ByteArrayInputStream inputStream) throws IOException {
+    FunctionParam result = new FunctionParam();
+    result.id = ReadWriteIOUtils.readString(inputStream);
+    result.functionType = ReadWriteIOUtils.readString(inputStream);
+    result.max = ReadWriteIOUtils.readDouble(inputStream);
+    result.min = ReadWriteIOUtils.readDouble(inputStream);
+    result.cycle = ReadWriteIOUtils.readLong(inputStream);
+    return result;
   }
 }

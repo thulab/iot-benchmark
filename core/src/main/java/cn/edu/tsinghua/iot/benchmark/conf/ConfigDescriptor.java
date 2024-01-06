@@ -58,7 +58,6 @@ public class ConfigDescriptor {
     // load functions
     config.initInnerFunction();
     config.initSensorCodes();
-    config.initSensorFunction();
   }
 
   public static ConfigDescriptor getInstance() {

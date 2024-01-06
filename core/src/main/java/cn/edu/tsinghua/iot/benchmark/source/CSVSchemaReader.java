@@ -32,7 +32,7 @@ public class CSVSchemaReader extends SchemaReader {
     try {
       List<String> schemaLines = Files.readAllLines(path);
       for (String schemaLine : schemaLines) {
-        if (schemaLine.trim().length() != 0) {
+        if (!schemaLine.trim().isEmpty()) {
           String[] line = schemaLine.split(" ");
           String deviceName = line[0];
           if (!result.containsKey(deviceName)) {
@@ -72,7 +72,7 @@ public class CSVSchemaReader extends SchemaReader {
                 + " but now config is "
                 + differ.getValue());
       }
-      if (differs.size() != 0) {
+      if (!differs.isEmpty()) {
         return false;
       }
     } catch (IOException exception) {

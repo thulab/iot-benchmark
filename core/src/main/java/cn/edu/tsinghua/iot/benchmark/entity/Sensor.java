@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.entity;
 
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -31,12 +32,20 @@ import java.io.IOException;
 public class Sensor {
   private String name;
   private SensorType sensorType;
+  private FunctionParam functionParam;
 
   public Sensor() {}
 
+  /** This constructor is used for real data set TODO spricoder */
   public Sensor(String name, SensorType sensorType) {
     this.name = name;
     this.sensorType = sensorType;
+  }
+
+  public Sensor(String name, SensorType sensorType, FunctionParam functionParam) {
+    this.name = name;
+    this.sensorType = sensorType;
+    this.functionParam = functionParam;
   }
 
   public String getName() {
@@ -55,6 +64,14 @@ public class Sensor {
     this.sensorType = sensorType;
   }
 
+  public FunctionParam getFunctionParam() {
+    return functionParam;
+  }
+
+  public void setFunctionParam(FunctionParam functionParam) {
+    this.functionParam = functionParam;
+  }
+
   /**
    * serialize to output stream
    *
@@ -63,6 +80,7 @@ public class Sensor {
   public void serialize(ByteArrayOutputStream outputStream) throws IOException {
     ReadWriteIOUtils.write(name, outputStream);
     ReadWriteIOUtils.write(sensorType.ordinal(), outputStream);
+    functionParam.serialize(outputStream);
   }
 
   /**
@@ -74,6 +92,7 @@ public class Sensor {
     Sensor result = new Sensor();
     result.name = ReadWriteIOUtils.readString(inputStream);
     result.sensorType = SensorType.getType(ReadWriteIOUtils.readInt(inputStream));
+    result.functionParam = FunctionParam.deserialize(inputStream);
     return result;
   }
 
@@ -92,6 +111,7 @@ public class Sensor {
     return new EqualsBuilder()
         .append(name, that.name)
         .append(sensorType, that.sensorType)
+        .append(functionParam, that.functionParam)
         .isEquals();
   }
 

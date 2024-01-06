@@ -39,8 +39,6 @@ import java.util.Map;
 public class DeviceSchema implements Cloneable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
-  /** prefix of device name */
-
   /** Each device belongs to one group, i.e. database */
   private String group;
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */

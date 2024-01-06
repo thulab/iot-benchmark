@@ -293,9 +293,9 @@ public class Config {
    * mode of batch
    */
   private OutOfOrderMode OUT_OF_ORDER_MODE = OutOfOrderMode.POISSON;
-  /** The out of order ratio of batch inserting */
+  /** The out-of-order ratio of batch inserting */
   private double OUT_OF_ORDER_RATIO = 0.5;
-  /** Whether use random time interval in inorder data need IS_OUT_OF_ORDER = false */
+  /** Whether to use random time interval in inorder data need IS_OUT_OF_ORDER = false */
   private boolean IS_REGULAR_FREQUENCY = false;
 
   /** The expectation and variance of Poisson Distribution based on basic model */
@@ -422,7 +422,7 @@ public class Config {
       Unmarshaller unmarshaller = context.createUnmarshaller();
       xml = (FunctionXml) unmarshaller.unmarshal(input);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to load function xml", e);
       System.exit(0);
     }
     List<FunctionParam> xmlFuctions = xml.getFunctions();
@@ -444,69 +444,28 @@ public class Config {
     }
   }
 
-  /** init sensor functions -> Constants.SENSOR_FUNCTION */
-  public void initSensorFunction() {
-    // Configure according to the ratio of each function passed in
-    double sumRatio = CONSTANT_RATIO + LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
-    if (sumRatio != 0
-        && CONSTANT_RATIO >= 0
-        && LINE_RATIO >= 0
-        && RANDOM_RATIO >= 0
-        && SIN_RATIO >= 0
-        && SQUARE_RATIO >= 0) {
-      double constantArea = CONSTANT_RATIO / sumRatio;
-      double lineArea = constantArea + LINE_RATIO / sumRatio;
-      double randomArea = lineArea + RANDOM_RATIO / sumRatio;
-      double sinArea = randomArea + SIN_RATIO / sumRatio;
-      double squareArea = sinArea + SQUARE_RATIO / sumRatio;
-      Random r = new Random(DATA_SEED);
-      for (int i = 0; i < SENSOR_NUMBER; i++) {
-        double property = r.nextDouble();
-        FunctionParam param = null;
-        Random fr = new Random(DATA_SEED + 1 + i);
-        double middle = fr.nextDouble();
-        // constant
-        if (property >= 0 && property < constantArea) {
-          int index = (int) (middle * CONSTANT_LIST.size());
-          param = CONSTANT_LIST.get(index);
-        }
-        // line
-        if (property >= constantArea && property < lineArea) {
-          int index = (int) (middle * LINE_LIST.size());
-          param = LINE_LIST.get(index);
-        }
-        // random
-        if (property >= lineArea && property < randomArea) {
-          int index = (int) (middle * RANDOM_LIST.size());
-          param = RANDOM_LIST.get(index);
-        }
-        // sin
-        if (property >= randomArea && property < sinArea) {
-          int index = (int) (middle * SIN_LIST.size());
-          param = SIN_LIST.get(index);
-        }
-        // square
-        if (property >= sinArea && property < squareArea) {
-          int index = (int) (middle * SQUARE_LIST.size());
-          param = SQUARE_LIST.get(index);
-        }
-        if (param == null) {
-          System.err.println(
-              "There is a problem with the initialization function scale "
-                  + "in initSensorFunction()!");
-          System.exit(0);
-        }
-        SENSOR_FUNCTION.put(SENSORS.get(i).getName(), param);
-      }
-    } else {
-      System.err.println("function ration must >=0 and sum>0");
-      System.exit(0);
-    }
-  }
-
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
     int TYPE_NUMBER = 6;
+    // Configure according to the ratio of each function passed in
+    double sumRatio = CONSTANT_RATIO + LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
+    // Check whether the configuration is correct
+    if (sumRatio == 0
+        || CONSTANT_RATIO < 0
+        || LINE_RATIO < 0
+        || RANDOM_RATIO < 0
+        || SIN_RATIO < 0
+        || SQUARE_RATIO < 0) {
+      System.err.println("function ration must >=0 and sum > 0");
+      System.exit(0);
+    }
+    double constantArea = CONSTANT_RATIO / sumRatio;
+    double lineArea = constantArea + LINE_RATIO / sumRatio;
+    double randomArea = lineArea + RANDOM_RATIO / sumRatio;
+    double sinArea = randomArea + SIN_RATIO / sumRatio;
+    double squareArea = sinArea + SQUARE_RATIO / sumRatio;
+    Random r = new Random(DATA_SEED);
+    // Generate Probabilities of sensors
     double[] probabilities = generateProbabilities(TYPE_NUMBER);
     if (probabilities == null) {
       return;
@@ -519,7 +478,43 @@ public class Config {
           break;
         }
       }
-      Sensor sensor = new Sensor(SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i - 1));
+      double property = r.nextDouble();
+      FunctionParam param = null;
+      Random fr = new Random(DATA_SEED + 1 + i);
+      double middle = fr.nextDouble();
+      // constant
+      if (property < constantArea) {
+        int index = (int) (middle * CONSTANT_LIST.size());
+        param = CONSTANT_LIST.get(index);
+      }
+      // line
+      if (property >= constantArea && property < lineArea) {
+        int index = (int) (middle * LINE_LIST.size());
+        param = LINE_LIST.get(index);
+      }
+      // random
+      if (property >= lineArea && property < randomArea) {
+        int index = (int) (middle * RANDOM_LIST.size());
+        param = RANDOM_LIST.get(index);
+      }
+      // sin
+      if (property >= randomArea && property < sinArea) {
+        int index = (int) (middle * SIN_LIST.size());
+        param = SIN_LIST.get(index);
+      }
+      // square
+      if (property >= sinArea && property < squareArea) {
+        int index = (int) (middle * SQUARE_LIST.size());
+        param = SQUARE_LIST.get(index);
+      }
+      if (param == null) {
+        System.err.println(
+            "There is a problem with the initialization function scale "
+                + "in initSensorFunction()!");
+        System.exit(0);
+      }
+      Sensor sensor =
+          new Sensor(SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i - 1), param);
       SENSORS.add(sensor);
     }
   }
