@@ -27,7 +27,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.SensorSchemaGenerator;
+import cn.edu.tsinghua.iot.benchmark.schema.SensorSchemaGenerator;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +49,8 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
       TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
+  private static final SensorSchemaGenerator sensorSchemaGenerator =
+      SensorSchemaGenerator.getInstance();
   /**
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
@@ -59,8 +61,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
   private final ProbTool probTool = new ProbTool();
   protected int deviceSchemaSize = 0;
-  private static final SensorSchemaGenerator sensorSchemaGenerator =
-      SensorSchemaGenerator.getInstance();
 
   @Override
   public long getBatchNumber() {

@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
+import cn.edu.tsinghua.iot.benchmark.schema.SensorSchemaGenerator;
 import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 
 import java.util.ArrayList;

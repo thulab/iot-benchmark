@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.GenerateMetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.RealMetaDataSchema;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.XmlMetaDataSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,14 +86,18 @@ public abstract class MetaDataSchema {
     if (metaDataSchema == null) {
       synchronized (MetaDataSchema.class) {
         if (metaDataSchema == null) {
-          switch (config.getBENCHMARK_WORK_MODE()) {
-            case VERIFICATION_WRITE:
-            case VERIFICATION_QUERY:
-              metaDataSchema = new RealMetaDataSchema();
-              break;
-            default:
-              metaDataSchema = new GenerateMetaDataSchema();
-              break;
+          if (config.isIS_GENERATE_SCHEMA()) {
+            metaDataSchema = new XmlMetaDataSchema();
+          } else {
+            switch (config.getBENCHMARK_WORK_MODE()) {
+              case VERIFICATION_WRITE:
+              case VERIFICATION_QUERY:
+                metaDataSchema = new RealMetaDataSchema();
+                break;
+              default:
+                metaDataSchema = new GenerateMetaDataSchema();
+                break;
+            }
           }
         }
       }

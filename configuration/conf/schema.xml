@@ -33,12 +33,6 @@
 		</sensor>
 	</device>
 	<device name="d2">
-		<tags>
-			<tag>
-				<key>单位</key>
-				<value>km</value>
-			</tag>
-		</tags>
 		<sensor name="s7">
 			<type>boolean</type>
 			<functionId>random1</functionId>
@@ -70,26 +64,24 @@
 			<bindInterval>interval2</bindInterval>
 		</sensor>
 	</device>
-	<intervals>
-		<interval id = "interval1">
-			<timeInterval>
-				<lowerBound>1000</lowerBound>
-				<upperBound>2000</upperBound>
-			</timeInterval>
-			<writeInterval>
-				<lowerBound>1000</lowerBound>
-				<upperBound>2000</upperBound>
-			</writeInterval>
-		</interval>
-		<interval id = "interval2">
-			<timeInterval>
-				<lowerBound>2000</lowerBound>
-				<upperBound>3000</upperBound>
-			</timeInterval>
-			<writeInterval>
-				<lowerBound>2000</lowerBound>
-				<upperBound>3000</upperBound>
-			</writeInterval>
-		</interval>
-	</intervals>
+	<interval id = "interval1">
+		<timeInterval>
+			<lowerBound>1000</lowerBound>
+			<upperBound>2000</upperBound>
+		</timeInterval>
+		<writeInterval>
+			<lowerBound>1000</lowerBound>
+			<upperBound>2000</upperBound>
+		</writeInterval>
+	</interval>
+	<interval id = "interval2">
+		<timeInterval>
+			<lowerBound>2000</lowerBound>
+			<upperBound>3000</upperBound>
+		</timeInterval>
+		<writeInterval>
+			<lowerBound>2000</lowerBound>
+			<upperBound>3000</upperBound>
+		</writeInterval>
+	</interval>
 </schema>
