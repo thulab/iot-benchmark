@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.schema;
+package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

@@ -17,48 +17,34 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.schema;
+package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "sensor")
-public class SensorXml {
-  private String name;
-  private String type;
-  private String functionId;
-  private String bindInterval;
+import java.util.List;
 
-  @XmlAttribute(name = "name")
-  public String getName() {
-    return name;
+@XmlRootElement(name = "schema")
+public class SchemaXml {
+  private List<DeviceXml> devices;
+
+  private List<IntervalXml> intervals;
+
+  @XmlElement(name = "device")
+  public List<DeviceXml> getDevices() {
+    return devices;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setDevices(List<DeviceXml> devices) {
+    this.devices = devices;
   }
 
-  public String getType() {
-    return type;
+  @XmlElement(name = "interval")
+  public List<IntervalXml> getIntervals() {
+    return intervals;
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
-
-  public String getFunctionId() {
-    return functionId;
-  }
-
-  public void setFunctionId(String functionId) {
-    this.functionId = functionId;
-  }
-
-  public String getBindInterval() {
-    return bindInterval;
-  }
-
-  public void setBindInterval(String bindInterval) {
-    this.bindInterval = bindInterval;
+  public void setIntervals(List<IntervalXml> intervals) {
+    this.intervals = intervals;
   }
 }

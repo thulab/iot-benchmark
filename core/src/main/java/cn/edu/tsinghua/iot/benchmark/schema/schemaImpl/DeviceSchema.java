@@ -77,6 +77,20 @@ public class DeviceSchema implements Cloneable {
     this.device = deviceName;
     this.sensors = sensors;
     this.tags = tags;
+    // TODO spricoder consider the deviceId
+  }
+
+  public DeviceSchema(
+      int deviceId,
+      String groupId,
+      String deviceName,
+      List<Sensor> sensors,
+      Map<String, String> tags) {
+    this.deviceId = deviceId;
+    this.group = MetaUtil.getGroupName(groupId);
+    this.device = deviceName;
+    this.sensors = sensors;
+    this.tags = tags;
   }
 
   public String getDevice() {

@@ -51,6 +51,16 @@ public enum SensorType {
     return SensorType.TEXT;
   }
 
+  public static SensorType getType(String type) {
+    for (SensorType sensorType : SensorType.values()) {
+      if (sensorType.toString().equalsIgnoreCase(type)) {
+        return sensorType;
+      }
+    }
+    // default type
+    return SensorType.TEXT;
+  }
+
   @Override
   public String toString() {
     return name;

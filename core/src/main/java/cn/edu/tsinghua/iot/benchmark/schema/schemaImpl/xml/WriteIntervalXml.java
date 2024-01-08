@@ -17,33 +17,28 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.schema;
+package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.List;
 
-@XmlRootElement(name = "device")
-public class DeviceXml {
-  private String name;
-  private List<SensorXml> sensors;
+@XmlRootElement(name = "writeInterval")
+public class WriteIntervalXml {
+  private long lowerBound;
+  private long upperBound;
 
-  @XmlAttribute(name = "name")
-  public String getName() {
-    return name;
+  public long getLowerBound() {
+    return lowerBound;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setLowerBound(long lowerBound) {
+    this.lowerBound = lowerBound;
   }
 
-  @XmlElement(name = "sensor")
-  public List<SensorXml> getSensors() {
-    return sensors;
+  public long getUpperBound() {
+    return upperBound;
   }
 
-  public void setSensors(List<SensorXml> sensors) {
-    this.sensors = sensors;
+  public void setUpperBound(long upperBound) {
+    this.upperBound = upperBound;
   }
 }

@@ -22,21 +22,34 @@ package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
 import cn.edu.tsinghua.iot.benchmark.schema.*;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml.DeviceXml;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml.IntervalXml;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml.SchemaXml;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml.SensorXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class XmlMetaDataSchema extends MetaDataSchema {
   private static final Logger LOGGER = LoggerFactory.getLogger(XmlMetaDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final FunctionManager functionManager = FunctionManager.getInstance();
+  private static final AtomicInteger deviceId = new AtomicInteger(0);
 
   @Override
   protected boolean createMetaDataSchema() {
@@ -51,7 +64,55 @@ public class XmlMetaDataSchema extends MetaDataSchema {
       LOGGER.error("Failed to load function xml", e);
       System.exit(0);
     }
-    // TODO spricoder
-    return false;
+    // TODO make interval valid
+    List<IntervalXml> intervals = xml.getIntervals();
+    Map<String, IntervalXml> intervalMap = new HashMap<>();
+    for (IntervalXml intervalXml : intervals) {
+      intervalMap.put(intervalXml.getId(), intervalXml);
+    }
+    List<DeviceSchema> deviceSchemas = new ArrayList<>();
+    for (DeviceXml deviceXml : xml.getDevices()) {
+      String deviceName = deviceXml.getName();
+      List<Sensor> sensors = new ArrayList<>();
+      for (SensorXml sensorXml : deviceXml.getSensors()) {
+        FunctionParam functionParam = functionManager.getById(sensorXml.getFunctionId());
+        if (functionParam == null) {
+          LOGGER.error("Function id {} not found", sensorXml.getFunctionId());
+          continue;
+        }
+        Sensor sensor =
+            new Sensor(sensorXml.getName(), SensorType.getType(sensorXml.getType()), functionParam);
+        sensors.add(sensor);
+      }
+      // TODO spricoder need to update device Id
+      DeviceSchema deviceSchema =
+          new DeviceSchema(
+              deviceId.incrementAndGet(),
+              MetaUtil.getGroupIdFromDeviceName(deviceName),
+              deviceName,
+              sensors,
+              MetaUtil.getTags(deviceName));
+      NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
+      GROUPS.add(deviceSchema.getGroup());
+      deviceSchemas.add(deviceSchema);
+    }
+    if (deviceSchemas.size() < config.getCLIENT_NUMBER()) {
+      LOGGER.error(
+          "Device number {} is less than client number {}",
+          deviceSchemas.size(),
+          config.getCLIENT_NUMBER());
+      return false;
+    }
+    // Split into client And store Type
+    for (int i = 0; i < deviceSchemas.size(); i++) {
+      int clientId = i % config.getCLIENT_NUMBER();
+      DeviceSchema deviceSchema = deviceSchemas.get(i);
+      if (!CLIENT_DATA_SCHEMA.containsKey(clientId)) {
+        CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
+      }
+      CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
+    }
+    // TODO spricoder re-check
+    return true;
   }
 }

@@ -17,33 +17,43 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.schema;
+package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.List;
 
-@XmlRootElement(name = "schema")
-public class SchemaXml {
-  private List<DeviceXml> devices;
+@XmlRootElement(name = "interval")
+public class IntervalXml {
+  private String id;
 
-  private List<IntervalXml> intervals;
+  private TimeIntervalXml timeInterval;
 
-  @XmlElement(name = "device")
-  public List<DeviceXml> getDevices() {
-    return devices;
+  private WriteIntervalXml writeInterval;
+
+  @XmlElement(name = "id")
+  public String getId() {
+    return id;
   }
 
-  public void setDevices(List<DeviceXml> devices) {
-    this.devices = devices;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  @XmlElement(name = "interval")
-  public List<IntervalXml> getIntervals() {
-    return intervals;
+  @XmlElement(name = "timeInterval")
+  public TimeIntervalXml getTimeInterval() {
+    return timeInterval;
   }
 
-  public void setIntervals(List<IntervalXml> intervals) {
-    this.intervals = intervals;
+  public void setTimeInterval(TimeIntervalXml timeInterval) {
+    this.timeInterval = timeInterval;
+  }
+
+  @XmlElement(name = "writeInterval")
+  public WriteIntervalXml getWriteInterval() {
+    return writeInterval;
+  }
+
+  public void setWriteInterval(WriteIntervalXml writeInterval) {
+    this.writeInterval = writeInterval;
   }
 }
