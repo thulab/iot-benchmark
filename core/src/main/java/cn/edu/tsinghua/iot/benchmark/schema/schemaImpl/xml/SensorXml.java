@@ -53,5 +53,4 @@ public class SensorXml {
   public void setBindFunction(String bindFunction) {
     this.bindFunction = bindFunction;
   }
-
 }
