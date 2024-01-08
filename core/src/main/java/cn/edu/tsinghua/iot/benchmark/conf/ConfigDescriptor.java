@@ -213,6 +213,9 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty(
                     "IS_SENSOR_TS_ALIGNMENT", config.isIS_SENSOR_TS_ALIGNMENT() + "")));
+        config.setIS_GENERATE_SCHEMA(
+            Boolean.parseBoolean(
+                properties.getProperty("IS_GENERATE_SCHEMA", config.isIS_GENERATE_SCHEMA() + "")));
         config.setDEVICE_NUMBER(
             Integer.parseInt(
                 properties.getProperty("DEVICE_NUMBER", config.getDEVICE_NUMBER() + "")));
