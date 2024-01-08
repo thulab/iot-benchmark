@@ -88,7 +88,7 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
         records.add(
             new Record(
-                getCurrentTimestamp(rowOffset),
+                getCurrentTimestamp(deviceSchema, rowOffset),
                 generateOneRow(deviceSchema, batch.getColIndex(), rowOffset)));
       }
       // move

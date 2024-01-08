@@ -50,6 +50,8 @@ public class DeviceSchema implements Cloneable {
   /** Only used for synthetic data set */
   private int deviceId;
 
+  private Interval interval;
+
   public DeviceSchema() {
     tags = new HashMap<>();
   }
@@ -85,12 +87,14 @@ public class DeviceSchema implements Cloneable {
       String groupId,
       String deviceName,
       List<Sensor> sensors,
-      Map<String, String> tags) {
+      Map<String, String> tags,
+      Interval interval) {
     this.deviceId = deviceId;
     this.group = MetaUtil.getGroupName(groupId);
     this.device = deviceName;
     this.sensors = sensors;
     this.tags = tags;
+    this.interval = interval;
   }
 
   public String getDevice() {
@@ -127,6 +131,14 @@ public class DeviceSchema implements Cloneable {
 
   public void setTags(Map<String, String> tags) {
     this.tags = tags;
+  }
+
+  public Interval getInterval() {
+    return interval;
+  }
+
+  public void setInterval(Interval interval) {
+    this.interval = interval;
   }
 
   /**

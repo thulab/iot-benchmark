@@ -27,7 +27,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iot.benchmark.schema.SensorSchemaGenerator;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
@@ -39,6 +38,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
@@ -52,8 +52,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
       TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
-  private static final SensorSchemaGenerator sensorSchemaGenerator =
-      SensorSchemaGenerator.getInstance();
   /**
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
@@ -63,7 +61,15 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final long OUT_OF_ORDER_BASE =
       (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
   private final ProbTool probTool = new ProbTool();
+  private static final Random random = new Random(config.getDATA_SEED());
   protected int deviceSchemaSize = 0;
+  protected Map<String, AtomicLong> deviceTimestamps = new ConcurrentHashMap<>();
+
+  public GenerateDataWorkLoad() {
+    for (DeviceSchema deviceSchema : metaDataSchema.getAllDeviceSchemas()) {
+      deviceTimestamps.put(deviceSchema.getDevice(), new AtomicLong(Constants.START_TIMESTAMP));
+    }
+  }
 
   @Override
   public long getBatchNumber() {
@@ -89,41 +95,18 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Get timestamp according to stepOffset */
-  protected long getCurrentTimestamp(long stepOffset) throws WorkloadException {
-    if (config.isIS_OUT_OF_ORDER()) {
-      // change offset according to out of order mode
-      switch (config.getOUT_OF_ORDER_MODE()) {
-        case POISSON:
-          if (probTool.returnTrueByProb(config.getOUT_OF_ORDER_RATIO(), poissonRandom)) {
-            stepOffset -= poissonDistribution.getNextPoissonDelta();
-          }
-          break;
-        case BATCH:
-          stepOffset = (stepOffset + OUT_OF_ORDER_BASE) % config.getLOOP();
-          break;
-        default:
-          throw new WorkloadException(
-              "Unsupported out of order mode: " + config.getOUT_OF_ORDER_MODE());
-      }
+  protected long getCurrentTimestamp(DeviceSchema deviceSchema, long stepOffset)
+      throws WorkloadException {
+    int gap = (int) (deviceSchema.getInterval().getWriteIntervalUpper()
+            - deviceSchema.getInterval().getWriteIntervalLower());
+    int offset = 0;
+    if (gap > 0) {
+      offset = random.nextInt(gap);
     }
-
-    // offset of data ahead
-    long offset = config.getPOINT_STEP() * stepOffset;
-    // timestamp for next data
-    long timestamp = 0;
-    // change timestamp frequency
-    if (config.isIS_REGULAR_FREQUENCY()) {
-      // data is in regular frequency, then do nothing
-      timestamp += config.getPOINT_STEP();
-    } else {
-      // data is not in regular frequency, then use random
-      timestamp += config.getPOINT_STEP() * ThreadLocalRandom.current().nextDouble();
-    }
-    long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
-    if (config.isIS_RECENT_QUERY()) {
-      this.currentTimestamp = Math.max(this.currentTimestamp, currentTimestamp);
-    }
-    return currentTimestamp;
+    return deviceTimestamps
+        .get(deviceSchema.getDevice())
+        .addAndGet(
+            deviceSchema.getInterval().getWriteIntervalLower() + offset);
   }
 
   private static long getCurrentTimestampStatic(long stepOffset) {

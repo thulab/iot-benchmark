@@ -91,7 +91,8 @@ public class XmlMetaDataSchema extends MetaDataSchema {
               MetaUtil.getGroupIdFromDeviceName(deviceName),
               deviceName,
               sensors,
-              MetaUtil.getTags(deviceName));
+              MetaUtil.getTags(deviceName),
+              new Interval(intervalMap.get(deviceXml.getBindInterval())));
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
       GROUPS.add(deviceSchema.getGroup());
       deviceSchemas.add(deviceSchema);

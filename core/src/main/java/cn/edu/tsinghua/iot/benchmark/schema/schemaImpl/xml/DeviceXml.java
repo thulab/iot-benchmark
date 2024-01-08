@@ -50,6 +50,7 @@ public class DeviceXml {
     this.sensors = sensors;
   }
 
+  @XmlElement(name = "bindInterval")
   public String getBindInterval() {
     return bindInterval;
   }
