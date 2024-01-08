@@ -192,11 +192,10 @@ public class IoTDB implements IDatabase {
           }
         }
 
-        if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
-          Template template = null;
-          if (config.isTEMPLATE() && schemaList.size() > 0) {
-            template = createTemplate(schemaList.get(0));
-          }
+        if (config.isTEMPLATE()
+            && schemaList.size() > 0
+            && templateInit.compareAndSet(false, true)) {
+          Template template = createTemplate(schemaList.get(0));
           start = System.nanoTime();
           int sessionIndex = random.nextInt(sessionListMap.size());
           Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
