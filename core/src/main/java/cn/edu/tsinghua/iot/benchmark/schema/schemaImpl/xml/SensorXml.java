@@ -27,7 +27,6 @@ public class SensorXml {
   private String name;
   private String type;
   private String bindFunction;
-  private String bindInterval;
 
   @XmlAttribute(name = "name")
   public String getName() {
@@ -55,11 +54,4 @@ public class SensorXml {
     this.bindFunction = bindFunction;
   }
 
-  public String getBindInterval() {
-    return bindInterval;
-  }
-
-  public void setBindInterval(String bindInterval) {
-    this.bindInterval = bindInterval;
-  }
 }

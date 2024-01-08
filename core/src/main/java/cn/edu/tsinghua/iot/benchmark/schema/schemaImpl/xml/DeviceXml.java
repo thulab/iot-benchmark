@@ -30,6 +30,8 @@ public class DeviceXml {
   private String name;
   private List<SensorXml> sensors;
 
+  private String bindInterval;
+
   @XmlAttribute(name = "name")
   public String getName() {
     return name;
@@ -46,5 +48,13 @@ public class DeviceXml {
 
   public void setSensors(List<SensorXml> sensors) {
     this.sensors = sensors;
+  }
+
+  public String getBindInterval() {
+    return bindInterval;
+  }
+
+  public void setBindInterval(String bindInterval) {
+    this.bindInterval = bindInterval;
   }
 }

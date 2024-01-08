@@ -1,120 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <schema>
 	<device name="EngineEquipment.MainEngine.f1">
+		<bindInterval>interval1</bindInterval>
 		<sensor name="转速" type="int32">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random1</bindFunction>
 		</sensor>
-		<sensor name="1#气缸排温" type="float">
-			<bindInterval>interval1</bindInterval>
+		<sensor name="1气缸排温" type="float">
 			<bindFunction>random2</bindFunction>
 		</sensor>
-		<sensor name="2#气缸排温" type="float">
-			<bindInterval>interval1</bindInterval>
+		<sensor name="2气缸排温" type="float">
 			<bindFunction>random2</bindFunction>
 		</sensor>
-		<sensor name="3#气缸排温" type="float">
-			<bindInterval>interval1</bindInterval>
+		<sensor name="3气缸排温" type="float">
 			<bindFunction>random2</bindFunction>
 		</sensor>
-		<sensor name="4#气缸排温" type="float">
-			<bindInterval>interval1</bindInterval>
+		<sensor name="4气缸排温" type="float">
 			<bindFunction>random2</bindFunction>
 		</sensor>
-		<sensor name="5#气缸排温" type="float">
-			<bindInterval>interval1</bindInterval>
+		<sensor name="5气缸排温" type="float">
 			<bindFunction>random2</bindFunction>
 		</sensor>
-		<sensor name="6#气缸排温" type="float">
-			<bindInterval>interval1</bindInterval>
+		<sensor name="6气缸排温" type="float">
 			<bindFunction>random2</bindFunction>
 		</sensor>
 		<sensor name="涡轮前排气温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random3</bindFunction>
 		</sensor>
 		<sensor name="涡轮后排气温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random4</bindFunction>
 		</sensor>
 		<sensor name="空冷器后进气温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random5</bindFunction>
 		</sensor>
 		<sensor name="增压器转速" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random6</bindFunction>
 		</sensor>
 		<sensor name="主轴承1温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承2温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承3温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承4温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承5温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承6温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承7温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 		<sensor name="主轴承8温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random7</bindFunction>
 		</sensor>
 	</device>
-	<device name="EngineEquipment.MainEngine.random2">
-		<sensor name = "1#气缸缸压" type = "float">
-			<bindInterval>interval2</bindInterval>
+	<device name="EngineEquipment.MainEngine.f2">
+		<bindInterval>interval2</bindInterval>
+		<sensor name = "1气缸缸压" type = "float">
 			<bindFunction>random8</bindFunction>
 		</sensor>
-		<sensor name = "2#气缸缸压" type = "float">
-			<bindInterval>interval2</bindInterval>
+		<sensor name = "2气缸缸压" type = "float">
 			<bindFunction>random8</bindFunction>
 		</sensor>
-		<sensor name = "3#气缸缸压" type = "float">
-			<bindInterval>interval2</bindInterval>
-			<bindFunction>random8</bindFunction>
+		<sensor name = "3气缸缸压" type = "float">
+			<bindFunction>random9</bindFunction>
 		</sensor>
-		<sensor name = "4#气缸缸压" type = "float">
-			<bindInterval>interval2</bindInterval>
-			<bindFunction>random8</bindFunction>
+		<sensor name = "4气缸缸压" type = "float">
+			<bindFunction>random9</bindFunction>
 		</sensor>
-		<sensor name = "5#气缸缸压" type = "float">
-			<bindInterval>interval2</bindInterval>
-			<bindFunction>random8</bindFunction>
+		<sensor name = "5气缸缸压" type = "float">
+			<bindFunction>random9</bindFunction>
 		</sensor>
-		<sensor name = "6#气缸缸压" type = "float">
-			<bindInterval>interval2</bindInterval>
-			<bindFunction>random8</bindFunction>
+		<sensor name = "6气缸缸压" type = "float">
+			<bindFunction>random9</bindFunction>
 		</sensor>
 	</device>
 	<device name="EngineEquipment.MainGenerator">
+		<bindInterval>interval1</bindInterval>
 		<sensor name="U相绕组温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random9</bindFunction>
 		</sensor>
 		<sensor name="V相绕组温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random9</bindFunction>
 		</sensor>
 		<sensor name="W相绕组温度" type="float">
-			<bindInterval>interval1</bindInterval>
 			<bindFunction>random9</bindFunction>
 		</sensor>
 	</device>
