@@ -19,10 +19,11 @@
 
 package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "interval")
+@XmlRootElement(name = "bindInterval")
 public class IntervalXml {
   private String id;
 
@@ -30,7 +31,7 @@ public class IntervalXml {
 
   private WriteIntervalXml writeInterval;
 
-  @XmlElement(name = "id")
+  @XmlAttribute(name = "id")
   public String getId() {
     return id;
   }

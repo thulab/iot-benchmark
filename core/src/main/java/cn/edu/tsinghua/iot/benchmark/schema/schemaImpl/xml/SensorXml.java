@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SensorXml {
   private String name;
   private String type;
-  private String functionId;
+  private String bindFunction;
   private String bindInterval;
 
   @XmlAttribute(name = "name")
@@ -38,6 +38,7 @@ public class SensorXml {
     this.name = name;
   }
 
+  @XmlAttribute(name = "type")
   public String getType() {
     return type;
   }
@@ -46,12 +47,12 @@ public class SensorXml {
     this.type = type;
   }
 
-  public String getFunctionId() {
-    return functionId;
+  public String getBindFunction() {
+    return bindFunction;
   }
 
-  public void setFunctionId(String functionId) {
-    this.functionId = functionId;
+  public void setBindFunction(String bindFunction) {
+    this.bindFunction = bindFunction;
   }
 
   public String getBindInterval() {

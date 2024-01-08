@@ -70,13 +70,14 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       batch = new MultiDeviceBatch(config.getDEVICE_NUM_PER_WRITE());
     }
     for (int i = 0; i < config.getDEVICE_NUM_PER_WRITE(); i++) {
-      DeviceSchema deviceSchema =
-          new DeviceSchema(
-              deviceSchemas.get(deviceIndex).getDeviceId(),
-              deviceSchemas.get(deviceIndex).getSensors(),
-              deviceSchemas.get(deviceIndex).getTags());
+      DeviceSchema deviceSchema = deviceSchemas.get(deviceIndex);
       if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
         List<Sensor> sensors = new ArrayList<>();
+        deviceSchema =
+            new DeviceSchema(
+                deviceSchemas.get(deviceIndex).getDeviceId(),
+                deviceSchemas.get(deviceIndex).getSensors(),
+                deviceSchemas.get(deviceIndex).getTags());
         sensors.add(deviceSchema.getSensors().get(sensorIndex));
         deviceSchema.setSensors(sensors);
         batch.setColIndex(sensorIndex);
@@ -87,7 +88,8 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
         records.add(
             new Record(
-                getCurrentTimestamp(rowOffset), generateOneRow(batch.getColIndex(), rowOffset)));
+                getCurrentTimestamp(rowOffset),
+                generateOneRow(deviceSchema, batch.getColIndex(), rowOffset)));
       }
       // move
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {

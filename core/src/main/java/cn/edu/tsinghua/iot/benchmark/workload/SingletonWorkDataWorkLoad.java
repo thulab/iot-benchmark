@@ -96,7 +96,8 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
             (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
         records.add(
             new Record(
-                getCurrentTimestamp(stepOffset), generateOneRow(batch.getColIndex(), stepOffset)));
+                getCurrentTimestamp(stepOffset),
+                generateOneRow(deviceSchema, batch.getColIndex(), stepOffset)));
       }
       batch.addSchemaAndContent(deviceSchema, records);
     }

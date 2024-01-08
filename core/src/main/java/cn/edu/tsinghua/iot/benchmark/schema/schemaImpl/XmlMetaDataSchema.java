@@ -75,9 +75,9 @@ public class XmlMetaDataSchema extends MetaDataSchema {
       String deviceName = deviceXml.getName();
       List<Sensor> sensors = new ArrayList<>();
       for (SensorXml sensorXml : deviceXml.getSensors()) {
-        FunctionParam functionParam = functionManager.getById(sensorXml.getFunctionId());
+        FunctionParam functionParam = functionManager.getById(sensorXml.getBindFunction());
         if (functionParam == null) {
-          LOGGER.error("Function id {} not found", sensorXml.getFunctionId());
+          LOGGER.error("Function id {} not found", sensorXml.getBindFunction());
           continue;
         }
         Sensor sensor =

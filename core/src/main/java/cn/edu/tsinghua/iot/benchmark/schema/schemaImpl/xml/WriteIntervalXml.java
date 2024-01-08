@@ -19,26 +19,29 @@
 
 package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "writeInterval")
 public class WriteIntervalXml {
-  private long lowerBound;
-  private long upperBound;
+  private long lower;
+  private long upper;
 
-  public long getLowerBound() {
-    return lowerBound;
+  @XmlAttribute(name = "lower")
+  public long getLower() {
+    return lower;
   }
 
-  public void setLowerBound(long lowerBound) {
-    this.lowerBound = lowerBound;
+  public void setLower(long lower) {
+    this.lower = lower;
   }
 
-  public long getUpperBound() {
-    return upperBound;
+  @XmlAttribute(name = "upper")
+  public long getUpper() {
+    return upper;
   }
 
-  public void setUpperBound(long upperBound) {
-    this.upperBound = upperBound;
+  public void setUpper(long upper) {
+    this.upper = upper;
   }
 }

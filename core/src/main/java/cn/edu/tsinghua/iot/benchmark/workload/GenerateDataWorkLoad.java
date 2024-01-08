@@ -28,13 +28,16 @@ import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.schema.SensorSchemaGenerator;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
@@ -55,7 +58,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst
    */
-  private static final Object[][] workloadValues = initWorkloadValues();
+  private static final Map<String, Object[][]> workloadValuesMap = initWorkloadValues();
 
   private static final long OUT_OF_ORDER_BASE =
       (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
@@ -68,10 +71,12 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Add one row into batch, row contains data from all sensors */
-  protected List<Object> generateOneRow(int colIndex, long stepOffset) throws WorkloadException {
+  protected List<Object> generateOneRow(DeviceSchema deviceSchema, int colIndex, long stepOffset)
+      throws WorkloadException {
+    Object[][] workloadValues = workloadValuesMap.get(deviceSchema.getDevice());
     List<Object> values = new ArrayList<>();
     if (colIndex == -1) {
-      for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
+      for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
         values.add(
             workloadValues[i][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
       }
@@ -138,68 +143,72 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Init workload values */
-  private static Object[][] initWorkloadValues() {
-    double ratio = 1.0;
-    for (int i = 0; i < config.getDOUBLE_LENGTH(); i++) {
-      ratio *= 10;
-    }
-    LOGGER.info("Start Generating WorkLoad");
-    Object[][] workloadValues = null;
-    if (config.hasWrite()) {
-      int sensorNumber = config.getSENSOR_NUMBER();
-      // if the first number in OPERATION_PROPORTION not equals to 0, then write data
-      workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
-      List<Sensor> sensors = sensorSchemaGenerator.generateSensor();
-      for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
-        Sensor sensor = sensors.get(sensorIndex);
-        for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
-          // This time stamp is only used to generate periodic data. So the timestamp is also
-          // periodic
-          long currentTimestamp = getCurrentTimestampStatic(i);
-          Object value;
-          if (sensor.getSensorType() == SensorType.TEXT) {
-            // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
-            StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
-            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-              builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
-            }
-            value = builder.toString();
-          } else {
-            // not TEXT case
-            FunctionParam param = sensor.getFunctionParam();
-            Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
-            switch (sensor.getSensorType()) {
-              case BOOLEAN:
-                value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
-                break;
-              case INT32:
-                value = number.intValue();
-                break;
-              case INT64:
-                value = number.longValue();
-                break;
-              case FLOAT:
-                value = number.floatValue();
-                break;
-              case DOUBLE:
-                value = Math.round(number.doubleValue() * ratio) / ratio;
-                break;
-              default:
-                value = null;
-                break;
-            }
-          }
-          workloadValues[sensorIndex][i] = value;
-        }
-        if (sensorIndex % 5000 == 0) {
-          LOGGER.info(
-              "Finish {} % WorkLoad Buffer", (sensorIndex * 100.0 / config.getSENSOR_NUMBER()));
-        }
+  private static Map<String, Object[][]> initWorkloadValues() {
+    Map<String, Object[][]> workloadValuesMap = new ConcurrentHashMap<>();
+    List<DeviceSchema> deviceSchemas = metaDataSchema.getAllDeviceSchemas();
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      double ratio = 1.0;
+      for (int i = 0; i < config.getDOUBLE_LENGTH(); i++) {
+        ratio *= 10;
       }
-    } else {
-      LOGGER.info("According to OPERATION_PROPORTION, there is no need to write");
+      LOGGER.info("Start Generating WorkLoad");
+      Object[][] workloadValues = null;
+      if (config.hasWrite()) {
+        int sensorNumber = deviceSchema.getSensors().size();
+        // if the first number in OPERATION_PROPORTION not equals to 0, then write data
+        workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
+        for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
+          Sensor sensor = deviceSchema.getSensors().get(sensorIndex);
+          for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
+            // This time stamp is only used to generate periodic data. So the timestamp is also
+            // periodic
+            long currentTimestamp = getCurrentTimestampStatic(i);
+            Object value;
+            if (sensor.getSensorType() == SensorType.TEXT) {
+              // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
+              StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
+              for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+                builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+              }
+              value = builder.toString();
+            } else {
+              // not TEXT case
+              FunctionParam param = sensor.getFunctionParam();
+              Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
+              switch (sensor.getSensorType()) {
+                case BOOLEAN:
+                  value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
+                  break;
+                case INT32:
+                  value = number.intValue();
+                  break;
+                case INT64:
+                  value = number.longValue();
+                  break;
+                case FLOAT:
+                  value = number.floatValue();
+                  break;
+                case DOUBLE:
+                  value = Math.round(number.doubleValue() * ratio) / ratio;
+                  break;
+                default:
+                  value = null;
+                  break;
+              }
+            }
+            workloadValues[sensorIndex][i] = value;
+          }
+          if (sensorIndex % 5000 == 0) {
+            LOGGER.info(
+                "Finish {} % WorkLoad Buffer", (sensorIndex * 100.0 / config.getSENSOR_NUMBER()));
+          }
+        }
+      } else {
+        LOGGER.info("According to OPERATION_PROPORTION, there is no need to write");
+      }
+      workloadValuesMap.put(deviceSchema.getDevice(), workloadValues);
     }
     LOGGER.info("Finish Generating WorkLoad");
-    return workloadValues;
+    return workloadValuesMap;
   }
 }
