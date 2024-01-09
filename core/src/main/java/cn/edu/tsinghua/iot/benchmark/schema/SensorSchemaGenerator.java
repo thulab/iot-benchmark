@@ -89,17 +89,13 @@ public class SensorSchemaGenerator {
     // Configure according to the ratio of each function passed in
     double sumRatio = LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
     // Check whether the configuration is correct
-    if (sumRatio == 0
-        || LINE_RATIO < 0
-        || RANDOM_RATIO < 0
-        || SIN_RATIO < 0
-        || SQUARE_RATIO < 0) {
+    if (sumRatio == 0 || LINE_RATIO < 0 || RANDOM_RATIO < 0 || SIN_RATIO < 0 || SQUARE_RATIO < 0) {
       System.err.println("function ration must >= 0 and sum > 0");
       System.exit(0);
     }
     List<Sensor> sensors = new ArrayList<>();
     Random r = new Random(config.getDATA_SEED());
-    double lineArea =  LINE_RATIO / sumRatio;
+    double lineArea = LINE_RATIO / sumRatio;
     double randomArea = lineArea + RANDOM_RATIO / sumRatio;
     double sinArea = randomArea + SIN_RATIO / sumRatio;
     double squareArea = sinArea + SQUARE_RATIO / sumRatio;

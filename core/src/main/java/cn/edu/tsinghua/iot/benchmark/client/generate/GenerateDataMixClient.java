@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
-import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.Interval;
@@ -27,6 +26,8 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.Interval;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GenerateDataMixClient extends GenerateBaseClient {
 
@@ -44,139 +45,44 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   /** Do Operations */
   @Override
   protected void doTest() {
-    long start = 0;
-    for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
-      Operation operation = operationController.getNextOperationType();
-      if (config.getOP_MIN_INTERVAL() > 0) {
-        start = System.currentTimeMillis();
-      }
-      if (operation == Operation.INGESTION) {
-        if (!ingestionOperation()) {
-          break;
-        }
-      } else {
-        if (config.isIS_RECENT_QUERY()) {
-          long timestamp = dataWorkLoad.getCurrentTimestamp();
-          if (!config.isIS_QUIET_MODE()) {
-            String currentThread = Thread.currentThread().getName();
-            LOGGER.info(
-                "{} update queryWorkLoad with maxTimestamp : {}.", currentThread, timestamp);
-          }
-          queryWorkLoad.updateTime(timestamp);
-        }
-        try {
-          switch (operation) {
-            case PRECISE_QUERY:
-              dbWrapper.preciseQuery(queryWorkLoad.getPreciseQuery());
-              break;
-            case RANGE_QUERY:
-              dbWrapper.rangeQuery(queryWorkLoad.getRangeQuery());
-              break;
-            case VALUE_RANGE_QUERY:
-              dbWrapper.valueRangeQuery(queryWorkLoad.getValueRangeQuery());
-              break;
-            case AGG_RANGE_QUERY:
-              dbWrapper.aggRangeQuery(queryWorkLoad.getAggRangeQuery());
-              break;
-            case AGG_VALUE_QUERY:
-              dbWrapper.aggValueQuery(queryWorkLoad.getAggValueQuery());
-              break;
-            case AGG_RANGE_VALUE_QUERY:
-              dbWrapper.aggRangeValueQuery(queryWorkLoad.getAggRangeValueQuery());
-              break;
-            case GROUP_BY_QUERY:
-              dbWrapper.groupByQuery(queryWorkLoad.getGroupByQuery());
-              break;
-            case LATEST_POINT_QUERY:
-              dbWrapper.latestPointQuery(queryWorkLoad.getLatestPointQuery());
-              break;
-            case RANGE_QUERY_ORDER_BY_TIME_DESC:
-              dbWrapper.rangeQueryOrderByDesc(queryWorkLoad.getRangeQuery());
-              break;
-            case VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC:
-              dbWrapper.valueRangeQueryOrderByDesc(queryWorkLoad.getValueRangeQuery());
-              break;
-            case GROUP_BY_QUERY_ORDER_BY_TIME_DESC:
-              dbWrapper.groupByQueryOrderByDesc(queryWorkLoad.getGroupByQuery());
-              break;
-            default:
-              LOGGER.error("Unsupported operation sensorType {}", operation);
-          }
-        } catch (Exception e) {
-          LOGGER.error("Failed to do " + operation.getName() + " query because ", e);
-        }
-      }
-      if (isStop.get()) {
-        break;
-      }
-      if (config.getOP_MIN_INTERVAL() > 0) {
-        long opMinInterval;
-        if (config.isOP_MIN_INTERVAL_RANDOM()) {
-          opMinInterval = (long) (random.nextDouble() * config.getOP_MIN_INTERVAL());
-        } else {
-          opMinInterval = config.getOP_MIN_INTERVAL();
-        }
-        long elapsed = System.currentTimeMillis() - start;
-        if (elapsed < opMinInterval) {
-          try {
-            LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opMinInterval - elapsed);
-            Thread.sleep(opMinInterval - elapsed);
-          } catch (InterruptedException e) {
-            LOGGER.error("Wait for next operation failed because ", e);
-          }
-        }
-      }
-    }
-  }
-
-  /** Do Ingestion Operation @Return when connect failed return false */
-  private boolean ingestionOperation() {
-    try {
-      for (int i = 0; i < clientDeviceSchemas.size(); i += config.getDEVICE_NUM_PER_WRITE()) {
-        int innerLoop = 0;
-        if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-          innerLoop = 1;
-        } else {
-          if (config.isIS_CLIENT_BIND()) {
-            innerLoop = clientDeviceSchemas.get(i).getSensors().size();
-          } else {
-            innerLoop = clientDeviceSchemas.get(i).getSensors().size() * config.getDEVICE_NUMBER();
-          }
-        }
-        for (int j = 0; j < innerLoop; j++) {
-          if (isStop.get()) {
-            return true;
-          }
-          long start = System.currentTimeMillis();
-          IBatch batch = dataWorkLoad.getOneBatch();
-          if (checkBatch(batch)) {
-            dbWrapper.insertOneBatchWithCheck(batch);
-            Interval interval = batch.getDeviceSchema().getInterval();
-            int opInterval = (int) (interval.getWriteIntervalLower());
-            if (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower() > 0) {
-              opInterval +=
-                  random.nextInt(
-                      (int) (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower()));
-            }
-            if (opInterval > 0) {
-              long elapsed = System.currentTimeMillis() - start;
-              if (elapsed < opInterval) {
-                try {
-                  LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opInterval - elapsed);
-                  Thread.sleep(opInterval - elapsed);
-                } catch (InterruptedException e) {
-                  LOGGER.error("Wait for next operation failed because ", e);
+    ExecutorService executor = Executors.newFixedThreadPool(clientDeviceSchemas.size());
+    for (int i = 0; i < clientDeviceSchemas.size(); i++) {
+      executor.execute(
+          () -> {
+            for (int j = 0; j < config.getLOOP(); j++) {
+              try {
+                long start = System.currentTimeMillis();
+                IBatch batch = dataWorkLoad.getOneBatch();
+                if (checkBatch(batch)) {
+                  dbWrapper.insertOneBatchWithCheck(batch);
+                  Interval interval = batch.getDeviceSchema().getInterval();
+                  int opInterval = (int) (interval.getWriteIntervalLower());
+                  if (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower() > 0) {
+                    opInterval +=
+                        random.nextInt(
+                            (int)
+                                (interval.getWriteIntervalUpper()
+                                    - interval.getWriteIntervalLower()));
+                  }
+                  if (opInterval > 0) {
+                    long elapsed = System.currentTimeMillis() - start;
+                    if (elapsed < opInterval) {
+                      try {
+                        LOGGER.debug(
+                            "[Client-{}] sleep {} ms.", clientThreadId, opInterval - elapsed);
+                        Thread.sleep(opInterval - elapsed);
+                      } catch (InterruptedException e) {
+                        LOGGER.error("Wait for next operation failed because ", e);
+                      }
+                    }
+                  }
                 }
+              } catch (Exception e) {
+                LOGGER.error("Failed to insert one batch data because ", e);
               }
+              insertLoopIndex++;
             }
-          }
-        }
-      }
-      insertLoopIndex++;
-    } catch (Exception e) {
-      LOGGER.error("Failed to insert one batch data because ", e);
-      return false;
+          });
     }
-    return true;
   }
 }

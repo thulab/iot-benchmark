@@ -33,7 +33,7 @@ public class Function {
   /** use DATA_SEED in config */
   private static final Random random = new Random(config.getDATA_SEED());
 
-  private Function(){}
+  private Function() {}
 
   /** Get value of function */
   public static Number getValueByFunctionIdAndParam(FunctionParam param, long currentTime) {
@@ -47,16 +47,21 @@ public class Function {
   }
 
   private static Number getValueByFunctionIdAndParam(
-          FunctionType functionType, double max, double min, FunctionBaseLine baseLine,int cycle,long currentTime) {
+      FunctionType functionType,
+      double max,
+      double min,
+      FunctionBaseLine baseLine,
+      int cycle,
+      long currentTime) {
     switch (functionType) {
       case SIN:
-        return (float) getSineValue(max, min, baseLine,cycle, currentTime);
+        return (float) getSineValue(max, min, baseLine, cycle, currentTime);
       case RANDOM:
         return (float) getRandomValue(max, min, baseLine);
       case SQUARE:
-        return (float) getSquareValue(max, min, baseLine, cycle,currentTime);
+        return (float) getSquareValue(max, min, baseLine, cycle, currentTime);
       case MONO:
-        return (float) getMonoValue(max, min, baseLine, cycle,currentTime);
+        return (float) getMonoValue(max, min, baseLine, cycle, currentTime);
       default:
         return 0;
     }
@@ -71,7 +76,8 @@ public class Function {
    * @param currentTime time unit is ms
    * @return mono value
    */
-  private static double getMonoValue(double max, double min, FunctionBaseLine baseLine,double cycle, long currentTime) {
+  private static double getMonoValue(
+      double max, double min, FunctionBaseLine baseLine, double cycle, long currentTime) {
     double k = (max - min) / cycle;
     return min + k * (currentTime % cycle);
   }
@@ -85,7 +91,8 @@ public class Function {
    * @param currentTime time unit is ms
    * @return sin value
    */
-  private static double getSineValue(double max, double min, FunctionBaseLine baseLine,double cycle, long currentTime) {
+  private static double getSineValue(
+      double max, double min, FunctionBaseLine baseLine, double cycle, long currentTime) {
     double w = 2 * Math.PI / (cycle * 1000);
     double a = (max - min) / 2;
     double b = (max - min) / 2;
@@ -101,7 +108,8 @@ public class Function {
    * @param currentTime time unit is ms
    * @return square value
    */
-  private static double getSquareValue(double max, double min, FunctionBaseLine baseLine,double cycle, long currentTime) {
+  private static double getSquareValue(
+      double max, double min, FunctionBaseLine baseLine, double cycle, long currentTime) {
     double t = cycle / 2;
     if ((currentTime % (cycle)) < t) {
       return max;
@@ -117,12 +125,13 @@ public class Function {
    * @param min minimum of function
    * @return random value
    */
-  private static double getRandomValue(double max, double min,FunctionBaseLine baseLine) {
-    if(baseLine!=null){
+  private static double getRandomValue(double max, double min, FunctionBaseLine baseLine) {
+    if (baseLine != null) {
       double probability = random.nextDouble();
-        if(probability<baseLine.getRatio()){
-            return random.nextDouble() * (baseLine.getUpper() - baseLine.getLower()) + baseLine.getLower();
-        }
+      if (probability < baseLine.getRatio()) {
+        return random.nextDouble() * (baseLine.getUpper() - baseLine.getLower())
+            + baseLine.getLower();
+      }
     }
     return random.nextDouble() * (max - min) + min;
   }

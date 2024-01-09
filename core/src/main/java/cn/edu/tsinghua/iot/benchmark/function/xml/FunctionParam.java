@@ -74,11 +74,13 @@ public class FunctionParam {
   }
 
   @XmlElement(name = "baseLine")
-  public FunctionBaseLine getBaseLine(){return baseLine;}
+  public FunctionBaseLine getBaseLine() {
+    return baseLine;
+  }
 
-  public void setBaseLine(FunctionBaseLine baseLine){this.baseLine = baseLine;}
-
-
+  public void setBaseLine(FunctionBaseLine baseLine) {
+    this.baseLine = baseLine;
+  }
 
   public FunctionParam(String functionType, double max, double min) {
     super();
@@ -102,28 +104,28 @@ public class FunctionParam {
 
   @Override
   public String toString() {
-    if(baseLine!=null){
+    if (baseLine != null) {
       return "FunctionParam [id="
-              + id
-              + ", functionType="
-              + functionType
-              + ", max="
-              + max
-              + ", min="
-              + min
-              + ", FunctionBaseLine="
-              + baseLine.toString()
-              + "]";
+          + id
+          + ", functionType="
+          + functionType
+          + ", max="
+          + max
+          + ", min="
+          + min
+          + ", FunctionBaseLine="
+          + baseLine.toString()
+          + "]";
     }
     return "FunctionParam [id="
-            + id
-            + ", functionType="
-            + functionType
-            + ", max="
-            + max
-            + ", min="
-            + min
-            + "]";
+        + id
+        + ", functionType="
+        + functionType
+        + ", max="
+        + max
+        + ", min="
+        + min
+        + "]";
   }
 
   @Override
@@ -149,7 +151,7 @@ public class FunctionParam {
     ReadWriteIOUtils.write(functionType, outputStream);
     ReadWriteIOUtils.write(max, outputStream);
     ReadWriteIOUtils.write(min, outputStream);
-    if(baseLine != null){
+    if (baseLine != null) {
       baseLine.serialize(outputStream);
     }
   }

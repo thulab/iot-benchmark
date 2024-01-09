@@ -105,5 +105,4 @@ public class FunctionManager {
   public List<FunctionParam> getRANDOM_LIST() {
     return RANDOM_LIST;
   }
-
 }

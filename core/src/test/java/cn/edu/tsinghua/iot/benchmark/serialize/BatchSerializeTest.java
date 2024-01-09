@@ -49,8 +49,7 @@ public class BatchSerializeTest {
     String group = "g1";
     String device = "d1";
     List<Sensor> sensors = new ArrayList<>();
-    sensors.add(
-        new Sensor("s1", SensorType.DOUBLE, new FunctionParam("mono", 0, 100)));
+    sensors.add(new Sensor("s1", SensorType.DOUBLE, new FunctionParam("mono", 0, 100)));
     sensors.add(new Sensor("s2", SensorType.DOUBLE, new FunctionParam("sin", 0, 100)));
     Map<String, String> tags = new HashMap<>();
     tags.put("tag1", "value1");
