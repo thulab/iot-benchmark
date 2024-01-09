@@ -47,42 +47,39 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   protected void doTest() {
     ExecutorService executor = Executors.newFixedThreadPool(clientDeviceSchemas.size());
     for (int i = 0; i < clientDeviceSchemas.size(); i++) {
-      executor.execute(
-          () -> {
-            for (int j = 0; j < config.getLOOP(); j++) {
-              try {
-                long start = System.currentTimeMillis();
-                IBatch batch = dataWorkLoad.getOneBatch();
-                if (checkBatch(batch)) {
-                  dbWrapper.insertOneBatchWithCheck(batch);
-                  Interval interval = batch.getDeviceSchema().getInterval();
-                  int opInterval = (int) (interval.getWriteIntervalLower());
-                  if (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower() > 0) {
-                    opInterval +=
+        for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
+          try {
+            long start = System.currentTimeMillis();
+            IBatch batch = dataWorkLoad.getOneBatch();
+            if (checkBatch(batch)) {
+              dbWrapper.insertOneBatchWithCheck(batch);
+              Interval interval = batch.getDeviceSchema().getInterval();
+              int opInterval = (int) (interval.getWriteIntervalLower());
+              if (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower() > 0) {
+                opInterval +=
                         random.nextInt(
-                            (int)
-                                (interval.getWriteIntervalUpper()
-                                    - interval.getWriteIntervalLower()));
-                  }
-                  if (opInterval > 0) {
-                    long elapsed = System.currentTimeMillis() - start;
-                    if (elapsed < opInterval) {
-                      try {
-                        LOGGER.debug(
+                                (int)
+                                        (interval.getWriteIntervalUpper()
+                                                - interval.getWriteIntervalLower()));
+              }
+              if (opInterval > 0) {
+                long elapsed = System.currentTimeMillis() - start;
+                if (elapsed < opInterval) {
+                  try {
+                    LOGGER.debug(
                             "[Client-{}] sleep {} ms.", clientThreadId, opInterval - elapsed);
-                        Thread.sleep(opInterval - elapsed);
-                      } catch (InterruptedException e) {
-                        LOGGER.error("Wait for next operation failed because ", e);
-                      }
-                    }
+                    Thread.sleep(opInterval - elapsed);
+                  } catch (InterruptedException e) {
+                    LOGGER.error("Wait for next operation failed because ", e);
                   }
                 }
-              } catch (Exception e) {
-                LOGGER.error("Failed to insert one batch data because ", e);
               }
-              insertLoopIndex++;
             }
-          });
+          } catch (Exception e) {
+            LOGGER.error("Failed to insert one batch data because ", e);
+          }
+          insertLoopIndex++;
+        }
     }
   }
 }
