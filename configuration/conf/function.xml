@@ -1,47 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--定义数据生成的参数
 id 如果与 schema 中 sensor 的 bindFunction 相同，则说明该 sensor 使用该 function 定义的数据生成方式来生成数据
-type 支持的类型为:   1. mono（线性）2. Sin（正弦/傅里叶）3. square（分段）4. Random（随机数）
 -->
 <functions>
-	<!-- 线性函数 9个方法 -->
-	<function id="mono1" type="mono" max="17376.5" min="17366.5" />
-	<function id="mono2" type="mono" max="33919.6" min="33909.6" />
-	<function id="mono3" type="mono" max="35061" min="35051" />
-	<function id="mono4" type="mono" max="35061" min="35051" />
-	<function id="mono5" type="mono" max="6001" min="6000" />
-	<function id="mono6" type="mono" max="6001" min="6000" />
-	<function id="mono7" type="mono" max="34704.8" min="33909.7"/>
-	<function id="mono8" type="mono" max="33695.1" min="33501"/>
-	<function id="mono9" type="mono" max="34041.5" min="33847.4"/>
-	<!-- 傅里叶函数 6个方法  都可以转换为正弦函数-->
-	<function id="sin1" type="sin" max="6.59887" min="3.54113" />
-	<function id="sin2" type="sin" max="6.65208" min="3.59392" />
-	<function id="sin3" type="sin" max="6.53903" min="3.26297" />
-	<function id="sin4" type="sin" max="6.59887" min="3.54113" />
-	<function id="sin5" type="sin" max="6.65208" min="3.59392" />
-	<function id="sin6" type="sin" max="6.34178" min="3.46022" />
-	
-	<!-- 分段常数函数 9个 -->
-	<function id="square1" type="square" max="5" min="2" />
-	<function id="square2" type="square" max="2" min="0" />
-	<function id="square3" type="square" max="6" min="0" />
-	<function id="square4" type="square" max="1483.42" min="1473.54" />
-	<function id="square5" type="square" max="36.74" min="25.93" />
-	<function id="square6" type="square" max="0.99" min="0" />
-	<function id="square7" type="square" max="787.74" min="781.54" />
-	<function id="square8" type="square" max="787.74" min="781.54" />
-	<function id="square9" type="square" max="787.74" min="781.54" />
-	
-	<!-- 随机数函数 9 个-->
-	<function id="random1" type="random" max="1540" min="-55" />
-	<function id="random2" type="random" max="11.89" min="0.0" />
-	<function id="random3" type="random" max="50531" min="49834" />
-	<function id="random4" type="random" max="11443410" min="11343330" />
-	<function id="random5" type="random" max="1005.93" min="969.61" />
-	<function id="random6" type="random" max="35.13" min="27.66" />
-	<function id="random7" type="random" max="35.13" min="27.66" />
-	<function id="random8" type="random" max="33.86" min="27.12" />
-	<function id="random9" type="random" max="35.13" min="27.61" />
-
+	<!-- EngineEquipment.MainEngine-->
+	<function id="转速fc" type="random" min="0" max="900">
+		<baseLine lower="675" upper="825" ratio = "0.9"/>
+	</function>
+	<function id="气缸排温" type="random" min="0" max="690">
+		<baseLine lower="400" upper="500" ratio = "0.9"/>
+	</function>
+	<function id="气缸缸压" type="random" min="0" max="35">
+		<baseLine lower="14.4" upper="17.6" ratio = "0.9"/>
+	</function>
+	<function id="涡轮前排气温度" type="random" min="0" max="690">
+		<baseLine lower="350" upper="450" ratio = "0.9"/>
+	</function>
+	<function id="涡轮后排气温度" type="random" min="0" max="690">
+		<baseLine lower="300" upper="400" ratio = "0.9"/>
+	</function>
+	<function id="空冷器后进气温度" type="random" min="0" max="120">
+		<baseLine lower="22" upper="28" ratio = "0.9"/>
+	</function>
+	<function id="增压器转速" type="random" min="0" max="70000">
+		<baseLine lower="19800" upper="20200" ratio = "0.9"/>
+	</function>
+	<function id="增压器转速" type="random" min="0" max="70000">
+		<baseLine lower="19800" upper="20200" ratio = "0.9"/>
+	</function>
+	<function id="主轴承温度" type="random" min="-50" max="200">
+		<baseLine lower="48" upper="52" ratio = "0.9"/>
+	</function>
+	<!--EngineEquipment.MainGenerator-->
+	<function id="相绕组温度" type="random" min="-15" max="190">
+		<baseLine lower="98" upper="102" ratio = "0.9"/>
+	</function>
+	<function id="驱动端轴承温度" type="random" min="-15" max="190">
+		<baseLine lower="48" upper="52" ratio = "0.9"/>
+	</function>
+	<function id="功率" type="random" min="0" max="3000">
+		<baseLine lower="2475" upper="2485" ratio = "0.9"/>
+	</function>
+	<function id="负荷" type="random" min="0" max="150">
+		<baseLine lower="98.008" upper="99.992" ratio = "0.9"/>
+	</function>
+	<!--EngineEquipment.CoolingWaterSystem-->
+	<function id="水进机压力" type="random" min="0" max="0.6">
+		<baseLine lower="0.23" upper="0.27" ratio = "0.9"/>
+	</function>
+	<function id="高温水进机温度" type="random" min="0" max="160">
+		<baseLine lower="38" upper="42" ratio = "0.9"/>
+	</function>
+	<function id="高温水出气缸温度" type="random" min="0" max="160">
+		<baseLine lower="58" upper="62" ratio = "0.9"/>
+	</function>
+	<function id="高温水出机温度" type="random" min="0" max="160">
+		<baseLine lower="56" upper="60" ratio = "0.9"/>
+	</function>
+	<function id="空冷器低温级出口温度" type="random" min="0" max="160">
+		<baseLine lower="23" upper="27" ratio = "0.9"/>
+	</function>
+	<function id="滑油冷却器出口温度" type="random" min="0" max="160">
+		<baseLine lower="33" upper="37" ratio = "0.9"/>
+	</function>
 </functions>

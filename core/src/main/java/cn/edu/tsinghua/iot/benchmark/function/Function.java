@@ -118,6 +118,12 @@ public class Function {
    * @return random value
    */
   private static double getRandomValue(double max, double min,FunctionBaseLine baseLine) {
+    if(baseLine!=null){
+      double probability = random.nextDouble();
+        if(probability<baseLine.getRatio()){
+            return random.nextDouble() * (baseLine.getUpper() - baseLine.getLower()) + baseLine.getLower();
+        }
+    }
     return random.nextDouble() * (max - min) + min;
   }
 }

@@ -3,25 +3,25 @@
 	<device name="EngineEquipment.MainEngine.f1">
 		<bindInterval>interval1</bindInterval>
 		<sensor name="转速" type="int32">
-			<bindFunction>random1</bindFunction>
+			<bindFunction>转速fc</bindFunction>
 		</sensor>
 		<sensor name="1气缸排温" type="float">
-			<bindFunction>random2</bindFunction>
+			<bindFunction>气缸排温</bindFunction>
 		</sensor>
 		<sensor name="2气缸排温" type="float">
-			<bindFunction>random2</bindFunction>
+			<bindFunction>气缸排温</bindFunction>
 		</sensor>
 		<sensor name="3气缸排温" type="float">
-			<bindFunction>random2</bindFunction>
+			<bindFunction>气缸排温</bindFunction>
 		</sensor>
 		<sensor name="4气缸排温" type="float">
-			<bindFunction>random2</bindFunction>
+			<bindFunction>气缸排温</bindFunction>
 		</sensor>
 		<sensor name="5气缸排温" type="float">
-			<bindFunction>random2</bindFunction>
+			<bindFunction>气缸排温</bindFunction>
 		</sensor>
 		<sensor name="6气缸排温" type="float">
-			<bindFunction>random2</bindFunction>
+			<bindFunction>气缸排温</bindFunction>
 		</sensor>
 		<sensor name="涡轮前排气温度" type="float">
 			<bindFunction>random3</bindFunction>
