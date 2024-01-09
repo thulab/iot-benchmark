@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.schema.*;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml.DeviceXml;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.xml.IntervalXml;

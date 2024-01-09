@@ -26,7 +26,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.Interval;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
@@ -149,7 +149,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
             Object value;
             if (sensor.getSensorType() == SensorType.TEXT) {
               // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
-              StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
+              StringBuilder builder = new StringBuilder(config.getSTRING_LENGTH());
               for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
                 builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
               }
