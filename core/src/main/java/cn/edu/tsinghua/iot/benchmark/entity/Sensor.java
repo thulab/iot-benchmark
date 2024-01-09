@@ -20,7 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.entity;
 
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

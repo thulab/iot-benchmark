@@ -83,10 +83,10 @@
 	</device>
 	<device name="EngineEquipment.MainGenerator">
 		<bindInterval>interval1</bindInterval>
-		<sensor name="U相绕组温度" type="float">
+		<sensor name="U相绕组温度" type="boolean">
 			<bindFunction>random9</bindFunction>
 		</sensor>
-		<sensor name="V相绕组温度" type="float">
+		<sensor name="V相绕组温度" type="double">
 			<bindFunction>random9</bindFunction>
 		</sensor>
 		<sensor name="W相绕组温度" type="float">

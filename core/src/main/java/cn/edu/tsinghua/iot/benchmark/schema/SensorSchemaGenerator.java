@@ -24,8 +24,8 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,18 +63,13 @@ public class SensorSchemaGenerator {
     }
     List<FunctionParam> xmlFunctions = xml.getFunctions();
     for (FunctionParam param : xmlFunctions) {
-      if (param.getFunctionType().contains("_mono_k")) {
+      if (param.getFunctionType().contains("mono")) {
         functionManager.getLINE_LIST().add(param);
-      } else if (param.getFunctionType().contains("_mono")) {
-        // if min equals to max, then it is constant.
-        if (param.getMin() == param.getMax()) {
-          functionManager.getCONSTANT_LIST().add(param);
-        }
-      } else if (param.getFunctionType().contains("_sin")) {
+      } else if (param.getFunctionType().contains("sin")) {
         functionManager.getSIN_LIST().add(param);
-      } else if (param.getFunctionType().contains("_square")) {
+      } else if (param.getFunctionType().contains("square")) {
         functionManager.getSQUARE_LIST().add(param);
-      } else if (param.getFunctionType().contains("_random")) {
+      } else if (param.getFunctionType().contains("random")) {
         functionManager.getRANDOM_LIST().add(param);
       }
     }
@@ -87,16 +82,14 @@ public class SensorSchemaGenerator {
   /** According to the number of sensors, generate sensor */
   public List<Sensor> generateSensor() {
     int TYPE_NUMBER = 6;
-    double CONSTANT_RATIO = config.getCONSTANT_RATIO();
     double LINE_RATIO = config.getLINE_RATIO();
     double RANDOM_RATIO = config.getRANDOM_RATIO();
     double SIN_RATIO = config.getSIN_RATIO();
     double SQUARE_RATIO = config.getSQUARE_RATIO();
     // Configure according to the ratio of each function passed in
-    double sumRatio = CONSTANT_RATIO + LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
+    double sumRatio = LINE_RATIO + RANDOM_RATIO + SIN_RATIO + SQUARE_RATIO;
     // Check whether the configuration is correct
     if (sumRatio == 0
-        || CONSTANT_RATIO < 0
         || LINE_RATIO < 0
         || RANDOM_RATIO < 0
         || SIN_RATIO < 0
@@ -106,8 +99,7 @@ public class SensorSchemaGenerator {
     }
     List<Sensor> sensors = new ArrayList<>();
     Random r = new Random(config.getDATA_SEED());
-    double constantArea = CONSTANT_RATIO / sumRatio;
-    double lineArea = constantArea + LINE_RATIO / sumRatio;
+    double lineArea =  LINE_RATIO / sumRatio;
     double randomArea = lineArea + RANDOM_RATIO / sumRatio;
     double sinArea = randomArea + SIN_RATIO / sumRatio;
     double squareArea = sinArea + SQUARE_RATIO / sumRatio;
@@ -128,13 +120,8 @@ public class SensorSchemaGenerator {
       FunctionParam param = null;
       Random fr = new Random(config.getDATA_SEED() + 1 + i);
       double middle = fr.nextDouble();
-      // constant
-      if (property < constantArea) {
-        int index = (int) (middle * functionManager.getCONSTANT_LIST().size());
-        param = functionManager.getCONSTANT_LIST().get(index);
-      }
       // line
-      if (property >= constantArea && property < lineArea) {
+      if (property < lineArea) {
         int index = (int) (middle * functionManager.getLINE_LIST().size());
         param = functionManager.getLINE_LIST().get(index);
       }

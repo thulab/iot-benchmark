@@ -22,6 +22,8 @@ package cn.edu.tsinghua.iot.benchmark.function;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.function.enums.FunctionType;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionBaseLine;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
 
 import java.util.Random;
 
@@ -31,46 +33,30 @@ public class Function {
   /** use DATA_SEED in config */
   private static final Random random = new Random(config.getDATA_SEED());
 
+  private Function(){}
+
   /** Get value of function */
   public static Number getValueByFunctionIdAndParam(FunctionParam param, long currentTime) {
     return getValueByFunctionIdAndParam(
         FunctionType.valueOf(param.getFunctionType().toUpperCase()),
         param.getMax(),
         param.getMin(),
-        param.getCycle(),
+        param.getBaseLine(),
+        random.nextInt(20000),
         currentTime);
   }
 
   private static Number getValueByFunctionIdAndParam(
-      FunctionType functionType, double max, double min, long cycle, long currentTime) {
+          FunctionType functionType, double max, double min, FunctionBaseLine baseLine,int cycle,long currentTime) {
     switch (functionType) {
-      case FLOAT_SIN:
-        return (float) getSineValue(max, min, cycle, currentTime);
-      case FLOAT_RANDOM:
-        return (float) getRandomValue(max, min);
-      case FLOAT_SQUARE:
-        return (float) getSquareValue(max, min, cycle, currentTime);
-      case FLOAT_MONO:
-      case FLOAT_MONO_K:
-        return (float) getMonoValue(max, min, cycle, currentTime);
-      case DOUBLE_SIN:
-        return getSineValue(max, min, cycle, currentTime);
-      case DOUBLE_RANDOM:
-        return getRandomValue(max, min);
-      case DOUBLE_SQUARE:
-        return getSquareValue(max, min, cycle, currentTime);
-      case DOUBLE_MONO:
-      case DOUBLE_MONO_K:
-        return getMonoValue(max, min, cycle, currentTime);
-      case INT_SIN:
-        return (int) getSineValue(max, min, cycle, currentTime);
-      case INT_RANDOM:
-        return (int) getRandomValue(max, min);
-      case INT_SQUARE:
-        return (int) getSquareValue(max, min, cycle, currentTime);
-      case INT_MONO:
-      case INT_MONO_K:
-        return (int) getMonoValue(max, min, cycle, currentTime);
+      case SIN:
+        return (float) getSineValue(max, min, baseLine,cycle, currentTime);
+      case RANDOM:
+        return (float) getRandomValue(max, min, baseLine);
+      case SQUARE:
+        return (float) getSquareValue(max, min, baseLine, cycle,currentTime);
+      case MONO:
+        return (float) getMonoValue(max, min, baseLine, cycle,currentTime);
       default:
         return 0;
     }
@@ -83,9 +69,9 @@ public class Function {
    * @param min minimum of function
    * @param cycle time unit is ms
    * @param currentTime time unit is ms
-   * @return
+   * @return mono value
    */
-  private static double getMonoValue(double max, double min, double cycle, long currentTime) {
+  private static double getMonoValue(double max, double min, FunctionBaseLine baseLine,double cycle, long currentTime) {
     double k = (max - min) / cycle;
     return min + k * (currentTime % cycle);
   }
@@ -97,9 +83,9 @@ public class Function {
    * @param min minimum of function
    * @param cycle time unit is ms
    * @param currentTime time unit is ms
-   * @return
+   * @return sin value
    */
-  private static double getSineValue(double max, double min, double cycle, long currentTime) {
+  private static double getSineValue(double max, double min, FunctionBaseLine baseLine,double cycle, long currentTime) {
     double w = 2 * Math.PI / (cycle * 1000);
     double a = (max - min) / 2;
     double b = (max - min) / 2;
@@ -113,9 +99,9 @@ public class Function {
    * @param min minimum of function
    * @param cycle time unit is ms
    * @param currentTime time unit is ms
-   * @return
+   * @return square value
    */
-  private static double getSquareValue(double max, double min, double cycle, long currentTime) {
+  private static double getSquareValue(double max, double min, FunctionBaseLine baseLine,double cycle, long currentTime) {
     double t = cycle / 2;
     if ((currentTime % (cycle)) < t) {
       return max;
@@ -129,9 +115,9 @@ public class Function {
    *
    * @param max maximum of function
    * @param min minimum of function
-   * @return
+   * @return random value
    */
-  private static double getRandomValue(double max, double min) {
+  private static double getRandomValue(double max, double min,FunctionBaseLine baseLine) {
     return random.nextDouble() * (max - min) + min;
   }
 }

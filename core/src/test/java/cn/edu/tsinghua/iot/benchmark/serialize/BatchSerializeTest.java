@@ -24,7 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import org.junit.After;
 import org.junit.Before;
@@ -50,8 +50,8 @@ public class BatchSerializeTest {
     String device = "d1";
     List<Sensor> sensors = new ArrayList<>();
     sensors.add(
-        new Sensor("s1", SensorType.DOUBLE, new FunctionParam("double_mono_k", 0, 100, 1000)));
-    sensors.add(new Sensor("s2", SensorType.DOUBLE, new FunctionParam("double_sin", 0, 100, 1000)));
+        new Sensor("s1", SensorType.DOUBLE, new FunctionParam("mono", 0, 100)));
+    sensors.add(new Sensor("s2", SensorType.DOUBLE, new FunctionParam("sin", 0, 100)));
     Map<String, String> tags = new HashMap<>();
     tags.put("tag1", "value1");
     tags.put("tag2", "value2");

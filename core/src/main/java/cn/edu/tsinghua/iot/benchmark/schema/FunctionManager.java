@@ -22,8 +22,8 @@ package cn.edu.tsinghua.iot.benchmark.schema;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,6 @@ public class FunctionManager {
   private final List<FunctionParam> SIN_LIST = new ArrayList<>();
   private final List<FunctionParam> SQUARE_LIST = new ArrayList<>();
   private final List<FunctionParam> RANDOM_LIST = new ArrayList<>();
-  private final List<FunctionParam> CONSTANT_LIST = new ArrayList<>();
   private final Map<String, FunctionParam> FUNCTION_MAP = new ConcurrentHashMap<>();
 
   private FunctionManager() {
@@ -66,18 +65,13 @@ public class FunctionManager {
     }
     List<FunctionParam> xmlFunctions = xml.getFunctions();
     for (FunctionParam param : xmlFunctions) {
-      if (param.getFunctionType().contains("_mono_k")) {
+      if (param.getFunctionType().contains("mono")) {
         LINE_LIST.add(param);
-      } else if (param.getFunctionType().contains("_mono")) {
-        // if min equals to max, then it is constant.
-        if (param.getMin() == param.getMax()) {
-          CONSTANT_LIST.add(param);
-        }
-      } else if (param.getFunctionType().contains("_sin")) {
+      } else if (param.getFunctionType().contains("sin")) {
         SIN_LIST.add(param);
-      } else if (param.getFunctionType().contains("_square")) {
+      } else if (param.getFunctionType().contains("square")) {
         SQUARE_LIST.add(param);
-      } else if (param.getFunctionType().contains("_random")) {
+      } else if (param.getFunctionType().contains("random")) {
         RANDOM_LIST.add(param);
       }
       FUNCTION_MAP.put(param.getId(), param);
@@ -112,7 +106,4 @@ public class FunctionManager {
     return RANDOM_LIST;
   }
 
-  public List<FunctionParam> getCONSTANT_LIST() {
-    return CONSTANT_LIST;
-  }
 }

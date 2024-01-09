@@ -17,7 +17,9 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.function;
+package cn.edu.tsinghua.iot.benchmark.function.xml;
+
+import cn.edu.tsinghua.iot.benchmark.function.xml.FunctionParam;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;

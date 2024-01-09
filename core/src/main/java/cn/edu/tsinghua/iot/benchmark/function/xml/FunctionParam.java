@@ -17,16 +17,18 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.function;
+package cn.edu.tsinghua.iot.benchmark.function.xml;
 
 import cn.edu.tsinghua.iot.benchmark.function.enums.FunctionType;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 public class FunctionParam {
   /** id of function */
@@ -41,10 +43,10 @@ public class FunctionParam {
   private double max;
   /** Minimum of function */
   private double min;
-  /** Cycle of function For *-k function, only be used to calculate k */
-  private long cycle;
 
-  @XmlAttribute(name = "function-sensorType")
+  private FunctionBaseLine baseLine;
+
+  @XmlAttribute(name = "type")
   public String getFunctionType() {
     return functionType;
   }
@@ -71,21 +73,18 @@ public class FunctionParam {
     this.min = min;
   }
 
-  @XmlAttribute(name = "cycle")
-  public long getCycle() {
-    return cycle;
-  }
+  @XmlElement(name = "baseLine")
+  public FunctionBaseLine getBaseLine(){return baseLine;}
 
-  public void setCycle(long cycle) {
-    this.cycle = cycle;
-  }
+  public void setBaseLine(FunctionBaseLine baseLine){this.baseLine = baseLine;}
 
-  public FunctionParam(String functionType, double max, double min, long cycle) {
+
+
+  public FunctionParam(String functionType, double max, double min) {
     super();
     this.functionType = functionType;
     this.max = max;
     this.min = min;
-    this.cycle = cycle;
   }
 
   public FunctionParam() {
@@ -103,25 +102,41 @@ public class FunctionParam {
 
   @Override
   public String toString() {
+    if(baseLine!=null){
+      return "FunctionParam [id="
+              + id
+              + ", functionType="
+              + functionType
+              + ", max="
+              + max
+              + ", min="
+              + min
+              + ", FunctionBaseLine="
+              + baseLine.toString()
+              + "]";
+    }
     return "FunctionParam [id="
-        + id
-        + ", functionType="
-        + functionType
-        + ", max="
-        + max
-        + ", min="
-        + min
-        + ", cycle="
-        + cycle
-        + "]";
+            + id
+            + ", functionType="
+            + functionType
+            + ", max="
+            + max
+            + ", min="
+            + min
+            + "]";
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (getId().equals(((FunctionParam) obj).getId())) {
-      return true;
+    if (obj instanceof FunctionParam) {
+      return Objects.equals(getId(), ((FunctionParam) obj).getId());
     }
-    return super.equals(obj);
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, functionType, max, min, baseLine);
   }
 
   /**
@@ -134,7 +149,9 @@ public class FunctionParam {
     ReadWriteIOUtils.write(functionType, outputStream);
     ReadWriteIOUtils.write(max, outputStream);
     ReadWriteIOUtils.write(min, outputStream);
-    ReadWriteIOUtils.write(cycle, outputStream);
+    if(baseLine != null){
+      baseLine.serialize(outputStream);
+    }
   }
 
   /**
@@ -148,7 +165,7 @@ public class FunctionParam {
     result.functionType = ReadWriteIOUtils.readString(inputStream);
     result.max = ReadWriteIOUtils.readDouble(inputStream);
     result.min = ReadWriteIOUtils.readDouble(inputStream);
-    result.cycle = ReadWriteIOUtils.readLong(inputStream);
+    result.baseLine = FunctionBaseLine.deserialize(inputStream);
     return result;
   }
 }
