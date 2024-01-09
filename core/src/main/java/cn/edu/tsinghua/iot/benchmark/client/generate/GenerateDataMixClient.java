@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.client.generate;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.Interval;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -146,9 +147,28 @@ public class GenerateDataMixClient extends GenerateBaseClient {
           if (isStop.get()) {
             return true;
           }
+          long start = System.currentTimeMillis();
           IBatch batch = dataWorkLoad.getOneBatch();
           if (checkBatch(batch)) {
             dbWrapper.insertOneBatchWithCheck(batch);
+          }
+          Interval interval = batch.getDeviceSchema().getInterval();
+          int opInterval = (int) (interval.getWriteIntervalLower());
+          if (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower() > 0) {
+            opInterval +=
+                random.nextInt(
+                    (int) (interval.getWriteIntervalUpper() - interval.getWriteIntervalLower()));
+          }
+          if (opInterval > 0) {
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed < opInterval) {
+              try {
+                LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opInterval - elapsed);
+                Thread.sleep(opInterval - elapsed);
+              } catch (InterruptedException e) {
+                LOGGER.error("Wait for next operation failed because ", e);
+              }
+            }
           }
         }
       }

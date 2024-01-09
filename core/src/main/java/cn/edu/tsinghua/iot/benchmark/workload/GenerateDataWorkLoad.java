@@ -28,6 +28,7 @@ import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.Interval;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,16 +98,15 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   /** Get timestamp according to stepOffset */
   protected long getCurrentTimestamp(DeviceSchema deviceSchema, long stepOffset)
       throws WorkloadException {
-    int gap = (int) (deviceSchema.getInterval().getWriteIntervalUpper()
-            - deviceSchema.getInterval().getWriteIntervalLower());
+    Interval interval = deviceSchema.getInterval();
+    int gap = (int) (interval.getTimeIntervalUpper() - interval.getTimeIntervalLower());
     int offset = 0;
     if (gap > 0) {
       offset = random.nextInt(gap);
     }
     return deviceTimestamps
         .get(deviceSchema.getDevice())
-        .addAndGet(
-            deviceSchema.getInterval().getWriteIntervalLower() + offset);
+        .addAndGet(interval.getTimeIntervalLower() + offset);
   }
 
   private static long getCurrentTimestampStatic(long stepOffset) {
