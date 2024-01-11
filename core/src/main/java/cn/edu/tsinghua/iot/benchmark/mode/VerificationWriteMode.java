@@ -27,30 +27,14 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class VerificationWriteMode extends BaseMode {
 
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
-
   @Override
   protected boolean preCheck() {
-    List<DBConfig> dbConfigs = new ArrayList<>();
-    dbConfigs.add(config.getDbConfig());
-    if (config.isIS_DOUBLE_WRITE()) {
-      dbConfigs.add(config.getANOTHER_DBConfig());
-    }
-    if (config.isIS_DELETE_DATA()) {
-      if (!cleanUpData(dbConfigs, measurement)) {
-        return false;
-      }
-    }
-    if (config.isCREATE_SCHEMA()) {
-      if (!registerSchema(measurement)) {
-        return false;
-      }
-    }
-    return true;
+    return super.preCheck();
   }
 
   @Override
@@ -61,6 +45,6 @@ public class VerificationWriteMode extends BaseMode {
         threadsMeasurements,
         start,
         dataClients,
-        new ArrayList<>(Arrays.asList(Operation.INGESTION)));
+        new ArrayList<>(Collections.singletonList(Operation.INGESTION)));
   }
 }

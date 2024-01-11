@@ -26,11 +26,10 @@ import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class VerificationQueryMode extends BaseMode {
-
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   @Override
   protected boolean preCheck() {
@@ -45,6 +44,6 @@ public class VerificationQueryMode extends BaseMode {
         threadsMeasurements,
         start,
         dataClients,
-        Arrays.asList(Operation.VERIFICATION_QUERY));
+            Collections.singletonList(Operation.VERIFICATION_QUERY));
   }
 }
