@@ -25,14 +25,11 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.MultiDeviceBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
-import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 
 import java.util.*;
 
 public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
-
-  private final Map<DeviceSchema, Long> maxTimestampIndexMap;
   private long insertLoop = 0;
   private int deviceIndex = 0;
   private int sensorIndex = 0;
@@ -40,21 +37,6 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
 
   public SyntheticDataWorkLoad(List<DeviceSchema> deviceSchemas) {
     this.deviceSchemas = deviceSchemas;
-    maxTimestampIndexMap = new HashMap<>();
-    for (DeviceSchema schema : deviceSchemas) {
-      if (config.isIS_SENSOR_TS_ALIGNMENT()) {
-        maxTimestampIndexMap.put(schema, 0L);
-      } else {
-        for (Sensor sensor : schema.getSensors()) {
-          DeviceSchema deviceSchema =
-              new DeviceSchema(
-                  schema.getDeviceId(),
-                  Collections.singletonList(sensor),
-                  MetaUtil.getTags(schema.getDeviceId()));
-          maxTimestampIndexMap.put(deviceSchema, 0L);
-        }
-      }
-    }
     this.deviceSchemaSize = deviceSchemas.size();
   }
 

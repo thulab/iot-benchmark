@@ -621,14 +621,7 @@ public class ConfigDescriptor {
         != config.getOPERATION_PROPORTION_LEN()) {
       config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
     }
-    String[] op = config.getOPERATION_PROPORTION().split(":");
-    int minOps = 0;
-    for (String s : op) {
-      if (Double.parseDouble(s) > 1e-7) {
-        minOps++;
-      }
-    }
-    if (minOps > config.getLOOP()) {
+    if (config.getLOOP()<0) {
       LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
       return false;
     }

@@ -31,13 +31,11 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   private static final List<Sensor> SENSORS = Collections.synchronizedList(config.getSENSORS());
-  private ConcurrentHashMap<Integer, AtomicLong> deviceMaxTimeIndexMap;
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
   private static final AtomicInteger sensorIndex = new AtomicInteger();
   private final AtomicLong insertLoop = new AtomicLong(0);
@@ -46,10 +44,6 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
     if (config.isIS_OUT_OF_ORDER()) {
       long startIndex = (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
       this.insertLoop.set(startIndex);
-    }
-    deviceMaxTimeIndexMap = new ConcurrentHashMap<>();
-    for (int i = 0; i < config.getDEVICE_NUMBER(); i++) {
-      deviceMaxTimeIndexMap.put(MetaUtil.getDeviceId(i), new AtomicLong(0));
     }
   }
 
