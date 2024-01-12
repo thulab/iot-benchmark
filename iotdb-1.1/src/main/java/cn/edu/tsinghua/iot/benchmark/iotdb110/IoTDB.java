@@ -308,8 +308,7 @@ public class IoTDB implements IDatabase {
     for (TimeseriesSchema timeseriesSchema : schemaList) {
       someDevicePaths.add(timeseriesSchema.getDeviceId());
       if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
-        activateTemplateForSomeDevices(
-            metaSession, someDevicePaths, activatedDeviceCount.get());
+        activateTemplateForSomeDevices(metaSession, someDevicePaths, activatedDeviceCount.get());
         activatedDeviceCount.addAndGet(someDevicePaths.size());
         someDevicePaths.clear();
       }

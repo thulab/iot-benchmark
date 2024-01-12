@@ -621,7 +621,7 @@ public class ConfigDescriptor {
         != config.getOPERATION_PROPORTION_LEN()) {
       config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
     }
-    if (config.getLOOP()<0) {
+    if (config.getLOOP() < 0) {
       LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
       return false;
     }

@@ -39,9 +39,7 @@ public class App {
     long initialHeapSize = Runtime.getRuntime().totalMemory();
     long maxHeapSize = Runtime.getRuntime().maxMemory();
     LOGGER.info(
-        "Initial Heap Size: {} bytes, Max Heap Size: {} bytes. ",
-            initialHeapSize, maxHeapSize
-            );
+        "Initial Heap Size: {} bytes, Max Heap Size: {} bytes. ", initialHeapSize, maxHeapSize);
 
     if (args == null || args.length == 0) {
       args = new String[] {"-cf", "configuration/conf"};

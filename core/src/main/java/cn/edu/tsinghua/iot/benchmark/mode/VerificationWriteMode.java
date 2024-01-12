@@ -20,13 +20,9 @@
 package cn.edu.tsinghua.iot.benchmark.mode;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
-import cn.edu.tsinghua.iot.benchmark.conf.Config;
-import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

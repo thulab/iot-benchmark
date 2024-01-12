@@ -20,12 +20,9 @@
 package cn.edu.tsinghua.iot.benchmark.mode;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
-import cn.edu.tsinghua.iot.benchmark.conf.Config;
-import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,6 +41,6 @@ public class VerificationQueryMode extends BaseMode {
         threadsMeasurements,
         start,
         dataClients,
-            Collections.singletonList(Operation.VERIFICATION_QUERY));
+        Collections.singletonList(Operation.VERIFICATION_QUERY));
   }
 }

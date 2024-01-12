@@ -62,7 +62,7 @@ public abstract class BaseMode {
   protected Measurement measurement = new Measurement();
   protected long start = 0;
 
-  protected boolean preCheck(){
+  protected boolean preCheck() {
     List<DBConfig> dbConfigs = new ArrayList<>();
     dbConfigs.add(config.getDbConfig());
     if (config.isIS_DOUBLE_WRITE()) {
