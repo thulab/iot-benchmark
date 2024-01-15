@@ -305,18 +305,14 @@ public class IoTDB implements IDatabase {
   private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
     List<String> someDevicePaths = new ArrayList<>();
     AtomicLong activatedDeviceCount = new AtomicLong();
-    schemaList.stream()
-        .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
-        .forEach(
-            path -> {
-              someDevicePaths.add(path);
-              if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
-                activateTemplateForSomeDevices(
-                    metaSession, someDevicePaths, activatedDeviceCount.get());
-                activatedDeviceCount.addAndGet(someDevicePaths.size());
-                someDevicePaths.clear();
-              }
-            });
+    for (TimeseriesSchema timeseriesSchema : schemaList) {
+      someDevicePaths.add(timeseriesSchema.getDeviceId());
+      if (someDevicePaths.size() >= ACTIVATE_TEMPLATE_THRESHOLD) {
+        activateTemplateForSomeDevices(metaSession, someDevicePaths, activatedDeviceCount.get());
+        activatedDeviceCount.addAndGet(someDevicePaths.size());
+        someDevicePaths.clear();
+      }
+    }
     if (!someDevicePaths.isEmpty()) {
       activateTemplateForSomeDevices(metaSession, someDevicePaths, activatedDeviceCount.get());
     }

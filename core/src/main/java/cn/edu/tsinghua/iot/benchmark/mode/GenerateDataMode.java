@@ -40,8 +40,8 @@ public class GenerateDataMode extends BaseMode {
 
   @Override
   protected void postCheck() {
-    LOGGER.info("Data Location: " + config.getFILE_PATH());
-    LOGGER.info("Schema Location: " + FileUtils.union(config.getFILE_PATH(), "schema.txt"));
-    LOGGER.info("Generate Info Location: " + FileUtils.union(config.getFILE_PATH(), "info.txt"));
+    LOGGER.info("Data Location: {}", config.getFILE_PATH());
+    LOGGER.info("Schema Location: {}", FileUtils.union(config.getFILE_PATH(), "schema.txt"));
+    LOGGER.info("Generate Info Location: {}", FileUtils.union(config.getFILE_PATH(), "info.txt"));
   }
 }
