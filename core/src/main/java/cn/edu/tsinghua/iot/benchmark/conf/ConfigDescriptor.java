@@ -628,7 +628,7 @@ public class ConfigDescriptor {
         minOps++;
       }
     }
-    if (config.getLOOP()!=0 && minOps > config.getLOOP()) {
+    if (config.getLOOP() != 0 && minOps > config.getLOOP()) {
       LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
       return false;
     }
