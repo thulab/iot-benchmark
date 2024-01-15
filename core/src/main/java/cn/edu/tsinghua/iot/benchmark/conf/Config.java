@@ -244,6 +244,10 @@ public class Config {
   /** the org name of influxdb */
   private String INFLUXDB_ORG = "company1";
 
+  // 被测系统是CnosDB时的参数
+  /** the shard number of cnosdb, which affects the parallelism of write and query operations */
+  private int CNOSDB_SHARD_NUMBER = 32;
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
@@ -1491,6 +1495,14 @@ public class Config {
 
   public void setINFLUXDB_ORG(String INFLUXDB_ORG) {
     this.INFLUXDB_ORG = INFLUXDB_ORG;
+  }
+
+  public int getCNOSDB_SHARD_NUMBER() {
+    return CNOSDB_SHARD_NUMBER;
+  }
+
+  public void setCNOSDB_SHARD_NUMBER(int CNOSDB_SHARD_NUMBER) {
+    this.CNOSDB_SHARD_NUMBER = CNOSDB_SHARD_NUMBER;
   }
 
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {

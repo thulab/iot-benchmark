@@ -25,7 +25,6 @@ public enum DBType {
   InfluxDB("InfluxDB"),
   OpenTSDB("OpenTSDB"),
   CTSDB("CTSDB"),
-
   CnosDB("CnosDB"),
   KairosDB("KairosDB"),
   TimescaleDB("TimescaleDB"),

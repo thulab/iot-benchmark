@@ -327,7 +327,7 @@ public class InfluxDB implements IDatabase {
     return new Status(true, cnt);
   }
 
-  private static String getPreciseQuerySql(PreciseQuery preciseQuery) {
+  public static String getPreciseQuerySql(PreciseQuery preciseQuery) {
     String strTime = "" + preciseQuery.getTimestamp() * TIMESTAMP_TO_NANO;
     return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " AND time = " + strTime;
   }
@@ -339,7 +339,7 @@ public class InfluxDB implements IDatabase {
    * @param rangeQuery range query
    * @return sql with time filter
    */
-  private static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
+  public static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
     String startTime = "" + rangeQuery.getStartTimestamp() * TIMESTAMP_TO_NANO;
     String endTime = "" + rangeQuery.getEndTimestamp() * TIMESTAMP_TO_NANO;
     return sql + " AND time >= " + startTime + " AND time <= " + endTime;
@@ -353,7 +353,7 @@ public class InfluxDB implements IDatabase {
    * @param valueThreshold lower bound of query value filter
    * @return sql with value filter
    */
-  private static String addWhereValueClause(
+  public static String addWhereValueClause(
       List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sqlHeader);
     for (Sensor sensor : devices.get(0).getSensors()) {
@@ -429,7 +429,7 @@ public class InfluxDB implements IDatabase {
    * @param devices schema list of query devices
    * @return from and where clause
    */
-  private static String generateConstrainForDevices(List<DeviceSchema> devices) {
+  public static String generateConstrainForDevices(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     Set<String> groups = new HashSet<>();
     for (DeviceSchema d : devices) {
@@ -514,7 +514,7 @@ public class InfluxDB implements IDatabase {
     return new Status(true, point);
   }
 
-  private static long getToNanoConst(String timePrecision) {
+  public static long getToNanoConst(String timePrecision) {
     if (timePrecision.equals("ms")) {
       return 1000000L;
     } else if (timePrecision.equals("us")) {
