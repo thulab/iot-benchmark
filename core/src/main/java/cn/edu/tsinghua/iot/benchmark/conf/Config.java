@@ -504,7 +504,7 @@ public class Config {
   void initSensorCodes() {
     int typeNumber = 6;
     double[] probabilities = generateProbabilities(typeNumber);
-    if (probabilities.length==0) {
+    if (probabilities.length == 0) {
       return;
     }
     for (int sensorIndex = 0; sensorIndex < SENSOR_NUMBER; sensorIndex++) {
@@ -527,7 +527,7 @@ public class Config {
     // proportion array
     double[] proportions = new double[typeNumber];
     LOGGER.info(
-        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}" ,INSERT_DATATYPE_PROPORTION);
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}", INSERT_DATATYPE_PROPORTION);
 
     String[] split = INSERT_DATATYPE_PROPORTION.split(":");
     if (split.length != typeNumber) {
@@ -536,13 +536,13 @@ public class Config {
     }
     double sum = 0;
     for (int i = 0; i < typeNumber; i++) {
-      if(i!=0){
+      if (i != 0) {
         proportions[i] += proportions[i - 1];
       }
       proportions[i] += Double.parseDouble(split[i]);
       sum += Double.parseDouble(split[i]);
     }
-    if(sum==0){
+    if (sum == 0) {
       return probabilities;
     }
     for (int i = 1; i <= typeNumber; i++) {
