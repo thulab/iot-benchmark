@@ -522,9 +522,9 @@ public class Config {
 
   /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1) */
   private double[] generateProbabilities(int typeNumber) {
-    //  for Types
+    // Probabilities for Types
     double[] probabilities = new double[typeNumber + 1];
-    // proportion array
+    // Origin proportion array
     double[] proportions = new double[typeNumber];
     LOGGER.info(
         "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}", INSERT_DATATYPE_PROPORTION);
