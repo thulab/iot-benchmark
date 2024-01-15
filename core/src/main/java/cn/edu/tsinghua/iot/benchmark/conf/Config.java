@@ -504,7 +504,7 @@ public class Config {
   void initSensorCodes() {
     int typeNumber = 6;
     double[] probabilities = generateProbabilities(typeNumber);
-    if (probabilities == null) {
+    if (probabilities.length==0) {
       return;
     }
     for (int sensorIndex = 0; sensorIndex < SENSOR_NUMBER; sensorIndex++) {
@@ -524,32 +524,29 @@ public class Config {
   private double[] generateProbabilities(int typeNumber) {
     //  for Types
     double[] probabilities = new double[typeNumber + 1];
-    // Origin proportion array
+    // proportion array
     double[] proportions = new double[typeNumber];
-    // unified proportion array
-    List<Double> proportion = new ArrayList<>();
     LOGGER.info(
         "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}" ,INSERT_DATATYPE_PROPORTION);
 
     String[] split = INSERT_DATATYPE_PROPORTION.split(":");
     if (split.length != typeNumber) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-      return null;
+      return new double[0];
     }
     double sum = 0;
     for (int i = 0; i < typeNumber; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
+      if(i!=0){
+        proportions[i] += proportions[i - 1];
+      }
+      proportions[i] += Double.parseDouble(split[i]);
+      sum += Double.parseDouble(split[i]);
     }
     if(sum==0){
       return probabilities;
     }
-    for (int i = 0; i < typeNumber; i++) {
-        proportion.add(proportions[i] / sum);
-    }
-    probabilities[0] = 0.0;
     for (int i = 1; i <= typeNumber; i++) {
-      probabilities[i] = probabilities[i - 1] + proportion.get(i - 1);
+      probabilities[i] = proportions[i - 1] / sum;
     }
     return probabilities;
   }
