@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence;
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,15 @@ public class TestWithDefaultPathMode extends BaseMode {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     recorder.saveTestConfig();
-    return super.preCheck();
+    List<DBConfig> dbConfigs = new ArrayList<>();
+    dbConfigs.add(config.getDbConfig());
+    if (config.isIS_DOUBLE_WRITE()) {
+      dbConfigs.add(config.getANOTHER_DBConfig());
+    }
+    if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs, measurement))) {
+      return false;
+    }
+    return !config.isCREATE_SCHEMA() || (registerSchema(measurement));
   }
 
   @Override

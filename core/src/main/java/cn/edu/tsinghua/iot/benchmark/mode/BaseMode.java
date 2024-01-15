@@ -62,17 +62,7 @@ public abstract class BaseMode {
   protected Measurement measurement = new Measurement();
   protected long start = 0;
 
-  protected boolean preCheck() {
-    List<DBConfig> dbConfigs = new ArrayList<>();
-    dbConfigs.add(config.getDbConfig());
-    if (config.isIS_DOUBLE_WRITE()) {
-      dbConfigs.add(config.getANOTHER_DBConfig());
-    }
-    if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs, measurement))) {
-      return false;
-    }
-    return !config.isCREATE_SCHEMA() || (registerSchema(measurement));
-  }
+  protected abstract boolean preCheck();
 
   /** Start benchmark */
   public void run() {

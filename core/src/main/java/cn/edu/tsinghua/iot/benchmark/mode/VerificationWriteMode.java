@@ -20,17 +20,29 @@
 package cn.edu.tsinghua.iot.benchmark.mode;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
+import cn.edu.tsinghua.iot.benchmark.conf.Config;
+import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class VerificationWriteMode extends BaseMode {
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   @Override
   protected boolean preCheck() {
-    return super.preCheck();
+    List<DBConfig> dbConfigs = new ArrayList<>();
+    dbConfigs.add(config.getDbConfig());
+    if (config.isIS_DOUBLE_WRITE()) {
+      dbConfigs.add(config.getANOTHER_DBConfig());
+    }
+    if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs, measurement))) {
+      return false;
+    }
+    return !config.isCREATE_SCHEMA() || (registerSchema(measurement));
   }
 
   @Override
