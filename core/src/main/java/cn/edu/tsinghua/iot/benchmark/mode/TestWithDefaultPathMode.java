@@ -47,7 +47,10 @@ public class TestWithDefaultPathMode extends BaseMode {
     if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs, measurement))) {
       return false;
     }
-    return !config.isCREATE_SCHEMA() || (registerSchema(measurement));
+    if (config.isCREATE_SCHEMA() && (!registerSchema(measurement))) {
+      return false;
+    }
+    return true;
   }
 
   @Override
