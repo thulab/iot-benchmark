@@ -327,7 +327,7 @@ public class InfluxDB implements IDatabase {
     return new Status(true, cnt);
   }
 
-  public static String getPreciseQuerySql(PreciseQuery preciseQuery) {
+  public String getPreciseQuerySql(PreciseQuery preciseQuery) {
     String strTime = "" + preciseQuery.getTimestamp() * TIMESTAMP_TO_NANO;
     return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " AND time = " + strTime;
   }
@@ -368,7 +368,7 @@ public class InfluxDB implements IDatabase {
    * @param sqlHeader sql header
    * @param timeGranularity time granularity of group by
    */
-  public static String addGroupByClause(String sqlHeader, long timeGranularity) {
+  public String addGroupByClause(String sqlHeader, long timeGranularity) {
     return sqlHeader + " GROUP BY time(" + timeGranularity + "ms)";
   }
 
@@ -379,7 +379,7 @@ public class InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  public static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  public String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     if (config.isALIGN_BY_DEVICE()) {
@@ -402,7 +402,7 @@ public class InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT count(s_0), count(s_3) FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  public static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
+  public String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     if (config.isALIGN_BY_DEVICE()) {

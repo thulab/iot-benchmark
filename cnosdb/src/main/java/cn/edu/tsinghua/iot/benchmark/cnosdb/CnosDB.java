@@ -148,10 +148,7 @@ public class CnosDB extends InfluxDB implements IDatabase {
     return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
-  public String addDescClause(String sql) {
-    return sql + " ORDER BY time DESC";
-  }
-
+  @Override
   public Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
@@ -189,7 +186,8 @@ public class CnosDB extends InfluxDB implements IDatabase {
    * @param sqlHeader sql header
    * @param timeGranularity time granularity of group by
    */
-  public static String addGroupByClause(String sqlHeader, long timeGranularity) {
+  @Override
+  public String addGroupByClause(String sqlHeader, long timeGranularity) {
     return sqlHeader + " GROUP BY date_bin(INTERVAL '" + timeGranularity + "' MILLISECOND, time)";
   }
 
@@ -200,7 +198,8 @@ public class CnosDB extends InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  public static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  @Override
+  public String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT CAST(time AS BIGINT) AS time, ");
     if (config.isALIGN_BY_DEVICE()) {
@@ -224,7 +223,8 @@ public class CnosDB extends InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT count(s_0), count(s_3) FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  public static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
+  @Override
+  public String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     if (config.isALIGN_BY_DEVICE()) {
