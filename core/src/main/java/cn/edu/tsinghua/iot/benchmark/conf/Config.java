@@ -502,15 +502,15 @@ public class Config {
 
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
-    int TYPE_NUMBER = 6;
-    double[] probabilities = generateProbabilities(TYPE_NUMBER);
-    if (probabilities == null) {
+    int typeNumber = 6;
+    double[] probabilities = generateProbabilities(typeNumber);
+    if (probabilities.length == 0) {
       return;
     }
     for (int sensorIndex = 0; sensorIndex < SENSOR_NUMBER; sensorIndex++) {
       double sensorPosition = (sensorIndex + 1) * 1.0 / SENSOR_NUMBER;
       int i;
-      for (i = 1; i <= TYPE_NUMBER; i++) {
+      for (i = 1; i <= typeNumber; i++) {
         if (sensorPosition > probabilities[i - 1] && sensorPosition <= probabilities[i]) {
           break;
         }
@@ -521,37 +521,32 @@ public class Config {
   }
 
   /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1) */
-  private double[] generateProbabilities(int TYPE_NUMBER) {
+  private double[] generateProbabilities(int typeNumber) {
     // Probabilities for Types
-    double[] probabilities = new double[TYPE_NUMBER + 1];
+    double[] probabilities = new double[typeNumber + 1];
     // Origin proportion array
-    double[] proportions = new double[TYPE_NUMBER];
-    // unified proportion array
-    List<Double> proportion = new ArrayList<>();
+    double[] proportions = new double[typeNumber];
     LOGGER.info(
-        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT=" + INSERT_DATATYPE_PROPORTION);
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}", INSERT_DATATYPE_PROPORTION);
 
     String[] split = INSERT_DATATYPE_PROPORTION.split(":");
-    if (split.length != TYPE_NUMBER) {
+    if (split.length != typeNumber) {
       LOGGER.error("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-      return null;
+      return new double[0];
     }
     double sum = 0;
-    for (int i = 0; i < TYPE_NUMBER; i++) {
-      proportions[i] = Double.parseDouble(split[i]);
-      sum += proportions[i];
-    }
-    for (int i = 0; i < TYPE_NUMBER; i++) {
-      if (sum != 0) {
-        proportion.add(proportions[i] / sum);
-      } else {
-        proportion.add(0.0);
-        LOGGER.error("The sum of INSERT_DATATYPE_PROPORTION is zero!");
+    for (int i = 0; i < typeNumber; i++) {
+      if (i != 0) {
+        proportions[i] += proportions[i - 1];
       }
+      proportions[i] += Double.parseDouble(split[i]);
+      sum += Double.parseDouble(split[i]);
     }
-    probabilities[0] = 0.0;
-    for (int i = 1; i <= TYPE_NUMBER; i++) {
-      probabilities[i] = probabilities[i - 1] + proportion.get(i - 1);
+    if (sum == 0) {
+      return probabilities;
+    }
+    for (int i = 1; i <= typeNumber; i++) {
+      probabilities[i] = proportions[i - 1] / sum;
     }
     return probabilities;
   }
