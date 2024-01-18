@@ -39,21 +39,16 @@ public class TestWithDefaultPathMode extends BaseMode {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     recorder.saveTestConfig();
-
     List<DBConfig> dbConfigs = new ArrayList<>();
     dbConfigs.add(config.getDbConfig());
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
-    if (config.isIS_DELETE_DATA()) {
-      if (!cleanUpData(dbConfigs, measurement)) {
-        return false;
-      }
+    if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs, measurement))) {
+      return false;
     }
-    if (config.isCREATE_SCHEMA()) {
-      if (!registerSchema(measurement)) {
-        return false;
-      }
+    if (config.isCREATE_SCHEMA() && (!registerSchema(measurement))) {
+      return false;
     }
     return true;
   }

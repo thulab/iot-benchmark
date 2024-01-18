@@ -179,7 +179,7 @@ public abstract class BaseMode {
       // must call calculateMetrics() before using the Metrics
       try {
         measurement.calculateMetrics(operations);
-        if (operations.size() != 0) {
+        if (!operations.isEmpty()) {
           measurement.showMeasurements(operations);
           measurement.showMetrics(operations);
         }
