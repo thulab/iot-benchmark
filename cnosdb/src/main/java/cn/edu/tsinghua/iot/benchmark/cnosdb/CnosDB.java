@@ -32,14 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -107,13 +100,6 @@ public class CnosDB extends InfluxDB implements IDatabase {
   }
 
   @Override
-  public void close() {
-    if (influxDbInstance != null) {
-      influxDbInstance.close();
-    }
-  }
-
-  @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     long start;
     long end;
@@ -154,138 +140,6 @@ public class CnosDB extends InfluxDB implements IDatabase {
     }
   }
 
-  private InfluxDataModel createDataModel(
-      DeviceSchema deviceSchema, Long time, List<Object> valueList) throws TsdbException {
-    InfluxDataModel model = new InfluxDataModel();
-    model.setMeasurement(deviceSchema.getGroup());
-    HashMap<String, String> tags = new HashMap<>();
-    tags.put("device", deviceSchema.getDevice());
-    model.setTagSet(tags);
-    model.setTimestamp(time);
-    model.setTimestampPrecision(config.getTIMESTAMP_PRECISION());
-    HashMap<String, Object> fields = new HashMap<>();
-    List<Sensor> sensors = deviceSchema.getSensors();
-    for (int i = 0; i < sensors.size(); i++) {
-      fields.put(sensors.get(i).getName(), valueList.get(i));
-    }
-    model.setFields(fields);
-    return model;
-  }
-
-  /** eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time = 1535558405000000000. */
-  @Override
-  public Status preciseQuery(PreciseQuery preciseQuery) {
-    String sql = getPreciseQuerySql(preciseQuery);
-    return addTailClausesAndExecuteQueryAndGetStatus(sql);
-  }
-
-  /**
-   * eg. SELECT s_0 FROM group_2 WHERE ( device = 'd_8' ) AND time >= 1535558405000000000 AND time
-   * <= 153555800000.
-   */
-  @Override
-  public Status rangeQuery(RangeQuery rangeQuery) {
-    String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
-    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
-    return addTailClausesAndExecuteQueryAndGetStatus(sql);
-  }
-
-  /**
-   * eg. SELECT s_3 FROM group_0 WHERE ( device = 'd_3' ) AND time >= 1535558420000000000 AND time
-   * <= 153555800000 AND s_3 > -5.0.
-   */
-  @Override
-  public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            valueRangeQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            valueRangeQuery.getValueThreshold());
-    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithValueFilter);
-  }
-
-  /**
-   * eg. SELECT count(s_3) FROM group_4 WHERE ( device = 'd_16' ) AND time >= 1535558410000000000
-   * AND time <=8660000000000.
-   */
-  @Override
-  public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
-    String sql = addWhereTimeClause(aggQuerySqlHead, aggRangeQuery);
-    return addTailClausesAndExecuteQueryAndGetStatus(sql);
-  }
-
-  /** eg. SELECT count(s_3) FROM group_3 WHERE ( device = 'd_12' ) AND s_3 > -5.0. */
-  @Override
-  public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
-    String sql =
-        addWhereValueClause(
-            aggValueQuery.getDeviceSchema(), aggQuerySqlHead, aggValueQuery.getValueThreshold());
-    return addTailClausesAndExecuteQueryAndGetStatus(sql);
-  }
-
-  /**
-   * eg. SELECT count(s_1) FROM group_2 WHERE ( device = 'd_8' ) AND time >= 1535558400000000000 AND
-   * time <= 650000000000 AND s_1 > -5.0.
-   */
-  @Override
-  public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    String rangeQueryHead =
-        getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, aggRangeValueQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            aggRangeValueQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            aggRangeValueQuery.getValueThreshold());
-    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithValueFilter);
-  }
-
-  /**
-   * eg. SELECT count(s_3) FROM group_4 WHERE ( device = 'd_16' ) AND time >= 1535558430000000000
-   * AND time <=8680000000000 GROUP BY time(20000ms).
-   */
-  @Override
-  public Status groupByQuery(GroupByQuery groupByQuery) {
-    String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sqlWithTimeFilter = addWhereTimeClause(sqlHeader, groupByQuery);
-    String sqlWithGroupBy = addGroupByClause(sqlWithTimeFilter, groupByQuery.getGranularity());
-    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithGroupBy);
-  }
-
-  /** eg. SELECT last(s_2) FROM group_2 WHERE ( device = 'd_8' ). */
-  @Override
-  public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String sql = getAggQuerySqlHead(latestPointQuery.getDeviceSchema(), "last");
-    return addTailClausesAndExecuteQueryAndGetStatus(sql);
-  }
-
-  @Override
-  public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    String rangeQueryHead = getSimpleQuerySqlHead(rangeQuery.getDeviceSchema());
-    String sql = addWhereTimeClause(rangeQueryHead, rangeQuery);
-    sql = addDescClause(sql);
-    return addTailClausesAndExecuteQueryAndGetStatus(sql);
-  }
-
-  @Override
-  public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    String rangeQueryHead = getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema());
-    String sqlWithTimeFilter = addWhereTimeClause(rangeQueryHead, valueRangeQuery);
-    String sqlWithValueFilter =
-        addWhereValueClause(
-            valueRangeQuery.getDeviceSchema(),
-            sqlWithTimeFilter,
-            valueRangeQuery.getValueThreshold());
-    sqlWithValueFilter = addDescClause(sqlWithValueFilter);
-    return addTailClausesAndExecuteQueryAndGetStatus(sqlWithValueFilter);
-  }
-
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
     String sql = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
@@ -294,11 +148,11 @@ public class CnosDB extends InfluxDB implements IDatabase {
     return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
-  private String addDescClause(String sql) {
+  public String addDescClause(String sql) {
     return sql + " ORDER BY time DESC";
   }
 
-  private Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
+  public Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
     }
@@ -335,7 +189,7 @@ public class CnosDB extends InfluxDB implements IDatabase {
    * @param sqlHeader sql header
    * @param timeGranularity time granularity of group by
    */
-  private static String addGroupByClause(String sqlHeader, long timeGranularity) {
+  public static String addGroupByClause(String sqlHeader, long timeGranularity) {
     return sqlHeader + " GROUP BY date_bin(INTERVAL '" + timeGranularity + "' MILLISECOND, time)";
   }
 
@@ -346,7 +200,7 @@ public class CnosDB extends InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  public static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT CAST(time AS BIGINT) AS time, ");
     if (config.isALIGN_BY_DEVICE()) {
@@ -370,7 +224,7 @@ public class CnosDB extends InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT count(s_0), count(s_3) FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  private static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
+  public static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     if (config.isALIGN_BY_DEVICE()) {
