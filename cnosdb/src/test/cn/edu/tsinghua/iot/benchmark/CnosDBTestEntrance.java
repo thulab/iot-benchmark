@@ -17,35 +17,12 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
+package cn.edu.tsinghua.iot.benchmark;
 
-public enum DBType {
-  IoTDB("IoTDB"),
-  DoubleIoTDB("DoubleIoTDB"),
-  InfluxDB("InfluxDB"),
-  OpenTSDB("OpenTSDB"),
-  CTSDB("CTSDB"),
-  CnosDB("CnosDB"),
-  KairosDB("KairosDB"),
-  TimescaleDB("TimescaleDB"),
-  FakeDB("FakeDB"),
-  TDengine("TDengine"),
-  QuestDB("QuestDB"),
-  MSSQLSERVER("MsSqlServer"),
-  VictoriaMetrics("VictoriaMetrics"),
-  PIArchive("PIArchive"),
-  SQLite("SQLite"),
-  IginX("IginX"),
-  SelfCheck("SelfCheck");
+import java.sql.SQLException;
 
-  private String DBType;
-
-  DBType(String DBType) {
-    this.DBType = DBType;
-  }
-
-  @Override
-  public String toString() {
-    return DBType;
-  }
+public class CnosDBTestEntrance {
+    public static void main(String[] args) throws SQLException {
+        App.main(args);
+    }
 }

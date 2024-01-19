@@ -77,7 +77,7 @@ public class Constants {
 
   public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb.InfluxDB";
   public static final String INFLUXDB2_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb2.InfluxDB";
-
+  public static final String CNOSDB_CLASS = "cn.edu.tsinghua.iot.benchmark.cnosdb.CnosDB";
   public static final String FAKEDB_CLASS = "cn.edu.tsinghua.iot.benchmark.tsdb.fakedb.FakeDB";
   public static final String KAIROSDB_CLASS = "cn.edu.tsinghua.iot.benchmark.kairosdb.KairosDB";
   public static final String OPENTSDB_CLASS = "cn.edu.tsinghua.iot.benchmark.opentsdb.OpenTSDB";

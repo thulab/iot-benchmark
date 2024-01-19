@@ -69,6 +69,7 @@ public enum DBSwitch {
   DB_PIARCHIVE(DBType.PIArchive, null, null),
   DB_SQLITE(DBType.SQLite, null, null),
   DB_IginX(DBType.IginX, null, null),
+  DB_CNOS(DBType.CnosDB, null, null),
   DB_SelfCheck(DBType.SelfCheck, null, null);
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DBSwitch.class);

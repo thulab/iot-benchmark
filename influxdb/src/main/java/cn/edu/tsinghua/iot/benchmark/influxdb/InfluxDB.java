@@ -259,11 +259,11 @@ public class InfluxDB implements IDatabase {
     return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
-  private String addDescClause(String sql) {
+  public String addDescClause(String sql) {
     return sql + " ORDER BY time DESC";
   }
 
-  private InfluxDataModel createDataModel(
+  public InfluxDataModel createDataModel(
       DeviceSchema deviceSchema, Long time, List<Object> valueList) throws TsdbException {
     InfluxDataModel model = new InfluxDataModel();
     model.setMeasurement(deviceSchema.getGroup());
@@ -298,7 +298,7 @@ public class InfluxDB implements IDatabase {
     return model;
   }
 
-  private Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
+  public Status addTailClausesAndExecuteQueryAndGetStatus(String sql) {
     if (config.getRESULT_ROW_LIMIT() >= 0) {
       sql += " limit " + config.getRESULT_ROW_LIMIT();
     }
@@ -327,7 +327,7 @@ public class InfluxDB implements IDatabase {
     return new Status(true, cnt);
   }
 
-  private static String getPreciseQuerySql(PreciseQuery preciseQuery) {
+  public String getPreciseQuerySql(PreciseQuery preciseQuery) {
     String strTime = "" + preciseQuery.getTimestamp() * TIMESTAMP_TO_NANO;
     return getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " AND time = " + strTime;
   }
@@ -339,7 +339,7 @@ public class InfluxDB implements IDatabase {
    * @param rangeQuery range query
    * @return sql with time filter
    */
-  private static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
+  public static String addWhereTimeClause(String sql, RangeQuery rangeQuery) {
     String startTime = "" + rangeQuery.getStartTimestamp() * TIMESTAMP_TO_NANO;
     String endTime = "" + rangeQuery.getEndTimestamp() * TIMESTAMP_TO_NANO;
     return sql + " AND time >= " + startTime + " AND time <= " + endTime;
@@ -353,7 +353,7 @@ public class InfluxDB implements IDatabase {
    * @param valueThreshold lower bound of query value filter
    * @return sql with value filter
    */
-  private static String addWhereValueClause(
+  public static String addWhereValueClause(
       List<DeviceSchema> devices, String sqlHeader, double valueThreshold) {
     StringBuilder builder = new StringBuilder(sqlHeader);
     for (Sensor sensor : devices.get(0).getSensors()) {
@@ -368,7 +368,7 @@ public class InfluxDB implements IDatabase {
    * @param sqlHeader sql header
    * @param timeGranularity time granularity of group by
    */
-  private static String addGroupByClause(String sqlHeader, long timeGranularity) {
+  public String addGroupByClause(String sqlHeader, long timeGranularity) {
     return sqlHeader + " GROUP BY time(" + timeGranularity + "ms)";
   }
 
@@ -379,7 +379,7 @@ public class InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  public String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     if (config.isALIGN_BY_DEVICE()) {
@@ -402,7 +402,7 @@ public class InfluxDB implements IDatabase {
    * @return Simple Query header. e.g. SELECT count(s_0), count(s_3) FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  private static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
+  public String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     if (config.isALIGN_BY_DEVICE()) {
@@ -429,7 +429,7 @@ public class InfluxDB implements IDatabase {
    * @param devices schema list of query devices
    * @return from and where clause
    */
-  private static String generateConstrainForDevices(List<DeviceSchema> devices) {
+  public static String generateConstrainForDevices(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     Set<String> groups = new HashSet<>();
     for (DeviceSchema d : devices) {
@@ -514,7 +514,7 @@ public class InfluxDB implements IDatabase {
     return new Status(true, point);
   }
 
-  private static long getToNanoConst(String timePrecision) {
+  public static long getToNanoConst(String timePrecision) {
     if (timePrecision.equals("ms")) {
       return 1000000L;
     } else if (timePrecision.equals("us")) {
