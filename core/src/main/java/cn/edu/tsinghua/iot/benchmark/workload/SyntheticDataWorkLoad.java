@@ -69,7 +69,8 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
         records.add(
             new Record(
-                getCurrentTimestamp(rowOffset), generateOneRow(batch.getColIndex(), rowOffset)));
+                getCurrentTimestamp(rowOffset),
+                generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), rowOffset)));
       }
       // move
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {

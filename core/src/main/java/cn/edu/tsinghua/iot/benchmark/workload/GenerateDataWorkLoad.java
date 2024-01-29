@@ -65,17 +65,16 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Add one row into batch, row contains data from all sensors */
-  protected List<Object> generateOneRow(int colIndex, long stepOffset) throws WorkloadException {
+  protected List<Object> generateOneRow(int deviceIndex, int colIndex, long stepOffset)
+      throws WorkloadException {
     List<Object> values = new ArrayList<>();
+    int index = (int) (Math.abs(stepOffset * (deviceIndex + 1)) % config.getWORKLOAD_BUFFER_SIZE());
     if (colIndex == -1) {
       for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
-        values.add(
-            workloadValues[i][(int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+        values.add(workloadValues[i][index]);
       }
     } else {
-      values.add(
-          workloadValues[colIndex][
-              (int) (Math.abs(stepOffset) % config.getWORKLOAD_BUFFER_SIZE())]);
+      values.add(workloadValues[colIndex][index]);
     }
     return values;
   }
