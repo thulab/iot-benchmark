@@ -471,6 +471,10 @@ public class ConfigDescriptor {
         config.setLOG_PRINT_INTERVAL(
             Integer.parseInt(
                 properties.getProperty("LOG_PRINT_INTERVAL", config.getLOG_PRINT_INTERVAL() + "")));
+        config.setRESULT_PRINT_INTERVAL(
+            Integer.parseInt(
+                properties.getProperty(
+                    "RESULT_PRINT_INTERVAL", config.getRESULT_PRINT_INTERVAL() + "")));
 
         config.setTEST_DATA_STORE_IP(
             properties.getProperty("TEST_DATA_STORE_IP", config.getTEST_DATA_STORE_IP()));

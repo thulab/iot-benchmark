@@ -161,7 +161,7 @@ public abstract class DataClient implements Runnable {
   }
 
   public Measurement getMeasurement() {
-    return measurement;
+    return dbWrapper.getMeasurement();
   }
 
   /** Do test, Notice please use `isStop` parameters to control */
@@ -174,7 +174,7 @@ public abstract class DataClient implements Runnable {
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
-    dbWrapper = new DBWrapper(dbConfigs, measurement);
+    dbWrapper = new DBWrapper(dbConfigs);
   }
 
   /** Stop client */
