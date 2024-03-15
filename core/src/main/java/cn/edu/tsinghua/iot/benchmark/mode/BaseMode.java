@@ -41,6 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 public abstract class BaseMode {
@@ -131,7 +132,8 @@ public abstract class BaseMode {
                 operations);
           }
         };
-    middleMeasureTimer.schedule(measure, 0, config.getRESULT_PRINT_INTERVAL() * 1000L);
+    middleMeasureTimer.schedule(
+        measure, TimeUnit.SECONDS.toMillis(1), config.getRESULT_PRINT_INTERVAL() * 1000L);
   }
 
   protected abstract void postCheck();
@@ -196,7 +198,8 @@ public abstract class BaseMode {
         allClientsMeasurement,
         startTime,
         operations,
-        "All dataClients finished. The final test result is: ");
+        "All dataClients finished. The final test result is: ",
+        true);
   }
 
   protected static void middleMeasure(
@@ -209,7 +212,8 @@ public abstract class BaseMode {
         allClientsMeasurement,
         startTime,
         operations,
-        "The test is in progress. The current test result is: ");
+        "The test is in progress. The current test result is: ",
+        false);
   }
 
   private static void measure(
@@ -217,14 +221,17 @@ public abstract class BaseMode {
       Stream<Measurement> allClientsMeasurement,
       long startTime,
       List<Operation> operations,
-      String prefix) {
+      String prefix,
+      boolean needPrintConf) {
     measurement.setElapseTime((System.nanoTime() - startTime) / NANO_TO_SECOND);
     // sum up all the measurements and calculate statistics
     measurement.resetMeasurementMaps();
     allClientsMeasurement.forEach(measurement::mergeMeasurement);
     // output results
     String showMeasurement = prefix;
-    showMeasurement += measurement.getConfigsString();
+    if (needPrintConf) {
+      showMeasurement += measurement.getConfigsString();
+    }
     if (config.isUSE_MEASUREMENT()) {
       // must call calculateMetrics() before using the Metrics
       try {
