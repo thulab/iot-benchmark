@@ -63,8 +63,6 @@ public abstract class DataClient implements Runnable {
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
   protected final List<DeviceSchema> clientDeviceSchemas;
-  /** Measurement */
-  protected Measurement measurement;
   /** Total number of loop */
   protected long totalLoop = 0;
   /** Loop Index, using for loop and log */
@@ -86,7 +84,6 @@ public abstract class DataClient implements Runnable {
     this.clientThreadId = id;
     this.clientDeviceSchemas =
         MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
-    this.measurement = new Measurement();
     this.service =
         Executors.newSingleThreadScheduledExecutor(
             new NamedThreadFactory("ShowWorkProgress-" + clientThreadId));
