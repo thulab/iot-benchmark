@@ -64,7 +64,7 @@ public abstract class BaseMode {
   protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement baseModeMeasurement = new Measurement();
   protected long startTime = 0;
-  private Timer middleMeasureTimer = new Timer();
+  private Timer middleMeasureTimer = new Timer("ShowResultPeriodically");
 
   protected abstract boolean preCheck();
 

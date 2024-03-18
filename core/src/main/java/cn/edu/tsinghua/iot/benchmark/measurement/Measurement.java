@@ -160,7 +160,6 @@ public class Measurement {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
     StringBuilder stringBuilder = new StringBuilder("\n");
-    stringBuilder.append(Thread.currentThread().getName()).append(" measurements:").append('\n');
     stringBuilder
         .append("Create schema cost ")
         .append(String.format("%.2f", createSchemaFinishTime))
