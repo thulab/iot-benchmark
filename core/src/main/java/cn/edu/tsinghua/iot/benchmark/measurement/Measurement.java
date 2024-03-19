@@ -30,7 +30,6 @@ import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence
 import com.clearspring.analytics.stream.quantile.TDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weakref.jmx.internal.guava.util.concurrent.AtomicDouble;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -48,7 +47,7 @@ public class Measurement {
       new EnumMap<>(Operation.class);
   private static final Map<Operation, Double> operationLatencySumAllClient =
       new EnumMap<>(Operation.class);
-  private final AtomicDouble createSchemaTime = new AtomicDouble(0.0);
+  private double createSchemaFinishTime = 0;
   private double elapseTime;
   private final Map<Operation, Double> operationLatencySumThisClient;
   private final Map<Operation, Long> okOperationNumMap;
@@ -74,12 +73,22 @@ public class Measurement {
     okPointNumMap = new EnumMap<>(Operation.class);
     failPointNumMap = new EnumMap<>(Operation.class);
     operationLatencySumThisClient = new EnumMap<>(Operation.class);
+    resetMeasurementMaps();
+  }
+
+  public void resetMeasurementMaps() {
     for (Operation operation : Operation.values()) {
       okOperationNumMap.put(operation, 0L);
       failOperationNumMap.put(operation, 0L);
       okPointNumMap.put(operation, 0L);
       failPointNumMap.put(operation, 0L);
       operationLatencySumThisClient.put(operation, 0D);
+    }
+  }
+
+  public void mergeCreateSchemaFinishTime(Measurement m) {
+    if (this.createSchemaFinishTime < m.getCreateSchemaFinishTime()) {
+      this.createSchemaFinishTime = m.getCreateSchemaFinishTime();
     }
   }
 
@@ -147,45 +156,53 @@ public class Measurement {
   }
 
   /** Show measurements and record according to TEST_DATA_PERSISTENCE */
-  public void showMeasurements(List<Operation> operations) {
+  public String getMeasurementsString(List<Operation> operations) {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
-    System.out.println(Thread.currentThread().getName() + " measurements:");
-    System.out.println(
-        "Create schema cost " + String.format("%.2f", createSchemaTime.get()) + " second");
-    System.out.println(
-        "Test elapsed time (not include schema creation): "
-            + String.format("%.2f", elapseTime)
-            + " second");
+    StringBuilder stringBuilder = new StringBuilder("\n");
+    stringBuilder
+        .append("Create schema cost ")
+        .append(String.format("%.2f", createSchemaFinishTime))
+        .append(" second")
+        .append('\n');
+    stringBuilder
+        .append("Test elapsed time (not include schema creation): ")
+        .append(String.format("%.2f", elapseTime))
+        .append(" second")
+        .append('\n');
     recorder.saveResultAsync(
-        "total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaTime.get());
+        "total", TotalResult.CREATE_SCHEMA_TIME.getName(), "" + createSchemaFinishTime);
     recorder.saveResultAsync("total", TotalResult.ELAPSED_TIME.getName(), "" + elapseTime);
 
-    System.out.println(
-        "----------------------------------------------------------Result Matrix----------------------------------------------------------");
+    stringBuilder
+        .append(
+            "----------------------------------------------------------Result Matrix----------------------------------------------------------")
+        .append('\n');
     StringBuffer format = new StringBuffer();
     for (int i = 0; i < 6; i++) {
       format.append(RESULT_ITEM);
     }
     format.append("\n");
-    System.out.printf(
-        format.toString(),
-        "Operation",
-        "okOperation",
-        "okPoint",
-        "failOperation",
-        "failPoint",
-        "throughput(point/s)");
+    stringBuilder.append(
+        String.format(
+            format.toString(),
+            "Operation",
+            "okOperation",
+            "okPoint",
+            "failOperation",
+            "failPoint",
+            "throughput(point/s)"));
     for (Operation operation : operations) {
       String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
-      System.out.printf(
-          format.toString(),
-          operation.getName(),
-          okOperationNumMap.get(operation),
-          okPointNumMap.get(operation),
-          failOperationNumMap.get(operation),
-          failPointNumMap.get(operation),
-          throughput);
+      stringBuilder.append(
+          String.format(
+              format.toString(),
+              operation.getName(),
+              okOperationNumMap.get(operation),
+              okPointNumMap.get(operation),
+              failOperationNumMap.get(operation),
+              failPointNumMap.get(operation),
+              throughput));
 
       recorder.saveResultAsync(
           operation.toString(),
@@ -206,42 +223,56 @@ public class Measurement {
       recorder.saveResultAsync(
           operation.toString(), TotalOperationResult.THROUGHPUT.getName(), throughput);
     }
-    System.out.println(
-        "---------------------------------------------------------------------------------------------------------------------------------");
-
+    stringBuilder
+        .append(
+            "---------------------------------------------------------------------------------------------------------------------------------")
+        .append('\n');
     recorder.closeAsync();
+    return stringBuilder.toString();
   }
 
   /** Show Config of test */
-  public void showConfigs() {
-    System.out.println("----------------------Main Configurations----------------------");
-    System.out.println(config.getShowConfigProperties().toString());
-    System.out.println("---------------------------------------------------------------");
+  public String getConfigsString() {
+    StringBuilder stringBuilder = new StringBuilder("\n");
+    stringBuilder
+        .append("----------------------Main Configurations----------------------")
+        .append('\n');
+    stringBuilder.append(config.getShowConfigProperties().toString()).append('\n');
+    stringBuilder
+        .append("---------------------------------------------------------------")
+        .append('\n');
+    return stringBuilder.toString();
   }
 
   /** Show metrics of test */
-  public void showMetrics(List<Operation> operations) {
+  public String getMetricsString(List<Operation> operations) {
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     TestDataPersistence recorder = persistenceFactory.getPersistence();
-    System.out.println(
-        "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------");
-    System.out.printf(RESULT_ITEM, "Operation");
+    StringBuilder stringBuilder = new StringBuilder("\n");
+    stringBuilder
+        .append(
+            "--------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------")
+        .append('\n');
+    stringBuilder.append(String.format(RESULT_ITEM, "Operation"));
     for (Metric metric : Metric.values()) {
-      System.out.printf(LATENCY_ITEM, metric.name);
+      stringBuilder.append(String.format(LATENCY_ITEM, metric.name));
     }
-    System.out.println();
+    stringBuilder.append('\n');
     for (Operation operation : operations) {
-      System.out.printf(RESULT_ITEM, operation.getName());
+      stringBuilder.append(String.format(RESULT_ITEM, operation.getName()));
       for (Metric metric : Metric.values()) {
         String metricResult = String.format("%.2f", metric.typeValueMap.get(operation));
-        System.out.printf(LATENCY_ITEM, metricResult);
+        stringBuilder.append(String.format(LATENCY_ITEM, metricResult));
         recorder.saveResultAsync(operation.toString(), metric.name, metricResult);
       }
-      System.out.println();
+      stringBuilder.append('\n');
     }
-    System.out.println(
-        "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    stringBuilder
+        .append(
+            "-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+        .append('\n');
     recorder.closeAsync();
+    return stringBuilder.toString();
   }
 
   /** output measurement to csv */
@@ -395,7 +426,7 @@ public class Measurement {
     try {
       BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
       bw.newLine();
-      bw.write(String.format("Schema cost(s),%.2f", createSchemaTime.get()));
+      bw.write(String.format("Schema cost(s),%.2f", createSchemaFinishTime));
       bw.newLine();
       bw.write(
           String.format("Test elapsed time (not include schema creation)(s),%.2f", elapseTime));
@@ -449,12 +480,12 @@ public class Measurement {
     failOperationNumMap.put(operation, failOperationNumMap.get(operation) + 1);
   }
 
-  public double getCreateSchemaTime() {
-    return createSchemaTime.get();
+  public double getCreateSchemaFinishTime() {
+    return createSchemaFinishTime;
   }
 
-  public void setCreateSchemaTime(double createSchemaTime) {
-    this.createSchemaTime.set(Math.max(this.createSchemaTime.get(), createSchemaTime));
+  public void setCreateSchemaFinishTime(double createSchemaFinishTime) {
+    this.createSchemaFinishTime = createSchemaFinishTime;
   }
 
   public double getElapseTime() {

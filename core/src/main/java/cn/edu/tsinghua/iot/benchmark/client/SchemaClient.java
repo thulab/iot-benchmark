@@ -48,8 +48,6 @@ public class SchemaClient implements Runnable {
   protected final List<DeviceSchema> deviceSchemas;
   /** Related Schema Size */
   protected final int deviceSchemasSize;
-  /** Measurement */
-  protected Measurement measurement;
 
   /** Control the end of client */
   private final CountDownLatch countDownLatch;
@@ -58,14 +56,12 @@ public class SchemaClient implements Runnable {
   /** result of register */
   private Boolean result = false;
 
-  public SchemaClient(
-      int id, Measurement measurement, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public SchemaClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.clientThreadId = id;
     this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
     this.deviceSchemasSize = deviceSchemas.size();
-    this.measurement = measurement;
     initDBWrappers();
   }
 
@@ -76,7 +72,7 @@ public class SchemaClient implements Runnable {
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
-    dbWrapper = new DBWrapper(dbConfigs, measurement);
+    dbWrapper = new DBWrapper(dbConfigs);
   }
 
   @Override
@@ -113,7 +109,7 @@ public class SchemaClient implements Runnable {
   }
 
   public Measurement getMeasurement() {
-    return measurement;
+    return dbWrapper.getMeasurement();
   }
 
   public Boolean getResult() {

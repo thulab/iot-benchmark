@@ -370,6 +370,8 @@ public class Config {
   /** Print test progress log interval in second */
   private int LOG_PRINT_INTERVAL = 5;
 
+  private int RESULT_PRINT_INTERVAL = 3600;
+
   // 输出：数据库配置，当前支持IoTDB和MySQL
   /** The Ip of database */
   private String TEST_DATA_STORE_IP = "127.0.0.1";
@@ -1318,6 +1320,14 @@ public class Config {
 
   public void setLOG_PRINT_INTERVAL(int LOG_PRINT_INTERVAL) {
     this.LOG_PRINT_INTERVAL = LOG_PRINT_INTERVAL;
+  }
+
+  public int getRESULT_PRINT_INTERVAL() {
+    return RESULT_PRINT_INTERVAL;
+  }
+
+  public void setRESULT_PRINT_INTERVAL(int RESULT_PRINT_INTERVAL) {
+    this.RESULT_PRINT_INTERVAL = RESULT_PRINT_INTERVAL;
   }
 
   public String getTEST_DATA_STORE_IP() {

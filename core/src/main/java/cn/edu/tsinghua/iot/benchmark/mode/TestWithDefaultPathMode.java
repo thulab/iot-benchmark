@@ -19,15 +19,16 @@
 
 package cn.edu.tsinghua.iot.benchmark.mode;
 
+import cn.edu.tsinghua.iot.benchmark.client.DataClient;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TestWithDefaultPathMode extends BaseMode {
@@ -44,10 +45,10 @@ public class TestWithDefaultPathMode extends BaseMode {
     if (config.isIS_DOUBLE_WRITE()) {
       dbConfigs.add(config.getANOTHER_DBConfig());
     }
-    if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs, measurement))) {
+    if (config.isIS_DELETE_DATA() && (!cleanUpData(dbConfigs))) {
       return false;
     }
-    if (config.isCREATE_SCHEMA() && (!registerSchema(measurement))) {
+    if (config.isCREATE_SCHEMA() && (!registerSchema())) {
       return false;
     }
     return true;
@@ -55,12 +56,16 @@ public class TestWithDefaultPathMode extends BaseMode {
 
   @Override
   protected void postCheck() {
-    List<Operation> operations = Operation.getNormalOperation();
+    List<Operation> operations;
     if (config.isIS_POINT_COMPARISON()) {
-      operations = new ArrayList<>();
-      operations.add(Operation.DEVICE_QUERY);
+      operations = Collections.singletonList(Operation.DEVICE_QUERY);
+    } else {
+      operations = Operation.getNormalOperation();
     }
-    List<Measurement> threadsMeasurements = new ArrayList<>();
-    finalMeasure(measurement, threadsMeasurements, start, dataClients, operations);
+    finalMeasure(
+        baseModeMeasurement,
+        dataClients.stream().map(DataClient::getMeasurement),
+        startTime,
+        operations);
   }
 }

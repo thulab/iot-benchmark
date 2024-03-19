@@ -60,11 +60,11 @@ public class DBWrapper implements IDatabase {
   private static final String ERROR_LOG = "Failed to do {} because unexpected exception: ";
 
   private List<IDatabase> databases = new ArrayList<>();
-  private Measurement measurement;
+  private final Measurement measurement = new Measurement();
   private TestDataPersistence recorder;
 
   /** Use DBFactory to get database */
-  public DBWrapper(List<DBConfig> dbConfigs, Measurement measurement) {
+  public DBWrapper(List<DBConfig> dbConfigs) {
     DBFactory dbFactory = new DBFactory();
     for (DBConfig dbConfig : dbConfigs) {
       try {
@@ -77,9 +77,12 @@ public class DBWrapper implements IDatabase {
         LOGGER.error("Failed to get database because", e);
       }
     }
-    this.measurement = measurement;
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     recorder = persistenceFactory.getPersistence();
+  }
+
+  public Measurement getMeasurement() {
+    return measurement;
   }
 
   @Override
@@ -543,9 +546,9 @@ public class DBWrapper implements IDatabase {
         }
         createSchemaTimeInSecond = Math.max(createSchemaTimeInSecond, registerTime);
       }
-      measurement.setCreateSchemaTime(createSchemaTimeInSecond);
+      measurement.setCreateSchemaFinishTime(createSchemaTimeInSecond);
     } catch (Exception e) {
-      measurement.setCreateSchemaTime(0.0);
+      measurement.setCreateSchemaFinishTime(0.0);
       throw new TsdbException(e);
     }
     return createSchemaTimeInSecond;

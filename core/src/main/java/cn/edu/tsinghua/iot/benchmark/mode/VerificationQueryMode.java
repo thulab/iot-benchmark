@@ -19,12 +19,10 @@
 
 package cn.edu.tsinghua.iot.benchmark.mode;
 
+import cn.edu.tsinghua.iot.benchmark.client.DataClient;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
-import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 public class VerificationQueryMode extends BaseMode {
 
@@ -35,12 +33,10 @@ public class VerificationQueryMode extends BaseMode {
 
   @Override
   protected void postCheck() {
-    List<Measurement> threadsMeasurements = new ArrayList<>();
     finalMeasure(
-        measurement,
-        threadsMeasurements,
-        start,
-        dataClients,
+        baseModeMeasurement,
+        dataClients.stream().map(DataClient::getMeasurement),
+        startTime,
         Collections.singletonList(Operation.VERIFICATION_QUERY));
   }
 }
