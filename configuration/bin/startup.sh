@@ -105,7 +105,7 @@ done
 
 # set benchmark_parms
 benchmark_parms="$benchmark_parms -Duser.timezone=GMT+8"
-benchmark_parms="$benchmark_parms -Dlogback.configurationFile=${BENCHMARK_HOME}/conf/logback.xml"
+benchmark_parms="$benchmark_parms -Dlogback.configurationFile=${benchmark_conf}/logback.xml"
 if [ -n "$MAX_HEAP_SIZE" ]; then
   echo Set MAX_HEAP_SIZE=$MAX_HEAP_SIZE
   benchmark_parms="$benchmark_parms -Xmx${MAX_HEAP_SIZE}"
