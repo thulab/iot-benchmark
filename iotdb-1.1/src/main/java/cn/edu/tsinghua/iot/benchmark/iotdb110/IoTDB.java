@@ -80,6 +80,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
@@ -350,19 +351,12 @@ public class IoTDB implements IDatabase {
     }
     TimeseriesSchema timeseriesSchema =
         new TimeseriesSchema(deviceSchema, paths, tsDataTypes, tsEncodings, compressionTypes);
-    if (config.isVECTOR()) {
-      timeseriesSchema.setDeviceId(getDevicePath(deviceSchema));
-    }
+    timeseriesSchema.setDeviceId(getDevicePath(deviceSchema));
     return timeseriesSchema;
   }
 
   private List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList) {
-    List<TimeseriesSchema> timeseriesSchemas = new ArrayList<>();
-    for (DeviceSchema deviceSchema : schemaList) {
-      TimeseriesSchema timeseriesSchema = createTimeseries(deviceSchema);
-      timeseriesSchemas.add(timeseriesSchema);
-    }
-    return timeseriesSchemas;
+    return schemaList.stream().map(this::createTimeseries).collect(Collectors.toList());
   }
 
   private void registerTimeseries(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)

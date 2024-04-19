@@ -532,7 +532,7 @@ public class ConfigDescriptor {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_CLIENT_BIND() && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
           LOGGER.error(
-              "In client bind way, the number of client should be greater than the number of device");
+              "In client bind way, the number of client should be less than the number of device");
           result = false;
         }
         if (!config.hasWrite()) {
