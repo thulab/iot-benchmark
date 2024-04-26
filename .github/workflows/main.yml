@@ -75,7 +75,7 @@ jobs:
         id: compile-benchmark
         run: |
           cd ${{ github.workspace }}/iot-benchmark
-          mvn clean package -am -pl core,influxdb,influxdb-2.0,tdengine,timescaledb,iotdb-1.0,iotdb-1.1,iotdb-0.13,iotdb-0.12 -DskipTests
+          mvn clean package -am -pl core,influxdb,influxdb-2.0,tdengine,timescaledb,iotdb-1.0,iotdb-1.1,iotdb-0.13,iotdb-0.12,iotdb-1.3 -DskipTests
       # get time
       - name: collect common info
         shell: bash
@@ -137,6 +137,16 @@ jobs:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.1/target/iot-benchmark-iotdb-1.1.zip
           asset_name: benchmark-iotdb-1.1-java${{ matrix.java_version }}.zip
+          asset_content_type: application/zip
+      #---1.3
+      - name: Upload benchmark-iotdb-1.3
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3.zip
+          asset_name: benchmark-iotdb-1.3-java${{ matrix.java_version }}.zip
           asset_content_type: application/zip
       #---influxdb
       - name: Upload benchmark-influxdb
