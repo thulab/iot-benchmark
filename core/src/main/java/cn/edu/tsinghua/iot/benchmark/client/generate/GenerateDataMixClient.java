@@ -118,7 +118,9 @@ public class GenerateDataMixClient extends GenerateBaseClient {
         long elapsed = System.currentTimeMillis() - start;
         if (elapsed < opMinInterval) {
           try {
-            LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opMinInterval - elapsed);
+            if (!config.isIS_QUIET_MODE()) {
+              LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opMinInterval - elapsed);
+            }
             Thread.sleep(opMinInterval - elapsed);
           } catch (InterruptedException e) {
             LOGGER.error("Wait for next operation failed because ", e);
