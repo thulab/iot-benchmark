@@ -44,4 +44,9 @@ public class GenerateDataMode extends BaseMode {
     LOGGER.info("Schema Location: {}", FileUtils.union(config.getFILE_PATH(), "schema.txt"));
     LOGGER.info("Generate Info Location: {}", FileUtils.union(config.getFILE_PATH(), "info.txt"));
   }
+
+  @Override
+  void setMiddleMeasureTask() {
+    // Do nothing. GenerateDataMode not support measurement.
+  }
 }

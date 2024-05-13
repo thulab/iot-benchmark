@@ -146,8 +146,9 @@ public abstract class DataClient implements Runnable {
       } finally {
         service.shutdown();
         try {
-          assert dbWrapper != null;
-          dbWrapper.close();
+          if (dbWrapper != null) {
+            dbWrapper.close();
+          }
         } catch (TsdbException e) {
           LOGGER.error("Close {} error: ", config.getDbConfig().getDB_SWITCH(), e);
         }

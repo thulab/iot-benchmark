@@ -114,7 +114,7 @@ public abstract class BaseMode {
     }
   }
 
-  private void setMiddleMeasureTask() {
+  void setMiddleMeasureTask() {
     TimerTask measure =
         new TimerTask() {
           @Override
