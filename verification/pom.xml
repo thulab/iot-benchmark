@@ -224,6 +224,30 @@
 
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
+            <artifactId>iotdb-1.3</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.edu.tsinghua</groupId>
+                    <artifactId>core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.edu.tsinghua</groupId>
+            <artifactId>iotdb-1.1</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.edu.tsinghua</groupId>
+                    <artifactId>core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.edu.tsinghua</groupId>
             <artifactId>iotdb-1.0</artifactId>
             <version>${project.version}</version>
             <exclusions>
