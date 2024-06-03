@@ -354,7 +354,7 @@ Till now, we have already complete the writing test case without server informat
 
 ## 6.2. Query of Conventional test mode(Single database, not use system records)
 
-In addition to writing data, the conventional test mode can also query data. In addition, this mode also supports mixed read and write operations.
+In addition to writing data, the conventional test mode can also query data. This mode also supports mixed read and write operations.
 
 ### 6.2.1. Configure
 
