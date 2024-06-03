@@ -1,4 +1,5 @@
 # 1. iot-benchmark
+
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
@@ -110,10 +111,10 @@ The features of iot-benchmark are as follows:
 
 1. Easy to use: iot-benchmark combines multiple testing functions, eliminating the need for users to switch between different tools.
 2. Various Data Ingestion and Testing Modes:
-   * Generate periodic time series data based on configuration, and perform direct insertion and queries.
-   * Write the generated data to a designated location on the disk.
-   * Load data from the generated data set on the disk, then perform writing and querying.
-   * Conduct correctness verification tests on both data and query results.
+   - Generate periodic time series data based on configuration, and perform direct insertion and queries.
+   - Write the generated data to a designated location on the disk.
+   - Load data from the generated data set on the disk, then perform writing and querying.
+   - Conduct correctness verification tests on both data and query results.
 3. Testing Reports and Results: Supports storing testing information and results for further queries or analysis.
 4. Visualize Test Results: Integrates with Tableau to visualize test results.
 5. System Recommendations: We recommend using macOS or Linux systems. This guide uses macOS and Linux as examples. For Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
@@ -127,11 +128,12 @@ To use iot-benchmark, you need to have:
 1. Java 8
 2. Maven: It is not recommended to use the mirror.
 3. The appropriate version of the database
-   * Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
-   * His corresponding version of the database
+   - Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
+   - His corresponding version of the database
 4. CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
 ## 5.2. Working modes of iot-benchmark
+
 |           The name of mode            |  BENCHMARK_WORK_MODE  | The content of mode                                                                                                                              |
 | :-----------------------------------: | :-------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
 |        Conventional test mode         |  testWithDefaultPath  | Supports mixed loads of multiple read and write operations                                                                                       |
@@ -174,6 +176,7 @@ The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/
 |      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
 # 6. Explanation of different operating modes of iot-benchmark
+
 All of the following tests were performed in the following environment:
 
 ```
@@ -228,15 +231,15 @@ Currently, you can edit other configs, more config in [config.properties](config
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system:
 
 ```sh
 > ./benchmark.sh
 ```
 
-### 6.1.3. Execute 
+### 6.1.3. Execute
 
-Now after launching the test, you will see testing information rolling like following: 
+Now after launching the test, you will see testing information rolling like following:
 
 ```
 ...
@@ -247,7 +250,7 @@ Now after launching the test, you will see testing information rolling like foll
 ...
 ```
 
-When test is done, the last output of the test information will be like following: 
+When test is done, the last output of the test information will be like following:
 
 ```
 ...
@@ -319,17 +322,17 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 ```
 
 The output contains overall information of the test including:
-+ Main configurations
-+ Total elapse time during the test
-+ Time cost of schema creation
-  + okOperation: successfully executed request/SQL number for different operations
-  + okPoint: successfully ingested data point number or successfully returned query result point number
-  + failOperation: the request/SQL number failed to execute for different operations
-  + failPoint: the data point number failed to ingest (for query operations currently this field is always zero)
-  + throughput: equals to ```okPoint / Test elapsed time```
-  + <a href = "https://y8dp9fjm8f.feishu.cn/file/boxcn6dA7ikCNswUwygRbdOu3wp">Detailed parameter description</a>
-+ The latency statistics of different operations in millisecond 
-  + ```SLOWEST_THREAD``` is the max accumulative operation time-cost among the client threads
+- Main configurations
+- Total elapse time during the test
+- Time cost of schema creation
+  - okOperation: successfully executed request/SQL number for different operations
+  - okPoint: successfully ingested data point number or successfully returned query result point number
+  - failOperation: the request/SQL number failed to execute for different operations
+  - failPoint: the data point number failed to ingest (for query operations currently this field is always zero)
+  - throughput: equals to ```okPoint / Test elapsed time```
+  - <a href = "https://y8dp9fjm8f.feishu.cn/file/boxcn6dA7ikCNswUwygRbdOu3wp">Detailed parameter description</a>
+- The latency statistics of different operations in millisecond
+  - ```SLOWEST_THREAD``` is the max accumulative operation time-cost among the client threads
 
 All these information will be logged in ```logs``` directory on client server.
 
@@ -351,7 +354,6 @@ LAMBDA=2200.0
 # The maximum value of the random number of the Poisson distribution model
 MAX_K=170000
 ```
-
 
 Till now, we have already complete the writing test case without server information recording. If you need to use to complete other tests, please continue reading.
 
@@ -401,15 +403,15 @@ GROUP_BY_TIME_UNIT=20000
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system:
 
 ```sh
 > ./benchmark.sh
 ```
 
-### 6.2.3. Execute 
+### 6.2.3. Execute
 
-Now after launching the test, you will see testing information rolling like following: 
+Now after launching the test, you will see testing information rolling like following:
 
 ```
 ...
@@ -420,7 +422,7 @@ Now after launching the test, you will see testing information rolling like foll
 ...
 ```
 
-When test is done, the last testing information will be like the following: 
+When test is done, the last testing information will be like the following:
 
 ```
 2022-05-08 14:55:47,915 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -496,9 +498,9 @@ VALUE_RANGE_QUERY_DESC   5.44        0.52        2.05        2.68        3.62   
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-> Note: 
+> Note:
 >
-> When okOperation is smaller than 1000 or 100, the quantiles P99 and P999 may even bigger than MAX because we use the T-Digest Algorithm which uses interpolation in that scenario. 
+> When okOperation is smaller than 1000 or 100, the quantiles P99 and P999 may even bigger than MAX because we use the T-Digest Algorithm which uses interpolation in that scenario.
 
 ## 6.3. Read and write mixed mode of conventional test mode (Single database)
 
@@ -802,7 +804,7 @@ MONITOR_INTERVAL=0
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system:
 
 ```sh
 > ./benchmark.sh
@@ -863,7 +865,7 @@ BIG_BATCH_SIZE=100
 
 ### 6.7.2. Start
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system:
 
 ```sh
 > ./benchmark.sh
@@ -871,7 +873,7 @@ Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`,
 
 ### 6.7.3. Execute
 
-Now after launching the test, you will see testing information rolling. When test is done, the last testing information will be like the following: 
+Now after launching the test, you will see testing information rolling. When test is done, the last testing information will be like the following:
 
 ```
 2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:43 - Data Location: data/test 
@@ -880,6 +882,7 @@ Now after launching the test, you will see testing information rolling. When tes
 ```
 
 > Note:
+>
 > 1. The data storage location is under the FILE_PATH folder, and its directory structure is /d_xxx/batch_xxx.txt
 > 2. The metadata of the device and sensor is stored in FILE_PATH/schema.txt
 > 3. The relevant information of the data set is stored in FILE_PATH/info.txt
@@ -944,10 +947,12 @@ BIG_BATCH_SIZE=100
 ```
 
 Notice:
+>
 > 1. The FILE_PATH folder should be the data set generated using the generated data mode
 > 2. When running this mode, other parameters should be consistent with the description in info.txt**
 
 If you want to use external data set to write into database, you need to the following configuration in ```config.properties```:
+
 ```
 BENCHMARK_WORK_MODE=verificationWriteMode
 FILE_PATH=data/test
@@ -956,26 +961,30 @@ CLIENT_NUMBER=1
 BATCH_SIZE_PER_WRITE=100
 IS_COPY_MODE=true
 ```
+
 Then you need add the csv file in the FILE_PATH:
+
 ```
 + FILE_PATH
    + d_0
        + *.csv  # modify the schema(first line of csv) as  "Sensor,s_0,s_1,..."
    + schema.txt # specify which sensorType of one senor with one row, the content is like "d_0 s_0 3\n d_0 s_1 4"
 ```
+
 After that, you can start it.
 
 ### 6.8.2. Start
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system:
 
 ```sh
 > ./benchmark.sh
 ```
 
 ### 6.8.3. Execute
+
 Now after launching the test, you will see testing information rolling like following:
 
 ```
@@ -1056,6 +1065,7 @@ BIG_BATCH_SIZE=100
 ```
 
 > Note:
+>
 > 1. The FILE_PATH folder should be the data set generated using the generated data mode.
 > 2. When running this mode, other parameters should be **consistent** with the description in info.txt.
 
@@ -1063,7 +1073,7 @@ BIG_BATCH_SIZE=100
 
 Before running the test, you need to open the IoTDB service on port 6667.
 
-Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system: 
+Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run the startup script, currently we only support Unix/OS X system:
 
 ```sh
 > ./benchmark.sh
@@ -1071,7 +1081,7 @@ Then, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`,
 
 ### 6.9.3. Execute
 
-Now after launching the test, you will see testing information rolling like following: 
+Now after launching the test, you will see testing information rolling like following:
 
 ```
 ...
@@ -1405,7 +1415,7 @@ In order to verify the correctness of the database query more efficiently, iot-b
 Notice:
 
 1. Before performing this test, please use the regular test mode write (dual database) above to complete the database write.
-2. The value of LOOP **cannot be too large** to satisfy: LOOP(query) * QUERY_INTERVAL(query) * DEVICE_NUMBER(write) <= LOOP(write) * POINT_STEP(write)
+2. The value of LOOP **cannot be too large** to satisfy: LOOP(query) *QUERY_INTERVAL(query)* DEVICE_NUMBER(write) <= LOOP(write) * POINT_STEP(write)
 
 ### 6.13.1. Configure
 
@@ -1540,24 +1550,31 @@ VALUE_RANGE_QUERY_DESC   1.61        0.14        0.30        0.43        0.72   
 # 7. Test Other Database(Part)
 
 ## 7.1. Test InfluxDB v1.x
+
 [Quick Start](influxdb/README.md)
 
 ## 7.2. Test InfluxDB v2.0
+
 [Quick Start](influxdb-2.0/README.md)
 
 ## 7.3. Test Microsoft SQL Server
+
 [Quick Start](mssqlserver/README.md)
 
 ## 7.4. Test QuestDB
+
 [Quick Start](questdb/README.md)
 
 ## 7.5. Test SQLite
+
 [Quick Start](sqlite/README.md)
 
 ## 7.6. Test Victoriametrics
+
 [Quick Start](victoriametrics/README.md)
 
 ## 7.7. Test TimeScaleDB
+
 [Quick Start](timescaledb/README.md)
 
 ## 7.8. Test PI Archive
@@ -1565,6 +1582,7 @@ VALUE_RANGE_QUERY_DESC   1.61        0.14        0.30        0.43        0.72   
 [Quick Start](./pi/README.md)
 
 ## 7.9. Test TDenginee
+
 [Quick Start](./tdengine/README.md)
 
 # 8. Further explanation of correctness verification
@@ -1591,7 +1609,7 @@ Then it will serially execute 3 test process with LOOP parameter are 10, 20 and 
 > NOTE:
 You can change multiple parameters in each test with format like 'LOOP=20 DEVICE_NUMBER=10 TEST', unnecessary space is not allowed. The key word 'TEST' means a new test begins. If you change different parameters, the changed parameters will remain in next tests.
 
-## 9.2. Start 
+## 9.2. Start
 
 After configuring the file 'routine', you can launch the multi-test task by startup script:
 
@@ -1599,7 +1617,7 @@ After configuring the file 'routine', you can launch the multi-test task by star
 > ./rep-benchmark.sh
 ```
 
-Then the test information will show in terminal. 
+Then the test information will show in terminal.
 
 > NOTE:
 If you close the terminal or lose connection to client machine, the test process will terminate. It is the same to any other cases if the output is transmit to terminal.
@@ -1618,6 +1636,7 @@ In this case, if you want to know what is going on, you can check the log inform
 ```
 
 # 10. Developer Guidelines
+
 1. All the interfaces of iot-benchmark are in the core module.
 2. The realization of all database tests of iot-benchmark are in each maven sub-project.
 3. If you want to use an editor such as IDEA to run Benchmark:
@@ -1625,7 +1644,7 @@ In this case, if you want to know what is going on, you can check the log inform
     2. Taking IoTDB 0.13 as an example, you can run `iotdb-0.13/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
 
 # 11. Related Article
+
 Benchmark Time Series Database with iot-benchmark for IoT Scenarios
 
-Arxiv: https://arxiv.org/abs/1901.08304
-
+Arxiv: <https://arxiv.org/abs/1901.08304>
