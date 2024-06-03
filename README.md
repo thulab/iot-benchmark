@@ -141,17 +141,17 @@ To use iot-benchmark, you need to have:
 
 ## 5.3. Build of iot-benchmark
 
-You can build iot-benchmark using Maven, running following command in the **root** of project:
+You can build iot-benchmark using Maven, by running the following command in the **root** of the project:
 
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
 
-This will compile all versions of IoTDB and other database benchmark. if you want to compile a specific database, go to the package and run above command.
+This will compile all versions of IoTDB and other database benchmarks. if you want to compile a specific database, go to the package and run the above command.
 
 After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13`, and run `./benchmark.sh` to start iot-benchmark.
 
-The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`, you can edit `config.properties` to complete the configuration, please **note that you need Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
+The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`, you can edit `config.properties` to complete the configuration, please **note that you need to Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                   |
 |:--------------------:|:--------:|:-------------------------:|:------------------------------------------------------------------------------------------------------------:|
@@ -191,7 +191,7 @@ This short guide will walk you through the basic process of using iot-benchmark.
 
 Before starting any new test case, you need to config the configuration files ```config.properties``` first. For your convenience, we have already set the default config for the following demonstration.
 
-Suppose you are going to test data ingestion performance of IoTDB. You have installed IoTDB dependencies and launched a IoTDB server with default settings. The IP of the server is 127.0.0.1. Suppose the workload parameters are:
+Suppose you are going to test the data ingestion performance of IoTDB. You have installed IoTDB dependencies and launched a IoTDB server with default settings. The IP of the server is 127.0.0.1. Suppose the workload parameters are:
 
 ```
 +--------------------------+------------+--------------+-------------+------------+--------------------+--------+
@@ -201,8 +201,8 @@ Suppose you are going to test data ingestion performance of IoTDB. You have inst
 +--------------------------+------------+--------------+-------------+------------+--------------------+--------+
 ```
 
-Notice: Under this configuration, the total timeseries number is ```deivce * sensor = 25,000```, the number of data points
-in each timeseries is ```batch size * loop = 20,000```, total data points is ```deivce * sensor * batch size * loop = 500,000,000```.
+Notice: Under this configuration, the total timeseries number is ```device * sensor = 25,000```, the number of data points
+in each timeseries is ```batch size * loop = 20,000```, total data points is ```device * sensor * batch size * loop = 500,000,000```.
 According to 16bytes of each data point, the total raw data size is 8G.
 
 edit the corresponding parameters in the ```config.properties``` file as following:
