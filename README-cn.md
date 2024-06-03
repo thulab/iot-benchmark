@@ -83,17 +83,13 @@
 
 # 3. 概述
 
-iot-benchmark是用来将IoTDB和其他数据库和时间序列解决方案进行基准测试的工具。
+IoT-Benchmark 是用来评估时序数据库、实时数据库在工业物联网（IIoT）场景下的性能的基准测试工具。
 
 目前支持如下数据库、版本和连接方式：
 
 |        数据库        |    版本    |                         连接方式                         |
 | :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |   v1.3   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |   v1.1   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
+|        IoTDB         |   v1.x   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
