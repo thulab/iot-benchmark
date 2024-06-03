@@ -79,15 +79,13 @@ You can also read [中文版本](README-cn.md).
 
 # 3. Overview
 
-iot-benchmark is a tool for benchmarking IoTDB against other databases and time series solutions.
+IoT-Benchmark is a benchmarking tool designed to evaluate the performance of Time Series databases and Real-time databases within the context of Industrial Internet of Things (IIoT) scenarios. This tool provides a comprehensive assessment, enabling users to make informed decisions when selecting databases tailored for IIoT applications.
 
 Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
 | :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |   v1.1   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
+|        IoTDB         |   v1.x   |         sessionByTablet、sessionByRecords、jdbc           |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
