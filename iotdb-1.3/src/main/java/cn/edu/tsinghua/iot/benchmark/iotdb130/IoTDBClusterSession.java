@@ -58,10 +58,14 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
 
     @Override
-    public void open() {}
+    public void open() {
+      // Do nothing
+    }
 
     @Override
-    public void open(boolean enableRPCCompression) {}
+    public void open(boolean enableRPCCompression) {
+      // Do nothing
+    }
 
     @Override
     public void insertRecord(
