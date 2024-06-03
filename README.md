@@ -86,11 +86,7 @@ Databases currently supported:
 
 |       Database       | Version  |                       Insert_Mode                        |
 | :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |   v1.3   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |   v1.1   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
+|        IoTDB         |   v1.x   |         sessionByTablet、sessionByRecords、jdbc           |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
