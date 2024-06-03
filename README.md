@@ -106,7 +106,7 @@ Databases currently supported:
 
 The features of iot-benchmark are as follows:
 
-1. Easy to Use: iot-benchmark combines multiple testing functions, eliminating the need for users to switch between different tools.
+1. Easy to use: iot-benchmark combines multiple testing functions, eliminating the need for users to switch between different tools.
 2. Various Data Ingestion and Testing Modes:
    * Generate periodic time series data based on configuration, and perform direct insertion and queries.
    * Write the generated data to a designated location on the disk.
