@@ -88,7 +88,6 @@ Databases currently supported:
 |        IoTDB         |   v1.1   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |   v1.0   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |        IoTDB         |  v0.13   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
-|        IoTDB         |  v0.12   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
 |       QuestDB        |  v6.0.7  |                           jdbc                           |
@@ -157,7 +156,6 @@ The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/
 |        IoTDB         |   1.1    |         iotdb-1.1         | IoTDB-110-JDBC<br>IoTDB-110-SESSION_BY_TABLET<br>IoTDB-110-SESSION_BY_RECORD<br>IoTDB-110-SESSION_BY_RECORDS |
 |        IoTDB         |   1.0    |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   0.13   |        iotdb-0.13         | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
-|        IoTDB         |   0.12   |        iotdb-0.12         | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |       InfluxDB       |   v1.x   |         influxdb          |                                                   InfluxDB                                                   |
 |       InfluxDB       |   v2.0   |       influxdb-2.0        |                                                 InfluxDB-2.0                                                 |
 |       QuestDB        |  v6.0.7  |          questdb          |                                                   QuestDB                                                    |
