@@ -259,7 +259,7 @@ public class IoTDB implements IDatabase {
       throws IoTDBConnectionException, IOException {
     try {
       metaSession.createSchemaTemplate(template);
-    } catch (StatementExecutionException e) {
+    } catch (StatementExecutionException ignore) {
       // do nothing
     }
   }
