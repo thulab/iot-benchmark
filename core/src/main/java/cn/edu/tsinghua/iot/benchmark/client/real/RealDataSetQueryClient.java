@@ -22,10 +22,13 @@ package cn.edu.tsinghua.iot.benchmark.client.real;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
 public class RealDataSetQueryClient extends RealBaseClient {
+
+  private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
   public RealDataSetQueryClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
     super(id, countDownLatch, barrier);
@@ -40,11 +43,32 @@ public class RealDataSetQueryClient extends RealBaseClient {
         if (batch == null) {
           break;
         }
+        long start = 0;
+        if (config.getOP_MIN_INTERVAL() > 0) {
+          start = System.currentTimeMillis();
+        }
         VerificationQuery verificationQuery = queryWorkLoad.getVerifiedQuery(batch);
         dbWrapper.verificationQuery(verificationQuery);
         loopIndex++;
         if (isStop.get()) {
           break;
+        }
+        if (config.getOP_MIN_INTERVAL() > 0) {
+          long opMinInterval;
+          if (config.isOP_MIN_INTERVAL_RANDOM()) {
+            opMinInterval = (long) (random.nextDouble() * config.getOP_MIN_INTERVAL());
+          } else {
+            opMinInterval = config.getOP_MIN_INTERVAL();
+          }
+          long elapsed = System.currentTimeMillis() - start;
+          if (elapsed < opMinInterval) {
+            try {
+              LOGGER.debug("[Client-{}] sleep {} ms.", clientThreadId, opMinInterval - elapsed);
+              Thread.sleep(opMinInterval - elapsed);
+            } catch (InterruptedException e) {
+              LOGGER.error("Wait for next operation failed because ", e);
+            }
+          }
         }
       } catch (Exception e) {
         LOGGER.error("Failed to query one batch data because ", e);
