@@ -781,7 +781,7 @@ IoTDB Benchmark支持您使用数据库存储测试过程中的系统数据，�
 当前版本的信息记录依赖于 iostat。请确保 iostat 已安装在 IoTDB 服务器中。
 
 之后配置```config.properties```
-假设您使用的参数与[简单指引](#61-常规测试模式之写入简单示例)中的参数相同。您应该添加的新参数是 TEST_DATA_PERSISTENCE 和 MONITOR_INTERVAL，例如：
+假设您使用的参数与[简单指引](#61-常规测试模式之写入单数据库)中的参数相同。您应该添加的新参数是 TEST_DATA_PERSISTENCE 和 MONITOR_INTERVAL，例如：
 
 ```properties
 TEST_DATA_PERSISTENCE=CSV
