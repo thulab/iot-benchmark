@@ -102,17 +102,17 @@ Databases currently supported:
 
 # 4. Main Features
 
-iot-benchmark's features are as following:
+The features of iot-benchmark are as follows:
 
-1. Easy to use: iot-benchmark is a tool combined multiple testing functions so users do not need to switch different tools. 
-2. Various data ingestion and testing mode:
-   1. Generate periodic time series data according to the configuration and insert and query directly.
-   2. Write the generated data to the corresponding location on the disk.
-   3. Load data from the generated data set generated in the disk, and write and query.
-   4. Perform correctness verification tests on data and query results respectively.
-3. Testing report and result: Supporting storing testing information and results for further query or analysis.
-4. Visualize test results: Integration with Tableau to visualize the test result.
-5. We recommend using MacOs or Linux systems. This article takes MacOS and Linux systems as examples. If you use Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
+1. Easy to use: iot-benchmark combines multiple testing functions, eliminating the need for users to switch between different tools.
+2. Various Data Ingestion and Testing Modes:
+   * Generate periodic time series data based on configuration, and perform direct insertion and queries.
+   * Write the generated data to a designated location on the disk.
+   * Load data from the generated data set on the disk, then perform writing and querying.
+   * Conduct correctness verification tests on both data and query results.
+3. Testing Reports and Results: Supports storing testing information and results for further queries or analysis.
+4. Visualize Test Results: Integrates with Tableau to visualize test results.
+5. System Recommendations: We recommend using macOS or Linux systems. This guide uses macOS and Linux as examples. For Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
 
 # 5. Usage of iot-benchmark
 
@@ -123,8 +123,8 @@ To use iot-benchmark, you need to have:
 1. Java 8
 2. Maven: It is not recommended to use the mirror.
 3. The appropriate version of the database
-   1. Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
-   2. His corresponding version of the database
+   * Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
+   * His corresponding version of the database
 4. CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
 ## 5.2. Working modes of iot-benchmark
