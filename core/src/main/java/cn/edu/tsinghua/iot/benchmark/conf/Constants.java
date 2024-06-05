@@ -75,12 +75,6 @@ public class Constants {
   public static final String IOTDB013_ROUNDROBIN_SESSION_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb013.IoTDBClusterSession";
 
-  public static final String IOTDB012_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb012.IoTDB";
-  public static final String IOTDB012_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb012.IoTDBSession";
-  public static final String IOTDB012_ROUNDROBIN_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb012.IoTDBClusterSession";
-
   public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb.InfluxDB";
   public static final String INFLUXDB2_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb2.InfluxDB";
   public static final String CNOSDB_CLASS = "cn.edu.tsinghua.iot.benchmark.cnosdb.CnosDB";

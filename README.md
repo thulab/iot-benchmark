@@ -84,22 +84,22 @@ IoT-Benchmark is a benchmarking tool designed to evaluate the performance of Tim
 
 Databases currently supported:
 
-|       Database       | Version  |                       Insert_Mode                        |
-| :------------------: |:--------:| :------------------------------------------------------: |
-|        IoTDB         |   v1.x   |         sessionByTablet、sessionByRecords、jdbc           |
-|       InfluxDB       |   v1.x   |                           SDK                            |
-|       InfluxDB       |   v2.0   |                           SDK                            |
-|       QuestDB        |  v6.0.7  |                           jdbc                           |
-| Microsoft SQL Server | 2016 SP2 |                           jdbc                           |
-|   VictoriaMetrics    | v1.64.0  |                       Http Request                       |
-|        SQLite        |    --    |                           jdbc                           |
-|       OpenTSDB       |  2.4.1   |                       Http Request                       |
-|       KairosDB       |    --    |                       Http Request                       |
-|     TimescaleDB      |    --    |                           jdbc                           |
-|     TimescaleDB      | Cluster  |                           jdbc                           |
-|       TDengine       | 2.2.0.2  |                           jdbc                           |
-|       TDengine       |  3.0.1   |                           jdbc                           |
-|      PI Archive      |   2016   |                           jdbc                           |
+|       Database       | Version  |               Insert_Mode               |
+| :------------------: | :------: | :-------------------------------------: |
+|        IoTDB         |   v1.x   | sessionByTablet、sessionByRecords、jdbc |
+|       InfluxDB       |   v1.x   |                   SDK                   |
+|       InfluxDB       |   v2.0   |                   SDK                   |
+|       QuestDB        |  v6.0.7  |                  jdbc                   |
+| Microsoft SQL Server | 2016 SP2 |                  jdbc                   |
+|   VictoriaMetrics    | v1.64.0  |              Http Request               |
+|        SQLite        |    --    |                  jdbc                   |
+|       OpenTSDB       |  2.4.1   |              Http Request               |
+|       KairosDB       |    --    |              Http Request               |
+|     TimescaleDB      |    --    |                  jdbc                   |
+|     TimescaleDB      | Cluster  |                  jdbc                   |
+|       TDengine       | 2.2.0.2  |                  jdbc                   |
+|       TDengine       |  3.0.1   |                  jdbc                   |
+|      PI Archive      |   2016   |                  jdbc                   |
 
 # 4. Main Features
 
@@ -124,18 +124,18 @@ To use iot-benchmark, you need to have:
 1. Java 8
 2. Maven: It is not recommended to use the mirror.
 3. The appropriate version of the database
-   - Apache IoTDB >= v0.12 ([Get it!](https://github.com/apache/iotdb))
+   - Apache IoTDB >= v0.13 ([Get it!](https://github.com/apache/iotdb))
    - His corresponding version of the database
 4. CSV recording modes can only be used in Linux systems to record relevant system information during the test.
 
 ## 5.2. Working modes of iot-benchmark
 
-|           The name of mode            |  BENCHMARK_WORK_MODE  | The content of mode                                                                                                                              |
-| :-----------------------------------: | :-------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-|        Conventional test mode         |  testWithDefaultPath  | Supports mixed loads of multiple read and write operations                                                                                       |
-|          Generate data mode           |   generateDataMode    | Benchmark generates the data set to the FILE_PATH path                                                                                           |
-|      Write mode of verification       | verificationWriteMode | Load the data set from the FILE_PATH path for writing, currently supports IoTDB v0.12 and v0.13                                                  |
-|      Query mode of verification       | verificationQueryMode | Load the data set from the FILE_PATH path and compare it with the database. Currently, IoTDB v0.12 and v0.13 is supported                        |
+|      The name of mode      |  BENCHMARK_WORK_MODE  | The content of mode                                                                                                               |
+| :------------------------: | :-------------------: | :-------------------------------------------------------------------------------------------------------------------------------- |
+|   Conventional test mode   |  testWithDefaultPath  | Supports mixed loads of multiple read and write operations                                                                        |
+|     Generate data mode     |   generateDataMode    | Benchmark generates the data set to the FILE_PATH path                                                                            |
+| Write mode of verification | verificationWriteMode | Load the data set from the FILE_PATH path for writing, currently supports IoTDB v0.13 and newer version is supported              |
+| Query mode of verification | verificationQueryMode | Load the data set from the FILE_PATH path and compare it with the database. Currently, IoTDB v0.13 and newer version is supported |
 
 ## 5.3. Build of iot-benchmark
 
@@ -152,7 +152,7 @@ After, for example, you can go to `/iot-benchmark/iotdb-0.13/target/iot-benchmar
 The default configuration file is stored under `iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`, you can edit `config.properties` to complete the configuration, please **note that you need to Adjust the DB_SWITCH parameter in the configuration file to the database you need to be tested**. The corresponding relationship and possible values are as follows:
 
 |       Database       | Version  | Corresponding Sub-project |                                                  DB_SWITCH                                                   |
-|:--------------------:|:--------:|:-------------------------:|:------------------------------------------------------------------------------------------------------------:|
+| :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   1.3    |         iotdb-1.3         | IoTDB-130-JDBC<br>IoTDB-130-SESSION_BY_TABLET<br>IoTDB-130-SESSION_BY_RECORD<br>IoTDB-130-SESSION_BY_RECORDS |
 |        IoTDB         |   1.1    |         iotdb-1.1         | IoTDB-110-JDBC<br>IoTDB-110-SESSION_BY_TABLET<br>IoTDB-110-SESSION_BY_RECORD<br>IoTDB-110-SESSION_BY_RECORDS |
 |        IoTDB         |   1.0    |         iotdb-1.0         | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
@@ -928,7 +928,7 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 ## 6.8. Write mode for Verificaiton (single database, external data set)
 
-In order to verify the correctness of the data set writing, you can use this mode to write the data set generated in the generated data mode. Currently this mode only supports IoTDB v0.12 , v0.13 and influxdb v1.x
+In order to verify the correctness of the data set writing, you can use this mode to write the data set generated in the generated data mode. Currently this mode only supports IoTDB v0.13 and newer version, influxdb v1.x
 
 ### 6.8.1. Configure
 
@@ -1046,7 +1046,7 @@ INGESTION                0.52        0.02        0.02        0.03        0.03   
 
 Before running this mode, you need to use the correctness write mode to write data to the database.
 
-In order to verify the correctness of the data set writing, you can use this mode to query the data set written to the database. Currently this mode only supports IoTDB v0.12 , v0.13 and influxdb v1.x
+In order to verify the correctness of the data set writing, you can use this mode to query the data set written to the database. Currently this mode only supports IoTDB v0.13 and newer version, influxdb v1.x
 
 ### 6.9.1. Configure
 
@@ -1143,7 +1143,7 @@ VERIFICATION_QUERY       14.48       0.96        11.40       12.67       14.43  
 In order to more conveniently and quickly complete the correctness verification, iot-benchmark also supports dual database mode.
 
 1. For all the test scenarios mentioned above, unless otherwise specified, dual databases are supported. Please **start the test** in the `verification` project.
-2. For the relevant test scenarios for correctness verification below, all must be run in dual database mode, and currently **only supports** iotdb-0.12, iotdb-0.13 and timescaledb.
+2. For the relevant test scenarios for correctness verification below, all must be run in dual database mode, and currently **only supports** iotdb-0.13 and newer version, and timescaledb.
 
 In order to complete the dual database configuration, you need to make the following modifications to `config.properties`:
 
@@ -1583,7 +1583,7 @@ VALUE_RANGE_QUERY_DESC   1.61        0.14        0.30        0.43        0.72   
 
 # 8. Further explanation of correctness verification
 
-1. Now verification **only support** IoTDB v0.12, IoTDB v0.13 and TimescaleDB
+1. Now verification **only support** IoTDB v0.13 and newer version, TimescaleDB
 2. [Quick Start](verification/README.md)
 
 # 9. Perform Multiple Tests Automatically

@@ -87,8 +87,8 @@ IoT-Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 
 目前支持如下数据库、版本和连接方式：
 
-|        数据库        |    版本    |                         连接方式                         |
-| :------------------: |:--------:| :------------------------------------------------------: |
+|        数据库        |   版本   |                         连接方式                         |
+| :------------------: | :------: | :------------------------------------------------------: |
 |        IoTDB         |   v1.x   | jdbc、sessionByTablet、sessionByRecord、sessionByRecords |
 |       InfluxDB       |   v1.x   |                           SDK                            |
 |       InfluxDB       |   v2.0   |                           SDK                            |
@@ -127,19 +127,18 @@ iot-benchmark的特点如下：
 1. Java 8
 2. Maven：不建议使用镜像源，国内可以使用阿里云镜像源。
 3. 合适版本的数据库
-   1. Apache IoTDB >= v0.12([获取方式](https://github.com/apache/iotdb))
+   1. Apache IoTDB >= v0.13([获取方式](https://github.com/apache/iotdb))
    2. 其他的对应版本的数据库
 4. CSV的记录模式只能在Linux系统中使用，记录测试过程中的相关系统信息。
 5. 我们建议使用MacOs或Linux系统，本文以MacOS和Linux系统为例，如果使用Windows系统，请使用`conf`文件夹下的`benchmark.bat`脚本启动benchmark。
 
 ## 5.2. iot-benchmark支持的运行模式
-|        模式名称        |  BENCHMARK_WORK_MODE  | 模式内容                                                                               |
-| :--------------------: | :-------------------: | :------------------------------------------------------------------------------------- |
-|      常规测试模式      |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                           |
-|      生成数据模式      |   generateDataMode    | Benchmark生成数据集到FILE_PATH路径中                                                   |
-|     正确性写入模式     | verificationWriteMode | 从FILE_PATH路径中加载数据集进行写入，目前支持IoTDB v0.12 和 IoTDB v0.13                |
-|     正确性查询模式     | verificationQueryMode | 从FILE_PATH路径中加载数据集和数据库中进行比对，目前支持IoTDB v0.12 和 IoTDB v0.13      |
-
+|    模式名称    |  BENCHMARK_WORK_MODE  | 模式内容                                                                         |
+| :------------: | :-------------------: | :------------------------------------------------------------------------------- |
+|  常规测试模式  |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                     |
+|  生成数据模式  |   generateDataMode    | Benchmark生成数据集到FILE_PATH路径中                                             |
+| 正确性写入模式 | verificationWriteMode | 从FILE_PATH路径中加载数据集进行写入，目前支持 IoTDB v0.13 及更新的版本           |
+| 正确性查询模式 | verificationQueryMode | 从FILE_PATH路径中加载数据集和数据库中进行比对，目前支持 IoTDB v0.13 及更新的版本 |
 
 ## 5.3. iot-benchmark的编译构建
 
@@ -155,13 +154,12 @@ mvn clean package -Dmaven.test.skip=true
 
 默认的配置文件存放在`iot-benchmark/iotdb-0.13/target/iot-benchmark-iotdb-0.13/conf`下，您可以编辑`config.properties`来完成配置，请**注意的是，您需要将配置文件中的DB_SWITCH参数调整为您需要被测数据库**，其对应关系和可能取值如下所示：
 
-|        数据库        |    版本    |        对应子项目        |                                                  DB_SWITCH                                                   |
-| :------------------: |:--------:|:-------------------:|:------------------------------------------------------------------------------------------------------------:|
+|        数据库        |   版本   |     对应子项目      |                                                  DB_SWITCH                                                   |
+| :------------------: | :------: | :-----------------: | :----------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   1.3    |      iotdb-1.3      | IoTDB-130-JDBC<br>IoTDB-130-SESSION_BY_TABLET<br>IoTDB-130-SESSION_BY_RECORD<br>IoTDB-130-SESSION_BY_RECORDS |
 |        IoTDB         |   1.1    |      iotdb-1.1      | IoTDB-110-JDBC<br>IoTDB-110-SESSION_BY_TABLET<br>IoTDB-110-SESSION_BY_RECORD<br>IoTDB-110-SESSION_BY_RECORDS |
 |        IoTDB         |   1.0    |      iotdb-1.0      | IoTDB-100-JDBC<br>IoTDB-100-SESSION_BY_TABLET<br>IoTDB-100-SESSION_BY_RECORD<br>IoTDB-100-SESSION_BY_RECORDS |
 |        IoTDB         |   0.13   |     iotdb-0.13      | IoTDB-013-JDBC<br>IoTDB-013-SESSION_BY_TABLET<br>IoTDB-013-SESSION_BY_RECORD<br>IoTDB-013-SESSION_BY_RECORDS |
-|        IoTDB         |   0.12   |     iotdb-0.12      | IoTDB-012-JDBC<br>IoTDB-012-SESSION_BY_TABLET<br>IoTDB-012-SESSION_BY_RECORD<br>IoTDB-012-SESSION_BY_RECORDS |
 |       InfluxDB       |   v1.x   |      influxdb       |                                                   InfluxDB                                                   |
 |       InfluxDB       |   v2.0   |    influxdb-2.0     |                                                 InfluxDB-2.0                                                 |
 |       QuestDB        |  v6.0.7  |       questdb       |                                                   QuestDB                                                    |
@@ -923,7 +921,7 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 ## 6.8. 正确性写入模式（单数据库，外部数据集）
 
-为了验证数据集写入的正确性，您可以使用该模式写入生成数据模式中生成的数据集，目前该模式仅支持IoTDB v0.12 ，IoTDB v0.13和InfluxDB v1.x
+为了验证数据集写入的正确性，您可以使用该模式写入生成数据模式中生成的数据集，目前该模式仅支持IoTDB v0.13 及更新的版本和InfluxDB v1.x
 
 ### 6.8.1. Benchmark的配置
 
@@ -1132,7 +1130,7 @@ VERIFICATION_QUERY       14.48       0.96        11.40       12.67       14.43  
 为了更方便、快速完成正确性验证，iot-benchmark也支持双数据库模式。
 
 1. 对于上文中提到的所有测试场景，除特别说明，均支持双数据库进行。请在`verification`项目中**启动测试**。
-2. 对于下文中的正确性验证的相关测试场景，均必须在双数据库模式下运行，并且目前仅仅支持iotdb-0.12, iotdb-0.13和timescaledb。
+2. 对于下文中的正确性验证的相关测试场景，均必须在双数据库模式下运行，并且目前仅支持IoTDB v0.13 及更新的版本和timescaledb。
 
 为了完成双数据库配置，您需要对`config.properties`完成如下修改：
 
@@ -1563,7 +1561,7 @@ VALUE_RANGE_QUERY_DESC   1.61        0.14        0.30        0.43        0.72   
 [快速指引](./tdengine/README.md)
 
 # 8. 正确性验证的进一步说明
-1. 目前正确性验证部分仅支持IoTDB v0.12, IoTDB v0.13和TimeScaleDB
+1. 目前正确性验证部分仅支持IoTDB v0.13 及更新的版本和TimeScaleDB
 2. [快速指引](verification/README.md)
 
 # 9. 自动化脚本

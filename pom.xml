@@ -26,7 +26,6 @@
         <module>iotdb-1.1</module>
         <module>iotdb-1.0</module>
         <module>iotdb-0.13</module>
-        <module>iotdb-0.12</module>
         <module>mssqlserver</module>
         <module>sqlite</module>
         <module>verification</module>
