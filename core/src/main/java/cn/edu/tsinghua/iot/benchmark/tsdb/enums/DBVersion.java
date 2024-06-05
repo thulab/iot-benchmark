@@ -23,7 +23,6 @@ public enum DBVersion {
   IOTDB_130("130"),
   IOTDB_110("110"),
   IOTDB_100("100"),
-  IOTDB_013("013"),
   InfluxDB_2("2.x"),
   TimescaleDB_Cluster("cluster"),
   TDengine_3("3");

@@ -4,7 +4,7 @@ Benchmark for Verification and Double-Write
 # 1. 正确性验证
 
 ## 1.1. environment
-目前仅仅支持IoTDB v0.13及以上版本和TimescaleDB进行正确性验证
+目前仅仅支持IoTDB v1.0及以上版本和TimescaleDB进行正确性验证
 
 ## 1.2. 相关模式
 1. testWithDefaultPath 使用benchmark生成数据集后正确性验证。

@@ -218,7 +218,7 @@ public class Config {
   private String TEMPLATE_NAME = "BenchmarkTemplate";
   /** Whether to use vector */
   private boolean VECTOR = true;
-  /** whether to use debug in iotdb-0.13 */
+  /** whether to use debug in iotdb */
   private boolean IOTDB_USE_DEBUG = false;
   /** the ratio of use debug */
   private double IOTDB_USE_DEBUG_RATIO = 0.01;
