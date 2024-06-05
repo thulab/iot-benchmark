@@ -33,3 +33,4 @@ mvnw.cmd
 /target/
 
 data
+.vscode
