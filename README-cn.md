@@ -385,8 +385,8 @@ LAMBDA=2200.0
 MAX_K=170000
 ```
 
-此处已经介绍了一些参数的基本修改操作，之后的部分将省略相关设置，如有需要请进入相应页面查看。
-
+此处已经介绍了一些参数的基本修改操作，之后的部分将省略相关设置，如有需要请进入如下页面查看。
+https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md
 
 ## 6.2.2 常规测试模式之查询(单数据库，不使用系统记录)
 
