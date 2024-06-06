@@ -41,7 +41,7 @@ GROUP_BY_TIME_UNIT=20000
 > 注意：
 > `config.properties`中包含了查询相关的配置参数，您可以通过查看示例文件来了解。
 
-** 6.2.2. 常规测试模式之读写混合模式（单数据库）Benchmark的启动 **
+** Benchmark的启动 **
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -51,7 +51,7 @@ GROUP_BY_TIME_UNIT=20000
 > ./benchmark.sh
 ```
 
-** 6.2.3. Benchmark的执行 **
+** Benchmark的执行 **
 
 测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
 
