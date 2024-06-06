@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
 
 public enum DBInsertMode {
+  INSERT_USE_REST("REST"),
   INSERT_USE_JDBC("JDBC"),
   INSERT_USE_SESSION("SESSION"),
   INSERT_USE_SESSION_TABLET("SESSION_BY_TABLET"),
