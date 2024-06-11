@@ -1,4 +1,4 @@
-iot-benchmark
+IoT Benchmark
 ---
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
