@@ -26,6 +26,8 @@ IoT-Benchmark is a benchmarking tool used to evaluate the performance of time se
 4. **Diversified test report generation**: Supports storing basic test information and results in various forms such as files and MySQL for further query or analysis.
 5. **Test result visualization**: Integrates with Tableau to visualize test results.
 
+![IoT Benchmark Architecture](https://github.com/apache/iotdb/assets/46039728/1fbf027d-0955-4de6-b727-57dbeaf2a5ab)
+
 # 2. Supported database types
 
 Currently supports the following databases, versions and connection methods:

@@ -24,6 +24,8 @@ IoT-Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 4. **多元化的测试报告生成**：支持以文件、MySQL等多种形式存储测试基本信息与结果以供进一步查询或分析。
 5. **测试结果可视化**：与Tableau集成以可视化测试结果。
 
+![IoT Benchmark 架构](https://github.com/apache/iotdb/assets/46039728/1fbf027d-0955-4de6-b727-57dbeaf2a5ab)
+
 # 2. 支持的数据库类型
 
 目前支持如下数据库、版本和连接方式：
