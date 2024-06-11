@@ -145,7 +145,7 @@ CPU：I7-11700
 
 在完成编译后，以IoTDB v1.0为例，**您需要首先在本机的6667端口启动相应版本的IoTDB服务**。（如果您对于使用IoTDB仍有疑问，请参照[IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md) 中的指引）。在成功启动IoTDB服务后，您可以进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0`文件夹下，使用`./benchmark.sh`来启动对IoTDB v1.0的测试。我们推荐使用匹配的版本进行测试，以此达到最佳效果。
 
-[测试配置文件](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/TestConfigurations.md)
+[测试配置文件](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md)
 
 ```
 
@@ -355,7 +355,7 @@ MAX_K=170000
 ```
 
 此处已经介绍了一些参数的基本修改操作，之后的部分将省略相关设置，如有需要请进入如下页面查看。
-[Testconfigurations](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/TestConfigurations.md)
+[Testconfigurations](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md)
 
 ## 6.2.2 常规测试模式之查询(单数据库，不使用系统记录)
 
