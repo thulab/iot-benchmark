@@ -30,21 +30,21 @@ IoT-Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 
 目前支持如下数据库、版本和连接方式：
 
-|        数据库        |    版本    |   连接方式   |
-| :------------------: | :--------: | :----------: |
-|        IoTDB         |    v1.x    |     SDK      |
-|       InfluxDB       | v1.x、v2.x |     SDK      |
-|       QuestDB        |   v6.0.7   |     jdbc     |
-| Microsoft SQL Server |  2016 SP2  |     jdbc     |
-|   VictoriaMetrics    |  v1.64.0   | Http Request |
-|        SQLite        |     --     |     jdbc     |
-|       OpenTSDB       |     --     | Http Request |
-|       KairosDB       |     --     | Http Request |
-|     TimescaleDB      |     --     |     jdbc     |
-|     TimescaleDB      |  Cluster   |     jdbc     |
-|       TDengine       |  2.2.0.2   |     jdbc     |
-|       TDengine       |   3.0.1    |     jdbc     |
-|      PI Archive      |    2016    |     jdbc     |
+|        数据库        |    版本    |
+| :------------------: | :--------: |
+|        IoTDB         |    v1.x    |
+|       InfluxDB       | v1.x、v2.x |
+|       QuestDB        |   v6.0.7   |
+| Microsoft SQL Server |  2016 SP2  |
+|   VictoriaMetrics    |  v1.64.0   |
+|        SQLite        |     --     |
+|       OpenTSDB       |     --     |
+|       KairosDB       |     --     |
+|     TimescaleDB      |     --     |
+|     TimescaleDB      |  Cluster   |
+|       TDengine       |  2.2.0.2   |
+|       TDengine       |   3.0.1    |
+|      PI Archive      |    2016    |
 
 # 3. 快速开始
 

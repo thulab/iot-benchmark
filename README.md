@@ -32,21 +32,21 @@ IoT-Benchmark is a benchmarking tool used to evaluate the performance of time se
 
 Currently supports the following databases, versions and connection methods:
 
-|       Database       |  Version   | Insert_Mode  |
-| :------------------: | :--------: | :----------: |
-|        IoTDB         |    v1.x    |     SDK      |
-|       InfluxDB       | v1.x, v2.x |     SDK      |
-|       QuestDB        |   v6.0.7   |     jdbc     |
-| Microsoft SQL Server |  2016 SP2  |     jdbc     |
-|   VictoriaMetrics    |  v1.64.0   | Http Request |
-|        SQLite        |     --     |     jdbc     |
-|       OpenTSDB       |   2.4.1    | Http Request |
-|       KairosDB       |     --     | Http Request |
-|     TimescaleDB      |     --     |     jdbc     |
-|     TimescaleDB      |  Cluster   |     jdbc     |
-|       TDengine       |  2.2.0.2   |     jdbc     |
-|       TDengine       |   3.0.1    |     jdbc     |
-|      PI Archive      |    2016    |     jdbc     |
+|       Database       |  Version   |
+| :------------------: | :--------: |
+|        IoTDB         |    v1.x    |
+|       InfluxDB       | v1.x, v2.x |
+|       QuestDB        |   v6.0.7   |
+| Microsoft SQL Server |  2016 SP2  |
+|   VictoriaMetrics    |  v1.64.0   |
+|        SQLite        |     --     |
+|       OpenTSDB       |   2.4.1    |
+|       KairosDB       |     --     |
+|     TimescaleDB      |     --     |
+|     TimescaleDB      |  Cluster   |
+|       TDengine       |  2.2.0.2   |
+|       TDengine       |   3.0.1    |
+|      PI Archive      |    2016    |
 
 # 3. Quick Start
 
