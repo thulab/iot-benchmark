@@ -15,6 +15,8 @@ You can also read [中文版本](README-cn.md).
 
 # 1. Overview
 
+![IoT Benchmark Architecture](https://github.com/apache/iotdb/assets/46039728/1fbf027d-0955-4de6-b727-57dbeaf2a5ab)
+
 IoT-Benchmark is a benchmarking tool used to evaluate the performance of time series databases and real-time databases in the Industrial Internet of Things (IIoT) scenario. It has the following features:
 1. **Cross-platform support**: Supports mainstream operating systems, and can start tests and obtain results through simple commands.
 2. **Integrates multiple test functions in one, able to meet diverse test needs**:
@@ -25,8 +27,6 @@ IoT-Benchmark is a benchmarking tool used to evaluate the performance of time se
 3. **Supports multiple types of databases**: Supports mainstream time series databases and real-time database products on the market such as InfluxDB and IoTDB.
 4. **Diversified test report generation**: Supports storing basic test information and results in various forms such as files and MySQL for further query or analysis.
 5. **Test result visualization**: Integrates with Tableau to visualize test results.
-
-![IoT Benchmark Architecture](https://github.com/apache/iotdb/assets/46039728/1fbf027d-0955-4de6-b727-57dbeaf2a5ab)
 
 # 2. Supported database types
 
@@ -57,8 +57,6 @@ To use IoT Benchmark, you need:
 1. Java 8
 2. Maven: It is not recommended to use the mirror source. You can use the Alibaba Cloud mirror source in China.
 3. The appropriate version of the database
-   1. Apache IoTDB >= v1.0 ([How to get it](https://github.com/apache/iotdb))
-   2. Other corresponding versions of the database
 
 Tips:
 
@@ -131,8 +129,6 @@ This will perform a write test using the default configuration. After the test s
 ```
 
 When the test is finished, the statistics of this test will be displayed as follows:
-
-
 
 ```
 ...
@@ -218,7 +214,6 @@ The output contains the overall information of the test, including:
   + Among them, ```SLOWEST_THREAD``` is the maximum cumulative operation time length in the client thread
 
 All the above information will be recorded in the ```logs``` folder of the running device.
-
 
 The configuration files are stored in `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values ​​are as follows:**
 
