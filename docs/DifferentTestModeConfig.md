@@ -4,7 +4,7 @@
 ** This document shows the specific configuration and execution of several test scenarios given in README.md **
 ** 该文档展示了README.md中给出的几种测试场景的具体配置以及具体执行情况 **
 
-# 6.2.1. 常规测试模式之查询(单数据库，不使用系统记录) Benchmark的配置 
+# 1. 常规测试模式之查询(单数据库，不使用系统记录) Benchmark的配置 
 
 修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_DELETE_DATA=false```，来关闭数据清理)：
 
@@ -41,7 +41,7 @@ GROUP_BY_TIME_UNIT=20000
 > 注意：
 > `config.properties`中包含了查询相关的配置参数，您可以通过查看示例文件来了解。
 
-## Benchmark的启动 
+## 1.1. Benchmark的启动 
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -51,7 +51,7 @@ GROUP_BY_TIME_UNIT=20000
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 1.2. Benchmark的执行
 
 测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
 
@@ -145,7 +145,7 @@ VALUE_RANGE_QUERY_DESC   5.44        0.52        2.05        2.68        3.62   
 
 
 
-# 6.2.2 常规测试模式之读写混合模式（单数据库） Benchmark的配置
+# 2. 6.2.2 常规测试模式之读写混合模式（单数据库） Benchmark的配置
 
 修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=false```，来关闭最近查询模式)：
 
@@ -181,7 +181,7 @@ QUERY_INTERVAL=250000
 GROUP_BY_TIME_UNIT=20000
 ```
 
-## Benchmark的启动
+## 2.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -191,7 +191,7 @@ GROUP_BY_TIME_UNIT=20000
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 2.2. Benchmark的执行
 
 测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
 
@@ -283,7 +283,7 @@ VALUE_RANGE_QUERY_DESC   13.19       0.37        0.65        0.86        1.46   
 
 
 
-# 6.2.3 常规测试模式之读写混合模式（单数据库，查询最近写入数据） Benchmark的配置
+# 3. 6.2.3 常规测试模式之读写混合模式（单数据库，查询最近写入数据） Benchmark的配置
 
 修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=true```，来关闭最近查询模式)：
 
@@ -319,7 +319,7 @@ QUERY_INTERVAL=250000
 GROUP_BY_TIME_UNIT=20000
 ```
 
-## Benchmark的启动
+## 3.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -329,7 +329,7 @@ GROUP_BY_TIME_UNIT=20000
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 3.2. Benchmark的执行
 
 测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
 
@@ -411,14 +411,14 @@ VALUE_RANGE_QUERY_DESC   13.08       0.08        0.31        0.61        1.16   
 
 
 
-# 6.2.4 常规测试模式之使用系统记录（单数据库） Benchmark的配置
+# 4. 6.2.4 常规测试模式之使用系统记录（单数据库） Benchmark的配置
 
 假设您的 IoTDB 服务器 IP 是 192.168.130.9，并且您安装了 iot-benchmark 的测试客户端服务器已授权访问 IoTDB 服务器。
 
 当前版本的信息记录依赖于 iostat。请确保 iostat 已安装在 IoTDB 服务器中。
 
 之后配置```config.properties```
-假设您使用的参数与[简单指引](#61-常规测试模式之写入单数据库)中的参数相同。您应该添加的新参数是 TEST_DATA_PERSISTENCE 和 MONITOR_INTERVAL，例如：
+假设您使用的参数与[简单指引](../#61-常规测试模式之写入单数据库)中的参数相同。您应该添加的新参数是 TEST_DATA_PERSISTENCE 和 MONITOR_INTERVAL，例如：
 
 ```properties
 TEST_DATA_PERSISTENCE=CSV
@@ -428,7 +428,7 @@ MONITOR_INTERVAL=0
 > 1. TEST_DATA_PERSISTENCE=CSV 表示测试结果保存到CSV中。
 > 2. INTERVAL=0 表示服务器信息记录的间隔最小为 2 秒。 如果您设置 INTERVAL=n，那么间隔将为 n+2 秒，因为记录过程至少需要2秒。在进行长时间测试时，您可能希望将 INTERVAL 设置得更长。
 
-## Benchmark的启动
+## 4.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -468,7 +468,7 @@ REMARK=
 
 
 
-# 6.2.5 常规测试模式之测试过程持久化（单数据库） Benchmark配置
+# 5. 6.2.5 常规测试模式之测试过程持久化（单数据库） Benchmark配置
 
 目前支持的存储数据库为IoTDB和MySQL，以MySQL为例，你需要修改```config.properties```文件中的如下配置：
 
@@ -498,7 +498,7 @@ REMARK=
 
 
 
-# 6.2.6 生成数据模式 Benchmark的配置
+# 6. 6.2.6 生成数据模式 Benchmark的配置
 
 为了生成可以重复使用的数据集，iot-benchmark提供生成数据集的模式，生成数据集到FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
 
@@ -522,7 +522,7 @@ BIG_BATCH_SIZE=100
 > 注意：
 > FILE_PATH文件夹应当为空文件夹，如果非空则会报错，生成的数据集会存放到这个文件夹中。
 
-## Benchmark的启动
+## 6.1. Benchmark的启动
 
 您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
@@ -530,7 +530,7 @@ BIG_BATCH_SIZE=100
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 6.2. Benchmark的执行
 
 生成数据启动后，你可以看到滚动的执行信息。当测试结束后，最后会显示出本次生成的数据集的信息，如下所示：
 
@@ -591,7 +591,7 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 
 
-# 6.2.7 正确性写入模式（单数据库，外部数据集） Benchmark的配置
+# 7. 6.2.7 正确性写入模式（单数据库，外部数据集） Benchmark的配置
 
 为此，你需要修改```config.properties```中的如下配置：
 
@@ -626,7 +626,7 @@ IS_COPY_MODE=true
 ```
 添加完成后，即可运行。
 
-## Benchmark的启动
+## 7.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -636,7 +636,7 @@ IS_COPY_MODE=true
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 7.2. Benchmark的执行
 
 写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
 
@@ -702,7 +702,7 @@ INGESTION                0.52        0.02        0.02        0.03        0.03   
 
 
 
-# 6.2.8 正确性单点查询模式（单数据库，外部数据集） Benchmark的配置
+# 8. 6.2.8 正确性单点查询模式（单数据库，外部数据集） Benchmark的配置
 
 为此，你需要修改```config.properties```中的如下配置：
 
@@ -718,7 +718,7 @@ BIG_BATCH_SIZE=100
 > 1. FILE_PATH文件夹应当为使用生成数据模式生成的数据集
 > 2. 运行该模式时其他参数应当和info.txt中的描述**保持一致**
  
-## Benchmark的启动
+## 8.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
 
@@ -728,7 +728,7 @@ BIG_BATCH_SIZE=100
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 8.2. Benchmark的执行
 写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
 
 ```
@@ -791,7 +791,7 @@ VERIFICATION_QUERY       14.48       0.96        11.40       12.67       14.43  
 ```
 
 
-# 6.2.9 双数据库模式 Benchmark配置
+# 9. 6.2.9 双数据库模式 Benchmark配置
 
 为了完成双数据库配置，您需要对`config.properties`完成如下修改：
 
@@ -822,7 +822,7 @@ IS_POINT_COMPARISON=false
 
 
 
-# 6.2.10 常规测试模式之写入(双数据库) Benchmark的配置
+# 10. 6.2.10 常规测试模式之写入(双数据库) Benchmark的配置
 
 如双数据库模式中描述的方式在`config.properties`完成双数据库配置
 
@@ -843,7 +843,7 @@ POINT_STEP=200
 LOOP=1000
 ```
 
-## Benchmark的启动
+## 10.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
@@ -853,7 +853,7 @@ LOOP=1000
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 10.2. Benchmark的执行
 
 写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
 
@@ -944,7 +944,7 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 
 
 
-# 6.2.11 正确性单点查询模式（双数据库比较） Benchmark的配置
+# 11. 6.2.11 正确性单点查询模式（双数据库比较） Benchmark的配置
 
 如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
 
@@ -970,7 +970,7 @@ POINT_STEP=200
 LOOP=1000
 ```
 
-## Benchmark的启动
+## 11.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
@@ -980,7 +980,7 @@ LOOP=1000
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 11.2. Benchmark的执行
 
 写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
 
@@ -1052,7 +1052,7 @@ DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27 
 
 
 
-# 6.2.12 正确性功能查询模式（双数据库比较） Benchmark的配置
+# 12. 6.2.12 正确性功能查询模式（双数据库比较） Benchmark的配置
 
 如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
 
@@ -1078,7 +1078,7 @@ POINT_STEP=5000
 LOOP=100
 ```
 
-## Benchmark的启动
+## 12.1. Benchmark的启动
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
@@ -1088,7 +1088,7 @@ LOOP=100
 > ./benchmark.sh
 ```
 
-## Benchmark的执行
+## 12.2. Benchmark的执行
 写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
 
 ```
