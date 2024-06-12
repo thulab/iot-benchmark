@@ -249,6 +249,7 @@ At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjus
 * For other variable parameter configurations and annotations, please refer to [config.properties](configuration/conf/config.properties), which will not be expanded here.
 
 # 4. Related articles
-Benchmark Time Series Database with iot-benchmark for IoT Scenarios
 
-Arxiv: https://arxiv.org/abs/1901.08304
+* [Benchmark Time Series Database with iot-benchmark for IoT Scenarios](https://arxiv.org/abs/1901.08304)
+
+* [Liu Shuai, Qiao Ying, Luo Xiongfei, Zhao Yijing, Wang Hong’an. Key Techniques of Time Series Databases: A Survey[J]. Journal of Computer Research and Development, 2024, 61(3): 614-638. DOI: 10.7544/issn1000-1239.202330536](https://crad.ict.ac.cn/cn/article/doi/10.7544/issn1000-1239.202330536?viewType=HTML)

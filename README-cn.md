@@ -238,6 +238,7 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 * 其他可变参数配置以及注解请见 [config.properties](configuration/conf/config.properties)，此处不做过多展开。
 
 # 4. 相关文章
-Benchmark Time Series Database with iot-benchmark for IoT Scenarios
 
-Arxiv: https://arxiv.org/abs/1901.08304
+* [Benchmark Time Series Database with iot-benchmark for IoT Scenarios](https://arxiv.org/abs/1901.08304)
+
+* [刘帅，乔颖，罗雄飞，赵怡婧，王宏安。时序数据库关键技术综述 [J]. 计算机研究与发展，2024, 61(3): 614-638. DOI: 10.7544/issn1000-1239.202330536](https://crad.ict.ac.cn/cn/article/doi/10.7544/issn1000-1239.202330536?viewType=HTML)
