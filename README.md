@@ -109,7 +109,7 @@ Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 
 After the compilation is completed, taking IoTDB v1.0 as an example, **you need to first start the corresponding version of IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the instructions in [IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md)). After successfully starting the IoTDB service, you can go to the `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0` folder and use `./benchmark.sh` to start the test of IoTDB v1.0. We recommend using the matching version for testing to achieve the best results.
 
-[Test configuration file](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md)
+[Test configuration file](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations-EN.md)
 
 ```
 
@@ -234,7 +234,7 @@ The configuration files are stored in `iot-benchmark/iotdb-1.0/target/iot-benchm
 |       TDengine       |  3.0.1   |         TDengine          |                                                  TDengine-3                                                  |
 |      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
-* For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase.md)
+* For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase-EN.md)
 
 At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjust the running mode of iot-benchmark. Currently, the following are supported:
 
@@ -245,7 +245,7 @@ At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjus
 | Correctness write mode | verificationWriteMode | Loads data sets from the FILE_PATH path for writing. Currently, IoTDB v1.0 and later versions are supported                      |
 | Correctness query mode | verificationQueryMode | Loads data sets from the FILE_PATH path for comparison with the database. Currently, IoTDB v1.0 and later versions are supported |
 
-* For more mode details, refer to [Overview of different test modes](./docs/DifferentTestMode.md), [Sample configuration of different test modes](./docs//DifferentTestModeConfig.md)
+* For more mode details, refer to [Overview of different test modes](./docs/DifferentTestMode-EN.md), [Sample configuration of different test modes](./docs//DifferentTestModeConfig-EN.md)
 * For other variable parameter configurations and annotations, please refer to [config.properties](configuration/conf/config.properties), which will not be expanded here.
 
 # 4. Related articles
