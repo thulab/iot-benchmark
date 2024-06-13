@@ -109,7 +109,7 @@ Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 
 After the compilation is completed, taking IoTDB v1.0 as an example, **you need to first start the corresponding version of IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the instructions in [IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md)). After successfully starting the IoTDB service, you can go to the `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0` folder and use `./benchmark.sh` to start the test of IoTDB v1.0. We recommend using the matching version for testing to achieve the best results.
 
-[Test configuration file](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations-EN.md)
+[Test configuration file](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md)
 
 ```
 
