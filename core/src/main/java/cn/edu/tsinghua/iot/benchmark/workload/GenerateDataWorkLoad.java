@@ -142,6 +142,13 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
 
 
+
+
+
+
+
+
+
     LOGGER.info("Start Generating WorkLoad");
     Object[][] workloadValues = null;
     if (config.hasWrite()) {
