@@ -32,7 +32,6 @@ public class RestAPI extends RegisterSchema {
         String host = dbConfig.getHOST().get(0);
         baseURL = String.format("http://%s:18080", host);
         ROOT_SERIES_NAME = "root";
-        // pass
     }
 
     private Request constructRequest(String api, String json) {
@@ -136,7 +135,9 @@ public class RestAPI extends RegisterSchema {
 
     @Override
     public Status preciseQuery(PreciseQuery preciseQuery) {
-        return null;
+        String strTime = preciseQuery.getTimestamp() + "";
+        String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
+        return executeQueryAndGetStatus(sql);
     }
 
     @Override
@@ -157,12 +158,24 @@ public class RestAPI extends RegisterSchema {
 
     @Override
     public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-        return null;
+        String aggQuerySqlHead =
+                getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
+        String sql = addWhereTimeClause(
+                aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
+        return executeQueryAndGetStatus(sql);
     }
 
     @Override
     public Status aggValueQuery(AggValueQuery aggValueQuery) {
-        return null;
+        String aggQuerySqlHead =
+                getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
+        String sql =
+                aggQuerySqlHead
+                        + " WHERE "
+                        + getValueFilterClause(
+                        aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
+                        .substring(4);
+        return executeQueryAndGetStatus(sql);
     }
 
     @Override
@@ -196,7 +209,15 @@ public class RestAPI extends RegisterSchema {
     }
     @Override
     public Status groupByQuery(GroupByQuery groupByQuery) {
-        return null;
+        String aggQuerySqlHead =
+                getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+        String sql =
+                addGroupByClause(
+                        aggQuerySqlHead,
+                        groupByQuery.getStartTimestamp(),
+                        groupByQuery.getEndTimestamp(),
+                        groupByQuery.getGranularity());
+        return executeQueryAndGetStatus(sql);
     }
 
     @Override
@@ -218,7 +239,8 @@ public class RestAPI extends RegisterSchema {
 
     @Override
     public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-        return null;
+        String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
+        return executeQueryAndGetStatus(sql);
     }
 
     private Status executeQueryAndGetStatus(String sql) {
@@ -227,14 +249,14 @@ public class RestAPI extends RegisterSchema {
         try {
             Response response = client.newCall(request).execute();
             if (!response.isSuccessful()) {
-                System.out.println("Unexpected code " + response+"--------------------------------"+ response.message());
-                throw new IOException("Unexpected code " + response+"--------------------------------");
+                throw new IOException("Unexpected code " + response);
             }
             String body = response.body().string();
             QueryResult queryResult = new Gson().fromJson(body, QueryResult.class);
             response.close();
-            if (queryResult.timestamps == null){
-                return new Status(true, 1);
+            if (queryResult.timestamps == null && response.code() == 200){
+                // The aggregate query has no timestamps and only one result
+                return new Status(true);
             }else {
                 return new Status(true, queryResult.timestamps.size());
             }
@@ -302,6 +324,10 @@ public class RestAPI extends RegisterSchema {
             builder.append(", ").append(querySensors.get(i).getName());
         }
         return addFromClause(devices, builder);
+    }
+
+    private String addGroupByClause(String prefix, long start, long end, long granularity) {
+        return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
     }
 
     private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
