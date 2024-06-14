@@ -44,6 +44,7 @@ public class RestAPI implements IDatabase {
         String host = dbConfig.getHOST().get(0);
         baseURL = String.format("http://%s:18080", host);
         ROOT_SERIES_NAME = "root";
+        // pass
     }
 
     private Request constructRequest(String api, String json) {
