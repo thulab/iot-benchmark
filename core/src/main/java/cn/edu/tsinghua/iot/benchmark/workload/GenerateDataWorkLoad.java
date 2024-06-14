@@ -139,6 +139,9 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     for (int i = 0; i < config.getDOUBLE_LENGTH(); i++) {
       ratio *= 10;
     }
+
+
+
     LOGGER.info("Start Generating WorkLoad");
     Object[][] workloadValues = null;
     if (config.hasWrite()) {
