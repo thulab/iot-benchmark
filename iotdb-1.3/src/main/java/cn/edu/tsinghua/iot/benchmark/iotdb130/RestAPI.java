@@ -5,42 +5,30 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.*;
 import com.google.gson.Gson;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RestAPI implements IDatabase {
+public class RestAPI extends RegisterSchema {
     private final OkHttpClient client = new OkHttpClient();
-    private DBConfig dbConfig;
     private final String baseURL;
     private final String authorization = "Basic cm9vdDpyb290";
     protected final String ROOT_SERIES_NAME;
     protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     public RestAPI(DBConfig dbConfig) {
-        this.dbConfig = dbConfig;
+        super(dbConfig, RestAPI.class);
         String host = dbConfig.getHOST().get(0);
         baseURL = String.format("http://%s:18080", host);
         ROOT_SERIES_NAME = "root";
@@ -60,6 +48,7 @@ public class RestAPI implements IDatabase {
 
     @Override
     public void cleanup() throws TsdbException {
+//        {"sql":"delete database root.**"}
         String json = "{\"sql\":\"delete database root.**\"}";
         Request request = constructRequest("/rest/v2/nonQuery", json);
         try {
@@ -74,10 +63,30 @@ public class RestAPI implements IDatabase {
     public void close() throws TsdbException {}
 
     @Override
-    public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-        return null;
+    protected String initializeRootSeriesName(DBConfig dbConfig) {
+        return "root";
     }
 
+
+    String getEncodingType(SensorType dataSensorType) {
+        switch (dataSensorType) {
+            case BOOLEAN:
+                return config.getENCODING_BOOLEAN();
+            case INT32:
+                return config.getENCODING_INT32();
+            case INT64:
+                return config.getENCODING_INT64();
+            case FLOAT:
+                return config.getENCODING_FLOAT();
+            case DOUBLE:
+                return config.getENCODING_DOUBLE();
+            case TEXT:
+                return config.getENCODING_TEXT();
+            default:
+                LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
+                return null;
+        }
+    }
     @Override
     public Status insertOneBatch(IBatch batch) throws DBConnectException {
         String json = generatePayload(batch);
@@ -94,10 +103,9 @@ public class RestAPI implements IDatabase {
 
     private String generatePayload(IBatch batch) {
         DeviceSchema schema = batch.getDeviceSchema();
-        Payload payload = new Payload();
+        PayLoad payload = new PayLoad();
         payload.device = String.format("root.%s", schema.getDevicePath());
         payload.is_aligned = config.isIS_SENSOR_TS_ALIGNMENT();
-
         List<String> measurements = new ArrayList<>();
         List<String> dataTypes = new ArrayList<>();
         for (Sensor sensor : schema.getSensors()) {
@@ -158,9 +166,33 @@ public class RestAPI implements IDatabase {
 
     @Override
     public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-        return null;
+        String aggQuerySqlHead =
+                getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
+        String sql =
+                addWhereTimeClause(
+                        aggQuerySqlHead,
+                        aggRangeValueQuery.getStartTimestamp(),
+                        aggRangeValueQuery.getEndTimestamp());
+        sql +=
+                getValueFilterClause(
+                        aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
+        return executeQueryAndGetStatus(sql);
     }
-
+    private String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SELECT ");
+        List<Sensor> querySensors = devices.get(0).getSensors();
+        builder.append(aggFun).append("(").append(querySensors.get(0).getName()).append(")");
+        for (int i = 1; i < querySensors.size(); i++) {
+            builder
+                    .append(", ")
+                    .append(aggFun)
+                    .append("(")
+                    .append(querySensors.get(i).getName())
+                    .append(")");
+        }
+        return addFromClause(devices, builder);
+    }
     @Override
     public Status groupByQuery(GroupByQuery groupByQuery) {
         return null;
@@ -174,7 +206,13 @@ public class RestAPI implements IDatabase {
 
     @Override
     public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-        return null;
+        String sql =
+                getRangeQuerySql(
+                        rangeQuery.getDeviceSchema(),
+                        rangeQuery.getStartTimestamp(),
+                        rangeQuery.getEndTimestamp())
+                        + " order by time desc";
+        return executeQueryAndGetStatus(sql);
     }
 
     @Override
@@ -187,10 +225,18 @@ public class RestAPI implements IDatabase {
         Request request = constructRequest("/rest/v2/query", json);
         try {
             Response response = client.newCall(request).execute();
+            if (!response.isSuccessful()) {
+                System.out.println("Unexpected code " + response+"--------------------------------"+ response.message());
+                throw new IOException("Unexpected code " + response+"--------------------------------");
+            }
             String body = response.body().string();
             QueryResult queryResult = new Gson().fromJson(body, QueryResult.class);
             response.close();
-            return new Status(true, queryResult.timestamps.size());
+            if (queryResult.timestamps == null){
+                return new Status(true, 1);
+            }else {
+                return new Status(true, queryResult.timestamps.size());
+            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return new Status(false);
@@ -275,19 +321,4 @@ public class RestAPI implements IDatabase {
         return name.toString();
     }
 
-    private class Payload {
-        public String device;
-        public boolean is_aligned;
-        public List<List<Object>> values;
-        public List<String> data_types;
-        public List<String> measurements;
-        public List<Long> timestamps;
-    }
-
-    private class QueryResult {
-        public List<String> expressions;
-        public List<String> column_names;
-        public List<Long> timestamps;
-        public List<List<Object>> values;
-    }
 }
