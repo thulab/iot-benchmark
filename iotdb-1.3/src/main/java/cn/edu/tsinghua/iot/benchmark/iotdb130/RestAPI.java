@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.iot.benchmark.iotdb130;
 
+import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
@@ -45,7 +46,6 @@ public class RestAPI extends IoTDB {
         String host = dbConfig.getHOST().get(0);
         baseURL = String.format("http://%s:18080", host);
         ROOT_SERIES_NAME = "root";
-        // pass
     }
 
     private Request constructRequest(String api, String json) {
@@ -74,11 +74,6 @@ public class RestAPI extends IoTDB {
 
     @Override
     public void close() throws TsdbException {}
-
-    @Override
-    public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-        return super.registerSchema(schemaList);
-    }
 
     @Override
     public Status insertOneBatch(IBatch batch) throws DBConnectException {
@@ -128,60 +123,8 @@ public class RestAPI extends IoTDB {
     }
 
     @Override
-    public Status preciseQuery(PreciseQuery preciseQuery) {
-        return null;
-    }
-
-    @Override
-    public Status rangeQuery(RangeQuery rangeQuery) {
-        String sql =
-                getRangeQuerySql(
-                        rangeQuery.getDeviceSchema(),
-                        rangeQuery.getStartTimestamp(),
-                        rangeQuery.getEndTimestamp());
+    protected Status executeQueryAndGetStatus(String sql, Operation operation){
         return executeQueryAndGetStatus(sql);
-    }
-
-    @Override
-    public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-        String sql = getValueRangeQuerySql(valueRangeQuery);
-        return executeQueryAndGetStatus(sql);
-    }
-
-    @Override
-    public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-        return null;
-    }
-
-    @Override
-    public Status aggValueQuery(AggValueQuery aggValueQuery) {
-        return null;
-    }
-
-    @Override
-    public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-        return null;
-    }
-
-    @Override
-    public Status groupByQuery(GroupByQuery groupByQuery) {
-        return null;
-    }
-
-    @Override
-    public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-        String sql = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-        return executeQueryAndGetStatus(sql);
-    }
-
-    @Override
-    public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-        return null;
-    }
-
-    @Override
-    public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-        return null;
     }
 
     private Status executeQueryAndGetStatus(String sql) {
@@ -192,90 +135,18 @@ public class RestAPI extends IoTDB {
             String body = response.body().string();
             QueryResult queryResult = new Gson().fromJson(body, QueryResult.class);
             response.close();
-            return new Status(true, queryResult.timestamps.size());
+            if (queryResult.timestamps == null && response.code() == 200) {
+                // The aggregate query has no timestamps and only one result
+                return new Status(true);
+            }else{
+                return new Status(true, queryResult.timestamps.size());
+            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
             return new Status(false);
         }
     }
 
-    private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
-        return addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end);
-    }
-
-    private String getValueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
-        String rangeQuerySql =
-                getRangeQuerySql(
-                        valueRangeQuery.getDeviceSchema(),
-                        valueRangeQuery.getStartTimestamp(),
-                        valueRangeQuery.getEndTimestamp());
-        String valueFilterClause =
-                getValueFilterClause(
-                        valueRangeQuery.getDeviceSchema(), (int) valueRangeQuery.getValueThreshold());
-        return rangeQuerySql + valueFilterClause;
-    }
-
-    private String getLatestPointQuerySql(List<DeviceSchema> devices) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT last ");
-        List<Sensor> querySensors = devices.get(0).getSensors();
-        builder.append(querySensors.get(0).getName());
-        for (int i = 1; i < querySensors.size(); i++) {
-            builder.append(", ").append(querySensors.get(i).getName());
-        }
-        return addFromClause(devices, builder);
-    }
-
-    private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
-        StringBuilder builder = new StringBuilder();
-        for (DeviceSchema deviceSchema : deviceSchemas) {
-            for (Sensor sensor : deviceSchema.getSensors()) {
-                builder
-                        .append(" AND ")
-                        .append(getDevicePath(deviceSchema))
-                        .append(".")
-                        .append(sensor.getName())
-                        .append(" > ")
-                        .append(valueThreshold);
-            }
-        }
-        return builder.toString();
-    }
-
-    private String addWhereTimeClause(String prefix, long start, long end) {
-        String startTime = start + "";
-        String endTime = end + "";
-        return prefix + " WHERE time >= " + startTime + " AND time <= " + endTime;
-    }
-
-    protected String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT ");
-        List<Sensor> querySensors = devices.get(0).getSensors();
-        builder.append(querySensors.get(0).getName());
-        for (int i = 1; i < querySensors.size(); i++) {
-            builder.append(", ").append(querySensors.get(i).getName());
-        }
-        return addFromClause(devices, builder);
-    }
-
-    private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-        builder.append(" FROM ").append(getDevicePath(devices.get(0)));
-        for (int i = 1; i < devices.size(); i++) {
-            builder.append(", ").append(getDevicePath(devices.get(i)));
-        }
-        return builder.toString();
-    }
-
-    protected String getDevicePath(DeviceSchema deviceSchema) {
-        StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
-        name.append(".").append(deviceSchema.getGroup());
-        for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
-            name.append(".").append(pair.getValue());
-        }
-        name.append(".").append(deviceSchema.getDevice());
-        return name.toString();
-    }
 
     private class Payload {
         public String device;
