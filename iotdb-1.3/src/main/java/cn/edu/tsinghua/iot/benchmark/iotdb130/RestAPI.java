@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RestAPI implements IDatabase {
+public class RestAPI extends IoTDB {
     private final OkHttpClient client = new OkHttpClient();
     private DBConfig dbConfig;
     private final String baseURL;
@@ -40,6 +40,7 @@ public class RestAPI implements IDatabase {
     protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
     public RestAPI(DBConfig dbConfig) {
+        super(dbConfig);
         this.dbConfig = dbConfig;
         String host = dbConfig.getHOST().get(0);
         baseURL = String.format("http://%s:18080", host);
@@ -60,13 +61,13 @@ public class RestAPI implements IDatabase {
     public void init() throws TsdbException {}
 
     @Override
-    public void cleanup() throws TsdbException {
+    public void cleanup() {
         String json = "{\"sql\":\"delete database root.**\"}";
         Request request = constructRequest("/rest/v2/nonQuery", json);
         try {
             Response response = client.newCall(request).execute();
             response.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
@@ -76,7 +77,7 @@ public class RestAPI implements IDatabase {
 
     @Override
     public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-        return null;
+        return super.registerSchema(schemaList);
     }
 
     @Override
