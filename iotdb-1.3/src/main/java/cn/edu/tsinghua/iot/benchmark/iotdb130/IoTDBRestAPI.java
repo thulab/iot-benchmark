@@ -10,29 +10,22 @@ import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import com.google.gson.Gson;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class RestAPI extends IoTDB {
+public class IoTDBRestAPI extends IoTDB {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBRestAPI.class);
     private final OkHttpClient client = new OkHttpClient();
     private DBConfig dbConfig;
     private final String baseURL;
@@ -40,9 +33,8 @@ public class RestAPI extends IoTDB {
     protected final String ROOT_SERIES_NAME;
     protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-    public RestAPI(DBConfig dbConfig) {
+    public IoTDBRestAPI(DBConfig dbConfig) {
         super(dbConfig);
-        this.dbConfig = dbConfig;
         String host = dbConfig.getHOST().get(0);
         baseURL = String.format("http://%s:18080", host);
         ROOT_SERIES_NAME = "root";
@@ -67,8 +59,9 @@ public class RestAPI extends IoTDB {
         try {
             Response response = client.newCall(request).execute();
             response.close();
+            LOGGER.info("Finish clean data!");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            LOGGER.warn("No Data to Clean!");
         }
     }
 
@@ -91,7 +84,7 @@ public class RestAPI extends IoTDB {
 
     private String generatePayload(IBatch batch) {
         DeviceSchema schema = batch.getDeviceSchema();
-        Payload payload = new Payload();
+        IoTDBRestPayload payload = new IoTDBRestPayload();
         payload.device = String.format("root.%s", schema.getDevicePath());
         payload.is_aligned = config.isIS_SENSOR_TS_ALIGNMENT();
 
@@ -133,7 +126,7 @@ public class RestAPI extends IoTDB {
         try {
             Response response = client.newCall(request).execute();
             String body = response.body().string();
-            QueryResult queryResult = new Gson().fromJson(body, QueryResult.class);
+            IoTDBRestQueryResult queryResult = new Gson().fromJson(body, IoTDBRestQueryResult.class);
             response.close();
             if (queryResult.timestamps == null && response.code() == 200) {
                 // The aggregate query has no timestamps and only one result
@@ -147,20 +140,4 @@ public class RestAPI extends IoTDB {
         }
     }
 
-
-    private class Payload {
-        public String device;
-        public boolean is_aligned;
-        public List<List<Object>> values;
-        public List<String> data_types;
-        public List<String> measurements;
-        public List<Long> timestamps;
-    }
-
-    private class QueryResult {
-        public List<String> expressions;
-        public List<String> column_names;
-        public List<Long> timestamps;
-        public List<List<Object>> values;
-    }
 }
