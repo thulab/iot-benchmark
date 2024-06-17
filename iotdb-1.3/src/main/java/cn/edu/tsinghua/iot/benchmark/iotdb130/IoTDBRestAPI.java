@@ -77,7 +77,7 @@ public class IoTDBRestAPI extends IoTDB {
             response.close();
             return new Status(true);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            LOGGER.warn("Insert failed!");
             return new Status(false);
         }
     }
@@ -135,7 +135,7 @@ public class IoTDBRestAPI extends IoTDB {
                 return new Status(true, queryResult.timestamps.size());
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            LOGGER.warn("Execute Query Failed!");
             return new Status(false);
         }
     }
