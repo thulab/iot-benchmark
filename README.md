@@ -234,7 +234,7 @@ The configuration files are stored in `iot-benchmark/iotdb-1.0/target/iot-benchm
 |       TDengine       |  3.0.1   |         TDengine          |                                                  TDengine-3                                                  |
 |      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
 
-* For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase.md)
+* For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase-EN.md)
 
 At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjust the running mode of iot-benchmark. Currently, the following are supported:
 
@@ -245,7 +245,7 @@ At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjus
 | Correctness write mode | verificationWriteMode | Loads data sets from the FILE_PATH path for writing. Currently, IoTDB v1.0 and later versions are supported                      |
 | Correctness query mode | verificationQueryMode | Loads data sets from the FILE_PATH path for comparison with the database. Currently, IoTDB v1.0 and later versions are supported |
 
-* For more mode details, refer to [Overview of different test modes](./docs/DifferentTestMode.md), [Sample configuration of different test modes](./docs//DifferentTestModeConfig.md)
+* For more mode details, refer to [Overview of different test modes](./docs/DifferentTestMode-EN.md), [Sample configuration of different test modes](./docs//DifferentTestModeConfig-EN.md)
 * For other variable parameter configurations and annotations, please refer to [config.properties](configuration/conf/config.properties), which will not be expanded here.
 
 # 4. Related articles
