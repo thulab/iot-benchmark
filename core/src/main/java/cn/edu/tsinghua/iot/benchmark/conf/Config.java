@@ -88,6 +88,7 @@ public class Config {
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
 
+  /** Authorization header for REST interface */
   private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
 
 // 初始化：双写模式
