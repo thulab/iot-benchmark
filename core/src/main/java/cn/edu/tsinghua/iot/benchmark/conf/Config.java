@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -91,7 +92,7 @@ public class Config {
   /** Authorization header for REST interface */
   private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
 
-// 初始化：双写模式
+  // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
   /** Another configuration of db */
@@ -558,6 +559,7 @@ public class Config {
     }
     return probabilities;
   }
+
   public String getREST_AUTHORIZATION() {
     return REST_AUTHORIZATION;
   }

@@ -97,7 +97,8 @@ public class ConfigDescriptor {
             BenchmarkMode.getBenchmarkMode(
                 properties.getProperty(
                     "BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
-        config.setREST_AUTHORIZATION(properties.getProperty("REST_AUTHORIZATION", config.getREST_AUTHORIZATION()));
+        config.setREST_AUTHORIZATION(
+            properties.getProperty("REST_AUTHORIZATION", config.getREST_AUTHORIZATION()));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
