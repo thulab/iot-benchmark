@@ -21,7 +21,7 @@ package cn.edu.tsinghua.iot.benchmark;
 
 import java.sql.SQLException;
 
-public class IoTDB110TestEntrance {
+public class IoTDB130TestEntrance {
     public static void main(String[] args) throws SQLException {
         App.main(args);
     }

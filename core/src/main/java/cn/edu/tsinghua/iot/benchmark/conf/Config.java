@@ -89,6 +89,9 @@ public class Config {
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
 
+  /** Authorization header for REST interface */
+  private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
+
   // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
@@ -555,6 +558,14 @@ public class Config {
       probabilities[i] = proportions[i - 1] / sum;
     }
     return probabilities;
+  }
+
+  public String getREST_AUTHORIZATION() {
+    return REST_AUTHORIZATION;
+  }
+
+  public void setREST_AUTHORIZATION(String REST_AUTHORIZATION) {
+    this.REST_AUTHORIZATION = REST_AUTHORIZATION;
   }
 
   public long IncrementAndGetCURRENT_RECORD_LINE() {
