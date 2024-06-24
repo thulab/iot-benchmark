@@ -27,7 +27,6 @@ import java.util.List;
 public class IoTDBRestAPI extends IoTDB {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBRestAPI.class);
   private final OkHttpClient client = new OkHttpClient();
-  private DBConfig dbConfig;
   private final String baseURL;
   protected final String ROOT_SERIES_NAME;
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
