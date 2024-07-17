@@ -38,6 +38,9 @@ public class DBFactory {
     String dbClass = "";
     try {
       switch (dbConfig.getDB_SWITCH()) {
+        case DB_IOT_130_TABLE_SESSION_BY_TABLET:
+        case DB_IOT_130_TABLE_SESSION_BY_RECORD:
+          dbClass = Constants.IOTDB130_SESSION_TABLE_CLASS;
           // IoTDB 1.3
         case DB_IOT_130_REST:
           dbClass = Constants.IOTDB130_REST_CLASS;
