@@ -126,10 +126,10 @@ public class Config {
   /** The length of double */
   private int DOUBLE_LENGTH = 2;
   /**
-   * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT D5: DOUBLE D6:
-   * TEXT
+   * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6:D7:D8:D9:D9:D10 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT
+   * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE 0:0:0:0:0:0:0:0:1:0
    */
-  private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1";
+  private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1:1:1:1:1";
 
   /** The compress of data */
   private String COMPRESSOR = "LZ4";
@@ -145,6 +145,14 @@ public class Config {
   private String ENCODING_DOUBLE = "GORILLA";
   /** The encoding of text */
   private String ENCODING_TEXT = "DICTIONARY";
+  /** The encoding of string */
+  private String ENCODING_STRING = "PLAIN";
+  /** The encoding of blob */
+  private String ENCODING_BLOB = "PLAIN";
+  /** The encoding of timestamp */
+  private String ENCODING_TIMESTAMP = "TS_2DIFF";
+  /** The encoding of date */
+  private String ENCODING_DATE = "TS_2DIFF";
 
   // 测试数据相关参数
 
@@ -511,7 +519,7 @@ public class Config {
 
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
-    int typeNumber = 6;
+    int typeNumber = 10;
     double[] probabilities = generateProbabilities(typeNumber);
     if (probabilities.length == 0) {
       return;
@@ -536,7 +544,8 @@ public class Config {
     // Origin proportion array
     double[] proportions = new double[typeNumber];
     LOGGER.info(
-        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}", INSERT_DATATYPE_PROPORTION);
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
+        INSERT_DATATYPE_PROPORTION);
 
     String[] split = INSERT_DATATYPE_PROPORTION.split(":");
     if (split.length != typeNumber) {
@@ -799,6 +808,38 @@ public class Config {
 
   public void setENCODING_TEXT(String ENCODING_TEXT) {
     this.ENCODING_TEXT = ENCODING_TEXT;
+  }
+
+  public String getENCODING_STRING() {
+    return ENCODING_STRING;
+  }
+
+  public void setENCODING_STRING(String ENCODING_STRING) {
+    this.ENCODING_STRING = ENCODING_STRING;
+  }
+
+  public String getENCODING_BLOB() {
+    return ENCODING_BLOB;
+  }
+
+  public void setENCODING_BLOB(String ENCODING_BLOB) {
+    this.ENCODING_BLOB = ENCODING_BLOB;
+  }
+
+  public String getENCODING_TIMESTAMP() {
+    return ENCODING_TIMESTAMP;
+  }
+
+  public void setENCODING_TIMESTAMP(String ENCODING_TIMESTAMP) {
+    this.ENCODING_TIMESTAMP = ENCODING_TIMESTAMP;
+  }
+
+  public String getENCODING_DATE() {
+    return ENCODING_DATE;
+  }
+
+  public void setENCODING_DATE(String ENCODING_DATE) {
+    this.ENCODING_DATE = ENCODING_DATE;
   }
 
   public String getFILE_PATH() {

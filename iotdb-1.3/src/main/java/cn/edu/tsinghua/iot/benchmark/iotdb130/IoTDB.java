@@ -25,9 +25,6 @@ import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
-import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -55,6 +52,9 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import org.apache.tsfile.enums.TSDataType;
+import org.apache.tsfile.file.metadata.enums.CompressionType;
+import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -937,6 +937,14 @@ public class IoTDB implements IDatabase {
         return config.getENCODING_DOUBLE();
       case TEXT:
         return config.getENCODING_TEXT();
+      case STRING:
+        return config.getENCODING_STRING();
+      case BLOB:
+        return config.getENCODING_BLOB();
+      case TIMESTAMP:
+        return config.getENCODING_TIMESTAMP();
+      case DATE:
+        return config.getENCODING_DATE();
       default:
         LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;
