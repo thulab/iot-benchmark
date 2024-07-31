@@ -45,7 +45,7 @@ public class VerificationWriteMode extends BaseMode {
     if (config.isCREATE_SCHEMA() && (!registerSchema())) {
       return false;
     }
-    return true;
+    return checkInsertDataTypeProportion();
   }
 
   @Override

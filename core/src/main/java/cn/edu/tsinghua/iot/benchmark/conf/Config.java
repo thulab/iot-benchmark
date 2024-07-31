@@ -129,7 +129,7 @@ public class Config {
    * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6:D7:D8:D9:D9:D10 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT
    * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE
    */
-  private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1:1:1:1:1";
+  private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1:0:0:0:0";
 
   /** The compress of data */
   private String COMPRESSOR = "LZ4";
