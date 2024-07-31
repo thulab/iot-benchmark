@@ -523,8 +523,7 @@ public class IoTDBSessionBase extends IoTDB {
   Status waitWriteTaskToFinishAndGetStatus() {
     try {
       task.get(config.getWRITE_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
-      // InterruptedException | ExecutionException | TimeoutException e
-    } catch (Exception e) {
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
       task.cancel(true);
       LOGGER.error("insertion failed", e);
       return new Status(false, 0, e, e.toString());
