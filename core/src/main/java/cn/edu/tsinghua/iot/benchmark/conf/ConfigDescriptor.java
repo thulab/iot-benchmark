@@ -211,6 +211,12 @@ public class ConfigDescriptor {
         config.setENCODING_DOUBLE(
             properties.getProperty("ENCODING_DOUBLE", config.getENCODING_DOUBLE()));
         config.setENCODING_TEXT(properties.getProperty("ENCODING_TEXT", config.getENCODING_TEXT()));
+        config.setENCODING_STRING(
+            properties.getProperty("ENCODING_STRING", config.getENCODING_STRING()));
+        config.setENCODING_BLOB(properties.getProperty("ENCODING_BLOB", config.getENCODING_BLOB()));
+        config.setENCODING_TIMESTAMP(
+            properties.getProperty("ENCODING_TIMESTAMP", config.getENCODING_TIMESTAMP()));
+        config.setENCODING_DATE(properties.getProperty("ENCODING_DATE", config.getENCODING_DATE()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
         config.setBIG_BATCH_SIZE(

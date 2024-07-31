@@ -22,14 +22,6 @@ package cn.edu.tsinghua.iot.benchmark.iotdb130;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-import org.apache.iotdb.tsfile.read.common.Field;
-import org.apache.iotdb.tsfile.read.common.RowRecord;
-import org.apache.iotdb.tsfile.utils.Binary;
-import org.apache.iotdb.tsfile.utils.BytesUtils;
-import org.apache.iotdb.tsfile.write.record.Tablet;
-import org.apache.iotdb.tsfile.write.schema.MeasurementSchema;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -47,8 +39,17 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import org.apache.tsfile.enums.TSDataType;
+import org.apache.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.tsfile.read.common.Field;
+import org.apache.tsfile.read.common.RowRecord;
+import org.apache.tsfile.utils.Binary;
+import org.apache.tsfile.utils.BytesUtils;
+import org.apache.tsfile.write.record.Tablet;
+import org.apache.tsfile.write.schema.MeasurementSchema;
 import org.slf4j.Logger;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -432,11 +433,29 @@ public class IoTDBSessionBase extends IoTDB {
                 (double) (record.getRecordDataValue().get(recordValueIndex));
             break;
           case TEXT:
+          case STRING:
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
             sensorsText[recordIndex] =
                 binaryCache.computeIfAbsent(
                     (String) record.getRecordDataValue().get(recordValueIndex),
                     BytesUtils::valueOf);
+            break;
+          case BLOB:
+            Binary[] sensorsBlob = (Binary[]) values[recordValueIndex];
+            sensorsBlob[recordIndex] =
+                binaryCache.computeIfAbsent(
+                    String.valueOf((Binary) record.getRecordDataValue().get(recordValueIndex)),
+                    BytesUtils::valueOf);
+            break;
+          case TIMESTAMP:
+            long[] sensorsTimestamp = (long[]) values[recordValueIndex];
+            sensorsTimestamp[recordIndex] =
+                (long) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case DATE:
+            LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
+            sensorsDate[recordIndex] =
+                (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
             break;
           default:
             LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
@@ -468,6 +487,18 @@ public class IoTDBSessionBase extends IoTDB {
           break;
         case TEXT:
           dataTypes.add(TSDataType.TEXT);
+          break;
+        case STRING:
+          dataTypes.add(TSDataType.STRING);
+          break;
+        case BLOB:
+          dataTypes.add(TSDataType.BLOB);
+          break;
+        case TIMESTAMP:
+          dataTypes.add(TSDataType.TIMESTAMP);
+          break;
+        case DATE:
+          dataTypes.add(TSDataType.DATE);
           break;
       }
     }

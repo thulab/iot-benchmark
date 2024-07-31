@@ -19,11 +19,10 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130;
 
-import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
-
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import org.apache.tsfile.enums.TSDataType;
+import org.apache.tsfile.file.metadata.enums.CompressionType;
+import org.apache.tsfile.file.metadata.enums.TSEncoding;
 
 import java.util.List;
 

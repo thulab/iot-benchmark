@@ -25,7 +25,11 @@ public enum SensorType {
   INT64("INT64"),
   FLOAT("FLOAT"),
   DOUBLE("DOUBLE"),
-  TEXT("TEXT");
+  TEXT("TEXT"),
+  STRING("STRING"),
+  BLOB("BLOB"),
+  TIMESTAMP("TIMESTAMP"),
+  DATE("DATE");
 
   public String name;
 
