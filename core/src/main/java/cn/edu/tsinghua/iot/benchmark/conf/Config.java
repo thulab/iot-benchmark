@@ -127,7 +127,7 @@ public class Config {
   private int DOUBLE_LENGTH = 2;
   /**
    * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6:D7:D8:D9:D9:D10 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT
-   * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE 0:0:0:0:0:0:0:0:1:0
+   * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE
    */
   private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1:1:1:1:1";
 
@@ -537,15 +537,12 @@ public class Config {
     }
   }
 
-  /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1) */
+  /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1:1:1:1:1) */
   private double[] generateProbabilities(int typeNumber) {
     // Probabilities for Types
     double[] probabilities = new double[typeNumber + 1];
     // Origin proportion array
     double[] proportions = new double[typeNumber];
-    LOGGER.info(
-        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
-        INSERT_DATATYPE_PROPORTION);
 
     String[] split = INSERT_DATATYPE_PROPORTION.split(":");
     if (split.length != typeNumber) {

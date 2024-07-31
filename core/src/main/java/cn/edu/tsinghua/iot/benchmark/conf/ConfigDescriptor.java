@@ -199,6 +199,21 @@ public class ConfigDescriptor {
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
+        String INSERT_DATATYPE_PROPORTION = config.getINSERT_DATATYPE_PROPORTION();
+        String[] split = INSERT_DATATYPE_PROPORTION.split(":");
+        switch (split.length) {
+          case 6:
+            LOGGER.info(
+                "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}",
+                INSERT_DATATYPE_PROPORTION);
+            break;
+          case 10:
+            LOGGER.info(
+                "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
+                INSERT_DATATYPE_PROPORTION);
+            break;
+        }
+
         config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", config.getCOMPRESSOR()));
         config.setENCODING_BOOLEAN(
             properties.getProperty("ENCODING_BOOLEAN", config.getENCODING_BOOLEAN()));

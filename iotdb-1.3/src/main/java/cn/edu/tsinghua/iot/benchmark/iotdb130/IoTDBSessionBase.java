@@ -434,17 +434,11 @@ public class IoTDBSessionBase extends IoTDB {
             break;
           case TEXT:
           case STRING:
+          case BLOB:
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
             sensorsText[recordIndex] =
                 binaryCache.computeIfAbsent(
                     (String) record.getRecordDataValue().get(recordValueIndex),
-                    BytesUtils::valueOf);
-            break;
-          case BLOB:
-            Binary[] sensorsBlob = (Binary[]) values[recordValueIndex];
-            sensorsBlob[recordIndex] =
-                binaryCache.computeIfAbsent(
-                    String.valueOf((Binary) record.getRecordDataValue().get(recordValueIndex)),
                     BytesUtils::valueOf);
             break;
           case TIMESTAMP:

@@ -27,12 +27,10 @@ import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
-import org.apache.tsfile.utils.Binary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -135,19 +133,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     return Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
   }
 
-  private static long generateRandomTimestamp(long startTimeMillis, long endTimeMillis) {
-    Random random = new Random();
-    return startTimeMillis + (long) (random.nextDouble() * (endTimeMillis - startTimeMillis));
-  }
-
-  private static LocalDate generateRandomDate(LocalDate end) {
-    // 从 1000-01-01 开始是 valid
-    LocalDate start = LocalDate.of(1000, 1, 1);
-    int daysBetween = (int) ChronoUnit.DAYS.between(start, end);
-    Random random = new Random();
-    return start.plusDays(random.nextInt(daysBetween + 1));
-  }
-
   /** Init workload values */
   private static Object[][] initWorkloadValues() {
     double ratio = 1.0;
@@ -177,6 +162,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
               value = number.intValue();
               break;
             case INT64:
+            case TIMESTAMP:
               value = number.longValue();
               break;
             case FLOAT:
@@ -187,24 +173,15 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
               break;
             case TEXT:
             case STRING:
+            case BLOB:
               StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
               for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
                 builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
               }
               value = builder.toString();
               break;
-            case BLOB:
-              byte[] blob = new byte[config.getSTRING_LENGTH()];
-              for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-                blob[k] = (byte) (CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
-              }
-              value = new Binary(blob);
-              break;
-            case TIMESTAMP:
-              value = generateRandomTimestamp(0, System.currentTimeMillis());
-              break;
             case DATE:
-              value = generateRandomDate(LocalDate.now());
+              value = LocalDate.ofEpochDay(number.intValue());
               break;
             default:
               value = null;
