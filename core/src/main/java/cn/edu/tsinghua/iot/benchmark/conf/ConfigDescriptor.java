@@ -766,10 +766,10 @@ public class ConfigDescriptor {
 
   // Only iotdb supports STRING BLOB TIMESTAMP DATE
   protected boolean checkInsertDataTypeProportion() {
-    String dbType = config.getDbConfig().getDB_SWITCH().getType().toString();
+    DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
     int oldTypeNimber = config.getTYPE_NUMBER();
-    if (splits.length > oldTypeNimber && !dbType.equals("IoTDB") && !dbType.equals("DoubleIoTDB")) {
+    if (splits.length > oldTypeNimber && dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
       for (int i = oldTypeNimber; i < splits.length; i++) {
         if (splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
