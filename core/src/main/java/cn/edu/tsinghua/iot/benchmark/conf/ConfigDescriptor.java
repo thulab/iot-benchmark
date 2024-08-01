@@ -195,24 +195,22 @@ public class ConfigDescriptor {
         config.setDOUBLE_LENGTH(
             Integer.parseInt(
                 properties.getProperty("DOUBLE_LENGTH", config.getDOUBLE_LENGTH() + "")));
+        config.setTYPE_NUMBER(
+            Integer.parseInt(properties.getProperty("TYPE_NUMBER", config.getTYPE_NUMBER() + "")));
         config.setINSERT_DATATYPE_PROPORTION(
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
 
+        String[] info =
+            "BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE".split(":");
         String INSERT_DATATYPE_PROPORTION = config.getINSERT_DATATYPE_PROPORTION();
         String[] split = INSERT_DATATYPE_PROPORTION.split(":");
-        switch (split.length) {
-          case 6:
-            LOGGER.info(
-                "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT= {}",
-                INSERT_DATATYPE_PROPORTION);
-            break;
-          case 10:
-            LOGGER.info(
-                "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
-                INSERT_DATATYPE_PROPORTION);
-            break;
+        StringBuilder builder1 = new StringBuilder();
+
+        for (int i = split.length; i < config.getTYPE_NUMBER(); i++) {
+          builder1.append(info[i]);
         }
+        LOGGER.info("Init SensorTypes:{}={}", builder1, INSERT_DATATYPE_PROPORTION);
 
         config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", config.getCOMPRESSOR()));
         config.setENCODING_BOOLEAN(
@@ -622,6 +620,7 @@ public class ConfigDescriptor {
       default:
         break;
     }
+    result &= checkInsertDataTypeProportion();
     result &= checkOperationProportion();
     if (config.getCLIENT_NUMBER() == 0) {
       LOGGER.error("Client number can't be zero");
@@ -763,6 +762,22 @@ public class ConfigDescriptor {
           "Verification only support between iotdb v1.0 and newer version, timescaledb and influxdb 1.x");
     }
     return result;
+  }
+
+  // Only iotdb supports STRING BLOB TIMESTAMP DATE
+  protected boolean checkInsertDataTypeProportion() {
+    String dbType = config.getDbConfig().getDB_SWITCH().getType().toString();
+    String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
+    int oldTypeNimber = config.getTYPE_NUMBER();
+    if (splits.length > oldTypeNimber && !dbType.equals("IoTDB") && !dbType.equals("DoubleIoTDB")) {
+      for (int i = oldTypeNimber; i < splits.length; i++) {
+        if (splits[i].equals("0")) {
+          LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**

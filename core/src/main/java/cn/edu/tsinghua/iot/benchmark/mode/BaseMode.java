@@ -68,21 +68,6 @@ public abstract class BaseMode {
 
   protected abstract boolean preCheck();
 
-  // STRING BLOB TIMESTAMP DATE 当前只支持 iotdb
-  protected boolean checkInsertDataTypeProportion() {
-    String dbType = config.getDbConfig().getDB_SWITCH().getType().toString();
-    String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (splits.length > 6 && !dbType.equals("IoTDB") && !dbType.equals("DoubleIoTDB")) {
-      for (int i = 6; i < splits.length; i++) {
-        if (splits[i].equals("0")) {
-          LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   /** Start benchmark */
   public void run() {
     if (!preCheck()) {

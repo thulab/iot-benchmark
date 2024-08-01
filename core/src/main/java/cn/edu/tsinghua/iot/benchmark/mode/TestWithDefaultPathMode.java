@@ -54,8 +54,7 @@ public class TestWithDefaultPathMode extends BaseMode {
     if (config.isCREATE_SCHEMA() && (!registerSchema())) {
       return false;
     }
-    // 非 iotdb 时，INSERT_DATATYPE_PROPORTION 只能包含前 6 种数据类型
-    return checkInsertDataTypeProportion();
+    return true;
   }
 
   @Override

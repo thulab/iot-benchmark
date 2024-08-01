@@ -35,7 +35,6 @@ public class GenerateDataMode extends BaseMode {
 
   @Override
   protected boolean preCheck() {
-    if (!checkInsertDataTypeProportion()) return false;
     return SchemaWriter.getBasicWriter().writeSchema(metaDataSchema.getAllDeviceSchemas());
   }
 
