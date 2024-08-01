@@ -184,7 +184,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
               value = LocalDate.ofEpochDay(number.intValue());
               break;
             default:
-              throw new UnsupportedOperationException("");
+              throw new UnsupportedOperationException(sensor.getSensorType() + ": This data type is not supported.");
           }
           workloadValues[sensorIndex][i] = value;
         }
