@@ -788,7 +788,7 @@ public class IoTDB implements IDatabase {
           builder.append(",").append("'").append(value).append("'");
           break;
         case BLOB:
-          builder.append(",").append("0x'").append(value).append("'");
+          builder.append(",").append("X'").append(value).append("'");
           break;
       }
       sensorIndex++;

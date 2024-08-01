@@ -125,10 +125,6 @@ public class Config {
   private int STRING_LENGTH = 2;
   /** The length of double */
   private int DOUBLE_LENGTH = 2;
-  /** The number of data types supported by all databases */
-  private int OLD_TYPE_NUMBER = 6;
-  /** The number of data types supported by iotdb */
-  private int TYPE_NUMBER = 10;
   /**
    * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6:D7:D8:D9:D9:D10 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT
    * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE
@@ -523,14 +519,15 @@ public class Config {
 
   /** According to the number of sensors, initialize the sensor number */
   void initSensorCodes() {
-    double[] probabilities = generateProbabilities(TYPE_NUMBER);
+    int typeNumber = 10;
+    double[] probabilities = generateProbabilities(typeNumber);
     if (probabilities.length == 0) {
       return;
     }
     for (int sensorIndex = 0; sensorIndex < SENSOR_NUMBER; sensorIndex++) {
       double sensorPosition = (sensorIndex + 1) * 1.0 / SENSOR_NUMBER;
       int i;
-      for (i = 1; i <= TYPE_NUMBER; i++) {
+      for (i = 1; i <= typeNumber; i++) {
         if (sensorPosition > probabilities[i - 1] && sensorPosition <= probabilities[i]) {
           break;
         }
@@ -744,22 +741,6 @@ public class Config {
 
   public void setDOUBLE_LENGTH(int DOUBLE_LENGTH) {
     this.DOUBLE_LENGTH = DOUBLE_LENGTH;
-  }
-
-  public int getOLD_TYPE_NUMBER() {
-    return OLD_TYPE_NUMBER;
-  }
-
-  public void setOLD_TYPE_NUMBER(int OLD_TYPE_NUMBER) {
-    this.OLD_TYPE_NUMBER = OLD_TYPE_NUMBER;
-  }
-
-  public int getTYPE_NUMBER() {
-    return TYPE_NUMBER;
-  }
-
-  public void setTYPE_NUMBER(int TYPE_NUMBER) {
-    this.TYPE_NUMBER = TYPE_NUMBER;
   }
 
   public String getINSERT_DATATYPE_PROPORTION() {

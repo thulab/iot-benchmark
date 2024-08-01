@@ -195,23 +195,9 @@ public class ConfigDescriptor {
         config.setDOUBLE_LENGTH(
             Integer.parseInt(
                 properties.getProperty("DOUBLE_LENGTH", config.getDOUBLE_LENGTH() + "")));
-        config.setTYPE_NUMBER(
-            Integer.parseInt(properties.getProperty("TYPE_NUMBER", config.getTYPE_NUMBER() + "")));
         config.setINSERT_DATATYPE_PROPORTION(
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
-
-        String[] info =
-            "BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE".split(":");
-        String INSERT_DATATYPE_PROPORTION = config.getINSERT_DATATYPE_PROPORTION();
-        String[] split = INSERT_DATATYPE_PROPORTION.split(":");
-        StringBuilder builder1 = new StringBuilder();
-
-        for (int i = split.length; i < config.getTYPE_NUMBER(); i++) {
-          builder1.append(info[i]);
-        }
-        LOGGER.info("Init SensorTypes:{}={}", builder1, INSERT_DATATYPE_PROPORTION);
-
         config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", config.getCOMPRESSOR()));
         config.setENCODING_BOOLEAN(
             properties.getProperty("ENCODING_BOOLEAN", config.getENCODING_BOOLEAN()));
@@ -768,15 +754,17 @@ public class ConfigDescriptor {
   protected boolean checkInsertDataTypeProportion() {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    int oldTypeNimber = config.getTYPE_NUMBER();
-    if (splits.length > oldTypeNimber && dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
-      for (int i = oldTypeNimber; i < splits.length; i++) {
-        if (splits[i].equals("0")) {
+    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
+      for (int i = splits.length - 4; i < splits.length; i++) {
+        if (!splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
           return false;
         }
       }
     }
+    LOGGER.info(
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
+        config.getINSERT_DATATYPE_PROPORTION());
     return true;
   }
 
