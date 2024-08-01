@@ -779,9 +779,13 @@ public class IoTDB implements IDatabase {
         case INT64:
         case FLOAT:
         case DOUBLE:
+        case TIMESTAMP:
+        case DATE:
           builder.append(",").append(value);
           break;
         case TEXT:
+        case STRING:
+        case BLOB:
           builder.append(",").append("'").append(value).append("'");
           break;
       }
