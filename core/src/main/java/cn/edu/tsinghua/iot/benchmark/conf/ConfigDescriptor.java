@@ -755,7 +755,7 @@ public class ConfigDescriptor {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
-      for (int i = splits.length - 4; i < splits.length; i++) {
+      for (int i = config.getOldTypeNumber(); i < splits.length; i++) {
         if (!splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
           return false;
