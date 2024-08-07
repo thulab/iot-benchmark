@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -109,10 +110,10 @@ public class IoTDBSessionBase extends IoTDB {
       try {
         if (config.isVECTOR()) {
           sessionWrapper.insertAlignedRecord(
-              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+              deviceId, timestamp, sensors, dataTypes, convertTypeForBLOB(record, dataTypes));
         } else {
           sessionWrapper.insertRecord(
-              deviceId, timestamp, sensors, dataTypes, record.getRecordDataValue());
+              deviceId, timestamp, sensors, dataTypes, convertTypeForBLOB(record, dataTypes));
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;
@@ -142,10 +143,11 @@ public class IoTDBSessionBase extends IoTDB {
         deviceIds.add(deviceId);
         times.add(record.getTimestamp());
         measurementsList.add(sensors);
-        valuesList.add(record.getRecordDataValue());
+        List<TSDataType> dataTypes = constructDataTypes(
+            batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
+        valuesList.add(convertTypeForBLOB(record, dataTypes));
         typesList.add(
-            constructDataTypes(
-                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size()));
+            dataTypes);
       }
       if (!batch.hasNext()) {
         break;
@@ -497,6 +499,19 @@ public class IoTDBSessionBase extends IoTDB {
       }
     }
     return dataTypes;
+  }
+
+  public List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
+    // String change to Binary
+    List<Object> dataValue = record.getRecordDataValue();
+    for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
+      if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
+        dataValue.set(recordValueIndex, binaryCache.computeIfAbsent(
+            (String) record.getRecordDataValue().get(recordValueIndex),
+            BytesUtils::valueOf));
+      }
+    }
+    return dataValue;
   }
 
   @Override

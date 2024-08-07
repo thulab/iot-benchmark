@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130;
 
+import cn.edu.tsinghua.iot.benchmark.function.Function;
+import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -62,6 +64,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,6 +106,9 @@ public class IoTDB implements IDatabase {
   protected Future<?> task;
   protected DBConfig dbConfig;
   protected Random random = new Random(config.getDATA_SEED());
+  private static final Random dataRandom = new Random(config.getDATA_SEED());
+  private static final String CHAR_TABLE =
+      "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -630,13 +636,29 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
+        FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
+        Number number = Function.getValueByFunctionIdAndParam(param, System.currentTimeMillis());
         builder
             .append(" AND ")
             .append(getDevicePath(deviceSchema))
             .append(".")
             .append(sensor.getName())
-            .append(" > ")
-            .append(valueThreshold);
+            .append(" > ");
+        switch (sensor.getSensorType()) {
+          case DATE:
+            builder.append("'").append(LocalDate.ofEpochDay(number.intValue())).append("'");
+            break;
+          case STRING:
+            StringBuffer stringBuffer = new StringBuffer(config.getSTRING_LENGTH());
+            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+              stringBuffer.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+            }
+            builder.append("'").append(stringBuffer).append("'");
+            break;
+          default:
+            builder.append(valueThreshold);
+            break;
+        }
       }
     }
     return builder.toString();
