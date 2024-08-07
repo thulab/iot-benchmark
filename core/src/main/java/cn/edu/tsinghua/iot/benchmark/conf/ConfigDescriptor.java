@@ -757,7 +757,7 @@ public class ConfigDescriptor {
     if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
       for (int i = config.getOldTypeNumber(); i < splits.length; i++) {
         if (!splits[i].equals("0")) {
-          LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
+          LOGGER.warn("INSERT_DATATYPE_PROPORTION error, this database do not support those type.");
           return false;
         }
       }
