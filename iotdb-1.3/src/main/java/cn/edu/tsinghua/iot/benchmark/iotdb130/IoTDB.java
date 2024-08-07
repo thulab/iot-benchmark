@@ -19,8 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130;
 
-import cn.edu.tsinghua.iot.benchmark.function.Function;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -37,6 +35,8 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iot.benchmark.function.Function;
+import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -92,6 +92,7 @@ public class IoTDB implements IDatabase {
   private static final String ALREADY_KEYWORD = "already";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
+  private final String ORDER_BY_TIME_DESC = " order by time desc ";
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -572,6 +573,19 @@ public class IoTDB implements IDatabase {
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sql =
+        addGroupByClause(
+            aggQuerySqlHead,
+            groupByQuery.getStartTimestamp(),
+            groupByQuery.getEndTimestamp(),
+            groupByQuery.getGranularity());
+    sql += ORDER_BY_TIME_DESC;
+    return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
+  }
   /**
    * Generate simple query header.
    *

@@ -143,11 +143,11 @@ public class IoTDBSessionBase extends IoTDB {
         deviceIds.add(deviceId);
         times.add(record.getTimestamp());
         measurementsList.add(sensors);
-        List<TSDataType> dataTypes = constructDataTypes(
-            batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
+        List<TSDataType> dataTypes =
+            constructDataTypes(
+                batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
         valuesList.add(convertTypeForBLOB(record, dataTypes));
-        typesList.add(
-            dataTypes);
+        typesList.add(dataTypes);
       }
       if (!batch.hasNext()) {
         break;
@@ -504,11 +504,14 @@ public class IoTDBSessionBase extends IoTDB {
   public List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
     // String change to Binary
     List<Object> dataValue = record.getRecordDataValue();
-    for (int recordValueIndex = 0; recordValueIndex < record.getRecordDataValue().size(); recordValueIndex++) {
+    for (int recordValueIndex = 0;
+        recordValueIndex < record.getRecordDataValue().size();
+        recordValueIndex++) {
       if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
-        dataValue.set(recordValueIndex, binaryCache.computeIfAbsent(
-            (String) record.getRecordDataValue().get(recordValueIndex),
-            BytesUtils::valueOf));
+        dataValue.set(
+            recordValueIndex,
+            binaryCache.computeIfAbsent(
+                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
       }
     }
     return dataValue;
