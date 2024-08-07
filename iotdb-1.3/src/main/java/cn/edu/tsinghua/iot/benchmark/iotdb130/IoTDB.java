@@ -107,7 +107,6 @@ public class IoTDB implements IDatabase {
   protected Future<?> task;
   protected DBConfig dbConfig;
   protected Random random = new Random(config.getDATA_SEED());
-  private static final Random dataRandom = new Random(config.getDATA_SEED());
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -665,7 +664,7 @@ public class IoTDB implements IDatabase {
           case STRING:
             StringBuffer stringBuffer = new StringBuffer(config.getSTRING_LENGTH());
             for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-              stringBuffer.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+              stringBuffer.append(CHAR_TABLE.charAt(random.nextInt(CHAR_TABLE.length())));
             }
             builder.append("'").append(stringBuffer).append("'");
             break;
