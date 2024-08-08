@@ -35,8 +35,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iot.benchmark.function.Function;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -107,8 +105,6 @@ public class IoTDB implements IDatabase {
   protected Future<?> task;
   protected DBConfig dbConfig;
   protected Random random = new Random(config.getDATA_SEED());
-  private static final String CHAR_TABLE =
-      "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -585,6 +581,7 @@ public class IoTDB implements IDatabase {
     sql += ORDER_BY_TIME_DESC;
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
+
   /**
    * Generate simple query header.
    *
@@ -649,28 +646,16 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
-        FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
-        Number number = Function.getValueByFunctionIdAndParam(param, System.currentTimeMillis());
         builder
             .append(" AND ")
             .append(getDevicePath(deviceSchema))
             .append(".")
             .append(sensor.getName())
             .append(" > ");
-        switch (sensor.getSensorType()) {
-          case DATE:
-            builder.append("'").append(LocalDate.ofEpochDay(number.intValue())).append("'");
-            break;
-          case STRING:
-            StringBuffer stringBuffer = new StringBuffer(config.getSTRING_LENGTH());
-            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-              stringBuffer.append(CHAR_TABLE.charAt(random.nextInt(CHAR_TABLE.length())));
-            }
-            builder.append("'").append(stringBuffer).append("'");
-            break;
-          default:
-            builder.append(valueThreshold);
-            break;
+        if (sensor.getSensorType() == SensorType.DATE) {
+          builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
+        } else {
+          builder.append(valueThreshold);
         }
       }
     }

@@ -43,8 +43,6 @@ public class Config {
   private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
   /** The total number of data types supported by the benchmark */
   private final int typeNumber = 10;
-  /** Number of data types supported by all databases */
-  private final int oldTypeNumber = 6;
   // 初始化
   // 初始化：清理数据
   /** Whether to clear old data before test */
@@ -570,10 +568,6 @@ public class Config {
 
   public int getTypeNumber() {
     return typeNumber;
-  }
-
-  public int getOldTypeNumber() {
-    return oldTypeNumber;
   }
 
   public String getREST_AUTHORIZATION() {

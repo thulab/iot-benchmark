@@ -107,13 +107,13 @@ public class IoTDBSessionBase extends IoTDB {
       List<TSDataType> dataTypes =
           constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
+      List<Object> recordDataValue = convertTypeForBLOB(record, dataTypes);
       try {
         if (config.isVECTOR()) {
           sessionWrapper.insertAlignedRecord(
-              deviceId, timestamp, sensors, dataTypes, convertTypeForBLOB(record, dataTypes));
+              deviceId, timestamp, sensors, dataTypes, recordDataValue);
         } else {
-          sessionWrapper.insertRecord(
-              deviceId, timestamp, sensors, dataTypes, convertTypeForBLOB(record, dataTypes));
+          sessionWrapper.insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;

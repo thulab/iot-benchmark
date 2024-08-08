@@ -228,6 +228,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
           SensorType sensorType = sensor.getSensorType();
           if (sensorType == SensorType.BOOLEAN
               || sensorType == SensorType.TEXT
+              || sensorType == SensorType.STRING
               || sensorType == SensorType.BLOB) {
             continue;
           }
