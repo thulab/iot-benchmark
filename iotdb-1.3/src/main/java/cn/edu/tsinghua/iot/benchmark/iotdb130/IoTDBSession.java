@@ -112,6 +112,12 @@ public class IoTDBSession extends IoTDBSessionBase {
     }
 
     @Override
+    public void insertRelationalTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
+      session.insertRelationalTablet(tablet);
+    }
+
+    @Override
     public ISessionDataSet executeQueryStatement(String sql)
         throws IoTDBConnectionException, StatementExecutionException {
       return new SessionDataSet1(session.executeQueryStatement(sql));
@@ -171,7 +177,9 @@ public class IoTDBSession extends IoTDBSessionBase {
                 .username(dbConfig.getUSERNAME())
                 .password(dbConfig.getPASSWORD())
                 .enableRedirection(true)
+                .database(dbConfig.getDB_NAME())
                 .version(Version.V_1_0)
+                .sqlDialect(dbConfig.getSQL_DIALECT())
                 .build());
   }
 
@@ -192,16 +200,18 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public void cleanup() {
     try {
-      sessionWrapper.executeNonQueryStatement(
-          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
-    } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
-    } catch (StatementExecutionException e) {
-      LOGGER.error("Failed to execute statement:" + e.getMessage());
-    }
-
-    try {
-      sessionWrapper.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
+      if (config.isENABLE_TABLE()) {
+        ISessionDataSet dataSet = sessionWrapper.executeQueryStatement("show databases");
+        while (dataSet.hasNext()) {
+          sessionWrapper.executeNonQueryStatement(
+              "drop database " + dataSet.next().getFields().get(0).toString());
+        }
+      } else {
+        sessionWrapper.executeNonQueryStatement(
+            "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+        sessionWrapper.executeNonQueryStatement(
+            "drop schema template " + config.getTEMPLATE_NAME());
+      }
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {

@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
@@ -147,6 +148,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
       for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
         Sensor sensor = config.getSENSORS().get(sensorIndex);
+        int j = 0;
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
@@ -175,8 +177,15 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
             case STRING:
             case BLOB:
               StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
-              for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-                builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+              if (sensor.getColumnCategory() == ColumnCategory.ID) {
+                // Generated value for identity column of table model
+                builder
+                    .append(config.getDEVICE_NAME_PREFIX())
+                    .append((j++) % config.getDEVICE_NUMBER());
+              } else {
+                for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+                  builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+                }
               }
               value = builder.toString();
               break;

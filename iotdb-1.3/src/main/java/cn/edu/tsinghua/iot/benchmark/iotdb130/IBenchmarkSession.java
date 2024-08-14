@@ -50,6 +50,9 @@ public interface IBenchmarkSession {
   void insertAlignedTablet(Tablet tablet)
       throws IoTDBConnectionException, StatementExecutionException;
 
+  void insertRelationalTablet(Tablet tablet)
+      throws IoTDBConnectionException, StatementExecutionException;
+
   ISessionDataSet executeQueryStatement(String sql)
       throws IoTDBConnectionException, StatementExecutionException;
 

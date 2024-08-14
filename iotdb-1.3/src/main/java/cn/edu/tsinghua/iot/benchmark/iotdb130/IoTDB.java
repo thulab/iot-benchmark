@@ -19,8 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130;
 
-import cn.edu.tsinghua.iot.benchmark.function.Function;
-import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
+import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -37,6 +36,8 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iot.benchmark.function.Function;
+import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -91,6 +92,7 @@ public class IoTDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
+  private static final AtomicBoolean databaseNotExist = new AtomicBoolean(true);
   protected final String DELETE_SERIES_SQL;
   protected SingleNodeJDBCConnection ioTDBConnection;
 
@@ -113,7 +115,10 @@ public class IoTDB implements IDatabase {
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
-    DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
+    DELETE_SERIES_SQL =
+        config.isENABLE_TABLE()
+            ? "drop database " + dbConfig.getDB_NAME()
+            : "delete storage group root." + dbConfig.getDB_NAME() + ".*";
   }
 
   @Override
@@ -171,6 +176,7 @@ public class IoTDB implements IDatabase {
                   .username(dbConfig.getUSERNAME())
                   .password(dbConfig.getPASSWORD())
                   .version(Version.V_1_0)
+                  .sqlDialect(dbConfig.getSQL_DIALECT())
                   .build();
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
           sessionListMap.put(metaSession, createTimeseries(schemaList));
@@ -185,6 +191,7 @@ public class IoTDB implements IDatabase {
                     .username(dbConfig.getUSERNAME())
                     .password(dbConfig.getPASSWORD())
                     .version(Version.V_1_0)
+                    .sqlDialect(dbConfig.getSQL_DIALECT())
                     .build();
             metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
             keys.add(metaSession);
@@ -211,7 +218,8 @@ public class IoTDB implements IDatabase {
         }
         templateBarrier.await();
         for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-          registerStorageGroups(pair.getKey(), pair.getValue());
+          if (config.isENABLE_TABLE()) registerDatabase(pair.getKey());
+          else registerStorageGroups(pair.getKey(), pair.getValue());
         }
         schemaBarrier.await();
         if (config.isTEMPLATE()) {
@@ -222,7 +230,11 @@ public class IoTDB implements IDatabase {
         }
         if (!config.isTEMPLATE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-            registerTimeseries(pair.getKey(), pair.getValue());
+            if (config.isENABLE_TABLE()) {
+              registerTable(pair.getKey(), pair.getValue());
+            } else {
+              registerTimeseries(pair.getKey(), pair.getValue());
+            }
           }
         }
       } catch (Exception e) {
@@ -381,6 +393,71 @@ public class IoTDB implements IDatabase {
         handleRegisterException(e);
       }
     }
+  }
+
+  private void registerTable(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
+      throws TsdbException {
+    try {
+      DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
+      StringBuilder builder = new StringBuilder();
+      // g_0_table is the database name
+      builder
+          .append("create table if not exists ")
+          .append(deviceSchema.getGroup())
+          .append("_table(");
+      for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
+        if (i != 0) builder.append(", ");
+        builder
+            .append(deviceSchema.getSensors().get(i).getName())
+            .append(" ")
+            .append(deviceSchema.getSensors().get(i).getSensorType())
+            .append(" ")
+            .append(deviceSchema.getSensors().get(i).getColumnCategory());
+      }
+      builder.append(")");
+      metaSession.executeNonQueryStatement("use " + config.getDbConfig().getDB_NAME());
+      metaSession.executeNonQueryStatement(builder.toString());
+    } catch (Exception e) {
+      handleRegisterException(e);
+    }
+  }
+
+  // root.test.g_0.d_0 test is the database name.Ensure that only one client creates the table.
+  private static void registerDatabase(Session metaSession) {
+    if (isDatabaseNotExist(metaSession).get()) {
+      synchronized (databaseNotExist) {
+        if (isDatabaseNotExist(metaSession).get()) {
+          try {
+            metaSession.executeNonQueryStatement(
+                "create database " + config.getDbConfig().getDB_NAME());
+          } catch (IoTDBConnectionException | StatementExecutionException e) {
+            LOGGER.error("Failed to create database:" + e.getMessage());
+          }
+        }
+      }
+    }
+  }
+
+  // Verify that the database not exists.
+  private static AtomicBoolean isDatabaseNotExist(Session metaSession) {
+    try {
+      SessionDataSet dataSet = metaSession.executeQueryStatement("show databases");
+      while (dataSet.hasNext()) {
+        if (dataSet
+            .next()
+            .getFields()
+            .get(0)
+            .toString()
+            .equals(config.getDbConfig().getDB_NAME())) {
+          databaseNotExist.set(false);
+          return databaseNotExist;
+        }
+      }
+    } catch (IoTDBConnectionException | StatementExecutionException e) {
+      LOGGER.error("Failed to show database:" + e.getMessage());
+    }
+    databaseNotExist.set(true);
+    return databaseNotExist;
   }
 
   private void handleRegisterException(Exception e) throws TsdbException {
@@ -613,9 +690,20 @@ public class IoTDB implements IDatabase {
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    builder.append(" FROM ").append(getDevicePath(devices.get(0)));
+    // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
+    // test is the database name, g_0_table is the table name, and the device is the identification
+    // column.
+    builder
+        .append(" FROM ")
+        .append(
+            config.isENABLE_TABLE()
+                ? devices.get(0).getGroup() + "_table"
+                : getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
-      builder.append(", ").append(getDevicePath(devices.get(i)));
+      builder.append(
+          config.isENABLE_TABLE()
+              ? devices.get(i).getGroup() + "_table"
+              : "." + getDevicePath(devices.get(i)));
     }
     return builder.toString();
   }
@@ -638,12 +726,9 @@ public class IoTDB implements IDatabase {
       for (Sensor sensor : deviceSchema.getSensors()) {
         FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
         Number number = Function.getValueByFunctionIdAndParam(param, System.currentTimeMillis());
-        builder
-            .append(" AND ")
-            .append(getDevicePath(deviceSchema))
-            .append(".")
-            .append(sensor.getName())
-            .append(" > ");
+        // The tree model requires a time series, the table model only requires column names.
+        String devicePath = config.isENABLE_TABLE() ? "" : getDevicePath(deviceSchema) + ".";
+        builder.append(" AND ").append(devicePath).append(sensor.getName()).append(" > ");
         switch (sensor.getSensorType()) {
           case DATE:
             builder.append("'").append(LocalDate.ofEpochDay(number.intValue())).append("'");

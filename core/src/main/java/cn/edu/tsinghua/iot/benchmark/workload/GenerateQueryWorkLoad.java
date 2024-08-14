@@ -226,7 +226,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
         Sensor sensor = sensors.get(sensorId);
         if (!typeAllow) {
           SensorType sensorType = sensor.getSensorType();
-          if (sensorType == SensorType.BOOLEAN || sensorType == SensorType.TEXT || sensorType == SensorType.BLOB ) {
+          if (sensorType == SensorType.BOOLEAN
+              || sensorType == SensorType.TEXT
+              || sensorType == SensorType.BLOB) {
             continue;
           }
         }

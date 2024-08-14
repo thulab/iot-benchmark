@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
 public class ConfigDescriptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
@@ -86,6 +87,9 @@ public class ConfigDescriptor {
       Properties properties = new Properties();
       try {
         properties.load(inputStream);
+        config.setENABLE_TABLE(
+            Boolean.parseBoolean(
+                properties.getProperty("ENABLE_TABLE", config.isENABLE_TABLE() + "")));
         config.setIS_DELETE_DATA(
             Boolean.parseBoolean(
                 properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA() + "")));
@@ -120,6 +124,8 @@ public class ConfigDescriptor {
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
+        if (config.isENABLE_TABLE()) config.setSqlDialect("table");
+        else config.setSqlDialect("tree");
 
         config.setIS_DOUBLE_WRITE(
             Boolean.parseBoolean(
@@ -606,6 +612,12 @@ public class ConfigDescriptor {
       default:
         break;
     }
+    if (config.isENABLE_TABLE()
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET) {
+      LOGGER.error(
+          "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
+      result = false;
+    }
     result &= checkInsertDataTypeProportion();
     result &= checkOperationProportion();
     if (config.getCLIENT_NUMBER() == 0) {
@@ -755,7 +767,7 @@ public class ConfigDescriptor {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
     if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
-      for (int i = config.getOldTypeNumber(); i < splits.length; i++) {
+      for (int i = config.getTypeNumber() - 4; i < splits.length; i++) {
         if (!splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, please check this parameter.");
           return false;
