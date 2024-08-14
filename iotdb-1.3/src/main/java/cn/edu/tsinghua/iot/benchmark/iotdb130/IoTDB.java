@@ -217,9 +217,13 @@ public class IoTDB implements IDatabase {
           start = System.nanoTime();
         }
         templateBarrier.await();
-        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-          if (config.isENABLE_TABLE()) registerDatabase(pair.getKey());
-          else registerStorageGroups(pair.getKey(), pair.getValue());
+        if (config.isENABLE_TABLE())
+          registerDatabase(
+              sessionListMap.entrySet().stream().findFirst().map(Map.Entry::getKey).orElse(null));
+        else {
+          for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+            registerStorageGroups(pair.getKey(), pair.getValue());
+          }
         }
         schemaBarrier.await();
         if (config.isTEMPLATE()) {
