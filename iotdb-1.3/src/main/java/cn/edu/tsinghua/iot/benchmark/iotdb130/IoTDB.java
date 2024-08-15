@@ -735,12 +735,8 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
-        builder
-            .append(" AND ")
-            .append(getDevicePath(deviceSchema))
-            .append(".")
-            .append(sensor.getName())
-            .append(" > ");
+        String devicePath = config.isENABLE_TABLE() ? "" : getDevicePath(deviceSchema) + ".";
+        builder.append(" AND ").append(devicePath).append(sensor.getName()).append(" > ");
         if (sensor.getSensorType() == SensorType.DATE) {
           builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
         } else {
