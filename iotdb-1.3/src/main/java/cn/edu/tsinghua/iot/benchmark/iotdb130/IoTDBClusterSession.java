@@ -126,6 +126,12 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
 
     @Override
+    public void insertRelationalTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
+      sessionWrapper.insertRelationalTablet(tablet);
+    }
+
+    @Override
     public ISessionDataSet executeQueryStatement(String sql)
         throws IoTDBConnectionException, StatementExecutionException {
       return new SessionDataSet2(sessionPool.executeQueryStatement(sql));

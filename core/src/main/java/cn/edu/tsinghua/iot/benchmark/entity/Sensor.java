@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.entity;
 
+import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -31,12 +32,20 @@ import java.io.IOException;
 public class Sensor {
   private String name;
   private SensorType sensorType;
+  private ColumnCategory columnCategory;
 
   public Sensor() {}
 
   public Sensor(String name, SensorType sensorType) {
     this.name = name;
     this.sensorType = sensorType;
+    this.columnCategory = ColumnCategory.MEASUREMENT;
+  }
+
+  public Sensor(String name, SensorType sensorType, ColumnCategory columnCategory) {
+    this.name = name;
+    this.sensorType = sensorType;
+    this.columnCategory = columnCategory;
   }
 
   public String getName() {
@@ -55,6 +64,14 @@ public class Sensor {
     this.sensorType = sensorType;
   }
 
+  public ColumnCategory getColumnCategory() {
+    return columnCategory;
+  }
+
+  public void setColumnCategory(ColumnCategory columnCategory) {
+    this.columnCategory = columnCategory;
+  }
+
   /**
    * serialize to output stream
    *
@@ -63,6 +80,7 @@ public class Sensor {
   public void serialize(ByteArrayOutputStream outputStream) throws IOException {
     ReadWriteIOUtils.write(name, outputStream);
     ReadWriteIOUtils.write(sensorType.ordinal(), outputStream);
+    ReadWriteIOUtils.write(columnCategory.ordinal(), outputStream);
   }
 
   /**
@@ -74,6 +92,7 @@ public class Sensor {
     Sensor result = new Sensor();
     result.name = ReadWriteIOUtils.readString(inputStream);
     result.sensorType = SensorType.getType(ReadWriteIOUtils.readInt(inputStream));
+    result.columnCategory = ColumnCategory.getType(ReadWriteIOUtils.readInt(inputStream));
     return result;
   }
 
@@ -92,12 +111,17 @@ public class Sensor {
     return new EqualsBuilder()
         .append(name, that.name)
         .append(sensorType, that.sensorType)
+        .append(columnCategory, that.columnCategory)
         .isEquals();
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(name).append(sensorType).toHashCode();
+    return new HashCodeBuilder(17, 37)
+        .append(name)
+        .append(sensorType)
+        .append(columnCategory)
+        .toHashCode();
   }
 
   @Override

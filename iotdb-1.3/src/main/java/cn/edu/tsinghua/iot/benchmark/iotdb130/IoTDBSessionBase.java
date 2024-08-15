@@ -46,6 +46,7 @@ import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.utils.Binary;
 import org.apache.tsfile.utils.BytesUtils;
 import org.apache.tsfile.write.record.Tablet;
+import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.apache.tsfile.write.schema.MeasurementSchema;
 import org.slf4j.Logger;
 
@@ -83,7 +84,9 @@ public class IoTDBSessionBase extends IoTDB {
         service.submit(
             () -> {
               try {
-                if (config.isVECTOR()) {
+                if (config.isENABLE_TABLE()) {
+                  sessionWrapper.insertRelationalTablet(tablet);
+                } else if (config.isVECTOR()) {
                   sessionWrapper.insertAlignedTablet(tablet);
                 } else {
                   sessionWrapper.insertTablet(tablet);
@@ -383,9 +386,28 @@ public class IoTDBSessionBase extends IoTDB {
     return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
+  //
   protected Tablet genTablet(IBatch batch) {
     config.getWORKLOAD_BUFFER_SIZE();
-    List<MeasurementSchema> schemaList = new ArrayList<>();
+    List<IMeasurementSchema> schemaList = new ArrayList<>();
+    List<Tablet.ColumnType> columnTypes = new ArrayList<>();
+    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
+    if (config.isENABLE_TABLE()) {
+      for (Sensor sensor : sensors) {
+        switch (sensor.getColumnCategory()) {
+          case ID:
+            columnTypes.add(Tablet.ColumnType.ID);
+            break;
+          case ATTRIBUTE:
+            columnTypes.add(Tablet.ColumnType.ATTRIBUTE);
+            break;
+          case MEASUREMENT:
+          default:
+            columnTypes.add(Tablet.ColumnType.MEASUREMENT);
+            break;
+        }
+      }
+    }
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
       SensorType dataSensorType = sensor.getSensorType();
@@ -396,12 +418,17 @@ public class IoTDBSessionBase extends IoTDB {
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
-    String deviceId = getDevicePath(batch.getDeviceSchema());
-    Tablet tablet = new Tablet(deviceId, schemaList, batch.getRecords().size());
+    String deviceId =
+        config.isENABLE_TABLE()
+            ? batch.getDeviceSchema().getGroup() + "_table"
+            : getDevicePath(batch.getDeviceSchema());
+    Tablet tablet =
+        config.isENABLE_TABLE()
+            ? new Tablet(deviceId, schemaList, columnTypes, batch.getRecords().size())
+            : new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
 
-    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
       Record record = batch.getRecords().get(recordIndex);
