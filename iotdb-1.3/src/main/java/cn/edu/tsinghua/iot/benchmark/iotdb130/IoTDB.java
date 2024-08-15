@@ -197,7 +197,9 @@ public class IoTDB implements IDatabase {
           }
         }
 
-        if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
+        if (config.isTEMPLATE()
+            && !config.isENABLE_TABLE()
+            && templateInit.compareAndSet(false, true)) {
           Template template = null;
           if (config.isTEMPLATE() && schemaList.size() > 0) {
             template = createTemplate(schemaList.get(0));
@@ -219,7 +221,7 @@ public class IoTDB implements IDatabase {
           }
         }
         schemaBarrier.await();
-        if (config.isTEMPLATE()) {
+        if (config.isTEMPLATE() && !config.isENABLE_TABLE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             activateTemplate(pair.getKey(), pair.getValue());
           }

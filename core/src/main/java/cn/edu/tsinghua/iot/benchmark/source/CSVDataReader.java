@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.*;
 
 public class CSVDataReader extends DataReader {
@@ -100,6 +101,7 @@ public class CSVDataReader extends DataReader {
               recordValues.add(Integer.parseInt(values[i]));
               break;
             case INT64:
+            case TIMESTAMP:
               recordValues.add(Long.parseLong(values[i]));
               break;
             case FLOAT:
@@ -109,8 +111,12 @@ public class CSVDataReader extends DataReader {
               recordValues.add(Double.parseDouble(values[i]));
               break;
             case TEXT:
+            case STRING:
+            case BLOB:
               recordValues.add(values[i]);
               break;
+            case DATE:
+              recordValues.add(LocalDate.ofEpochDay(Long.parseLong(values[i])));
             default:
               LOGGER.error("Error Type");
           }
