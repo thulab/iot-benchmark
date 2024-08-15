@@ -198,7 +198,6 @@ public class ConfigDescriptor {
         config.setINSERT_DATATYPE_PROPORTION(
             properties.getProperty(
                 "INSERT_DATATYPE_PROPORTION", config.getINSERT_DATATYPE_PROPORTION()));
-
         config.setCOMPRESSOR(properties.getProperty("COMPRESSOR", config.getCOMPRESSOR()));
         config.setENCODING_BOOLEAN(
             properties.getProperty("ENCODING_BOOLEAN", config.getENCODING_BOOLEAN()));
@@ -211,6 +210,12 @@ public class ConfigDescriptor {
         config.setENCODING_DOUBLE(
             properties.getProperty("ENCODING_DOUBLE", config.getENCODING_DOUBLE()));
         config.setENCODING_TEXT(properties.getProperty("ENCODING_TEXT", config.getENCODING_TEXT()));
+        config.setENCODING_STRING(
+            properties.getProperty("ENCODING_STRING", config.getENCODING_STRING()));
+        config.setENCODING_BLOB(properties.getProperty("ENCODING_BLOB", config.getENCODING_BLOB()));
+        config.setENCODING_TIMESTAMP(
+            properties.getProperty("ENCODING_TIMESTAMP", config.getENCODING_TIMESTAMP()));
+        config.setENCODING_DATE(properties.getProperty("ENCODING_DATE", config.getENCODING_DATE()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
         config.setBIG_BATCH_SIZE(
@@ -601,6 +606,7 @@ public class ConfigDescriptor {
       default:
         break;
     }
+    result &= checkInsertDataTypeProportion();
     result &= checkOperationProportion();
     if (config.getCLIENT_NUMBER() == 0) {
       LOGGER.error("Client number can't be zero");
@@ -742,6 +748,25 @@ public class ConfigDescriptor {
           "Verification only support between iotdb v1.0 and newer version, timescaledb and influxdb 1.x");
     }
     return result;
+  }
+
+  // Only iotdb supports STRING BLOB TIMESTAMP DATE
+  protected boolean checkInsertDataTypeProportion() {
+    DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
+    String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
+    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
+      // When not iotdb, the last four digits of the data ratio must be 0
+      for (int i = config.getTypeNumber() - 4; i < splits.length; i++) {
+        if (!splits[i].equals("0")) {
+          LOGGER.warn("INSERT_DATATYPE_PROPORTION error, this database do not support those type.");
+          return false;
+        }
+      }
+    }
+    LOGGER.info(
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
+        config.getINSERT_DATATYPE_PROPORTION());
+    return true;
   }
 
   /**

@@ -26,6 +26,8 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.PersistenceFactory;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +35,7 @@ import java.util.List;
 
 public class TestWithDefaultPathMode extends BaseMode {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(TestWithDefaultPathMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   @Override

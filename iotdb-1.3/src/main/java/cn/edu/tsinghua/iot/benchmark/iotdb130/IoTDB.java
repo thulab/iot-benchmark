@@ -25,9 +25,6 @@ import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
-import org.apache.iotdb.tsfile.file.metadata.enums.CompressionType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
-import org.apache.iotdb.tsfile.file.metadata.enums.TSEncoding;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -55,6 +52,9 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import org.apache.tsfile.enums.TSDataType;
+import org.apache.tsfile.file.metadata.enums.CompressionType;
+import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,6 +90,7 @@ public class IoTDB implements IDatabase {
   private static final String ALREADY_KEYWORD = "already";
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
   protected final String DELETE_SERIES_SQL;
+  private final String ORDER_BY_TIME_DESC = " order by time desc ";
   protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -566,6 +568,20 @@ public class IoTDB implements IDatabase {
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    String aggQuerySqlHead =
+        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sql =
+        addGroupByClause(
+            aggQuerySqlHead,
+            groupByQuery.getStartTimestamp(),
+            groupByQuery.getEndTimestamp(),
+            groupByQuery.getGranularity());
+    sql += ORDER_BY_TIME_DESC;
+    return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
+  }
+
   /**
    * Generate simple query header.
    *
@@ -635,8 +651,12 @@ public class IoTDB implements IDatabase {
             .append(getDevicePath(deviceSchema))
             .append(".")
             .append(sensor.getName())
-            .append(" > ")
-            .append(valueThreshold);
+            .append(" > ");
+        if (sensor.getSensorType() == SensorType.DATE) {
+          builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
+        } else {
+          builder.append(valueThreshold);
+        }
       }
     }
     return builder.toString();
@@ -779,10 +799,16 @@ public class IoTDB implements IDatabase {
         case INT64:
         case FLOAT:
         case DOUBLE:
+        case TIMESTAMP:
+        case DATE:
           builder.append(",").append(value);
           break;
         case TEXT:
+        case STRING:
           builder.append(",").append("'").append(value).append("'");
+          break;
+        case BLOB:
+          builder.append(",").append("X'").append(value).append("'");
           break;
       }
       sensorIndex++;
@@ -937,6 +963,14 @@ public class IoTDB implements IDatabase {
         return config.getENCODING_DOUBLE();
       case TEXT:
         return config.getENCODING_TEXT();
+      case STRING:
+        return config.getENCODING_STRING();
+      case BLOB:
+        return config.getENCODING_BLOB();
+      case TIMESTAMP:
+        return config.getENCODING_TIMESTAMP();
+      case DATE:
+        return config.getENCODING_DATE();
       default:
         LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;

@@ -23,7 +23,6 @@ import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
@@ -31,6 +30,7 @@ import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -152,37 +152,40 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
           // periodic
           long currentTimestamp = getCurrentTimestampStatic(i);
           Object value;
-          if (sensor.getSensorType() == SensorType.TEXT) {
-            // TEXT case: pick STRING_LENGTH chars to be a String for insertion.
-            StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
-            for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-              builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
-            }
-            value = builder.toString();
-          } else {
-            // not TEXT case
-            FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
-            Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
-            switch (sensor.getSensorType()) {
-              case BOOLEAN:
-                value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
-                break;
-              case INT32:
-                value = number.intValue();
-                break;
-              case INT64:
-                value = number.longValue();
-                break;
-              case FLOAT:
-                value = number.floatValue();
-                break;
-              case DOUBLE:
-                value = Math.round(number.doubleValue() * ratio) / ratio;
-                break;
-              default:
-                value = null;
-                break;
-            }
+          FunctionParam param = config.getSENSOR_FUNCTION().get(sensor.getName());
+          Number number = Function.getValueByFunctionIdAndParam(param, currentTimestamp);
+          switch (sensor.getSensorType()) {
+            case BOOLEAN:
+              value = number.floatValue() > ((param.getMax() + param.getMin()) / 2);
+              break;
+            case INT32:
+              value = number.intValue();
+              break;
+            case INT64:
+            case TIMESTAMP:
+              value = number.longValue();
+              break;
+            case FLOAT:
+              value = number.floatValue();
+              break;
+            case DOUBLE:
+              value = Math.round(number.doubleValue() * ratio) / ratio;
+              break;
+            case TEXT:
+            case STRING:
+            case BLOB:
+              StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
+              for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+                builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
+              }
+              value = builder.toString();
+              break;
+            case DATE:
+              value = LocalDate.ofEpochDay(number.intValue());
+              break;
+            default:
+              throw new UnsupportedOperationException(
+                  sensor.getSensorType() + ": This data type is not supported.");
           }
           workloadValues[sensorIndex][i] = value;
         }

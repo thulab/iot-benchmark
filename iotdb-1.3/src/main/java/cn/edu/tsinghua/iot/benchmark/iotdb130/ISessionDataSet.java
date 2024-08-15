@@ -3,7 +3,8 @@ package cn.edu.tsinghua.iot.benchmark.iotdb130;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.tsfile.read.common.RowRecord;
+
+import org.apache.tsfile.read.common.RowRecord;
 
 public interface ISessionDataSet {
   RowRecord next() throws IoTDBConnectionException, StatementExecutionException;
