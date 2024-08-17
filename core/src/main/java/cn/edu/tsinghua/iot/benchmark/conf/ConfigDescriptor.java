@@ -87,9 +87,9 @@ public class ConfigDescriptor {
       Properties properties = new Properties();
       try {
         properties.load(inputStream);
-        config.setENABLE_TABLE(
+        config.setIoTDB_ENABLE_TABLE(
             Boolean.parseBoolean(
-                properties.getProperty("ENABLE_TABLE", config.isENABLE_TABLE() + "")));
+                properties.getProperty("IoTDB_ENABLE_TABLE", config.isIoTDB_ENABLE_TABLE() + "")));
         config.setIS_DELETE_DATA(
             Boolean.parseBoolean(
                 properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA() + "")));
@@ -124,7 +124,7 @@ public class ConfigDescriptor {
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
-        if (config.isENABLE_TABLE()) config.setSqlDialect("table");
+        if (config.isIoTDB_ENABLE_TABLE()) config.setSqlDialect("table");
         else config.setSqlDialect("tree");
 
         config.setIS_DOUBLE_WRITE(
@@ -612,7 +612,7 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    if (config.isENABLE_TABLE()
+    if (config.isIoTDB_ENABLE_TABLE()
         && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");

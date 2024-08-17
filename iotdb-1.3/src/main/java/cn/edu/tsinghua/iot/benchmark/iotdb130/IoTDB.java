@@ -198,7 +198,7 @@ public class IoTDB implements IDatabase {
         }
 
         if (config.isTEMPLATE()
-            && !config.isENABLE_TABLE()
+            && !config.isIoTDB_ENABLE_TABLE()
             && templateInit.compareAndSet(false, true)) {
           Template template = null;
           if (config.isTEMPLATE() && schemaList.size() > 0) {
@@ -212,7 +212,7 @@ public class IoTDB implements IDatabase {
           start = System.nanoTime();
         }
         templateBarrier.await();
-        if (config.isENABLE_TABLE())
+        if (config.isIoTDB_ENABLE_TABLE())
           registerDatabase(
               sessionListMap.entrySet().stream().findFirst().map(Map.Entry::getKey).orElse(null));
         else {
@@ -221,7 +221,7 @@ public class IoTDB implements IDatabase {
           }
         }
         schemaBarrier.await();
-        if (config.isTEMPLATE() && !config.isENABLE_TABLE()) {
+        if (config.isTEMPLATE() && !config.isIoTDB_ENABLE_TABLE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
             activateTemplate(pair.getKey(), pair.getValue());
           }
@@ -229,7 +229,7 @@ public class IoTDB implements IDatabase {
         }
         if (!config.isTEMPLATE()) {
           for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-            if (config.isENABLE_TABLE()) {
+            if (config.isIoTDB_ENABLE_TABLE()) {
               registerTable(pair.getKey(), pair.getValue());
             } else {
               registerTimeseries(pair.getKey(), pair.getValue());
@@ -709,12 +709,12 @@ public class IoTDB implements IDatabase {
     builder
         .append(" FROM ")
         .append(
-            config.isENABLE_TABLE()
+            config.isIoTDB_ENABLE_TABLE()
                 ? devices.get(0).getGroup() + "_table"
                 : getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
       builder.append(
-          config.isENABLE_TABLE()
+          config.isIoTDB_ENABLE_TABLE()
               ? devices.get(i).getGroup() + "_table"
               : "." + getDevicePath(devices.get(i)));
     }
@@ -737,7 +737,7 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
-        String devicePath = config.isENABLE_TABLE() ? "" : getDevicePath(deviceSchema) + ".";
+        String devicePath = config.isIoTDB_ENABLE_TABLE() ? "" : getDevicePath(deviceSchema) + ".";
         builder.append(" AND ").append(devicePath).append(sensor.getName()).append(" > ");
         if (sensor.getSensorType() == SensorType.DATE) {
           builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");

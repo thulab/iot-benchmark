@@ -84,7 +84,7 @@ public class IoTDBSessionBase extends IoTDB {
         service.submit(
             () -> {
               try {
-                if (config.isENABLE_TABLE()) {
+                if (config.isIoTDB_ENABLE_TABLE()) {
                   sessionWrapper.insertRelationalTablet(tablet);
                 } else if (config.isVECTOR()) {
                   sessionWrapper.insertAlignedTablet(tablet);
@@ -386,30 +386,27 @@ public class IoTDBSessionBase extends IoTDB {
     return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
-  //
   protected Tablet genTablet(IBatch batch) {
-    config.getWORKLOAD_BUFFER_SIZE();
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-    if (config.isENABLE_TABLE()) {
-      for (Sensor sensor : sensors) {
-        switch (sensor.getColumnCategory()) {
-          case ID:
-            columnTypes.add(Tablet.ColumnType.ID);
-            break;
-          case ATTRIBUTE:
-            columnTypes.add(Tablet.ColumnType.ATTRIBUTE);
-            break;
-          case MEASUREMENT:
-          default:
-            columnTypes.add(Tablet.ColumnType.MEASUREMENT);
-            break;
-        }
+    // All sensors are of type measurement
+    if (config.isIoTDB_ENABLE_TABLE()) {
+      for (int i = 0; i < sensors.size(); i++) {
+        columnTypes.add(Tablet.ColumnType.MEASUREMENT);
       }
     }
+    // tag and device as ID column
+    // Add Identity Column Information to Schema
+    sensors.add(new Sensor("device_id", SensorType.STRING));
+    columnTypes.add(Tablet.ColumnType.ID);
+    for (String key : batch.getDeviceSchema().getTags().keySet()) {
+      // Currently, the identity column can only be String
+      sensors.add(new Sensor(key, SensorType.STRING));
+      columnTypes.add(Tablet.ColumnType.ID);
+    }
     int sensorIndex = 0;
-    for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
+    for (Sensor sensor : sensors) {
       SensorType dataSensorType = sensor.getSensorType();
       schemaList.add(
           new MeasurementSchema(
@@ -418,12 +415,20 @@ public class IoTDBSessionBase extends IoTDB {
               Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
       sensorIndex++;
     }
+    // Add the value of the identity column to the value of each record
+    for (int i = 0; i < batch.getRecords().size(); i++) {
+      List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
+      dataValue.add(batch.getDeviceSchema().getDevice());
+      for (String key : batch.getDeviceSchema().getTags().keySet()) {
+        dataValue.add(batch.getDeviceSchema().getTags().get(key));
+      }
+    }
     String deviceId =
-        config.isENABLE_TABLE()
+        config.isIoTDB_ENABLE_TABLE()
             ? batch.getDeviceSchema().getGroup() + "_table"
             : getDevicePath(batch.getDeviceSchema());
     Tablet tablet =
-        config.isENABLE_TABLE()
+        config.isIoTDB_ENABLE_TABLE()
             ? new Tablet(deviceId, schemaList, columnTypes, batch.getRecords().size())
             : new Tablet(deviceId, schemaList, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;

@@ -200,7 +200,7 @@ public class IoTDBSession extends IoTDBSessionBase {
   @Override
   public void cleanup() {
     try {
-      if (config.isENABLE_TABLE()) {
+      if (config.isIoTDB_ENABLE_TABLE()) {
         ISessionDataSet dataSet = sessionWrapper.executeQueryStatement("show databases");
         while (dataSet.hasNext()) {
           sessionWrapper.executeNonQueryStatement(

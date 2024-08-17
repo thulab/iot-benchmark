@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iot.benchmark.conf;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
@@ -91,7 +90,7 @@ public class Config {
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
   /** iotdb data model */
-  private boolean ENABLE_TABLE = false;
+  private boolean IoTDB_ENABLE_TABLE = false;
 
   /** Authorization header for REST interface */
   private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
@@ -538,11 +537,6 @@ public class Config {
       Sensor sensor = new Sensor(SENSOR_NAME_PREFIX + sensorIndex, SensorType.getType(i - 1));
       SENSORS.add(sensor);
     }
-    if (isENABLE_TABLE()) {
-      Sensor sensor = new Sensor("device_id", SensorType.STRING, ColumnCategory.ID);
-      SENSORS.add(sensor);
-      SENSOR_NUMBER++;
-    }
   }
 
   /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1:0:0:0:0) */
@@ -574,12 +568,12 @@ public class Config {
     return probabilities;
   }
 
-  public boolean isENABLE_TABLE() {
-    return ENABLE_TABLE;
+  public boolean isIoTDB_ENABLE_TABLE() {
+    return IoTDB_ENABLE_TABLE;
   }
 
-  public void setENABLE_TABLE(boolean ENABLE_TABLE) {
-    this.ENABLE_TABLE = ENABLE_TABLE;
+  public void setIoTDB_ENABLE_TABLE(boolean IoTDB_ENABLE_TABLE) {
+    this.IoTDB_ENABLE_TABLE = IoTDB_ENABLE_TABLE;
   }
 
   public int getTypeNumber() {

@@ -23,7 +23,6 @@ import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.distribution.PoissonDistribution;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.function.Function;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
@@ -177,15 +176,8 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
             case STRING:
             case BLOB:
               StringBuffer builder = new StringBuffer(config.getSTRING_LENGTH());
-              if (sensor.getColumnCategory() == ColumnCategory.ID) {
-                // Generated value for identity column of table model
-                builder
-                    .append(config.getDEVICE_NAME_PREFIX())
-                    .append((j++) % config.getDEVICE_NUMBER());
-              } else {
-                for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
-                  builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
-                }
+              for (int k = 0; k < config.getSTRING_LENGTH(); k++) {
+                builder.append(CHAR_TABLE.charAt(dataRandom.nextInt(CHAR_TABLE.length())));
               }
               value = builder.toString();
               break;
