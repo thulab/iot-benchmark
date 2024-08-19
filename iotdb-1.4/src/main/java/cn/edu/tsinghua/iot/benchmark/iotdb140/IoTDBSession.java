@@ -17,13 +17,13 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130;
+package cn.edu.tsinghua.iot.benchmark.iotdb140;
 
 import org.apache.iotdb.isession.SessionDataSet;
-import org.apache.iotdb.isession.pool.SessionDataSetWrapper;
+import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.pool.SessionPool;
+import org.apache.iotdb.session.Session;
 
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -36,35 +36,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-public class IoTDBClusterSession extends IoTDBSessionBase {
-  private class BenchmarkSessionPool implements IBenchmarkSession {
-    private final SessionPool sessionPool;
+public class IoTDBSession extends IoTDBSessionBase {
+  private class BenchmarkSession implements IBenchmarkSession {
+    private final Session session;
 
-    public BenchmarkSessionPool(
-        List<String> hostUrls,
-        String user,
-        String password,
-        int maxSize,
-        boolean enableCompression,
-        boolean enableRedirection) {
-      this.sessionPool =
-          new SessionPool(
-              hostUrls,
-              dbConfig.getUSERNAME(),
-              dbConfig.getPASSWORD(),
-              MAX_SESSION_CONNECTION_PER_CLIENT,
-              config.isENABLE_THRIFT_COMPRESSION(),
-              true);
+    public BenchmarkSession(Session session) {
+      this.session = session;
     }
 
     @Override
-    public void open() {
-      // Do nothing
+    public void open() throws IoTDBConnectionException {
+      session.open();
     }
 
     @Override
-    public void open(boolean enableRPCCompression) {
-      // Do nothing
+    public void open(boolean enableRPCCompression) throws IoTDBConnectionException {
+      session.open(enableRPCCompression);
     }
 
     @Override
@@ -75,7 +62,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         List<TSDataType> types,
         List<Object> values)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertRecord(deviceId, time, measurements, types, values);
+      session.insertRecord(deviceId, time, measurements, types, values);
     }
 
     @Override
@@ -86,8 +73,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         List<TSDataType> types,
         List<Object> values)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertAlignedRecord(
-          multiSeriesId, time, multiMeasurementComponents, types, values);
+      session.insertAlignedRecord(multiSeriesId, time, multiMeasurementComponents, types, values);
     }
 
     @Override
@@ -98,7 +84,7 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         List<List<TSDataType>> typesList,
         List<List<Object>> valuesList)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+      session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
     }
 
     @Override
@@ -109,44 +95,50 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         List<List<TSDataType>> typesList,
         List<List<Object>> valuesList)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertAlignedRecords(
+      session.insertAlignedRecords(
           multiSeriesIds, times, multiMeasurementComponentsList, typesList, valuesList);
     }
 
     @Override
     public void insertTablet(Tablet tablet)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertTablet(tablet);
+      session.insertTablet(tablet);
     }
 
     @Override
     public void insertAlignedTablet(Tablet tablet)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.insertAlignedTablet(tablet);
+      session.insertAlignedTablet(tablet);
+    }
+
+    @Override
+    public void insertRelationalTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
+      session.insertRelationalTablet(tablet);
     }
 
     @Override
     public ISessionDataSet executeQueryStatement(String sql)
         throws IoTDBConnectionException, StatementExecutionException {
-      return new SessionDataSet2(sessionPool.executeQueryStatement(sql));
+      return new SessionDataSet1(session.executeQueryStatement(sql));
     }
 
     @Override
-    public void close() {
-      sessionPool.close();
+    public void close() throws IoTDBConnectionException {
+      session.close();
     }
 
     @Override
     public void executeNonQueryStatement(String deleteSeriesSql)
         throws IoTDBConnectionException, StatementExecutionException {
-      sessionPool.executeNonQueryStatement(deleteSeriesSql);
+      session.executeNonQueryStatement(deleteSeriesSql);
     }
 
-    private class SessionDataSet2 implements ISessionDataSet {
-      SessionDataSetWrapper sessionDataSet;
+    private class SessionDataSet1 implements ISessionDataSet {
+      SessionDataSet sessionDataSet;
 
-      public SessionDataSet2(SessionDataSetWrapper sessionDataSetWrapper) {
-        this.sessionDataSet = sessionDataSetWrapper;
+      public SessionDataSet1(SessionDataSet sessionDataSet) {
+        this.sessionDataSet = sessionDataSet;
       }
 
       @Override
@@ -171,63 +163,75 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     }
   }
 
-  private static final int MAX_SESSION_CONNECTION_PER_CLIENT = 3;
-
-  public IoTDBClusterSession(DBConfig dbConfig) {
+  public IoTDBSession(DBConfig dbConfig) {
     super(dbConfig);
-    LOGGER = LoggerFactory.getLogger(IoTDBClusterSession.class);
+    LOGGER = LoggerFactory.getLogger(IoTDBSession.class);
     List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
     sessionWrapper =
-        new BenchmarkSessionPool(
-            hostUrls,
-            dbConfig.getUSERNAME(),
-            dbConfig.getPASSWORD(),
-            MAX_SESSION_CONNECTION_PER_CLIENT,
-            config.isENABLE_THRIFT_COMPRESSION(),
-            true);
+        new BenchmarkSession(
+            new Session.Builder()
+                .nodeUrls(hostUrls)
+                .username(dbConfig.getUSERNAME())
+                .password(dbConfig.getPASSWORD())
+                .enableRedirection(true)
+                .database(dbConfig.getDB_NAME())
+                .version(Version.V_1_0)
+                .sqlDialect(dbConfig.getSQL_DIALECT())
+                .build());
   }
 
   @Override
-  public void init() throws TsdbException {
-    // do nothing
-    this.service = Executors.newSingleThreadExecutor();
-  }
-
-  @Override
-  public void close() throws TsdbException {
-    if (sessionWrapper != null) {
-      try {
-        sessionWrapper.close();
-      } catch (IoTDBConnectionException ignored) {
-        // should never happen
+  public void init() {
+    try {
+      if (config.isENABLE_THRIFT_COMPRESSION()) {
+        sessionWrapper.open(true);
+      } else {
+        sessionWrapper.open();
       }
+      this.service = Executors.newSingleThreadExecutor();
+    } catch (IoTDBConnectionException e) {
+      LOGGER.error("Failed to add session", e);
     }
-    if (ioTDBConnection != null) {
-      ioTDBConnection.close();
-    }
-    this.service.shutdown();
   }
 
   @Override
   public void cleanup() {
     try {
-      sessionWrapper.executeNonQueryStatement(
-          "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+      if (config.isIoTDB_ENABLE_TABLE()) {
+        ISessionDataSet dataSet = sessionWrapper.executeQueryStatement("show databases");
+        while (dataSet.hasNext()) {
+          sessionWrapper.executeNonQueryStatement(
+              "drop database " + dataSet.next().getFields().get(0).toString());
+        }
+      } else {
+        sessionWrapper.executeNonQueryStatement(
+            "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
+        sessionWrapper.executeNonQueryStatement(
+            "drop schema template " + config.getTEMPLATE_NAME());
+      }
     } catch (IoTDBConnectionException e) {
       LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
       LOGGER.error("Failed to execute statement:" + e.getMessage());
     }
+  }
 
+  @Override
+  public void close() throws TsdbException {
     try {
-      sessionWrapper.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
-    } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to connect to IoTDB:" + e.getMessage());
-    } catch (StatementExecutionException e) {
-      LOGGER.error("Failed to execute statement:" + e.getMessage());
+      if (sessionWrapper != null) {
+        sessionWrapper.close();
+      }
+      if (ioTDBConnection != null) {
+        ioTDBConnection.close();
+      }
+      this.service.shutdown();
+    } catch (IoTDBConnectionException ioTDBConnectionException) {
+      LOGGER.error("Failed to close session.");
+      throw new TsdbException(ioTDBConnectionException);
     }
   }
 }

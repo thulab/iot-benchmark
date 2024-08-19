@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130;
+package cn.edu.tsinghua.iot.benchmark.iotdb140;
 
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.pool.SessionDataSetWrapper;
@@ -123,6 +123,12 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
     public void insertAlignedTablet(Tablet tablet)
         throws IoTDBConnectionException, StatementExecutionException {
       sessionPool.insertAlignedTablet(tablet);
+    }
+
+    @Override
+    public void insertRelationalTablet(Tablet tablet)
+        throws IoTDBConnectionException, StatementExecutionException {
+      sessionWrapper.insertRelationalTablet(tablet);
     }
 
     @Override

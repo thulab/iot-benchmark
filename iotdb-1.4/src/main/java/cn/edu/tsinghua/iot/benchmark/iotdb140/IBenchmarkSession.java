@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iot.benchmark.iotdb130;
+package cn.edu.tsinghua.iot.benchmark.iotdb140;
 
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -48,6 +48,9 @@ public interface IBenchmarkSession {
   void insertTablet(Tablet tablet) throws IoTDBConnectionException, StatementExecutionException;
 
   void insertAlignedTablet(Tablet tablet)
+      throws IoTDBConnectionException, StatementExecutionException;
+
+  void insertRelationalTablet(Tablet tablet)
       throws IoTDBConnectionException, StatementExecutionException;
 
   ISessionDataSet executeQueryStatement(String sql)
