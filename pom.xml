@@ -22,7 +22,6 @@
         <module>timescaledb</module>
         <module>timescaledb-cluster</module>
         <module>victoriametrics</module>
-        <module>iotdb-1.4</module>
         <module>iotdb-1.3</module>
         <module>iotdb-1.1</module>
         <module>iotdb-1.0</module>
