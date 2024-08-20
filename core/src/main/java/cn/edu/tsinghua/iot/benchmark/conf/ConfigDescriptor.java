@@ -296,10 +296,11 @@ public class ConfigDescriptor {
         } else {
           config.setFIRST_DEVICE_INDEX(0);
         }
-        config.setIS_ALL_NODES_VISIBLE(
-            Boolean.parseBoolean(
-                properties.getProperty(
-                    "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
+        //        config.setIS_ALL_NODES_VISIBLE(
+        //            Boolean.parseBoolean(
+        //                properties.getProperty(
+        //                    "IS_ALL_NODES_VISIBLE",
+        // String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
 
         config.setLINE_RATIO(
             Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO() + "")));
