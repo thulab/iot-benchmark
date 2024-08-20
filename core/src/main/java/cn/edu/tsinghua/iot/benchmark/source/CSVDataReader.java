@@ -116,7 +116,8 @@ public class CSVDataReader extends DataReader {
               recordValues.add(values[i]);
               break;
             case DATE:
-              recordValues.add(LocalDate.ofEpochDay(Long.parseLong(values[i])));
+              recordValues.add(LocalDate.parse(values[i]));
+              break;
             default:
               LOGGER.error("Error Type");
           }
