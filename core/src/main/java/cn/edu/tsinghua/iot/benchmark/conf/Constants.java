@@ -51,13 +51,7 @@ public class Constants {
   public static final String HASH_SG_ASSIGN_MODE = "hash";
   public static final String DIV_SG_ASSIGN_MODE = "div";
 
-  public static final String IOTDB140_REST_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb140.IoTDBRestAPI";
-  public static final String IOTDB140_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb140.IoTDB";
-  public static final String IOTDB140_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb140.IoTDBSession";
-  public static final String IOTDB140_ROUNDROBIN_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb140.IoTDBClusterSession";
+  // TODO iotdb-1.4
 
   public static final String IOTDB130_REST_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDBRestAPI";

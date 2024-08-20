@@ -296,12 +296,6 @@ public class ConfigDescriptor {
         } else {
           config.setFIRST_DEVICE_INDEX(0);
         }
-        //        config.setIS_ALL_NODES_VISIBLE(
-        //            Boolean.parseBoolean(
-        //                properties.getProperty(
-        //                    "IS_ALL_NODES_VISIBLE",
-        // String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
-
         config.setLINE_RATIO(
             Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO() + "")));
         config.setSIN_RATIO(
@@ -740,8 +734,7 @@ public class ConfigDescriptor {
     boolean result = false;
     if (dbConfig.getDB_SWITCH().getType() == DBType.IoTDB) {
       // support after iotdb 1.0
-      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_140
-          || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_130
+      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_130
           || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_110
           || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_100) {
         result = true;

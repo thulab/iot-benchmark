@@ -84,8 +84,6 @@ public class Config {
   private int BENCHMARK_INDEX = 0;
   /** Calculated in this way: FIRST_DEVICE_INDEX = BENCHMARK_INDEX * DEVICE_NUMBER */
   private int FIRST_DEVICE_INDEX = 0;
-  /** 是否都可见，如果可见就可以向其他node发送 Whether access all nodes, rather than just one coordinator */
-  //  private boolean IS_ALL_NODES_VISIBLE = false;
 
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
@@ -692,14 +690,6 @@ public class Config {
   public void setFIRST_DEVICE_INDEX(int FIRST_DEVICE_INDEX) {
     this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
   }
-
-  //  public boolean isIS_ALL_NODES_VISIBLE() {
-  //    return IS_ALL_NODES_VISIBLE;
-  //  }
-
-  //  public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
-  //    this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
-  //  }
 
   public String getKAFKA_LOCATION() {
     return KAFKA_LOCATION;
@@ -1850,8 +1840,6 @@ public class Config {
     if (this.BENCHMARK_CLUSTER) {
       configProperties.addProperty("Other Param", "BENCHMARK_INDEX", this.BENCHMARK_INDEX);
       configProperties.addProperty("Other Param", "FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
-      //      configProperties.addProperty(
-      //          "Other Param", "IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     }
     if (this.TEMPLATE) {
       configProperties.addProperty("Other Param", "TEMPLATE", this.TEMPLATE);

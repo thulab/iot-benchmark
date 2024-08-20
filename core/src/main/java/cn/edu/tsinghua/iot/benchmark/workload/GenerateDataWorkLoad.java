@@ -147,7 +147,6 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
       for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
         Sensor sensor = config.getSENSORS().get(sensorIndex);
-        int j = 0;
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
