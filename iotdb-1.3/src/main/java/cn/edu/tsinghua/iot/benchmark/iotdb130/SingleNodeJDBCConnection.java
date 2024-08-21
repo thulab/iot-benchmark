@@ -49,16 +49,6 @@ public class SingleNodeJDBCConnection {
   public void init() throws TsdbException {
     int nodeSize = 1;
     String[] urls;
-    //    if (config.isIS_ALL_NODES_VISIBLE()) {
-    //      nodeSize = dbConfig.getHOST().size();
-    //      urls = new String[nodeSize];
-    //      List<String> clusterHosts = dbConfig.getHOST();
-    //      for (int i = 0; i < nodeSize; i++) {
-    //        String jdbcUrl =
-    //            String.format(JDBC_URL, dbConfig.getHOST().get(i), dbConfig.getPORT().get(i));
-    //        urls[i] = jdbcUrl;
-    //      }
-    //    } else {
     urls = new String[nodeSize];
     urls[0] = String.format(JDBC_URL, dbConfig.getHOST().get(0), dbConfig.getPORT().get(0));
     //    }
