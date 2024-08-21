@@ -19,6 +19,13 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130;
 
+import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.IoTDBModelStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.TableStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.TreeStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy.IoTDBInsertionStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy.JDBCStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy.SessionStrategy;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
@@ -30,18 +37,14 @@ import org.apache.iotdb.session.template.MeasurementNode;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
-import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -56,16 +59,15 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.tsfile.write.record.Tablet;
+import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,17 +77,16 @@ import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static cn.edu.tsinghua.iot.benchmark.client.operation.Operation.LATEST_POINT_QUERY;
+
 /** this class will create more than one connection. */
-public class IoTDB implements IDatabase {
+public abstract class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
   private static final String ALREADY_KEYWORD = "already";
@@ -93,7 +94,6 @@ public class IoTDB implements IDatabase {
   private static final AtomicBoolean databaseNotExist = new AtomicBoolean(true);
   protected final String DELETE_SERIES_SQL;
   private static final String ORDER_BY_TIME_DESC = " order by time desc ";
-  protected SingleNodeJDBCConnection ioTDBConnection;
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected static final CyclicBarrier templateBarrier =
@@ -101,54 +101,36 @@ public class IoTDB implements IDatabase {
   protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   protected static final CyclicBarrier activateTemplateBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
-  protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
+
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;
   protected Future<?> task;
   protected DBConfig dbConfig;
   protected Random random = new Random(config.getDATA_SEED());
 
+  private final IoTDBInsertionStrategy insertionStrategy;
+  private final IoTDBModelStrategy modelStrategy;
+
   public IoTDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
-  }
+    switch (dbConfig.getDB_SWITCH()) {
+      case DB_IOT_130_REST:
+        insertionStrategy = ?
+        break;
+      case DB_IOT_130_JDBC:
+        insertionStrategy = new JDBCStrategy(dbConfig);
+        break;
+      case DB_IOT_130_SESSION_BY_TABLET:
+      case DB_IOT_130_SESSION_BY_RECORD:
+      case DB_IOT_130_SESSION_BY_RECORDS:
+        insertionStrategy = new SessionStrategy(this, dbConfig);
+        break;
+    }
 
-  @Override
-  public void init() throws TsdbException {
-    if (ioTDBConnection == null) {
-      try {
-        ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
-        ioTDBConnection.init();
-        this.service =
-            Executors.newSingleThreadExecutor(new NamedThreadFactory("DataClientExecuteJob"));
-      } catch (Exception e) {
-        throw new TsdbException(e);
-      }
-    }
-  }
+    modelStrategy = config.isIoTDB_ENABLE_TABLE() ? new TableStrategy(dbConfig) : new TreeStrategy(dbConfig);
 
-  @Override
-  public void cleanup() {
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      statement.execute(DELETE_SERIES_SQL);
-      LOGGER.info("Finish clean data!");
-    } catch (Exception e) {
-      LOGGER.warn("No Data to Clean!");
-    }
-  }
-
-  @Override
-  public void close() throws TsdbException {
-    if (ioTDBConnection != null) {
-      ioTDBConnection.close();
-    }
-    if (service != null) {
-      service.shutdownNow();
-    }
-    if (task != null) {
-      task.cancel(true);
-    }
   }
 
   @Override
@@ -188,6 +170,7 @@ public class IoTDB implements IDatabase {
           start = System.nanoTime();
         }
         templateBarrier.await();
+        modelStrategy.registerDatabase(sessionListMap);
         if (config.isIoTDB_ENABLE_TABLE())
           registerDatabase(
               sessionListMap.entrySet().stream().findFirst().map(Map.Entry::getKey).orElse(null));
@@ -443,22 +426,6 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  @Override
-  public Status insertOneBatch(IBatch batch) throws DBConnectException {
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      for (Record record : batch.getRecords()) {
-        String sql =
-            getInsertOneBatchSql(
-                batch.getDeviceSchema(), record.getTimestamp(), record.getRecordDataValue());
-        statement.addBatch(sql);
-      }
-      statement.executeBatch();
-      return new Status(true);
-    } catch (Exception e) {
-      return new Status(false, 0, e, e.toString());
-    }
-  }
-
   /**
    * Q1: PreciseQuery SQL: select {sensors} from {devices} where time = {time}
    *
@@ -590,7 +557,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
+    return executeQueryAndGetStatus(aggQuerySqlHead, LATEST_POINT_QUERY);
   }
 
   /**
@@ -776,110 +743,36 @@ public class IoTDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), executeSQL);
     }
-    AtomicInteger line = new AtomicInteger();
-    AtomicLong queryResultPointNum = new AtomicLong();
+
+    long queryResultPointNum = 0;
     AtomicBoolean isOk = new AtomicBoolean(true);
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      List<List<Object>> records = new ArrayList<>();
-      task =
-          service.submit(
-              () -> {
-                try {
-                  try (ResultSet resultSet = statement.executeQuery(executeSQL)) {
-                    while (resultSet.next()) {
-                      line.getAndIncrement();
-                      if (config.isIS_COMPARISON()) {
-                        List<Object> record = new ArrayList<>();
-                        for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
-                          switch (operation) {
-                            case LATEST_POINT_QUERY:
-                              if (i == 2 || i >= 4) {
-                                continue;
-                              }
-                              break;
-                            default:
-                              break;
-                          }
-                          record.add(resultSet.getObject(i));
-                        }
-                        records.add(record);
-                      }
-                    }
-                  }
-                } catch (SQLException e) {
-                  LOGGER.error("exception occurred when execute query={}", executeSQL, e);
-                  isOk.set(false);
-                }
-                long resultPointNum = line.get();
-                if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
-                  resultPointNum *= config.getQUERY_SENSOR_NUM();
-                  resultPointNum *= config.getQUERY_DEVICE_NUM();
-                }
-                queryResultPointNum.set(resultPointNum);
-              });
-      try {
-        task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
-      } catch (InterruptedException | ExecutionException | TimeoutException e) {
-        task.cancel(true);
-        return new Status(false, queryResultPointNum.get(), e, executeSQL);
-      }
-      if (isOk.get() == true) {
-        if (config.isIS_COMPARISON()) {
-          return new Status(true, queryResultPointNum.get(), executeSQL, records);
-        } else {
-          return new Status(true, queryResultPointNum.get());
-        }
-      } else {
-        return new Status(
-            false, queryResultPointNum.get(), new Exception("Failed to execute."), executeSQL);
-      }
-    } catch (Exception e) {
-      return new Status(false, queryResultPointNum.get(), e, executeSQL);
+    List<List<Object>> records = new ArrayList<>();
+    try {
+      queryResultPointNum = executeQueryAndGetStatusImpl(executeSQL, operation, isOk, records);
     } catch (Throwable t) {
-      return new Status(false, queryResultPointNum.get(), new Exception(t), executeSQL);
+      return new Status(false, queryResultPointNum, new Exception(t), executeSQL);
+    }
+    try {
+      task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      task.cancel(true);
+      return new Status(false, queryResultPointNum, e, executeSQL);
+    }
+    if (isOk.get()) {
+      if (config.isIS_COMPARISON()) {
+        return new Status(true, queryResultPointNum, executeSQL, records);
+      } else {
+        return new Status(true, queryResultPointNum);
+      }
+    } else {
+      return new Status(
+          false, queryResultPointNum, new Exception("Failed to execute."), executeSQL);
     }
   }
 
-  public String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, List<Object> values) {
-    StringBuilder builder = new StringBuilder("insert into ");
-    builder.append(getDevicePath(deviceSchema)).append("(timestamp");
-    for (Sensor sensor : deviceSchema.getSensors()) {
-      builder.append(",").append(sensor.getName());
-    }
-    if (config.isVECTOR() == true) {
-      builder.append(") aligned values(");
-    } else {
-      builder.append(") values(");
-    }
-    builder.append(timestamp);
-    int sensorIndex = 0;
-    List<Sensor> sensors = deviceSchema.getSensors();
-    for (Object value : values) {
-      switch (sensors.get(sensorIndex).getSensorType()) {
-        case BOOLEAN:
-        case INT32:
-        case INT64:
-        case FLOAT:
-        case DOUBLE:
-        case TIMESTAMP:
-        case DATE:
-          builder.append(",").append(value);
-          break;
-        case TEXT:
-        case STRING:
-          builder.append(",").append("'").append(value).append("'");
-          break;
-        case BLOB:
-          builder.append(",").append("X'").append(value).append("'");
-          break;
-      }
-      sensorIndex++;
-    }
-    builder.append(")");
-    LOGGER.debug("getInsertOneBatchSql: {}", builder);
-    return builder.toString();
-  }
+  abstract long executeQueryAndGetStatusImpl(
+      String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
+      throws SQLException;
 
   /**
    * Using in verification
@@ -910,24 +803,11 @@ public class IoTDB implements IDatabase {
       sql.append(" or time = ").append(record.getTimestamp());
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
     }
-    int point = 0;
-    int line = 0;
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      ResultSet resultSet = statement.executeQuery(sql.toString());
-      while (resultSet.next()) {
-        long timeStamp = resultSet.getLong(1);
-        List<Object> values = recordMap.get(timeStamp);
-        for (int i = 0; i < values.size(); i++) {
-          String value = resultSet.getString(i + 2);
-          String target = String.valueOf(values.get(i));
-          if (!value.equals(target)) {
-            LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
-          } else {
-            point++;
-          }
-        }
-        line++;
-      }
+    int point, line;
+    try {
+      List<Integer> resultList = verificationQueryImpl(sql.toString(), recordMap);
+      point = resultList.get(0);
+      line = resultList.get(1);
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
@@ -939,6 +819,9 @@ public class IoTDB implements IDatabase {
     return new Status(true, point);
   }
 
+  abstract List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
+      throws Exception;
+
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
@@ -948,24 +831,17 @@ public class IoTDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("IoTDB:" + sql);
     }
-    List<List<Object>> result = new ArrayList<>();
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      ResultSet resultSet = statement.executeQuery(sql);
-      int colNumber = resultSet.getMetaData().getColumnCount();
-      while (resultSet.next()) {
-        List<Object> line = new ArrayList<>();
-        for (int i = 1; i <= colNumber; i++) {
-          line.add(resultSet.getObject(i));
-        }
-        result.add(line);
-      }
+    List<List<Object>> result;
+    try {
+      result = deviceQueryImpl(sql);
     } catch (Exception e) {
       LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
-
-    return new Status(true, 0, sql.toString(), result);
+    return new Status(true, 0, sql, result);
   }
+
+  abstract List<List<Object>> deviceQueryImpl(String sql) throws Exception;
 
   protected String getDeviceQuerySql(
       DeviceSchema deviceSchema, long startTimeStamp, long endTimeStamp) {
@@ -981,23 +857,8 @@ public class IoTDB implements IDatabase {
 
   @Override
   public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
-    DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
-    int totalLineNumber = 0;
-    long minTimeStamp = 0, maxTimeStamp = 0;
-    try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      ResultSet resultSet = statement.executeQuery(getTotalLineNumberSql(deviceSchema));
-      resultSet.next();
-      totalLineNumber = Integer.parseInt(resultSet.getString(1));
-
-      resultSet = statement.executeQuery(getMaxTimeStampSql(deviceSchema));
-      resultSet.next();
-      maxTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
-
-      resultSet = statement.executeQuery(getMinTimeStampSql(deviceSchema));
-      resultSet.next();
-      minTimeStamp = Long.parseLong(resultSet.getObject(1).toString());
-    }
-    return new DeviceSummary(deviceSchema.getDevice(), totalLineNumber, minTimeStamp, maxTimeStamp);
+    DeviceSchema schema = deviceQuery.getDeviceSchema();
+    return insertionStrategy.deviceSummary(schema.getDevice(), getTotalLineNumberSql(schema), getMaxTimeStampSql(schema), getMinTimeStampSql(schema));
   }
 
   protected String getTotalLineNumberSql(DeviceSchema deviceSchema) {
@@ -1050,4 +911,46 @@ public class IoTDB implements IDatabase {
   private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
     return getDevicePath(deviceSchema) + "." + sensor;
   }
+
+  @Override
+  public void cleanup() throws TsdbException {
+    insertionStrategy.cleanup();
+  }
+
+  @Override
+  public void init() throws TsdbException {
+    insertionStrategy.init();
+  }
+
+  @Override
+  public void close() throws TsdbException {
+    insertionStrategy.close();
+  }
+
+  //region should only call by SessionStrategy
+
+  public Session buildSession(List<String> hostUrls) {
+    return modelStrategy.buildSession(hostUrls);
+  }
+
+  public String getDeviceId(DeviceSchema schema) {
+    return modelStrategy.getDeviceId(schema);
+  }
+
+  public Tablet createTablet(String insertTargetName,
+                             List<IMeasurementSchema> schemas,
+                             List<Tablet.ColumnType> columnTypes,
+                             int maxRowNumber) {
+    return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
+  }
+
+  public void sessionCleanupImpl(Session session) throws IoTDBConnectionException, StatementExecutionException {
+    modelStrategy.sessionCleanupImpl(session);
+  }
+
+  public void sessionInsertImpl(Session session, Tablet tablet) throws IoTDBConnectionException, StatementExecutionException {
+    modelStrategy.sessionInsertImpl(session, tablet);
+  }
+
+  //endregion
 }
