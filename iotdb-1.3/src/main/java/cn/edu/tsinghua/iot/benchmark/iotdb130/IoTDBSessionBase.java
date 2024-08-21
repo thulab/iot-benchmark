@@ -301,10 +301,19 @@ public class IoTDBSessionBase extends IoTDB {
       ISessionDataSet sessionDataSet = sessionWrapper.executeQueryStatement(sql.toString());
       while (sessionDataSet.hasNext()) {
         RowRecord rowRecord = sessionDataSet.next();
-        long timeStamp = rowRecord.getTimestamp();
+        // The ISessionDataSet returned by executeQueryStatement in the table model scenario ignores
+        // the timestamp.
+        // When querying, the table model needs to query one more column in the tree model: time
+        long timeStamp =
+            config.isIoTDB_ENABLE_TABLE()
+                ? Long.parseLong(rowRecord.getFields().get(0).toString())
+                : rowRecord.getTimestamp();
         List<Object> values = recordMap.get(timeStamp);
         for (int i = 0; i < values.size(); i++) {
-          String value = rowRecord.getFields().get(i).toString();
+          String value =
+              config.isIoTDB_ENABLE_TABLE()
+                  ? rowRecord.getFields().get(i + 1).toString()
+                  : rowRecord.getFields().get(i).toString();
           String target = String.valueOf(values.get(i));
           if (!value.equals(target)) {
             LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
