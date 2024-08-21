@@ -170,17 +170,29 @@ public class IoTDBSession extends IoTDBSessionBase {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-    sessionWrapper =
-        new BenchmarkSession(
-            new Session.Builder()
-                .nodeUrls(hostUrls)
-                .username(dbConfig.getUSERNAME())
-                .password(dbConfig.getPASSWORD())
-                .enableRedirection(true)
-                .database(dbConfig.getDB_NAME())
-                .version(Version.V_1_0)
-                .sqlDialect(dbConfig.getSQL_DIALECT())
-                .build());
+    if (config.isIoTDB_ENABLE_TABLE())
+      sessionWrapper =
+          new BenchmarkSession(
+              new Session.Builder()
+                  .nodeUrls(hostUrls)
+                  .username(dbConfig.getUSERNAME())
+                  .password(dbConfig.getPASSWORD())
+                  .enableRedirection(true)
+                  .database(dbConfig.getDB_NAME())
+                  .version(Version.V_1_0)
+                  .sqlDialect(dbConfig.getSQL_DIALECT())
+                  .build());
+    else
+      sessionWrapper =
+          new BenchmarkSession(
+              new Session.Builder()
+                  .nodeUrls(hostUrls)
+                  .username(dbConfig.getUSERNAME())
+                  .password(dbConfig.getPASSWORD())
+                  .enableRedirection(true)
+                  .version(Version.V_1_0)
+                  .sqlDialect(dbConfig.getSQL_DIALECT())
+                  .build());
   }
 
   @Override
