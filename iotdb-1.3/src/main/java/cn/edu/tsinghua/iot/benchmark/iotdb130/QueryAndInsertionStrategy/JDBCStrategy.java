@@ -25,13 +25,13 @@ import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.SingleNodeJDBCConnection;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +42,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import javafx.util.Pair;
 
 import static cn.edu.tsinghua.iot.benchmark.client.operation.Operation.LATEST_POINT_QUERY;
 
@@ -54,9 +58,11 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCStrategy.class);
 
   private SingleNodeJDBCConnection ioTDBConnection;
+  private IoTDB iotdb;
 
-  public JDBCStrategy(DBConfig dbConfig) {
+  public JDBCStrategy(DBConfig dbConfig, IoTDB iotdb) {
     super(dbConfig);
+    this.iotdb = iotdb;
   }
 
   @Override
@@ -76,9 +82,10 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   }
 
   @Override
-  public long executeQueryAndGetStatusImpl(
-          String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
+  public Pair<Long, Boolean> executeQueryAndGetStatusImpl(
+      String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
       throws SQLException {
+    Boolean status = true;
     AtomicLong queryResultPointNum = new AtomicLong();
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
       AtomicInteger line = new AtomicInteger();
@@ -119,7 +126,13 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
                 queryResultPointNum.set(resultPointNum);
               });
     }
-    return queryResultPointNum.get();
+    try {
+      task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      task.cancel(true);
+      return new Pair<>(queryResultPointNum.get(), false);
+    }
+    return new Pair<>(queryResultPointNum.get(), status);
   }
 
   @Override
@@ -164,7 +177,9 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   }
 
   @Override
-  public DeviceSummary deviceSummary(String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql) throws SQLException, TsdbException {
+  public DeviceSummary deviceSummary(
+      String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
+      throws SQLException, TsdbException {
     int totalLineNumber = 0;
     long minTimeStamp = 0, maxTimeStamp = 0;
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
@@ -200,7 +215,7 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   @Override
   public void cleanup() {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      statement.execute(DELETE_SERIES_SQL);
+      statement.execute(iotdb.DELETE_SERIES_SQL);
       LOGGER.info("Finish clean data!");
     } catch (Exception e) {
       LOGGER.warn("No Data to Clean!");
@@ -220,45 +235,45 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
     }
   }
 
-  //region private method
+  // region private method
   private String getInsertOneBatchSql(
-          DeviceSchema deviceSchema, long timestamp, List<Object> values) {
-      StringBuilder builder = new StringBuilder("insert into ");
-      builder.append(getDevicePath(deviceSchema)).append("(timestamp");
-      for (Sensor sensor : deviceSchema.getSensors()) {
-          builder.append(",").append(sensor.getName());
+      DeviceSchema deviceSchema, long timestamp, List<Object> values) {
+    StringBuilder builder = new StringBuilder("insert into ");
+    builder.append(deviceSchema.getDevicePath()).append("(timestamp");
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      builder.append(",").append(sensor.getName());
+    }
+    if (config.isVECTOR()) {
+      builder.append(") aligned values(");
+    } else {
+      builder.append(") values(");
+    }
+    builder.append(timestamp);
+    int sensorIndex = 0;
+    List<Sensor> sensors = deviceSchema.getSensors();
+    for (Object value : values) {
+      switch (sensors.get(sensorIndex).getSensorType()) {
+        case BOOLEAN:
+        case INT32:
+        case INT64:
+        case FLOAT:
+        case DOUBLE:
+        case TIMESTAMP:
+        case DATE:
+          builder.append(",").append(value);
+          break;
+        case TEXT:
+        case STRING:
+          builder.append(",").append("'").append(value).append("'");
+          break;
+        case BLOB:
+          builder.append(",").append("X'").append(value).append("'");
+          break;
       }
-      if (config.isVECTOR()) {
-          builder.append(") aligned values(");
-      } else {
-          builder.append(") values(");
-      }
-      builder.append(timestamp);
-      int sensorIndex = 0;
-      List<Sensor> sensors = deviceSchema.getSensors();
-      for (Object value : values) {
-          switch (sensors.get(sensorIndex).getSensorType()) {
-              case BOOLEAN:
-              case INT32:
-              case INT64:
-              case FLOAT:
-              case DOUBLE:
-              case TIMESTAMP:
-              case DATE:
-                  builder.append(",").append(value);
-                  break;
-              case TEXT:
-              case STRING:
-                  builder.append(",").append("'").append(value).append("'");
-                  break;
-              case BLOB:
-                  builder.append(",").append("X'").append(value).append("'");
-                  break;
-          }
-          sensorIndex++;
-      }
-      builder.append(")");
-      LOGGER.debug("getInsertOneBatchSql: {}", builder);
-      return builder.toString();
+      sensorIndex++;
+    }
+    builder.append(")");
+    LOGGER.debug("getInsertOneBatchSql: {}", builder);
+    return builder.toString();
   }
 }

@@ -19,14 +19,16 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy;
 
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.Session;
+
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
-import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
+import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 
@@ -34,22 +36,44 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class IoTDBModelStrategy {
+  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected final DBConfig dbConfig;
 
-    final DBConfig dbConfig;
+  public IoTDBModelStrategy(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+  }
 
-    static final Config config = ConfigDescriptor.getInstance().getConfig()
+  public abstract Session buildSession(List<String> hostUrls);
 
-    public IoTDBModelStrategy(DBConfig dbConfig) {
-        this.dbConfig = dbConfig;
-    }
+  public abstract Double registerSchema(
+      Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
+      throws TsdbException;
 
-    public abstract void registerDatabase(Map<Session, List<TimeseriesSchema>> sessionListMap);
-    public abstract Session buildSession(List<String> hostUrls);
-    public abstract String getDeviceId(DeviceSchema schema);
-    public abstract Tablet createTablet(String insertTargetName,
-                                        List<IMeasurementSchema> schemas,
-                                        List<Tablet.ColumnType> columnTypes,
-                                        int maxRowNumber);
-    public abstract void sessionInsertImpl(Session session, Tablet tablet) throws IoTDBConnectionException, StatementExecutionException;
-    public abstract void sessionCleanupImpl(Session session) throws IoTDBConnectionException, StatementExecutionException;
+  public abstract void registerDatabase(Map<Session, List<TimeseriesSchema>> sessionListMap)
+      throws TsdbException;
+
+  public abstract void registerTimeSeries(
+      Session metaSession, List<TimeseriesSchema> timeSeriesSchemas) throws TsdbException;
+
+  public abstract Tablet createTablet(
+      String insertTargetName,
+      List<IMeasurementSchema> schemas,
+      List<Tablet.ColumnType> columnTypes,
+      int maxRowNumber);
+
+  public abstract List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList);
+
+  public abstract String getDeviceId(DeviceSchema schema);
+
+  public abstract StringBuilder getSimpleQuerySqlHead(List<DeviceSchema> devices);
+
+  public abstract String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold);
+
+  public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+
+  public abstract void sessionInsertImpl(Session session, Tablet tablet)
+      throws IoTDBConnectionException, StatementExecutionException;
+
+  public abstract void sessionCleanupImpl(Session session)
+      throws IoTDBConnectionException, StatementExecutionException;
 }

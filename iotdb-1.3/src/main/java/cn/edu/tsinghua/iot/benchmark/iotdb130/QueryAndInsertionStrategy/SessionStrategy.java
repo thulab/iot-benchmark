@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy;
 
-import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -34,6 +33,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -65,6 +65,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import javafx.util.Pair;
 
 public class SessionStrategy extends IoTDBInsertionStrategy {
   static Logger LOGGER;
@@ -77,7 +78,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   private final Session session;
   private final IoTDB iotdb;
 
-
   public SessionStrategy(IoTDB iotdb, DBConfig dbConfig) {
     super(dbConfig);
     this.iotdb = iotdb;
@@ -85,31 +85,10 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-//    if (config.isIoTDB_ENABLE_TABLE())
-//      session =
-//          new Session.Builder()
-//              .nodeUrls(hostUrls)
-//              .username(dbConfig.getUSERNAME())
-//              .password(dbConfig.getPASSWORD())
-//              .enableRedirection(true)
-//              .database(dbConfig.getDB_NAME())
-//              .version(Version.V_1_0)
-//              .sqlDialect(dbConfig.getSQL_DIALECT())
-//              .build();
-//    else
-//      session =
-//          new Session.Builder()
-//              .nodeUrls(hostUrls)
-//              .username(dbConfig.getUSERNAME())
-//              .password(dbConfig.getPASSWORD())
-//              .enableRedirection(true)
-//              .version(Version.V_1_0)
-//              .sqlDialect(dbConfig.getSQL_DIALECT())
-//              .build();
     session = iotdb.buildSession(hostUrls);
   }
 
-  //region private method
+  // region private method
 
   private Status insertOneBatchByTablet(IBatch batch) {
     Tablet tablet = genTablet(batch);
@@ -117,13 +96,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
         service.submit(
             () -> {
               try {
-//                if (config.isIoTDB_ENABLE_TABLE()) {
-//                  session.insertRelationalTablet(tablet);
-//                } else if (config.isVECTOR()) {
-//                  session.insertAlignedTablet(tablet);
-//                } else {
-//                  session.insertTablet(tablet);
-//                }
                 iotdb.sessionInsertImpl(session, tablet);
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
@@ -205,12 +177,13 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
-  //endregion
+  // endregion
 
   @Override
-  public long executeQueryAndGetStatusImpl(
+  public Pair<Long, Boolean> executeQueryAndGetStatusImpl(
       String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
       throws SQLException {
+    Boolean status = true;
     AtomicLong queryResultPointNum = new AtomicLong();
     AtomicInteger line = new AtomicInteger();
     task =
@@ -252,7 +225,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
                     line.getAndIncrement();
                   }
                 }
-
                 sessionDataSet.close();
               } catch (StatementExecutionException | IoTDBConnectionException e) {
                 LOGGER.error("exception occurred when execute query={}", executeSQL, e);
@@ -265,7 +237,13 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
               }
               queryResultPointNum.set(resultPointNum);
             });
-    return queryResultPointNum.get();
+    try {
+      task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
+    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+      task.cancel(true);
+      return new Pair<>(queryResultPointNum.get(), false);
+    }
+    return new Pair<>(queryResultPointNum.get(), status);
   }
 
   @Override
@@ -311,12 +289,13 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   }
 
   @Override
-  public DeviceSummary deviceSummary(String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql) throws TsdbException {
+  public DeviceSummary deviceSummary(
+      String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
+      throws TsdbException {
     int totalLineNumber;
     long minTimeStamp, maxTimeStamp;
     try {
-      SessionDataSet sessionDataSet =
-          session.executeQueryStatement(totalLineNumberSql);
+      SessionDataSet sessionDataSet = session.executeQueryStatement(totalLineNumberSql);
       RowRecord rowRecord = sessionDataSet.next();
       totalLineNumber = Integer.parseInt(rowRecord.getFields().get(0).toString());
       sessionDataSet.close();
@@ -364,7 +343,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
           new MeasurementSchema(
               sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
-              Enum.valueOf(TSEncoding.class, getEncodingType(dataSensorType))));
+              Enum.valueOf(TSEncoding.class, iotdb.getEncodingType(dataSensorType))));
       sensorIndex++;
     }
     // Add the value of the identity column to the value of each record
@@ -375,16 +354,9 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
         dataValue.add(batch.getDeviceSchema().getTags().get(key));
       }
     }
-//    String deviceId =
-//            config.isIoTDB_ENABLE_TABLE()
-//                    ? batch.getDeviceSchema().getGroup() + "_table"
-//                    : getDevicePath(batch.getDeviceSchema());
     String deviceId = iotdb.getDeviceId(batch.getDeviceSchema());
-//    Tablet tablet =
-//            config.isIoTDB_ENABLE_TABLE()
-//                    ? new Tablet(deviceId, schemaList, columnTypes, batch.getRecords().size())
-//                    : new Tablet(deviceId, schemaList, batch.getRecords().size());
-    Tablet tablet = iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
+    Tablet tablet =
+        iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
 
@@ -507,6 +479,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   public Status insertOneBatch(IBatch batch, String devicePath) {
     DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
     switch (insertMode) {
+      case INSERT_USE_SESSION_TABLE:
       case INSERT_USE_SESSION_TABLET:
         return insertOneBatchByTablet(batch);
       case INSERT_USE_SESSION_RECORD:
@@ -546,17 +519,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   @Override
   public void cleanup() {
     try {
-//      if (config.isIoTDB_ENABLE_TABLE()) {
-//        SessionDataSet dataSet = session.executeQueryStatement("show databases");
-//        while (dataSet.hasNext()) {
-//          session.executeNonQueryStatement(
-//                  "drop database " + dataSet.next().getFields().get(0).toString());
-//        }
-//      } else {
-//        session.executeNonQueryStatement(
-//                "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
-//        session.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
-//      }
       iotdb.sessionCleanupImpl(session);
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:" + e.getMessage());

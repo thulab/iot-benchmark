@@ -28,9 +28,6 @@ import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
-import org.apache.iotdb.rpc.IoTDBConnectionException;
-import org.apache.iotdb.rpc.StatementExecutionException;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,33 +35,36 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javafx.util.Pair;
 
-abstract public class IoTDBInsertionStrategy {
-    protected ExecutorService service;
-    protected Future<?> task;
-    protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-    final DBConfig dbConfig;
+public abstract class IoTDBInsertionStrategy {
+  protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+  protected ExecutorService service;
+  protected Future<?> task;
+  protected final DBConfig dbConfig;
 
-    public IoTDBInsertionStrategy(DBConfig dbConfig) {
-        this.dbConfig = dbConfig;
-    }
+  public IoTDBInsertionStrategy(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+  }
 
-    public abstract long executeQueryAndGetStatusImpl(
-            String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
-            throws SQLException;
+  public abstract Pair<Long, Boolean> executeQueryAndGetStatusImpl(
+      String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
+      throws SQLException;
 
-    public abstract List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
-            throws Exception;
+  public abstract List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
+      throws Exception;
 
-    public abstract List<List<Object>> deviceQueryImpl(String sql) throws Exception;
+  public abstract List<List<Object>> deviceQueryImpl(String sql) throws Exception;
 
-    public abstract DeviceSummary deviceSummary(String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql) throws TsdbException, SQLException;
+  public abstract DeviceSummary deviceSummary(
+      String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
+      throws TsdbException, SQLException;
 
-    public abstract Status insertOneBatch(IBatch batch, String devicePath) throws DBConnectException;
+  public abstract Status insertOneBatch(IBatch batch, String devicePath) throws DBConnectException;
 
-    public abstract void init() throws TsdbException;
+  public abstract void init() throws TsdbException;
 
-    public abstract void cleanup();
+  public abstract void cleanup();
 
-    public abstract void close() throws TsdbException;
+  public abstract void close() throws TsdbException;
 }

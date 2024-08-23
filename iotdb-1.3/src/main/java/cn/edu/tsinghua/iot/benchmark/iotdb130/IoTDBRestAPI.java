@@ -118,6 +118,17 @@ public class IoTDBRestAPI extends IoTDB {
     return executeQueryAndGetStatus(sql);
   }
 
+  //  @Override
+  //  List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap) throws
+  // Exception {
+  //    return Collections.emptyList();
+  //  }
+  //
+  //  @Override
+  //  List<List<Object>> deviceQueryImpl(String sql) throws Exception {
+  //    return Collections.emptyList();
+  //  }
+
   private Status executeQueryAndGetStatus(String sql) {
     String json = String.format("{\"sql\":\"%s\"}", sql);
     Request request = constructRequest("/rest/v2/query", json);

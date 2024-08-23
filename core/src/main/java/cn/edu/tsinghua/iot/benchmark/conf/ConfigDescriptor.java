@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLE;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
 public class ConfigDescriptor {
