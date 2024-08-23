@@ -343,7 +343,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
           new MeasurementSchema(
               sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
-              Enum.valueOf(TSEncoding.class, iotdb.getEncodingType(dataSensorType))));
+              Enum.valueOf(TSEncoding.class, IoTDB.getEncodingType(dataSensorType))));
       sensorIndex++;
     }
     // Add the value of the identity column to the value of each record

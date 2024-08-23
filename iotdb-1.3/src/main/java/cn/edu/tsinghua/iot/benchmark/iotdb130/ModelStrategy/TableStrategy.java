@@ -52,7 +52,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
-  private static final AtomicBoolean databaseNotExist = new AtomicBoolean(true);
+//  private static final AtomicBoolean databaseNotExist = new AtomicBoolean(true);
+  private static boolean databaseCreated = false;
   private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
   private final IoTDB iotdb;
@@ -100,15 +101,16 @@ public class TableStrategy extends IoTDBModelStrategy {
    *
    * @param sessionListMap
    */
-  @Override
+  @Override // TODO：非override
   public void registerDatabase(Map<Session, List<TimeseriesSchema>> sessionListMap) {
     Session session = sessionListMap.keySet().iterator().next();
-    if (isDatabaseNotExist(session).get()) {
-      synchronized (databaseNotExist) {
-        if (isDatabaseNotExist(session).get()) {
+    if (!databaseCreated) {
+      synchronized (TableStrategy.class) {
+        if (!databaseCreated) {
           try {
             session.executeNonQueryStatement(
                 "create database " + config.getDbConfig().getDB_NAME());
+            databaseCreated = true;
           } catch (IoTDBConnectionException | StatementExecutionException e) {
             LOGGER.error("Failed to create database:" + e.getMessage());
           }
@@ -123,29 +125,29 @@ public class TableStrategy extends IoTDBModelStrategy {
    * @param metaSession
    * @return
    */
-  private static AtomicBoolean isDatabaseNotExist(Session metaSession) {
-    try {
-      SessionDataSet dataSet = metaSession.executeQueryStatement("show databases");
-      while (dataSet.hasNext()) {
-        if (dataSet
-            .next()
-            .getFields()
-            .get(0)
-            .toString()
-            .equals(config.getDbConfig().getDB_NAME())) {
-          databaseNotExist.set(false);
-          return databaseNotExist;
-        }
-      }
-    } catch (IoTDBConnectionException | StatementExecutionException e) {
-      LOGGER.error("Failed to show database:" + e.getMessage());
-    }
-    databaseNotExist.set(true);
-    return databaseNotExist;
-  }
+//  private static AtomicBoolean isDatabaseNotExist(Session metaSession) {
+//    try {
+//      SessionDataSet dataSet = metaSession.executeQueryStatement("show databases");
+//      while (dataSet.hasNext()) {
+//        if (dataSet
+//            .next()
+//            .getFields()
+//            .get(0)
+//            .toString()
+//            .equals(config.getDbConfig().getDB_NAME())) {
+//          databaseNotExist.set(false);
+//          return databaseNotExist;
+//        }
+//      }
+//    } catch (IoTDBConnectionException | StatementExecutionException e) {
+//      LOGGER.error("Failed to show database:" + e.getMessage());
+//    }
+//    databaseNotExist.set(true);
+//    return databaseNotExist;
+//  }
 
   @Override
-  public void registerTimeSeries(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
+  public void registerTimeSeries(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)// TODO：删
       throws TsdbException {
     // nothing
   }
@@ -196,7 +198,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(" time, ").append(querySensors.get(0).getName());
+    builder.append(" time, ").append(querySensors.get(0).getName()); // TODO: 抽的更细？
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
     }
@@ -209,7 +211,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         String devicePath = getDevicePath(deviceSchema) + ".";
-        builder.append(" AND ").append(devicePath).append(sensor.getName()).append(" > ");
+        builder.append(" AND ").append(devicePath).append(sensor.getName()).append(" > "); // TODO：devicePath 树模型表模型统一？
         if (sensor.getSensorType() == SensorType.DATE) {
           builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
         } else {
@@ -220,7 +222,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     return builder.toString();
   }
 
-  public String getDevicePath(DeviceSchema deviceSchema) {
+  private String getDevicePath(DeviceSchema deviceSchema) {
     StringBuilder name = new StringBuilder(iotdb.ROOT_SERIES_NAME);
     name.append(".").append(deviceSchema.getGroup());
     for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
@@ -270,7 +272,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     return timeseriesSchemas;
   }
 
-  private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) {
+  private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) { // TODO：抽
     List<String> paths = new ArrayList<>();
     List<TSDataType> tsDataTypes = new ArrayList<>();
     List<TSEncoding> tsEncodings = new ArrayList<>();

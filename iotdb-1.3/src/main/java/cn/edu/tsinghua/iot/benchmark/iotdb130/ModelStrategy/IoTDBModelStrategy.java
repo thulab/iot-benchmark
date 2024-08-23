@@ -61,7 +61,7 @@ public abstract class IoTDBModelStrategy {
       List<Tablet.ColumnType> columnTypes,
       int maxRowNumber);
 
-  public abstract List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList);
+  public abstract List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList); // TODO：抽取
 
   public abstract String getDeviceId(DeviceSchema schema);
 

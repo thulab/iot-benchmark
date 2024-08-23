@@ -93,7 +93,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
     long end;
     try {
       if (config.isTEMPLATE()
-          && !config.isIoTDB_ENABLE_TABLE()
           && templateInit.compareAndSet(false, true)) {
         Template template = null;
         if (config.isTEMPLATE() && schemaList.size() > 0) {

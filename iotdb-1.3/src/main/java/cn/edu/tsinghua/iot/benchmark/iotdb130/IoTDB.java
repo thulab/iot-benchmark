@@ -119,7 +119,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     long start = System.nanoTime();
-    Double time = null;
+    Double time = null; // TODO：恢复
     if (config.hasWrite()) {
       Map<Session, List<TimeseriesSchema>> sessionListMap = new HashMap<>();
       try {
@@ -159,19 +159,6 @@ public class IoTDB implements IDatabase {
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
     String deviceId = getDevicePath(batch.getDeviceSchema());
     return insertionStrategy.insertOneBatch(batch, deviceId);
-  }
-
-  @Override
-  public Status insertOneBatchWithCheck(IBatch batch) throws Exception {
-    return IDatabase.super.insertOneBatchWithCheck(batch);
-  }
-
-  private void handleRegisterException(Exception e) throws TsdbException {
-    // ignore if already has the time series
-    if (!e.getMessage().contains(ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
-      LOGGER.error("Register IoTDB schema failed because ", e);
-      throw new TsdbException(e);
-    }
   }
 
   /**
@@ -463,7 +450,7 @@ public class IoTDB implements IDatabase {
     AtomicBoolean isOk = new AtomicBoolean(true);
     List<List<Object>> records = new ArrayList<>();
     try {
-      Pair<Long, Boolean> result =
+      Pair<Long, Boolean> result = // TODO：不需要Pair？抛异常即可
           insertionStrategy.executeQueryAndGetStatusImpl(executeSQL, operation, isOk, records);
       queryResultPointNum = result.getKey();
       if (!result.getValue()) {
