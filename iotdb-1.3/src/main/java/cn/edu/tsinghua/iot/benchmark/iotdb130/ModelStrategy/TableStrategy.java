@@ -56,7 +56,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   private static boolean databaseCreated = false;
   private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
-  private final IoTDB iotdb;
+  private final IoTDB iotdb; // TODO：无必要
 
   public TableStrategy(DBConfig dbConfig, IoTDB iotdb) {
     super(dbConfig);

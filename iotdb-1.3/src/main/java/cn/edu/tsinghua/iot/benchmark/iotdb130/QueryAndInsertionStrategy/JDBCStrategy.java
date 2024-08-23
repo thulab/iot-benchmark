@@ -58,7 +58,7 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCStrategy.class);
 
   private SingleNodeJDBCConnection ioTDBConnection;
-  private IoTDB iotdb;
+  private IoTDB iotdb; // TODO：无必要
 
   public JDBCStrategy(DBConfig dbConfig, IoTDB iotdb) {
     super(dbConfig);

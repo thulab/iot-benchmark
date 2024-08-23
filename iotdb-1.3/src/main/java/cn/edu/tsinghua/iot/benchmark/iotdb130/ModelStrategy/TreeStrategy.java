@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 public class TreeStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TreeStrategy.class);
-  private final IoTDB iotdb;
+  private final IoTDB iotdb; // TODO：无必要
   private final Random random = new Random(config.getDATA_SEED());
   private static final Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   private static final CyclicBarrier templateBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());

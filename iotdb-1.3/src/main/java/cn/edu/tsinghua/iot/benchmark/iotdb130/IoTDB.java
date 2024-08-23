@@ -75,7 +75,7 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 
-  public final String DELETE_SERIES_SQL;
+  public final String DELETE_SERIES_SQL; // TODO：static？
   public final String ROOT_SERIES_NAME;
   private final DBConfig dbConfig;
   private final Random random = new Random(config.getDATA_SEED());
