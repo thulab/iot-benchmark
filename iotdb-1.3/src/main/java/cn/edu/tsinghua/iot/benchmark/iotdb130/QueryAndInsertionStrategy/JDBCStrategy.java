@@ -49,7 +49,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import javafx.util.Pair;
 
 import static cn.edu.tsinghua.iot.benchmark.client.operation.Operation.LATEST_POINT_QUERY;
 
@@ -58,11 +57,9 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCStrategy.class);
 
   private SingleNodeJDBCConnection ioTDBConnection;
-  private IoTDB iotdb; // TODO：无必要
 
-  public JDBCStrategy(DBConfig dbConfig, IoTDB iotdb) {
+  public JDBCStrategy(DBConfig dbConfig) {
     super(dbConfig);
-    this.iotdb = iotdb;
   }
 
   @Override
@@ -82,7 +79,7 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   }
 
   @Override
-  public Pair<Long, Boolean> executeQueryAndGetStatusImpl(
+  public long executeQueryAndGetStatusImpl(
       String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
       throws SQLException {
     Boolean status = true;
@@ -130,9 +127,8 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
       task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       task.cancel(true);
-      return new Pair<>(queryResultPointNum.get(), false);
     }
-    return new Pair<>(queryResultPointNum.get(), status);
+    return queryResultPointNum.get();
   }
 
   @Override
@@ -215,7 +211,7 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
   @Override
   public void cleanup() {
     try (Statement statement = ioTDBConnection.getConnection().createStatement()) {
-      statement.execute(iotdb.DELETE_SERIES_SQL);
+      statement.execute(IoTDB.DELETE_SERIES_SQL);
       LOGGER.info("Finish clean data!");
     } catch (Exception e) {
       LOGGER.warn("No Data to Clean!");

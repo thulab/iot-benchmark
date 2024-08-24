@@ -55,28 +55,32 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import org.apache.tsfile.enums.TSDataType;
+import org.apache.tsfile.file.metadata.enums.CompressionType;
+import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javafx.util.Pair;
 
 /** this class will create more than one connection. */
 public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 
-  public final String DELETE_SERIES_SQL; // TODO：static？
-  public final String ROOT_SERIES_NAME;
+  public static String DELETE_SERIES_SQL; // TODO：static？
+  public static String ROOT_SERIES_NAME;
   private final DBConfig dbConfig;
   private final Random random = new Random(config.getDATA_SEED());
   private final IoTDBInsertionStrategy insertionStrategy;
@@ -91,7 +95,10 @@ public class IoTDB implements IDatabase {
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
     // init IoTDBModelStrategy and IoTDBInsertionStrategy
-    modelStrategy = config.isIoTDB_ENABLE_TABLE() ? new TableStrategy(dbConfig, this) : new TreeStrategy(dbConfig, this);
+    modelStrategy =
+        config.isIoTDB_ENABLE_TABLE()
+            ? new TableStrategy(dbConfig, ROOT_SERIES_NAME)
+            : new TreeStrategy(dbConfig, ROOT_SERIES_NAME);
     switch (dbConfig.getDB_SWITCH()) {
       case DB_IOT_130_SESSION_BY_TABLE:
       case DB_IOT_130_REST:
@@ -101,11 +108,26 @@ public class IoTDB implements IDatabase {
         insertionStrategy = new SessionStrategy(this, dbConfig);
         break;
       case DB_IOT_130_JDBC:
-        insertionStrategy = new JDBCStrategy(dbConfig, this);
+        insertionStrategy = new JDBCStrategy(dbConfig);
         break;
       default:
         throw new IllegalArgumentException("Unsupported DB SWITCH: " + dbConfig.getDB_SWITCH());
     }
+  }
+
+  @Override
+  public void init() throws TsdbException {
+    insertionStrategy.init();
+  }
+
+  @Override
+  public void cleanup() throws TsdbException {
+    insertionStrategy.cleanup();
+  }
+
+  @Override
+  public void close() throws TsdbException {
+    insertionStrategy.close();
   }
 
   /**
@@ -113,13 +135,10 @@ public class IoTDB implements IDatabase {
    * to create time series in batch.
    *
    * @param schemaList schema of devices to register
-   * @return
-   * @throws TsdbException
    */
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    long start = System.nanoTime();
-    Double time = null; // TODO：恢复
+    long start = System.nanoTime(); // TODO：恢复
     if (config.hasWrite()) {
       Map<Session, List<TimeseriesSchema>> sessionListMap = new HashMap<>();
       try {
@@ -134,8 +153,8 @@ public class IoTDB implements IDatabase {
                 .sqlDialect(dbConfig.getSQL_DIALECT())
                 .build();
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-        sessionListMap.put(metaSession, modelStrategy.createTimeseries(schemaList));
-        time = modelStrategy.registerSchema(sessionListMap, schemaList);
+        sessionListMap.put(metaSession, createTimeseries(schemaList));
+        modelStrategy.registerSchema(sessionListMap, schemaList);
       } catch (Exception e) {
         throw new TsdbException(e);
       } finally {
@@ -152,7 +171,41 @@ public class IoTDB implements IDatabase {
       }
     }
     long end = System.nanoTime();
-    return time == null ? TimeUtils.convertToSeconds(end - start, "ns") : time;
+    return TimeUtils.convertToSeconds(end - start, "ns");
+  }
+
+  private List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList) {
+    List<TimeseriesSchema> timeseriesSchemas = new ArrayList<>();
+    for (DeviceSchema deviceSchema : schemaList) {
+      TimeseriesSchema timeseriesSchema = createTimeseries(deviceSchema);
+      timeseriesSchemas.add(timeseriesSchema);
+    }
+    return timeseriesSchemas;
+  }
+
+  private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) { // TODO：抽
+    List<String> paths = new ArrayList<>();
+    List<TSDataType> tsDataTypes = new ArrayList<>();
+    List<TSEncoding> tsEncodings = new ArrayList<>();
+    List<CompressionType> compressionTypes = new ArrayList<>();
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      if (config.isVECTOR()) {
+        paths.add(sensor.getName());
+      } else {
+        paths.add(IoTDB.getSensorPath(deviceSchema, sensor.getName()));
+      }
+      SensorType datatype = sensor.getSensorType();
+      tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
+      tsEncodings.add(
+          Enum.valueOf(TSEncoding.class, Objects.requireNonNull(IoTDB.getEncodingType(datatype))));
+      compressionTypes.add(Enum.valueOf(CompressionType.class, config.getCOMPRESSOR()));
+    }
+    TimeseriesSchema timeseriesSchema =
+        new TimeseriesSchema(deviceSchema, paths, tsDataTypes, tsEncodings, compressionTypes);
+    if (config.isVECTOR()) {
+      timeseriesSchema.setDeviceId(IoTDB.getDevicePath(deviceSchema));
+    }
+    return timeseriesSchema;
   }
 
   @Override
@@ -165,7 +218,6 @@ public class IoTDB implements IDatabase {
    * Q1: PreciseQuery SQL: select {sensors} from {devices} where time = {time}
    *
    * @param preciseQuery universal precise query condition parameters
-   * @return
    */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
@@ -179,7 +231,6 @@ public class IoTDB implements IDatabase {
    * {endTime}
    *
    * @param rangeQuery universal range query condition parameters
-   * @return
    */
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
@@ -196,7 +247,6 @@ public class IoTDB implements IDatabase {
    * {endTime} and {sensors} > {value}
    *
    * @param valueRangeQuery contains universal range query with value filter parameters
-   * @return
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
@@ -209,7 +259,6 @@ public class IoTDB implements IDatabase {
    * time <= {endTime}
    *
    * @param aggRangeQuery contains universal aggregation query with time filter parameters
-   * @return
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
@@ -225,7 +274,6 @@ public class IoTDB implements IDatabase {
    * Q5: AggValueQuery SQL: select {AggFun}({sensors}) from {devices} where {sensors} > {value}
    *
    * @param aggValueQuery contains universal aggregation query with value filter parameters
-   * @return
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
@@ -246,7 +294,6 @@ public class IoTDB implements IDatabase {
    *
    * @param aggRangeValueQuery contains universal aggregation query with time and value filters
    *     parameters
-   * @return
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
@@ -268,7 +315,6 @@ public class IoTDB implements IDatabase {
    * {Granularity}ms)
    *
    * @param groupByQuery contains universal group by query condition parameters
-   * @return
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
@@ -287,7 +333,6 @@ public class IoTDB implements IDatabase {
    * Q8: LatestPointQuery SQL: select last {sensors} from {devices}
    *
    * @param latestPointQuery contains universal latest point query condition parameters
-   * @return
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
@@ -300,7 +345,6 @@ public class IoTDB implements IDatabase {
    * {endTime} order by time desc
    *
    * @param rangeQuery universal range query condition parameters
-   * @return
    */
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
@@ -318,7 +362,6 @@ public class IoTDB implements IDatabase {
    * {endTime} and {sensors} > {value} order by time desc
    *
    * @param valueRangeQuery contains universal range query with value filter parameters
-   * @return
    */
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
@@ -347,8 +390,15 @@ public class IoTDB implements IDatabase {
    * @return Simple Query header. e.g. Select sensors from devices
    */
   protected String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
-    StringBuilder builder = modelStrategy.getSimpleQuerySqlHead(devices);
-    return addFromClause(devices, builder);
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT ");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(modelStrategy.addSelectClause());
+    builder.append(querySensors.get(0).getName()); // TODO: 抽的更细？
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder.append(", ").append(querySensors.get(i).getName());
+    }
+    return builder.toString();
   }
 
   private String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
@@ -370,8 +420,6 @@ public class IoTDB implements IDatabase {
   /**
    * Add from Clause
    *
-   * @param devices
-   * @param builder
    * @return From clause, e.g. FROM devices
    */
   private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
@@ -391,7 +439,22 @@ public class IoTDB implements IDatabase {
   }
 
   private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
-    return modelStrategy.getValueFilterClause(deviceSchemas, valueThreshold);
+    StringBuilder builder = new StringBuilder();
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
+        builder
+            .append(" AND ")
+            .append(modelStrategy.addPath(deviceSchema))
+            .append(sensor.getName())
+            .append(" > ");
+        if (sensor.getSensorType() == SensorType.DATE) {
+          builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
+        } else {
+          builder.append(valueThreshold);
+        }
+      }
+    }
+    return builder.toString();
   }
 
   private String getLatestPointQuerySql(List<DeviceSchema> devices) {
@@ -422,10 +485,9 @@ public class IoTDB implements IDatabase {
   /**
    * convert deviceSchema to the format
    *
-   * @param deviceSchema
    * @return format, e.g. root.group_1.d_1
    */
-  protected String getDevicePath(DeviceSchema deviceSchema) {
+  public static String getDevicePath(DeviceSchema deviceSchema) {
     StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
     name.append(".").append(deviceSchema.getGroup());
     for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
@@ -450,12 +512,9 @@ public class IoTDB implements IDatabase {
     AtomicBoolean isOk = new AtomicBoolean(true);
     List<List<Object>> records = new ArrayList<>();
     try {
-      Pair<Long, Boolean> result = // TODO：不需要Pair？抛异常即可
+      // TODO：不需要Pair？抛异常即可
+      queryResultPointNum =
           insertionStrategy.executeQueryAndGetStatusImpl(executeSQL, operation, isOk, records);
-      queryResultPointNum = result.getKey();
-      if (!result.getValue()) {
-        //        return new Status(false, queryResultPointNum, e, executeSQL);
-      }
     } catch (Throwable t) {
       return new Status(false, queryResultPointNum, new Exception(t), executeSQL);
     }
@@ -471,11 +530,7 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  /**
-   * Using in verification
-   *
-   * @param verificationQuery
-   */
+  /** Using in verification */
   @Override
   public Status verificationQuery(VerificationQuery verificationQuery) {
     DeviceSchema deviceSchema = verificationQuery.getDeviceSchema();
@@ -483,7 +538,7 @@ public class IoTDB implements IDatabase {
     deviceSchemas.add(deviceSchema);
 
     List<Record> records = verificationQuery.getRecords();
-    if (records == null || records.size() == 0) {
+    if (records == null || records.isEmpty()) {
       return new Status(
           false,
           new TsdbException("There are no records in verficationQuery."),
@@ -506,12 +561,11 @@ public class IoTDB implements IDatabase {
       point = resultList.get(0);
       line = resultList.get(1);
     } catch (Exception e) {
-      LOGGER.error("Query Error: " + sql);
+      LOGGER.error("Query Error: {}", sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
     if (recordMap.size() != line) {
-      LOGGER.error(
-          "Using SQL: " + sql + ",Expected line:" + recordMap.size() + " but was: " + line);
+      LOGGER.error("Using SQL: {},Expected line:{} but was: {}", sql, recordMap.size(), line);
     }
     return new Status(true, point);
   }
@@ -529,7 +583,7 @@ public class IoTDB implements IDatabase {
     try {
       result = insertionStrategy.deviceQueryImpl(sql);
     } catch (Exception e) {
-      LOGGER.error("Query Error: " + sql + " exception:" + e.getMessage());
+      LOGGER.error("Query Error: {} exception:{}", sql, e.getMessage());
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
     return new Status(true, 0, sql, result);
@@ -602,30 +656,9 @@ public class IoTDB implements IDatabase {
     }
   }
 
-  /**
-   * convert deviceSchema and sensor to the format: root.group_1.d_1.s_1
-   *
-   * @param deviceSchema
-   * @param sensor
-   * @return
-   */
-  private String getSensorPath(DeviceSchema deviceSchema, String sensor) {
+  /** convert deviceSchema and sensor to the format: root.group_1.d_1.s_1 */
+  public static String getSensorPath(DeviceSchema deviceSchema, String sensor) {
     return getDevicePath(deviceSchema) + "." + sensor;
-  }
-
-  @Override
-  public void cleanup() throws TsdbException {
-    insertionStrategy.cleanup();
-  }
-
-  @Override
-  public void init() throws TsdbException {
-    insertionStrategy.init();
-  }
-
-  @Override
-  public void close() throws TsdbException {
-    insertionStrategy.close();
   }
 
   // region should only call by SessionStrategy
@@ -643,6 +676,7 @@ public class IoTDB implements IDatabase {
       List<IMeasurementSchema> schemas,
       List<Tablet.ColumnType> columnTypes,
       int maxRowNumber) {
+    // TODO 两个策略中是一样的
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
 
@@ -656,5 +690,8 @@ public class IoTDB implements IDatabase {
     modelStrategy.sessionInsertImpl(session, tablet);
   }
 
+  public void genTablet(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    modelStrategy.genTablet(columnTypes, sensors, batch);
+  }
   // endregion
 }

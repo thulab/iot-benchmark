@@ -25,6 +25,8 @@ import org.apache.iotdb.session.Session;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -45,15 +47,9 @@ public abstract class IoTDBModelStrategy {
 
   public abstract Session buildSession(List<String> hostUrls);
 
-  public abstract Double registerSchema(
+  public abstract void registerSchema(
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException;
-
-  public abstract void registerDatabase(Map<Session, List<TimeseriesSchema>> sessionListMap)
-      throws TsdbException;
-
-  public abstract void registerTimeSeries(
-      Session metaSession, List<TimeseriesSchema> timeSeriesSchemas) throws TsdbException;
 
   public abstract Tablet createTablet(
       String insertTargetName,
@@ -61,13 +57,11 @@ public abstract class IoTDBModelStrategy {
       List<Tablet.ColumnType> columnTypes,
       int maxRowNumber);
 
-  public abstract List<TimeseriesSchema> createTimeseries(List<DeviceSchema> schemaList); // TODO：抽取
-
   public abstract String getDeviceId(DeviceSchema schema);
 
-  public abstract StringBuilder getSimpleQuerySqlHead(List<DeviceSchema> devices);
+  public abstract String addSelectClause();
 
-  public abstract String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold);
+  public abstract String addPath(DeviceSchema deviceSchema);
 
   public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
 
@@ -76,4 +70,7 @@ public abstract class IoTDBModelStrategy {
 
   public abstract void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException;
+
+  public abstract void genTablet(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
 }

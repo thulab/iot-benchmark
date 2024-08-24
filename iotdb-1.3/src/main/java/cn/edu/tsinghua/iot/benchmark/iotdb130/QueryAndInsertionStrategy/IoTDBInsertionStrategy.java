@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javafx.util.Pair;
 
 public abstract class IoTDBInsertionStrategy {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -47,7 +46,7 @@ public abstract class IoTDBInsertionStrategy {
     this.dbConfig = dbConfig;
   }
 
-  public abstract Pair<Long, Boolean> executeQueryAndGetStatusImpl(
+  public abstract long executeQueryAndGetStatusImpl(
       String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
       throws SQLException;
 

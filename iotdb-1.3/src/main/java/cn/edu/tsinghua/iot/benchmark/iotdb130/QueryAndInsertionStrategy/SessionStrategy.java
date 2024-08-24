@@ -65,13 +65,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import javafx.util.Pair;
 
 public class SessionStrategy extends IoTDBInsertionStrategy {
   static Logger LOGGER;
 
   static final Config config = ConfigDescriptor.getInstance().getConfig();
-  //  IBenchmarkSession sessionWrapper;
 
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE());
@@ -180,10 +178,9 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   // endregion
 
   @Override
-  public Pair<Long, Boolean> executeQueryAndGetStatusImpl(
+  public long executeQueryAndGetStatusImpl(
       String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
       throws SQLException {
-    Boolean status = true;
     AtomicLong queryResultPointNum = new AtomicLong();
     AtomicInteger line = new AtomicInteger();
     task =
@@ -241,9 +238,9 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
       task.get(config.getREAD_OPERATION_TIMEOUT_MS(), TimeUnit.MILLISECONDS);
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       task.cancel(true);
-      return new Pair<>(queryResultPointNum.get(), false);
+      return queryResultPointNum.get();
     }
-    return new Pair<>(queryResultPointNum.get(), status);
+    return queryResultPointNum.get();
   }
 
   @Override
@@ -317,25 +314,29 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     return new DeviceSummary(device, totalLineNumber, minTimeStamp, maxTimeStamp);
   }
 
-  protected Tablet genTablet(IBatch batch) {
+  private Tablet genTablet(IBatch batch) {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
     // All sensors are of type measurement
-    if (config.isIoTDB_ENABLE_TABLE()) {
-      for (int i = 0; i < sensors.size(); i++) {
-        columnTypes.add(Tablet.ColumnType.MEASUREMENT);
-      }
-    }
+    iotdb.genTablet(columnTypes, sensors, batch);
+    // region 表的行为
+    //    if (config.isIoTDB_ENABLE_TABLE()) {
+    //      for (int i = 0; i < sensors.size(); i++) {
+    //        columnTypes.add(Tablet.ColumnType.MEASUREMENT);
+    //      }
+    //    }
+
     // tag and device as ID column
     // Add Identity Column Information to Schema
-    sensors.add(new Sensor("device_id", SensorType.STRING));
-    columnTypes.add(Tablet.ColumnType.ID);
-    for (String key : batch.getDeviceSchema().getTags().keySet()) {
-      // Currently, the identity column can only be String
-      sensors.add(new Sensor(key, SensorType.STRING));
-      columnTypes.add(Tablet.ColumnType.ID);
-    }
+    //    sensors.add(new Sensor("device_id", SensorType.STRING));
+    //    columnTypes.add(Tablet.ColumnType.ID);
+    //    for (String key : batch.getDeviceSchema().getTags().keySet()) {
+    //      // Currently, the identity column can only be String
+    //      sensors.add(new Sensor(key, SensorType.STRING));
+    //      columnTypes.add(Tablet.ColumnType.ID);
+    //    }
+    // endregion
     int sensorIndex = 0;
     for (Sensor sensor : sensors) {
       SensorType dataSensorType = sensor.getSensorType();
@@ -343,17 +344,19 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
           new MeasurementSchema(
               sensor.getName(),
               Enum.valueOf(TSDataType.class, dataSensorType.name),
-              Enum.valueOf(TSEncoding.class, IoTDB.getEncodingType(dataSensorType))));
+              Enum.valueOf(
+                  TSEncoding.class,
+                  Objects.requireNonNull(IoTDB.getEncodingType(dataSensorType)))));
       sensorIndex++;
     }
     // Add the value of the identity column to the value of each record
-    for (int i = 0; i < batch.getRecords().size(); i++) {
-      List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
-      dataValue.add(batch.getDeviceSchema().getDevice());
-      for (String key : batch.getDeviceSchema().getTags().keySet()) {
-        dataValue.add(batch.getDeviceSchema().getTags().get(key));
-      }
-    }
+    //    for (int i = 0; i < batch.getRecords().size(); i++) {
+    //      List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
+    //      dataValue.add(batch.getDeviceSchema().getDevice());
+    //      for (String key : batch.getDeviceSchema().getTags().keySet()) {
+    //        dataValue.add(batch.getDeviceSchema().getTags().get(key));
+    //      }
+    //    }
     String deviceId = iotdb.getDeviceId(batch.getDeviceSchema());
     Tablet tablet =
         iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
@@ -420,7 +423,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     return tablet;
   }
 
-  public List<TSDataType> constructDataTypes(List<Sensor> sensors, int recordValueSize) {
+  private List<TSDataType> constructDataTypes(List<Sensor> sensors, int recordValueSize) {
     List<TSDataType> dataTypes = new ArrayList<>();
     for (int sensorIndex = 0; sensorIndex < recordValueSize; sensorIndex++) {
       switch (sensors.get(sensorIndex).getSensorType()) {
