@@ -38,8 +38,11 @@ import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 
 // import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,8 +50,8 @@ import java.util.concurrent.CyclicBarrier;
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
-  //  private static final AtomicBoolean databaseNotExist = new AtomicBoolean(true);
-  private static boolean databaseCreated = false;
+  private static final Set<String> databases = Collections.synchronizedSet(new HashSet<>());
+  //  private static boolean databaseCreated = false;
   private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   private static String ROOT_SERIES_NAME;
 
@@ -64,7 +67,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         .username(dbConfig.getUSERNAME())
         .password(dbConfig.getPASSWORD())
         .enableRedirection(true)
-        .database(dbConfig.getDB_NAME())
+        //        .database(dbConfig.getDB_NAME())
         .version(Version.V_1_0)
         .sqlDialect(dbConfig.getSQL_DIALECT())
         .build();
@@ -75,7 +78,11 @@ public class TableStrategy extends IoTDBModelStrategy {
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
-      registerDatabase(sessionListMap);
+      // TODO 多个 database
+      for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+        registerDatabase(pair.getKey(), pair.getValue());
+      }
+      //      registerDatabase(sessionListMap);
       schemaBarrier.await();
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
         registerTable(pair.getKey(), pair.getValue());
@@ -86,44 +93,28 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   /** root.test.g_0.d_0 test is the database name.Ensure that only one client creates the table. */
-  public void registerDatabase(Map<Session, List<TimeseriesSchema>> sessionListMap) {
-    Session session = sessionListMap.keySet().iterator().next();
-    if (!databaseCreated) {
-      synchronized (TableStrategy.class) {
-        if (!databaseCreated) {
-          try {
-            session.executeNonQueryStatement(
-                "create database " + config.getDbConfig().getDB_NAME());
-            databaseCreated = true;
-          } catch (IoTDBConnectionException | StatementExecutionException e) {
-            LOGGER.error("Failed to create database:" + e.getMessage());
-          }
+  public void registerDatabase(Session metaSession, List<TimeseriesSchema> schemaList)
+      throws TsdbException {
+    Set<String> groups = new HashSet<>();
+    for (TimeseriesSchema timeseriesSchema : schemaList) {
+      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
+      synchronized (IoTDB.class) {
+        if (!databases.contains(schema.getGroup())) {
+          groups.add(schema.getGroup());
+          databases.add(schema.getGroup());
         }
       }
     }
+    // register storage groups
+    for (String group : groups) {
+      try {
+        metaSession.executeNonQueryStatement(
+            "CREATE DATABASE " + dbConfig.getDB_NAME() + "_" + group);
+      } catch (Exception e) {
+        handleRegisterException(e);
+      }
+    }
   }
-
-  /** Verify that the database not exists. */
-  //  private static AtomicBoolean isDatabaseNotExist(Session metaSession) {
-  //    try {
-  //      SessionDataSet dataSet = metaSession.executeQueryStatement("show databases");
-  //      while (dataSet.hasNext()) {
-  //        if (dataSet
-  //            .next()
-  //            .getFields()
-  //            .get(0)
-  //            .toString()
-  //            .equals(config.getDbConfig().getDB_NAME())) {
-  //          databaseNotExist.set(false);
-  //          return databaseNotExist;
-  //        }
-  //      }
-  //    } catch (IoTDBConnectionException | StatementExecutionException e) {
-  //      LOGGER.error("Failed to show database:" + e.getMessage());
-  //    }
-  //    databaseNotExist.set(true);
-  //    return databaseNotExist;
-  //  }
 
   private void registerTable(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
       throws TsdbException {
@@ -131,10 +122,7 @@ public class TableStrategy extends IoTDBModelStrategy {
       DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
       StringBuilder builder = new StringBuilder();
       // g_0_table is the database name
-      builder
-          .append("create table if not exists ")
-          .append(deviceSchema.getGroup())
-          .append("_table(");
+      builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
       for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
         if (i != 0) builder.append(", ");
         builder
@@ -145,7 +133,10 @@ public class TableStrategy extends IoTDBModelStrategy {
             .append(deviceSchema.getSensors().get(i).getColumnCategory());
       }
       builder.append(")");
-      metaSession.executeNonQueryStatement("use " + config.getDbConfig().getDB_NAME());
+      //      System.out.println("use " + dbConfig.getDB_NAME() + "_" +deviceSchema.getGroup());
+      metaSession.executeNonQueryStatement(
+          "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
+      //      System.out.println(builder.toString());
       metaSession.executeNonQueryStatement(builder.toString());
     } catch (Exception e) {
       handleRegisterException(e);
@@ -163,7 +154,7 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public String getDeviceId(DeviceSchema schema) {
-    return schema.getGroup() + "_table";
+    return schema.getTable();
   }
 
   @Override
@@ -190,8 +181,10 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionInsertImpl(Session session, Tablet tablet)
+  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
+    session.executeNonQueryStatement(
+        "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
     session.insertRelationalTablet(tablet);
   }
 
@@ -201,7 +194,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     SessionDataSet dataSet = session.executeQueryStatement("show databases");
     while (dataSet.hasNext()) {
       String databaseName = dataSet.next().getFields().get(0).toString();
-      System.out.println(databaseName);
+      //      System.out.println(databaseName);
       session.executeNonQueryStatement("drop database " + databaseName);
     }
   }

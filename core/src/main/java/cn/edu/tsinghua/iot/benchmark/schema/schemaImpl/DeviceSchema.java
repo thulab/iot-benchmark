@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl;
 
+import cn.edu.tsinghua.iot.benchmark.conf.Config;
+import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -39,10 +41,13 @@ import java.util.Map;
 public class DeviceSchema implements Cloneable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   /** prefix of device name */
 
   /** Each device belongs to one group, i.e. database */
   private String group;
+  /** Each device belongs to one table, i.e. database */
+  private String table;
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
   /** List of tags */
@@ -60,16 +65,28 @@ public class DeviceSchema implements Cloneable {
    * @param deviceId e.g. FIRST_DEVICE_INDEX + device
    * @param sensors
    */
+  // TODO 注意纯写入时 读数据是否会有问题呢？
   public DeviceSchema(int deviceId, List<Sensor> sensors, Map<String, String> tags) {
     this.deviceId = deviceId;
     this.device = MetaUtil.getDeviceName(deviceId);
     this.sensors = sensors;
     this.tags = tags;
-    try {
-      int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
-      this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
-    } catch (WorkloadException e) {
-      LOGGER.error("Create device schema failed.", e);
+    if (config.isIoTDB_ENABLE_TABLE()) {
+      try {
+        int thisDeviceTableIndex = MetaUtil.calTableId(deviceId);
+        int thisDeviceGroupIndex = MetaUtil.calGroupId(thisDeviceTableIndex);
+        this.table = MetaUtil.getTableName(thisDeviceTableIndex);
+        this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
+      } catch (WorkloadException e) {
+        LOGGER.error("Create device schema failed.", e);
+      }
+    } else {
+      try {
+        int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
+        this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
+      } catch (WorkloadException e) {
+        LOGGER.error("Create device schema failed.", e);
+      }
     }
   }
 
@@ -91,6 +108,14 @@ public class DeviceSchema implements Cloneable {
 
   public int getDeviceId() {
     return deviceId;
+  }
+
+  public String getTable() {
+    return table;
+  }
+
+  public void setTable(String table) {
+    this.table = table;
   }
 
   public String getGroup() {

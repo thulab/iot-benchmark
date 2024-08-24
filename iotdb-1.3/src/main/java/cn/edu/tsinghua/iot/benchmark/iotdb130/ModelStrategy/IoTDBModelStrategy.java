@@ -65,7 +65,7 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
 
-  public abstract void sessionInsertImpl(Session session, Tablet tablet)
+  public abstract void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException;
 
   public abstract void sessionCleanupImpl(Session session)

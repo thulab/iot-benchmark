@@ -94,7 +94,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
         service.submit(
             () -> {
               try {
-                iotdb.sessionInsertImpl(session, tablet);
+                iotdb.sessionInsertImpl(session, tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
               }

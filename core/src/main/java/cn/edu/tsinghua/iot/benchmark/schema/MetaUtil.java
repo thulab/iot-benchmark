@@ -55,6 +55,50 @@ public class MetaUtil {
     }
   }
 
+  public static int calTableId(int deviceId) throws WorkloadException {
+    switch (config.getSG_STRATEGY()) {
+      case Constants.MOD_SG_ASSIGN_MODE:
+        return deviceId % config.getIoTDB_TABLE_NUMBER();
+      case Constants.HASH_SG_ASSIGN_MODE:
+        return (deviceId + "").hashCode() % config.getIoTDB_TABLE_NUMBER();
+      case Constants.DIV_SG_ASSIGN_MODE:
+        int devicePerTable = config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER();
+        return devicePerTable == 0
+            ? deviceId
+            : (deviceId / devicePerTable) % config.getIoTDB_TABLE_NUMBER();
+      default:
+        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
+    }
+  }
+
+  public static int calGroupIdV2(int tableId) throws WorkloadException {
+    switch (config.getSG_STRATEGY()) {
+      case Constants.MOD_SG_ASSIGN_MODE:
+        return tableId % config.getGROUP_NUMBER();
+      case Constants.HASH_SG_ASSIGN_MODE:
+        return (tableId + "").hashCode() % config.getGROUP_NUMBER();
+      case Constants.DIV_SG_ASSIGN_MODE:
+        int tablePerGroup = config.getIoTDB_TABLE_NUMBER() / config.getGROUP_NUMBER();
+        return tablePerGroup == 0 ? tableId : (tableId / tablePerGroup) % config.getGROUP_NUMBER();
+      default:
+        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
+    }
+  }
+
+  public static int calId(int id, int number1, int number2) throws WorkloadException {
+    switch (config.getSG_STRATEGY()) {
+      case Constants.MOD_SG_ASSIGN_MODE:
+        return id % number2;
+      case Constants.HASH_SG_ASSIGN_MODE:
+        return (id + "").hashCode() % number2;
+      case Constants.DIV_SG_ASSIGN_MODE:
+        int itemPerObject = number1 / number2;
+        return itemPerObject == 0 ? id : (id / itemPerObject) % number2;
+      default:
+        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
+    }
+  }
+
   public static String getGroupIdFromDeviceName(String deviceName) {
     int groupId = deviceName.hashCode();
     if (groupId < 0) {
@@ -76,6 +120,10 @@ public class MetaUtil {
   /** Get Format Name */
   public static String getGroupName(Object groupId) {
     return config.getGROUP_NAME_PREFIX() + groupId;
+  }
+
+  public static String getTableName(Object tableId) {
+    return config.getTABLE_NAME_PREFIX() + tableId;
   }
 
   public static String getDeviceName(Object deviceId) {

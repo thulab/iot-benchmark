@@ -188,6 +188,8 @@ public class Config {
    */
   private int CLIENT_NUMBER = 20;
 
+  /** name prefix of table */
+  private String TABLE_NAME_PREFIX = "t_";
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
   /** name prefix of device */
@@ -222,6 +224,8 @@ public class Config {
   private String SG_STRATEGY = "mod";
   /** The number of storage group, must less than or equal to number of devices */
   private int GROUP_NUMBER = 1;
+  /** The number of storage table */
+  private int IoTDB_TABLE_NUMBER = 1;
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
   /** Whether to use templates */
@@ -939,6 +943,14 @@ public class Config {
     this.TAG_VALUE_CARDINALITY = TAG_VALUE_CARDINALITY;
   }
 
+  public String getTABLE_NAME_PREFIX() {
+    return TABLE_NAME_PREFIX;
+  }
+
+  public void setTABLE_NAME_PREFIX(String TABLE_NAME_PREFIX) {
+    this.TABLE_NAME_PREFIX = TABLE_NAME_PREFIX;
+  }
+
   public String getGROUP_NAME_PREFIX() {
     return GROUP_NAME_PREFIX;
   }
@@ -1033,6 +1045,14 @@ public class Config {
 
   public void setGROUP_NUMBER(int GROUP_NUMBER) {
     this.GROUP_NUMBER = GROUP_NUMBER;
+  }
+
+  public int getIoTDB_TABLE_NUMBER() {
+    return IoTDB_TABLE_NUMBER;
+  }
+
+  public void setIoTDB_TABLE_NUMBER(int ioTDB_TABLE_NUMBER) {
+    IoTDB_TABLE_NUMBER = ioTDB_TABLE_NUMBER;
   }
 
   public int getIOTDB_SESSION_POOL_SIZE() {

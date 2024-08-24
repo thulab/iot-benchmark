@@ -264,7 +264,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionInsertImpl(Session session, Tablet tablet)
+  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
     if (config.isVECTOR()) {
       session.insertAlignedTablet(tablet);

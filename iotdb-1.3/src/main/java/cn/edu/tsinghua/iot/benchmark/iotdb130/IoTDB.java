@@ -153,6 +153,7 @@ public class IoTDB implements IDatabase {
                 .sqlDialect(dbConfig.getSQL_DIALECT())
                 .build();
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
+        // TODO 表模型元数据修改后，生成多个 database、table，需要修改 register 逻辑
         sessionListMap.put(metaSession, createTimeseries(schemaList));
         modelStrategy.registerSchema(sessionListMap, schemaList);
       } catch (Exception e) {
@@ -685,9 +686,9 @@ public class IoTDB implements IDatabase {
     modelStrategy.sessionCleanupImpl(session);
   }
 
-  public void sessionInsertImpl(Session session, Tablet tablet)
+  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
-    modelStrategy.sessionInsertImpl(session, tablet);
+    modelStrategy.sessionInsertImpl(session, tablet, deviceSchema);
   }
 
   public void genTablet(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
