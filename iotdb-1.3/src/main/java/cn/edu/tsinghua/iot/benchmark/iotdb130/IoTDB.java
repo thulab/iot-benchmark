@@ -101,7 +101,7 @@ public class IoTDB implements IDatabase {
     // init IoTDBModelStrategy and IoTDBInsertionStrategy
     modelStrategy =
         config.isIoTDB_ENABLE_TABLE()
-            ? new TableStrategy(dbConfig, ROOT_SERIES_NAME)
+            ? new TableStrategy(dbConfig, ROOT_SERIES_NAME) // TODO: 不必传入root
             : new TreeStrategy(dbConfig, ROOT_SERIES_NAME);
     switch (dbConfig.getDB_SWITCH()) {
       case DB_IOT_130_SESSION_BY_TABLE:
@@ -127,6 +127,18 @@ public class IoTDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     insertionStrategy.cleanup();
+  }
+
+  private void cleanupImpl(IoTDBInsertionStrategy insertionStrategy, IoTDBModelStrategy modelStrategy) {
+    if (insertionStrategy instanceof SessionStrategy) {
+      if (modelStrategy instanceof TreeStrategy) {
+
+      } else {
+
+      }
+    } else {
+
+    }
   }
 
   @Override
@@ -397,8 +409,8 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(modelStrategy.addSelectClause());
-    builder.append(querySensors.get(0).getName()); // TODO: 抽的更细？
+    builder.append(modelStrategy.addSelectClause()); // TODO: selectTimeColumnIfNecessary?
+    builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
     }
@@ -571,8 +583,7 @@ public class IoTDB implements IDatabase {
       point = resultList.get(0);
       line = resultList.get(1);
     } catch (Exception e) {
-      LOGGER.info(" ", e);
-      LOGGER.error("Query Error: {}", sql);
+      LOGGER.error("Query Error: {}", sql, e);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
     if (recordMap.size() != line) {
@@ -581,10 +592,7 @@ public class IoTDB implements IDatabase {
     return new Status(true, point);
   }
 
-  private static final Map<String, Binary> binaryCache =
-      new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE());
-
-  private List<Object> convertTypeForBlobAndDate(Record record, List<TSDataType> dataTypes) {
+    private List<Object> convertTypeForBlobAndDate(Record record, List<TSDataType> dataTypes) {
     List<Object> dataValue = record.getRecordDataValue();
     for (int recordValueIndex = 0;
         recordValueIndex < record.getRecordDataValue().size();
@@ -601,7 +609,7 @@ public class IoTDB implements IDatabase {
           break;
         case DATE:
           // "2024-04-07" to "20240407"
-          String value = (String) record.getRecordDataValue().get(recordValueIndex).toString();
+          String value = record.getRecordDataValue().get(recordValueIndex).toString();
           value = value.substring(0, 4) + value.substring(5, 7) + value.substring(8);
           dataValue.set(recordValueIndex, value);
           break;
@@ -656,13 +664,13 @@ public class IoTDB implements IDatabase {
         getDeviceQuerySql(
             deviceSchema, deviceQuery.getStartTimestamp(), deviceQuery.getEndTimestamp());
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("IoTDB:{}", sql);
+      LOGGER.info("Query: {}", sql);
     }
     List<List<Object>> result;
     try {
       result = insertionStrategy.deviceQueryImpl(sql);
     } catch (Exception e) {
-      LOGGER.error("Query Error: {} exception:{}", sql, e.getMessage());
+      LOGGER.error("Query Error: {}", sql, e);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
     return new Status(true, 0, sql, result);
@@ -740,7 +748,7 @@ public class IoTDB implements IDatabase {
     return getDevicePath(deviceSchema) + "." + sensor;
   }
 
-  public Session buildSession(List<String> hostUrls) {
+  public Session buildSession(List<String> hostUrls) { // TODO: 放到SessionStrategy
     return new Session.Builder()
         .nodeUrls(hostUrls)
         .username(dbConfig.getUSERNAME())
@@ -784,6 +792,7 @@ public class IoTDB implements IDatabase {
   }
 
   public String getValue(RowRecord rowRecord, int i) {
-    return modelStrategy.getValue(rowRecord, i);
+//    return modelStrategy.getValue(rowRecord, i);
+    return rowRecord.getFields().get(i + modelStrategy.getQueryOffset()).toString();
   }
 }

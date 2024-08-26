@@ -6,7 +6,7 @@ public class BlobUtils {
   private BlobUtils() {}
 
   public static String bytesToHex(byte[] bytes) {
-    Formatter formatter = new Formatter();
+    Formatter formatter = new Formatter(); // TODO: try-with-resource
     for (byte b : bytes) {
       formatter.format("%02X", b);
     }

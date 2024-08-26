@@ -71,6 +71,8 @@ public class MetaUtil {
     }
   }
 
+  // TODO: private calculateId()
+
   public static int calGroupIdV2(int tableId) throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:

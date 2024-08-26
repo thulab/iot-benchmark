@@ -41,6 +41,7 @@ import java.util.Map;
 public abstract class IoTDBModelStrategy {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final DBConfig dbConfig;
+  public static int queryBaseOffset;
 
   public IoTDBModelStrategy(DBConfig dbConfig) {
     this.dbConfig = dbConfig;

@@ -58,6 +58,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   public TableStrategy(DBConfig dbConfig, String ROOT_SERIES_NAME) {
     super(dbConfig);
     TableStrategy.ROOT_SERIES_NAME = ROOT_SERIES_NAME;
+    queryBaseOffset = 1;
   }
 
   @Override
