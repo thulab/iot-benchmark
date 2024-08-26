@@ -60,14 +60,12 @@ import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.tsfile.read.common.RowRecord;
-import org.apache.tsfile.utils.Binary;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +73,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** this class will create more than one connection. */
@@ -83,7 +80,7 @@ public class IoTDB implements IDatabase {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDB.class);
 
-  public static String DELETE_SERIES_SQL; // TODO：static？
+  public static String DELETE_SERIES_SQL;
   public static String ROOT_SERIES_NAME;
   private final DBConfig dbConfig;
   private final Random random = new Random(config.getDATA_SEED());
@@ -100,11 +97,8 @@ public class IoTDB implements IDatabase {
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
     // init IoTDBModelStrategy and IoTDBInsertionStrategy
     modelStrategy =
-        config.isIoTDB_ENABLE_TABLE()
-            ? new TableStrategy(dbConfig, ROOT_SERIES_NAME) // TODO: 不必传入root
-            : new TreeStrategy(dbConfig, ROOT_SERIES_NAME);
+        config.isIoTDB_ENABLE_TABLE() ? new TableStrategy(dbConfig) : new TreeStrategy(dbConfig);
     switch (dbConfig.getDB_SWITCH()) {
-      case DB_IOT_130_SESSION_BY_TABLE:
       case DB_IOT_130_REST:
       case DB_IOT_130_SESSION_BY_TABLET:
       case DB_IOT_130_SESSION_BY_RECORD:
@@ -129,18 +123,6 @@ public class IoTDB implements IDatabase {
     insertionStrategy.cleanup();
   }
 
-  private void cleanupImpl(IoTDBInsertionStrategy insertionStrategy, IoTDBModelStrategy modelStrategy) {
-    if (insertionStrategy instanceof SessionStrategy) {
-      if (modelStrategy instanceof TreeStrategy) {
-
-      } else {
-
-      }
-    } else {
-
-    }
-  }
-
   @Override
   public void close() throws TsdbException {
     insertionStrategy.close();
@@ -154,7 +136,7 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    long start = System.nanoTime(); // TODO：恢复
+    long start = System.nanoTime();
     if (config.hasWrite()) {
       Map<Session, List<TimeseriesSchema>> sessionListMap = new HashMap<>();
       try {
@@ -199,7 +181,7 @@ public class IoTDB implements IDatabase {
     return timeseriesSchemas;
   }
 
-  private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) { // TODO：抽
+  private TimeseriesSchema createTimeseries(DeviceSchema deviceSchema) {
     List<String> paths = new ArrayList<>();
     List<TSDataType> tsDataTypes = new ArrayList<>();
     List<TSEncoding> tsEncodings = new ArrayList<>();
@@ -409,7 +391,8 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(modelStrategy.addSelectClause()); // TODO: selectTimeColumnIfNecessary?
+    builder.append(
+        modelStrategy.selectTimeColumnIfNecessary()); // TODO: selectTimeColumnIfNecessary?
     builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
@@ -455,19 +438,11 @@ public class IoTDB implements IDatabase {
   }
 
   private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
+
     StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
-        builder
-            .append(" AND ")
-            .append(modelStrategy.addPath(deviceSchema))
-            .append(sensor.getName())
-            .append(" > ");
-        if (sensor.getSensorType() == SensorType.DATE) {
-          builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
-        } else {
-          builder.append(valueThreshold);
-        }
+        modelStrategy.getValueFilterClause(deviceSchema, sensor, valueThreshold, builder);
       }
     }
     return builder.toString();
@@ -528,7 +503,6 @@ public class IoTDB implements IDatabase {
     AtomicBoolean isOk = new AtomicBoolean(true);
     List<List<Object>> records = new ArrayList<>();
     try {
-      // TODO：不需要Pair？抛异常即可
       queryResultPointNum =
           insertionStrategy.executeQueryAndGetStatusImpl(executeSQL, operation, isOk, records);
     } catch (Throwable t) {
@@ -592,7 +566,7 @@ public class IoTDB implements IDatabase {
     return new Status(true, point);
   }
 
-    private List<Object> convertTypeForBlobAndDate(Record record, List<TSDataType> dataTypes) {
+  private List<Object> convertTypeForBlobAndDate(Record record, List<TSDataType> dataTypes) {
     List<Object> dataValue = record.getRecordDataValue();
     for (int recordValueIndex = 0;
         recordValueIndex < record.getRecordDataValue().size();
@@ -748,17 +722,6 @@ public class IoTDB implements IDatabase {
     return getDevicePath(deviceSchema) + "." + sensor;
   }
 
-  public Session buildSession(List<String> hostUrls) { // TODO: 放到SessionStrategy
-    return new Session.Builder()
-        .nodeUrls(hostUrls)
-        .username(dbConfig.getUSERNAME())
-        .password(dbConfig.getPASSWORD())
-        .enableRedirection(true)
-        .version(Version.V_1_0)
-        .sqlDialect(dbConfig.getSQL_DIALECT())
-        .build();
-  }
-
   public String getInsertTargetName(DeviceSchema schema) {
     return modelStrategy.getInsertTargetName(schema);
   }
@@ -781,10 +744,9 @@ public class IoTDB implements IDatabase {
     modelStrategy.sessionInsertImpl(session, tablet, deviceSchema);
   }
 
-  public void addIDColumn(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
-    //    LOGGER.info(batch.getDeviceSchema().getTable() + " " +
-    // batch.getDeviceSchema().getDevice());
-    modelStrategy.addIDColumn(columnTypes, sensors, batch);
+  public void addIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    modelStrategy.addIDColumnIfNecessary(columnTypes, sensors, batch);
   }
 
   public long getTimestamp(RowRecord rowRecord) {
@@ -792,7 +754,6 @@ public class IoTDB implements IDatabase {
   }
 
   public String getValue(RowRecord rowRecord, int i) {
-//    return modelStrategy.getValue(rowRecord, i);
     return rowRecord.getFields().get(i + modelStrategy.getQueryOffset()).toString();
   }
 }

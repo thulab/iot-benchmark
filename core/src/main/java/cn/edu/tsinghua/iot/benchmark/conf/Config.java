@@ -189,7 +189,7 @@ public class Config {
   private int CLIENT_NUMBER = 20;
 
   /** name prefix of table */
-  private String TABLE_NAME_PREFIX = "t_";
+  private String TABLE_NAME_PREFIX = "table_";
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
   /** name prefix of device */
@@ -1790,6 +1790,7 @@ public class Config {
     ConfigProperties configProperties = new ConfigProperties();
 
     configProperties.addProperty("Test Mode", "BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
+    configProperties.addProperty("Test Mode", "IoTDB_ENABLE_TABLE", this.IoTDB_ENABLE_TABLE);
 
     configProperties.addProperty(
         "Database Connection Information", "DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
@@ -1802,6 +1803,7 @@ public class Config {
           this.ANOTHER_DBConfig.getMainConfig());
     }
     configProperties.addProperty("Data Mode", "GROUP_NUMBER", this.GROUP_NUMBER);
+    configProperties.addProperty("Data Mode", "IoTDB_TABLE_NUMBER", this.IoTDB_TABLE_NUMBER);
     configProperties.addProperty("Data Mode", "DEVICE_NUMBER", this.DEVICE_NUMBER);
     configProperties.addProperty("Data Mode", "REAL_INSERT_RATE", this.REAL_INSERT_RATE);
     configProperties.addProperty("Data Mode", "SENSOR_NUMBER", this.SENSOR_NUMBER);
@@ -1837,7 +1839,15 @@ public class Config {
             + "/"
             + this.ENCODING_DOUBLE
             + "/"
-            + this.ENCODING_TEXT);
+            + this.ENCODING_TEXT
+            + "/"
+            + this.ENCODING_STRING
+            + "/"
+            + this.ENCODING_BLOB
+            + "/"
+            + this.ENCODING_TIMESTAMP
+            + "/"
+            + this.ENCODING_DATE);
     configProperties.addProperty("Data Amount", "COMPRESSOR", this.COMPRESSOR);
     if (hasQuery()) {
       configProperties.addProperty("Query Param", "QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);

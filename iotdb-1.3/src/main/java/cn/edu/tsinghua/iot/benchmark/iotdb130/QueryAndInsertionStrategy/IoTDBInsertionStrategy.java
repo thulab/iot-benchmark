@@ -19,6 +19,9 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy;
 
+import org.apache.iotdb.isession.util.Version;
+import org.apache.iotdb.session.Session;
+
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
@@ -66,4 +69,15 @@ public abstract class IoTDBInsertionStrategy {
   public abstract void cleanup();
 
   public abstract void close() throws TsdbException;
+
+  protected Session buildSession(List<String> hostUrls) {
+    return new Session.Builder()
+        .nodeUrls(hostUrls)
+        .username(dbConfig.getUSERNAME())
+        .password(dbConfig.getPASSWORD())
+        .enableRedirection(true)
+        .version(Version.V_1_0)
+        .sqlDialect(dbConfig.getSQL_DIALECT())
+        .build();
+  }
 }

@@ -56,23 +56,14 @@ public class Constants {
   public static final String IOTDB130 = "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB";
   public static final String IOTDB130_REST_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDBRestAPI";
-  public static final String IOTDB130_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB";
-  public static final String IOTDB130_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDBSession";
-  public static final String IOTDB130_ROUNDROBIN_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDBClusterSession";
 
   public static final String IOTDB110_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb110.IoTDB";
   public static final String IOTDB110_SESSION_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb110.IoTDBSession";
-  public static final String IOTDB110_ROUNDROBIN_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb110.IoTDBClusterSession";
 
   public static final String IOTDB100_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb100.IoTDB";
   public static final String IOTDB100_SESSION_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb100.IoTDBSession";
-  public static final String IOTDB100_ROUNDROBIN_SESSION_CLASS =
-      "cn.edu.tsinghua.iot.benchmark.iotdb100.IoTDBClusterSession";
 
   public static final String INFLUXDB_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb.InfluxDB";
   public static final String INFLUXDB2_CLASS = "cn.edu.tsinghua.iot.benchmark.influxdb2.InfluxDB";

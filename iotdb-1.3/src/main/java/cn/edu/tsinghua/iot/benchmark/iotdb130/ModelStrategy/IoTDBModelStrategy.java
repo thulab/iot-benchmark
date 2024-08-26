@@ -41,7 +41,8 @@ import java.util.Map;
 public abstract class IoTDBModelStrategy {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final DBConfig dbConfig;
-  public static int queryBaseOffset;
+  protected static String ROOT_SERIES_NAME;
+  protected static int queryBaseOffset;
 
   public IoTDBModelStrategy(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -59,10 +60,10 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String getInsertTargetName(DeviceSchema schema);
 
-  public abstract String addSelectClause();
+  public abstract String selectTimeColumnIfNecessary();
 
-  // TODO 名字
-  public abstract String addPath(DeviceSchema deviceSchema);
+  public abstract void getValueFilterClause(
+      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder);
 
   public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
 
@@ -72,10 +73,10 @@ public abstract class IoTDBModelStrategy {
   public abstract void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException;
 
-  public abstract void addIDColumn(
+  public abstract void addIDColumnIfNecessary(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
 
   public abstract long getTimestamp(RowRecord rowRecord);
 
-  public abstract String getValue(RowRecord rowRecord, int i);
+  public abstract int getQueryOffset();
 }

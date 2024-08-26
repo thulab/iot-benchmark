@@ -83,7 +83,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-    session = iotdb.buildSession(hostUrls);
+    session = buildSession(hostUrls);
   }
 
   // region private method
@@ -320,7 +320,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
 
-    iotdb.addIDColumn(columnTypes, sensors, batch);
+    iotdb.addIDColumnIfNecessary(columnTypes, sensors, batch);
     int sensorIndex = 0;
     for (Sensor sensor : sensors) {
       SensorType dataSensorType = sensor.getSensorType();

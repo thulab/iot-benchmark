@@ -322,9 +322,16 @@ public class ConfigDescriptor {
         config.setGROUP_NUMBER(
             Integer.parseInt(
                 properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER() + "")));
-        config.setIoTDB_TABLE_NUMBER(
-            Integer.parseInt(
-                properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+        if (!config.isIoTDB_ENABLE_TABLE()) {
+          // In non-table models, ensure that table_number does not affect the mapping of devices to
+          // storage groups. (DeviceSchema.java --> DeviceSchema)
+          config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+        } else {
+          config.setIoTDB_TABLE_NUMBER(
+              Integer.parseInt(
+                  properties.getProperty(
+                      "IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+        }
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(

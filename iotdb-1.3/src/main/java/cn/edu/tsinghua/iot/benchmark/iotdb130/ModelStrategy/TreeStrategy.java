@@ -27,6 +27,7 @@ import org.apache.iotdb.session.template.MeasurementNode;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -42,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -65,11 +67,11 @@ public class TreeStrategy extends IoTDBModelStrategy {
   private static final CyclicBarrier activateTemplateBarrier =
       new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
-  private static String ROOT_SERIES_NAME;
 
-  public TreeStrategy(DBConfig dbConfig, String ROOT_SERIES_NAME) {
+  public TreeStrategy(DBConfig dbConfig) {
     super(dbConfig);
-    TreeStrategy.ROOT_SERIES_NAME = ROOT_SERIES_NAME;
+    ROOT_SERIES_NAME = IoTDB.ROOT_SERIES_NAME;
+    queryBaseOffset = 0;
   }
 
   @Override
@@ -230,13 +232,24 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String addSelectClause() {
+  public String selectTimeColumnIfNecessary() {
     return "";
   }
 
   @Override
-  public String addPath(DeviceSchema deviceSchema) {
-    return IoTDB.getDevicePath(deviceSchema) + ".";
+  public void getValueFilterClause(
+      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder) {
+    builder
+        .append(" AND ")
+        .append(IoTDB.getDevicePath(deviceSchema))
+        .append(".")
+        .append(sensor.getName())
+        .append(" > ");
+    if (sensor.getSensorType() == SensorType.DATE) {
+      builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
+    } else {
+      builder.append(valueThreshold);
+    }
   }
 
   @Override
@@ -262,8 +275,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionCleanupImpl(Session session)
-      throws IoTDBConnectionException, StatementExecutionException {
+  public void sessionCleanupImpl(Session session) {
     try {
       session.executeNonQueryStatement(
           "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
@@ -276,7 +288,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void addIDColumn(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+  public void addIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     // do nothing
   }
 
@@ -286,8 +299,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String getValue(RowRecord rowRecord, int i) {
-    return rowRecord.getFields().get(i).toString();
+  public int getQueryOffset() {
+    return queryBaseOffset;
   }
 
   private void handleRegisterException(Exception e) throws TsdbException {

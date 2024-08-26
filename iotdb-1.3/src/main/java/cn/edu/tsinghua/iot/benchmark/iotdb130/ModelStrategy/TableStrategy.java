@@ -38,6 +38,7 @@ import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -45,19 +46,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 
-// import java.util.concurrent.atomic.AtomicBoolean;
-
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
   private static final Set<String> databases = Collections.synchronizedSet(new HashSet<>());
-  //  private static boolean databaseCreated = false;
   private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
-  private static String ROOT_SERIES_NAME;
 
-  public TableStrategy(DBConfig dbConfig, String ROOT_SERIES_NAME) {
+  public TableStrategy(DBConfig dbConfig) {
     super(dbConfig);
-    TableStrategy.ROOT_SERIES_NAME = ROOT_SERIES_NAME;
+    ROOT_SERIES_NAME = IoTDB.ROOT_SERIES_NAME;
     queryBaseOffset = 1;
   }
 
@@ -66,7 +63,6 @@ public class TableStrategy extends IoTDBModelStrategy {
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
-      // TODO 多个 database
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
         registerDatabase(pair.getKey(), pair.getValue());
       }
@@ -108,7 +104,6 @@ public class TableStrategy extends IoTDBModelStrategy {
     try {
       DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
       StringBuilder builder = new StringBuilder();
-      // table_0 is the database name
       builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
       for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
         if (i != 0) builder.append(", ");
@@ -143,13 +138,25 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String addSelectClause() {
+  public String selectTimeColumnIfNecessary() {
     return "time, ";
   }
 
   @Override
-  public String addPath(DeviceSchema deviceSchema) {
-    return "";
+  public void getValueFilterClause(
+      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder) {
+    builder.append(" AND ").append(sensor.getName()).append(" > ");
+    if (sensor.getSensorType() == SensorType.DATE) {
+      builder
+          .append("CAST(")
+          .append("'")
+          .append(LocalDate.ofEpochDay(Math.abs(valueThreshold)))
+          .append("'")
+          .append(" AS DATE)");
+      System.out.println(LocalDate.ofEpochDay(Math.abs(valueThreshold)));
+    } else {
+      builder.append(valueThreshold);
+    }
   }
 
   @Override
@@ -157,7 +164,6 @@ public class TableStrategy extends IoTDBModelStrategy {
     // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
     // test is the database name, g_0_table is the table name, and the device is the identification
     // column.
-    // 多个 device
     builder
         .append(" FROM ")
         .append(dbConfig.getDB_NAME())
@@ -182,13 +188,13 @@ public class TableStrategy extends IoTDBModelStrategy {
     SessionDataSet dataSet = session.executeQueryStatement("show databases");
     while (dataSet.hasNext()) {
       String databaseName = dataSet.next().getFields().get(0).toString();
-      System.out.println(databaseName);
       session.executeNonQueryStatement("drop database " + databaseName);
     }
   }
 
   @Override
-  public void addIDColumn(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+  public void addIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     // All sensors are of type measurement
     for (int i = 0; i < sensors.size(); i++) {
       columnTypes.add(Tablet.ColumnType.MEASUREMENT);
@@ -218,8 +224,8 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String getValue(RowRecord rowRecord, int i) {
-    return rowRecord.getFields().get(i + 1).toString();
+  public int getQueryOffset() {
+    return queryBaseOffset;
   }
 
   private void handleRegisterException(Exception e) throws TsdbException {

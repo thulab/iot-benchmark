@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class MetaUtil {
 
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final String TAG_KEY_PREFIX = config.getTAG_KEY_PREFIX();
   private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
   private static final int TAG_NUMBER = config.getTAG_NUMBER();
@@ -38,64 +38,17 @@ public class MetaUtil {
     return config.getFIRST_DEVICE_INDEX() + deviceId;
   }
 
-  /** Calculate GroupId(integer) from device according to SG_STRATEGY */
-  public static int calGroupId(int deviceId) throws WorkloadException {
-    switch (config.getSG_STRATEGY()) {
-      case Constants.MOD_SG_ASSIGN_MODE:
-        return deviceId % config.getGROUP_NUMBER();
-      case Constants.HASH_SG_ASSIGN_MODE:
-        return (deviceId + "").hashCode() % config.getGROUP_NUMBER();
-      case Constants.DIV_SG_ASSIGN_MODE:
-        int devicePerGroup = config.getDEVICE_NUMBER() / config.getGROUP_NUMBER();
-        return devicePerGroup == 0
-            ? deviceId
-            : (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
-      default:
-        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
-    }
-  }
-
-  public static int calTableId(int deviceId) throws WorkloadException {
-    switch (config.getSG_STRATEGY()) {
-      case Constants.MOD_SG_ASSIGN_MODE:
-        return deviceId % config.getIoTDB_TABLE_NUMBER();
-      case Constants.HASH_SG_ASSIGN_MODE:
-        return (deviceId + "").hashCode() % config.getIoTDB_TABLE_NUMBER();
-      case Constants.DIV_SG_ASSIGN_MODE:
-        int devicePerTable = config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER();
-        return devicePerTable == 0
-            ? deviceId
-            : (deviceId / devicePerTable) % config.getIoTDB_TABLE_NUMBER();
-      default:
-        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
-    }
-  }
-
+  /** Calculate GroupId(tableId) from device(table) according to SG_STRATEGY */
   // TODO: private calculateId()
-
-  public static int calGroupIdV2(int tableId) throws WorkloadException {
+  public static int calculateId(int id, int NUMBER1, int NUMBER2) throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
-        return tableId % config.getGROUP_NUMBER();
+        return id % NUMBER2;
       case Constants.HASH_SG_ASSIGN_MODE:
-        return (tableId + "").hashCode() % config.getGROUP_NUMBER();
+        return (id + "").hashCode() % NUMBER2;
       case Constants.DIV_SG_ASSIGN_MODE:
-        int tablePerGroup = config.getIoTDB_TABLE_NUMBER() / config.getGROUP_NUMBER();
-        return tablePerGroup == 0 ? tableId : (tableId / tablePerGroup) % config.getGROUP_NUMBER();
-      default:
-        throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
-    }
-  }
-
-  public static int calId(int id, int number1, int number2) throws WorkloadException {
-    switch (config.getSG_STRATEGY()) {
-      case Constants.MOD_SG_ASSIGN_MODE:
-        return id % number2;
-      case Constants.HASH_SG_ASSIGN_MODE:
-        return (id + "").hashCode() % number2;
-      case Constants.DIV_SG_ASSIGN_MODE:
-        int itemPerObject = number1 / number2;
-        return itemPerObject == 0 ? id : (id / itemPerObject) % number2;
+        int itemPerObject = NUMBER1 / NUMBER2;
+        return itemPerObject == 0 ? id : (id / itemPerObject) % NUMBER2;
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }

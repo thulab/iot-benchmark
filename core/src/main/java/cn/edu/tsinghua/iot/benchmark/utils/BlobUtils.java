@@ -6,12 +6,15 @@ public class BlobUtils {
   private BlobUtils() {}
 
   public static String bytesToHex(byte[] bytes) {
-    Formatter formatter = new Formatter(); // TODO: try-with-resource
-    for (byte b : bytes) {
-      formatter.format("%02X", b);
+    String hex = "";
+    try (Formatter formatter = new Formatter()) {
+      for (byte b : bytes) {
+        formatter.format("%02X", b);
+      }
+      hex = formatter.toString();
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    String hex = formatter.toString();
-    formatter.close();
     return hex;
   }
 
