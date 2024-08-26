@@ -44,6 +44,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.BlobUtils;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -58,6 +59,8 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.tsfile.read.common.RowRecord;
+import org.apache.tsfile.utils.Binary;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
@@ -72,6 +75,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** this class will create more than one connection. */
@@ -153,7 +157,6 @@ public class IoTDB implements IDatabase {
                 .sqlDialect(dbConfig.getSQL_DIALECT())
                 .build();
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-        // TODO 表模型元数据修改后，生成多个 database、table，需要修改 register 逻辑
         sessionListMap.put(metaSession, createTimeseries(schemaList));
         modelStrategy.registerSchema(sessionListMap, schemaList);
       } catch (Exception e) {
@@ -399,7 +402,7 @@ public class IoTDB implements IDatabase {
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
     }
-    return builder.toString();
+    return addFromClause(devices, builder);
   }
 
   private String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
@@ -538,8 +541,14 @@ public class IoTDB implements IDatabase {
     List<DeviceSchema> deviceSchemas = new ArrayList<>();
     deviceSchemas.add(deviceSchema);
 
-    List<Record> records = verificationQuery.getRecords();
-    if (records == null || records.isEmpty()) {
+    List<Record> records = new ArrayList<>();
+    List<TSDataType> tsDataTypes =
+        constructDataTypes(deviceSchema.getSensors(), deviceSchema.getSensors().size());
+    for (Record record : verificationQuery.getRecords()) {
+      records.add(
+          new Record(record.getTimestamp(), convertTypeForBlobAndDate(record, tsDataTypes)));
+    }
+    if (records.isEmpty()) {
       return new Status(
           false,
           new TsdbException("There are no records in verficationQuery."),
@@ -562,6 +571,7 @@ public class IoTDB implements IDatabase {
       point = resultList.get(0);
       line = resultList.get(1);
     } catch (Exception e) {
+      LOGGER.info(" ", e);
       LOGGER.error("Query Error: {}", sql);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
     }
@@ -571,6 +581,74 @@ public class IoTDB implements IDatabase {
     return new Status(true, point);
   }
 
+  private static final Map<String, Binary> binaryCache =
+      new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE());
+
+  private List<Object> convertTypeForBlobAndDate(Record record, List<TSDataType> dataTypes) {
+    List<Object> dataValue = record.getRecordDataValue();
+    for (int recordValueIndex = 0;
+        recordValueIndex < record.getRecordDataValue().size();
+        recordValueIndex++) {
+      switch (dataTypes.get(recordValueIndex)) {
+        case BLOB:
+          // "7I" to "0x3749"
+          dataValue.set(
+              recordValueIndex,
+              "0x"
+                  + BlobUtils.stringToHex(
+                          (String) record.getRecordDataValue().get(recordValueIndex))
+                      .toLowerCase());
+          break;
+        case DATE:
+          // "2024-04-07" to "20240407"
+          String value = (String) record.getRecordDataValue().get(recordValueIndex).toString();
+          value = value.substring(0, 4) + value.substring(5, 7) + value.substring(8);
+          dataValue.set(recordValueIndex, value);
+          break;
+      }
+    }
+    return dataValue;
+  }
+
+  public static List<TSDataType> constructDataTypes(List<Sensor> sensors, int recordValueSize) {
+    List<TSDataType> dataTypes = new ArrayList<>();
+    for (int sensorIndex = 0; sensorIndex < recordValueSize; sensorIndex++) {
+      switch (sensors.get(sensorIndex).getSensorType()) {
+        case BOOLEAN:
+          dataTypes.add(TSDataType.BOOLEAN);
+          break;
+        case INT32:
+          dataTypes.add(TSDataType.INT32);
+          break;
+        case INT64:
+          dataTypes.add(TSDataType.INT64);
+          break;
+        case FLOAT:
+          dataTypes.add(TSDataType.FLOAT);
+          break;
+        case DOUBLE:
+          dataTypes.add(TSDataType.DOUBLE);
+          break;
+        case TEXT:
+          dataTypes.add(TSDataType.TEXT);
+          break;
+        case STRING:
+          dataTypes.add(TSDataType.STRING);
+          break;
+        case BLOB:
+          dataTypes.add(TSDataType.BLOB);
+          break;
+        case TIMESTAMP:
+          dataTypes.add(TSDataType.TIMESTAMP);
+          break;
+        case DATE:
+          dataTypes.add(TSDataType.DATE);
+          break;
+      }
+    }
+    return dataTypes;
+  }
+
   @Override
   public Status deviceQuery(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSchema deviceSchema = deviceQuery.getDeviceSchema();
@@ -578,7 +656,7 @@ public class IoTDB implements IDatabase {
         getDeviceQuerySql(
             deviceSchema, deviceQuery.getStartTimestamp(), deviceQuery.getEndTimestamp());
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.info("IoTDB:" + sql);
+      LOGGER.info("IoTDB:{}", sql);
     }
     List<List<Object>> result;
     try {
@@ -662,14 +740,19 @@ public class IoTDB implements IDatabase {
     return getDevicePath(deviceSchema) + "." + sensor;
   }
 
-  // region should only call by SessionStrategy
-
   public Session buildSession(List<String> hostUrls) {
-    return modelStrategy.buildSession(hostUrls);
+    return new Session.Builder()
+        .nodeUrls(hostUrls)
+        .username(dbConfig.getUSERNAME())
+        .password(dbConfig.getPASSWORD())
+        .enableRedirection(true)
+        .version(Version.V_1_0)
+        .sqlDialect(dbConfig.getSQL_DIALECT())
+        .build();
   }
 
-  public String getDeviceId(DeviceSchema schema) {
-    return modelStrategy.getDeviceId(schema);
+  public String getInsertTargetName(DeviceSchema schema) {
+    return modelStrategy.getInsertTargetName(schema);
   }
 
   public Tablet createTablet(
@@ -677,7 +760,6 @@ public class IoTDB implements IDatabase {
       List<IMeasurementSchema> schemas,
       List<Tablet.ColumnType> columnTypes,
       int maxRowNumber) {
-    // TODO 两个策略中是一样的
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
 
@@ -691,8 +773,17 @@ public class IoTDB implements IDatabase {
     modelStrategy.sessionInsertImpl(session, tablet, deviceSchema);
   }
 
-  public void genTablet(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
-    modelStrategy.genTablet(columnTypes, sensors, batch);
+  public void addIDColumn(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    //    LOGGER.info(batch.getDeviceSchema().getTable() + " " +
+    // batch.getDeviceSchema().getDevice());
+    modelStrategy.addIDColumn(columnTypes, sensors, batch);
   }
-  // endregion
+
+  public long getTimestamp(RowRecord rowRecord) {
+    return modelStrategy.getTimestamp(rowRecord);
+  }
+
+  public String getValue(RowRecord rowRecord, int i) {
+    return modelStrategy.getValue(rowRecord, i);
+  }
 }

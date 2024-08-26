@@ -111,7 +111,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     for (Record record : batch.getRecords()) {
       long timestamp = record.getTimestamp();
       List<TSDataType> dataTypes =
-          constructDataTypes(
+          IoTDB.constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       List<Object> recordDataValue = convertTypeForBLOB(record, dataTypes);
       try {
@@ -148,7 +148,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
         times.add(record.getTimestamp());
         measurementsList.add(sensors);
         List<TSDataType> dataTypes =
-            constructDataTypes(
+            IoTDB.constructDataTypes(
                 batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
         valuesList.add(convertTypeForBLOB(record, dataTypes));
         typesList.add(dataTypes);
@@ -250,10 +250,11 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     try (SessionDataSet sessionDataSet = session.executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         RowRecord rowRecord = sessionDataSet.next();
-        long timeStamp = rowRecord.getTimestamp();
+        // The table model and the tree model obtain time differently
+        long timeStamp = iotdb.getTimestamp(rowRecord);
         List<Object> values = recordMap.get(timeStamp);
         for (int i = 0; i < values.size(); i++) {
-          String value = rowRecord.getFields().get(i).toString();
+          String value = iotdb.getValue(rowRecord, i);
           String target = String.valueOf(values.get(i));
           if (!value.equals(target)) {
             LOGGER.error("Using SQL: " + sql + ",Expected:" + value + " but was: " + target);
@@ -318,25 +319,8 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-    // All sensors are of type measurement
-    iotdb.genTablet(columnTypes, sensors, batch);
-    // region 表的行为
-    //    if (config.isIoTDB_ENABLE_TABLE()) {
-    //      for (int i = 0; i < sensors.size(); i++) {
-    //        columnTypes.add(Tablet.ColumnType.MEASUREMENT);
-    //      }
-    //    }
 
-    // tag and device as ID column
-    // Add Identity Column Information to Schema
-    //    sensors.add(new Sensor("device_id", SensorType.STRING));
-    //    columnTypes.add(Tablet.ColumnType.ID);
-    //    for (String key : batch.getDeviceSchema().getTags().keySet()) {
-    //      // Currently, the identity column can only be String
-    //      sensors.add(new Sensor(key, SensorType.STRING));
-    //      columnTypes.add(Tablet.ColumnType.ID);
-    //    }
-    // endregion
+    iotdb.addIDColumn(columnTypes, sensors, batch);
     int sensorIndex = 0;
     for (Sensor sensor : sensors) {
       SensorType dataSensorType = sensor.getSensorType();
@@ -349,15 +333,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
                   Objects.requireNonNull(IoTDB.getEncodingType(dataSensorType)))));
       sensorIndex++;
     }
-    // Add the value of the identity column to the value of each record
-    //    for (int i = 0; i < batch.getRecords().size(); i++) {
-    //      List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
-    //      dataValue.add(batch.getDeviceSchema().getDevice());
-    //      for (String key : batch.getDeviceSchema().getTags().keySet()) {
-    //        dataValue.add(batch.getDeviceSchema().getTags().get(key));
-    //      }
-    //    }
-    String deviceId = iotdb.getDeviceId(batch.getDeviceSchema());
+    String deviceId = iotdb.getInsertTargetName(batch.getDeviceSchema());
     Tablet tablet =
         iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
     long[] timestamps = tablet.timestamps;
@@ -423,45 +399,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     return tablet;
   }
 
-  private List<TSDataType> constructDataTypes(List<Sensor> sensors, int recordValueSize) {
-    List<TSDataType> dataTypes = new ArrayList<>();
-    for (int sensorIndex = 0; sensorIndex < recordValueSize; sensorIndex++) {
-      switch (sensors.get(sensorIndex).getSensorType()) {
-        case BOOLEAN:
-          dataTypes.add(TSDataType.BOOLEAN);
-          break;
-        case INT32:
-          dataTypes.add(TSDataType.INT32);
-          break;
-        case INT64:
-          dataTypes.add(TSDataType.INT64);
-          break;
-        case FLOAT:
-          dataTypes.add(TSDataType.FLOAT);
-          break;
-        case DOUBLE:
-          dataTypes.add(TSDataType.DOUBLE);
-          break;
-        case TEXT:
-          dataTypes.add(TSDataType.TEXT);
-          break;
-        case STRING:
-          dataTypes.add(TSDataType.STRING);
-          break;
-        case BLOB:
-          dataTypes.add(TSDataType.BLOB);
-          break;
-        case TIMESTAMP:
-          dataTypes.add(TSDataType.TIMESTAMP);
-          break;
-        case DATE:
-          dataTypes.add(TSDataType.DATE);
-          break;
-      }
-    }
-    return dataTypes;
-  }
-
   public List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
     // String change to Binary
     List<Object> dataValue = record.getRecordDataValue();
@@ -482,7 +419,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   public Status insertOneBatch(IBatch batch, String devicePath) {
     DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
     switch (insertMode) {
-      case INSERT_USE_SESSION_TABLE:
       case INSERT_USE_SESSION_TABLET:
         return insertOneBatchByTablet(batch);
       case INSERT_USE_SESSION_RECORD:

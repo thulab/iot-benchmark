@@ -65,34 +65,60 @@ public class DeviceSchema implements Cloneable {
    * @param deviceId e.g. FIRST_DEVICE_INDEX + device
    * @param sensors
    */
-  // TODO 注意纯写入时 读数据是否会有问题呢？
+  // TODO 注意纯写入时 读数据是否会有问题呢？ 有问题，读到的 deviceSchema 中没有 table
   public DeviceSchema(int deviceId, List<Sensor> sensors, Map<String, String> tags) {
     this.deviceId = deviceId;
     this.device = MetaUtil.getDeviceName(deviceId);
     this.sensors = sensors;
     this.tags = tags;
-    if (config.isIoTDB_ENABLE_TABLE()) {
-      try {
-        int thisDeviceTableIndex = MetaUtil.calTableId(deviceId);
-        int thisDeviceGroupIndex = MetaUtil.calGroupId(thisDeviceTableIndex);
-        this.table = MetaUtil.getTableName(thisDeviceTableIndex);
-        this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
-      } catch (WorkloadException e) {
-        LOGGER.error("Create device schema failed.", e);
-      }
-    } else {
-      try {
-        int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
-        this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
-      } catch (WorkloadException e) {
-        LOGGER.error("Create device schema failed.", e);
-      }
+    //    if (config.isIoTDB_ENABLE_TABLE()) {
+    try {
+      int thisDeviceTableIndex = MetaUtil.calTableId(deviceId);
+      int thisDeviceGroupIndex = MetaUtil.calGroupId(thisDeviceTableIndex);
+      this.table = MetaUtil.getTableName(thisDeviceTableIndex);
+      this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
+    } catch (WorkloadException e) {
+      LOGGER.error("Create device schema failed.", e);
     }
+    //    } else {
+    //      try {
+    //        int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
+    //        this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
+    //      } catch (WorkloadException e) {
+    //        LOGGER.error("Create device schema failed.", e);
+    //      }
+    //    }
   }
 
   public DeviceSchema(
       String groupId, String deviceName, List<Sensor> sensors, Map<String, String> tags) {
+    if (config.isIoTDB_ENABLE_TABLE()) {
+      String tableId = MetaUtil.getTableIdFromDeviceName(deviceName);
+      this.table = MetaUtil.getTableName(tableId);
+      try {
+        this.group = MetaUtil.getGroupName(MetaUtil.calGroupId(Integer.parseInt(tableId)));
+      } catch (WorkloadException e) {
+        LOGGER.error("Create device schema failed.", e);
+      }
+      this.device = deviceName;
+      this.sensors = sensors;
+      this.tags = tags;
+    } else {
+      this.group = MetaUtil.getGroupName(groupId);
+      this.device = deviceName;
+      this.sensors = sensors;
+      this.tags = tags;
+    }
+  }
+
+  public DeviceSchema(
+      String groupId,
+      String tableName,
+      String deviceName,
+      List<Sensor> sensors,
+      Map<String, String> tags) {
     this.group = MetaUtil.getGroupName(groupId);
+    this.table = MetaUtil.getTableName(tableName);
     this.device = deviceName;
     this.sensors = sensors;
     this.tags = tags;

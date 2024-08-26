@@ -31,6 +31,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 
@@ -45,8 +46,6 @@ public abstract class IoTDBModelStrategy {
     this.dbConfig = dbConfig;
   }
 
-  public abstract Session buildSession(List<String> hostUrls);
-
   public abstract void registerSchema(
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException;
@@ -57,10 +56,11 @@ public abstract class IoTDBModelStrategy {
       List<Tablet.ColumnType> columnTypes,
       int maxRowNumber);
 
-  public abstract String getDeviceId(DeviceSchema schema);
+  public abstract String getInsertTargetName(DeviceSchema schema);
 
   public abstract String addSelectClause();
 
+  // TODO 名字
   public abstract String addPath(DeviceSchema deviceSchema);
 
   public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
@@ -71,6 +71,10 @@ public abstract class IoTDBModelStrategy {
   public abstract void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException;
 
-  public abstract void genTablet(
+  public abstract void addIDColumn(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+
+  public abstract long getTimestamp(RowRecord rowRecord);
+
+  public abstract String getValue(RowRecord rowRecord, int i);
 }

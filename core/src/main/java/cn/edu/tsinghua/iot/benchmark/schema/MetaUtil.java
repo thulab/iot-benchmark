@@ -108,6 +108,15 @@ public class MetaUtil {
     return String.valueOf(groupId);
   }
 
+  public static String getTableIdFromDeviceName(String deviceName) {
+    int tableId = deviceName.hashCode();
+    if (tableId < 0) {
+      tableId = -tableId;
+    }
+    tableId = tableId % config.getIoTDB_TABLE_NUMBER();
+    return String.valueOf(tableId);
+  }
+
   /** Get deviceId from str */
   public static int getDeviceIdFromStr(String device) {
     int deviceId = device.hashCode();

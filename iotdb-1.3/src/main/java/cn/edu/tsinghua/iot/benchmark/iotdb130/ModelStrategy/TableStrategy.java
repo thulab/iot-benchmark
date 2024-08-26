@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy;
 
 import org.apache.iotdb.isession.SessionDataSet;
-import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -33,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
@@ -61,19 +61,6 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public Session buildSession(List<String> hostUrls) {
-    return new Session.Builder()
-        .nodeUrls(hostUrls)
-        .username(dbConfig.getUSERNAME())
-        .password(dbConfig.getPASSWORD())
-        .enableRedirection(true)
-        //        .database(dbConfig.getDB_NAME())
-        .version(Version.V_1_0)
-        .sqlDialect(dbConfig.getSQL_DIALECT())
-        .build();
-  }
-
-  @Override
   public void registerSchema(
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException {
@@ -82,7 +69,6 @@ public class TableStrategy extends IoTDBModelStrategy {
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
         registerDatabase(pair.getKey(), pair.getValue());
       }
-      //      registerDatabase(sessionListMap);
       schemaBarrier.await();
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
         registerTable(pair.getKey(), pair.getValue());
@@ -121,7 +107,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     try {
       DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
       StringBuilder builder = new StringBuilder();
-      // g_0_table is the database name
+      // table_0 is the database name
       builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
       for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
         if (i != 0) builder.append(", ");
@@ -133,10 +119,8 @@ public class TableStrategy extends IoTDBModelStrategy {
             .append(deviceSchema.getSensors().get(i).getColumnCategory());
       }
       builder.append(")");
-      //      System.out.println("use " + dbConfig.getDB_NAME() + "_" +deviceSchema.getGroup());
       metaSession.executeNonQueryStatement(
           "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
-      //      System.out.println(builder.toString());
       metaSession.executeNonQueryStatement(builder.toString());
     } catch (Exception e) {
       handleRegisterException(e);
@@ -153,13 +137,13 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String getDeviceId(DeviceSchema schema) {
+  public String getInsertTargetName(DeviceSchema schema) {
     return schema.getTable();
   }
 
   @Override
   public String addSelectClause() {
-    return " time, ";
+    return "time, ";
   }
 
   @Override
@@ -172,11 +156,14 @@ public class TableStrategy extends IoTDBModelStrategy {
     // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
     // test is the database name, g_0_table is the table name, and the device is the identification
     // column.
-    builder.append(" FROM ").append(devices.get(0).getGroup()).append("_table");
-
-    for (int i = 1; i < devices.size(); i++) {
-      builder.append(devices.get(i).getGroup() + "_table");
-    }
+    // 多个 device
+    builder
+        .append(" FROM ")
+        .append(dbConfig.getDB_NAME())
+        .append("_")
+        .append(devices.get(0).getGroup())
+        .append(".")
+        .append(devices.get(0).getTable());
     return builder.toString();
   }
 
@@ -194,13 +181,13 @@ public class TableStrategy extends IoTDBModelStrategy {
     SessionDataSet dataSet = session.executeQueryStatement("show databases");
     while (dataSet.hasNext()) {
       String databaseName = dataSet.next().getFields().get(0).toString();
-      //      System.out.println(databaseName);
+      System.out.println(databaseName);
       session.executeNonQueryStatement("drop database " + databaseName);
     }
   }
 
   @Override
-  public void genTablet(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+  public void addIDColumn(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     // All sensors are of type measurement
     for (int i = 0; i < sensors.size(); i++) {
       columnTypes.add(Tablet.ColumnType.MEASUREMENT);
@@ -222,6 +209,16 @@ public class TableStrategy extends IoTDBModelStrategy {
         dataValue.add(batch.getDeviceSchema().getTags().get(key));
       }
     }
+  }
+
+  @Override
+  public long getTimestamp(RowRecord rowRecord) {
+    return rowRecord.getFields().get(0).getLongV();
+  }
+
+  @Override
+  public String getValue(RowRecord rowRecord, int i) {
+    return rowRecord.getFields().get(i + 1).toString();
   }
 
   private void handleRegisterException(Exception e) throws TsdbException {

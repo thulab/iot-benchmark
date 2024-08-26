@@ -20,7 +20,6 @@
 package cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy;
 
 import org.apache.iotdb.isession.template.Template;
-import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
@@ -36,6 +35,7 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
+import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
@@ -70,18 +70,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public TreeStrategy(DBConfig dbConfig, String ROOT_SERIES_NAME) {
     super(dbConfig);
     TreeStrategy.ROOT_SERIES_NAME = ROOT_SERIES_NAME;
-  }
-
-  @Override
-  public Session buildSession(List<String> hostUrls) {
-    return new Session.Builder()
-        .nodeUrls(hostUrls)
-        .username(dbConfig.getUSERNAME())
-        .password(dbConfig.getPASSWORD())
-        .enableRedirection(true)
-        .version(Version.V_1_0)
-        .sqlDialect(dbConfig.getSQL_DIALECT())
-        .build();
   }
 
   @Override
@@ -237,7 +225,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String getDeviceId(DeviceSchema schema) {
+  public String getInsertTargetName(DeviceSchema schema) {
     return IoTDB.getDevicePath(schema);
   }
 
@@ -288,8 +276,18 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void genTablet(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+  public void addIDColumn(List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     // do nothing
+  }
+
+  @Override
+  public long getTimestamp(RowRecord rowRecord) {
+    return rowRecord.getTimestamp();
+  }
+
+  @Override
+  public String getValue(RowRecord rowRecord, int i) {
+    return rowRecord.getFields().get(i).toString();
   }
 
   private void handleRegisterException(Exception e) throws TsdbException {
