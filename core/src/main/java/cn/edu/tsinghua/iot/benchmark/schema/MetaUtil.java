@@ -39,16 +39,15 @@ public class MetaUtil {
   }
 
   /** Calculate GroupId(tableId) from device(table) according to SG_STRATEGY */
-  // TODO: private calculateId()
-  public static int calculateId(int id, int NUMBER1, int NUMBER2) throws WorkloadException {
+  public static int mappingId(int id, int factor1, int factor2) throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
-        return id % NUMBER2;
+        return id % factor2;
       case Constants.HASH_SG_ASSIGN_MODE:
-        return (id + "").hashCode() % NUMBER2;
+        return (id + "").hashCode() % factor2;
       case Constants.DIV_SG_ASSIGN_MODE:
-        int itemPerObject = NUMBER1 / NUMBER2;
-        return itemPerObject == 0 ? id : (id / itemPerObject) % NUMBER2;
+        int itemPerObject = factor1 / factor2;
+        return itemPerObject == 0 ? id : (id / itemPerObject) % factor2;
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }

@@ -71,13 +71,13 @@ public class DeviceSchema implements Cloneable {
     this.sensors = sensors;
     this.tags = tags;
     try {
-      int thisDeviceTableIndex =
-          MetaUtil.calculateId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
-      int thisDeviceGroupIndex =
-          MetaUtil.calculateId(
-              thisDeviceTableIndex, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
-      this.table = MetaUtil.getTableName(thisDeviceTableIndex);
-      this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
+      int deviceBelongToWhichTable =
+          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+      int tableBelongToWhichGroup =
+          MetaUtil.mappingId(
+              deviceBelongToWhichTable, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+      this.table = MetaUtil.getTableName(deviceBelongToWhichTable);
+      this.group = MetaUtil.getGroupName(tableBelongToWhichGroup);
     } catch (WorkloadException e) {
       LOGGER.error("Create device schema failed.", e);
     }
@@ -90,10 +90,10 @@ public class DeviceSchema implements Cloneable {
     try {
       this.group =
           MetaUtil.getGroupName(
-              MetaUtil.calculateId(
+              MetaUtil.mappingId(
                   Integer.parseInt(tableId),
                   config.getIoTDB_TABLE_NUMBER(),
-                  config.getIoTDB_TABLE_NUMBER()));
+                  config.getGROUP_NUMBER()));
     } catch (WorkloadException e) {
       LOGGER.error("Create device schema failed.", e);
     }
