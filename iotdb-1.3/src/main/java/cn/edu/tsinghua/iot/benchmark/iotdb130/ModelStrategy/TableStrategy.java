@@ -153,7 +153,6 @@ public class TableStrategy extends IoTDBModelStrategy {
           .append(LocalDate.ofEpochDay(Math.abs(valueThreshold)))
           .append("'")
           .append(" AS DATE)");
-      System.out.println(LocalDate.ofEpochDay(Math.abs(valueThreshold)));
     } else {
       builder.append(valueThreshold);
     }

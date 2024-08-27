@@ -391,8 +391,7 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(
-        modelStrategy.selectTimeColumnIfNecessary()); // TODO: selectTimeColumnIfNecessary?
+    builder.append(modelStrategy.selectTimeColumnIfNecessary());
     builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());

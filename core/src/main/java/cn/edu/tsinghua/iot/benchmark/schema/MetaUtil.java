@@ -38,7 +38,7 @@ public class MetaUtil {
     return config.getFIRST_DEVICE_INDEX() + deviceId;
   }
 
-  /** Calculate GroupId(tableId) from device(table) according to SG_STRATEGY */
+  /** tableId(deviceId) maps to groupId(tableId) according to SG_STRATEGY */
   public static int mappingId(int id, int factor1, int factor2) throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
