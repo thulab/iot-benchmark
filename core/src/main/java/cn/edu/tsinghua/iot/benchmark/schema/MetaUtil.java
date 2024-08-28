@@ -86,7 +86,7 @@ public class MetaUtil {
   }
 
   public static String getTableName(Object tableId) {
-    return config.getTABLE_NAME_PREFIX() + tableId;
+    return config.getIoTDB_TABLE_NAME_PREFIX() + tableId;
   }
 
   public static String getDeviceName(Object deviceId) {

@@ -231,7 +231,6 @@ public class JDBCStrategy extends IoTDBInsertionStrategy {
     }
   }
 
-  // region private method
   private String getInsertOneBatchSql(
       DeviceSchema deviceSchema, long timestamp, List<Object> values) {
     StringBuilder builder = new StringBuilder("insert into ");

@@ -110,32 +110,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void registerStorageGroups(Session metaSession, List<TimeseriesSchema> schemaList)
-      throws TsdbException {
-    // get all storage groups
-    Set<String> groups = new HashSet<>();
-    for (TimeseriesSchema timeseriesSchema : schemaList) {
-      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
-      synchronized (IoTDB.class) {
-        if (!storageGroups.contains(schema.getGroup())) {
-          groups.add(schema.getGroup());
-          storageGroups.add(schema.getGroup());
-        }
-      }
-    }
-    // register storage groups
-    for (String group : groups) {
-      try {
-        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
-        if (config.isTEMPLATE()) {
-          metaSession.setSchemaTemplate(config.getTEMPLATE_NAME(), ROOT_SERIES_NAME + "." + group);
-        }
-      } catch (Exception e) {
-        handleRegisterException(e);
-      }
-    }
-  }
-
   /** create template */
   private Template createTemplate(DeviceSchema deviceSchema) {
     Template template = null;
@@ -173,6 +147,32 @@ public class TreeStrategy extends IoTDBModelStrategy {
     } catch (StatementExecutionException e) {
       // do nothing
       e.printStackTrace();
+    }
+  }
+
+  private void registerStorageGroups(Session metaSession, List<TimeseriesSchema> schemaList)
+      throws TsdbException {
+    // get all storage groups
+    Set<String> groups = new HashSet<>();
+    for (TimeseriesSchema timeseriesSchema : schemaList) {
+      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
+      synchronized (IoTDB.class) {
+        if (!storageGroups.contains(schema.getGroup())) {
+          groups.add(schema.getGroup());
+          storageGroups.add(schema.getGroup());
+        }
+      }
+    }
+    // register storage groups
+    for (String group : groups) {
+      try {
+        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + group);
+        if (config.isTEMPLATE()) {
+          metaSession.setSchemaTemplate(config.getTEMPLATE_NAME(), ROOT_SERIES_NAME + "." + group);
+        }
+      } catch (Exception e) {
+        handleRegisterException(e);
+      }
     }
   }
 
@@ -218,23 +218,38 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
-  @Override
-  public Tablet createTablet(
-      String insertTargetName,
-      List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnType> columnTypes,
-      int maxRowNumber) {
-    return new Tablet(insertTargetName, schemas, maxRowNumber);
-  }
-
-  @Override
-  public String getInsertTargetName(DeviceSchema schema) {
-    return IoTDB.getDevicePath(schema);
-  }
+  // region select
 
   @Override
   public String selectTimeColumnIfNecessary() {
     return "";
+  }
+
+  @Override
+  public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
+    // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
+    // test is the database name, g_0_table is the table name, and the device is the identification
+    // column.
+    builder.append(" FROM ").append(IoTDB.getDevicePath(devices.get(0)));
+    for (int i = 1; i < devices.size(); i++) {
+      builder.append(".").append(IoTDB.getDevicePath(devices.get(i)));
+    }
+    return builder.toString();
+  }
+
+  @Override
+  public void addVerificationQueryWhereClause(
+      StringBuffer sql,
+      List<Record> records,
+      Map<Long, List<Object>> recordMap,
+      DeviceSchema deviceSchema) {
+    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
   }
 
   @Override
@@ -254,15 +269,37 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
-    // test is the database name, g_0_table is the table name, and the device is the identification
-    // column.
-    builder.append(" FROM ").append(IoTDB.getDevicePath(devices.get(0)));
-    for (int i = 1; i < devices.size(); i++) {
-      builder.append(".").append(IoTDB.getDevicePath(devices.get(i)));
-    }
-    return builder.toString();
+  public long getTimestamp(RowRecord rowRecord) {
+    return rowRecord.getTimestamp();
+  }
+
+  @Override
+  public int getQueryOffset() {
+    return queryBaseOffset;
+  }
+
+  // endregion
+
+  // region insert
+
+  @Override
+  public Tablet createTablet(
+      String insertTargetName,
+      List<IMeasurementSchema> schemas,
+      List<Tablet.ColumnType> columnTypes,
+      int maxRowNumber) {
+    return new Tablet(insertTargetName, schemas, maxRowNumber);
+  }
+
+  @Override
+  public String getInsertTargetName(DeviceSchema schema) {
+    return IoTDB.getDevicePath(schema);
+  }
+
+  @Override
+  public void addIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    // do nothing
   }
 
   @Override
@@ -288,36 +325,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
-  @Override
-  public void addIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
-    // do nothing
-  }
-
-  @Override
-  public void addVerificationQueryWhereClause(
-      StringBuffer sql,
-      List<Record> records,
-      Map<Long, List<Object>> recordMap,
-      DeviceSchema deviceSchema) {
-    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
-    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
-    for (int i = 1; i < records.size(); i++) {
-      Record record = records.get(i);
-      sql.append(" or time = ").append(record.getTimestamp());
-      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
-    }
-  }
-
-  @Override
-  public long getTimestamp(RowRecord rowRecord) {
-    return rowRecord.getTimestamp();
-  }
-
-  @Override
-  public int getQueryOffset() {
-    return queryBaseOffset;
-  }
+  // endregion
 
   private void handleRegisterException(Exception e) throws TsdbException {
     // ignore if already has the time series

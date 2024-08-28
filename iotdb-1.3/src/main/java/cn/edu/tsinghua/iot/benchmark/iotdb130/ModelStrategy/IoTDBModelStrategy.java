@@ -53,6 +53,29 @@ public abstract class IoTDBModelStrategy {
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException;
 
+  // region select
+
+  public abstract String selectTimeColumnIfNecessary();
+
+  public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+
+  public abstract void addVerificationQueryWhereClause(
+      StringBuffer sql,
+      List<Record> records,
+      Map<Long, List<Object>> recordMap,
+      DeviceSchema deviceSchema);
+
+  public abstract void getValueFilterClause(
+      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder);
+
+  public abstract long getTimestamp(RowRecord rowRecord);
+
+  public abstract int getQueryOffset();
+
+  // endregion
+
+  // region insert
+
   public abstract Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
@@ -61,12 +84,8 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String getInsertTargetName(DeviceSchema schema);
 
-  public abstract String selectTimeColumnIfNecessary();
-
-  public abstract void getValueFilterClause(
-      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder);
-
-  public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+  public abstract void addIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
 
   public abstract void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException;
@@ -74,16 +93,5 @@ public abstract class IoTDBModelStrategy {
   public abstract void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException;
 
-  public abstract void addIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
-
-  public abstract void addVerificationQueryWhereClause(
-      StringBuffer sql,
-      List<Record> records,
-      Map<Long, List<Object>> recordMap,
-      DeviceSchema deviceSchema);
-
-  public abstract long getTimestamp(RowRecord rowRecord);
-
-  public abstract int getQueryOffset();
+  // endregion
 }

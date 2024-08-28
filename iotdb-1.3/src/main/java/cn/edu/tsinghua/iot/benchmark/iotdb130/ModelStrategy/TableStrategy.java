@@ -124,23 +124,52 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
   }
 
-  @Override
-  public Tablet createTablet(
-      String insertTargetName,
-      List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnType> columnTypes,
-      int maxRowNumber) {
-    return new Tablet(insertTargetName, schemas, columnTypes, maxRowNumber);
-  }
-
-  @Override
-  public String getInsertTargetName(DeviceSchema schema) {
-    return schema.getTable();
-  }
+  // region select
 
   @Override
   public String selectTimeColumnIfNecessary() {
     return "time, ";
+  }
+
+  @Override
+  public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
+    // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
+    // test is the database name, g_0_table is the table name, and the device is the identification
+    // column.
+    builder
+        .append(" FROM ")
+        .append(dbConfig.getDB_NAME())
+        .append("_")
+        .append(devices.get(0).getGroup())
+        .append(".")
+        .append(devices.get(0).getTable());
+    return builder.toString();
+  }
+
+  @Override
+  public void addVerificationQueryWhereClause(
+      StringBuffer sql,
+      List<Record> records,
+      Map<Long, List<Object>> recordMap,
+      DeviceSchema deviceSchema) {
+    sql.append(" WHERE (time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    sql.append(" ) AND device_id = '").append(deviceSchema.getDevice()).append("'");
+    Map<String, String> tags = deviceSchema.getTags();
+    if (tags != null) {
+      for (Map.Entry<String, String> entry : tags.entrySet()) {
+        sql.append(" AND ")
+            .append(entry.getKey())
+            .append(" = '")
+            .append(entry.getValue())
+            .append("'");
+      }
+    }
   }
 
   @Override
@@ -160,36 +189,31 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
-    // test is the database name, g_0_table is the table name, and the device is the identification
-    // column.
-    builder
-        .append(" FROM ")
-        .append(dbConfig.getDB_NAME())
-        .append("_")
-        .append(devices.get(0).getGroup())
-        .append(".")
-        .append(devices.get(0).getTable());
-    return builder.toString();
+  public long getTimestamp(RowRecord rowRecord) {
+    return rowRecord.getFields().get(0).getLongV();
   }
 
   @Override
-  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
-      throws IoTDBConnectionException, StatementExecutionException {
-    session.executeNonQueryStatement(
-        "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
-    session.insertRelationalTablet(tablet);
+  public int getQueryOffset() {
+    return queryBaseOffset;
+  }
+
+  // endregion
+
+  // region insert
+
+  @Override
+  public Tablet createTablet(
+      String insertTargetName,
+      List<IMeasurementSchema> schemas,
+      List<Tablet.ColumnType> columnTypes,
+      int maxRowNumber) {
+    return new Tablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
 
   @Override
-  public void sessionCleanupImpl(Session session)
-      throws IoTDBConnectionException, StatementExecutionException {
-    SessionDataSet dataSet = session.executeQueryStatement("show databases");
-    while (dataSet.hasNext()) {
-      String databaseName = dataSet.next().getFields().get(0).toString();
-      session.executeNonQueryStatement("drop database " + databaseName);
-    }
+  public String getInsertTargetName(DeviceSchema schema) {
+    return schema.getTable();
   }
 
   @Override
@@ -219,41 +243,24 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void addVerificationQueryWhereClause(
-      StringBuffer sql,
-      List<Record> records,
-      Map<Long, List<Object>> recordMap,
-      DeviceSchema deviceSchema) {
-    sql.append(" WHERE (time = ").append(records.get(0).getTimestamp());
-    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
-    for (int i = 1; i < records.size(); i++) {
-      Record record = records.get(i);
-      sql.append(" or time = ").append(record.getTimestamp());
-      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
-    }
-    sql.append(" ) AND device_id = '").append(deviceSchema.getDevice()).append("'");
-    Map<String, String> tags = deviceSchema.getTags();
-    if (tags != null) {
-      for (Map.Entry<String, String> entry : tags.entrySet()) {
-        sql.append(" AND ")
-            .append(entry.getKey())
-            .append(" = '")
-            .append(entry.getValue())
-            .append("'");
-      }
-    }
-    //    LOGGER.info("SQL {}", sql);
+  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
+      throws IoTDBConnectionException, StatementExecutionException {
+    session.executeNonQueryStatement(
+        "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
+    session.insertRelationalTablet(tablet);
   }
 
   @Override
-  public long getTimestamp(RowRecord rowRecord) {
-    return rowRecord.getFields().get(0).getLongV();
+  public void sessionCleanupImpl(Session session)
+      throws IoTDBConnectionException, StatementExecutionException {
+    SessionDataSet dataSet = session.executeQueryStatement("show databases");
+    while (dataSet.hasNext()) {
+      String databaseName = dataSet.next().getFields().get(0).toString();
+      session.executeNonQueryStatement("drop database " + databaseName);
+    }
   }
 
-  @Override
-  public int getQueryOffset() {
-    return queryBaseOffset;
-  }
+  // endregion
 
   private void handleRegisterException(Exception e) throws TsdbException {
     // ignore if already has the time series

@@ -49,6 +49,8 @@ public abstract class IoTDBInsertionStrategy {
     this.dbConfig = dbConfig;
   }
 
+  public abstract Status insertOneBatch(IBatch batch, String devicePath) throws DBConnectException;
+
   public abstract long executeQueryAndGetStatusImpl(
       String executeSQL, Operation operation, AtomicBoolean isOk, List<List<Object>> records)
       throws SQLException;
@@ -61,8 +63,6 @@ public abstract class IoTDBInsertionStrategy {
   public abstract DeviceSummary deviceSummary(
       String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
       throws TsdbException, SQLException;
-
-  public abstract Status insertOneBatch(IBatch batch, String devicePath) throws DBConnectException;
 
   public abstract void init() throws TsdbException;
 

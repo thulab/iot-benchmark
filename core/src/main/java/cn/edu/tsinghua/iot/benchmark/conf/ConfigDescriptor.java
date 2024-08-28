@@ -260,8 +260,8 @@ public class ConfigDescriptor {
         config.setCLIENT_NUMBER(
             Integer.parseInt(
                 properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER() + "")));
-        config.setTABLE_NAME_PREFIX(
-            properties.getProperty("TABLE_NAME_PREFIX", config.getTABLE_NAME_PREFIX()));
+        config.setIoTDB_TABLE_NAME_PREFIX(
+            properties.getProperty("IoTDB_TABLE_NAME_PREFIX", config.getIoTDB_TABLE_NAME_PREFIX()));
         config.setGROUP_NAME_PREFIX(
             properties.getProperty("GROUP_NAME_PREFIX", config.getGROUP_NAME_PREFIX()));
         config.setDEVICE_NAME_PREFIX(

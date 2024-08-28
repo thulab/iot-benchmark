@@ -86,6 +86,21 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     session = buildSession(hostUrls);
   }
 
+  @Override
+  public Status insertOneBatch(IBatch batch, String devicePath) {
+    DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
+    switch (insertMode) {
+      case INSERT_USE_SESSION_TABLET:
+        return insertOneBatchByTablet(batch);
+      case INSERT_USE_SESSION_RECORD:
+        return insertOneBatchByRecord(batch, devicePath);
+      case INSERT_USE_SESSION_RECORDS:
+        return insertOneBatchByRecords(batch, devicePath);
+      default:
+        throw new IllegalStateException("Unexpected INSERT_MODE value: " + insertMode);
+    }
+  }
+
   // region private method
 
   private Status insertOneBatchByTablet(IBatch batch) {
@@ -100,6 +115,90 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
               }
             });
     return waitWriteTaskToFinishAndGetStatus();
+  }
+
+  private Tablet genTablet(IBatch batch) {
+    List<IMeasurementSchema> schemaList = new ArrayList<>();
+    List<Tablet.ColumnType> columnTypes = new ArrayList<>();
+    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
+
+    iotdb.addIDColumnIfNecessary(columnTypes, sensors, batch);
+    int sensorIndex = 0;
+    for (Sensor sensor : sensors) {
+      SensorType dataSensorType = sensor.getSensorType();
+      schemaList.add(
+          new MeasurementSchema(
+              sensor.getName(),
+              Enum.valueOf(TSDataType.class, dataSensorType.name),
+              Enum.valueOf(
+                  TSEncoding.class,
+                  Objects.requireNonNull(IoTDB.getEncodingType(dataSensorType)))));
+      sensorIndex++;
+    }
+    String deviceId = iotdb.getInsertTargetName(batch.getDeviceSchema());
+    Tablet tablet =
+        iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
+    long[] timestamps = tablet.timestamps;
+    Object[] values = tablet.values;
+
+    for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
+      tablet.rowSize++;
+      Record record = batch.getRecords().get(recordIndex);
+      sensorIndex = 0;
+      long currentTime = record.getTimestamp();
+      timestamps[recordIndex] = currentTime;
+      for (int recordValueIndex = 0;
+          recordValueIndex < record.getRecordDataValue().size();
+          recordValueIndex++) {
+        switch (sensors.get(sensorIndex).getSensorType()) {
+          case BOOLEAN:
+            boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
+            sensorsBool[recordIndex] =
+                (boolean) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case INT32:
+            int[] sensorsInt = (int[]) values[recordValueIndex];
+            sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case INT64:
+            long[] sensorsLong = (long[]) values[recordValueIndex];
+            sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case FLOAT:
+            float[] sensorsFloat = (float[]) values[recordValueIndex];
+            sensorsFloat[recordIndex] = (float) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case DOUBLE:
+            double[] sensorsDouble = (double[]) values[recordValueIndex];
+            sensorsDouble[recordIndex] =
+                (double) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case TEXT:
+          case STRING:
+          case BLOB:
+            Binary[] sensorsText = (Binary[]) values[recordValueIndex];
+            sensorsText[recordIndex] =
+                binaryCache.computeIfAbsent(
+                    (String) record.getRecordDataValue().get(recordValueIndex),
+                    BytesUtils::valueOf);
+            break;
+          case TIMESTAMP:
+            long[] sensorsTimestamp = (long[]) values[recordValueIndex];
+            sensorsTimestamp[recordIndex] =
+                (long) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          case DATE:
+            LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
+            sensorsDate[recordIndex] =
+                (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
+            break;
+          default:
+            LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
+        }
+        sensorIndex++;
+      }
+    }
+    return tablet;
   }
 
   private Status insertOneBatchByRecord(IBatch batch, String deviceId) {
@@ -173,6 +272,22 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
               }
             });
     return waitWriteTaskToFinishAndGetStatus();
+  }
+
+  private List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
+    // String change to Binary
+    List<Object> dataValue = record.getRecordDataValue();
+    for (int recordValueIndex = 0;
+        recordValueIndex < record.getRecordDataValue().size();
+        recordValueIndex++) {
+      if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
+        dataValue.set(
+            recordValueIndex,
+            binaryCache.computeIfAbsent(
+                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
+      }
+    }
+    return dataValue;
   }
 
   // endregion
@@ -317,121 +432,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
       throw new TsdbException("Failed to execute statement:" + e.getMessage());
     }
     return new DeviceSummary(device, totalLineNumber, minTimeStamp, maxTimeStamp);
-  }
-
-  private Tablet genTablet(IBatch batch) {
-    List<IMeasurementSchema> schemaList = new ArrayList<>();
-    List<Tablet.ColumnType> columnTypes = new ArrayList<>();
-    List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-
-    iotdb.addIDColumnIfNecessary(columnTypes, sensors, batch);
-    int sensorIndex = 0;
-    for (Sensor sensor : sensors) {
-      SensorType dataSensorType = sensor.getSensorType();
-      schemaList.add(
-          new MeasurementSchema(
-              sensor.getName(),
-              Enum.valueOf(TSDataType.class, dataSensorType.name),
-              Enum.valueOf(
-                  TSEncoding.class,
-                  Objects.requireNonNull(IoTDB.getEncodingType(dataSensorType)))));
-      sensorIndex++;
-    }
-    String deviceId = iotdb.getInsertTargetName(batch.getDeviceSchema());
-    Tablet tablet =
-        iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
-    long[] timestamps = tablet.timestamps;
-    Object[] values = tablet.values;
-
-    for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
-      tablet.rowSize++;
-      Record record = batch.getRecords().get(recordIndex);
-      sensorIndex = 0;
-      long currentTime = record.getTimestamp();
-      timestamps[recordIndex] = currentTime;
-      for (int recordValueIndex = 0;
-          recordValueIndex < record.getRecordDataValue().size();
-          recordValueIndex++) {
-        switch (sensors.get(sensorIndex).getSensorType()) {
-          case BOOLEAN:
-            boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
-            sensorsBool[recordIndex] =
-                (boolean) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case INT32:
-            int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case INT64:
-            long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case FLOAT:
-            float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case DOUBLE:
-            double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] =
-                (double) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case TEXT:
-          case STRING:
-          case BLOB:
-            Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] =
-                binaryCache.computeIfAbsent(
-                    (String) record.getRecordDataValue().get(recordValueIndex),
-                    BytesUtils::valueOf);
-            break;
-          case TIMESTAMP:
-            long[] sensorsTimestamp = (long[]) values[recordValueIndex];
-            sensorsTimestamp[recordIndex] =
-                (long) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case DATE:
-            LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
-            sensorsDate[recordIndex] =
-                (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          default:
-            LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
-        }
-        sensorIndex++;
-      }
-    }
-    return tablet;
-  }
-
-  public List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
-    // String change to Binary
-    List<Object> dataValue = record.getRecordDataValue();
-    for (int recordValueIndex = 0;
-        recordValueIndex < record.getRecordDataValue().size();
-        recordValueIndex++) {
-      if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
-        dataValue.set(
-            recordValueIndex,
-            binaryCache.computeIfAbsent(
-                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
-      }
-    }
-    return dataValue;
-  }
-
-  @Override
-  public Status insertOneBatch(IBatch batch, String devicePath) {
-    DBInsertMode insertMode = dbConfig.getDB_SWITCH().getInsertMode();
-    switch (insertMode) {
-      case INSERT_USE_SESSION_TABLET:
-        return insertOneBatchByTablet(batch);
-      case INSERT_USE_SESSION_RECORD:
-        return insertOneBatchByRecord(batch, devicePath);
-      case INSERT_USE_SESSION_RECORDS:
-        return insertOneBatchByRecords(batch, devicePath);
-      default:
-        throw new IllegalStateException("Unexpected INSERT_MODE value: " + insertMode);
-    }
   }
 
   Status waitWriteTaskToFinishAndGetStatus() {
