@@ -543,13 +543,7 @@ public class IoTDB implements IDatabase {
     StringBuffer sql = new StringBuffer();
     sql.append(getSimpleQuerySqlHead(deviceSchemas));
     Map<Long, List<Object>> recordMap = new HashMap<>();
-    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
-    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
-    for (int i = 1; i < records.size(); i++) {
-      Record record = records.get(i);
-      sql.append(" or time = ").append(record.getTimestamp());
-      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
-    }
+    modelStrategy.addVerificationQueryWhereClause(sql, records, recordMap, deviceSchema);
     int point, line;
     try {
       List<Integer> resultList = insertionStrategy.verificationQueryImpl(sql.toString(), recordMap);

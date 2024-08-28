@@ -48,6 +48,7 @@ import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.apache.tsfile.write.schema.MeasurementSchema;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -67,8 +68,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class SessionStrategy extends IoTDBInsertionStrategy {
-  static Logger LOGGER;
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(SessionStrategy.class);
   static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private static final Map<String, Binary> binaryCache =
@@ -245,7 +245,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
 
   @Override
   public List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
-      throws SQLException, IoTDBConnectionException, StatementExecutionException {
+      throws IoTDBConnectionException, StatementExecutionException {
     int point = 0, line = 0;
     try (SessionDataSet sessionDataSet = session.executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
@@ -263,6 +263,10 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
           }
         }
         line++;
+        if (line == 101) {
+          System.out.println(rowRecord);
+          System.out.println(recordMap.get(timeStamp));
+        }
       }
     }
     return Arrays.asList(point, line);

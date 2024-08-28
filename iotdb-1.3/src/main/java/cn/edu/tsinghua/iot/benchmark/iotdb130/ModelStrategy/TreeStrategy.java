@@ -26,6 +26,7 @@ import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
@@ -291,6 +292,21 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public void addIDColumnIfNecessary(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     // do nothing
+  }
+
+  @Override
+  public void addVerificationQueryWhereClause(
+      StringBuffer sql,
+      List<Record> records,
+      Map<Long, List<Object>> recordMap,
+      DeviceSchema deviceSchema) {
+    sql.append(" WHERE time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
   }
 
   @Override

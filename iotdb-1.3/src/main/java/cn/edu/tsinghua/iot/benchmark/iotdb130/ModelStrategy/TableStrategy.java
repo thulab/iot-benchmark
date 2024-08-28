@@ -25,6 +25,7 @@ import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
@@ -215,6 +216,33 @@ public class TableStrategy extends IoTDBModelStrategy {
         dataValue.add(batch.getDeviceSchema().getTags().get(key));
       }
     }
+  }
+
+  @Override
+  public void addVerificationQueryWhereClause(
+      StringBuffer sql,
+      List<Record> records,
+      Map<Long, List<Object>> recordMap,
+      DeviceSchema deviceSchema) {
+    sql.append(" WHERE (time = ").append(records.get(0).getTimestamp());
+    recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
+    for (int i = 1; i < records.size(); i++) {
+      Record record = records.get(i);
+      sql.append(" or time = ").append(record.getTimestamp());
+      recordMap.put(record.getTimestamp(), record.getRecordDataValue());
+    }
+    sql.append(" ) AND device_id = '").append(deviceSchema.getDevice()).append("'");
+    Map<String, String> tags = deviceSchema.getTags();
+    if (tags != null) {
+      for (Map.Entry<String, String> entry : tags.entrySet()) {
+        sql.append(" AND ")
+            .append(entry.getKey())
+            .append(" = '")
+            .append(entry.getValue())
+            .append("'");
+      }
+    }
+    //    LOGGER.info("SQL {}", sql);
   }
 
   @Override

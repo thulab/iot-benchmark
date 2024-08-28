@@ -26,6 +26,7 @@ import org.apache.iotdb.session.Session;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -75,6 +76,12 @@ public abstract class IoTDBModelStrategy {
 
   public abstract void addIDColumnIfNecessary(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+
+  public abstract void addVerificationQueryWhereClause(
+      StringBuffer sql,
+      List<Record> records,
+      Map<Long, List<Object>> recordMap,
+      DeviceSchema deviceSchema);
 
   public abstract long getTimestamp(RowRecord rowRecord);
 
