@@ -232,7 +232,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
     // column.
     builder.append(" FROM ").append(IoTDB.getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {
-      builder.append(".").append(IoTDB.getDevicePath(devices.get(i)));
+      builder.append(", ").append(IoTDB.getDevicePath(devices.get(i)));
     }
     return builder.toString();
   }

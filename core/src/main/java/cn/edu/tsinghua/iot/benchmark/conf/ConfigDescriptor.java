@@ -331,7 +331,15 @@ public class ConfigDescriptor {
               Integer.parseInt(
                   properties.getProperty(
                       "IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+          if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
+              || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
+            LOGGER.warn(
+                "Please follow this rule to adjust the parameters: device number >= table number >= group number .");
+          }
         }
+        if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER())
+          LOGGER.warn(
+              "Please follow this rule to adjust the parameters: device number >= group number .");
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(
