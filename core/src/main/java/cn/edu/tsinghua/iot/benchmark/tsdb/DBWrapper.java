@@ -652,6 +652,7 @@ public class DBWrapper implements IDatabase {
                 records1.get(i).stream().map(String::valueOf).collect(Collectors.joining(","));
             String secondLine =
                 records2.get(j).stream().map(String::valueOf).collect(Collectors.joining(","));
+            // 树 表 的 records 一定不同。
             if (!firstLine.equals(secondLine)) {
               if (hasDifference(operation)) {
                 int index = records1.get(i).size() - 1;

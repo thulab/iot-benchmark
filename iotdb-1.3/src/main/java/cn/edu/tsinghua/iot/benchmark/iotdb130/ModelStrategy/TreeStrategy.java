@@ -238,6 +238,12 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
+  public String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql) {
+    // do nothing
+    return sql;
+  }
+
+  @Override
   public void addVerificationQueryWhereClause(
       StringBuffer sql,
       List<Record> records,
@@ -278,10 +284,25 @@ public class TreeStrategy extends IoTDBModelStrategy {
     return queryBaseOffset;
   }
 
+  // TODO 用 count
+  @Override
+  public String getTotalLineNumberSql(DeviceSchema deviceSchema) {
+    return "select * from " + IoTDB.getDevicePath(deviceSchema);
+  }
+
+  @Override
+  public String getMaxTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from " + IoTDB.getDevicePath(deviceSchema) + " order by time desc limit 1";
+  }
+
+  @Override
+  public String getMinTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from " + IoTDB.getDevicePath(deviceSchema) + " order by time limit 1";
+  }
+
   // endregion
 
   // region insert
-
   @Override
   public Tablet createTablet(
       String insertTargetName,
@@ -300,6 +321,19 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public void addIDColumnIfNecessary(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     // do nothing
+  }
+
+  @Override
+  public void deleteIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    // delete the value of the identity column to the value of each record
+    for (int i = 0; i < batch.getRecords().size(); i++) {
+      List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
+      dataValue.remove(batch.getDeviceSchema().getDevice());
+      for (String key : batch.getDeviceSchema().getTags().keySet()) {
+        dataValue.remove(batch.getDeviceSchema().getTags().get(key));
+      }
+    }
   }
 
   @Override

@@ -43,6 +43,8 @@ public class DBConfig {
   private String DB_NAME = "test";
   /** In some database, it will need token to access, such as InfluxDB 2.0 */
   private String TOKEN = "token";
+  /** iotdb */
+  private boolean IoTDB_ENABLE_TABLE = false;
   /** iotdb supports table model and tree model */
   private String SQL_DIALECT = "tree";
 
@@ -124,6 +126,14 @@ public class DBConfig {
 
   public void setTOKEN(String TOKEN) {
     this.TOKEN = TOKEN;
+  }
+
+  public boolean isIoTDB_ENABLE_TABLE() {
+    return IoTDB_ENABLE_TABLE;
+  }
+
+  public void setIoTDB_ENABLE_TABLE(boolean ioTDB_ENABLE_TABLE) {
+    IoTDB_ENABLE_TABLE = ioTDB_ENABLE_TABLE;
   }
 
   public String getSQL_DIALECT() {

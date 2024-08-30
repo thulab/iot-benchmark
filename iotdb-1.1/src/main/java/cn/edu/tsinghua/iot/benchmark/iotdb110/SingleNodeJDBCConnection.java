@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SingleNodeJDBCConnection {
@@ -50,19 +49,8 @@ public class SingleNodeJDBCConnection {
   public void init() throws TsdbException {
     int nodeSize = 1;
     String[] urls;
-    if (config.isIS_ALL_NODES_VISIBLE()) {
-      nodeSize = dbConfig.getHOST().size();
-      urls = new String[nodeSize];
-      List<String> clusterHosts = dbConfig.getHOST();
-      for (int i = 0; i < nodeSize; i++) {
-        String jdbcUrl =
-            String.format(JDBC_URL, dbConfig.getHOST().get(i), dbConfig.getPORT().get(i));
-        urls[i] = jdbcUrl;
-      }
-    } else {
-      urls = new String[nodeSize];
-      urls[0] = String.format(JDBC_URL, dbConfig.getHOST().get(0), dbConfig.getPORT().get(0));
-    }
+    urls = new String[nodeSize];
+    urls[0] = String.format(JDBC_URL, dbConfig.getHOST().get(0), dbConfig.getPORT().get(0));
     connections = new Connection[nodeSize];
 
     for (int i = 0; i < connections.length; i++) {

@@ -121,7 +121,7 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-
+    iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
     iotdb.addIDColumnIfNecessary(columnTypes, sensors, batch);
     int sensorIndex = 0;
     for (Sensor sensor : sensors) {
@@ -409,22 +409,24 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
   public DeviceSummary deviceSummary(
       String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
       throws TsdbException {
-    int totalLineNumber;
+    int totalLineNumber = 0;
     long minTimeStamp, maxTimeStamp;
     try {
       SessionDataSet sessionDataSet = session.executeQueryStatement(totalLineNumberSql);
-      RowRecord rowRecord = sessionDataSet.next();
-      totalLineNumber = Integer.parseInt(rowRecord.getFields().get(0).toString());
+      while (sessionDataSet.hasNext()) {
+        sessionDataSet.next();
+        totalLineNumber++;
+      }
       sessionDataSet.close();
 
       sessionDataSet = session.executeQueryStatement(maxTimestampSql);
-      rowRecord = sessionDataSet.next();
-      maxTimeStamp = rowRecord.getTimestamp();
+      RowRecord rowRecord = sessionDataSet.next();
+      maxTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
 
       sessionDataSet = session.executeQueryStatement(minTimestampSql);
       rowRecord = sessionDataSet.next();
-      minTimeStamp = rowRecord.getTimestamp();
+      minTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
     } catch (IoTDBConnectionException e) {
       throw new TsdbException("Failed to connect to IoTDB:" + e.getMessage());

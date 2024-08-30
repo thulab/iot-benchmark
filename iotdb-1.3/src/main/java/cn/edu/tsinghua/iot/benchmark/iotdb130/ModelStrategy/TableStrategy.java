@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -103,22 +104,43 @@ public class TableStrategy extends IoTDBModelStrategy {
   private void registerTable(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
       throws TsdbException {
     try {
-      DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
-      StringBuilder builder = new StringBuilder();
-      builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
-      for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
-        if (i != 0) builder.append(", ");
+      HashMap<String, String> tables = new HashMap<>();
+      for (TimeseriesSchema timeseriesSchema : timeseriesSchemas) {
+        DeviceSchema deviceSchema = timeseriesSchema.getDeviceSchema();
+        StringBuilder builder = new StringBuilder();
+        builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
+        for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
+          if (i != 0) builder.append(", ");
+          builder
+              .append(deviceSchema.getSensors().get(i).getName())
+              .append(" ")
+              .append(deviceSchema.getSensors().get(i).getSensorType())
+              .append(" ")
+              .append(deviceSchema.getSensors().get(i).getColumnCategory());
+        }
         builder
-            .append(deviceSchema.getSensors().get(i).getName())
+            .append(", device_id")
             .append(" ")
-            .append(deviceSchema.getSensors().get(i).getSensorType())
+            .append(SensorType.STRING)
             .append(" ")
-            .append(deviceSchema.getSensors().get(i).getColumnCategory());
+            .append(Tablet.ColumnType.ID);
+        for (String key : deviceSchema.getTags().keySet()) {
+          builder
+              .append(", ")
+              .append(key)
+              .append(" ")
+              .append(SensorType.STRING)
+              .append(" ")
+              .append(Tablet.ColumnType.ID);
+        }
+        builder.append(")");
+        tables.put(dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), builder.toString());
       }
-      builder.append(")");
-      metaSession.executeNonQueryStatement(
-          "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
-      metaSession.executeNonQueryStatement(builder.toString());
+
+      for (String database : tables.keySet()) {
+        metaSession.executeNonQueryStatement("use " + database);
+        metaSession.executeNonQueryStatement(tables.get(database));
+      }
     } catch (Exception e) {
       handleRegisterException(e);
     }
@@ -128,7 +150,7 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public String selectTimeColumnIfNecessary() {
-    return "time, ";
+    return "";
   }
 
   @Override
@@ -143,6 +165,32 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append(devices.get(0).getGroup())
         .append(".")
         .append(devices.get(0).getTable());
+    return builder.toString();
+  }
+
+  @Override
+  public String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql) {
+    Set<String> deviceIds = new HashSet<>();
+    StringBuilder builder = new StringBuilder();
+    builder
+        .append(sql)
+        .append(" AND (")
+        .append("device_id")
+        .append(" = '")
+        .append(deviceSchemas.get(0).getDevice())
+        .append("'");
+    for (int i = 1; i < deviceSchemas.size(); i++) {
+      if (!deviceIds.contains(deviceSchemas.get(i).getDevice())) {
+        deviceIds.add(deviceSchemas.get(i).getDevice());
+        builder
+            .append(" OR ")
+            .append("device_id")
+            .append(" = '")
+            .append(deviceSchemas.get(i).getDevice())
+            .append("'");
+      }
+    }
+    builder.append(")");
     return builder.toString();
   }
 
@@ -198,10 +246,45 @@ public class TableStrategy extends IoTDBModelStrategy {
     return queryBaseOffset;
   }
 
+  // TODO 用 count
+  @Override
+  public String getTotalLineNumberSql(DeviceSchema deviceSchema) {
+    return "select * from "
+        + dbConfig.getDB_NAME()
+        + "_"
+        + deviceSchema.getGroup()
+        + "."
+        + deviceSchema.getTable()
+        + " where device_id = '"
+        + deviceSchema.getDevice()
+        + "'";
+  }
+
+  @Override
+  public String getMaxTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from "
+        + dbConfig.getDB_NAME()
+        + "_"
+        + deviceSchema.getGroup()
+        + "."
+        + deviceSchema.getTable()
+        + " order by time desc limit 1";
+  }
+
+  @Override
+  public String getMinTimeStampSql(DeviceSchema deviceSchema) {
+    return "select * from "
+        + dbConfig.getDB_NAME()
+        + "_"
+        + deviceSchema.getGroup()
+        + "."
+        + deviceSchema.getTable()
+        + " order by time limit 1";
+  }
+
   // endregion
 
   // region insert
-
   @Override
   public Tablet createTablet(
       String insertTargetName,
@@ -240,6 +323,12 @@ public class TableStrategy extends IoTDBModelStrategy {
         dataValue.add(batch.getDeviceSchema().getTags().get(key));
       }
     }
+  }
+
+  @Override
+  public void deleteIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    // do nothing
   }
 
   @Override

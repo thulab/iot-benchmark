@@ -59,6 +59,11 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
 
+  public abstract String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql);
+
+  public abstract void deleteIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+
   public abstract void addVerificationQueryWhereClause(
       StringBuffer sql,
       List<Record> records,
@@ -71,6 +76,12 @@ public abstract class IoTDBModelStrategy {
   public abstract long getTimestamp(RowRecord rowRecord);
 
   public abstract int getQueryOffset();
+
+  public abstract String getTotalLineNumberSql(DeviceSchema deviceSchema);
+
+  public abstract String getMaxTimeStampSql(DeviceSchema deviceSchema);
+
+  public abstract String getMinTimeStampSql(DeviceSchema deviceSchema);
 
   // endregion
 

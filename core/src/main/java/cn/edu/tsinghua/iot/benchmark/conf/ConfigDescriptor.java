@@ -89,7 +89,8 @@ public class ConfigDescriptor {
         properties.load(inputStream);
         config.setIoTDB_ENABLE_TABLE(
             Boolean.parseBoolean(
-                properties.getProperty("IoTDB_ENABLE_TABLE", config.isIoTDB_ENABLE_TABLE() + "")));
+                properties.getProperty(
+                    "IoTDB_ENABLE_TABLE", config.getDbConfig().isIoTDB_ENABLE_TABLE() + "")));
         config.setIS_DELETE_DATA(
             Boolean.parseBoolean(
                 properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA() + "")));
@@ -124,8 +125,9 @@ public class ConfigDescriptor {
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
-        if (config.isIoTDB_ENABLE_TABLE()) config.setSqlDialect("table");
-        else config.setSqlDialect("tree");
+
+        if (config.getDbConfig().isIoTDB_ENABLE_TABLE()) config.setSQL_DIALECT("table");
+        else config.setSQL_DIALECT("tree");
 
         config.setIS_DOUBLE_WRITE(
             Boolean.parseBoolean(
@@ -135,6 +137,14 @@ public class ConfigDescriptor {
               DBSwitch.getDBType(
                   properties.getProperty(
                       "ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
+          config.setANOTHER_IoTDB_ENABLE_TABLE(
+              Boolean.parseBoolean(
+                  properties.getProperty(
+                      "ANOTHER_IoTDB_ENABLE_TABLE",
+                      config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE() + "")));
+          if (config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE())
+            config.setANOTHER_SQL_DIALECT("table");
+          else config.setANOTHER_SQL_DIALECT("tree");
           String anotherHosts =
               properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
           config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
@@ -322,24 +332,33 @@ public class ConfigDescriptor {
         config.setGROUP_NUMBER(
             Integer.parseInt(
                 properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER() + "")));
-        if (!config.isIoTDB_ENABLE_TABLE()) {
-          // In non-table models, ensure that table_number does not affect the mapping of devices to
-          // storage groups. (DeviceSchema.java --> DeviceSchema)
-          config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
-        } else {
-          config.setIoTDB_TABLE_NUMBER(
-              Integer.parseInt(
-                  properties.getProperty(
-                      "IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+        config.setIoTDB_TABLE_NUMBER(
+            Integer.parseInt(
+                properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+
+        if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER())
+          LOGGER.warn(
+              "Please follow this rule to adjust the parameters: device number >= group number .");
+        if (config.getDbConfig().isIoTDB_ENABLE_TABLE()
+            || config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE()) {
           if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
               || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
             LOGGER.warn(
                 "Please follow this rule to adjust the parameters: device number >= table number >= group number .");
           }
         }
-        if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER())
-          LOGGER.warn(
-              "Please follow this rule to adjust the parameters: device number >= group number .");
+        // In non-table models, ensure that table_number does not affect the mapping of devices to
+        // storage groups. (DeviceSchema.java --> DeviceSchema)
+        if (config.isIS_DOUBLE_WRITE()) {
+          // In double_write mode, the two databases share iotdb_table_number.
+          if (config.getDbConfig().isIoTDB_ENABLE_TABLE()
+              || config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE())
+            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+        } else {
+          if (config.getDbConfig().isIoTDB_ENABLE_TABLE())
+            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+        }
+
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(
@@ -627,8 +646,11 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    if (config.isIoTDB_ENABLE_TABLE()
-        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET) {
+    if ((config.getDbConfig().isIoTDB_ENABLE_TABLE()
+            && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)
+        || (config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE()
+            && config.getANOTHER_DBConfig().getDB_SWITCH().getInsertMode()
+                != INSERT_USE_SESSION_TABLET)) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
       result = false;

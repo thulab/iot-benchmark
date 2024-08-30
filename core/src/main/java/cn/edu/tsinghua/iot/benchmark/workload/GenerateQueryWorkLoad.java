@@ -200,14 +200,30 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> queryDeviceIds = new ArrayList<>();
     List<Sensor> sensors = config.getSENSORS();
-    while (queryDevices.size() < Math.min(config.getDEVICE_NUMBER(), config.getQUERY_DEVICE_NUM())
+    List<Integer> devicesBelongToOneTable = new ArrayList<>();
+    int table_id = 0;
+    if (config.getDbConfig().isIoTDB_ENABLE_TABLE()) {
+      int deviceId =
+          queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+      table_id =
+          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+    }
+    int factor =
+        config.getDbConfig().isIoTDB_ENABLE_TABLE()
+            ? config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER()
+            : config.getDEVICE_NUMBER();
+    while (queryDevices.size() < Math.min(factor, config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
       // get a device belong to [first_device_index, first_device_index + device_number)
       int deviceId =
           queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
       // avoid duplicate
       if (!queryDeviceIds.contains(deviceId)) {
-        queryDeviceIds.add(deviceId);
+        if (config.getDbConfig().isIoTDB_ENABLE_TABLE()
+            && table_id
+                != MetaUtil.mappingId(
+                    deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())) continue;
+        else queryDeviceIds.add(deviceId);
       } else {
         continue;
       }
@@ -242,7 +258,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
           new DeviceSchema(deviceId, querySensors, MetaUtil.getTags(deviceId));
       queryDevices.add(deviceSchema);
     }
-    if (queryDevices.size() != config.getQUERY_DEVICE_NUM()) {
+    if (!(config.getDbConfig().isIoTDB_ENABLE_TABLE())
+        && queryDevices.size() != config.getQUERY_DEVICE_NUM()) {
       LOGGER.warn("There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
       throw new WorkloadException(
           "There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");

@@ -97,7 +97,7 @@ public class IoTDB implements IDatabase {
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
     // init IoTDBModelStrategy and IoTDBInsertionStrategy
     modelStrategy =
-        config.isIoTDB_ENABLE_TABLE() ? new TableStrategy(dbConfig) : new TreeStrategy(dbConfig);
+        dbConfig.isIoTDB_ENABLE_TABLE() ? new TableStrategy(dbConfig) : new TreeStrategy(dbConfig);
     switch (dbConfig.getDB_SWITCH()) {
       case DB_IOT_130_REST:
       case DB_IOT_130_SESSION_BY_TABLET:
@@ -221,6 +221,7 @@ public class IoTDB implements IDatabase {
   public Status preciseQuery(PreciseQuery preciseQuery) {
     String strTime = preciseQuery.getTimestamp() + "";
     String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
+    sql = modelStrategy.addDeviceIDColumnIfNecessary(preciseQuery.getDeviceSchema(), sql);
     return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
   }
 
@@ -459,7 +460,8 @@ public class IoTDB implements IDatabase {
   }
 
   private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
-    return addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end);
+    return modelStrategy.addDeviceIDColumnIfNecessary(
+        deviceSchemas, addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end));
   }
 
   private String addWhereTimeClause(String prefix, long start, long end) {
@@ -660,26 +662,14 @@ public class IoTDB implements IDatabase {
     DeviceSchema schema = deviceQuery.getDeviceSchema();
     return insertionStrategy.deviceSummary(
         schema.getDevice(),
-        getTotalLineNumberSql(schema),
-        getMaxTimeStampSql(schema),
-        getMinTimeStampSql(schema));
+        modelStrategy.getTotalLineNumberSql(schema),
+        modelStrategy.getMaxTimeStampSql(schema),
+        modelStrategy.getMinTimeStampSql(schema));
   }
 
   @Override
   public String typeMap(SensorType iotdbSensorType) {
     return IDatabase.super.typeMap(iotdbSensorType);
-  }
-
-  protected String getTotalLineNumberSql(DeviceSchema deviceSchema) {
-    return "select count(*) from " + getDevicePath(deviceSchema);
-  }
-
-  protected String getMinTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + getDevicePath(deviceSchema) + " order by time limit 1";
-  }
-
-  protected String getMaxTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + getDevicePath(deviceSchema) + " order by time desc limit 1";
   }
 
   public static String getEncodingType(SensorType dataSensorType) {
@@ -740,6 +730,11 @@ public class IoTDB implements IDatabase {
   public void addIDColumnIfNecessary(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     modelStrategy.addIDColumnIfNecessary(columnTypes, sensors, batch);
+  }
+
+  public void deleteIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+    modelStrategy.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
   }
 
   public long getTimestamp(RowRecord rowRecord) {

@@ -87,8 +87,6 @@ public class Config {
 
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
-  /** iotdb data model */
-  private boolean IoTDB_ENABLE_TABLE = false;
 
   /** Authorization header for REST interface */
   private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
@@ -96,7 +94,7 @@ public class Config {
   // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
-  /** Another configuration of db */
+
   private DBConfig ANOTHER_DBConfig = new DBConfig();
   /** Whether run verification when double write */
   private boolean IS_COMPARISON = false;
@@ -568,14 +566,6 @@ public class Config {
       probabilities[i] = proportions[i - 1] / sum;
     }
     return probabilities;
-  }
-
-  public boolean isIoTDB_ENABLE_TABLE() {
-    return IoTDB_ENABLE_TABLE;
-  }
-
-  public void setIoTDB_ENABLE_TABLE(boolean IoTDB_ENABLE_TABLE) {
-    this.IoTDB_ENABLE_TABLE = IoTDB_ENABLE_TABLE;
   }
 
   public int getTypeNumber() {
@@ -1595,6 +1585,14 @@ public class Config {
     this.dbConfig = dbConfig;
   }
 
+  public void setIoTDB_ENABLE_TABLE(boolean IoTDB_ENABLE_TABLE) {
+    this.dbConfig.setIoTDB_ENABLE_TABLE(IoTDB_ENABLE_TABLE);
+  }
+
+  public void setANOTHER_IoTDB_ENABLE_TABLE(boolean ANOTHER_IoTDB_ENABLE_TABLE) {
+    this.ANOTHER_DBConfig.setIoTDB_ENABLE_TABLE(ANOTHER_IoTDB_ENABLE_TABLE);
+  }
+
   public DBConfig getANOTHER_DBConfig() {
     return ANOTHER_DBConfig;
   }
@@ -1636,8 +1634,12 @@ public class Config {
     this.ANOTHER_DBConfig.setDB_SWITCH(ANOTHER_DBConfig_SWITCH);
   }
 
-  public void setSqlDialect(String sqlDialect) {
+  public void setSQL_DIALECT(String sqlDialect) {
     this.dbConfig.setSQL_DIALECT(sqlDialect);
+  }
+
+  public void setANOTHER_SQL_DIALECT(String ANOTHER_SQL_DIALECT) {
+    this.ANOTHER_DBConfig.setSQL_DIALECT(ANOTHER_SQL_DIALECT);
   }
 
   public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
@@ -1790,7 +1792,8 @@ public class Config {
     ConfigProperties configProperties = new ConfigProperties();
 
     configProperties.addProperty("Test Mode", "BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
-    configProperties.addProperty("Test Mode", "IoTDB_ENABLE_TABLE", this.IoTDB_ENABLE_TABLE);
+    configProperties.addProperty(
+        "Test Mode", "IoTDB_ENABLE_TABLE", this.getDbConfig().isIoTDB_ENABLE_TABLE());
 
     configProperties.addProperty(
         "Database Connection Information", "DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
