@@ -200,30 +200,23 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> queryDeviceIds = new ArrayList<>();
     List<Sensor> sensors = config.getSENSORS();
-    List<Integer> devicesBelongToOneTable = new ArrayList<>();
-    int table_id = 0;
-    if (config.getDbConfig().isIoTDB_ENABLE_TABLE()) {
-      int deviceId =
-          queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
-      table_id =
-          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
-    }
+    int deviceID =
+        queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+    List<Integer> devices = getDeviceBelongTable(deviceID);
+    // Ensure that the device being queried is in this table.
     int factor =
-        config.getDbConfig().isIoTDB_ENABLE_TABLE()
+        (config.getDbConfig().isIoTDB_ENABLE_TABLE()
+                || config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE())
             ? config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER()
             : config.getDEVICE_NUMBER();
     while (queryDevices.size() < Math.min(factor, config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
       // get a device belong to [first_device_index, first_device_index + device_number)
-      int deviceId =
-          queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+      int deviceId = queryDeviceRandom.nextInt(devices.size()) + config.getFIRST_DEVICE_INDEX();
+      deviceId = devices.get(deviceId);
       // avoid duplicate
       if (!queryDeviceIds.contains(deviceId)) {
-        if (config.getDbConfig().isIoTDB_ENABLE_TABLE()
-            && table_id
-                != MetaUtil.mappingId(
-                    deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())) continue;
-        else queryDeviceIds.add(deviceId);
+        queryDeviceIds.add(deviceId);
       } else {
         continue;
       }
@@ -258,13 +251,29 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
           new DeviceSchema(deviceId, querySensors, MetaUtil.getTags(deviceId));
       queryDevices.add(deviceSchema);
     }
-    if (!(config.getDbConfig().isIoTDB_ENABLE_TABLE())
-        && queryDevices.size() != config.getQUERY_DEVICE_NUM()) {
+    if (queryDevices.size() != Math.min(factor, config.getQUERY_DEVICE_NUM())) {
       LOGGER.warn("There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
       throw new WorkloadException(
           "There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
     }
     return queryDevices;
+  }
+
+  private List<Integer> getDeviceBelongTable(int deviceId) throws WorkloadException {
+    Map<Integer, List<Integer>> tableAndDevice = new HashMap<>();
+    List<Integer> deviceIds = new ArrayList<>();
+    int tableId =
+        MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+
+    for (deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
+      int table =
+          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+      tableAndDevice.computeIfAbsent(table, k -> new ArrayList<>()).add(deviceId);
+    }
+    for (Map.Entry<Integer, List<Integer>> entry : tableAndDevice.entrySet()) {
+      if (tableId == entry.getKey()) deviceIds.addAll(entry.getValue());
+    }
+    return deviceIds;
   }
 
   private void checkQuerySchemaParams() throws WorkloadException {
