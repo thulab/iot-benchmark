@@ -19,10 +19,15 @@
 
 package cn.edu.tsinghua.iot.benchmark.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Formatter;
 
 public class BlobUtils {
-  private BlobUtils() {}
+  private static final Logger LOGGER = LoggerFactory.getLogger(BlobUtils.class);
+
+  public BlobUtils() {}
 
   public static String bytesToHex(byte[] bytes) {
     String hex = "";
@@ -32,7 +37,7 @@ public class BlobUtils {
       }
       hex = formatter.toString();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.info(e.getMessage());
     }
     return hex;
   }

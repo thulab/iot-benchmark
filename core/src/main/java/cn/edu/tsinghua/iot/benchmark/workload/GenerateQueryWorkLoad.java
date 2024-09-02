@@ -203,13 +203,12 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     int deviceID =
         queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
     List<Integer> devices = getDeviceBelongTable(deviceID);
-    // Ensure that the device being queried is in this table.
-    int factor =
+    int deviceQueryMaxCount =
         (config.getDbConfig().isIoTDB_ENABLE_TABLE()
                 || config.getANOTHER_DBConfig().isIoTDB_ENABLE_TABLE())
             ? config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER()
             : config.getDEVICE_NUMBER();
-    while (queryDevices.size() < Math.min(factor, config.getQUERY_DEVICE_NUM())
+    while (queryDevices.size() < Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
       // get a device belong to [first_device_index, first_device_index + device_number)
       int deviceId = queryDeviceRandom.nextInt(devices.size()) + config.getFIRST_DEVICE_INDEX();
@@ -251,7 +250,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
           new DeviceSchema(deviceId, querySensors, MetaUtil.getTags(deviceId));
       queryDevices.add(deviceSchema);
     }
-    if (queryDevices.size() != Math.min(factor, config.getQUERY_DEVICE_NUM())) {
+    if (queryDevices.size() != Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())) {
       LOGGER.warn("There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
       throw new WorkloadException(
           "There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
@@ -271,7 +270,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       tableAndDevice.computeIfAbsent(table, k -> new ArrayList<>()).add(deviceId);
     }
     for (Map.Entry<Integer, List<Integer>> entry : tableAndDevice.entrySet()) {
-      if (tableId == entry.getKey()) deviceIds.addAll(entry.getValue());
+      if (tableId == entry.getKey()) {
+        deviceIds.addAll(entry.getValue());
+      }
     }
     return deviceIds;
   }

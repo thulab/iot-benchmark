@@ -44,7 +44,7 @@ public class MetaUtil {
       case Constants.MOD_SG_ASSIGN_MODE:
         return id % factor2;
       case Constants.HASH_SG_ASSIGN_MODE:
-        return (id + "").hashCode() % factor2;
+        return String.valueOf(id).hashCode() % factor2;
       case Constants.DIV_SG_ASSIGN_MODE:
         int itemPerObject = factor1 / factor2;
         return itemPerObject == 0 ? id : (id / itemPerObject) % factor2;
@@ -63,10 +63,7 @@ public class MetaUtil {
   }
 
   public static String getTableIdFromDeviceName(String deviceName) {
-    int tableId = deviceName.hashCode();
-    if (tableId < 0) {
-      tableId = -tableId;
-    }
+    int tableId = Math.abs(deviceName.hashCode());
     tableId = tableId % config.getIoTDB_TABLE_NUMBER();
     return String.valueOf(tableId);
   }

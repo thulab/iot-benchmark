@@ -126,8 +126,11 @@ public class ConfigDescriptor {
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
 
-        if (config.getDbConfig().isIoTDB_ENABLE_TABLE()) config.setSQL_DIALECT("table");
-        else config.setSQL_DIALECT("tree");
+        if (config.getDbConfig().isIoTDB_ENABLE_TABLE()) {
+          config.setSQL_DIALECT("table");
+        } else {
+          config.setSQL_DIALECT("tree");
+        }
 
         config.setIS_DOUBLE_WRITE(
             Boolean.parseBoolean(
