@@ -37,7 +37,7 @@ public class BlobUtils {
       }
       hex = formatter.toString();
     } catch (Exception e) {
-      LOGGER.info(e.getMessage());
+      LOGGER.error(e.getMessage());
     }
     return hex;
   }
