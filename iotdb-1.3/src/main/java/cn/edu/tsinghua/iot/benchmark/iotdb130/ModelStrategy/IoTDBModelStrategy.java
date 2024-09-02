@@ -71,7 +71,7 @@ public abstract class IoTDBModelStrategy {
       DeviceSchema deviceSchema);
 
   public abstract void getValueFilterClause(
-      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder);
+      List<DeviceSchema> deviceSchemas, int valueThreshold, StringBuilder builder);
 
   public abstract long getTimestamp(RowRecord rowRecord);
 

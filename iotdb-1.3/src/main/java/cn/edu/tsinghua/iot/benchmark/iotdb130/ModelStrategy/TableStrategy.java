@@ -222,17 +222,20 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public void getValueFilterClause(
-      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder) {
-    builder.append(" AND ").append(sensor.getName()).append(" > ");
-    if (sensor.getSensorType() == SensorType.DATE) {
-      builder
-          .append("CAST(")
-          .append("'")
-          .append(LocalDate.ofEpochDay(Math.abs(valueThreshold)))
-          .append("'")
-          .append(" AS DATE)");
-    } else {
-      builder.append(valueThreshold);
+      List<DeviceSchema> deviceSchemas, int valueThreshold, StringBuilder builder) {
+    DeviceSchema deviceSchema = deviceSchemas.get(0);
+    for (Sensor sensor : deviceSchema.getSensors()) {
+      builder.append(" AND ").append(sensor.getName()).append(" > ");
+      if (sensor.getSensorType() == SensorType.DATE) {
+        builder
+            .append("CAST(")
+            .append("'")
+            .append(LocalDate.ofEpochDay(Math.abs(valueThreshold)))
+            .append("'")
+            .append(" AS DATE)");
+      } else {
+        builder.append(valueThreshold);
+      }
     }
   }
 

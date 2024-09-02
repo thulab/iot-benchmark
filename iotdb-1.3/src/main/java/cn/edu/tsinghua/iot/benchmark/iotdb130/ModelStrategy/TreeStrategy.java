@@ -260,17 +260,21 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public void getValueFilterClause(
-      DeviceSchema deviceSchema, Sensor sensor, int valueThreshold, StringBuilder builder) {
-    builder
-        .append(" AND ")
-        .append(IoTDB.getDevicePath(deviceSchema))
-        .append(".")
-        .append(sensor.getName())
-        .append(" > ");
-    if (sensor.getSensorType() == SensorType.DATE) {
-      builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
-    } else {
-      builder.append(valueThreshold);
+      List<DeviceSchema> deviceSchemas, int valueThreshold, StringBuilder builder) {
+    for (DeviceSchema deviceSchema : deviceSchemas) {
+      for (Sensor sensor : deviceSchema.getSensors()) {
+        builder
+            .append(" AND ")
+            .append(IoTDB.getDevicePath(deviceSchema))
+            .append(".")
+            .append(sensor.getName())
+            .append(" > ");
+        if (sensor.getSensorType() == SensorType.DATE) {
+          builder.append("'").append(LocalDate.ofEpochDay(Math.abs(valueThreshold))).append("'");
+        } else {
+          builder.append(valueThreshold);
+        }
+      }
     }
   }
 
