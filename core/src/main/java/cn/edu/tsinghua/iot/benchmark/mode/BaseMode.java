@@ -47,7 +47,8 @@ public abstract class BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BaseMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
+  private static final ScheduledExecutorService scheduler =
+      Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
