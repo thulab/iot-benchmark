@@ -166,7 +166,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
               value = number.longValue();
               break;
             case FLOAT:
-              value = Math.round(number.floatValue() * ratio) / ratio;
+              value = (float) Math.round(number.floatValue() * ratio) / ratio;
               break;
             case DOUBLE:
               value = Math.round(number.doubleValue() * ratio) / ratio;
