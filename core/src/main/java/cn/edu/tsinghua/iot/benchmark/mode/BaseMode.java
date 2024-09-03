@@ -47,7 +47,7 @@ public abstract class BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BaseMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
@@ -107,7 +107,7 @@ public abstract class BaseMode {
                   config.getTEST_MAX_TIME());
               dataClients.forEach(DataClient::stopClient);
             } catch (Exception e) {
-              LOGGER.error("Exception occurred during stopping data clients.", e);
+              LOGGER.error("Exception occurred during stopping data clients:", e);
             }
           },
           config.getTEST_MAX_TIME(),
@@ -125,18 +125,17 @@ public abstract class BaseMode {
             } else {
               operations = Operation.getNormalOperation();
             }
-            Thread.sleep(100000L);
             middleMeasure(
                 baseModeMeasurement,
                 dataClients.stream().map(DataClient::getMeasurement),
                 startTime,
                 operations);
           } catch (Exception e) {
-            LOGGER.error("Exception occurred during stopping data clients.", e);
+            LOGGER.error("Exception occurred during print measurement:", e);
           }
         },
-        config.getRESULT_PRINT_INTERVAL() * 1000L,
-        TimeUnit.MILLISECONDS);
+        config.getRESULT_PRINT_INTERVAL(),
+        TimeUnit.SECONDS);
   }
 
   protected abstract void postCheck();
