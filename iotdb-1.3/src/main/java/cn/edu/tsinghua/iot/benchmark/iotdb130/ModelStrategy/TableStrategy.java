@@ -283,7 +283,6 @@ public class TableStrategy extends IoTDBModelStrategy {
   // endregion
 
   // region insert
-
   @Override
   public Tablet createTablet(
       String insertTargetName,

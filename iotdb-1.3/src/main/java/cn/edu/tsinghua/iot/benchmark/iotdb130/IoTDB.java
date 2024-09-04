@@ -98,7 +98,7 @@ public class IoTDB implements IDatabase {
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
     // init IoTDBModelStrategy and DMLStrategy
     modelStrategy =
-        dbConfig.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
             ? new TableStrategy(dbConfig)
             : new TreeStrategy(dbConfig);
     switch (dbConfig.getDB_SWITCH()) {
@@ -151,7 +151,7 @@ public class IoTDB implements IDatabase {
                 .username(dbConfig.getUSERNAME())
                 .password(dbConfig.getPASSWORD())
                 .version(Version.V_1_0)
-                .sqlDialect(dbConfig.getIoTDB_DIALECT_MODE().name())
+                .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
                 .build();
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
         sessionListMap.put(metaSession, createTimeseries(schemaList));

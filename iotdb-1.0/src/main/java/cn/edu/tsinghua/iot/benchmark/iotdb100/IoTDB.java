@@ -152,38 +152,23 @@ public class IoTDB implements IDatabase {
       Map<Session, List<TimeseriesSchema>> sessionListMap = new HashMap<>();
       try {
         // open meta session
-        if (!config.isIS_ALL_NODES_VISIBLE()) {
+        int sessionNumber = dbConfig.getHOST().size();
+        List<Session> keys = new ArrayList<>();
+        for (int i = 0; i < sessionNumber; i++) {
           Session metaSession =
               new Session.Builder()
-                  .host(dbConfig.getHOST().get(0))
-                  .port(Integer.parseInt(dbConfig.getPORT().get(0)))
+                  .host(dbConfig.getHOST().get(i))
+                  .port(Integer.parseInt(dbConfig.getPORT().get(i)))
                   .username(dbConfig.getUSERNAME())
                   .password(dbConfig.getPASSWORD())
                   .version(Version.V_0_13)
                   .build();
           metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-          sessionListMap.put(metaSession, createTimeseries(schemaList));
-        } else {
-          int sessionNumber = dbConfig.getHOST().size();
-          List<Session> keys = new ArrayList<>();
-          for (int i = 0; i < sessionNumber; i++) {
-            Session metaSession =
-                new Session.Builder()
-                    .host(dbConfig.getHOST().get(i))
-                    .port(Integer.parseInt(dbConfig.getPORT().get(i)))
-                    .username(dbConfig.getUSERNAME())
-                    .password(dbConfig.getPASSWORD())
-                    .version(Version.V_0_13)
-                    .build();
-            metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-            keys.add(metaSession);
-            sessionListMap.put(metaSession, new ArrayList<>());
-          }
-          for (int i = 0; i < schemaList.size(); i++) {
-            sessionListMap
-                .get(keys.get(i % sessionNumber))
-                .add(createTimeseries(schemaList.get(i)));
-          }
+          keys.add(metaSession);
+          sessionListMap.put(metaSession, new ArrayList<>());
+        }
+        for (int i = 0; i < schemaList.size(); i++) {
+          sessionListMap.get(keys.get(i % sessionNumber)).add(createTimeseries(schemaList.get(i)));
         }
 
         if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {

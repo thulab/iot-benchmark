@@ -60,7 +60,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentWriteTimestamp = null;
   private final Map<Operation, AtomicLong> operationLoops = new ConcurrentHashMap<>();
-  private static final Map<Integer, Set<Integer>> tableDeviceMap = new HashMap<>();
+  private static final Map<Integer, Set<Integer>> tableDeviceMap = initTableDeviceMap();
 
   public GenerateQueryWorkLoad(int id) {
     super(id);
@@ -69,7 +69,6 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     for (Operation operation : Operation.values()) {
       operationLoops.put(operation, new AtomicLong(0L));
     }
-    initTableDeviceMap();
   }
 
   @Override
@@ -195,7 +194,6 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   /**
    * Return the list of deviceSchema TODO When multi-table query is supported, there is no need to
-   * calculate initTableDeviceMap here.
    *
    * @param typeAllow true: allow generating bool and text type.
    */
@@ -211,15 +209,14 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     Integer[] devices = tableDeviceMap.get(tableId).toArray(new Integer[0]);
 
     int deviceQueryMaxCount =
-        (config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-                || config.getANOTHER_DBConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE)
+        (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE)
             ? config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER()
             : config.getDEVICE_NUMBER();
     while (queryDevices.size() < Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < deviceQueryMaxCount) {
       // get a device belong to [first_device_index, first_device_index + device_number)
       deviceId = queryDeviceRandom.nextInt(devices.length);
-      if (config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+      if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
         deviceId = devices[deviceId];
       }
       deviceId = deviceId + config.getFIRST_DEVICE_INDEX();
@@ -268,7 +265,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     return queryDevices;
   }
 
-  private void initTableDeviceMap() {
+  private static Map<Integer, Set<Integer>> initTableDeviceMap() {
+    Map<Integer, Set<Integer>> tableDeviceMap = new ConcurrentHashMap<>();
     try {
       for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
         int tableId =
@@ -278,6 +276,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     } catch (WorkloadException e) {
       LOGGER.error(e.getMessage());
     }
+    return tableDeviceMap;
   }
 
   private void checkQuerySchemaParams() throws WorkloadException {

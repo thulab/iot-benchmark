@@ -90,8 +90,7 @@ public class ConfigDescriptor {
         properties.load(inputStream);
         config.setIoTDB_DIALECT_MODE(
             SQLDialect.getSQLDialect(
-                properties.getProperty(
-                    "IoTDB_DIALECT_MODE", config.getDbConfig().getIoTDB_DIALECT_MODE() + "")));
+                properties.getProperty("IoTDB_DIALECT_MODE", config.getIoTDB_DIALECT_MODE() + "")));
         config.setIS_DELETE_DATA(
             Boolean.parseBoolean(
                 properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA() + "")));
@@ -135,11 +134,6 @@ public class ConfigDescriptor {
               DBSwitch.getDBType(
                   properties.getProperty(
                       "ANOTHER_DB_SWITCH", config.getANOTHER_DBConfig().getDB_SWITCH() + "")));
-          config.setANOTHER_IoTDB_DIALECT_MODE(
-              SQLDialect.getSQLDialect(
-                  properties.getProperty(
-                      "ANOTHER_IoTDB_ENABLE_TABLE",
-                      config.getANOTHER_DBConfig().getIoTDB_DIALECT_MODE() + "")));
           String anotherHosts =
               properties.getProperty("ANOTHER_HOST", config.getANOTHER_DBConfig().getHOST() + "");
           config.setANOTHER_HOST(Arrays.asList(anotherHosts.split(",")));
@@ -303,11 +297,6 @@ public class ConfigDescriptor {
         } else {
           config.setFIRST_DEVICE_INDEX(0);
         }
-        config.setIS_ALL_NODES_VISIBLE(
-            Boolean.parseBoolean(
-                properties.getProperty(
-                    "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
-
         config.setLINE_RATIO(
             Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO() + "")));
         config.setSIN_RATIO(
@@ -336,28 +325,18 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
 
-        if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
-          LOGGER.warn(
-              "Please follow this rule to adjust the parameters: device number >= database number .");
-        }
-        if (config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-            || config.getANOTHER_DBConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
           if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
               || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
             LOGGER.warn(
-                "Please follow this rule to adjust the parameters: device number >= table number >= database number .");
+                "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
           }
-        }
-        // In non-table models, ensure that table_number does not affect the mapping of devices to
-        // storage groups. (DeviceSchema.java --> DeviceSchema)
-        if (config.isIS_DOUBLE_WRITE()) {
-          // In double_write mode, the two databases share iotdb_table_number.
-          if (config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TREE
-              || config.getANOTHER_DBConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TREE)
-            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
         } else {
-          if (config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE)
-            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+          LOGGER.warn(
+              "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
+        }
+        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE) {
+          config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
         }
 
         config.setIOTDB_SESSION_POOL_SIZE(
@@ -647,11 +626,8 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    if ((config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-            && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)
-        || (config.getANOTHER_DBConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-            && config.getANOTHER_DBConfig().getDB_SWITCH().getInsertMode()
-                != INSERT_USE_SESSION_TABLET)) {
+    if ((config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
       result = false;

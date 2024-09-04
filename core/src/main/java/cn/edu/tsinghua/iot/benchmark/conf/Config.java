@@ -61,6 +61,9 @@ public class Config {
   /** Total number of operations that each client process */
   private long LOOP = 100;
 
+  /** iotdb supports table model and tree model */
+  private SQLDialect IoTDB_DIALECT_MODE = SQLDialect.TREE;
+
   /**
    * The running mode of benchmark 1. testWithDefaultPath: Conventional test mode, supporting mixed
    * loads of multiple read and write operations 2. writeWithRealDataSet: Write the real data set
@@ -85,8 +88,6 @@ public class Config {
   private int BENCHMARK_INDEX = 0;
   /** Calculated in this way: FIRST_DEVICE_INDEX = BENCHMARK_INDEX * DEVICE_NUMBER */
   private int FIRST_DEVICE_INDEX = 0;
-  /** 是否都可见，如果可见就可以向其他node发送 Whether access all nodes, rather than just one coordinator */
-  private boolean IS_ALL_NODES_VISIBLE = false;
 
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
@@ -632,6 +633,14 @@ public class Config {
     this.LOOP = LOOP;
   }
 
+  public SQLDialect getIoTDB_DIALECT_MODE() {
+    return IoTDB_DIALECT_MODE;
+  }
+
+  public void setIoTDB_DIALECT_MODE(SQLDialect ioTDB_DIALECT_MODE) {
+    IoTDB_DIALECT_MODE = ioTDB_DIALECT_MODE;
+  }
+
   public BenchmarkMode getBENCHMARK_WORK_MODE() {
     return BENCHMARK_WORK_MODE;
   }
@@ -686,14 +695,6 @@ public class Config {
 
   public void setFIRST_DEVICE_INDEX(int FIRST_DEVICE_INDEX) {
     this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
-  }
-
-  public boolean isIS_ALL_NODES_VISIBLE() {
-    return IS_ALL_NODES_VISIBLE;
-  }
-
-  public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
-    this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
   }
 
   public String getKAFKA_LOCATION() {
@@ -1596,14 +1597,6 @@ public class Config {
     this.dbConfig = dbConfig;
   }
 
-  public void setIoTDB_DIALECT_MODE(SQLDialect IoTDB_DIALECT_MODE) {
-    this.dbConfig.setIoTDB_DIALECT_MODE(IoTDB_DIALECT_MODE);
-  }
-
-  public void setANOTHER_IoTDB_DIALECT_MODE(SQLDialect ANOTHER_IoTDB_DIALECT_MODE) {
-    this.ANOTHER_DBConfig.setIoTDB_DIALECT_MODE(ANOTHER_IoTDB_DIALECT_MODE);
-  }
-
   public DBConfig getANOTHER_DBConfig() {
     return ANOTHER_DBConfig;
   }
@@ -1795,8 +1788,7 @@ public class Config {
     ConfigProperties configProperties = new ConfigProperties();
 
     configProperties.addProperty("Test Mode", "BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
-    configProperties.addProperty(
-        "Test Mode", "IoTDB_DIALECT_MODE", this.getDbConfig().getIoTDB_DIALECT_MODE());
+    configProperties.addProperty("Test Mode", "IoTDB_DIALECT_MODE", this.getIoTDB_DIALECT_MODE());
 
     configProperties.addProperty(
         "Database Connection Information", "DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
@@ -1877,7 +1869,6 @@ public class Config {
       configProperties.addProperty("Other Param", "BENCHMARK_INDEX", this.BENCHMARK_INDEX);
       configProperties.addProperty("Other Param", "FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
     }
-    configProperties.addProperty("Other Param", "IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     if (this.TEMPLATE) {
       configProperties.addProperty("Other Param", "TEMPLATE", this.TEMPLATE);
     }

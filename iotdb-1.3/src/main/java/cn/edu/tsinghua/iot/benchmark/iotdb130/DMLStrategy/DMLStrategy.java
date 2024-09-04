@@ -77,7 +77,7 @@ public abstract class DMLStrategy {
         .password(dbConfig.getPASSWORD())
         .enableRedirection(true)
         .version(Version.V_1_0)
-        .sqlDialect(dbConfig.getIoTDB_DIALECT_MODE().name())
+        .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
         .build();
   }
 }

@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,7 +60,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(TreeStrategy.class);
 
   private final Random random = new Random(config.getDATA_SEED());
-  private static final Set<String> databases = new HashSet<>();
   private static final CyclicBarrier templateBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
   private static final CyclicBarrier activateTemplateBarrier =
@@ -154,11 +152,9 @@ public class TreeStrategy extends IoTDBModelStrategy {
       throws TsdbException {
     // get all database
     Set<String> databaseNames = getAllDataBase(schemaList);
-
     // register database
     for (String databaseName : databaseNames) {
       try {
-
         metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + databaseName);
         if (config.isTEMPLATE()) {
           metaSession.setSchemaTemplate(
@@ -301,7 +297,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
   // endregion
 
   // region insert
-
   @Override
   public Tablet createTablet(
       String insertTargetName,
