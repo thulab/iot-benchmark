@@ -204,7 +204,6 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> queryDeviceIds = new ArrayList<>();
     List<Sensor> sensors = config.getSENSORS();
-    //
     int deviceId =
         queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
     int tableId =
@@ -217,7 +216,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
             ? config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER()
             : config.getDEVICE_NUMBER();
     while (queryDevices.size() < Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())
-        && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
+        && queryDeviceIds.size() < deviceQueryMaxCount) {
       // get a device belong to [first_device_index, first_device_index + device_number)
       deviceId = queryDeviceRandom.nextInt(devices.length);
       if (config.getDbConfig().getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {

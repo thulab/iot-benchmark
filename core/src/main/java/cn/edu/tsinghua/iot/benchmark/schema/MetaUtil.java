@@ -39,16 +39,16 @@ public class MetaUtil {
   }
 
   /** tableId(deviceId) maps to groupId(tableId) according to SG_STRATEGY */
-  public static int mappingId(int id, int assignedObjectId, int allocatingObjectId)
+  public static int mappingId(int objectId, int objectNumber, int allocatingObjectNumber)
       throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
-        return id % allocatingObjectId;
+        return objectId % allocatingObjectNumber;
       case Constants.HASH_SG_ASSIGN_MODE:
-        return String.valueOf(id).hashCode() % allocatingObjectId;
+        return String.valueOf(objectId).hashCode() % allocatingObjectNumber;
       case Constants.DIV_SG_ASSIGN_MODE:
-        int itemPerObject = assignedObjectId / allocatingObjectId;
-        return itemPerObject == 0 ? id : (id / itemPerObject) % allocatingObjectId;
+        int itemPerObject = objectNumber / allocatingObjectNumber;
+        return itemPerObject == 0 ? objectId : (objectId / itemPerObject) % allocatingObjectNumber;
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }

@@ -97,7 +97,7 @@ public class Config {
   // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
-
+  /** Another configuration of db */
   private DBConfig ANOTHER_DBConfig = new DBConfig();
   /** Whether run verification when double write */
   private boolean IS_COMPARISON = false;
@@ -1877,6 +1877,7 @@ public class Config {
       configProperties.addProperty("Other Param", "BENCHMARK_INDEX", this.BENCHMARK_INDEX);
       configProperties.addProperty("Other Param", "FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
     }
+    configProperties.addProperty("Other Param", "IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     if (this.TEMPLATE) {
       configProperties.addProperty("Other Param", "TEMPLATE", this.TEMPLATE);
     }
