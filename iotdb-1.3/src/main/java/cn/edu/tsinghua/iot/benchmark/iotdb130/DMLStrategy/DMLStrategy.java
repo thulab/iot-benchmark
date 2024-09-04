@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy;
 
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.session.Session;
@@ -39,13 +39,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class IoTDBInsertionStrategy {
+public abstract class DMLStrategy {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected ExecutorService service;
   protected Future<?> task;
   protected final DBConfig dbConfig;
 
-  public IoTDBInsertionStrategy(DBConfig dbConfig) {
+  public DMLStrategy(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
   }
 
@@ -77,7 +77,7 @@ public abstract class IoTDBInsertionStrategy {
         .password(dbConfig.getPASSWORD())
         .enableRedirection(true)
         .version(Version.V_1_0)
-        .sqlDialect(dbConfig.getSQL_DIALECT())
+        .sqlDialect(dbConfig.getIoTDB_DIALECT_MODE().name())
         .build();
   }
 }

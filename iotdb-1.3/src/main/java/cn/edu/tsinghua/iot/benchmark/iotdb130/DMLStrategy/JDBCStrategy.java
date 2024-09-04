@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static cn.edu.tsinghua.iot.benchmark.client.operation.Operation.LATEST_POINT_QUERY;
 
-public class JDBCStrategy extends IoTDBInsertionStrategy {
+public class JDBCStrategy extends DMLStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JDBCStrategy.class);
 

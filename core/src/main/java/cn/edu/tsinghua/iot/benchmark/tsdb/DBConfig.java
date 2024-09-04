@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.tsdb;
 
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
 
 import java.util.Collections;
@@ -43,10 +44,8 @@ public class DBConfig {
   private String DB_NAME = "test";
   /** In some database, it will need token to access, such as InfluxDB 2.0 */
   private String TOKEN = "token";
-  /** iotdb */
-  private boolean IoTDB_ENABLE_TABLE = false;
   /** iotdb supports table model and tree model */
-  private String SQL_DIALECT = "tree";
+  private SQLDialect IoTDB_DIALECT_MODE = SQLDialect.TREE;
 
   public DBConfig() {}
 
@@ -128,20 +127,12 @@ public class DBConfig {
     this.TOKEN = TOKEN;
   }
 
-  public boolean isIoTDB_ENABLE_TABLE() {
-    return IoTDB_ENABLE_TABLE;
+  public SQLDialect getIoTDB_DIALECT_MODE() {
+    return IoTDB_DIALECT_MODE;
   }
 
-  public void setIoTDB_ENABLE_TABLE(boolean ioTDB_ENABLE_TABLE) {
-    IoTDB_ENABLE_TABLE = ioTDB_ENABLE_TABLE;
-  }
-
-  public String getSQL_DIALECT() {
-    return SQL_DIALECT;
-  }
-
-  public void setSQL_DIALECT(String SQL_DIALECT) {
-    this.SQL_DIALECT = SQL_DIALECT;
+  public void setIoTDB_DIALECT_MODE(SQLDialect ioTDB_DIALECT_MODE) {
+    IoTDB_DIALECT_MODE = ioTDB_DIALECT_MODE;
   }
 
   public String getMainConfig() {
@@ -173,7 +164,7 @@ public class DBConfig {
         + TOKEN
         + "\n"
         + "  SQL_DIALECT="
-        + SQL_DIALECT;
+        + IoTDB_DIALECT_MODE;
   }
 
   @Override
@@ -189,6 +180,6 @@ public class DBConfig {
         && this.PASSWORD.equals(c.PASSWORD)
         && this.TOKEN.equals(c.TOKEN)
         && this.DB_NAME.equals(c.DB_NAME)
-        && this.SQL_DIALECT.equals(c.SQL_DIALECT);
+        && this.IoTDB_DIALECT_MODE.equals(c.IoTDB_DIALECT_MODE);
   }
 }

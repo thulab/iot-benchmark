@@ -28,6 +28,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -35,15 +36,19 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
+import org.slf4j.Logger;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class IoTDBModelStrategy {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final DBConfig dbConfig;
   protected static String ROOT_SERIES_NAME;
   protected static int queryBaseOffset;
+  protected static final Set<String> databases = new HashSet<>();
 
   public IoTDBModelStrategy(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
@@ -87,6 +92,23 @@ public abstract class IoTDBModelStrategy {
 
   // region insert
 
+  public Set<String> getAllDataBase(List<TimeseriesSchema> schemaList) {
+    Set<String> databaseNames = new HashSet<>();
+    for (TimeseriesSchema timeseriesSchema : schemaList) {
+      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
+      synchronized (IoTDB.class) {
+        if (!databases.contains(schema.getGroup())) {
+          databaseNames.add(schema.getGroup());
+          databases.add(schema.getGroup());
+        }
+      }
+    }
+    return databaseNames;
+  }
+
+  public abstract void registerDatabases(Session metaSession, List<TimeseriesSchema> schemaList)
+      throws TsdbException;
+
   public abstract Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
@@ -105,4 +127,15 @@ public abstract class IoTDBModelStrategy {
       throws IoTDBConnectionException, StatementExecutionException;
 
   // endregion
+
+  public abstract Logger getLogger();
+
+  public void handleRegisterException(Exception e) throws TsdbException {
+    // ignore if already has the time series
+    if (!e.getMessage().contains(IoTDB.ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
+      Logger LOGGER = getLogger();
+      LOGGER.error("Register IoTDB schema failed because ", e);
+      throw new TsdbException(e);
+    }
+  }
 }

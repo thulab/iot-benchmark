@@ -30,6 +30,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
+import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,7 +51,6 @@ import java.util.concurrent.CyclicBarrier;
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
-  private static final Set<String> databases = Collections.synchronizedSet(new HashSet<>());
   private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
 
   public TableStrategy(DBConfig dbConfig) {
@@ -66,7 +65,7 @@ public class TableStrategy extends IoTDBModelStrategy {
       throws TsdbException {
     try {
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-        registerDatabase(pair.getKey(), pair.getValue());
+        registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
@@ -78,23 +77,15 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   /** root.test.g_0.d_0 test is the database name.Ensure that only one client creates the table. */
-  public void registerDatabase(Session metaSession, List<TimeseriesSchema> schemaList)
+  @Override
+  public void registerDatabases(Session metaSession, List<TimeseriesSchema> schemaList)
       throws TsdbException {
-    Set<String> groups = new HashSet<>();
-    for (TimeseriesSchema timeseriesSchema : schemaList) {
-      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
-      synchronized (IoTDB.class) {
-        if (!databases.contains(schema.getGroup())) {
-          groups.add(schema.getGroup());
-          databases.add(schema.getGroup());
-        }
-      }
-    }
+    Set<String> databaseNames = getAllDataBase(schemaList);
     // register storage groups
-    for (String group : groups) {
+    for (String databaseName : databaseNames) {
       try {
         metaSession.executeNonQueryStatement(
-            "CREATE DATABASE " + dbConfig.getDB_NAME() + "_" + group);
+            "CREATE DATABASE " + dbConfig.getDB_NAME() + "_" + databaseName);
       } catch (Exception e) {
         handleRegisterException(e);
       }
@@ -137,9 +128,9 @@ public class TableStrategy extends IoTDBModelStrategy {
         tables.put(dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), builder.toString());
       }
 
-      for (String database : tables.keySet()) {
-        metaSession.executeNonQueryStatement("use " + database);
-        metaSession.executeNonQueryStatement(tables.get(database));
+      for (Map.Entry<String, String> database : tables.entrySet()) {
+        metaSession.executeNonQueryStatement("use " + database.getKey());
+        metaSession.executeNonQueryStatement(database.getValue());
       }
     } catch (Exception e) {
       handleRegisterException(e);
@@ -150,14 +141,18 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public String selectTimeColumnIfNecessary() {
-    return "";
+    if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_QUERY) {
+      return "time, ";
+    } else {
+      return "";
+    }
   }
 
   @Override
   public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
-    // test is the database name, g_0_table is the table name, and the device is the identification
-    // column.
+    // "root.test.g_0.d_0.s_0"
+    // tree mode: select ... from root.test.g_0.d_0
+    // table mode： select ... from test_g_0.table_0
     builder
         .append(" FROM ")
         .append(dbConfig.getDB_NAME())
@@ -288,6 +283,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   // endregion
 
   // region insert
+
   @Override
   public Tablet createTablet(
       String insertTargetName,
@@ -348,17 +344,17 @@ public class TableStrategy extends IoTDBModelStrategy {
     SessionDataSet dataSet = session.executeQueryStatement("show databases");
     while (dataSet.hasNext()) {
       String databaseName = dataSet.next().getFields().get(0).toString();
+      if (databaseName.contains(".")) {
+        continue;
+      }
       session.executeNonQueryStatement("drop database " + databaseName);
     }
   }
 
   // endregion
 
-  private void handleRegisterException(Exception e) throws TsdbException {
-    // ignore if already has the time series
-    if (!e.getMessage().contains(IoTDB.ALREADY_KEYWORD) && !e.getMessage().contains("300")) {
-      LOGGER.error("Register IoTDB schema failed because ", e);
-      throw new TsdbException(e);
-    }
+  @Override
+  public Logger getLogger() {
+    return LOGGER;
   }
 }

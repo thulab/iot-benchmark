@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.conf;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
@@ -84,6 +85,8 @@ public class Config {
   private int BENCHMARK_INDEX = 0;
   /** Calculated in this way: FIRST_DEVICE_INDEX = BENCHMARK_INDEX * DEVICE_NUMBER */
   private int FIRST_DEVICE_INDEX = 0;
+  /** 是否都可见，如果可见就可以向其他node发送 Whether access all nodes, rather than just one coordinator */
+  private boolean IS_ALL_NODES_VISIBLE = false;
 
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
@@ -683,6 +686,14 @@ public class Config {
 
   public void setFIRST_DEVICE_INDEX(int FIRST_DEVICE_INDEX) {
     this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
+  }
+
+  public boolean isIS_ALL_NODES_VISIBLE() {
+    return IS_ALL_NODES_VISIBLE;
+  }
+
+  public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
+    this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
   }
 
   public String getKAFKA_LOCATION() {
@@ -1585,12 +1596,12 @@ public class Config {
     this.dbConfig = dbConfig;
   }
 
-  public void setIoTDB_ENABLE_TABLE(boolean IoTDB_ENABLE_TABLE) {
-    this.dbConfig.setIoTDB_ENABLE_TABLE(IoTDB_ENABLE_TABLE);
+  public void setIoTDB_DIALECT_MODE(SQLDialect IoTDB_DIALECT_MODE) {
+    this.dbConfig.setIoTDB_DIALECT_MODE(IoTDB_DIALECT_MODE);
   }
 
-  public void setANOTHER_IoTDB_ENABLE_TABLE(boolean ANOTHER_IoTDB_ENABLE_TABLE) {
-    this.ANOTHER_DBConfig.setIoTDB_ENABLE_TABLE(ANOTHER_IoTDB_ENABLE_TABLE);
+  public void setANOTHER_IoTDB_DIALECT_MODE(SQLDialect ANOTHER_IoTDB_DIALECT_MODE) {
+    this.ANOTHER_DBConfig.setIoTDB_DIALECT_MODE(ANOTHER_IoTDB_DIALECT_MODE);
   }
 
   public DBConfig getANOTHER_DBConfig() {
@@ -1632,14 +1643,6 @@ public class Config {
 
   public void setANOTHER_DB_SWITCH(DBSwitch ANOTHER_DBConfig_SWITCH) {
     this.ANOTHER_DBConfig.setDB_SWITCH(ANOTHER_DBConfig_SWITCH);
-  }
-
-  public void setSQL_DIALECT(String sqlDialect) {
-    this.dbConfig.setSQL_DIALECT(sqlDialect);
-  }
-
-  public void setANOTHER_SQL_DIALECT(String ANOTHER_SQL_DIALECT) {
-    this.ANOTHER_DBConfig.setSQL_DIALECT(ANOTHER_SQL_DIALECT);
   }
 
   public void setANOTHER_HOST(List<String> ANOTHER_HOST) {
@@ -1793,7 +1796,7 @@ public class Config {
 
     configProperties.addProperty("Test Mode", "BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
     configProperties.addProperty(
-        "Test Mode", "IoTDB_ENABLE_TABLE", this.getDbConfig().isIoTDB_ENABLE_TABLE());
+        "Test Mode", "IoTDB_DIALECT_MODE", this.getDbConfig().getIoTDB_DIALECT_MODE());
 
     configProperties.addProperty(
         "Database Connection Information", "DOUBLE_WRITE", this.IS_DOUBLE_WRITE);

@@ -31,14 +31,15 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy.DMLStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy.JDBCStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy.SessionStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.IoTDBModelStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.TableStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.TreeStrategy;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy.IoTDBInsertionStrategy;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy.JDBCStrategy;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy.SessionStrategy;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -84,7 +85,7 @@ public class IoTDB implements IDatabase {
   public static String ROOT_SERIES_NAME;
   private final DBConfig dbConfig;
   private final Random random = new Random(config.getDATA_SEED());
-  private final IoTDBInsertionStrategy insertionStrategy;
+  private final DMLStrategy dmlStrategy;
   private final IoTDBModelStrategy modelStrategy;
 
   public static final String ALREADY_KEYWORD = "already";
@@ -95,18 +96,20 @@ public class IoTDB implements IDatabase {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
-    // init IoTDBModelStrategy and IoTDBInsertionStrategy
+    // init IoTDBModelStrategy and DMLStrategy
     modelStrategy =
-        dbConfig.isIoTDB_ENABLE_TABLE() ? new TableStrategy(dbConfig) : new TreeStrategy(dbConfig);
+        dbConfig.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+            ? new TableStrategy(dbConfig)
+            : new TreeStrategy(dbConfig);
     switch (dbConfig.getDB_SWITCH()) {
       case DB_IOT_130_REST:
       case DB_IOT_130_SESSION_BY_TABLET:
       case DB_IOT_130_SESSION_BY_RECORD:
       case DB_IOT_130_SESSION_BY_RECORDS:
-        insertionStrategy = new SessionStrategy(this, dbConfig);
+        dmlStrategy = new SessionStrategy(this, dbConfig);
         break;
       case DB_IOT_130_JDBC:
-        insertionStrategy = new JDBCStrategy(dbConfig);
+        dmlStrategy = new JDBCStrategy(dbConfig);
         break;
       default:
         throw new IllegalArgumentException("Unsupported DB SWITCH: " + dbConfig.getDB_SWITCH());
@@ -115,17 +118,17 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void init() throws TsdbException {
-    insertionStrategy.init();
+    dmlStrategy.init();
   }
 
   @Override
   public void cleanup() throws TsdbException {
-    insertionStrategy.cleanup();
+    dmlStrategy.cleanup();
   }
 
   @Override
   public void close() throws TsdbException {
-    insertionStrategy.close();
+    dmlStrategy.close();
   }
 
   /**
@@ -148,7 +151,7 @@ public class IoTDB implements IDatabase {
                 .username(dbConfig.getUSERNAME())
                 .password(dbConfig.getPASSWORD())
                 .version(Version.V_1_0)
-                .sqlDialect(dbConfig.getSQL_DIALECT())
+                .sqlDialect(dbConfig.getIoTDB_DIALECT_MODE().name())
                 .build();
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
         sessionListMap.put(metaSession, createTimeseries(schemaList));
@@ -190,7 +193,7 @@ public class IoTDB implements IDatabase {
       if (config.isVECTOR()) {
         paths.add(sensor.getName());
       } else {
-        paths.add(IoTDB.getSensorPath(deviceSchema, sensor.getName()));
+        paths.add(getSensorPath(deviceSchema, sensor.getName()));
       }
       SensorType datatype = sensor.getSensorType();
       tsDataTypes.add(Enum.valueOf(TSDataType.class, datatype.name));
@@ -209,7 +212,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
     String deviceId = getDevicePath(batch.getDeviceSchema());
-    return insertionStrategy.insertOneBatch(batch, deviceId);
+    return dmlStrategy.insertOneBatch(batch, deviceId);
   }
 
   /**
@@ -391,8 +394,8 @@ public class IoTDB implements IDatabase {
   protected String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<Sensor> querySensors = devices.get(0).getSensors();
     builder.append(modelStrategy.selectTimeColumnIfNecessary());
+    List<Sensor> querySensors = devices.get(0).getSensors();
     builder.append(querySensors.get(0).getName());
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
@@ -438,7 +441,6 @@ public class IoTDB implements IDatabase {
   }
 
   private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
-
     StringBuilder builder = new StringBuilder();
     modelStrategy.getValueFilterClause(deviceSchemas, valueThreshold, builder);
     return builder.toString();
@@ -501,7 +503,7 @@ public class IoTDB implements IDatabase {
     List<List<Object>> records = new ArrayList<>();
     try {
       queryResultPointNum =
-          insertionStrategy.executeQueryAndGetStatusImpl(executeSQL, operation, isOk, records);
+          dmlStrategy.executeQueryAndGetStatusImpl(executeSQL, operation, isOk, records);
     } catch (Throwable t) {
       return new Status(false, queryResultPointNum, new Exception(t), executeSQL);
     }
@@ -544,7 +546,7 @@ public class IoTDB implements IDatabase {
     modelStrategy.addVerificationQueryWhereClause(sql, records, recordMap, deviceSchema);
     int point, line;
     try {
-      List<Integer> resultList = insertionStrategy.verificationQueryImpl(sql.toString(), recordMap);
+      List<Integer> resultList = dmlStrategy.verificationQueryImpl(sql.toString(), recordMap);
       point = resultList.get(0);
       line = resultList.get(1);
     } catch (Exception e) {
@@ -633,7 +635,7 @@ public class IoTDB implements IDatabase {
     }
     List<List<Object>> result;
     try {
-      result = insertionStrategy.deviceQueryImpl(sql);
+      result = dmlStrategy.deviceQueryImpl(sql);
     } catch (Exception e) {
       LOGGER.error("Query Error: {}", sql, e);
       return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
@@ -656,7 +658,7 @@ public class IoTDB implements IDatabase {
   @Override
   public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSchema schema = deviceQuery.getDeviceSchema();
-    return insertionStrategy.deviceSummary(
+    return dmlStrategy.deviceSummary(
         schema.getDevice(),
         modelStrategy.getTotalLineNumberSql(schema),
         modelStrategy.getMaxTimeStampSql(schema),

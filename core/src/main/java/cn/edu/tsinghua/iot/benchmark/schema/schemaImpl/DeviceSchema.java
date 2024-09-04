@@ -46,7 +46,7 @@ public class DeviceSchema implements Cloneable {
 
   /** Each device belongs to one group, i.e. database */
   private String group;
-  /** Each device belongs to one table, i.e. database */
+  /** Each device belongs to one table */
   private String table;
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;

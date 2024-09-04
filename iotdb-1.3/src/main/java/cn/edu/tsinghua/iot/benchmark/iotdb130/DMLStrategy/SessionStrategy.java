@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.QueryAndInsertionStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy;
 
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -67,7 +67,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-public class SessionStrategy extends IoTDBInsertionStrategy {
+public class SessionStrategy extends DMLStrategy {
   private static final Logger LOGGER = LoggerFactory.getLogger(SessionStrategy.class);
   static final Config config = ConfigDescriptor.getInstance().getConfig();
 
@@ -378,10 +378,6 @@ public class SessionStrategy extends IoTDBInsertionStrategy {
           }
         }
         line++;
-        if (line == 101) {
-          System.out.println(rowRecord);
-          System.out.println(recordMap.get(timeStamp));
-        }
       }
     }
     return Arrays.asList(point, line);
