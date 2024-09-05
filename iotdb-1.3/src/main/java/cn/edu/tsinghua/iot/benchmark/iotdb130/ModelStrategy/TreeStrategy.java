@@ -218,7 +218,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
   @Override
   public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
     // The time series of the tree model is mapped to the table model. In "root.test.g_0.d_0.s_0",
-    // test is the database name, g_0_table is the table name, and the device is the identification
+    // test_g_0 is the database name, table_0 is the table name, and the device is the
+    // identification
     // column.
     builder.append(" FROM ").append(IoTDB.getDevicePath(devices.get(0)));
     for (int i = 1; i < devices.size(); i++) {

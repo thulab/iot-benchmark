@@ -339,6 +339,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+    LOGGER.info("latestPointQuery: {}", aggQuerySqlHead);
     return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
   }
 
@@ -382,6 +383,7 @@ public class IoTDB implements IDatabase {
             groupByQuery.getEndTimestamp(),
             groupByQuery.getGranularity());
     sql += ORDER_BY_TIME_DESC;
+    LOGGER.info("groupByQuery: {}", sql);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 
