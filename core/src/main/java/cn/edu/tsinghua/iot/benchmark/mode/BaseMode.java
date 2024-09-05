@@ -35,12 +35,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -48,6 +47,8 @@ public abstract class BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BaseMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final ScheduledExecutorService scheduler =
+      Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
 
@@ -64,7 +65,6 @@ public abstract class BaseMode {
   protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement baseModeMeasurement = new Measurement();
   protected long startTime = 0;
-  private Timer middleMeasureTimer = new Timer("ShowResultPeriodically");
 
   protected abstract boolean preCheck();
 
@@ -83,9 +83,9 @@ public abstract class BaseMode {
     for (DataClient client : dataClients) {
       executorService.submit(client);
     }
-    setTimeLimitTask();
+    setTimeLimitScheduler();
     if (config.getRESULT_PRINT_INTERVAL() != 0) {
-      setMiddleMeasureTask();
+      setMiddleMeasureScheduler();
     }
     startTime = System.nanoTime();
     executorService.shutdown();
@@ -97,30 +97,31 @@ public abstract class BaseMode {
       Thread.currentThread().interrupt();
     }
     postCheck();
-    middleMeasureTimer.cancel();
+    scheduler.shutdownNow();
   }
 
-  private void setTimeLimitTask() {
+  private void setTimeLimitScheduler() {
     if (config.getTEST_MAX_TIME() != 0) {
-      TimerTask stopAllDataClient =
-          new TimerTask() {
-            @Override
-            public void run() {
+      scheduler.schedule(
+          () -> {
+            try {
               LOGGER.info(
                   "It has been tested for {} ms, start to stop all dataClients.",
                   config.getTEST_MAX_TIME());
               dataClients.forEach(DataClient::stopClient);
+            } catch (Exception e) {
+              LOGGER.error("Exception occurred during stopping data clients:", e);
             }
-          };
-      middleMeasureTimer.schedule(stopAllDataClient, config.getTEST_MAX_TIME());
+          },
+          config.getTEST_MAX_TIME(),
+          TimeUnit.MILLISECONDS);
     }
   }
 
-  void setMiddleMeasureTask() {
-    TimerTask measure =
-        new TimerTask() {
-          @Override
-          public void run() {
+  void setMiddleMeasureScheduler() {
+    scheduler.schedule(
+        () -> {
+          try {
             List<Operation> operations;
             if (config.isIS_POINT_COMPARISON()) {
               operations = Collections.singletonList(Operation.DEVICE_QUERY);
@@ -132,10 +133,12 @@ public abstract class BaseMode {
                 dataClients.stream().map(DataClient::getMeasurement),
                 startTime,
                 operations);
+          } catch (Exception e) {
+            LOGGER.error("Exception occurred during print measurement:", e);
           }
-        };
-    middleMeasureTimer.schedule(
-        measure, TimeUnit.SECONDS.toMillis(1), config.getRESULT_PRINT_INTERVAL() * 1000L);
+        },
+        config.getRESULT_PRINT_INTERVAL(),
+        TimeUnit.SECONDS);
   }
 
   protected abstract void postCheck();
