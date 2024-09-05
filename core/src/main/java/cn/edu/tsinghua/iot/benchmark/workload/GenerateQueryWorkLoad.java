@@ -60,7 +60,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentWriteTimestamp = null;
   private final Map<Operation, AtomicLong> operationLoops = new ConcurrentHashMap<>();
-  private static final Map<Integer, Set<Integer>> tableDeviceMap = initTableDeviceMap();
+  private static final Map<Integer, List<Integer>> tableDeviceMap = initTableDeviceMap();
 
   public GenerateQueryWorkLoad(int id) {
     super(id);
@@ -193,7 +193,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   }
 
   /**
-   * Return the list of deviceSchema TODO When multi-table query is supported, there is no need to
+   * Return the list of deviceSchema.
+   *
+   * <p>TODO When multi-table query is supported, there is no need to.
    *
    * @param typeAllow true: allow generating bool and text type.
    */
@@ -206,7 +208,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
         queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
     int tableId =
         MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
-    Integer[] devices = tableDeviceMap.get(tableId).toArray(new Integer[0]);
+    List<Integer> devices = tableDeviceMap.get(tableId);
 
     int deviceQueryMaxCount =
         (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE)
@@ -217,7 +219,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
         && queryDeviceIds.size() < deviceQueryMaxCount) {
       // get a device belong to [first_device_index, first_device_index + device_number)
       if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-        deviceId = devices[queryDeviceRandom.nextInt(devices.length)];
+        deviceId = devices.get(queryDeviceRandom.nextInt(devices.size()));
       } else {
         deviceId = queryDeviceRandom.nextInt(config.getQUERY_DEVICE_NUM());
       }
@@ -267,13 +269,13 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     return queryDevices;
   }
 
-  private static Map<Integer, Set<Integer>> initTableDeviceMap() {
-    Map<Integer, Set<Integer>> tableDeviceMap = new ConcurrentHashMap<>();
+  private static Map<Integer, List<Integer>> initTableDeviceMap() {
+    Map<Integer, List<Integer>> tableDeviceMap = new ConcurrentHashMap<>();
     try {
       for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
         int tableId =
             MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
-        tableDeviceMap.computeIfAbsent(tableId, k -> new HashSet<>()).add(deviceId);
+        tableDeviceMap.computeIfAbsent(tableId, k -> new ArrayList<>()).add(deviceId);
       }
     } catch (WorkloadException e) {
       LOGGER.error(e.getMessage());

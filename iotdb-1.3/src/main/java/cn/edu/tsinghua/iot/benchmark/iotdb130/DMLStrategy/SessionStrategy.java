@@ -34,6 +34,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -210,7 +211,7 @@ public class SessionStrategy extends DMLStrategy {
     for (Record record : batch.getRecords()) {
       long timestamp = record.getTimestamp();
       List<TSDataType> dataTypes =
-          IoTDB.constructDataTypes(
+          IoTDBUtils.constructDataTypes(
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       List<Object> recordDataValue = convertTypeForBLOB(record, dataTypes);
       try {
@@ -247,7 +248,7 @@ public class SessionStrategy extends DMLStrategy {
         times.add(record.getTimestamp());
         measurementsList.add(sensors);
         List<TSDataType> dataTypes =
-            IoTDB.constructDataTypes(
+            IoTDBUtils.constructDataTypes(
                 batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
         valuesList.add(convertTypeForBLOB(record, dataTypes));
         typesList.add(dataTypes);
@@ -471,7 +472,9 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void close() throws TsdbException {
     try {
-      if (session != null) session.close();
+      if (session != null) {
+        session.close();
+      }
       service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
       LOGGER.error("Failed to close session.");

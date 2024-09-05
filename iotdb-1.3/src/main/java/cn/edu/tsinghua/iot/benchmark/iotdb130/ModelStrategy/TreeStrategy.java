@@ -31,6 +31,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -217,9 +218,9 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    builder.append(" FROM ").append(IoTDB.getDevicePath(devices.get(0)));
+    builder.append(" FROM ").append(IoTDBUtils.getDevicePath(devices.get(0), ROOT_SERIES_NAME));
     for (int i = 1; i < devices.size(); i++) {
-      builder.append(", ").append(IoTDB.getDevicePath(devices.get(i)));
+      builder.append(", ").append(IoTDBUtils.getDevicePath(devices.get(i), ROOT_SERIES_NAME));
     }
     return builder.toString();
   }
@@ -252,7 +253,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
       for (Sensor sensor : deviceSchema.getSensors()) {
         builder
             .append(" AND ")
-            .append(IoTDB.getDevicePath(deviceSchema))
+            .append(IoTDBUtils.getDevicePath(deviceSchema, ROOT_SERIES_NAME))
             .append(".")
             .append(sensor.getName())
             .append(" > ");
@@ -278,17 +279,21 @@ public class TreeStrategy extends IoTDBModelStrategy {
   // TODO 用 count
   @Override
   public String getTotalLineNumberSql(DeviceSchema deviceSchema) {
-    return "select * from " + IoTDB.getDevicePath(deviceSchema);
+    return "select * from " + IoTDBUtils.getDevicePath(deviceSchema, ROOT_SERIES_NAME);
   }
 
   @Override
   public String getMaxTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + IoTDB.getDevicePath(deviceSchema) + " order by time desc limit 1";
+    return "select * from "
+        + IoTDBUtils.getDevicePath(deviceSchema, ROOT_SERIES_NAME)
+        + " order by time desc limit 1";
   }
 
   @Override
   public String getMinTimeStampSql(DeviceSchema deviceSchema) {
-    return "select * from " + IoTDB.getDevicePath(deviceSchema) + " order by time limit 1";
+    return "select * from "
+        + IoTDBUtils.getDevicePath(deviceSchema, ROOT_SERIES_NAME)
+        + " order by time limit 1";
   }
 
   // endregion
@@ -305,7 +310,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public String getInsertTargetName(DeviceSchema schema) {
-    return IoTDB.getDevicePath(schema);
+    return IoTDBUtils.getDevicePath(schema, ROOT_SERIES_NAME);
   }
 
   @Override

@@ -40,6 +40,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy.SessionStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.IoTDBModelStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.TableStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy.TreeStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb130.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -204,14 +205,14 @@ public class IoTDB implements IDatabase {
     TimeseriesSchema timeseriesSchema =
         new TimeseriesSchema(deviceSchema, paths, tsDataTypes, tsEncodings, compressionTypes);
     if (config.isVECTOR()) {
-      timeseriesSchema.setDeviceId(IoTDB.getDevicePath(deviceSchema));
+      timeseriesSchema.setDeviceId(IoTDBUtils.getDevicePath(deviceSchema, ROOT_SERIES_NAME));
     }
     return timeseriesSchema;
   }
 
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
-    String deviceId = getDevicePath(batch.getDeviceSchema());
+    String deviceId = IoTDBUtils.getDevicePath(batch.getDeviceSchema(), ROOT_SERIES_NAME);
     return dmlStrategy.insertOneBatch(batch, deviceId);
   }
 
@@ -472,21 +473,6 @@ public class IoTDB implements IDatabase {
     return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
-  /**
-   * convert deviceSchema to the format
-   *
-   * @return format, e.g. root.group_1.d_1
-   */
-  public static String getDevicePath(DeviceSchema deviceSchema) {
-    StringBuilder name = new StringBuilder(ROOT_SERIES_NAME);
-    name.append(".").append(deviceSchema.getGroup());
-    for (Map.Entry<String, String> pair : deviceSchema.getTags().entrySet()) {
-      name.append(".").append(pair.getValue());
-    }
-    name.append(".").append(deviceSchema.getDevice());
-    return name.toString();
-  }
-
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
     String executeSQL;
     if (config.isIOTDB_USE_DEBUG() && random.nextDouble() < config.getIOTDB_USE_DEBUG_RATIO()) {
@@ -528,7 +514,7 @@ public class IoTDB implements IDatabase {
 
     List<Record> records = new ArrayList<>();
     List<TSDataType> tsDataTypes =
-        constructDataTypes(deviceSchema.getSensors(), deviceSchema.getSensors().size());
+        IoTDBUtils.constructDataTypes(deviceSchema.getSensors(), deviceSchema.getSensors().size());
     for (Record record : verificationQuery.getRecords()) {
       records.add(
           new Record(record.getTimestamp(), convertTypeForBlobAndDate(record, tsDataTypes)));
@@ -583,45 +569,6 @@ public class IoTDB implements IDatabase {
       }
     }
     return dataValue;
-  }
-
-  public static List<TSDataType> constructDataTypes(List<Sensor> sensors, int recordValueSize) {
-    List<TSDataType> dataTypes = new ArrayList<>();
-    for (int sensorIndex = 0; sensorIndex < recordValueSize; sensorIndex++) {
-      switch (sensors.get(sensorIndex).getSensorType()) {
-        case BOOLEAN:
-          dataTypes.add(TSDataType.BOOLEAN);
-          break;
-        case INT32:
-          dataTypes.add(TSDataType.INT32);
-          break;
-        case INT64:
-          dataTypes.add(TSDataType.INT64);
-          break;
-        case FLOAT:
-          dataTypes.add(TSDataType.FLOAT);
-          break;
-        case DOUBLE:
-          dataTypes.add(TSDataType.DOUBLE);
-          break;
-        case TEXT:
-          dataTypes.add(TSDataType.TEXT);
-          break;
-        case STRING:
-          dataTypes.add(TSDataType.STRING);
-          break;
-        case BLOB:
-          dataTypes.add(TSDataType.BLOB);
-          break;
-        case TIMESTAMP:
-          dataTypes.add(TSDataType.TIMESTAMP);
-          break;
-        case DATE:
-          dataTypes.add(TSDataType.DATE);
-          break;
-      }
-    }
-    return dataTypes;
   }
 
   @Override
@@ -700,7 +647,7 @@ public class IoTDB implements IDatabase {
 
   /** convert deviceSchema and sensor to the format: root.group_1.d_1.s_1 */
   public static String getSensorPath(DeviceSchema deviceSchema, String sensor) {
-    return getDevicePath(deviceSchema) + "." + sensor;
+    return IoTDBUtils.getDevicePath(deviceSchema, ROOT_SERIES_NAME) + "." + sensor;
   }
 
   public String getInsertTargetName(DeviceSchema schema) {
