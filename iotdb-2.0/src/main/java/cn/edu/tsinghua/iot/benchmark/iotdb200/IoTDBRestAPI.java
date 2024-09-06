@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.iot.benchmark.iotdb130;
+package cn.edu.tsinghua.iot.benchmark.iotdb200;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -136,5 +136,21 @@ public class IoTDBRestAPI extends IoTDB {
       LOGGER.warn("Execute Query Failed!");
       return new Status(false);
     }
+  }
+
+  private static class IoTDBRestPayload {
+    public String device;
+    public boolean is_aligned;
+    public List<List<Object>> values;
+    public List<String> data_types;
+    public List<String> measurements;
+    public List<Long> timestamps;
+  }
+
+  private static class IoTDBRestQueryResult {
+    public List<String> expressions;
+    public List<String> column_names;
+    public List<Long> timestamps;
+    public List<List<Object>> values;
   }
 }

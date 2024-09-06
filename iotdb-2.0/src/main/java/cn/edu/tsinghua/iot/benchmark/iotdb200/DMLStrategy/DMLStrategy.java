@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy;
 
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.session.Session;

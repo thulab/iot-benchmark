@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.DMLStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
@@ -25,8 +25,8 @@ import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.SingleNodeJDBCConnection;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.SingleNodeJDBCConnection;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;

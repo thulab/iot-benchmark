@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -17,25 +17,12 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
+package cn.edu.tsinghua.iot.benchmark;
 
-public enum DBVersion {
-  IOTDB_200("200"),
-  IOTDB_130("130"),
-  IOTDB_110("110"),
-  IOTDB_100("100"),
-  InfluxDB_2("2.x"),
-  TimescaleDB_Cluster("cluster"),
-  TDengine_3("3");
+import java.sql.SQLException;
 
-  String version;
-
-  DBVersion(String version) {
-    this.version = version;
-  }
-
-  @Override
-  public String toString() {
-    return version;
-  }
+public class IoTDB200TestEntrance {
+    public static void main(String[] args) throws SQLException {
+        App.main(args);
+    }
 }
