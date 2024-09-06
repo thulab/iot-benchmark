@@ -84,7 +84,9 @@ public abstract class BaseMode {
       executorService.submit(client);
     }
     setTimeLimitScheduler();
-    setMiddleMeasureScheduler();
+    if (config.getRESULT_PRINT_INTERVAL() != 0) {
+      setMiddleMeasureScheduler();
+    }
     startTime = System.nanoTime();
     executorService.shutdown();
     try {

@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -59,6 +60,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       new AtomicInteger(config.getFIRST_DEVICE_INDEX());
   private Long currentWriteTimestamp = null;
   private final Map<Operation, AtomicLong> operationLoops = new ConcurrentHashMap<>();
+  private static final Map<Integer, List<Integer>> tableDeviceMap = initTableDeviceMap();
 
   public GenerateQueryWorkLoad(int id) {
     super(id);
@@ -191,7 +193,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   }
 
   /**
-   * Return the list of deviceSchema
+   * Return the list of deviceSchema.
+   *
+   * <p>TODO When multi-table query is supported, there is no need to.
    *
    * @param typeAllow true: allow generating bool and text type.
    */
@@ -200,11 +204,26 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     List<DeviceSchema> queryDevices = new ArrayList<>();
     List<Integer> queryDeviceIds = new ArrayList<>();
     List<Sensor> sensors = config.getSENSORS();
-    while (queryDevices.size() < Math.min(config.getDEVICE_NUMBER(), config.getQUERY_DEVICE_NUM())
-        && queryDeviceIds.size() < config.getDEVICE_NUMBER()) {
+    int deviceId =
+        queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+    int tableId =
+        MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+    List<Integer> devices = tableDeviceMap.get(tableId);
+
+    int deviceQueryMaxCount =
+        (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE)
+            ? config.getDEVICE_NUMBER()
+                / Math.min(config.getIoTDB_TABLE_NUMBER(), config.getDEVICE_NUMBER())
+            : config.getDEVICE_NUMBER();
+    while (queryDevices.size() < Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())
+        && queryDeviceIds.size() < deviceQueryMaxCount) {
       // get a device belong to [first_device_index, first_device_index + device_number)
-      int deviceId =
-          queryDeviceRandom.nextInt(config.getDEVICE_NUMBER()) + config.getFIRST_DEVICE_INDEX();
+      if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+        deviceId = devices.get(queryDeviceRandom.nextInt(devices.size()));
+      } else {
+        deviceId = queryDeviceRandom.nextInt(config.getQUERY_DEVICE_NUM());
+      }
+      deviceId = deviceId + config.getFIRST_DEVICE_INDEX();
       // avoid duplicate
       if (!queryDeviceIds.contains(deviceId)) {
         queryDeviceIds.add(deviceId);
@@ -242,12 +261,26 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
           new DeviceSchema(deviceId, querySensors, MetaUtil.getTags(deviceId));
       queryDevices.add(deviceSchema);
     }
-    if (queryDevices.size() != config.getQUERY_DEVICE_NUM()) {
+    if (queryDevices.size() != Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())) {
       LOGGER.warn("There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
       throw new WorkloadException(
           "There is no suitable sensor for query, please check INSERT_DATATYPE_PROPORTION");
     }
     return queryDevices;
+  }
+
+  private static Map<Integer, List<Integer>> initTableDeviceMap() {
+    Map<Integer, List<Integer>> tableDeviceMap = new ConcurrentHashMap<>();
+    try {
+      for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
+        int tableId =
+            MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+        tableDeviceMap.computeIfAbsent(tableId, k -> new ArrayList<>()).add(deviceId);
+      }
+    } catch (WorkloadException e) {
+      LOGGER.error(e.getMessage());
+    }
+    return tableDeviceMap;
   }
 
   private void checkQuerySchemaParams() throws WorkloadException {

@@ -19,6 +19,8 @@
 
 package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl;
 
+import cn.edu.tsinghua.iot.benchmark.conf.Config;
+import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -39,10 +41,13 @@ import java.util.Map;
 public class DeviceSchema implements Cloneable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   /** prefix of device name */
 
   /** Each device belongs to one group, i.e. database */
   private String group;
+  /** Each device belongs to one table */
+  private String table;
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
   /** List of tags */
@@ -66,8 +71,13 @@ public class DeviceSchema implements Cloneable {
     this.sensors = sensors;
     this.tags = tags;
     try {
-      int thisDeviceGroupIndex = MetaUtil.calGroupId(deviceId);
-      this.group = MetaUtil.getGroupName(thisDeviceGroupIndex);
+      int deviceBelongToWhichTable =
+          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+      int tableBelongToWhichGroup =
+          MetaUtil.mappingId(
+              deviceBelongToWhichTable, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+      this.table = MetaUtil.getTableName(deviceBelongToWhichTable);
+      this.group = MetaUtil.getGroupName(tableBelongToWhichGroup);
     } catch (WorkloadException e) {
       LOGGER.error("Create device schema failed.", e);
     }
@@ -75,7 +85,31 @@ public class DeviceSchema implements Cloneable {
 
   public DeviceSchema(
       String groupId, String deviceName, List<Sensor> sensors, Map<String, String> tags) {
+    String tableId = MetaUtil.getTableIdFromDeviceName(deviceName);
+    this.table = MetaUtil.getTableName(tableId);
+    try {
+      this.group =
+          MetaUtil.getGroupName(
+              MetaUtil.mappingId(
+                  Integer.parseInt(tableId),
+                  config.getIoTDB_TABLE_NUMBER(),
+                  config.getGROUP_NUMBER()));
+    } catch (WorkloadException e) {
+      LOGGER.error("Create device schema failed.", e);
+    }
+    this.device = deviceName;
+    this.sensors = sensors;
+    this.tags = tags;
+  }
+
+  public DeviceSchema(
+      String groupId,
+      String tableName,
+      String deviceName,
+      List<Sensor> sensors,
+      Map<String, String> tags) {
     this.group = MetaUtil.getGroupName(groupId);
+    this.table = MetaUtil.getTableName(tableName);
     this.device = deviceName;
     this.sensors = sensors;
     this.tags = tags;
@@ -91,6 +125,14 @@ public class DeviceSchema implements Cloneable {
 
   public int getDeviceId() {
     return deviceId;
+  }
+
+  public String getTable() {
+    return table;
+  }
+
+  public void setTable(String table) {
+    this.table = table;
   }
 
   public String getGroup() {

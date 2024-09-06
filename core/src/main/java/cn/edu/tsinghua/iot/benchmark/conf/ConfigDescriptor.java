@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.conf;
 
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
@@ -40,6 +41,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
 public class ConfigDescriptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDescriptor.class);
@@ -86,6 +88,9 @@ public class ConfigDescriptor {
       Properties properties = new Properties();
       try {
         properties.load(inputStream);
+        config.setIoTDB_DIALECT_MODE(
+            SQLDialect.getSQLDialect(
+                properties.getProperty("IoTDB_DIALECT_MODE", config.getIoTDB_DIALECT_MODE() + "")));
         config.setIS_DELETE_DATA(
             Boolean.parseBoolean(
                 properties.getProperty("IS_DELETE_DATA", config.isIS_DELETE_DATA() + "")));
@@ -254,6 +259,8 @@ public class ConfigDescriptor {
         config.setCLIENT_NUMBER(
             Integer.parseInt(
                 properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER() + "")));
+        config.setIoTDB_TABLE_NAME_PREFIX(
+            properties.getProperty("IoTDB_TABLE_NAME_PREFIX", config.getIoTDB_TABLE_NAME_PREFIX()));
         config.setGROUP_NAME_PREFIX(
             properties.getProperty("GROUP_NAME_PREFIX", config.getGROUP_NAME_PREFIX()));
         config.setDEVICE_NAME_PREFIX(
@@ -290,11 +297,6 @@ public class ConfigDescriptor {
         } else {
           config.setFIRST_DEVICE_INDEX(0);
         }
-        config.setIS_ALL_NODES_VISIBLE(
-            Boolean.parseBoolean(
-                properties.getProperty(
-                    "IS_ALL_NODES_VISIBLE", String.valueOf(config.isIS_ALL_NODES_VISIBLE()))));
-
         config.setLINE_RATIO(
             Double.parseDouble(properties.getProperty("LINE_RATIO", config.getLINE_RATIO() + "")));
         config.setSIN_RATIO(
@@ -319,6 +321,24 @@ public class ConfigDescriptor {
         config.setGROUP_NUMBER(
             Integer.parseInt(
                 properties.getProperty("GROUP_NUMBER", config.getGROUP_NUMBER() + "")));
+        config.setIoTDB_TABLE_NUMBER(
+            Integer.parseInt(
+                properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+
+        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+          if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
+              || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
+            LOGGER.warn(
+                "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
+          }
+        } else {
+          if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
+            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+            LOGGER.warn(
+                "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
+          }
+        }
+
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(
@@ -605,6 +625,12 @@ public class ConfigDescriptor {
         break;
       default:
         break;
+    }
+    if ((config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
+      LOGGER.error(
+          "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
+      result = false;
     }
     result &= checkInsertDataTypeProportion();
     result &= checkOperationProportion();

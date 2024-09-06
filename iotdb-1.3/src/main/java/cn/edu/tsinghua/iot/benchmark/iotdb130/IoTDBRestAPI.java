@@ -137,4 +137,20 @@ public class IoTDBRestAPI extends IoTDB {
       return new Status(false);
     }
   }
+
+  private static class IoTDBRestPayload {
+    public String device;
+    public boolean is_aligned;
+    public List<List<Object>> values;
+    public List<String> data_types;
+    public List<String> measurements;
+    public List<Long> timestamps;
+  }
+
+  private static class IoTDBRestQueryResult {
+    public List<String> expressions;
+    public List<String> column_names;
+    public List<Long> timestamps;
+    public List<List<Object>> values;
+  }
 }

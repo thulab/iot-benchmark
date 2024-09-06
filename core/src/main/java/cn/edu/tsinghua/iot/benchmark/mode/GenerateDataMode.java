@@ -46,7 +46,7 @@ public class GenerateDataMode extends BaseMode {
   }
 
   @Override
-  void setMiddleMeasureTask() {
+  void setMiddleMeasureScheduler() {
     // Do nothing. GenerateDataMode not support measurement.
   }
 }

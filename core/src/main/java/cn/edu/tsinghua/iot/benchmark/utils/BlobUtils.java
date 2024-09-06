@@ -17,25 +17,33 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
+package cn.edu.tsinghua.iot.benchmark.utils;
 
-public enum DBVersion {
-  // TODO iotdb-1.4
-  IOTDB_130("130"),
-  IOTDB_110("110"),
-  IOTDB_100("100"),
-  InfluxDB_2("2.x"),
-  TimescaleDB_Cluster("cluster"),
-  TDengine_3("3");
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  String version;
+import java.util.Formatter;
 
-  DBVersion(String version) {
-    this.version = version;
+public class BlobUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(BlobUtils.class);
+
+  public BlobUtils() {}
+
+  public static String bytesToHex(byte[] bytes) {
+    String hex = "";
+    try (Formatter formatter = new Formatter()) {
+      for (byte b : bytes) {
+        formatter.format("%02X", b);
+      }
+      hex = formatter.toString();
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage());
+    }
+    return hex;
   }
 
-  @Override
-  public String toString() {
-    return version;
+  public static String stringToHex(String input) {
+    byte[] bytes = input.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    return bytesToHex(bytes);
   }
 }

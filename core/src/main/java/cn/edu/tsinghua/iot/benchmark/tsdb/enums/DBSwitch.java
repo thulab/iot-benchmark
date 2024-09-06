@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum DBSwitch {
+  // TODO iotdb-1.4
+
   DB_IOT_130_REST(DBType.IoTDB, DBVersion.IOTDB_130, DBInsertMode.INSERT_USE_REST),
   DB_IOT_130_JDBC(DBType.IoTDB, DBVersion.IOTDB_130, DBInsertMode.INSERT_USE_JDBC),
   DB_IOT_130_SESSION_BY_TABLET(

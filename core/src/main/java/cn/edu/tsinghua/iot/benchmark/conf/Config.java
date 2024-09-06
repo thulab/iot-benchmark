@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.conf;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionParam;
 import cn.edu.tsinghua.iot.benchmark.function.FunctionXml;
@@ -60,6 +61,9 @@ public class Config {
   /** Total number of operations that each client process */
   private long LOOP = 100;
 
+  /** iotdb supports table model and tree model */
+  private SQLDialect IoTDB_DIALECT_MODE = SQLDialect.TREE;
+
   /**
    * The running mode of benchmark 1. testWithDefaultPath: Conventional test mode, supporting mixed
    * loads of multiple read and write operations 2. writeWithRealDataSet: Write the real data set
@@ -84,8 +88,6 @@ public class Config {
   private int BENCHMARK_INDEX = 0;
   /** Calculated in this way: FIRST_DEVICE_INDEX = BENCHMARK_INDEX * DEVICE_NUMBER */
   private int FIRST_DEVICE_INDEX = 0;
-  /** 是否都可见，如果可见就可以向其他node发送 Whether access all nodes, rather than just one coordinator */
-  private boolean IS_ALL_NODES_VISIBLE = false;
 
   // 初始化：被测数据库配置
   private DBConfig dbConfig = new DBConfig();
@@ -188,6 +190,8 @@ public class Config {
    */
   private int CLIENT_NUMBER = 20;
 
+  /** name prefix of table */
+  private String IoTDB_TABLE_NAME_PREFIX = "table_";
   /** name prefix of group */
   private String GROUP_NAME_PREFIX = "g_";
   /** name prefix of device */
@@ -222,6 +226,8 @@ public class Config {
   private String SG_STRATEGY = "mod";
   /** The number of storage group, must less than or equal to number of devices */
   private int GROUP_NUMBER = 1;
+  /** The number of table, In the tree model, it is equal to group_number */
+  private int IoTDB_TABLE_NUMBER = 1;
   /** The size of IoTDB core session pool */
   private int IOTDB_SESSION_POOL_SIZE = 50;
   /** Whether to use templates */
@@ -627,6 +633,14 @@ public class Config {
     this.LOOP = LOOP;
   }
 
+  public SQLDialect getIoTDB_DIALECT_MODE() {
+    return IoTDB_DIALECT_MODE;
+  }
+
+  public void setIoTDB_DIALECT_MODE(SQLDialect ioTDB_DIALECT_MODE) {
+    IoTDB_DIALECT_MODE = ioTDB_DIALECT_MODE;
+  }
+
   public BenchmarkMode getBENCHMARK_WORK_MODE() {
     return BENCHMARK_WORK_MODE;
   }
@@ -681,14 +695,6 @@ public class Config {
 
   public void setFIRST_DEVICE_INDEX(int FIRST_DEVICE_INDEX) {
     this.FIRST_DEVICE_INDEX = FIRST_DEVICE_INDEX;
-  }
-
-  public boolean isIS_ALL_NODES_VISIBLE() {
-    return IS_ALL_NODES_VISIBLE;
-  }
-
-  public void setIS_ALL_NODES_VISIBLE(boolean IS_ALL_NODES_VISIBLE) {
-    this.IS_ALL_NODES_VISIBLE = IS_ALL_NODES_VISIBLE;
   }
 
   public String getKAFKA_LOCATION() {
@@ -939,6 +945,14 @@ public class Config {
     this.TAG_VALUE_CARDINALITY = TAG_VALUE_CARDINALITY;
   }
 
+  public String getIoTDB_TABLE_NAME_PREFIX() {
+    return IoTDB_TABLE_NAME_PREFIX;
+  }
+
+  public void setIoTDB_TABLE_NAME_PREFIX(String IoTDB_TABLE_NAME_PREFIX) {
+    this.IoTDB_TABLE_NAME_PREFIX = IoTDB_TABLE_NAME_PREFIX;
+  }
+
   public String getGROUP_NAME_PREFIX() {
     return GROUP_NAME_PREFIX;
   }
@@ -1033,6 +1047,14 @@ public class Config {
 
   public void setGROUP_NUMBER(int GROUP_NUMBER) {
     this.GROUP_NUMBER = GROUP_NUMBER;
+  }
+
+  public int getIoTDB_TABLE_NUMBER() {
+    return IoTDB_TABLE_NUMBER;
+  }
+
+  public void setIoTDB_TABLE_NUMBER(int ioTDB_TABLE_NUMBER) {
+    IoTDB_TABLE_NUMBER = ioTDB_TABLE_NUMBER;
   }
 
   public int getIOTDB_SESSION_POOL_SIZE() {
@@ -1766,6 +1788,7 @@ public class Config {
     ConfigProperties configProperties = new ConfigProperties();
 
     configProperties.addProperty("Test Mode", "BENCHMARK_WORK_MODE", this.BENCHMARK_WORK_MODE);
+    configProperties.addProperty("Test Mode", "IoTDB_DIALECT_MODE", this.getIoTDB_DIALECT_MODE());
 
     configProperties.addProperty(
         "Database Connection Information", "DOUBLE_WRITE", this.IS_DOUBLE_WRITE);
@@ -1778,6 +1801,7 @@ public class Config {
           this.ANOTHER_DBConfig.getMainConfig());
     }
     configProperties.addProperty("Data Mode", "GROUP_NUMBER", this.GROUP_NUMBER);
+    configProperties.addProperty("Data Mode", "IoTDB_TABLE_NUMBER", this.IoTDB_TABLE_NUMBER);
     configProperties.addProperty("Data Mode", "DEVICE_NUMBER", this.DEVICE_NUMBER);
     configProperties.addProperty("Data Mode", "REAL_INSERT_RATE", this.REAL_INSERT_RATE);
     configProperties.addProperty("Data Mode", "SENSOR_NUMBER", this.SENSOR_NUMBER);
@@ -1813,7 +1837,15 @@ public class Config {
             + "/"
             + this.ENCODING_DOUBLE
             + "/"
-            + this.ENCODING_TEXT);
+            + this.ENCODING_TEXT
+            + "/"
+            + this.ENCODING_STRING
+            + "/"
+            + this.ENCODING_BLOB
+            + "/"
+            + this.ENCODING_TIMESTAMP
+            + "/"
+            + this.ENCODING_DATE);
     configProperties.addProperty("Data Amount", "COMPRESSOR", this.COMPRESSOR);
     if (hasQuery()) {
       configProperties.addProperty("Query Param", "QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
@@ -1836,8 +1868,6 @@ public class Config {
     if (this.BENCHMARK_CLUSTER) {
       configProperties.addProperty("Other Param", "BENCHMARK_INDEX", this.BENCHMARK_INDEX);
       configProperties.addProperty("Other Param", "FIRST_DEVICE_INDEX", this.FIRST_DEVICE_INDEX);
-      configProperties.addProperty(
-          "Other Param", "IS_ALL_NODES_VISIBLE", this.IS_ALL_NODES_VISIBLE);
     }
     if (this.TEMPLATE) {
       configProperties.addProperty("Other Param", "TEMPLATE", this.TEMPLATE);

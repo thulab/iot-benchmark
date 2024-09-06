@@ -17,25 +17,26 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.tsdb.enums;
+package cn.edu.tsinghua.iot.benchmark.entity.enums;
 
-public enum DBVersion {
-  // TODO iotdb-1.4
-  IOTDB_130("130"),
-  IOTDB_110("110"),
-  IOTDB_100("100"),
-  InfluxDB_2("2.x"),
-  TimescaleDB_Cluster("cluster"),
-  TDengine_3("3");
+public enum ColumnCategory {
+  ID("ID"),
+  ATTRIBUTE("ATTRIBUTE"),
+  MEASUREMENT("MEASUREMENT");
 
-  String version;
+  public String name;
 
-  DBVersion(String version) {
-    this.version = version;
+  ColumnCategory(String name) {
+    this.name = name;
   }
 
-  @Override
-  public String toString() {
-    return version;
+  public static ColumnCategory getType(int ordinal) {
+    for (ColumnCategory columnCategory : ColumnCategory.values()) {
+      if (columnCategory.ordinal() == ordinal) {
+        return columnCategory;
+      }
+    }
+    // default type
+    return ColumnCategory.MEASUREMENT;
   }
 }

@@ -38,22 +38,19 @@ public class DBFactory {
     String dbClass = "";
     try {
       switch (dbConfig.getDB_SWITCH()) {
+          // TODO iotdb-1.4
+
           // IoTDB 1.3
         case DB_IOT_130_REST:
           dbClass = Constants.IOTDB130_REST_CLASS;
           break;
         case DB_IOT_130_JDBC:
-          dbClass = Constants.IOTDB130_JDBC_CLASS;
-          break;
         case DB_IOT_130_SESSION_BY_TABLET:
         case DB_IOT_130_SESSION_BY_RECORD:
         case DB_IOT_130_SESSION_BY_RECORDS:
-          if (config.isIS_ALL_NODES_VISIBLE()) {
-            dbClass = Constants.IOTDB130_ROUNDROBIN_SESSION_CLASS;
-          } else {
-            dbClass = Constants.IOTDB130_SESSION_CLASS;
-          }
+          dbClass = Constants.IOTDB130;
           break;
+
           // IoTDB 1.1
         case DB_IOT_110_JDBC:
           dbClass = Constants.IOTDB110_JDBC_CLASS;
@@ -61,11 +58,7 @@ public class DBFactory {
         case DB_IOT_110_SESSION_BY_TABLET:
         case DB_IOT_110_SESSION_BY_RECORD:
         case DB_IOT_110_SESSION_BY_RECORDS:
-          if (config.isIS_ALL_NODES_VISIBLE()) {
-            dbClass = Constants.IOTDB110_ROUNDROBIN_SESSION_CLASS;
-          } else {
-            dbClass = Constants.IOTDB110_SESSION_CLASS;
-          }
+          dbClass = Constants.IOTDB110_SESSION_CLASS;
           break;
           // IoTDB 1.0
         case DB_IOT_100_JDBC:
@@ -74,11 +67,7 @@ public class DBFactory {
         case DB_IOT_100_SESSION_BY_TABLET:
         case DB_IOT_100_SESSION_BY_RECORD:
         case DB_IOT_100_SESSION_BY_RECORDS:
-          if (config.isIS_ALL_NODES_VISIBLE()) {
-            dbClass = Constants.IOTDB100_ROUNDROBIN_SESSION_CLASS;
-          } else {
-            dbClass = Constants.IOTDB100_SESSION_CLASS;
-          }
+          dbClass = Constants.IOTDB100_SESSION_CLASS;
           break;
         case DB_INFLUX:
           dbClass = Constants.INFLUXDB_CLASS;

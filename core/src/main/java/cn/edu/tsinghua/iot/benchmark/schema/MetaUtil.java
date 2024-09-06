@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class MetaUtil {
 
-  private static Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final String TAG_KEY_PREFIX = config.getTAG_KEY_PREFIX();
   private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
   private static final int TAG_NUMBER = config.getTAG_NUMBER();
@@ -38,18 +38,17 @@ public class MetaUtil {
     return config.getFIRST_DEVICE_INDEX() + deviceId;
   }
 
-  /** Calculate GroupId(integer) from device according to SG_STRATEGY */
-  public static int calGroupId(int deviceId) throws WorkloadException {
+  /** tableId(deviceId) maps to groupId(tableId) according to SG_STRATEGY */
+  public static int mappingId(int objectId, int objectNumber, int allocatingObjectNumber)
+      throws WorkloadException {
     switch (config.getSG_STRATEGY()) {
       case Constants.MOD_SG_ASSIGN_MODE:
-        return deviceId % config.getGROUP_NUMBER();
+        return objectId % allocatingObjectNumber;
       case Constants.HASH_SG_ASSIGN_MODE:
-        return (deviceId + "").hashCode() % config.getGROUP_NUMBER();
+        return String.valueOf(objectId).hashCode() % allocatingObjectNumber;
       case Constants.DIV_SG_ASSIGN_MODE:
-        int devicePerGroup = config.getDEVICE_NUMBER() / config.getGROUP_NUMBER();
-        return devicePerGroup == 0
-            ? deviceId
-            : (deviceId / devicePerGroup) % config.getGROUP_NUMBER();
+        int itemPerObject = objectNumber / allocatingObjectNumber;
+        return itemPerObject == 0 ? objectId : (objectId / itemPerObject) % allocatingObjectNumber;
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
@@ -64,6 +63,12 @@ public class MetaUtil {
     return String.valueOf(groupId);
   }
 
+  public static String getTableIdFromDeviceName(String deviceName) {
+    int tableId = Math.abs(deviceName.hashCode());
+    tableId = tableId % config.getIoTDB_TABLE_NUMBER();
+    return String.valueOf(tableId);
+  }
+
   /** Get deviceId from str */
   public static int getDeviceIdFromStr(String device) {
     int deviceId = device.hashCode();
@@ -76,6 +81,10 @@ public class MetaUtil {
   /** Get Format Name */
   public static String getGroupName(Object groupId) {
     return config.getGROUP_NAME_PREFIX() + groupId;
+  }
+
+  public static String getTableName(Object tableId) {
+    return config.getIoTDB_TABLE_NAME_PREFIX() + tableId;
   }
 
   public static String getDeviceName(Object deviceId) {

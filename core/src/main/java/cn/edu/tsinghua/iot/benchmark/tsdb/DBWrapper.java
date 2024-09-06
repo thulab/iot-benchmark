@@ -652,6 +652,8 @@ public class DBWrapper implements IDatabase {
                 records1.get(i).stream().map(String::valueOf).collect(Collectors.joining(","));
             String secondLine =
                 records2.get(j).stream().map(String::valueOf).collect(Collectors.joining(","));
+            // The number of columns in the result set of the tree model and the table model is
+            // different
             if (!firstLine.equals(secondLine)) {
               if (hasDifference(operation)) {
                 int index = records1.get(i).size() - 1;
