@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.utils;
+package cn.edu.tsinghua.iot.benchmark.iotdb200.utils;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;

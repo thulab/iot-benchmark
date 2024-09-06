@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.iotdb130.ModelStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy;
 
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
@@ -29,9 +29,9 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.TimeseriesSchema;
-import cn.edu.tsinghua.iot.benchmark.iotdb130.utils.IoTDBUtils;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
