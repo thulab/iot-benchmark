@@ -20,7 +20,7 @@ jobs:
           echo "RELEASE_COMMIT_ID=5e754fe5bf1258385f4701bc1923e328a1c01292" >> $GITHUB_ENV
           echo "the version you want to release is ${{ env.RELEASE_COMMIT_ID }}"
       - name: checkout thulab/iot-benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: iot-benchmark
           repository: 'thulab/iot-benchmark'
