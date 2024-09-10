@@ -25,7 +25,7 @@ jobs:
         run: echo "date=$(date +"%Y-%m-%d")" >> $GITHUB_OUTPUT
       # checkout iot-benchmark
       - name: checkout iot-benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: iot-benchmark
           repository: 'xiaoyekanren/fork-iot-benchmark'
@@ -94,7 +94,7 @@ jobs:
           java-version: ${{ matrix.java_version }}
       # checkout iot-benchmark
       - name: checkout iot-benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: iot-benchmark
           repository: 'xiaoyekanren/fork-iot-benchmark'
@@ -131,7 +131,7 @@ jobs:
     steps:
       # checkout iot-benchmark
       - name: checkout iot-benchmark
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: iot-benchmark
           repository: 'xiaoyekanren/fork-iot-benchmark'
