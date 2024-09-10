@@ -24,11 +24,11 @@ jobs:
         id: sys-info
         run: echo "date=$(date +"%Y-%m-%d")" >> $GITHUB_OUTPUT
       # checkout iot-benchmark
-      - name: checkout thulab/iot-benchmark
+      - name: checkout iot-benchmark
         uses: actions/checkout@v2
         with:
           path: iot-benchmark
-          repository: 'thulab/iot-benchmark'
+          repository: 'xiaoyekanren/fork-iot-benchmark'
           ref: 'master'
           fetch-depth: 0
       # collect iot-benchmark
@@ -93,11 +93,11 @@ jobs:
         with:
           java-version: ${{ matrix.java_version }}
       # checkout iot-benchmark
-      - name: checkout thulab/iot-benchmark
+      - name: checkout iot-benchmark
         uses: actions/checkout@v2
         with:
           path: iot-benchmark
-          repository: 'thulab/iot-benchmark'
+          repository: 'xiaoyekanren/fork-iot-benchmark'
           ref: 'master'
           fetch-depth: 0
       # compile benchmark
@@ -130,11 +130,11 @@ jobs:
     needs: collect,create-release,compile
     steps:
       # checkout iot-benchmark
-      - name: checkout thulab/iot-benchmark
+      - name: checkout iot-benchmark
         uses: actions/checkout@v2
         with:
           path: iot-benchmark
-          repository: 'thulab/iot-benchmark'
+          repository: 'xiaoyekanren/fork-iot-benchmark'
           ref: 'master'
           fetch-depth: 0
       # git push commit
