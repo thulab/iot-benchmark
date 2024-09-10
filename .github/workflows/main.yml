@@ -92,6 +92,7 @@ jobs:
       - name: Set java ${{ matrix.java_version }}
         uses: actions/setup-java@v4
         with:
+          distribution: 'zulu'
           java-version: ${{ matrix.java_version }}
       # checkout iot-benchmark
       - name: checkout iot-benchmark
