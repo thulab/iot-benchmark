@@ -46,7 +46,6 @@ import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.utils.Binary;
 import org.apache.tsfile.utils.BytesUtils;
 import org.apache.tsfile.write.record.Tablet;
-import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.apache.tsfile.write.schema.MeasurementSchema;
 import org.slf4j.Logger;
 
@@ -386,7 +385,7 @@ public class IoTDBSessionBase extends IoTDB {
 
   protected Tablet genTablet(IBatch batch) {
     config.getWORKLOAD_BUFFER_SIZE();
-    List<IMeasurementSchema> schemaList = new ArrayList<>();
+    List<MeasurementSchema> schemaList = new ArrayList<>();
     int sensorIndex = 0;
     for (Sensor sensor : batch.getDeviceSchema().getSensors()) {
       SensorType dataSensorType = sensor.getSensorType();
