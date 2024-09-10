@@ -48,6 +48,7 @@ jobs:
         run: |
           echo "txt pid: ${{ steps.bm-info.outputs.last_commit }}"
           echo "res pid: ${{ steps.bm-info.outputs.commit_id }}"
+          echo "last commit user: ${{ steps.bm-info.outputs.commit_user }}"
       # equal means no update
       # "exit 0" is exits normally，"exit other" is exception exit
       - name: check check's results
@@ -89,7 +90,7 @@ jobs:
     steps:
       # set java
       - name: Set java ${{ matrix.java_version }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java_version }}
       # checkout iot-benchmark
