@@ -54,10 +54,12 @@ public class DBFactory {
           dbClass = Constants.IOTDB130_REST_CLASS;
           break;
         case DB_IOT_130_JDBC:
+          dbClass = Constants.IOTDB130_JDBC_CLASS;
+          break;
         case DB_IOT_130_SESSION_BY_TABLET:
         case DB_IOT_130_SESSION_BY_RECORD:
         case DB_IOT_130_SESSION_BY_RECORDS:
-          dbClass = Constants.IOTDB130;
+          dbClass = Constants.IOTDB130_SESSION_CLASS;
           break;
 
           // IoTDB 1.1

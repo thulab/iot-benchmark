@@ -64,13 +64,15 @@ public abstract class DMLStrategy {
       String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
       throws TsdbException, SQLException;
 
+  public abstract void switchSession(int deviceId, String group);
+
   public abstract void init() throws TsdbException;
 
   public abstract void cleanup();
 
   public abstract void close() throws TsdbException;
 
-  protected Session buildSession(List<String> hostUrls) {
+  protected Session buildSession(List<String> hostUrls, String databaseName) {
     return new Session.Builder()
         .nodeUrls(hostUrls)
         .username(dbConfig.getUSERNAME())
@@ -78,6 +80,7 @@ public abstract class DMLStrategy {
         .enableRedirection(true)
         .version(Version.V_1_0)
         .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
+        .database(databaseName)
         .build();
   }
 }

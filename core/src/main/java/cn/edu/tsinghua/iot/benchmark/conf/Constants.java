@@ -55,9 +55,11 @@ public class Constants {
   public static final String IOTDB200_REST_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDBRestAPI";
 
-  public static final String IOTDB130 = "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB";
   public static final String IOTDB130_REST_CLASS =
       "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDBRestAPI";
+  public static final String IOTDB130_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDB";
+  public static final String IOTDB130_SESSION_CLASS =
+      "cn.edu.tsinghua.iot.benchmark.iotdb130.IoTDBSession";
 
   public static final String IOTDB110_JDBC_CLASS = "cn.edu.tsinghua.iot.benchmark.iotdb110.IoTDB";
   public static final String IOTDB110_SESSION_CLASS =

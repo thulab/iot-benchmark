@@ -195,6 +195,11 @@ public class JDBCStrategy extends DMLStrategy {
   }
 
   @Override
+  public void switchSession(int deviceId, String group) {
+    // nothing
+  }
+
+  @Override
   public void init() throws TsdbException {
     if (ioTDBConnection == null) {
       try {
