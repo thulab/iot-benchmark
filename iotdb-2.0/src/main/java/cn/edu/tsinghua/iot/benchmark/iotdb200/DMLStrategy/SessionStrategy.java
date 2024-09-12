@@ -31,11 +31,14 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
+import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
@@ -55,6 +58,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,7 +78,8 @@ public class SessionStrategy extends DMLStrategy {
 
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE(), 1.00f);
-  private final Session session;
+  private final Map<Integer, Session> databaseSessionMap = new HashMap<>();
+  private Session session;
   private final IoTDB iotdb;
 
   public SessionStrategy(IoTDB iotdb, DBConfig dbConfig) {
@@ -84,7 +89,7 @@ public class SessionStrategy extends DMLStrategy {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-    session = buildSession(hostUrls);
+    session = buildSession(hostUrls, null);
   }
 
   @Override
@@ -110,12 +115,40 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
+                if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+                  switchSession(
+                      batch.getDeviceSchema().getDeviceId(), batch.getDeviceSchema().getGroup());
+                }
                 iotdb.sessionInsertImpl(session, tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
               }
             });
     return waitWriteTaskToFinishAndGetStatus();
+  }
+
+  @Override
+  public void switchSession(int deviceId, String group) {
+    try {
+      int tableId =
+          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+      int databaseId =
+          MetaUtil.mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+      if (databaseSessionMap.get(databaseId) == null) {
+        List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
+        for (int i = 0; i < dbConfig.getHOST().size(); i++) {
+          hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
+        }
+        Session sessionNew = buildSession(hostUrls, dbConfig.getDB_NAME() + "_" + group);
+        sessionNew.open();
+        session = sessionNew;
+        databaseSessionMap.put(databaseId, session);
+      } else {
+        session = databaseSessionMap.get(databaseId);
+      }
+    } catch (WorkloadException | IoTDBConnectionException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
   }
 
   private Tablet genTablet(IBatch batch) {
@@ -474,6 +507,11 @@ public class SessionStrategy extends DMLStrategy {
     try {
       if (session != null) {
         session.close();
+      }
+      if (!databaseSessionMap.isEmpty()) {
+        for (Session session : databaseSessionMap.values()) {
+          session.close();
+        }
       }
       service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {

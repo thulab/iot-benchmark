@@ -4,7 +4,9 @@ import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +54,29 @@ public class MetaUtil {
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
+  }
+
+  /** 重排 deviceId,保证相邻的 deviceId 属于同一个 database */
+  public static List<Integer> sortDeviceIdByTable(Config config, Logger LOGGER) {
+    List<Integer> deviceIds = new ArrayList<>();
+    // 获取 Map database device 的映射
+    Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>();
+    try {
+      for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
+        int tableId =
+            mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+        int databaseId =
+            mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+        databaseDeviceMap.computeIfAbsent(databaseId, k -> new ArrayList<>()).add(deviceId);
+      }
+    } catch (WorkloadException e) {
+      LOGGER.error(e.getMessage());
+    }
+    // 重排 deviceId,保证相邻的 deviceId 属于同一个 database
+    for (List<Integer> values : databaseDeviceMap.values()) {
+      deviceIds.addAll(values);
+    }
+    return deviceIds;
   }
 
   public static String getGroupIdFromDeviceName(String deviceName) {
