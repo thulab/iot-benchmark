@@ -332,8 +332,8 @@ public class ConfigDescriptor {
                 "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
           }
         } else {
+          config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
           if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
-            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
             LOGGER.warn(
                 "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
           }
