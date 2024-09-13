@@ -30,7 +30,7 @@ public class DBConfig {
    * The database to use, format: {name of database}{-version}{-insert mode} name of database, for
    * more, in README.md
    */
-  private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_130_SESSION_BY_TABLET;
+  private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_200_SESSION_BY_TABLET;
   /** The host of database server for IoTDB */
   private List<String> HOST = Collections.singletonList("127.0.0.1");
   /** The port of database server */
