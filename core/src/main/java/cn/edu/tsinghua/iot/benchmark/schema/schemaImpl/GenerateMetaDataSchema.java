@@ -51,7 +51,7 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
             config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER());
     int deviceId = MetaUtil.getDeviceId(0);
     // Rearrange device IDs so that adjacent devices are in the same table
-    List<Integer> deviceIds = MetaUtil.sortDeviceIdByTable(config, LOGGER);
+    List<Integer> deviceIds = MetaUtil.sortDeviceIdByDatabase(config, LOGGER);
     for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
       int deviceNumber = deviceDistribution.get(clientId);
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();

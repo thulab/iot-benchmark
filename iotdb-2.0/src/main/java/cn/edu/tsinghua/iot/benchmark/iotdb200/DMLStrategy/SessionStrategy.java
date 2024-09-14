@@ -79,7 +79,6 @@ public class SessionStrategy extends DMLStrategy {
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE(), 1.00f);
   private final Map<Integer, Session> databaseSessionMap = new HashMap<>();
-  //  private Session session;
   private final IoTDB iotdb;
 
   public SessionStrategy(IoTDB iotdb, DBConfig dbConfig) {
@@ -90,6 +89,7 @@ public class SessionStrategy extends DMLStrategy {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
     Session session = buildSession(hostUrls, null);
+    // default session (databaseName not specified)
     databaseSessionMap.put(-1, session);
   }
 
@@ -146,7 +146,6 @@ public class SessionStrategy extends DMLStrategy {
         }
         Session session = buildSession(hostUrls, dbConfig.getDB_NAME() + "_" + group);
         session.open();
-        //        session = sessionNew;
         databaseSessionMap.put(databaseId, session);
         return session;
       } else {
@@ -524,9 +523,6 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void close() throws TsdbException {
     try {
-      //      if (session != null) {
-      //        session.close();
-      //      }
       if (!databaseSessionMap.isEmpty()) {
         for (Session session : databaseSessionMap.values()) {
           session.close();
