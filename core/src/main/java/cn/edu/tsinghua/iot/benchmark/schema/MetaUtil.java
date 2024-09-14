@@ -56,10 +56,15 @@ public class MetaUtil {
     }
   }
 
-  /** 重排 deviceId,保证相邻的 deviceId 属于同一个 database */
+  /**
+   * Rearrange deviceId to ensure that adjacent deviceIds belong to the same database.
+   *
+   * <p>[database0,[device0,device2,device4]], [database1,[device1,device3,device5]]
+   * [device0,device1,device2,device3,device4,device5] =>
+   * [device0,device2,device4,device1,device3,device5]
+   */
   public static List<Integer> sortDeviceIdByTable(Config config, Logger LOGGER) {
     List<Integer> deviceIds = new ArrayList<>();
-    // 获取 Map database device 的映射
     Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>();
     try {
       for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
@@ -67,12 +72,15 @@ public class MetaUtil {
             mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
         int databaseId =
             mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
-        databaseDeviceMap.computeIfAbsent(databaseId, k -> new ArrayList<>()).add(deviceId);
+        databaseDeviceMap
+            .computeIfAbsent(
+                databaseId,
+                k -> new ArrayList<>(config.getDEVICE_NUMBER() / config.getGROUP_NUMBER() + 1))
+            .add(deviceId);
       }
     } catch (WorkloadException e) {
       LOGGER.error(e.getMessage());
     }
-    // 重排 deviceId,保证相邻的 deviceId 属于同一个 database
     for (List<Integer> values : databaseDeviceMap.values()) {
       deviceIds.addAll(values);
     }
