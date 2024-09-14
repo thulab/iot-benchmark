@@ -672,6 +672,10 @@ public class IoTDB implements IDatabase {
     modelStrategy.sessionInsertImpl(session, tablet, deviceSchema);
   }
 
+  public int getDeviceIdForSwitchSession(IBatch batch) {
+    return modelStrategy.getDeviceIdForSwitchSession(batch);
+  }
+
   public void addIDColumnIfNecessary(
       List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
     modelStrategy.addIDColumnIfNecessary(columnTypes, sensors, batch);

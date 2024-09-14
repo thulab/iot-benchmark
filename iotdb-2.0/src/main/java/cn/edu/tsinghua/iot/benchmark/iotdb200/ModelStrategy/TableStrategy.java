@@ -349,6 +349,11 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
   }
 
+  @Override
+  public int getDeviceIdForSwitchSession(IBatch batch) {
+    return batch.getDeviceSchema().getDeviceId();
+  }
+
   // endregion
 
   @Override
