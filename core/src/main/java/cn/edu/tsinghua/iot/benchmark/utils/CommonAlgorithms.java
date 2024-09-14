@@ -43,4 +43,16 @@ public class CommonAlgorithms {
     }
     return result;
   }
+
+  public static Map<Integer, Integer> distributeDevicesToTablet(
+      final int deviceNumber, final int tableNumber) {
+    final int eachTableDeviceNum = deviceNumber / tableNumber;
+    final int leftTableDeviceNum = deviceNumber % tableNumber;
+    Map<Integer, Integer> result = new HashMap<>();
+    for (int tableId = 0; tableId < tableNumber; tableId++) {
+      int deviceNum = (tableId < leftTableDeviceNum) ? eachTableDeviceNum + 1 : eachTableDeviceNum;
+      result.put(tableId, deviceNum);
+    }
+    return result;
+  }
 }

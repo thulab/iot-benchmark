@@ -4,7 +4,9 @@ import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +54,47 @@ public class MetaUtil {
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
+  }
+
+  /**
+   * Rearrange deviceId to ensure that adjacent deviceIds belong to the same database.
+   *
+   * <p>[database0,[device0,device2,device4]], [database1,[device1,device3,device5]]
+   * [device0,device1,device2,device3,device4,device5] =>
+   * [device0,device2,device4,device1,device3,device5]
+   */
+  public static List<Integer> sortDeviceIdByDatabase(Config config, Logger LOGGER) {
+    List<Integer> deviceIds = new ArrayList<>();
+    Map<Integer, List<Integer>> tableDeviceMap =
+        new HashMap<>(config.getIoTDB_TABLE_NUMBER(), 1.00f);
+    Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>(config.getGROUP_NUMBER(), 1.00f);
+    try {
+      for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
+        int tableId =
+            mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+        tableDeviceMap
+            .computeIfAbsent(
+                tableId,
+                k ->
+                    new ArrayList<>(config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER() + 1))
+            .add(deviceId);
+      }
+      for (int tableId = 0; tableId < config.getIoTDB_TABLE_NUMBER(); tableId++) {
+        int databaseId =
+            mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+        if (!databaseDeviceMap.containsKey(databaseId)) {
+          databaseDeviceMap.put(databaseId, tableDeviceMap.get(tableId));
+        } else {
+          databaseDeviceMap.get(databaseId).addAll(tableDeviceMap.get(tableId));
+        }
+      }
+    } catch (WorkloadException e) {
+      LOGGER.error(e.getMessage());
+    }
+    for (List<Integer> values : databaseDeviceMap.values()) {
+      deviceIds.addAll(values);
+    }
+    return deviceIds;
   }
 
   public static String getGroupIdFromDeviceName(String deviceName) {

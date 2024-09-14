@@ -332,8 +332,8 @@ public class ConfigDescriptor {
                 "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
           }
         } else {
+          config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
           if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
-            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
             LOGGER.warn(
                 "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
           }
@@ -693,19 +693,32 @@ public class ConfigDescriptor {
       LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB");
       return false;
     }
-    if (config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_RECORDS) {
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_RECORDS) {
       LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
       return false;
     }
-    for (int deviceNum :
+    for (int deviceNumPerClient :
         CommonAlgorithms.distributeDevicesToClients(
                 config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
             .values()) {
-      if (deviceNum % dnw != 0) {
+      if (deviceNumPerClient % dnw != 0) {
         LOGGER.error(
             "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
                 + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
-            deviceNum, dnw);
+            deviceNumPerClient, dnw);
+        return false;
+      }
+    }
+    for (int deviceNumPerTable :
+        CommonAlgorithms.distributeDevicesToTablet(
+                config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())
+            .values()) {
+      if (deviceNumPerTable % dnw != 0) {
+        LOGGER.error(
+            "Some tables will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
+                + "To solve this problem, please make DEVICE_NUMBER % IoTDB_TABLE_NUMBER == 0, and (DEVICE_NUMBER / IoTDB_TABLE_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
+            deviceNumPerTable, dnw);
         return false;
       }
     }

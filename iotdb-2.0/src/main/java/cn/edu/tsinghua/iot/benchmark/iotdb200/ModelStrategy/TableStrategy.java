@@ -315,12 +315,19 @@ public class TableStrategy extends IoTDBModelStrategy {
       columnTypes.add(Tablet.ColumnType.ID);
     }
     // Add the value of the identity column to the value of each record
-    for (int i = 0; i < batch.getRecords().size(); i++) {
-      List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
-      dataValue.add(batch.getDeviceSchema().getDevice());
-      for (String key : batch.getDeviceSchema().getTags().keySet()) {
-        dataValue.add(batch.getDeviceSchema().getTags().get(key));
+    while (true) {
+      for (int i = 0; i < batch.getRecords().size(); i++) {
+        List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
+
+        dataValue.add(batch.getDeviceSchema().getDevice());
+        for (String key : batch.getDeviceSchema().getTags().keySet()) {
+          dataValue.add(batch.getDeviceSchema().getTags().get(key));
+        }
       }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
     }
   }
 
@@ -333,8 +340,6 @@ public class TableStrategy extends IoTDBModelStrategy {
   @Override
   public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.executeNonQueryStatement(
-        "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
     session.insertRelationalTablet(tablet);
   }
 

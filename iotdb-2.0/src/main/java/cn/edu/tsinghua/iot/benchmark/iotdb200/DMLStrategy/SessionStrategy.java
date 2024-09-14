@@ -31,11 +31,14 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
+import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
@@ -55,6 +58,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -74,7 +78,7 @@ public class SessionStrategy extends DMLStrategy {
 
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE());
-  private final Session session;
+  private final Map<Integer, Session> databaseSessionMap = new HashMap<>();
   private final IoTDB iotdb;
 
   public SessionStrategy(IoTDB iotdb, DBConfig dbConfig) {
@@ -84,7 +88,8 @@ public class SessionStrategy extends DMLStrategy {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-    session = buildSession(hostUrls);
+    Session session = buildSession(hostUrls, null);
+    databaseSessionMap.put(-1, session);
   }
 
   @Override
@@ -110,6 +115,15 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
+                Session session;
+                if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+                  session =
+                      switchSession(
+                          batch.getDeviceSchema().getDeviceId(),
+                          batch.getDeviceSchema().getGroup());
+                } else {
+                  session = databaseSessionMap.get(-1);
+                }
                 iotdb.sessionInsertImpl(session, tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
@@ -118,11 +132,37 @@ public class SessionStrategy extends DMLStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
+  public Session switchSession(int deviceId, String group) {
+    try {
+      int tableId =
+          MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+      int databaseId =
+          MetaUtil.mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+      if (databaseSessionMap.get(databaseId) == null) {
+        List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
+        for (int i = 0; i < dbConfig.getHOST().size(); i++) {
+          hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
+        }
+        Session session = buildSession(hostUrls, dbConfig.getDB_NAME() + "_" + group);
+        session.open();
+        databaseSessionMap.put(databaseId, session);
+        return session;
+      } else {
+        return databaseSessionMap.get(databaseId);
+      }
+    } catch (WorkloadException | IoTDBConnectionException e) {
+      LOGGER.error(e.getMessage(), e);
+      return null;
+    }
+  }
+
   private Tablet genTablet(IBatch batch) {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-    iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
+    if (config.isIS_DOUBLE_WRITE()) {
+      iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
+    }
     iotdb.addIDColumnIfNecessary(columnTypes, sensors, batch);
     int sensorIndex = 0;
     for (Sensor sensor : sensors) {
@@ -138,66 +178,81 @@ public class SessionStrategy extends DMLStrategy {
     }
     String deviceId = iotdb.getInsertTargetName(batch.getDeviceSchema());
     Tablet tablet =
-        iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
+        iotdb.createTablet(
+            deviceId,
+            schemaList,
+            columnTypes,
+            batch.getRecords().size() * config.getDEVICE_NUM_PER_WRITE());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
-
-    for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
-      tablet.rowSize++;
-      Record record = batch.getRecords().get(recordIndex);
-      sensorIndex = 0;
-      long currentTime = record.getTimestamp();
-      timestamps[recordIndex] = currentTime;
-      for (int recordValueIndex = 0;
-          recordValueIndex < record.getRecordDataValue().size();
-          recordValueIndex++) {
-        switch (sensors.get(sensorIndex).getSensorType()) {
-          case BOOLEAN:
-            boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
-            sensorsBool[recordIndex] =
-                (boolean) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case INT32:
-            int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case INT64:
-            long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case FLOAT:
-            float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case DOUBLE:
-            double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] =
-                (double) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case TEXT:
-          case STRING:
-          case BLOB:
-            Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] =
-                binaryCache.computeIfAbsent(
-                    (String) record.getRecordDataValue().get(recordValueIndex),
-                    BytesUtils::valueOf);
-            break;
-          case TIMESTAMP:
-            long[] sensorsTimestamp = (long[]) values[recordValueIndex];
-            sensorsTimestamp[recordIndex] =
-                (long) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case DATE:
-            LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
-            sensorsDate[recordIndex] =
-                (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          default:
-            LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
+    int stepOff = 0;
+    batch.reset();
+    while (true) {
+      for (int recordIndex = stepOff;
+          recordIndex < (batch.getRecords().size() + stepOff);
+          recordIndex++) {
+        tablet.rowSize++;
+        Record record = batch.getRecords().get(recordIndex % batch.getRecords().size());
+        sensorIndex = 0;
+        long currentTime = record.getTimestamp();
+        timestamps[recordIndex] = currentTime;
+        for (int recordValueIndex = 0;
+            recordValueIndex < record.getRecordDataValue().size();
+            recordValueIndex++) {
+          switch (sensors.get(sensorIndex).getSensorType()) {
+            case BOOLEAN:
+              boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
+              sensorsBool[recordIndex] =
+                  (boolean) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case INT32:
+              int[] sensorsInt = (int[]) values[recordValueIndex];
+              sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case INT64:
+              long[] sensorsLong = (long[]) values[recordValueIndex];
+              sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case FLOAT:
+              float[] sensorsFloat = (float[]) values[recordValueIndex];
+              sensorsFloat[recordIndex] =
+                  (float) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case DOUBLE:
+              double[] sensorsDouble = (double[]) values[recordValueIndex];
+              sensorsDouble[recordIndex] =
+                  (double) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case TEXT:
+            case STRING:
+            case BLOB:
+              Binary[] sensorsText = (Binary[]) values[recordValueIndex];
+              sensorsText[recordIndex] =
+                  binaryCache.computeIfAbsent(
+                      (String) record.getRecordDataValue().get(recordValueIndex),
+                      BytesUtils::valueOf);
+              break;
+            case TIMESTAMP:
+              long[] sensorsTimestamp = (long[]) values[recordValueIndex];
+              sensorsTimestamp[recordIndex] =
+                  (long) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case DATE:
+              LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
+              sensorsDate[recordIndex] =
+                  (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            default:
+              LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
+          }
+          sensorIndex++;
         }
-        sensorIndex++;
       }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
+      stepOff += batch.getRecords().size();
     }
     return tablet;
   }
@@ -216,9 +271,13 @@ public class SessionStrategy extends DMLStrategy {
       List<Object> recordDataValue = convertTypeForBLOB(record, dataTypes);
       try {
         if (config.isVECTOR()) {
-          session.insertAlignedRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
+          databaseSessionMap
+              .get(-1)
+              .insertAlignedRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
         } else {
-          session.insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
+          databaseSessionMap
+              .get(-1)
+              .insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;
@@ -257,16 +316,21 @@ public class SessionStrategy extends DMLStrategy {
         break;
       }
       batch.next();
+      deviceId = IoTDBUtils.getDevicePath(batch.getDeviceSchema(), IoTDB.ROOT_SERIES_NAME);
     }
     task =
         service.submit(
             () -> {
               try {
                 if (config.isVECTOR()) {
-                  session.insertAlignedRecords(
-                      deviceIds, times, measurementsList, typesList, valuesList);
+                  databaseSessionMap
+                      .get(-1)
+                      .insertAlignedRecords(
+                          deviceIds, times, measurementsList, typesList, valuesList);
                 } else {
-                  session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+                  databaseSessionMap
+                      .get(-1)
+                      .insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
                 }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
@@ -303,7 +367,8 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                SessionDataSet sessionDataSet = session.executeQueryStatement(executeSQL);
+                SessionDataSet sessionDataSet =
+                    databaseSessionMap.get(-1).executeQueryStatement(executeSQL);
                 if (config.isIS_COMPARISON()) {
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
@@ -363,7 +428,7 @@ public class SessionStrategy extends DMLStrategy {
   public List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
       throws IoTDBConnectionException, StatementExecutionException {
     int point = 0, line = 0;
-    try (SessionDataSet sessionDataSet = session.executeQueryStatement(sql)) {
+    try (SessionDataSet sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         RowRecord rowRecord = sessionDataSet.next();
         // The table model and the tree model obtain time differently
@@ -387,7 +452,7 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public List<List<Object>> deviceQueryImpl(String sql) throws Exception {
     List<List<Object>> result = new ArrayList<>();
-    try (SessionDataSet sessionDataSet = session.executeQueryStatement(sql)) {
+    try (SessionDataSet sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         List<Object> line = new ArrayList<>();
         RowRecord rowRecord = sessionDataSet.next();
@@ -409,19 +474,20 @@ public class SessionStrategy extends DMLStrategy {
     int totalLineNumber = 0;
     long minTimeStamp, maxTimeStamp;
     try {
-      SessionDataSet sessionDataSet = session.executeQueryStatement(totalLineNumberSql);
+      SessionDataSet sessionDataSet =
+          databaseSessionMap.get(-1).executeQueryStatement(totalLineNumberSql);
       while (sessionDataSet.hasNext()) {
         sessionDataSet.next();
         totalLineNumber++;
       }
       sessionDataSet.close();
 
-      sessionDataSet = session.executeQueryStatement(maxTimestampSql);
+      sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(maxTimestampSql);
       RowRecord rowRecord = sessionDataSet.next();
       maxTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
 
-      sessionDataSet = session.executeQueryStatement(minTimestampSql);
+      sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(minTimestampSql);
       rowRecord = sessionDataSet.next();
       minTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
@@ -448,9 +514,9 @@ public class SessionStrategy extends DMLStrategy {
   public void init() {
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
-        session.open(true);
+        databaseSessionMap.get(-1).open(true);
       } else {
-        session.open();
+        databaseSessionMap.get(-1).open();
       }
       this.service = Executors.newSingleThreadExecutor();
     } catch (IoTDBConnectionException e) {
@@ -461,7 +527,7 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void cleanup() {
     try {
-      iotdb.sessionCleanupImpl(session);
+      iotdb.sessionCleanupImpl(databaseSessionMap.get(-1));
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
@@ -472,8 +538,10 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void close() throws TsdbException {
     try {
-      if (session != null) {
-        session.close();
+      if (!databaseSessionMap.isEmpty()) {
+        for (Session session : databaseSessionMap.values()) {
+          session.close();
+        }
       }
       service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
