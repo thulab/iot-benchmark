@@ -64,8 +64,6 @@ public abstract class DMLStrategy {
       String device, String totalLineNumberSql, String maxTimestampSql, String minTimestampSql)
       throws TsdbException, SQLException;
 
-  public abstract void switchSession(int deviceId, String group);
-
   public abstract void init() throws TsdbException;
 
   public abstract void cleanup();

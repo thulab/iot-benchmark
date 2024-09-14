@@ -79,7 +79,7 @@ public class SessionStrategy extends DMLStrategy {
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE());
   private final Map<Integer, Session> databaseSessionMap = new HashMap<>();
-  private Session session;
+  //  private Session session;
   private final IoTDB iotdb;
 
   public SessionStrategy(IoTDB iotdb, DBConfig dbConfig) {
@@ -89,7 +89,8 @@ public class SessionStrategy extends DMLStrategy {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
-    session = buildSession(hostUrls, null);
+    Session session = buildSession(hostUrls, null);
+    databaseSessionMap.put(-1, session);
   }
 
   @Override
@@ -115,9 +116,14 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
+                Session session;
                 if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-                  switchSession(
-                      batch.getDeviceSchema().getDeviceId(), batch.getDeviceSchema().getGroup());
+                  session =
+                      switchSession(
+                          batch.getDeviceSchema().getDeviceId(),
+                          batch.getDeviceSchema().getGroup());
+                } else {
+                  session = databaseSessionMap.get(-1);
                 }
                 iotdb.sessionInsertImpl(session, tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
@@ -127,8 +133,7 @@ public class SessionStrategy extends DMLStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
-  @Override
-  public void switchSession(int deviceId, String group) {
+  public Session switchSession(int deviceId, String group) {
     try {
       int tableId =
           MetaUtil.mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
@@ -139,15 +144,17 @@ public class SessionStrategy extends DMLStrategy {
         for (int i = 0; i < dbConfig.getHOST().size(); i++) {
           hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
         }
-        Session sessionNew = buildSession(hostUrls, dbConfig.getDB_NAME() + "_" + group);
-        sessionNew.open();
-        session = sessionNew;
+        Session session = buildSession(hostUrls, dbConfig.getDB_NAME() + "_" + group);
+        session.open();
+        //        session = sessionNew;
         databaseSessionMap.put(databaseId, session);
+        return session;
       } else {
-        session = databaseSessionMap.get(databaseId);
+        return databaseSessionMap.get(databaseId);
       }
     } catch (WorkloadException | IoTDBConnectionException e) {
       LOGGER.error(e.getMessage(), e);
+      return null;
     }
   }
 
@@ -251,9 +258,13 @@ public class SessionStrategy extends DMLStrategy {
       List<Object> recordDataValue = convertTypeForBLOB(record, dataTypes);
       try {
         if (config.isVECTOR()) {
-          session.insertAlignedRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
+          databaseSessionMap
+              .get(-1)
+              .insertAlignedRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
         } else {
-          session.insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
+          databaseSessionMap
+              .get(-1)
+              .insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
         }
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;
@@ -298,10 +309,14 @@ public class SessionStrategy extends DMLStrategy {
             () -> {
               try {
                 if (config.isVECTOR()) {
-                  session.insertAlignedRecords(
-                      deviceIds, times, measurementsList, typesList, valuesList);
+                  databaseSessionMap
+                      .get(-1)
+                      .insertAlignedRecords(
+                          deviceIds, times, measurementsList, typesList, valuesList);
                 } else {
-                  session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+                  databaseSessionMap
+                      .get(-1)
+                      .insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
                 }
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
@@ -338,7 +353,8 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                SessionDataSet sessionDataSet = session.executeQueryStatement(executeSQL);
+                SessionDataSet sessionDataSet =
+                    databaseSessionMap.get(-1).executeQueryStatement(executeSQL);
                 if (config.isIS_COMPARISON()) {
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
@@ -398,7 +414,7 @@ public class SessionStrategy extends DMLStrategy {
   public List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
       throws IoTDBConnectionException, StatementExecutionException {
     int point = 0, line = 0;
-    try (SessionDataSet sessionDataSet = session.executeQueryStatement(sql)) {
+    try (SessionDataSet sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         RowRecord rowRecord = sessionDataSet.next();
         // The table model and the tree model obtain time differently
@@ -422,7 +438,7 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public List<List<Object>> deviceQueryImpl(String sql) throws Exception {
     List<List<Object>> result = new ArrayList<>();
-    try (SessionDataSet sessionDataSet = session.executeQueryStatement(sql)) {
+    try (SessionDataSet sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         List<Object> line = new ArrayList<>();
         RowRecord rowRecord = sessionDataSet.next();
@@ -444,19 +460,20 @@ public class SessionStrategy extends DMLStrategy {
     int totalLineNumber = 0;
     long minTimeStamp, maxTimeStamp;
     try {
-      SessionDataSet sessionDataSet = session.executeQueryStatement(totalLineNumberSql);
+      SessionDataSet sessionDataSet =
+          databaseSessionMap.get(-1).executeQueryStatement(totalLineNumberSql);
       while (sessionDataSet.hasNext()) {
         sessionDataSet.next();
         totalLineNumber++;
       }
       sessionDataSet.close();
 
-      sessionDataSet = session.executeQueryStatement(maxTimestampSql);
+      sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(maxTimestampSql);
       RowRecord rowRecord = sessionDataSet.next();
       maxTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
 
-      sessionDataSet = session.executeQueryStatement(minTimestampSql);
+      sessionDataSet = databaseSessionMap.get(-1).executeQueryStatement(minTimestampSql);
       rowRecord = sessionDataSet.next();
       minTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
@@ -483,9 +500,9 @@ public class SessionStrategy extends DMLStrategy {
   public void init() {
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
-        session.open(true);
+        databaseSessionMap.get(-1).open(true);
       } else {
-        session.open();
+        databaseSessionMap.get(-1).open();
       }
       this.service = Executors.newSingleThreadExecutor();
     } catch (IoTDBConnectionException e) {
@@ -496,7 +513,7 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void cleanup() {
     try {
-      iotdb.sessionCleanupImpl(session);
+      iotdb.sessionCleanupImpl(databaseSessionMap.get(-1));
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
@@ -507,9 +524,9 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void close() throws TsdbException {
     try {
-      if (session != null) {
-        session.close();
-      }
+      //      if (session != null) {
+      //        session.close();
+      //      }
       if (!databaseSessionMap.isEmpty()) {
         for (Session session : databaseSessionMap.values()) {
           session.close();
