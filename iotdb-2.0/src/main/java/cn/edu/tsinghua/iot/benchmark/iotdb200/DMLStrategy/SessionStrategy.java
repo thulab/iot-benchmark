@@ -31,7 +31,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
@@ -116,15 +115,10 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                Session session;
-                if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-                  session =
-                      switchSession(
-                          batch.getDeviceSchema().getDeviceId(),
-                          batch.getDeviceSchema().getGroup());
-                } else {
-                  session = databaseSessionMap.get(-1);
-                }
+                Session session =
+                    switchSession(
+                        iotdb.getDeviceIdForSwitchSession(batch),
+                        batch.getDeviceSchema().getGroup());
                 iotdb.sessionInsertImpl(session, tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);

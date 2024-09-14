@@ -126,6 +126,7 @@ public abstract class IoTDBModelStrategy {
   public abstract void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException;
 
+  public abstract int getDeviceIdForSwitchSession(IBatch batch);
   // endregion
 
   public abstract Logger getLogger();

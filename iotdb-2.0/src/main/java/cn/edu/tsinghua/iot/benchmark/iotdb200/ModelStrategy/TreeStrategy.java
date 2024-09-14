@@ -355,6 +355,12 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
+  @Override
+  public int getDeviceIdForSwitchSession(IBatch batch) {
+    // -1 is the default session in databaseSessionMap
+    return -1;
+  }
+
   // endregion
 
   @Override
