@@ -63,7 +63,7 @@ public class MetaUtil {
    * [device0,device1,device2,device3,device4,device5] =>
    * [device0,device2,device4,device1,device3,device5]
    */
-  public static List<Integer> sortDeviceIdByTable(Config config, Logger LOGGER) {
+  public static List<Integer> sortDeviceIdByDatabase(Config config, Logger LOGGER) {
     List<Integer> deviceIds = new ArrayList<>();
     Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>();
     try {
