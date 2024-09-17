@@ -42,7 +42,7 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
   private static final AtomicInteger sensorIndex = new AtomicInteger();
   private final AtomicLong insertLoop = new AtomicLong(0);
-  private static final List<Integer> deviceIds = MetaUtil.sortDeviceIdByDatabase(config, LOGGER);
+  private static final List<Integer> deviceIds = MetaUtil.sortDeviceId(config, LOGGER);
 
   private SingletonWorkDataWorkLoad() {
     if (config.isIS_OUT_OF_ORDER()) {

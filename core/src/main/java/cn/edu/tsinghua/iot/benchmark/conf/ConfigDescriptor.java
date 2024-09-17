@@ -711,7 +711,7 @@ public class ConfigDescriptor {
       }
     }
     for (int deviceNumPerTable :
-        CommonAlgorithms.distributeDevicesToTablet(
+        CommonAlgorithms.distributeDevicesToTable(
                 config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())
             .values()) {
       if (deviceNumPerTable % dnw != 0) {

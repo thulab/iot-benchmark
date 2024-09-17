@@ -33,25 +33,22 @@ public class CommonAlgorithms {
    */
   public static Map<Integer, Integer> distributeDevicesToClients(
       final int deviceNumber, final int clientNumber) {
-    final int eachClientDeviceNum = deviceNumber / clientNumber;
-    final int leftClientDeviceNum = deviceNumber % clientNumber;
-    Map<Integer, Integer> result = new HashMap<>();
-    for (int clientId = 0; clientId < clientNumber; clientId++) {
-      int deviceNum =
-          (clientId < leftClientDeviceNum) ? eachClientDeviceNum + 1 : eachClientDeviceNum;
-      result.put(clientId, deviceNum);
-    }
-    return result;
+    return distributeDevicesStrategy(deviceNumber, clientNumber);
   }
 
-  public static Map<Integer, Integer> distributeDevicesToTablet(
+  public static Map<Integer, Integer> distributeDevicesToTable(
       final int deviceNumber, final int tableNumber) {
-    final int eachTableDeviceNum = deviceNumber / tableNumber;
-    final int leftTableDeviceNum = deviceNumber % tableNumber;
+    return distributeDevicesStrategy(deviceNumber, tableNumber);
+  }
+
+  private static Map<Integer, Integer> distributeDevicesStrategy(
+      final int deviceNumber, final int ClientOrTableNumber) {
+    final int eachTargetDeviceNum = deviceNumber / ClientOrTableNumber;
+    final int leftTargetDeviceNum = deviceNumber % ClientOrTableNumber;
     Map<Integer, Integer> result = new HashMap<>();
-    for (int tableId = 0; tableId < tableNumber; tableId++) {
-      int deviceNum = (tableId < leftTableDeviceNum) ? eachTableDeviceNum + 1 : eachTableDeviceNum;
-      result.put(tableId, deviceNum);
+    for (int id = 0; id < ClientOrTableNumber; id++) {
+      int deviceNum = (id < leftTargetDeviceNum) ? eachTargetDeviceNum + 1 : eachTargetDeviceNum;
+      result.put(id, deviceNum);
     }
     return result;
   }

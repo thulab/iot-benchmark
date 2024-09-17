@@ -57,18 +57,20 @@ public class MetaUtil {
   }
 
   /**
-   * Rearrange deviceId to ensure that adjacent deviceIds belong to the same database.
+   * Rearrange deviceId to ensure that adjacent deviceIds belong to the same table.
    *
-   * <p>[database0,[device0,device2,device4]], [database1,[device1,device3,device5]]
-   * [device0,device1,device2,device3,device4,device5] =>
-   * [device0,device2,device4,device1,device3,device5]
+   * <p>[database0,[table0[device0,device4],table1[device2,device6]]],
+   * [database1,[table2[device1,device5],table3[device3,device7]]]
+   * [device0,device1,device2,device3,device4,device5,device6,device7] =>
+   * [device0,device4,device2,device6,device1,device5,device3,device7]
    */
-  public static List<Integer> sortDeviceIdByDatabase(Config config, Logger LOGGER) {
+  public static List<Integer> sortDeviceId(Config config, Logger LOGGER) {
     List<Integer> deviceIds = new ArrayList<>();
     Map<Integer, List<Integer>> tableDeviceMap =
         new HashMap<>(config.getIoTDB_TABLE_NUMBER(), 1.00f);
     Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>(config.getGROUP_NUMBER(), 1.00f);
     try {
+      // Device to table mapping
       for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
         int tableId =
             mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
@@ -79,6 +81,7 @@ public class MetaUtil {
                     new ArrayList<>(config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER() + 1))
             .add(deviceId);
       }
+      // Device to database mapping
       for (int tableId = 0; tableId < config.getIoTDB_TABLE_NUMBER(); tableId++) {
         int databaseId =
             mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
