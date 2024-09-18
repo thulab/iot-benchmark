@@ -57,12 +57,15 @@ public class MetaUtil {
   }
 
   /**
-   * Rearrange deviceId to ensure that adjacent deviceIds belong to the same table.
+   * It traverses all device IDs, assigns each device to the corresponding table, and further
+   * aggregates the devices in the table into the corresponding database. <br>
+   * IoTDB-TableMode : Ensure that multiple devices written in a single batch come from the same
+   * table.<br>
+   * IoTDB-TreeMode : It will not affect its writing speed.
    *
-   * <p>[database0,[table0[device0,device4],table1[device2,device6]]],
-   * [database1,[table2[device1,device5],table3[device3,device7]]]
-   * [device0,device1,device2,device3,device4,device5,device6,device7] =>
-   * [device0,device4,device2,device6,device1,device5,device3,device7]
+   * @param config
+   * @param LOGGER
+   * @return deviceIds
    */
   public static List<Integer> sortDeviceId(Config config, Logger LOGGER) {
     List<Integer> deviceIds = new ArrayList<>();
@@ -70,8 +73,9 @@ public class MetaUtil {
         new HashMap<>(config.getIoTDB_TABLE_NUMBER(), 1.00f);
     Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>(config.getGROUP_NUMBER(), 1.00f);
     try {
-      // Device to table mapping
+      // Get the device contained in each table
       for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
+        // Calculate tableId from deviceId
         int tableId =
             mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
         tableDeviceMap
@@ -81,22 +85,19 @@ public class MetaUtil {
                     new ArrayList<>(config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER() + 1))
             .add(deviceId);
       }
-      // Device to database mapping
+      // By using tableDeviceMap, quickly get the devices contained in each database
       for (int tableId = 0; tableId < config.getIoTDB_TABLE_NUMBER(); tableId++) {
+        // Calculate databaseId from tableId
         int databaseId =
             mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
-        if (!databaseDeviceMap.containsKey(databaseId)) {
-          databaseDeviceMap.put(databaseId, tableDeviceMap.get(tableId));
-        } else {
-          databaseDeviceMap.get(databaseId).addAll(tableDeviceMap.get(tableId));
-        }
+        databaseDeviceMap
+            .computeIfAbsent(databaseId, k -> new ArrayList<>())
+            .addAll(tableDeviceMap.getOrDefault(tableId, Collections.emptyList()));
       }
     } catch (WorkloadException e) {
       LOGGER.error(e.getMessage());
     }
-    for (List<Integer> values : databaseDeviceMap.values()) {
-      deviceIds.addAll(values);
-    }
+    databaseDeviceMap.values().forEach(deviceIds::addAll);
     return deviceIds;
   }
 
