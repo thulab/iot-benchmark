@@ -343,6 +343,11 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
+  public void sessionDBSwitchIfNecessaryImpl(Session session, int deviceId, String group) {
+    // do nothing
+  }
+
+  @Override
   public void sessionCleanupImpl(Session session) {
     try {
       session.executeNonQueryStatement(
@@ -353,12 +358,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
     } catch (StatementExecutionException e) {
       LOGGER.warn("Failed to execute statement:{}", e.getMessage());
     }
-  }
-
-  @Override
-  public int getDeviceIdForSwitchSession(IBatch batch) {
-    // -1 is the default session in databaseSessionMap
-    return -1;
   }
 
   // endregion

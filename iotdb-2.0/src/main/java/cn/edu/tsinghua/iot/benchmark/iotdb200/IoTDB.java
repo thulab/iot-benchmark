@@ -662,6 +662,11 @@ public class IoTDB implements IDatabase {
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
 
+  public void sessionDBSwitchIfNecessaryImpl(Session session, int deviceId, String group)
+      throws IoTDBConnectionException, StatementExecutionException {
+    modelStrategy.sessionDBSwitchIfNecessaryImpl(session, deviceId, group);
+  }
+
   public void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException {
     modelStrategy.sessionCleanupImpl(session);
@@ -670,10 +675,6 @@ public class IoTDB implements IDatabase {
   public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
     modelStrategy.sessionInsertImpl(session, tablet, deviceSchema);
-  }
-
-  public int getDeviceIdForSwitchSession(IBatch batch) {
-    return modelStrategy.getDeviceIdForSwitchSession(batch);
   }
 
   public void addIDColumnIfNecessary(

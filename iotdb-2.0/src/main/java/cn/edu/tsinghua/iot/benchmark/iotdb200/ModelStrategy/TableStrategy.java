@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 
@@ -337,6 +338,17 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
+  public void sessionDBSwitchIfNecessaryImpl(Session session, int deviceId, String group)
+      throws StatementExecutionException, IoTDBConnectionException {
+    String databaseName = dbConfig.getDB_NAME() + "_" + group;
+    if (!Objects.equals(session.getDatabase(), databaseName)) {
+      StringBuilder sql = new StringBuilder();
+      sql.append("use ").append(databaseName);
+      session.executeNonQueryStatement(sql.toString());
+    }
+  }
+
+  @Override
   public void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException {
     SessionDataSet dataSet = session.executeQueryStatement("show databases");
@@ -347,11 +359,6 @@ public class TableStrategy extends IoTDBModelStrategy {
       }
       session.executeNonQueryStatement("drop database " + databaseName);
     }
-  }
-
-  @Override
-  public int getDeviceIdForSwitchSession(IBatch batch) {
-    return batch.getDeviceSchema().getDeviceId();
   }
 
   // endregion
