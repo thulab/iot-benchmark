@@ -74,7 +74,7 @@ public class SessionStrategy extends DMLStrategy {
 
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE(), 1.00f);
-  private Session session;
+  private final Session session;
   private final IoTDB iotdb;
 
   public SessionStrategy(IoTDB iotdb, DBConfig dbConfig) {
