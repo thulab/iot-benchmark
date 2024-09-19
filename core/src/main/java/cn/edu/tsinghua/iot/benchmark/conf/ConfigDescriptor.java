@@ -691,7 +691,7 @@ public class ConfigDescriptor {
         && config.getCLIENT_NUMBER() % config.getGROUP_NUMBER() != 0) {
       LOGGER.error(
           "TableMode must ensure that a client only writes to one database. Therefore, a client only switches database once.\n"
-              + "please make DEVICE_NUMBER % GROUP_NUMBER == 0");
+              + "please make CLIENT_NUMBER % GROUP_NUMBER == 0");
       return false;
     }
     if (dnw == 1) {
