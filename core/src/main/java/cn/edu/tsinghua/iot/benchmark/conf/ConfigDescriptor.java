@@ -325,20 +325,6 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
 
-        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-          if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
-              || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
-            LOGGER.warn(
-                "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
-          }
-        } else {
-          config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
-          if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
-            LOGGER.warn(
-                "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
-          }
-        }
-
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(
@@ -638,6 +624,7 @@ public class ConfigDescriptor {
       LOGGER.error("Client number can't be zero");
       result = false;
     }
+    result &= checkIoTDBTableNumberAndDatabaseNumber();
     result &= checkDeviceNumPerWrite();
     result &= checkTag();
     if (!commonlyUseDB()) {
@@ -676,6 +663,25 @@ public class ConfigDescriptor {
     if (config.getLOOP() != 0 && minOps > config.getLOOP()) {
       LOGGER.error("Loop is too small that can't meet the need of OPERATION_PROPORTION");
       return false;
+    }
+    return true;
+  }
+
+  private boolean checkIoTDBTableNumberAndDatabaseNumber() {
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+      if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
+          || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
+        LOGGER.warn(
+            "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
+        return false;
+      }
+    } else {
+      config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+      if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
+        LOGGER.warn(
+            "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
+        return false;
+      }
     }
     return true;
   }
