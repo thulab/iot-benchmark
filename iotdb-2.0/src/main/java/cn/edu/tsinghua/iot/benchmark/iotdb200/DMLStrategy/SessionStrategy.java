@@ -153,6 +153,7 @@ public class SessionStrategy extends DMLStrategy {
     Object[] values = tablet.values;
     int stepOff = 0;
     batch.reset();
+    // Convert multiple batches to tablets
     while (true) {
       for (int recordIndex = stepOff;
           recordIndex < (batch.getRecords().size() + stepOff);
@@ -278,6 +279,7 @@ public class SessionStrategy extends DMLStrategy {
         break;
       }
       batch.next();
+      // Switch to the device in the next batch  e.g. root.group_1.d_1
       deviceId = IoTDBUtils.getDevicePath(batch.getDeviceSchema(), IoTDB.ROOT_SERIES_NAME);
     }
     task =

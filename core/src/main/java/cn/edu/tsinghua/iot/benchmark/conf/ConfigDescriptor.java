@@ -724,16 +724,18 @@ public class ConfigDescriptor {
         return false;
       }
     }
-    for (int deviceNumPerTable :
-        CommonAlgorithms.distributeDevicesToTable(
-                config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())
-            .values()) {
-      if (deviceNumPerTable % dnw != 0) {
-        LOGGER.error(
-            "Some tables will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
-                + "To solve this problem, please make DEVICE_NUMBER % IoTDB_TABLE_NUMBER == 0, and (DEVICE_NUMBER / IoTDB_TABLE_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
-            deviceNumPerTable, dnw);
-        return false;
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE){
+      for (int deviceNumPerTable :
+          CommonAlgorithms.distributeDevicesToTable(
+                  config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())
+              .values()) {
+        if (deviceNumPerTable % dnw != 0) {
+          LOGGER.error(
+              "Some tables will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
+                  + "To solve this problem, please make DEVICE_NUMBER % IoTDB_TABLE_NUMBER == 0, and (DEVICE_NUMBER / IoTDB_TABLE_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
+              deviceNumPerTable, dnw);
+          return false;
+        }
       }
     }
     if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
