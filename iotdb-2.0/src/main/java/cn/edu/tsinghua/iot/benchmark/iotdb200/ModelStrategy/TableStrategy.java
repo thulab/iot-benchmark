@@ -318,7 +318,6 @@ public class TableStrategy extends IoTDBModelStrategy {
     while (true) {
       for (int i = 0; i < batch.getRecords().size(); i++) {
         List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
-
         dataValue.add(batch.getDeviceSchema().getDevice());
         for (String key : batch.getDeviceSchema().getTags().keySet()) {
           dataValue.add(batch.getDeviceSchema().getTags().get(key));
