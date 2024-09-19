@@ -724,7 +724,7 @@ public class ConfigDescriptor {
         return false;
       }
     }
-    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE){
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
       for (int deviceNumPerTable :
           CommonAlgorithms.distributeDevicesToTable(
                   config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER())
