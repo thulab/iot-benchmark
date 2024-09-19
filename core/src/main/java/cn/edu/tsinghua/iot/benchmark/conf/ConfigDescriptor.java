@@ -624,7 +624,7 @@ public class ConfigDescriptor {
       LOGGER.error("Client number can't be zero");
       result = false;
     }
-    result &= checkIoTDBTableNumberAndDatabaseNumber();
+    result &= checkDatabaseTableDeviceRelationship();
     result &= checkDeviceNumPerWrite();
     result &= checkTag();
     if (!commonlyUseDB()) {
@@ -667,7 +667,7 @@ public class ConfigDescriptor {
     return true;
   }
 
-  private boolean checkIoTDBTableNumberAndDatabaseNumber() {
+  private boolean checkDatabaseTableDeviceRelationship() {
     if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
       if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
           || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
