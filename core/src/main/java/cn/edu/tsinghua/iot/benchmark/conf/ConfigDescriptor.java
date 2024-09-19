@@ -688,10 +688,10 @@ public class ConfigDescriptor {
     }
     // tableMode
     if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-        && config.getCLIENT_NUMBER() % config.getGROUP_NUMBER() != 0) {
+        && config.getCLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
       LOGGER.error(
-          "TableMode must ensure that a client only writes to one database. Therefore, a client only switches database once.\n"
-              + "please make CLIENT_NUMBER % GROUP_NUMBER == 0");
+          "TableMode must ensure that a client only writes to one table. Therefore, a client only switches database once.\n"
+              + "please make CLIENT_NUMBER % IoTDB_TABLE_NUMBER == 0");
       return false;
     }
     if (dnw == 1) {
