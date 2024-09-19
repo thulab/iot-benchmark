@@ -343,11 +343,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionDBSwitchIfNecessaryImpl(Session session, int deviceId, String group) {
-    // do nothing
-  }
-
-  @Override
   public void sessionCleanupImpl(Session session) {
     try {
       session.executeNonQueryStatement(

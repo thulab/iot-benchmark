@@ -111,10 +111,6 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                iotdb.sessionDBSwitchIfNecessaryImpl(
-                    session,
-                    batch.getDeviceSchema().getDeviceId(),
-                    batch.getDeviceSchema().getGroup());
                 iotdb.sessionInsertImpl(session, tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
@@ -479,7 +475,9 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void close() throws TsdbException {
     try {
-      session.close();
+      if (session != null) {
+        session.close();
+      }
       service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
       LOGGER.error("Failed to close session.");

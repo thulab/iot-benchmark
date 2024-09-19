@@ -128,9 +128,6 @@ public abstract class IoTDBModelStrategy {
 
   // endregion
 
-  public abstract void sessionDBSwitchIfNecessaryImpl(Session session, int deviceId, String group)
-      throws StatementExecutionException, IoTDBConnectionException;
-
   public abstract Logger getLogger();
 
   public void handleRegisterException(Exception e) throws TsdbException {
