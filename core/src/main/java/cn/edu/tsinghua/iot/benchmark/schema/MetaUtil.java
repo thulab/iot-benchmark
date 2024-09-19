@@ -4,7 +4,9 @@ import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +54,51 @@ public class MetaUtil {
       default:
         throw new WorkloadException("Unsupported SG_STRATEGY: " + config.getSG_STRATEGY());
     }
+  }
+
+  /**
+   * It traverses all device IDs, assigns each device to the corresponding table, and further
+   * aggregates the devices in the table into the corresponding database. <br>
+   * IoTDB-TableMode : Ensure that multiple devices written in a single batch come from the same
+   * table.<br>
+   * IoTDB-TreeMode : It will not affect its writing speed.
+   *
+   * @param config
+   * @param LOGGER
+   * @return deviceIds
+   */
+  public static List<Integer> sortDeviceId(Config config, Logger LOGGER) {
+    List<Integer> deviceIds = new ArrayList<>();
+    Map<Integer, List<Integer>> tableDeviceMap =
+        new HashMap<>(config.getIoTDB_TABLE_NUMBER(), 1.00f);
+    Map<Integer, List<Integer>> databaseDeviceMap = new HashMap<>(config.getGROUP_NUMBER(), 1.00f);
+    try {
+      // Get the device contained in each table
+      for (int deviceId = 0; deviceId < config.getDEVICE_NUMBER(); deviceId++) {
+        // Calculate tableId from deviceId
+        int tableId =
+            mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+        tableDeviceMap
+            .computeIfAbsent(
+                tableId,
+                k ->
+                    new ArrayList<>(config.getDEVICE_NUMBER() / config.getIoTDB_TABLE_NUMBER() + 1))
+            .add(deviceId);
+      }
+      // By using tableDeviceMap, quickly get the devices contained in each database
+      for (int tableId = 0; tableId < config.getIoTDB_TABLE_NUMBER(); tableId++) {
+        // Calculate databaseId from tableId
+        int databaseId =
+            mappingId(tableId, config.getIoTDB_TABLE_NUMBER(), config.getGROUP_NUMBER());
+        databaseDeviceMap
+            .computeIfAbsent(databaseId, k -> new ArrayList<>())
+            .addAll(tableDeviceMap.getOrDefault(tableId, Collections.emptyList()));
+      }
+    } catch (WorkloadException e) {
+      LOGGER.error(e.getMessage());
+    }
+    databaseDeviceMap.values().forEach(deviceIds::addAll);
+    return deviceIds;
   }
 
   public static String getGroupIdFromDeviceName(String deviceName) {

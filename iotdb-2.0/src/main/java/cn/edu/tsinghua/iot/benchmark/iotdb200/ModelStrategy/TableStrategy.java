@@ -333,8 +333,11 @@ public class TableStrategy extends IoTDBModelStrategy {
   @Override
   public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.executeNonQueryStatement(
-        "use " + dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup());
+    if (session.getDatabase() == null) {
+      StringBuilder sql = new StringBuilder();
+      sql.append("use ").append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
+      session.executeNonQueryStatement(sql.toString());
+    }
     session.insertRelationalTablet(tablet);
   }
 

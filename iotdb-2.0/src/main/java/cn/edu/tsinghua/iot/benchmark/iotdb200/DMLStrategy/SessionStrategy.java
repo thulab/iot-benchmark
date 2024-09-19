@@ -84,6 +84,7 @@ public class SessionStrategy extends DMLStrategy {
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
+    // default session (databaseName not specified)
     session = buildSession(hostUrls);
   }
 
@@ -122,7 +123,9 @@ public class SessionStrategy extends DMLStrategy {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<Tablet.ColumnType> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-    iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
+    if (config.isIS_DOUBLE_WRITE()) {
+      iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
+    }
     iotdb.addIDColumnIfNecessary(columnTypes, sensors, batch);
     int sensorIndex = 0;
     for (Sensor sensor : sensors) {

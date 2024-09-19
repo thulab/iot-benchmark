@@ -325,20 +325,6 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
 
-        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-          if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
-              || config.getIoTDB_TABLE_NUMBER() > config.getDEVICE_NUMBER()) {
-            LOGGER.warn(
-                "Please follow this rule to adjust the parameters: device number >= table number >= database number. Otherwise, device number = table number = database number");
-          }
-        } else {
-          if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
-            config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
-            LOGGER.warn(
-                "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
-          }
-        }
-
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(
@@ -638,6 +624,7 @@ public class ConfigDescriptor {
       LOGGER.error("Client number can't be zero");
       result = false;
     }
+    result &= checkDatabaseTableDeviceRelationship();
     result &= checkDeviceNumPerWrite();
     result &= checkTag();
     if (!commonlyUseDB()) {
@@ -680,10 +667,37 @@ public class ConfigDescriptor {
     return true;
   }
 
+  private boolean checkDatabaseTableDeviceRelationship() {
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+      if (config.getIoTDB_TABLE_NUMBER() % config.getGROUP_NUMBER() != 0
+          || config.getDEVICE_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
+        LOGGER.warn(
+            "Please follow this rule to adjust the parameters: \n 1.The table number must be an integer multiple of the group number.\n 2.The device number must be an integer multiple of the table number. ");
+        return false;
+      }
+    } else {
+      config.setIoTDB_TABLE_NUMBER(config.getGROUP_NUMBER());
+      if (config.getGROUP_NUMBER() > config.getDEVICE_NUMBER()) {
+        LOGGER.warn(
+            "Please follow this rule to adjust the parameters: device number >= database number. Otherwise, the total number of databases created is equal to the number of devices");
+        return false;
+      }
+    }
+    return true;
+  }
+
   private boolean checkDeviceNumPerWrite() {
     final int dnw = config.getDEVICE_NUM_PER_WRITE();
     if (dnw <= 0) {
       LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
+      return false;
+    }
+    // tableMode
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getCLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
+      LOGGER.error(
+          "TableMode must ensure that a client only writes to one table. Therefore, a client only switches database once.\n"
+              + "please make CLIENT_NUMBER % IoTDB_TABLE_NUMBER == 0");
       return false;
     }
     if (dnw == 1) {
