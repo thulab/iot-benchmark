@@ -686,6 +686,14 @@ public class ConfigDescriptor {
       LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
       return false;
     }
+    // tableMode
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getCLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
+      LOGGER.error(
+          "TableMode must ensure that a client only writes to one table.\n"
+              + "please make DEVICE_NUMBER % IoTDB_TABLE_NUMBER == 0");
+      return false;
+    }
     if (dnw == 1) {
       return true;
     }
