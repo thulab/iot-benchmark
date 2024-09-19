@@ -85,7 +85,7 @@ public class SessionStrategy extends DMLStrategy {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
     // default session (databaseName not specified)
-    session = buildSession(hostUrls, null);
+    session = buildSession(hostUrls);
   }
 
   @Override
