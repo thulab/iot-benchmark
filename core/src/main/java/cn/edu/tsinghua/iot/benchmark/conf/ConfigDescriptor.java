@@ -669,10 +669,10 @@ public class ConfigDescriptor {
 
   private boolean checkDatabaseTableDeviceRelationship() {
     if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-      if (config.getGROUP_NUMBER() > config.getIoTDB_TABLE_NUMBER()
-          || config.getIoTDB_TABLE_NUMBER() % config.getDEVICE_NUMBER() == 0) {
+      if (config.getIoTDB_TABLE_NUMBER() % config.getGROUP_NUMBER() != 0
+          || config.getDEVICE_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
         LOGGER.warn(
-            "Please follow this rule to adjust the parameters: device number >= table number >= database number. And, the device number must be an integer multiple of the table number. ");
+            "Please follow this rule to adjust the parameters: \n 1.The table number must be an integer multiple of the group number.\n 2.The device number must be an integer multiple of the table number. ");
         return false;
       }
     } else {
