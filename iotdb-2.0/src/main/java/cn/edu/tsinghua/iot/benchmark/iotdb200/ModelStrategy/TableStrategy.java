@@ -340,6 +340,11 @@ public class TableStrategy extends IoTDBModelStrategy {
   @Override
   public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
+    if (session.getDatabase() == null) {
+      StringBuilder sql = new StringBuilder();
+      sql.append("use ").append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
+      session.executeNonQueryStatement(sql.toString());
+    }
     session.insertRelationalTablet(tablet);
   }
 
@@ -354,11 +359,6 @@ public class TableStrategy extends IoTDBModelStrategy {
       }
       session.executeNonQueryStatement("drop database " + databaseName);
     }
-  }
-
-  @Override
-  public int getDeviceIdForSwitchSession(IBatch batch) {
-    return batch.getDeviceSchema().getDeviceId();
   }
 
   // endregion

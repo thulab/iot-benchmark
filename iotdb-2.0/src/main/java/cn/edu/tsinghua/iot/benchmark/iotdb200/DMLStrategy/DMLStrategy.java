@@ -70,7 +70,7 @@ public abstract class DMLStrategy {
 
   public abstract void close() throws TsdbException;
 
-  protected Session buildSession(List<String> hostUrls, String dataBaseName) {
+  protected Session buildSession(List<String> hostUrls) {
     return new Session.Builder()
         .nodeUrls(hostUrls)
         .username(dbConfig.getUSERNAME())
@@ -78,7 +78,6 @@ public abstract class DMLStrategy {
         .enableRedirection(true)
         .version(Version.V_1_0)
         .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
-        .database(dataBaseName)
         .build();
   }
 }
