@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 
@@ -333,7 +334,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   @Override
   public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
-    if (session.getDatabase() == null) {
+    if (!(Optional.ofNullable(session.getDatabase()).isPresent())) {
       StringBuilder sql = new StringBuilder();
       sql.append("use ").append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
       session.executeNonQueryStatement(sql.toString());
