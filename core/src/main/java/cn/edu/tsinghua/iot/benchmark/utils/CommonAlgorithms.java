@@ -42,11 +42,11 @@ public class CommonAlgorithms {
   }
 
   private static Map<Integer, Integer> distributeDevicesStrategy(
-      final int deviceNumber, final int ClientOrTableNumber) {
-    final int eachTargetDeviceNum = deviceNumber / ClientOrTableNumber;
-    final int leftTargetDeviceNum = deviceNumber % ClientOrTableNumber;
+      final int deviceNumber, final int clientOrTableNumber) {
+    final int eachTargetDeviceNum = deviceNumber / clientOrTableNumber;
+    final int leftTargetDeviceNum = deviceNumber % clientOrTableNumber;
     Map<Integer, Integer> result = new HashMap<>();
-    for (int id = 0; id < ClientOrTableNumber; id++) {
+    for (int id = 0; id < clientOrTableNumber; id++) {
       int deviceNum = (id < leftTargetDeviceNum) ? eachTargetDeviceNum + 1 : eachTargetDeviceNum;
       result.put(id, deviceNum);
     }

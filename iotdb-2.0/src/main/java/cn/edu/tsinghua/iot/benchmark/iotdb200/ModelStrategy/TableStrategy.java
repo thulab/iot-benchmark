@@ -315,7 +315,7 @@ public class TableStrategy extends IoTDBModelStrategy {
       columnTypes.add(Tablet.ColumnType.ID);
     }
     // Add the value of the identity column to the value of each record
-    while (true) {
+    for (int loop = 0; loop < config.getDEVICE_NUM_PER_WRITE(); loop++) {
       for (int i = 0; i < batch.getRecords().size(); i++) {
         List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
         dataValue.add(batch.getDeviceSchema().getDevice());
@@ -323,10 +323,9 @@ public class TableStrategy extends IoTDBModelStrategy {
           dataValue.add(batch.getDeviceSchema().getTags().get(key));
         }
       }
-      if (!batch.hasNext()) {
-        break;
+      if (batch.hasNext()) {
+        batch.next();
       }
-      batch.next();
     }
   }
 

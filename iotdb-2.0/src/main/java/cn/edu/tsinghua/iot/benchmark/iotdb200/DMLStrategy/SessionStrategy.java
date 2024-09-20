@@ -151,7 +151,7 @@ public class SessionStrategy extends DMLStrategy {
     int stepOff = 0;
     batch.reset();
     // Convert multiple batches to tablets
-    while (true) {
+    for (int loop = 0; loop < config.getDEVICE_NUM_PER_WRITE(); loop++) {
       for (int recordIndex = stepOff;
           recordIndex < (batch.getRecords().size() + stepOff);
           recordIndex++) {
@@ -212,10 +212,9 @@ public class SessionStrategy extends DMLStrategy {
           sensorIndex++;
         }
       }
-      if (!batch.hasNext()) {
-        break;
+      if (batch.hasNext()) {
+        batch.next();
       }
-      batch.next();
       stepOff += batch.getRecords().size();
     }
     return tablet;
