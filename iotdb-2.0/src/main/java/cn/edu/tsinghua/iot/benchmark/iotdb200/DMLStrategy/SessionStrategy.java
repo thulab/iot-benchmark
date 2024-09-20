@@ -141,66 +141,81 @@ public class SessionStrategy extends DMLStrategy {
     }
     String deviceId = iotdb.getInsertTargetName(batch.getDeviceSchema());
     Tablet tablet =
-        iotdb.createTablet(deviceId, schemaList, columnTypes, batch.getRecords().size());
+        iotdb.createTablet(
+            deviceId,
+            schemaList,
+            columnTypes,
+            batch.getRecords().size() * config.getDEVICE_NUM_PER_WRITE());
     long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
-
-    for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
-      tablet.rowSize++;
-      Record record = batch.getRecords().get(recordIndex);
-      sensorIndex = 0;
-      long currentTime = record.getTimestamp();
-      timestamps[recordIndex] = currentTime;
-      for (int recordValueIndex = 0;
-          recordValueIndex < record.getRecordDataValue().size();
-          recordValueIndex++) {
-        switch (sensors.get(sensorIndex).getSensorType()) {
-          case BOOLEAN:
-            boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
-            sensorsBool[recordIndex] =
-                (boolean) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case INT32:
-            int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case INT64:
-            long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case FLOAT:
-            float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case DOUBLE:
-            double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] =
-                (double) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case TEXT:
-          case STRING:
-          case BLOB:
-            Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-            sensorsText[recordIndex] =
-                binaryCache.computeIfAbsent(
-                    (String) record.getRecordDataValue().get(recordValueIndex),
-                    BytesUtils::valueOf);
-            break;
-          case TIMESTAMP:
-            long[] sensorsTimestamp = (long[]) values[recordValueIndex];
-            sensorsTimestamp[recordIndex] =
-                (long) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          case DATE:
-            LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
-            sensorsDate[recordIndex] =
-                (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
-            break;
-          default:
-            LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
+    int stepOff = 0;
+    batch.reset();
+    // Convert multiple batches to tablets
+    for (int loop = 0; loop < config.getDEVICE_NUM_PER_WRITE(); loop++) {
+      for (int recordIndex = stepOff;
+          recordIndex < (batch.getRecords().size() + stepOff);
+          recordIndex++) {
+        tablet.rowSize++;
+        Record record = batch.getRecords().get(recordIndex % batch.getRecords().size());
+        sensorIndex = 0;
+        long currentTime = record.getTimestamp();
+        timestamps[recordIndex] = currentTime;
+        for (int recordValueIndex = 0;
+            recordValueIndex < record.getRecordDataValue().size();
+            recordValueIndex++) {
+          switch (sensors.get(sensorIndex).getSensorType()) {
+            case BOOLEAN:
+              boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
+              sensorsBool[recordIndex] =
+                  (boolean) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case INT32:
+              int[] sensorsInt = (int[]) values[recordValueIndex];
+              sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case INT64:
+              long[] sensorsLong = (long[]) values[recordValueIndex];
+              sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case FLOAT:
+              float[] sensorsFloat = (float[]) values[recordValueIndex];
+              sensorsFloat[recordIndex] =
+                  (float) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case DOUBLE:
+              double[] sensorsDouble = (double[]) values[recordValueIndex];
+              sensorsDouble[recordIndex] =
+                  (double) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case TEXT:
+            case STRING:
+            case BLOB:
+              Binary[] sensorsText = (Binary[]) values[recordValueIndex];
+              sensorsText[recordIndex] =
+                  binaryCache.computeIfAbsent(
+                      (String) record.getRecordDataValue().get(recordValueIndex),
+                      BytesUtils::valueOf);
+              break;
+            case TIMESTAMP:
+              long[] sensorsTimestamp = (long[]) values[recordValueIndex];
+              sensorsTimestamp[recordIndex] =
+                  (long) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            case DATE:
+              LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
+              sensorsDate[recordIndex] =
+                  (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
+              break;
+            default:
+              LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
+          }
+          sensorIndex++;
         }
-        sensorIndex++;
       }
+      if (batch.hasNext()) {
+        batch.next();
+      }
+      stepOff += batch.getRecords().size();
     }
     return tablet;
   }
@@ -260,6 +275,8 @@ public class SessionStrategy extends DMLStrategy {
         break;
       }
       batch.next();
+      // Switch to the device in the next batch  e.g. root.group_1.d_1
+      deviceId = IoTDBUtils.getDevicePath(batch.getDeviceSchema(), IoTDB.ROOT_SERIES_NAME);
     }
     task =
         service.submit(

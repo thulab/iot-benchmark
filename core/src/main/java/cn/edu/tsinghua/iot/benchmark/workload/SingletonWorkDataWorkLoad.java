@@ -27,6 +27,8 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,10 +37,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SingletonWorkDataWorkLoad.class);
   private static final List<Sensor> SENSORS = Collections.synchronizedList(config.getSENSORS());
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
   private static final AtomicInteger sensorIndex = new AtomicInteger();
   private final AtomicLong insertLoop = new AtomicLong(0);
+  private static final List<Integer> deviceIds = MetaUtil.sortDeviceId(config, LOGGER);
 
   private SingletonWorkDataWorkLoad() {
     if (config.isIS_OUT_OF_ORDER()) {
@@ -81,9 +85,9 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
       }
       DeviceSchema deviceSchema =
           new DeviceSchema(
-              MetaUtil.getDeviceId((int) curLoop % config.getDEVICE_NUMBER()),
+              MetaUtil.getDeviceId(deviceIds.get((int) curLoop % config.getDEVICE_NUMBER())),
               sensors,
-              MetaUtil.getTags((int) curLoop % config.getDEVICE_NUMBER()));
+              MetaUtil.getTags(deviceIds.get((int) curLoop % config.getDEVICE_NUMBER())));
       // create data of batch
       List<Record> records = new ArrayList<>();
       for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {

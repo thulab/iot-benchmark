@@ -33,13 +33,22 @@ public class CommonAlgorithms {
    */
   public static Map<Integer, Integer> distributeDevicesToClients(
       final int deviceNumber, final int clientNumber) {
-    final int eachClientDeviceNum = deviceNumber / clientNumber;
-    final int leftClientDeviceNum = deviceNumber % clientNumber;
+    return distributeDevicesStrategy(deviceNumber, clientNumber);
+  }
+
+  public static Map<Integer, Integer> distributeDevicesToTable(
+      final int deviceNumber, final int tableNumber) {
+    return distributeDevicesStrategy(deviceNumber, tableNumber);
+  }
+
+  private static Map<Integer, Integer> distributeDevicesStrategy(
+      final int deviceNumber, final int clientOrTableNumber) {
+    final int eachTargetDeviceNum = deviceNumber / clientOrTableNumber;
+    final int leftTargetDeviceNum = deviceNumber % clientOrTableNumber;
     Map<Integer, Integer> result = new HashMap<>();
-    for (int clientId = 0; clientId < clientNumber; clientId++) {
-      int deviceNum =
-          (clientId < leftClientDeviceNum) ? eachClientDeviceNum + 1 : eachClientDeviceNum;
-      result.put(clientId, deviceNum);
+    for (int id = 0; id < clientOrTableNumber; id++) {
+      int deviceNum = (id < leftTargetDeviceNum) ? eachTargetDeviceNum + 1 : eachTargetDeviceNum;
+      result.put(id, deviceNum);
     }
     return result;
   }

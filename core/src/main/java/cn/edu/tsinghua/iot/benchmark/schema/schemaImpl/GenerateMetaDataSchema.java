@@ -22,7 +22,6 @@ package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
@@ -49,7 +48,7 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
     Map<Integer, Integer> deviceDistribution =
         CommonAlgorithms.distributeDevicesToClients(
             config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER());
-    int deviceId = MetaUtil.getDeviceId(0);
+    int deviceIndex = MetaUtil.getDeviceId(0);
     // Rearrange device IDs so that adjacent devices are in the same table
     List<Integer> deviceIds = MetaUtil.sortDeviceId(config, LOGGER);
     for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
@@ -57,17 +56,13 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
       List<DeviceSchema> deviceSchemaList = new ArrayList<>();
       for (int d = 0; d < deviceNumber; d++) {
         DeviceSchema deviceSchema;
-        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-          deviceSchema =
-              new DeviceSchema(
-                  deviceIds.get(deviceId), sensors, MetaUtil.getTags(deviceIds.get(deviceId)));
-        } else {
-          deviceSchema = new DeviceSchema(deviceId, sensors, MetaUtil.getTags(deviceId));
-        }
+        deviceSchema =
+            new DeviceSchema(
+                deviceIds.get(deviceIndex), sensors, MetaUtil.getTags(deviceIds.get(deviceIndex)));
         NAME_DATA_SCHEMA.put(deviceSchema.getDevice(), deviceSchema);
         GROUPS.add(deviceSchema.getGroup());
         deviceSchemaList.add(deviceSchema);
-        deviceId++;
+        deviceIndex++;
       }
       CLIENT_DATA_SCHEMA.put(clientId, deviceSchemaList);
     }
