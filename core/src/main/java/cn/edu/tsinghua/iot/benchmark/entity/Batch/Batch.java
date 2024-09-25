@@ -20,6 +20,8 @@
 package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.ReadWriteIOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -47,10 +49,16 @@ public class Batch implements IBatch {
 
   @Override
   public long pointNum() {
-    long pointNum = 0;
-    for (Record record : records) {
-      pointNum += record.size();
+    long pointNum;
+    long measureNum = 0;
+    // Count the number of measurements
+    List<Sensor> sensors = deviceSchema.getSensors();
+    for (Sensor sensor : sensors) {
+      if (sensor.getColumnCategory() == ColumnCategory.MEASUREMENT) {
+        measureNum++;
+      }
     }
+    pointNum = (measureNum * records.size());
     return pointNum;
   }
 
