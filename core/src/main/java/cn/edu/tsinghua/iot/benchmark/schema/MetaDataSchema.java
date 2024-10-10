@@ -72,6 +72,7 @@ public abstract class MetaDataSchema {
   public List<DeviceSchema> getDeviceSchemaBySchemaClientId(int clientId) {
     return SCHEMA_CLIENT_DATA_SCHEMA.get(clientId);
   }
+
   /** Get DeviceSchema by data clientId */
   public List<DeviceSchema> getDeviceSchemaByDataClientId(int clientId) {
     return DATA_CLIENT_DATA_SCHEMA.get(clientId);
@@ -79,7 +80,14 @@ public abstract class MetaDataSchema {
 
   /** Get All Device Schema */
   public List<DeviceSchema> getAllDeviceSchemas() {
-    return new ArrayList<>(NAME_DATA_SCHEMA.values());
+    List<Integer> deviceIds = MetaUtil.sortDeviceId(config, LOGGER);
+    List<DeviceSchema> deviceSchemaList = new ArrayList<>();
+    for (int deviceId : deviceIds) {
+      if (NAME_DATA_SCHEMA.containsKey("d_" + deviceId)) {
+        deviceSchemaList.add(NAME_DATA_SCHEMA.get("d_" + deviceId));
+      }
+    }
+    return new ArrayList<>(deviceSchemaList);
   }
 
   /** Get All Group */

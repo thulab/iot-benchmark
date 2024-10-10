@@ -110,9 +110,15 @@ public class MetaUtil {
     return String.valueOf(groupId);
   }
 
-  public static String getTableIdFromDeviceName(String deviceName) {
-    int tableId = Math.abs(deviceName.hashCode());
-    tableId = tableId % config.getIoTDB_TABLE_NUMBER();
+  public static String getTableIdFromDeviceName(String deviceName, Logger LOGGER) {
+    int tableId = -1;
+    try {
+      int deviceId =
+          Integer.parseInt(deviceName.substring(config.getDEVICE_NAME_PREFIX().length()));
+      tableId = mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+    } catch (NumberFormatException | WorkloadException e) {
+      LOGGER.error("getTableIdFromDeviceName failed.", e);
+    }
     return String.valueOf(tableId);
   }
 

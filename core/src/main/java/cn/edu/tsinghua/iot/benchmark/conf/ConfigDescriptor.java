@@ -704,7 +704,7 @@ public class ConfigDescriptor {
         && config.getDATA_CLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
       LOGGER.error(
           "TableMode must ensure that a client only writes to one table. Therefore, a client only switches database once.\n"
-              + "please make CLIENT_NUMBER % IoTDB_TABLE_NUMBER == 0");
+              + "please make DATA_CLIENT_NUMBER % IoTDB_TABLE_NUMBER == 0");
       return false;
     }
     if (dnw == 1) {
@@ -726,7 +726,7 @@ public class ConfigDescriptor {
       if (deviceNumPerClient % dnw != 0) {
         LOGGER.error(
             "Some clients will be allocated {} devices, which are not divisible by parameter DEVICE_NUM_PER_WRITE {}.\n"
-                + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
+                + "To solve this problem, please make DEVICE_NUMBER % CLIENTS_NUMBER == 0, and (DEVICE_NUMBER / DATA_CLIENT_NUMBER) % DEVICE_NUM_PER_WRITE == 0.",
             deviceNumPerClient, dnw);
         return false;
       }
