@@ -51,7 +51,8 @@ import java.util.concurrent.CyclicBarrier;
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
-  private static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  private static final CyclicBarrier schemaBarrier =
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
 
   public TableStrategy(DBConfig dbConfig) {
     super(dbConfig);

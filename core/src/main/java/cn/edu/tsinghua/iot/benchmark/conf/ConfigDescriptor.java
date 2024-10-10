@@ -256,9 +256,13 @@ public class ConfigDescriptor {
         config.setIS_CLIENT_BIND(
             Boolean.parseBoolean(
                 properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND() + "")));
-        config.setCLIENT_NUMBER(
+        config.setSCHEMA_CLIENT_NUMBER(
             Integer.parseInt(
-                properties.getProperty("CLIENT_NUMBER", config.getCLIENT_NUMBER() + "")));
+                properties.getProperty(
+                    "SCHEMA_CLIENT_NUMBER", config.getSCHEMA_CLIENT_NUMBER() + "")));
+        config.setDATA_CLIENT_NUMBER(
+            Integer.parseInt(
+                properties.getProperty("DATA_CLIENT_NUMBER", config.getDATA_CLIENT_NUMBER() + "")));
         config.setIoTDB_TABLE_NAME_PREFIX(
             properties.getProperty("IoTDB_TABLE_NAME_PREFIX", config.getIoTDB_TABLE_NAME_PREFIX()));
         config.setGROUP_NAME_PREFIX(
@@ -546,9 +550,11 @@ public class ConfigDescriptor {
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
-        if (config.isIS_CLIENT_BIND() && config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+        if (config.isIS_CLIENT_BIND()
+            && config.getDEVICE_NUMBER() < config.getSCHEMA_CLIENT_NUMBER()
+            && config.getDEVICE_NUMBER() < config.getDATA_CLIENT_NUMBER()) {
           LOGGER.error(
-              "In client bind way, the number of client should be less than the number of device");
+              "In client bind way, the number of schema client and data client should be less than the number of device");
           result = false;
         }
         if (!config.hasWrite()) {
@@ -584,7 +590,8 @@ public class ConfigDescriptor {
               }
             }
             if (config.isIS_POINT_COMPARISON()) {
-              if (config.getDEVICE_NUMBER() < config.getCLIENT_NUMBER()) {
+              if (config.getDEVICE_NUMBER() < config.getSCHEMA_CLIENT_NUMBER()
+                  || config.getDEVICE_NUMBER() < config.getDATA_CLIENT_NUMBER()) {
                 LOGGER.warn("There are too many client ( > device number)");
               }
             }
@@ -620,7 +627,7 @@ public class ConfigDescriptor {
     }
     result &= checkInsertDataTypeProportion();
     result &= checkOperationProportion();
-    if (config.getCLIENT_NUMBER() == 0) {
+    if (config.getSCHEMA_CLIENT_NUMBER() == 0 || config.getDATA_CLIENT_NUMBER() == 0) {
       LOGGER.error("Client number can't be zero");
       result = false;
     }
@@ -694,7 +701,7 @@ public class ConfigDescriptor {
     }
     // tableMode
     if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-        && config.getCLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
+        && config.getDATA_CLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
       LOGGER.error(
           "TableMode must ensure that a client only writes to one table. Therefore, a client only switches database once.\n"
               + "please make CLIENT_NUMBER % IoTDB_TABLE_NUMBER == 0");
@@ -714,7 +721,7 @@ public class ConfigDescriptor {
     }
     for (int deviceNumPerClient :
         CommonAlgorithms.distributeDevicesToClients(
-                config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER())
+                config.getDEVICE_NUMBER(), config.getDATA_CLIENT_NUMBER())
             .values()) {
       if (deviceNumPerClient % dnw != 0) {
         LOGGER.error(

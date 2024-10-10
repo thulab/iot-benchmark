@@ -91,8 +91,9 @@ public class IoTDB implements IDatabase {
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected static final CyclicBarrier templateBarrier =
-      new CyclicBarrier(config.getCLIENT_NUMBER());
-  protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
+  protected static final CyclicBarrier schemaBarrier =
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   protected static Set<String> storageGroups = Collections.synchronizedSet(new HashSet<>());
   protected final String ROOT_SERIES_NAME;
   protected ExecutorService service;

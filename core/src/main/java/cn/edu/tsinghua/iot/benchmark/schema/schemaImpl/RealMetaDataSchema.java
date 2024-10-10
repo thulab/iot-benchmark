@@ -81,23 +81,23 @@ public class RealMetaDataSchema extends MetaDataSchema {
 
     // Split into client And store Type
     for (int i = 0; i < deviceSchemaList.size(); i++) {
-      int clientId = i % config.getCLIENT_NUMBER();
+      int clientId = i % config.getDATA_CLIENT_NUMBER();
       DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      if (!CLIENT_DATA_SCHEMA.containsKey(clientId)) {
-        CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
+      if (!DATA_CLIENT_DATA_SCHEMA.containsKey(clientId)) {
+        DATA_CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
       }
-      CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
+      DATA_CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
     }
 
     // Split data files into client
     List<List<String>> clientFiles = new ArrayList<>();
-    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+    for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       clientFiles.add(new ArrayList<>());
     }
 
     for (int i = 0; i < files.size(); i++) {
       String filePath = files.get(i);
-      int clientId = i % config.getCLIENT_NUMBER();
+      int clientId = i % config.getDATA_CLIENT_NUMBER();
       clientFiles.get(clientId).add(filePath);
     }
     MetaUtil.setClientFiles(clientFiles);

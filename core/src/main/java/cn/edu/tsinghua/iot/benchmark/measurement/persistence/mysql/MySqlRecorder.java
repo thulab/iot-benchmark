@@ -373,7 +373,7 @@ public class MySqlRecorder extends TestDataPersistence {
               SAVE_CONFIG,
               "'" + PROJECT_ID + "'",
               "'getCLIENT_NUMBER()'",
-              "'" + config.getCLIENT_NUMBER() + "'");
+              "'" + config.getDATA_CLIENT_NUMBER() + "'");
       statement.addBatch(sql);
       sql =
           String.format(

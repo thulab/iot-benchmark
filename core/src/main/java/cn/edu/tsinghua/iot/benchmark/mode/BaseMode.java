@@ -54,13 +54,14 @@ public abstract class BaseMode {
 
   protected ExecutorService schemaExecutorService =
       Executors.newFixedThreadPool(
-          config.getCLIENT_NUMBER(), new NamedThreadFactory("SchemaClient"));
+          config.getSCHEMA_CLIENT_NUMBER(), new NamedThreadFactory("SchemaClient"));
   protected ExecutorService executorService =
-      Executors.newFixedThreadPool(config.getCLIENT_NUMBER(), new NamedThreadFactory("DataClient"));
-  protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-  protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
-  protected CountDownLatch dataDownLatch = new CountDownLatch(config.getCLIENT_NUMBER());
-  protected CyclicBarrier dataBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+      Executors.newFixedThreadPool(
+          config.getDATA_CLIENT_NUMBER(), new NamedThreadFactory("DataClient"));
+  protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getSCHEMA_CLIENT_NUMBER());
+  protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
+  protected CountDownLatch dataDownLatch = new CountDownLatch(config.getDATA_CLIENT_NUMBER());
+  protected CyclicBarrier dataBarrier = new CyclicBarrier(config.getDATA_CLIENT_NUMBER());
   protected List<DataClient> dataClients = new ArrayList<>();
   protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement baseModeMeasurement = new Measurement();
@@ -73,7 +74,7 @@ public abstract class BaseMode {
     if (!preCheck()) {
       return;
     }
-    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+    for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       DataClient client = DataClient.getInstance(i, dataDownLatch, dataBarrier);
       if (client == null) {
         return;
@@ -169,7 +170,7 @@ public abstract class BaseMode {
 
   /** Register schema */
   protected boolean registerSchema() {
-    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+    for (int i = 0; i < config.getSCHEMA_CLIENT_NUMBER(); i++) {
       SchemaClient schemaClient = new SchemaClient(i, schemaDownLatch, schemaBarrier);
       schemaClients.add(schemaClient);
     }

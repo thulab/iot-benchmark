@@ -83,7 +83,7 @@ public abstract class DataClient implements Runnable {
     this.queryWorkLoad = QueryWorkLoad.getInstance(id);
     this.clientThreadId = id;
     this.clientDeviceSchemas =
-        MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
+        MetaDataSchema.getInstance().getDeviceSchemaByDataClientId(clientThreadId);
     this.service =
         Executors.newSingleThreadScheduledExecutor(
             new NamedThreadFactory("ShowWorkProgress-" + clientThreadId));

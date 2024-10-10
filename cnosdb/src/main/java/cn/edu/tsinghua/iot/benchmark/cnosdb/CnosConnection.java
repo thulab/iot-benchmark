@@ -21,7 +21,7 @@ public class CnosConnection {
 
   CnosConnection(String urlString, String cnosDbName) throws MalformedURLException {
     ConnectionPool connectionPool =
-        new ConnectionPool(config.getCLIENT_NUMBER(), 5, TimeUnit.MINUTES);
+        new ConnectionPool(config.getDATA_CLIENT_NUMBER(), 5, TimeUnit.MINUTES);
     client = new OkHttpClient().newBuilder().connectionPool(connectionPool).build();
     url = urlString + "/api/v1/sql?db=" + cnosDbName;
   }
