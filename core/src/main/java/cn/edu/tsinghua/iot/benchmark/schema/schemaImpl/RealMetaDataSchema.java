@@ -76,23 +76,19 @@ public class RealMetaDataSchema extends MetaDataSchema {
       deviceSchemaList.add(deviceSchema);
     }
 
-    for (int i = 0; i < deviceSchemaList.size(); i++) {
-      int clientId = i % config.getSCHEMA_CLIENT_NUMBER();
-      DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      if (!SCHEMA_CLIENT_DATA_SCHEMA.containsKey(clientId)) {
-        SCHEMA_CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
-      }
-      SCHEMA_CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
-    }
-
     // Split into client And store Type
     for (int i = 0; i < deviceSchemaList.size(); i++) {
-      int clientId = i % config.getDATA_CLIENT_NUMBER();
+      int schemaClientId = i % config.getSCHEMA_CLIENT_NUMBER();
+      int dataClientId = i % config.getDATA_CLIENT_NUMBER();
       DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      if (!DATA_CLIENT_DATA_SCHEMA.containsKey(clientId)) {
-        DATA_CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
+      if (!SCHEMA_CLIENT_DATA_SCHEMA.containsKey(schemaClientId)) {
+        SCHEMA_CLIENT_DATA_SCHEMA.put(schemaClientId, new ArrayList<>());
       }
-      DATA_CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
+      if (!DATA_CLIENT_DATA_SCHEMA.containsKey(dataClientId)) {
+        DATA_CLIENT_DATA_SCHEMA.put(dataClientId, new ArrayList<>());
+      }
+      SCHEMA_CLIENT_DATA_SCHEMA.get(schemaClientId).add(deviceSchema);
+      DATA_CLIENT_DATA_SCHEMA.get(dataClientId).add(deviceSchema);
     }
 
     // Split data files into data client
@@ -100,7 +96,6 @@ public class RealMetaDataSchema extends MetaDataSchema {
     for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       clientFiles.add(new ArrayList<>());
     }
-
     Map<Integer, Integer> deviceDistributionForDataClient =
         CommonAlgorithms.distributeDevicesToClients(
             config.getDEVICE_NUMBER(), config.getDATA_CLIENT_NUMBER());
@@ -109,7 +104,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
     for (int clientId = 0; clientId < config.getDATA_CLIENT_NUMBER(); clientId++) {
       int fileNumber = deviceDistributionForDataClient.get(clientId);
       for (int fileId = 0; fileId < fileNumber; fileId++, index++) {
-        String device = "d_" + deviceIds.get(index);
+        String device = config.getDEVICE_NAME_PREFIX() + deviceIds.get(index);
         String filePath = files.get(device);
         clientFiles.get(clientId).add(filePath);
       }

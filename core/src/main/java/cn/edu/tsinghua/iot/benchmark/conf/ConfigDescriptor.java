@@ -263,6 +263,15 @@ public class ConfigDescriptor {
         config.setDATA_CLIENT_NUMBER(
             Integer.parseInt(
                 properties.getProperty("DATA_CLIENT_NUMBER", config.getDATA_CLIENT_NUMBER() + "")));
+
+        // Ensure that the configuration parameter CLIENT_NUMBER is effective.
+        config.setSCHEMA_CLIENT_NUMBER(
+            Integer.parseInt(
+                properties.getProperty("CLIENT_NUMBER", config.getSCHEMA_CLIENT_NUMBER() + "")));
+        config.setDATA_CLIENT_NUMBER(
+            Integer.parseInt(
+                properties.getProperty("CLIENT_NUMBER", config.getDATA_CLIENT_NUMBER() + "")));
+
         config.setIoTDB_TABLE_NAME_PREFIX(
             properties.getProperty("IoTDB_TABLE_NAME_PREFIX", config.getIoTDB_TABLE_NAME_PREFIX()));
         config.setGROUP_NAME_PREFIX(

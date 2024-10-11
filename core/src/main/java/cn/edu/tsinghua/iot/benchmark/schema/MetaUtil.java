@@ -3,7 +3,10 @@ package cn.edu.tsinghua.iot.benchmark.schema;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -12,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MetaUtil {
 
@@ -99,6 +103,30 @@ public class MetaUtil {
     }
     databaseDeviceMap.values().forEach(deviceIds::addAll);
     return deviceIds;
+  }
+
+  public static void distributeDevices(
+      int clientNumber,
+      Map<Integer, List<DeviceSchema>> clientDataSchema,
+      List<Sensor> sensors,
+      Map<String, DeviceSchema> nameDataSchema,
+      Set<String> groups) {
+    Map<Integer, Integer> deviceDistributionForSchemaClient =
+        CommonAlgorithms.distributeDevicesToClients(config.getDEVICE_NUMBER(), clientNumber);
+    int deviceIndex = MetaUtil.getDeviceId(0);
+    for (int clientId = 0; clientId < clientNumber; clientId++) {
+      int deviceNumber = deviceDistributionForSchemaClient.get(clientId);
+      List<DeviceSchema> deviceSchemasList = new ArrayList<>();
+      for (int d = 0; d < deviceNumber; d++) {
+        DeviceSchema deviceSchema =
+            new DeviceSchema(deviceIndex, sensors, MetaUtil.getTags(deviceIndex));
+        deviceSchemasList.add(deviceSchema);
+        nameDataSchema.putIfAbsent(deviceSchema.getDevice(), deviceSchema);
+        groups.add(deviceSchema.getGroup());
+        deviceIndex++;
+      }
+      clientDataSchema.put(clientId, deviceSchemasList);
+    }
   }
 
   public static String getGroupIdFromDeviceName(String deviceName) {
