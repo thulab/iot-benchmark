@@ -264,6 +264,7 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty("DATA_CLIENT_NUMBER", config.getDATA_CLIENT_NUMBER() + "")));
 
+        // TODO delete
         // Ensure that the configuration parameter CLIENT_NUMBER is effective.
         config.setSCHEMA_CLIENT_NUMBER(
             Integer.parseInt(

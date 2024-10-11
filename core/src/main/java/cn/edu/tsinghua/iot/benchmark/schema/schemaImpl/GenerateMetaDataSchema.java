@@ -24,15 +24,12 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 /** Data Schema for generate data */
 public class GenerateMetaDataSchema extends MetaDataSchema {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateMetaDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   @Override
@@ -48,7 +45,7 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
         sensors,
         NAME_DATA_SCHEMA,
         GROUPS);
-    // dataclient
+    // dataClient
     MetaUtil.distributeDevices(
         config.getDATA_CLIENT_NUMBER(), DATA_CLIENT_DATA_SCHEMA, sensors, NAME_DATA_SCHEMA, GROUPS);
     return true;

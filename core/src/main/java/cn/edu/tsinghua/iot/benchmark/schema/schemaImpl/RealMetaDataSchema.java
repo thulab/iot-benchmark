@@ -99,7 +99,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
     Map<Integer, Integer> deviceDistributionForDataClient =
         CommonAlgorithms.distributeDevicesToClients(
             config.getDEVICE_NUMBER(), config.getDATA_CLIENT_NUMBER());
-    List<Integer> deviceIds = MetaUtil.sortDeviceId(config, LOGGER);
+    List<Integer> deviceIds = MetaUtil.sortDeviceId();
     int index = 0;
     for (int clientId = 0; clientId < config.getDATA_CLIENT_NUMBER(); clientId++) {
       int fileNumber = deviceDistributionForDataClient.get(clientId);
