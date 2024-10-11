@@ -83,8 +83,8 @@ public abstract class MetaDataSchema {
     List<Integer> deviceIds = MetaUtil.sortDeviceId();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
     for (int deviceId : deviceIds) {
-      if (NAME_DATA_SCHEMA.containsKey("d_" + deviceId)) {
-        deviceSchemaList.add(NAME_DATA_SCHEMA.get("d_" + deviceId));
+      if (NAME_DATA_SCHEMA.containsKey(config.getDEVICE_NAME_PREFIX() + deviceId)) {
+        deviceSchemaList.add(NAME_DATA_SCHEMA.get(config.getDEVICE_NAME_PREFIX() + deviceId));
       }
     }
     return new ArrayList<>(deviceSchemaList);

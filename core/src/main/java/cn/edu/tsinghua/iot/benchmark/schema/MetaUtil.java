@@ -111,12 +111,12 @@ public class MetaUtil {
       List<Sensor> sensors,
       Map<String, DeviceSchema> nameDataSchema,
       Set<String> groups) {
-    Map<Integer, Integer> deviceDistributionForSchemaClient =
+    Map<Integer, Integer> deviceDistributionForClient =
         CommonAlgorithms.distributeDevicesToClients(config.getDEVICE_NUMBER(), clientNumber);
     int deviceIndex = MetaUtil.getDeviceId(0);
     List<Integer> deviceIds = sortDeviceId();
     for (int clientId = 0; clientId < clientNumber; clientId++) {
-      int deviceNumber = deviceDistributionForSchemaClient.get(clientId);
+      int deviceNumber = deviceDistributionForClient.get(clientId);
       List<DeviceSchema> deviceSchemasList = new ArrayList<>();
       for (int d = 0; d < deviceNumber; d++) {
         DeviceSchema deviceSchema =

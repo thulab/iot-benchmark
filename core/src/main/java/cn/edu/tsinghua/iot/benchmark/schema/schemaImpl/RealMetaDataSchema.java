@@ -61,7 +61,6 @@ public class RealMetaDataSchema extends MetaDataSchema {
     Map<String, String> files = new LinkedHashMap<>();
     getAllFiles(pathStr, files);
     LOGGER.info("Total files: {}", files.size());
-    //    Collections.sort(files);
 
     // Load sensor type from dataset
     Map<String, List<Sensor>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
