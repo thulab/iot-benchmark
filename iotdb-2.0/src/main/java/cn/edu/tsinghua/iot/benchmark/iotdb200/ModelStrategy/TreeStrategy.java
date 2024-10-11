@@ -63,8 +63,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
   private final Random random = new Random(config.getDATA_SEED());
   private static final CyclicBarrier templateBarrier =
       new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
-  private static final CyclicBarrier schemaBarrier =
-      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   private static final CyclicBarrier activateTemplateBarrier =
       new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   private static final AtomicBoolean templateInit = new AtomicBoolean(false);
