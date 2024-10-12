@@ -140,7 +140,7 @@ public class MetaUtil {
     return String.valueOf(groupId);
   }
 
-  public static String getTableIdFromDeviceName(String deviceName, Logger LOGGER) {
+  public static String getTableIdFromDeviceName(String deviceName) {
     int tableId = -1;
     try {
       int deviceId =

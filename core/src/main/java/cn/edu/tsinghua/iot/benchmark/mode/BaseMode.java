@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -190,6 +191,7 @@ public abstract class BaseMode {
       Thread.currentThread().interrupt();
     }
     LOGGER.info("Registering schema successful!");
+    MetaDataSchema.clearSchemaClientDataSchema();
     return true;
   }
 

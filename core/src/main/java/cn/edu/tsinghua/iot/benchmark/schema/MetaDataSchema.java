@@ -55,6 +55,11 @@ public abstract class MetaDataSchema {
     }
   }
 
+  public static void clearSchemaClientDataSchema() {
+    SCHEMA_CLIENT_DATA_SCHEMA.clear();
+    LOGGER.info("SCHEMA_CLIENT_DATA_SCHEMA has been cleared!");
+  }
+
   /** init data schema for each device */
   protected abstract boolean createMetaDataSchema();
 
