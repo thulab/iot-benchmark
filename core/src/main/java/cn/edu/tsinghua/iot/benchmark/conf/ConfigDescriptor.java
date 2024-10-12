@@ -258,7 +258,7 @@ public class ConfigDescriptor {
                 properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND() + "")));
 
         String schemaClientNumber = properties.getProperty("SCHEMA_CLIENT_NUMBER");
-        if (schemaClientNumber != null || schemaClientNumber.isEmpty()) {
+        if (schemaClientNumber == null || schemaClientNumber.isEmpty()) {
           schemaClientNumber =
               properties.getProperty("CLIENT_NUMBER", config.getSCHEMA_CLIENT_NUMBER() + "");
         }
