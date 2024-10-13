@@ -36,8 +36,11 @@ public abstract class MetaDataSchema {
   private static final String UNKNOWN_DEVICE = "Unknown device: %s";
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
-  /** DeviceSchema for each client */
-  protected static final Map<Integer, List<DeviceSchema>> CLIENT_DATA_SCHEMA =
+  /** DeviceSchema for each schema client */
+  protected static final Map<Integer, List<DeviceSchema>> SCHEMA_CLIENT_DATA_SCHEMA =
+      new ConcurrentHashMap<>();
+  /** DeviceSchema for each data client */
+  protected static final Map<Integer, List<DeviceSchema>> DATA_CLIENT_DATA_SCHEMA =
       new ConcurrentHashMap<>();
   /** Name mapping of DeviceSchema */
   protected static final Map<String, DeviceSchema> NAME_DATA_SCHEMA = new ConcurrentHashMap<>();
@@ -50,6 +53,11 @@ public abstract class MetaDataSchema {
     if (!createMetaDataSchema()) {
       System.exit(1);
     }
+  }
+
+  public static void clearSchemaClientDataSchema() {
+    SCHEMA_CLIENT_DATA_SCHEMA.clear();
+    LOGGER.info("SCHEMA_CLIENT_DATA_SCHEMA has been cleared!");
   }
 
   /** init data schema for each device */
@@ -65,14 +73,26 @@ public abstract class MetaDataSchema {
     }
   }
 
-  /** Get DeviceSchema by clientId */
-  public List<DeviceSchema> getDeviceSchemaByClientId(int clientId) {
-    return CLIENT_DATA_SCHEMA.get(clientId);
+  /** Get DeviceSchema by schema clientId */
+  public List<DeviceSchema> getDeviceSchemaBySchemaClientId(int clientId) {
+    return SCHEMA_CLIENT_DATA_SCHEMA.get(clientId);
+  }
+
+  /** Get DeviceSchema by data clientId */
+  public List<DeviceSchema> getDeviceSchemaByDataClientId(int clientId) {
+    return DATA_CLIENT_DATA_SCHEMA.get(clientId);
   }
 
   /** Get All Device Schema */
   public List<DeviceSchema> getAllDeviceSchemas() {
-    return new ArrayList<>(NAME_DATA_SCHEMA.values());
+    List<Integer> deviceIds = MetaUtil.sortDeviceId();
+    List<DeviceSchema> deviceSchemaList = new ArrayList<>();
+    for (int deviceId : deviceIds) {
+      if (NAME_DATA_SCHEMA.containsKey(config.getDEVICE_NAME_PREFIX() + deviceId)) {
+        deviceSchemaList.add(NAME_DATA_SCHEMA.get(config.getDEVICE_NAME_PREFIX() + deviceId));
+      }
+    }
+    return new ArrayList<>(deviceSchemaList);
   }
 
   /** Get All Group */

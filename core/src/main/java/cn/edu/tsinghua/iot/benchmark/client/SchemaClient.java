@@ -60,7 +60,8 @@ public class SchemaClient implements Runnable {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.clientThreadId = id;
-    this.deviceSchemas = MetaDataSchema.getInstance().getDeviceSchemaByClientId(clientThreadId);
+    this.deviceSchemas =
+        MetaDataSchema.getInstance().getDeviceSchemaBySchemaClientId(clientThreadId);
     this.deviceSchemasSize = deviceSchemas.size();
     initDBWrappers();
   }

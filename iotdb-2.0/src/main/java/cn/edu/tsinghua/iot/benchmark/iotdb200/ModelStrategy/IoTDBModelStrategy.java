@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
 
 public abstract class IoTDBModelStrategy {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -49,6 +50,8 @@ public abstract class IoTDBModelStrategy {
   protected static String ROOT_SERIES_NAME;
   protected static int queryBaseOffset;
   protected static final Set<String> databases = new HashSet<>();
+  protected static final CyclicBarrier schemaBarrier =
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
 
   public IoTDBModelStrategy(DBConfig dbConfig) {
     this.dbConfig = dbConfig;

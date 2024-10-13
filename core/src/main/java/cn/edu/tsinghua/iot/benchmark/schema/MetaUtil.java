@@ -3,8 +3,12 @@ package cn.edu.tsinghua.iot.benchmark.schema;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
+import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,9 +16,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MetaUtil {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetaUtil.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final String TAG_KEY_PREFIX = config.getTAG_KEY_PREFIX();
   private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
@@ -63,11 +69,9 @@ public class MetaUtil {
    * table.<br>
    * IoTDB-TreeMode : It will not affect its writing speed.
    *
-   * @param config
-   * @param LOGGER
    * @return deviceIds
    */
-  public static List<Integer> sortDeviceId(Config config, Logger LOGGER) {
+  public static List<Integer> sortDeviceId() {
     List<Integer> deviceIds = new ArrayList<>();
     Map<Integer, List<Integer>> tableDeviceMap =
         new HashMap<>(config.getIoTDB_TABLE_NUMBER(), 1.00f);
@@ -101,6 +105,32 @@ public class MetaUtil {
     return deviceIds;
   }
 
+  public static void distributeDevices(
+      int clientNumber,
+      Map<Integer, List<DeviceSchema>> clientDataSchema,
+      List<Sensor> sensors,
+      Map<String, DeviceSchema> nameDataSchema,
+      Set<String> groups) {
+    Map<Integer, Integer> deviceDistributionForClient =
+        CommonAlgorithms.distributeDevicesToClients(config.getDEVICE_NUMBER(), clientNumber);
+    int deviceIndex = MetaUtil.getDeviceId(0);
+    List<Integer> deviceIds = sortDeviceId();
+    for (int clientId = 0; clientId < clientNumber; clientId++) {
+      int deviceNumber = deviceDistributionForClient.get(clientId);
+      List<DeviceSchema> deviceSchemasList = new ArrayList<>();
+      for (int d = 0; d < deviceNumber; d++) {
+        DeviceSchema deviceSchema =
+            new DeviceSchema(
+                deviceIds.get(deviceIndex), sensors, MetaUtil.getTags(deviceIds.get(deviceIndex)));
+        deviceSchemasList.add(deviceSchema);
+        nameDataSchema.putIfAbsent(deviceSchema.getDevice(), deviceSchema);
+        groups.add(deviceSchema.getGroup());
+        deviceIndex++;
+      }
+      clientDataSchema.put(clientId, deviceSchemasList);
+    }
+  }
+
   public static String getGroupIdFromDeviceName(String deviceName) {
     int groupId = deviceName.hashCode();
     if (groupId < 0) {
@@ -111,8 +141,14 @@ public class MetaUtil {
   }
 
   public static String getTableIdFromDeviceName(String deviceName) {
-    int tableId = Math.abs(deviceName.hashCode());
-    tableId = tableId % config.getIoTDB_TABLE_NUMBER();
+    int tableId = -1;
+    try {
+      int deviceId =
+          Integer.parseInt(deviceName.substring(config.getDEVICE_NAME_PREFIX().length()));
+      tableId = mappingId(deviceId, config.getDEVICE_NUMBER(), config.getIoTDB_TABLE_NUMBER());
+    } catch (NumberFormatException | WorkloadException e) {
+      LOGGER.error("getTableIdFromDeviceName failed.", e);
+    }
     return String.valueOf(tableId);
   }
 

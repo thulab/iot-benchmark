@@ -24,18 +24,12 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
-import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /** Data Schema for generate data */
 public class GenerateMetaDataSchema extends MetaDataSchema {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GenerateMetaDataSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   @Override
@@ -44,28 +38,16 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
     if (sensors == null) {
       return false;
     }
-
-    Map<Integer, Integer> deviceDistribution =
-        CommonAlgorithms.distributeDevicesToClients(
-            config.getDEVICE_NUMBER(), config.getCLIENT_NUMBER());
-    int deviceIndex = MetaUtil.getDeviceId(0);
-    // Rearrange device IDs so that adjacent devices are in the same table
-    List<Integer> deviceIds = MetaUtil.sortDeviceId(config, LOGGER);
-    for (int clientId = 0; clientId < config.getCLIENT_NUMBER(); clientId++) {
-      int deviceNumber = deviceDistribution.get(clientId);
-      List<DeviceSchema> deviceSchemaList = new ArrayList<>();
-      for (int d = 0; d < deviceNumber; d++) {
-        DeviceSchema deviceSchema;
-        deviceSchema =
-            new DeviceSchema(
-                deviceIds.get(deviceIndex), sensors, MetaUtil.getTags(deviceIds.get(deviceIndex)));
-        NAME_DATA_SCHEMA.put(deviceSchema.getDevice(), deviceSchema);
-        GROUPS.add(deviceSchema.getGroup());
-        deviceSchemaList.add(deviceSchema);
-        deviceIndex++;
-      }
-      CLIENT_DATA_SCHEMA.put(clientId, deviceSchemaList);
-    }
+    // schemaClient
+    MetaUtil.distributeDevices(
+        config.getSCHEMA_CLIENT_NUMBER(),
+        SCHEMA_CLIENT_DATA_SCHEMA,
+        sensors,
+        NAME_DATA_SCHEMA,
+        GROUPS);
+    // dataClient
+    MetaUtil.distributeDevices(
+        config.getDATA_CLIENT_NUMBER(), DATA_CLIENT_DATA_SCHEMA, sensors, NAME_DATA_SCHEMA, GROUPS);
     return true;
   }
 }

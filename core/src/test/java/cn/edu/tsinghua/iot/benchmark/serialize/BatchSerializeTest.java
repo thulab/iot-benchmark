@@ -53,7 +53,7 @@ public class BatchSerializeTest {
     Map<String, String> tags = new HashMap<>();
     tags.put("tag1", "value1");
     tags.put("tag2", "value2");
-    DeviceSchema deviceSchema = new DeviceSchema(group, device, sensors, tags);
+    DeviceSchema deviceSchema = new DeviceSchema(device, sensors, tags);
     List<Record> records = new LinkedList<>();
     for (int i = 0; i < 12; i++) {
       records.add(buildRecord(i, 10));

@@ -44,7 +44,7 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
   @Override
   protected void doTest() {
     try {
-      for (int i = 0; i < config.getDEVICE_NUMBER() / config.getCLIENT_NUMBER() + 1; i++) {
+      for (int i = 0; i < config.getDEVICE_NUMBER() / config.getDATA_CLIENT_NUMBER() + 1; i++) {
         DeviceQuery deviceQuery = queryWorkLoad.getDeviceQuery();
         if (deviceQuery == null) {
           break;

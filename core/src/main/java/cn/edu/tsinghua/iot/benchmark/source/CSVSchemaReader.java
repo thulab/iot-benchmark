@@ -28,7 +28,7 @@ public class CSVSchemaReader extends SchemaReader {
       LOGGER.error("Failed to find schema file in " + path.getFileName().toString());
       System.exit(0);
     }
-    Map<String, List<Sensor>> result = new HashMap<>();
+    Map<String, List<Sensor>> result = new LinkedHashMap<>();
     try {
       List<String> schemaLines = Files.readAllLines(path);
       for (String schemaLine : schemaLines) {

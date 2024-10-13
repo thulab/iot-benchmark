@@ -27,6 +27,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.source.CSVSchemaReader;
 import cn.edu.tsinghua.iot.benchmark.source.SchemaReader;
+import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,10 +58,9 @@ public class RealMetaDataSchema extends MetaDataSchema {
       return false;
     }
     // Load file from dataset
-    List<String> files = new ArrayList<>();
+    Map<String, String> files = new LinkedHashMap<>();
     getAllFiles(pathStr, files);
     LOGGER.info("Total files: {}", files.size());
-    Collections.sort(files);
 
     // Load sensor type from dataset
     Map<String, List<Sensor>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
@@ -69,11 +69,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
       String deviceName = device.getKey();
       List<Sensor> sensors = device.getValue();
       DeviceSchema deviceSchema =
-          new DeviceSchema(
-              MetaUtil.getGroupIdFromDeviceName(deviceName),
-              deviceName,
-              sensors,
-              MetaUtil.getTags(deviceName));
+          new DeviceSchema(deviceName, sensors, MetaUtil.getTags(deviceName));
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
       GROUPS.add(deviceSchema.getGroup());
       deviceSchemaList.add(deviceSchema);
@@ -81,30 +77,42 @@ public class RealMetaDataSchema extends MetaDataSchema {
 
     // Split into client And store Type
     for (int i = 0; i < deviceSchemaList.size(); i++) {
-      int clientId = i % config.getCLIENT_NUMBER();
+      int schemaClientId = i % config.getSCHEMA_CLIENT_NUMBER();
+      int dataClientId = i % config.getDATA_CLIENT_NUMBER();
       DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      if (!CLIENT_DATA_SCHEMA.containsKey(clientId)) {
-        CLIENT_DATA_SCHEMA.put(clientId, new ArrayList<>());
+      if (!SCHEMA_CLIENT_DATA_SCHEMA.containsKey(schemaClientId)) {
+        SCHEMA_CLIENT_DATA_SCHEMA.put(schemaClientId, new ArrayList<>());
       }
-      CLIENT_DATA_SCHEMA.get(clientId).add(deviceSchema);
+      if (!DATA_CLIENT_DATA_SCHEMA.containsKey(dataClientId)) {
+        DATA_CLIENT_DATA_SCHEMA.put(dataClientId, new ArrayList<>());
+      }
+      SCHEMA_CLIENT_DATA_SCHEMA.get(schemaClientId).add(deviceSchema);
+      DATA_CLIENT_DATA_SCHEMA.get(dataClientId).add(deviceSchema);
     }
 
-    // Split data files into client
+    // Split data files into data client
     List<List<String>> clientFiles = new ArrayList<>();
-    for (int i = 0; i < config.getCLIENT_NUMBER(); i++) {
+    for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       clientFiles.add(new ArrayList<>());
     }
-
-    for (int i = 0; i < files.size(); i++) {
-      String filePath = files.get(i);
-      int clientId = i % config.getCLIENT_NUMBER();
-      clientFiles.get(clientId).add(filePath);
+    Map<Integer, Integer> deviceDistributionForDataClient =
+        CommonAlgorithms.distributeDevicesToClients(
+            config.getDEVICE_NUMBER(), config.getDATA_CLIENT_NUMBER());
+    List<Integer> deviceIds = MetaUtil.sortDeviceId();
+    int index = 0;
+    for (int clientId = 0; clientId < config.getDATA_CLIENT_NUMBER(); clientId++) {
+      int fileNumber = deviceDistributionForDataClient.get(clientId);
+      for (int fileId = 0; fileId < fileNumber; fileId++, index++) {
+        String device = config.getDEVICE_NAME_PREFIX() + deviceIds.get(index);
+        String filePath = files.get(device);
+        clientFiles.get(clientId).add(filePath);
+      }
     }
     MetaUtil.setClientFiles(clientFiles);
     return true;
   }
 
-  private static void getAllFiles(String strPath, List<String> files) {
+  private static void getAllFiles(String strPath, Map<String, String> files) {
     File f = new File(strPath);
     if (f.isDirectory()) {
       File[] fs = f.listFiles();
@@ -116,7 +124,10 @@ public class RealMetaDataSchema extends MetaDataSchema {
     } else if (f.isFile()) {
       if (!f.getAbsolutePath().contains(Constants.SCHEMA_PATH)
           && !f.getAbsolutePath().contains(Constants.INFO_PATH)) {
-        files.add(f.getAbsolutePath());
+        String path = f.getAbsolutePath();
+        int lastIndexOf = path.lastIndexOf("\\");
+        String device = path.substring(path.lastIndexOf("\\", lastIndexOf - 1) + 1, lastIndexOf);
+        files.put(device, f.getAbsolutePath());
       }
     }
   }

@@ -83,8 +83,7 @@ public class DeviceSchema implements Cloneable {
     }
   }
 
-  public DeviceSchema(
-      String groupId, String deviceName, List<Sensor> sensors, Map<String, String> tags) {
+  public DeviceSchema(String deviceName, List<Sensor> sensors, Map<String, String> tags) {
     String tableId = MetaUtil.getTableIdFromDeviceName(deviceName);
     this.table = MetaUtil.getTableName(tableId);
     try {

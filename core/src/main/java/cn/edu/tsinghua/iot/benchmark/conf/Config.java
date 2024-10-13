@@ -185,10 +185,15 @@ public class Config {
    */
   private boolean IS_CLIENT_BIND = true;
   /**
-   * The number of client if IS_CLIENT_BIND = true: this number must be less than or equal to the
-   * number of devices.
+   * The number of schema client if IS_CLIENT_BIND = true: this number must be less than or equal to
+   * the number of devices.
    */
-  private int CLIENT_NUMBER = 20;
+  private int SCHEMA_CLIENT_NUMBER = 20;
+  /**
+   * The number of data client if IS_CLIENT_BIND = true: this number must be less than or equal to
+   * the number of devices.
+   */
+  private int DATA_CLIENT_NUMBER = 20;
 
   /** name prefix of table */
   private String IoTDB_TABLE_NAME_PREFIX = "table_";
@@ -905,12 +910,20 @@ public class Config {
     this.IS_CLIENT_BIND = IS_CLIENT_BIND;
   }
 
-  public int getCLIENT_NUMBER() {
-    return CLIENT_NUMBER;
+  public int getSCHEMA_CLIENT_NUMBER() {
+    return SCHEMA_CLIENT_NUMBER;
   }
 
-  public void setCLIENT_NUMBER(int CLIENT_NUMBER) {
-    this.CLIENT_NUMBER = CLIENT_NUMBER;
+  public void setSCHEMA_CLIENT_NUMBER(int SCHEMA_CLIENT_NUMBER) {
+    this.SCHEMA_CLIENT_NUMBER = SCHEMA_CLIENT_NUMBER;
+  }
+
+  public int getDATA_CLIENT_NUMBER() {
+    return DATA_CLIENT_NUMBER;
+  }
+
+  public void setDATA_CLIENT_NUMBER(int DATA_CLIENT_NUMBER) {
+    this.DATA_CLIENT_NUMBER = DATA_CLIENT_NUMBER;
   }
 
   public int getTAG_NUMBER() {
@@ -1813,7 +1826,8 @@ public class Config {
     configProperties.addProperty("Data Mode", "IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
     configProperties.addProperty("Data Mode", "OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
     configProperties.addProperty("Data Amount", "OPERATION_PROPORTION", this.OPERATION_PROPORTION);
-    configProperties.addProperty("Data Amount", "CLIENT_NUMBER", this.CLIENT_NUMBER);
+    configProperties.addProperty("Data Amount", "SCHEMA_CLIENT_NUMBER", this.SCHEMA_CLIENT_NUMBER);
+    configProperties.addProperty("Data Amount", "DATA_CLIENT_NUMBER", this.DATA_CLIENT_NUMBER);
     configProperties.addProperty("Data Amount", "LOOP", this.LOOP);
     configProperties.addProperty("Data Amount", "BATCH_SIZE_PER_WRITE", this.BATCH_SIZE_PER_WRITE);
     configProperties.addProperty("Data Amount", "DEVICE_NUM_PER_WRITE", this.DEVICE_NUM_PER_WRITE);

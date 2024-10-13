@@ -63,7 +63,7 @@ public class TDengine implements IDatabase {
   private static final String TDENGINE_DRIVER = "com.taosdata.jdbc.TSDBDriver";
   private static final String TDENGINE_URL = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
   protected static final CyclicBarrier superTableBarrier =
-      new CyclicBarrier(config.getCLIENT_NUMBER());
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   private static final String USE_DB = "use %s";
 
   private static final String SUPER_TABLE_NAME = "device";

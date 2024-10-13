@@ -72,7 +72,8 @@ public class TimescaleDB implements IDatabase {
       "SELECT create_hypertable('%s', 'time', chunk_time_interval => 604800000);";
   private static final String dropTable = "DROP TABLE %s;";
   private static final AtomicBoolean schemaInit = new AtomicBoolean(false);
-  protected static final CyclicBarrier schemaBarrier = new CyclicBarrier(config.getCLIENT_NUMBER());
+  protected static final CyclicBarrier schemaBarrier =
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
 
   private static String tableName;
   private Connection connection;
