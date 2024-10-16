@@ -35,6 +35,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
@@ -353,6 +354,36 @@ public class TreeStrategy extends IoTDBModelStrategy {
     } catch (StatementExecutionException e) {
       LOGGER.warn("Failed to execute statement:{}", e.getMessage());
     }
+  }
+
+  @Override
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT
+    builder
+        .append("SELECT ")
+        .append(
+            getAggFunForGroupByQuery(
+                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
+    // FROM
+    String sql = addFromClause(groupByQuery.getDeviceSchema(), builder);
+    // GROUP BY
+    sql =
+        addGroupByClause(
+            sql,
+            groupByQuery.getStartTimestamp(),
+            groupByQuery.getEndTimestamp(),
+            groupByQuery.getGranularity());
+    return sql;
+  }
+
+  @Override
+  public String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix) {
+    return prefix;
+  }
+
+  private String addGroupByClause(String prefix, long start, long end, long granularity) {
+    return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
   // endregion

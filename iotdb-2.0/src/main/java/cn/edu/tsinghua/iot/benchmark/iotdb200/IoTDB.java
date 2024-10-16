@@ -242,6 +242,7 @@ public class IoTDB implements IDatabase {
             rangeQuery.getDeviceSchema(),
             rangeQuery.getStartTimestamp(),
             rangeQuery.getEndTimestamp());
+    sql = modelStrategy.addDeviceIDColumnIfNecessary(rangeQuery.getDeviceSchema(), sql);
     return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY);
   }
 
@@ -254,6 +255,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery);
+    sql = modelStrategy.addDeviceIDColumnIfNecessary(valueRangeQuery.getDeviceSchema(), sql);
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
   }
 
@@ -270,6 +272,7 @@ public class IoTDB implements IDatabase {
     String sql =
         addWhereTimeClause(
             aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
+    sql = modelStrategy.addDeviceIDColumnIfNecessary(aggRangeQuery.getDeviceSchema(), sql);
     return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
   }
 
@@ -288,6 +291,7 @@ public class IoTDB implements IDatabase {
             + getValueFilterClause(
                     aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
                 .substring(4);
+    sql = modelStrategy.addDeviceIDColumnIfNecessary(aggValueQuery.getDeviceSchema(), sql);
     return executeQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
   }
 
@@ -310,6 +314,7 @@ public class IoTDB implements IDatabase {
     sql +=
         getValueFilterClause(
             aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
+    sql = modelStrategy.addDeviceIDColumnIfNecessary(aggRangeValueQuery.getDeviceSchema(), sql);
     return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
   }
 
@@ -321,14 +326,7 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sql =
-        addGroupByClause(
-            aggQuerySqlHead,
-            groupByQuery.getStartTimestamp(),
-            groupByQuery.getEndTimestamp(),
-            groupByQuery.getGranularity());
+    String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
@@ -339,8 +337,8 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String aggQuerySqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return executeQueryAndGetStatus(aggQuerySqlHead, Operation.LATEST_POINT_QUERY);
+    String latestPointSqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+    return executeQueryAndGetStatus(latestPointSqlHead, Operation.LATEST_POINT_QUERY);
   }
 
   /**
@@ -353,9 +351,11 @@ public class IoTDB implements IDatabase {
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
     String sql =
         getRangeQuerySql(
-                rangeQuery.getDeviceSchema(),
-                rangeQuery.getStartTimestamp(),
-                rangeQuery.getEndTimestamp())
+            rangeQuery.getDeviceSchema(),
+            rangeQuery.getStartTimestamp(),
+            rangeQuery.getEndTimestamp());
+    sql =
+        modelStrategy.addDeviceIDColumnIfNecessary(rangeQuery.getDeviceSchema(), sql)
             + " order by time desc";
     return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
@@ -368,20 +368,23 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    String sql = getValueRangeQuerySql(valueRangeQuery) + " order by time desc";
+    String sql = getValueRangeQuerySql(valueRangeQuery);
+    sql =
+        modelStrategy.addDeviceIDColumnIfNecessary(valueRangeQuery.getDeviceSchema(), sql)
+            + " order by time desc";
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
+  /**
+   * Q11: GroupByQuery SQL: select {AggFun}({sensors}) from {devices} group by ([{start}, {end}], *
+   * {Granularity}ms) order by time desc
+   *
+   * @param groupByQuery
+   * @return
+   */
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
-    String aggQuerySqlHead =
-        getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
-    String sql =
-        addGroupByClause(
-            aggQuerySqlHead,
-            groupByQuery.getStartTimestamp(),
-            groupByQuery.getEndTimestamp(),
-            groupByQuery.getGranularity());
+    String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
     sql += ORDER_BY_TIME_DESC;
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
@@ -455,22 +458,19 @@ public class IoTDB implements IDatabase {
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
     }
-    return addFromClause(devices, builder);
+    String sql = addFromClause(devices, builder);
+    sql = modelStrategy.addWhereValueClauseIfNecessary(devices, sql);
+    return sql;
   }
 
   private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
-    return modelStrategy.addDeviceIDColumnIfNecessary(
-        deviceSchemas, addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end));
+    return addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end);
   }
 
-  private String addWhereTimeClause(String prefix, long start, long end) {
+  public static String addWhereTimeClause(String prefix, long start, long end) {
     String startTime = start + "";
     String endTime = end + "";
     return prefix + " WHERE time >= " + startTime + " AND time <= " + endTime;
-  }
-
-  private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
