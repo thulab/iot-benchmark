@@ -33,6 +33,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
@@ -128,6 +129,14 @@ public abstract class IoTDBModelStrategy {
 
   public abstract void sessionCleanupImpl(Session session)
       throws IoTDBConnectionException, StatementExecutionException;
+
+  // endregion
+
+  // region query
+
+  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery);
+
+  public abstract String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix);
 
   // endregion
 

@@ -797,7 +797,8 @@ public class ConfigDescriptor {
     boolean result = false;
     if (dbConfig.getDB_SWITCH().getType() == DBType.IoTDB) {
       // support after iotdb 1.0
-      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_130
+      if (dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_200
+          || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_130
           || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_110
           || dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_100) {
         result = true;

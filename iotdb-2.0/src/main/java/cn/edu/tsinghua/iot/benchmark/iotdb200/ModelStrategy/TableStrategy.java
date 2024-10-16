@@ -34,6 +34,7 @@ import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
@@ -163,11 +164,14 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql) {
+    return sql + " AND" + getDeviceIDColumn(deviceSchemas);
+  }
+
+  public String getDeviceIDColumn(List<DeviceSchema> deviceSchemas) {
     Set<String> deviceIds = new HashSet<>();
     StringBuilder builder = new StringBuilder();
     builder
-        .append(sql)
-        .append(" AND (")
+        .append(" (")
         .append("device_id")
         .append(" = '")
         .append(deviceSchemas.get(0).getDevice())
@@ -355,6 +359,57 @@ public class TableStrategy extends IoTDBModelStrategy {
       }
       session.executeNonQueryStatement("drop database " + databaseName);
     }
+  }
+
+  /**
+   * eg. SELECT data_bin(20000ms, time), count(s_1), count(s_3), count(s_4) FROM test_g_0.table_0
+   * WHERE time >= 1640966400000 AND time < 1640966650000 AND (device_id='d_0' OR device_id='d_3')
+   * group by time
+   */
+  @Override
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT
+    builder
+        .append("SELECT ")
+        .append("data_bin(")
+        .append(groupByQuery.getGranularity())
+        .append("ms, ")
+        .append("time), ");
+    List<Sensor> querySensors = groupByQuery.getDeviceSchema().get(0).getSensors();
+    builder
+        .append(groupByQuery.getAggFun())
+        .append("(")
+        .append(querySensors.get(0).getName())
+        .append(")");
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder
+          .append(", ")
+          .append(groupByQuery.getAggFun())
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
+    }
+    // FROM
+    String sql = addFromClause(groupByQuery.getDeviceSchema(), builder);
+    // WHERE
+    sql =
+        IoTDB.addWhereTimeClause(
+            sql, groupByQuery.getStartTimestamp(), groupByQuery.getEndTimestamp());
+    sql = addDeviceIDColumnIfNecessary(groupByQuery.getDeviceSchema(), sql);
+    // GROUP BY
+    sql = addGroupByClause(sql);
+    return sql;
+  }
+
+  @Override
+  public String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix) {
+    String sql = prefix + " WHERE" + getDeviceIDColumn(devices);
+    return sql;
+  }
+
+  public String addGroupByClause(String prefix) {
+    return prefix + " group by time";
   }
 
   // endregion
