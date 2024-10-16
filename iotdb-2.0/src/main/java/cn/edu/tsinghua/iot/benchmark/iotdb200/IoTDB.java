@@ -226,7 +226,6 @@ public class IoTDB implements IDatabase {
     String strTime = preciseQuery.getTimestamp() + "";
     String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
     sql = modelStrategy.addDeviceIDColumnIfNecessary(preciseQuery.getDeviceSchema(), sql);
-    LOGGER.info("Q1:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
   }
 
@@ -244,7 +243,6 @@ public class IoTDB implements IDatabase {
             rangeQuery.getStartTimestamp(),
             rangeQuery.getEndTimestamp());
     sql = modelStrategy.addDeviceIDColumnIfNecessary(rangeQuery.getDeviceSchema(), sql);
-    LOGGER.info("Q2:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY);
   }
 
@@ -258,7 +256,6 @@ public class IoTDB implements IDatabase {
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     String sql = getValueRangeQuerySql(valueRangeQuery);
     sql = modelStrategy.addDeviceIDColumnIfNecessary(valueRangeQuery.getDeviceSchema(), sql);
-    LOGGER.info("Q3:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
   }
 
@@ -276,7 +273,6 @@ public class IoTDB implements IDatabase {
         addWhereTimeClause(
             aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
     sql = modelStrategy.addDeviceIDColumnIfNecessary(aggRangeQuery.getDeviceSchema(), sql);
-    LOGGER.info("Q4:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
   }
 
@@ -296,7 +292,6 @@ public class IoTDB implements IDatabase {
                     aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
                 .substring(4);
     sql = modelStrategy.addDeviceIDColumnIfNecessary(aggValueQuery.getDeviceSchema(), sql);
-    LOGGER.info("Q5:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
   }
 
@@ -320,7 +315,6 @@ public class IoTDB implements IDatabase {
         getValueFilterClause(
             aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
     sql = modelStrategy.addDeviceIDColumnIfNecessary(aggRangeValueQuery.getDeviceSchema(), sql);
-    LOGGER.info("Q6:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
   }
 
@@ -333,7 +327,6 @@ public class IoTDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
-    LOGGER.info("Q7:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
@@ -345,7 +338,6 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String latestPointSqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    LOGGER.info("Q8:{}", latestPointSqlHead);
     return executeQueryAndGetStatus(latestPointSqlHead, Operation.LATEST_POINT_QUERY);
   }
 
@@ -365,7 +357,6 @@ public class IoTDB implements IDatabase {
     sql =
         modelStrategy.addDeviceIDColumnIfNecessary(rangeQuery.getDeviceSchema(), sql)
             + " order by time desc";
-    LOGGER.info("Q9:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -381,7 +372,6 @@ public class IoTDB implements IDatabase {
     sql =
         modelStrategy.addDeviceIDColumnIfNecessary(valueRangeQuery.getDeviceSchema(), sql)
             + " order by time desc";
-    LOGGER.info("Q10:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -396,7 +386,6 @@ public class IoTDB implements IDatabase {
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
     String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
     sql += ORDER_BY_TIME_DESC;
-    LOGGER.info("Q11:{}", sql);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 
