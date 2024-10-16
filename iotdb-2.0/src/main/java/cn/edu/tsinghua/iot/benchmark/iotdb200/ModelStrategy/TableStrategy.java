@@ -365,6 +365,8 @@ public class TableStrategy extends IoTDBModelStrategy {
    * eg. SELECT data_bin(20000ms, time), count(s_1), count(s_3), count(s_4) FROM test_g_0.table_0
    * WHERE time >= 1640966400000 AND time < 1640966650000 AND (device_id='d_0' OR device_id='d_3')
    * group by time
+   *
+   * <p>getAggForGroupByQuery
    */
   @Override
   public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
@@ -375,21 +377,10 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append("data_bin(")
         .append(groupByQuery.getGranularity())
         .append("ms, ")
-        .append("time), ");
-    List<Sensor> querySensors = groupByQuery.getDeviceSchema().get(0).getSensors();
-    builder
-        .append(groupByQuery.getAggFun())
-        .append("(")
-        .append(querySensors.get(0).getName())
-        .append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder
-          .append(", ")
-          .append(groupByQuery.getAggFun())
-          .append("(")
-          .append(querySensors.get(i).getName())
-          .append(")");
-    }
+        .append("time), ")
+        .append(
+            getAggFunForGroupByQuery(
+                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
     // FROM
     String sql = addFromClause(groupByQuery.getDeviceSchema(), builder);
     // WHERE

@@ -138,6 +138,20 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix);
 
+  protected String getAggFunForGroupByQuery(List<Sensor> querySensors, String aggFunction) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(aggFunction).append("(").append(querySensors.get(0).getName()).append(")");
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder
+          .append(", ")
+          .append(aggFunction)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
+    }
+    return builder.toString();
+  }
+
   // endregion
 
   public abstract Logger getLogger();

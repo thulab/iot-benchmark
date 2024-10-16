@@ -360,21 +360,11 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
     StringBuilder builder = new StringBuilder();
     // SELECT
-    builder.append("SELECT ");
-    List<Sensor> querySensors = groupByQuery.getDeviceSchema().get(0).getSensors();
     builder
-        .append(groupByQuery.getAggFun())
-        .append("(")
-        .append(querySensors.get(0).getName())
-        .append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder
-          .append(", ")
-          .append(groupByQuery.getAggFun())
-          .append("(")
-          .append(querySensors.get(i).getName())
-          .append(")");
-    }
+        .append("SELECT ")
+        .append(
+            getAggFunForGroupByQuery(
+                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
     // FROM
     String sql = addFromClause(groupByQuery.getDeviceSchema(), builder);
     // GROUP BY
