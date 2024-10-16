@@ -399,7 +399,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     return sql;
   }
 
-  public String addGroupByClause(String prefix) {
+  private String addGroupByClause(String prefix) {
     return prefix + " group by time";
   }
 

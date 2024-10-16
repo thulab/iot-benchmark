@@ -382,7 +382,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
     return prefix;
   }
 
-  public String addGroupByClause(String prefix, long start, long end, long granularity) {
+  private String addGroupByClause(String prefix, long start, long end, long granularity) {
     return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
