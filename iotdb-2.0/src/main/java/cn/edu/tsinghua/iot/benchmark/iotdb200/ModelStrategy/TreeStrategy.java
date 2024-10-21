@@ -211,24 +211,137 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   // region select
-
   @Override
   public String selectTimeColumnIfNecessary() {
     return "";
   }
 
   @Override
-  public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    builder.append(" FROM ").append(IoTDBUtils.getDevicePath(devices.get(0), ROOT_SERIES_NAME));
-    for (int i = 1; i < devices.size(); i++) {
-      builder.append(", ").append(IoTDBUtils.getDevicePath(devices.get(i), ROOT_SERIES_NAME));
+  public String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT ");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(aggFun).append("(").append(querySensors.get(0).getName()).append(")");
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder
+          .append(", ")
+          .append(aggFun)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
     }
+    addFromClause(devices, builder);
     return builder.toString();
   }
 
   @Override
-  public String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql) {
+  public void addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
+    builder.append(" FROM ").append(IoTDBUtils.getDevicePath(devices.get(0), ROOT_SERIES_NAME));
+    for (int i = 1; i < devices.size(); i++) {
+      builder.append(", ").append(IoTDBUtils.getDevicePath(devices.get(i), ROOT_SERIES_NAME));
+    }
+  }
+
+  @Override
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT
+    builder
+        .append("SELECT ")
+        .append(
+            getAggFunForGroupByQuery(
+                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
+    // FROM
+    addFromClause(groupByQuery.getDeviceSchema(), builder);
+    // GROUP BY
+    addGroupByClause(
+        builder,
+        groupByQuery.getStartTimestamp(),
+        groupByQuery.getEndTimestamp(),
+        groupByQuery.getGranularity());
+    // ORDER BY
+    builder.append(" ORDER BY time desc");
+    return builder.toString();
+  }
+
+  private void addGroupByClause(StringBuilder builder, long start, long end, long granularity) {
+    builder
+        .append(" group by ([")
+        .append(start)
+        .append(", ")
+        .append(end)
+        .append("),")
+        .append(granularity)
+        .append("ms) ");
+  }
+
+  @Override
+  public String getLatestPointQuerySql(List<DeviceSchema> devices) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT last ");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(querySensors.get(0).getName());
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder.append(", ").append(querySensors.get(i).getName());
+    }
+    addFromClause(devices, builder);
+    addWhereValueClauseIfNecessary(devices, builder);
+    return builder.toString();
+  }
+
+  @Override
+  public void addWhereValueClauseIfNecessary(List<DeviceSchema> devices, StringBuilder builder) {
     // do nothing
+  }
+
+  @Override
+  public void addPreciseQueryWhereClause(
+      String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder) {
+    builder.append(" WHERE time = ").append(strTime);
+  }
+
+  @Override
+  public void addWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      StringBuilder builder) {
+    builder.append(" WHERE");
+    if (addTime) {
+      builder.append(getTimeWhereClause(start, end));
+    }
+    if (addValue) {
+      builder.append(getValueFilterClause(deviceSchemas, valueThreshold));
+    }
+  }
+
+  @Override
+  public void addAggWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      StringBuilder builder) {
+    builder.append(" WHERE");
+    if (addTime) {
+      builder.append(getTimeWhereClause(start, end));
+    }
+    if (addValue) {
+      String valueFilterClause = getValueFilterClause(deviceSchemas, valueThreshold);
+      if (!addTime) {
+        valueFilterClause = valueFilterClause.substring(4);
+      }
+      builder.append(valueFilterClause);
+    }
+  }
+
+  @Override
+  public String addGroupByClauseIfNecessary(String sql) {
     return sql;
   }
 
@@ -248,8 +361,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void getValueFilterClause(
-      List<DeviceSchema> deviceSchemas, int valueThreshold, StringBuilder builder) {
+  public String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
+    StringBuilder builder = new StringBuilder();
     for (DeviceSchema deviceSchema : deviceSchemas) {
       for (Sensor sensor : deviceSchema.getSensors()) {
         builder
@@ -265,6 +378,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
         }
       }
     }
+    return builder.toString();
   }
 
   @Override
@@ -300,6 +414,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   // endregion
 
   // region insert
+
   @Override
   public Tablet createTablet(
       String insertTargetName,
@@ -354,36 +469,6 @@ public class TreeStrategy extends IoTDBModelStrategy {
     } catch (StatementExecutionException e) {
       LOGGER.warn("Failed to execute statement:{}", e.getMessage());
     }
-  }
-
-  @Override
-  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
-    StringBuilder builder = new StringBuilder();
-    // SELECT
-    builder
-        .append("SELECT ")
-        .append(
-            getAggFunForGroupByQuery(
-                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
-    // FROM
-    String sql = addFromClause(groupByQuery.getDeviceSchema(), builder);
-    // GROUP BY
-    sql =
-        addGroupByClause(
-            sql,
-            groupByQuery.getStartTimestamp(),
-            groupByQuery.getEndTimestamp(),
-            groupByQuery.getGranularity());
-    return sql;
-  }
-
-  @Override
-  public String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix) {
-    return prefix;
-  }
-
-  private String addGroupByClause(String prefix, long start, long end, long granularity) {
-    return prefix + " group by ([" + start + "," + end + ")," + granularity + "ms) ";
   }
 
   // endregion
