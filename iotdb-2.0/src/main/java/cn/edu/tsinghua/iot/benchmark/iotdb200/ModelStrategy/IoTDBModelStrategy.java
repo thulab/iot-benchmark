@@ -63,15 +63,41 @@ public abstract class IoTDBModelStrategy {
       throws TsdbException;
 
   // region select
-
   public abstract String selectTimeColumnIfNecessary();
 
-  public abstract String addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+  public abstract String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun);
 
-  public abstract String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql);
+  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery);
 
-  public abstract void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+  public abstract String getLatestPointQuerySql(List<DeviceSchema> devices);
+
+  public abstract void addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+
+  public abstract void addPreciseQueryWhereClause(
+      String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder);
+
+  public abstract void addWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      StringBuilder builder);
+
+  public abstract void addAggWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      StringBuilder builder);
+
+  public abstract void addWhereValueClauseIfNecessary(
+      List<DeviceSchema> devices, StringBuilder builder);
+
+  public abstract String addGroupByClauseIfNecessary(String sql);
 
   public abstract void addVerificationQueryWhereClause(
       StringBuffer sql,
@@ -79,8 +105,10 @@ public abstract class IoTDBModelStrategy {
       Map<Long, List<Object>> recordMap,
       DeviceSchema deviceSchema);
 
-  public abstract void getValueFilterClause(
-      List<DeviceSchema> deviceSchemas, int valueThreshold, StringBuilder builder);
+  public abstract void deleteIDColumnIfNecessary(
+      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+
+  public abstract String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold);
 
   public abstract long getTimestamp(RowRecord rowRecord);
 
@@ -132,11 +160,7 @@ public abstract class IoTDBModelStrategy {
 
   // endregion
 
-  // region query
-
-  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery);
-
-  public abstract String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix);
+  public abstract Logger getLogger();
 
   protected String getAggFunForGroupByQuery(List<Sensor> querySensors, String aggFunction) {
     StringBuilder builder = new StringBuilder();
@@ -152,9 +176,15 @@ public abstract class IoTDBModelStrategy {
     return builder.toString();
   }
 
-  // endregion
-
-  public abstract Logger getLogger();
+  protected String getTimeWhereClause(long start, long end) {
+    StringBuilder builder = new StringBuilder();
+    builder
+        .append(" time >= ")
+        .append(String.valueOf(start))
+        .append(" AND time <= ")
+        .append(String.valueOf(end));
+    return builder.toString();
+  }
 
   public void handleRegisterException(Exception e) throws TsdbException {
     // ignore if already has the time series

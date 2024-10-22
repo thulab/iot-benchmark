@@ -148,7 +148,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
+  public void addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
     // "root.test.g_0.d_0.s_0"
     // tree mode: select ... from root.test.g_0.d_0
     // table mode： select ... from test_g_0.table_0
@@ -159,12 +159,141 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append(devices.get(0).getGroup())
         .append(".")
         .append(devices.get(0).getTable());
-    return builder.toString();
   }
 
   @Override
-  public String addDeviceIDColumnIfNecessary(List<DeviceSchema> deviceSchemas, String sql) {
-    return sql + " AND" + getDeviceIDColumn(deviceSchemas);
+  public String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT device_id");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder
+          .append(", ")
+          .append(aggFun)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
+    }
+    addFromClause(devices, builder);
+    return builder.toString();
+  }
+
+  /**
+   * eg. SELECT device_id, data_bin(20000ms, time), count(s_3), count(s_2), count(s_1) FROM
+   * test_g_1.table_4 WHERE time >= 1640966400000 AND time < 1640966650000 AND (device_id = 'd_0' OR
+   * device_id = 'd_1') group by device_id, data_bin(20000ms, time)
+   *
+   * <p>getAggForGroupByQuery
+   */
+  @Override
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT
+    builder
+        .append("SELECT")
+        .append(" device_id,")
+        .append(" date_bin(")
+        .append(groupByQuery.getGranularity())
+        .append("ms, ")
+        .append("time), ")
+        .append(
+            getAggFunForGroupByQuery(
+                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
+    // FROM
+    addFromClause(groupByQuery.getDeviceSchema(), builder);
+    // WHERE
+    builder
+        .append(" WHERE")
+        .append(
+            getTimeWhereClause(groupByQuery.getStartTimestamp(), groupByQuery.getEndTimestamp()));
+    addDeviceIDColumnIfNecessary(groupByQuery.getDeviceSchema(), builder);
+    // GROUP BY
+    builder
+        .append(" group by device_id, date_bin(")
+        .append(groupByQuery.getGranularity())
+        .append("ms, time)");
+    // ORDER BY
+    builder
+        .append(" order by device_id, date_bin(")
+        .append(groupByQuery.getGranularity())
+        .append("ms, time) desc");
+    return builder.toString();
+  }
+
+  private void addDeviceIDColumnIfNecessary(
+      List<DeviceSchema> deviceSchemas, StringBuilder builder) {
+    builder.append(" AND").append(getDeviceIDColumn(deviceSchemas));
+  }
+
+  @Override
+  public void addPreciseQueryWhereClause(
+      String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder) {
+    builder
+        .append(" WHERE time = ")
+        .append(strTime)
+        .append(" AND ")
+        .append(getDeviceIDColumn(deviceSchemas));
+  }
+
+  @Override
+  public void addWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      StringBuilder builder) {
+    builder.append(" WHERE");
+    if (addTime) {
+      builder.append(getTimeWhereClause(start, end));
+    }
+    if (addValue) {
+      builder.append(getValueFilterClause(deviceSchemas, valueThreshold));
+    }
+    builder.append(" AND ").append(getDeviceIDColumn(deviceSchemas));
+  }
+
+  @Override
+  public void addAggWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      StringBuilder builder) {
+    builder.append(" WHERE");
+    if (addTime) {
+      builder.append(getTimeWhereClause(start, end));
+    }
+    if (addValue) {
+      String valueFilterClause = getValueFilterClause(deviceSchemas, valueThreshold);
+      if (!addTime) {
+        valueFilterClause = valueFilterClause.substring(4);
+      }
+      builder.append(valueFilterClause);
+    }
+    builder.append(" AND ").append(getDeviceIDColumn(deviceSchemas)).append(" GROUP BY device_id ");
+  }
+
+  @Override
+  public String addGroupByClauseIfNecessary(String sql) {
+    sql = sql + " GROUP BY device_id";
+    return sql;
+  }
+
+  @Override
+  public String getLatestPointQuerySql(List<DeviceSchema> devices) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT device_id, last(time)");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    for (int i = 0; i < querySensors.size(); i++) {
+      builder.append(", last_by(").append(querySensors.get(i).getName()).append(", time)");
+    }
+    addFromClause(devices, builder);
+    addWhereValueClauseIfNecessary(devices, builder);
+    return builder.toString();
   }
 
   public String getDeviceIDColumn(List<DeviceSchema> deviceSchemas) {
@@ -218,9 +347,9 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void getValueFilterClause(
-      List<DeviceSchema> deviceSchemas, int valueThreshold, StringBuilder builder) {
+  public String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
     DeviceSchema deviceSchema = deviceSchemas.get(0);
+    StringBuilder builder = new StringBuilder();
     for (Sensor sensor : deviceSchema.getSensors()) {
       builder.append(" AND ").append(sensor.getName()).append(" > ");
       if (sensor.getSensorType() == SensorType.DATE) {
@@ -234,6 +363,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         builder.append(valueThreshold);
       }
     }
+    return builder.toString();
   }
 
   @Override
@@ -247,6 +377,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   // TODO 用 count
+
   @Override
   public String getTotalLineNumberSql(DeviceSchema deviceSchema) {
     return "select * from "
@@ -361,46 +492,9 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
   }
 
-  /**
-   * eg. SELECT data_bin(20000ms, time), count(s_1), count(s_3), count(s_4) FROM test_g_0.table_0
-   * WHERE time >= 1640966400000 AND time < 1640966650000 AND (device_id='d_0' OR device_id='d_3')
-   * group by time
-   *
-   * <p>getAggForGroupByQuery
-   */
   @Override
-  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
-    StringBuilder builder = new StringBuilder();
-    // SELECT
-    builder
-        .append("SELECT ")
-        .append("data_bin(")
-        .append(groupByQuery.getGranularity())
-        .append("ms, ")
-        .append("time), ")
-        .append(
-            getAggFunForGroupByQuery(
-                groupByQuery.getDeviceSchema().get(0).getSensors(), groupByQuery.getAggFun()));
-    // FROM
-    String sql = addFromClause(groupByQuery.getDeviceSchema(), builder);
-    // WHERE
-    sql =
-        IoTDB.addWhereTimeClause(
-            sql, groupByQuery.getStartTimestamp(), groupByQuery.getEndTimestamp());
-    sql = addDeviceIDColumnIfNecessary(groupByQuery.getDeviceSchema(), sql);
-    // GROUP BY
-    sql = addGroupByClause(sql);
-    return sql;
-  }
-
-  @Override
-  public String addWhereValueClauseIfNecessary(List<DeviceSchema> devices, String prefix) {
-    String sql = prefix + " WHERE" + getDeviceIDColumn(devices);
-    return sql;
-  }
-
-  private String addGroupByClause(String prefix) {
-    return prefix + " group by time";
+  public void addWhereValueClauseIfNecessary(List<DeviceSchema> devices, StringBuilder builder) {
+    builder.append(" WHERE").append(getDeviceIDColumn(devices));
   }
 
   // endregion

@@ -223,10 +223,11 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    String strTime = preciseQuery.getTimestamp() + "";
-    String sql = getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()) + " WHERE time = " + strTime;
-    sql = modelStrategy.addDeviceIDColumnIfNecessary(preciseQuery.getDeviceSchema(), sql);
-    return executeQueryAndGetStatus(sql, Operation.PRECISE_QUERY);
+    StringBuilder builder = new StringBuilder();
+    builder.append(getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()));
+    modelStrategy.addPreciseQueryWhereClause(
+        String.valueOf(preciseQuery.getTimestamp()), preciseQuery.getDeviceSchema(), builder);
+    return executeQueryAndGetStatus(builder.toString(), Operation.PRECISE_QUERY);
   }
 
   /**
@@ -237,13 +238,19 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    String sql =
-        getRangeQuerySql(
-            rangeQuery.getDeviceSchema(),
-            rangeQuery.getStartTimestamp(),
-            rangeQuery.getEndTimestamp());
-    sql = modelStrategy.addDeviceIDColumnIfNecessary(rangeQuery.getDeviceSchema(), sql);
-    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY);
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
+    builder.append(getSimpleQuerySqlHead(rangeQuery.getDeviceSchema()));
+    // WHERE
+    modelStrategy.addWhereClause(
+        true,
+        false,
+        rangeQuery.getStartTimestamp(),
+        rangeQuery.getEndTimestamp(),
+        rangeQuery.getDeviceSchema(),
+        0,
+        builder);
+    return executeQueryAndGetStatus(builder.toString(), Operation.RANGE_QUERY);
   }
 
   /**
@@ -254,9 +261,19 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    String sql = getValueRangeQuerySql(valueRangeQuery);
-    sql = modelStrategy.addDeviceIDColumnIfNecessary(valueRangeQuery.getDeviceSchema(), sql);
-    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY);
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
+    builder.append(getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema()));
+    // WHERE
+    modelStrategy.addWhereClause(
+        true,
+        true,
+        valueRangeQuery.getStartTimestamp(),
+        valueRangeQuery.getEndTimestamp(),
+        valueRangeQuery.getDeviceSchema(),
+        (int) valueRangeQuery.getValueThreshold(),
+        builder);
+    return executeQueryAndGetStatus(builder.toString(), Operation.VALUE_RANGE_QUERY);
   }
 
   /**
@@ -267,13 +284,22 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
     String aggQuerySqlHead =
-        getAggQuerySqlHead(aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
-    String sql =
-        addWhereTimeClause(
-            aggQuerySqlHead, aggRangeQuery.getStartTimestamp(), aggRangeQuery.getEndTimestamp());
-    sql = modelStrategy.addDeviceIDColumnIfNecessary(aggRangeQuery.getDeviceSchema(), sql);
-    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_QUERY);
+        modelStrategy.getAggQuerySqlHead(
+            aggRangeQuery.getDeviceSchema(), aggRangeQuery.getAggFun());
+    builder.append(aggQuerySqlHead);
+    // WHERE
+    modelStrategy.addAggWhereClause(
+        true,
+        false,
+        aggRangeQuery.getStartTimestamp(),
+        aggRangeQuery.getEndTimestamp(),
+        aggRangeQuery.getDeviceSchema(),
+        0,
+        builder);
+    return executeQueryAndGetStatus(builder.toString(), Operation.AGG_RANGE_QUERY);
   }
 
   /**
@@ -283,16 +309,22 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
     String aggQuerySqlHead =
-        getAggQuerySqlHead(aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
-    String sql =
-        aggQuerySqlHead
-            + " WHERE "
-            + getValueFilterClause(
-                    aggValueQuery.getDeviceSchema(), (int) aggValueQuery.getValueThreshold())
-                .substring(4);
-    sql = modelStrategy.addDeviceIDColumnIfNecessary(aggValueQuery.getDeviceSchema(), sql);
-    return executeQueryAndGetStatus(sql, Operation.AGG_VALUE_QUERY);
+        modelStrategy.getAggQuerySqlHead(
+            aggValueQuery.getDeviceSchema(), aggValueQuery.getAggFun());
+    builder.append(aggQuerySqlHead);
+    // WHERE
+    modelStrategy.addAggWhereClause(
+        false,
+        true,
+        aggValueQuery.getStartTimestamp(),
+        aggValueQuery.getEndTimestamp(),
+        aggValueQuery.getDeviceSchema(),
+        (int) aggValueQuery.getValueThreshold(),
+        builder);
+    return executeQueryAndGetStatus(builder.toString(), Operation.AGG_VALUE_QUERY);
   }
 
   /**
@@ -304,18 +336,22 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
     String aggQuerySqlHead =
-        getAggQuerySqlHead(aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
-    String sql =
-        addWhereTimeClause(
-            aggQuerySqlHead,
-            aggRangeValueQuery.getStartTimestamp(),
-            aggRangeValueQuery.getEndTimestamp());
-    sql +=
-        getValueFilterClause(
-            aggRangeValueQuery.getDeviceSchema(), (int) aggRangeValueQuery.getValueThreshold());
-    sql = modelStrategy.addDeviceIDColumnIfNecessary(aggRangeValueQuery.getDeviceSchema(), sql);
-    return executeQueryAndGetStatus(sql, Operation.AGG_RANGE_VALUE_QUERY);
+        modelStrategy.getAggQuerySqlHead(
+            aggRangeValueQuery.getDeviceSchema(), aggRangeValueQuery.getAggFun());
+    builder.append(aggQuerySqlHead);
+    // WHERE
+    modelStrategy.addAggWhereClause(
+        true,
+        true,
+        aggRangeValueQuery.getStartTimestamp(),
+        aggRangeValueQuery.getEndTimestamp(),
+        aggRangeValueQuery.getDeviceSchema(),
+        (int) aggRangeValueQuery.getValueThreshold(),
+        builder);
+    return executeQueryAndGetStatus(builder.toString(), Operation.AGG_RANGE_VALUE_QUERY);
   }
 
   /**
@@ -337,8 +373,10 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    String latestPointSqlHead = getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
-    return executeQueryAndGetStatus(latestPointSqlHead, Operation.LATEST_POINT_QUERY);
+    String latestPointSqlHead =
+        modelStrategy.getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+    String sql = modelStrategy.addGroupByClauseIfNecessary(latestPointSqlHead);
+    return executeQueryAndGetStatus(sql, Operation.LATEST_POINT_QUERY);
   }
 
   /**
@@ -349,15 +387,21 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    String sql =
-        getRangeQuerySql(
-            rangeQuery.getDeviceSchema(),
-            rangeQuery.getStartTimestamp(),
-            rangeQuery.getEndTimestamp());
-    sql =
-        modelStrategy.addDeviceIDColumnIfNecessary(rangeQuery.getDeviceSchema(), sql)
-            + " order by time desc";
-    return executeQueryAndGetStatus(sql, Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
+    builder.append(getSimpleQuerySqlHead(rangeQuery.getDeviceSchema()));
+    // WHERE
+    modelStrategy.addWhereClause(
+        true,
+        false,
+        rangeQuery.getStartTimestamp(),
+        rangeQuery.getEndTimestamp(),
+        rangeQuery.getDeviceSchema(),
+        0,
+        builder);
+    // ORDER BY
+    builder.append(" ORDER BY time desc");
+    return executeQueryAndGetStatus(builder.toString(), Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -368,11 +412,22 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    String sql = getValueRangeQuerySql(valueRangeQuery);
-    sql =
-        modelStrategy.addDeviceIDColumnIfNecessary(valueRangeQuery.getDeviceSchema(), sql)
-            + " order by time desc";
-    return executeQueryAndGetStatus(sql, Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
+    StringBuilder builder = new StringBuilder();
+    // SELECT + FROM
+    builder.append(getSimpleQuerySqlHead(valueRangeQuery.getDeviceSchema()));
+    // WHERE
+    modelStrategy.addWhereClause(
+        true,
+        true,
+        valueRangeQuery.getStartTimestamp(),
+        valueRangeQuery.getEndTimestamp(),
+        valueRangeQuery.getDeviceSchema(),
+        (int) valueRangeQuery.getValueThreshold(),
+        builder);
+    // ORDER BY
+    builder.append(" ORDER BY time desc");
+    return executeQueryAndGetStatus(
+        builder.toString(), Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
   /**
@@ -385,7 +440,6 @@ public class IoTDB implements IDatabase {
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
     String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
-    sql += ORDER_BY_TIME_DESC;
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -404,73 +458,8 @@ public class IoTDB implements IDatabase {
     for (int i = 1; i < querySensors.size(); i++) {
       builder.append(", ").append(querySensors.get(i).getName());
     }
-    return addFromClause(devices, builder);
-  }
-
-  private String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("SELECT ");
-    List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(aggFun).append("(").append(querySensors.get(0).getName()).append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder
-          .append(", ")
-          .append(aggFun)
-          .append("(")
-          .append(querySensors.get(i).getName())
-          .append(")");
-    }
-    return addFromClause(devices, builder);
-  }
-
-  /**
-   * Add from Clause
-   *
-   * @return From clause, e.g. FROM devices
-   */
-  private String addFromClause(List<DeviceSchema> devices, StringBuilder builder) {
-    return modelStrategy.addFromClause(devices, builder);
-  }
-
-  private String getValueRangeQuerySql(ValueRangeQuery valueRangeQuery) {
-    String rangeQuerySql =
-        getRangeQuerySql(
-            valueRangeQuery.getDeviceSchema(),
-            valueRangeQuery.getStartTimestamp(),
-            valueRangeQuery.getEndTimestamp());
-    String valueFilterClause =
-        getValueFilterClause(
-            valueRangeQuery.getDeviceSchema(), (int) valueRangeQuery.getValueThreshold());
-    return rangeQuerySql + valueFilterClause;
-  }
-
-  private String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold) {
-    StringBuilder builder = new StringBuilder();
-    modelStrategy.getValueFilterClause(deviceSchemas, valueThreshold, builder);
+    modelStrategy.addFromClause(devices, builder);
     return builder.toString();
-  }
-
-  private String getLatestPointQuerySql(List<DeviceSchema> devices) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("SELECT last ");
-    List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0).getName());
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i).getName());
-    }
-    String sql = addFromClause(devices, builder);
-    sql = modelStrategy.addWhereValueClauseIfNecessary(devices, sql);
-    return sql;
-  }
-
-  private String getRangeQuerySql(List<DeviceSchema> deviceSchemas, long start, long end) {
-    return addWhereTimeClause(getSimpleQuerySqlHead(deviceSchemas), start, end);
-  }
-
-  public static String addWhereTimeClause(String prefix, long start, long end) {
-    String startTime = start + "";
-    String endTime = end + "";
-    return prefix + " WHERE time >= " + startTime + " AND time <= " + endTime;
   }
 
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
