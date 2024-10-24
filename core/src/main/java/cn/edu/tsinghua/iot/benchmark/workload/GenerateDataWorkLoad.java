@@ -145,10 +145,9 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       int sensorNumber = config.getSENSOR_NUMBER();
       // if the first number in OPERATION_PROPORTION not equals to 0, then write data
       workloadValues = new Object[sensorNumber][config.getWORKLOAD_BUFFER_SIZE()];
-      boolean firstString;
+      int firstStringSensorIndex = -1;
       for (int sensorIndex = 0; sensorIndex < sensorNumber; sensorIndex++) {
         Sensor sensor = config.getSENSORS().get(sensorIndex);
-        firstString = true;
         for (int i = 0; i < config.getWORKLOAD_BUFFER_SIZE(); i++) {
           // This time stamp is only used to generate periodic data. So the timestamp is also
           // periodic
@@ -176,9 +175,11 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
             case TEXT:
             case STRING:
             case BLOB:
+              if (firstStringSensorIndex == -1) {
+                firstStringSensorIndex = sensorIndex;
+              }
               int stringLength = config.getSTRING_LENGTH();
-              if (firstString) {
-                firstString = false;
+              if (sensorIndex == firstStringSensorIndex) {
                 stringLength = config.getFIRST_STRING_LENGTH();
               }
               StringBuffer builder = new StringBuffer(stringLength);
