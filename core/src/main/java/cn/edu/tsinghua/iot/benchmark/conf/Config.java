@@ -352,6 +352,8 @@ public class Config {
 
   private final int OPERATION_PROPORTION_LEN = 12;
   /** The number of sensors involved in each query */
+  private boolean QUERY_ALL = false;
+
   private int QUERY_SENSOR_NUM = 1;
   /** The number of devices involved in each query */
   private int QUERY_DEVICE_NUM = 1;
@@ -1305,6 +1307,14 @@ public class Config {
 
   public int getOPERATION_PROPORTION_LEN() {
     return this.OPERATION_PROPORTION_LEN;
+  }
+
+  public boolean isQUERY_ALL() {
+    return QUERY_ALL;
+  }
+
+  public void setQUERY_ALL(boolean QUERY_ALL) {
+    this.QUERY_ALL = QUERY_ALL;
   }
 
   public int getQUERY_SENSOR_NUM() {

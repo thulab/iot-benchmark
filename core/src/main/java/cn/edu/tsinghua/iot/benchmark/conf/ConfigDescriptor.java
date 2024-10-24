@@ -457,6 +457,8 @@ public class ConfigDescriptor {
             Long.parseLong(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
         config.setOPERATION_PROPORTION(
             properties.getProperty("OPERATION_PROPORTION", config.getOPERATION_PROPORTION()));
+        config.setQUERY_ALL(
+            Boolean.parseBoolean(properties.getProperty("QUERY_ALL", config.isQUERY_ALL() + "")));
         config.setQUERY_SENSOR_NUM(
             Integer.parseInt(
                 properties.getProperty("QUERY_SENSOR_NUM", config.getQUERY_SENSOR_NUM() + "")));

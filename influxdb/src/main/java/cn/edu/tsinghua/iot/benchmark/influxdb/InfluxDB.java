@@ -385,12 +385,15 @@ public class InfluxDB implements IDatabase {
     if (config.isALIGN_BY_DEVICE()) {
       builder.append("device, ");
     }
-    List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0).getName());
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i).getName());
+    if (config.isQUERY_ALL()) {
+      builder.append("* ");
+    } else {
+      List<Sensor> querySensors = devices.get(0).getSensors();
+      builder.append(querySensors.get(0).getName());
+      for (int i = 1; i < querySensors.size(); i++) {
+        builder.append(", ").append(querySensors.get(i).getName());
+      }
     }
-
     builder.append(generateConstrainForDevices(devices));
     return builder.toString();
   }

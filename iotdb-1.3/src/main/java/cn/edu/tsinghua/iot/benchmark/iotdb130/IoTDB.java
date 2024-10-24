@@ -569,10 +569,14 @@ public class IoTDB implements IDatabase {
   protected String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
-    List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0).getName());
-    for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i).getName());
+    if (config.isQUERY_ALL()) {
+      builder.append("* ");
+    } else {
+      List<Sensor> querySensors = devices.get(0).getSensors();
+      builder.append(querySensors.get(0).getName());
+      for (int i = 1; i < querySensors.size(); i++) {
+        builder.append(", ").append(querySensors.get(i).getName());
+      }
     }
     return addFromClause(devices, builder);
   }
