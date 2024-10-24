@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.csv.CSVShutdownHook;
 import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode;
+import cn.edu.tsinghua.iot.benchmark.mode.ServerMode;
 import cn.edu.tsinghua.iot.benchmark.mode.TestWithDefaultPathMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationQueryMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationWriteMode;
@@ -57,6 +58,9 @@ public class App {
         break;
       case GENERATE_DATA:
         baseMode = new GenerateDataMode();
+        break;
+      case SERVER_MODE:
+        baseMode = new ServerMode();
         break;
       case VERIFICATION_WRITE:
         baseMode = new VerificationWriteMode();
