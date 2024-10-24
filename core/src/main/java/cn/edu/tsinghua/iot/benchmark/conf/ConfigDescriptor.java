@@ -194,6 +194,14 @@ public class ConfigDescriptor {
                 "not support timestamp precision: " + config.getTIMESTAMP_PRECISION());
         }
 
+        config.setFIRST_STRING_LENGTH(
+            Integer.parseInt(
+                properties.getProperty(
+                    "FIRST_STRING_LENGTH", config.getFIRST_STRING_LENGTH() + "")));
+        config.setFIRST_STRING_LENGTH(
+            Integer.parseInt(
+                properties.getProperty(
+                    "FIRST_STRING_LENGTH", config.getFIRST_STRING_LENGTH() + "")));
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));

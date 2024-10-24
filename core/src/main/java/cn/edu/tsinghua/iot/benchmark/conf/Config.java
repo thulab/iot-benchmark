@@ -124,6 +124,7 @@ public class Config {
   // 数据
 
   // 数据：格式与编码
+  private int FIRST_STRING_LENGTH = 76;
   /** The length of string */
   private int STRING_LENGTH = 2;
   /** The length of double */
@@ -740,6 +741,14 @@ public class Config {
 
   public void setTIMESTAMP_PRECISION(String TIMESTAMP_PRECISION) {
     this.TIMESTAMP_PRECISION = TIMESTAMP_PRECISION;
+  }
+
+  public int getFIRST_STRING_LENGTH() {
+    return FIRST_STRING_LENGTH;
+  }
+
+  public void setFIRST_STRING_LENGTH(int FIRST_STRING_LENGTH) {
+    this.FIRST_STRING_LENGTH = FIRST_STRING_LENGTH;
   }
 
   public int getSTRING_LENGTH() {
@@ -1724,6 +1733,8 @@ public class Config {
         + "\nTIMESTAMP_PRECISION='"
         + TIMESTAMP_PRECISION
         + '\''
+        + "\nFIRST_STRING_LENGTH="
+        + FIRST_STRING_LENGTH
         + "\nSTRING_LENGTH="
         + STRING_LENGTH
         + "\nDOUBLE_LENGTH="
@@ -1902,6 +1913,7 @@ public class Config {
     if (hasWrite()) {
       configProperties.addProperty(
           "Extern Param", "IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
+      configProperties.addProperty("Extern Param", "FIRST_STRING_LENGTH", this.FIRST_STRING_LENGTH);
       configProperties.addProperty("Extern Param", "STRING_LENGTH", this.STRING_LENGTH);
       configProperties.addProperty("Extern Param", "DOUBLE_LENGTH", this.DOUBLE_LENGTH);
       if (this.IS_OUT_OF_ORDER) {
