@@ -40,8 +40,10 @@ public class MemUsage {
    *
    * @return usage <= 1
    */
-  public float get() {
-    float memUsage = 0.0f;
+  public float[] get() {
+    float[] result = new float[2];
+    result[0] = 0.0f;
+    result[1] = 1.0f;
     Process pro;
     Runtime r = Runtime.getRuntime();
     try {
@@ -54,7 +56,8 @@ public class MemUsage {
         if (temp[0].startsWith("M")) {
           float memTotal = Float.parseFloat(temp[1]);
           float memUsed = Float.parseFloat(temp[2]);
-          memUsage = memUsed / memTotal;
+          result[0] = memUsed;
+          result[1] = memTotal;
         }
       }
       in.close();
@@ -63,7 +66,7 @@ public class MemUsage {
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
     }
-    return memUsage;
+    return result;
   }
 
   /**

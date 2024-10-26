@@ -76,11 +76,12 @@ public class ServerMode extends BaseMode {
           "IoUsage.getInstance().getIOStatistics() consume ,{}, ms",
           System.currentTimeMillis() - start);
       start = System.currentTimeMillis();
-      double memRate = MemUsage.getInstance().get();
+      float[] memUsage = MemUsage.getInstance().get();
+      double memRate = memUsage[0] / memUsage[1];
       LOGGER.debug(
           "MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
       start = System.currentTimeMillis();
-      double proMem = MemUsage.getInstance().getProcessMemUsage();
+      double proMem = memUsage[0];
       LOGGER.debug(
           "MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms",
           System.currentTimeMillis() - start);
@@ -108,12 +109,11 @@ public class ServerMode extends BaseMode {
 
       Map<SystemMetrics, Float> systemMetricsMap = new EnumMap<>(SystemMetrics.class);
       systemMetricsMap.put(SystemMetrics.CPU_USAGE, ioUsageList.get(0));
-      systemMetricsMap.put(SystemMetrics.MEM_USAGE, MemUsage.getInstance().get());
+      systemMetricsMap.put(SystemMetrics.MEM_USAGE, memUsage[0] / memUsage[1]);
       systemMetricsMap.put(SystemMetrics.DISK_IO_USAGE, ioUsageList.get(1));
       systemMetricsMap.put(SystemMetrics.NETWORK_R_RATE, netUsageList.get(0));
       systemMetricsMap.put(SystemMetrics.NETWORK_S_RATE, netUsageList.get(1));
-      systemMetricsMap.put(
-          SystemMetrics.PROCESS_MEM_SIZE, MemUsage.getInstance().getProcessMemUsage());
+      systemMetricsMap.put(SystemMetrics.PROCESS_MEM_SIZE, memUsage[0]);
       systemMetricsMap.put(SystemMetrics.DISK_TPS, ioStatistics.get(IoUsage.IOStatistics.TPS));
       systemMetricsMap.put(
           SystemMetrics.DISK_READ_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_READ));
