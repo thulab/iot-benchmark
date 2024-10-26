@@ -27,7 +27,6 @@ import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence
 import cn.edu.tsinghua.iot.benchmark.mode.syslog.IoUsage;
 import cn.edu.tsinghua.iot.benchmark.mode.syslog.MemUsage;
 import cn.edu.tsinghua.iot.benchmark.mode.syslog.NetUsage;
-import cn.edu.tsinghua.iot.benchmark.mode.syslog.OpenFileStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +41,8 @@ public class ServerMode extends BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ServerMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
+  private static final float KB2GB = 1024 * 1024f;
 
   @Override
   protected boolean preCheck() {
@@ -81,22 +82,21 @@ public class ServerMode extends BaseMode {
       LOGGER.debug(
           "MemUsage.getInstance().get() consume ,{}, ms", System.currentTimeMillis() - start);
       start = System.currentTimeMillis();
-      double proMem = memUsage[0];
+      double proMem = memUsage[0] / KB2GB;
       LOGGER.debug(
           "MemUsage.getInstance().getProcessMemUsage() consume ,{}, ms",
           System.currentTimeMillis() - start);
 
       if (!headerPrinted) {
         LOGGER.info(
-            ",time,date,PID,memory usage(GB),memory ratio(%),cpu ratio(%),disk io usage(%),disk TPS,read rate(MB/s),write rate(MB/s),net receive rate(KB/s),net send rate(KB/s)");
+            ",time,date,memory usage(GB),memory ratio(%),cpu ratio(%),disk io usage(%),disk TPS,read rate(MB/s),write rate(MB/s),net receive rate(KB/s),net send rate(KB/s)");
         headerPrinted = true;
       }
       String time = sdf.format(new Date(start));
       LOGGER.info(
-          ",{},{},{},{},{},{},{},{},{},{},{},{}",
+          ",{},{},{},{},{},{},{},{},{},{},{}",
           start,
           time,
-          OpenFileStatistics.getInstance().getPid(),
           proMem,
           memRate,
           ioUsageList.get(0),
@@ -113,7 +113,7 @@ public class ServerMode extends BaseMode {
       systemMetricsMap.put(SystemMetrics.DISK_IO_USAGE, ioUsageList.get(1));
       systemMetricsMap.put(SystemMetrics.NETWORK_R_RATE, netUsageList.get(0));
       systemMetricsMap.put(SystemMetrics.NETWORK_S_RATE, netUsageList.get(1));
-      systemMetricsMap.put(SystemMetrics.PROCESS_MEM_SIZE, memUsage[0]);
+      systemMetricsMap.put(SystemMetrics.PROCESS_MEM_SIZE, memUsage[0] / KB2GB);
       systemMetricsMap.put(SystemMetrics.DISK_TPS, ioStatistics.get(IoUsage.IOStatistics.TPS));
       systemMetricsMap.put(
           SystemMetrics.DISK_READ_SPEED_MB, ioStatistics.get(IoUsage.IOStatistics.MB_READ));
