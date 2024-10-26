@@ -87,12 +87,13 @@ public class ServerMode extends BaseMode {
 
       if (!headerPrinted) {
         LOGGER.info(
-            ",测量时间,PID,内存使用大小GB,内存使用率,CPU使用率,磁盘IO使用率,磁盘TPS,读速率MB/s,写速率MB/s,网卡接收速率KB/s,网卡发送速率KB/s,data文件大小GB,system文件大小GB,sequence文件大小GB,unsequence文件大小GB,wal文件大小GB");
+            ",time,date,PID,memory usage(GB),memory ratio(%),cpu ratio(%),disk io usage(%),disk TPS,read rate(MB/s),write rate(MB/s),net receive rate(KB/s),net send rate(KB/s)");
         headerPrinted = true;
       }
       String time = sdf.format(new Date(start));
       LOGGER.info(
-          ",{},{},{},{},{},{},{},{},{},{},{}",
+          ",{},{},{},{},{},{},{},{},{},{},{},{}",
+          start,
           time,
           OpenFileStatistics.getInstance().getPid(),
           proMem,
