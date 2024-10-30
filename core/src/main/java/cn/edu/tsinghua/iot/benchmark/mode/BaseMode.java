@@ -121,7 +121,7 @@ public abstract class BaseMode {
   }
 
   void setMiddleMeasureScheduler() {
-    scheduler.schedule(
+    scheduler.scheduleAtFixedRate(
         () -> {
           try {
             List<Operation> operations;
@@ -139,6 +139,7 @@ public abstract class BaseMode {
             LOGGER.error("Exception occurred during print measurement:", e);
           }
         },
+        config.getRESULT_PRINT_INTERVAL(),
         config.getRESULT_PRINT_INTERVAL(),
         TimeUnit.SECONDS);
   }
