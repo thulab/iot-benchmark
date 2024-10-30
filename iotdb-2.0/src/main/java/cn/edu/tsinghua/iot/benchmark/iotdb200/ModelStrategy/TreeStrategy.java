@@ -463,7 +463,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
     try {
       session.executeNonQueryStatement(
           "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
-      session.executeNonQueryStatement("drop schema template " + config.getTEMPLATE_NAME());
+      session.executeNonQueryStatement("drop device template " + config.getTEMPLATE_NAME());
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:{}", e.getMessage());
     } catch (StatementExecutionException e) {
