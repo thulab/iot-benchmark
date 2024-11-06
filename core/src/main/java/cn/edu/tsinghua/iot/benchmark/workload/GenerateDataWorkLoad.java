@@ -181,7 +181,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
               value = builder.toString();
               break;
             case DATE:
-              value = LocalDate.ofEpochDay(number.intValue());
+              value = LocalDate.ofEpochDay(number.shortValue());
               break;
             default:
               throw new UnsupportedOperationException(
