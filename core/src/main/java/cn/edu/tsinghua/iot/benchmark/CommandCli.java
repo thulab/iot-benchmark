@@ -27,12 +27,19 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommandCli {
   private final String HELP_ARGS = "help";
 
   private final String CONFIG_ARGS = "cf";
+
+  private final String CONFIG_FILENAME_ARGS = "fn";
+
   private final String CONFIG_NAME = "config file";
+
+  private final String CONFIGNAME_NAME = "config file name";
 
   private static final int MAX_HELP_CONSOLE_WIDTH = 88;
 
@@ -50,6 +57,14 @@ public class CommandCli {
             .desc("Config file path (optional)")
             .build();
     options.addOption(config);
+
+    Option configFilename =
+        Option.builder(CONFIG_FILENAME_ARGS)
+            .argName(CONFIGNAME_NAME)
+            .hasArg()
+            .desc("Config file name (optional)")
+            .build();
+    options.addOption(configFilename);
 
     return options;
   }
@@ -73,6 +88,11 @@ public class CommandCli {
 
       if (commandLine.hasOption(CONFIG_ARGS)) {
         System.setProperty(Constants.BENCHMARK_CONF, commandLine.getOptionValue(CONFIG_ARGS));
+      }
+
+      if (commandLine.hasOption(CONFIG_FILENAME_ARGS)) {
+        System.setProperty(
+            Constants.BENCHMARK_CONF_FILENAME, commandLine.getOptionValue(CONFIG_FILENAME_ARGS));
       }
 
     } catch (ParseException e) {

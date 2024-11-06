@@ -75,14 +75,17 @@ public class ConfigDescriptor {
 
   /** load properties from config.properties */
   private void loadProps() {
-    String url = System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf");
-    if (url != null) {
-      url += "/config.properties";
+    StringBuilder builder = new StringBuilder();
+    builder.append(System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf"));
+    if (builder.length() != 0) {
+      builder
+          .append("/")
+          .append(System.getProperty(Constants.BENCHMARK_CONF_FILENAME, "config.properties"));
       InputStream inputStream;
       try {
-        inputStream = new FileInputStream(url);
+        inputStream = new FileInputStream(builder.toString());
       } catch (FileNotFoundException e) {
-        LOGGER.warn("Fail to find config file {}", url);
+        LOGGER.warn("Fail to find config file {}", builder);
         return;
       }
       Properties properties = new Properties();

@@ -30,6 +30,7 @@ public class Constants {
 
   public static final String BENCHMARK_HOME = "BENCHMARK_HOME";
   public static final String BENCHMARK_CONF = "benchmark-conf";
+  public static final String BENCHMARK_CONF_FILENAME = "config-file-name";
 
   public static final String MYSQL_DRIVENAME = "com.mysql.jdbc.Driver";
 

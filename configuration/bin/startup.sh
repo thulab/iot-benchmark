@@ -27,6 +27,7 @@ show_help() {
   echo "usage: benchmark.sh [-cf configuration_file] [-heapsize HEAP_SIZE] [-maxheapsize MAX_HEAP_SIZE]"
   echo " -h           Show help."
   echo " -cf          Specify configuration file."
+  echo " -fn          Specify filename of configuration file."
   echo " -heapsize    Specify HEAP_SIZE."
   echo " -maxheapsize Specify MAX_HEAP_SIZE."
   echo "example: ./benchmark.sh -cf conf -heapsize 1G -maxheapsize 2G"
@@ -41,6 +42,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     -cf)
       benchmark_conf="$2"
+      shift
+      shift
+      ;;
+    -fn)
+      config_filename="$2"
       shift
       shift
       ;;
@@ -93,8 +99,17 @@ else
     exit 1
   fi
 fi
-echo Using configuration file: "${benchmark_conf}"
 
+# check $config_filename
+if [ -z "${$config_filename}" ] ; then
+  $config_filename=config.properties
+fi
+if [ ! -e "$benchmark_conf/$config_filename" ]; then
+  echo "The file $config_filename does not exist."
+  exit 1
+fi
+
+echo Using configuration file: "${benchmark_conf}/${config_filename}"
 # set MAIN_CLASS
 MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App
 # set CLASSPATH
@@ -119,6 +134,6 @@ if [ -z $MAX_HEAP_SIZE ] && [ -z "$HEAP_NEWSIZE" ]; then
 fi
 
 # startup
-exec "$JAVA" $benchmark_parms -cp "$CLASSPATH" "$MAIN_CLASS" -cf "$benchmark_conf"
+exec "$JAVA" $benchmark_parms -cp "$CLASSPATH" "$MAIN_CLASS" -cf "$benchmark_conf" -fn "$config_filename"
 
 exit $?

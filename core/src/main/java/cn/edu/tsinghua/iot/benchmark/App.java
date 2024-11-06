@@ -42,7 +42,7 @@ public class App {
         "Initial Heap Size: {} bytes, Max Heap Size: {} bytes. ", initialHeapSize, maxHeapSize);
 
     if (args == null || args.length == 0) {
-      args = new String[] {"-cf", "configuration/conf"};
+      args = new String[] {"-cf", "configuration/conf", "-fn", "config.properties"};
     }
     CommandCli cli = new CommandCli();
     if (!cli.init(args)) {
