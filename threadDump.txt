@@ -1,0 +1,35 @@
+Signal Dispatcher
+
+main
+	java.lang.Thread.dumpThreads(Native Method)
+	java.lang.Thread.getAllStackTraces(Thread.java:1615)
+	cn.edu.tsinghua.iot.benchmark.App.main(App.java:80)
+
+Finalizer
+	java.lang.Object.wait(Native Method)
+	java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:150)
+	java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:171)
+	java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:188)
+
+Reference Handler
+	java.lang.Object.wait(Native Method)
+	java.lang.Object.wait(Object.java:502)
+	java.lang.ref.Reference.tryHandlePending(Reference.java:191)
+	java.lang.ref.Reference$ReferenceHandler.run(Reference.java:153)
+
+Attach Listener
+
+Monitor Ctrl-Break
+	java.net.SocketInputStream.socketRead0(Native Method)
+	java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
+	java.net.SocketInputStream.read(SocketInputStream.java:171)
+	java.net.SocketInputStream.read(SocketInputStream.java:141)
+	sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:284)
+	sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:326)
+	sun.nio.cs.StreamDecoder.read(StreamDecoder.java:178)
+	java.io.InputStreamReader.read(InputStreamReader.java:184)
+	java.io.BufferedReader.fill(BufferedReader.java:161)
+	java.io.BufferedReader.readLine(BufferedReader.java:324)
+	java.io.BufferedReader.readLine(BufferedReader.java:389)
+	com.intellij.rt.execution.application.AppMainV2$1.run(AppMainV2.java:54)
+
