@@ -22,12 +22,12 @@ package cn.edu.tsinghua.iot.benchmark.measurement.persistence;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class TestDataPersistence {
 
@@ -35,29 +35,7 @@ public abstract class TestDataPersistence {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected ExecutorService service =
       Executors.newFixedThreadPool(
-          config.getTEST_DATA_MAX_CONNECTION(),
-          new ThreadFactory() {
-            private final AtomicInteger threadNumber = new AtomicInteger(1);
-            private final ThreadGroup group;
-            private final String namePrefix;
-
-            {
-              SecurityManager s = System.getSecurityManager();
-              group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-              namePrefix = "ResultPersistence-thread-";
-            }
-
-            public Thread newThread(Runnable r) {
-              Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-              if (!t.isDaemon()) {
-                t.setDaemon(true); // 设置为守护线程
-              }
-              if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-              }
-              return t;
-            }
-          });
+          config.getTEST_DATA_MAX_CONNECTION(), new NamedThreadFactory("SchemaClient", true));
 
   /**
    * Store system resources metrics data
