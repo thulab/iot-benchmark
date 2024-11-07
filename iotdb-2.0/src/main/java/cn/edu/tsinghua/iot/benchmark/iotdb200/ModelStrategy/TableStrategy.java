@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -94,7 +95,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   private void registerTable(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
       throws TsdbException {
     try {
-      HashMap<String, String> tables = new HashMap<>();
+      HashMap<String, List<String>> tables = new HashMap<>();
       for (TimeseriesSchema timeseriesSchema : timeseriesSchemas) {
         DeviceSchema deviceSchema = timeseriesSchema.getDeviceSchema();
         StringBuilder builder = new StringBuilder();
@@ -124,12 +125,17 @@ public class TableStrategy extends IoTDBModelStrategy {
               .append(Tablet.ColumnType.ID);
         }
         builder.append(")");
-        tables.put(dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), builder.toString());
+        tables
+            .computeIfAbsent(
+                dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), k -> new ArrayList<>())
+            .add(builder.toString());
       }
 
-      for (Map.Entry<String, String> database : tables.entrySet()) {
+      for (Map.Entry<String, List<String>> database : tables.entrySet()) {
         metaSession.executeNonQueryStatement("use " + database.getKey());
-        metaSession.executeNonQueryStatement(database.getValue());
+        for (String table : database.getValue()) {
+          metaSession.executeNonQueryStatement(table);
+        }
       }
     } catch (Exception e) {
       handleRegisterException(e);
