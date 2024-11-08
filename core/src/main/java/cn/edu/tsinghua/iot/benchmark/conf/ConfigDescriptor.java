@@ -80,12 +80,12 @@ public class ConfigDescriptor {
     if (builder.length() != 0) {
       builder
           .append("/")
-          .append(System.getProperty(Constants.BENCHMARK_CONF_FILENAME, "config.properties"));
+          .append("config.properties");
       InputStream inputStream;
       try {
         inputStream = new FileInputStream(builder.toString());
       } catch (FileNotFoundException e) {
-        LOGGER.warn("Fail to find config file {}", builder);
+        LOGGER.warn("Fail to find config file {}", builder.toString());
         return;
       }
       Properties properties = new Properties();
