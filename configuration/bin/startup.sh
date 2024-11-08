@@ -101,8 +101,8 @@ else
 fi
 
 # check $config_filename
-if [ -z "${$config_filename}" ] ; then
-  $config_filename=config.properties
+if [ -z "${config_filename}" ] ; then
+  config_filename=config.properties
 fi
 if [ ! -e "$benchmark_conf/$config_filename" ]; then
   echo "The file $config_filename does not exist."
