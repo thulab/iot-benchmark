@@ -78,9 +78,7 @@ public class ConfigDescriptor {
     StringBuilder builder = new StringBuilder();
     builder.append(System.getProperty(Constants.BENCHMARK_CONF, "configuration/conf"));
     if (builder.length() != 0) {
-      builder
-          .append("/")
-          .append("config.properties");
+      builder.append("/").append("config.properties");
       InputStream inputStream;
       try {
         inputStream = new FileInputStream(builder.toString());
