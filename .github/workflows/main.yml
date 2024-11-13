@@ -95,13 +95,29 @@ jobs:
           distribution: 'zulu'
           java-version: ${{ matrix.java_version }}
       # checkout iot-benchmark
-      - name: checkout iot-benchmark
+      - name: Checkout iot-benchmark
         uses: actions/checkout@v4
         with:
           path: iot-benchmark
           repository: 'thulab/iot-benchmark'
           ref: 'master'
           fetch-depth: 0
+      # checkout iotdb
+      - name: Checkout iotdb
+        uses: actions/checkout@v4
+        if: ${{ matrix.release_db == 'iotdb-2.0' }}
+        with:
+          path: iotdb
+          repository: 'apache/iotdb'
+          ref: 'master'
+          fetch-depth: 0
+      # compile iotdb
+      - name: Compile iotdb
+        if: ${{ matrix.release_db == 'iotdb-2.0' }}
+        run: |
+          cd ${{ github.workspace }}/iotdb
+          mvn clean
+          mvn install -DskipTests -am -pl iotdb-client/session
       # compile benchmark
       - name: Build benchmark binaries
         id: compile-benchmark
