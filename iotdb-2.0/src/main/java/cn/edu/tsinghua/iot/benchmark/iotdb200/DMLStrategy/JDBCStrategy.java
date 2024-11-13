@@ -68,7 +68,10 @@ public class JDBCStrategy extends DMLStrategy {
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
-                batch.getDeviceSchema(), record.getTimestamp(), record.getRecordDataValue(), devicePath);
+                batch.getDeviceSchema(),
+                record.getTimestamp(),
+                record.getRecordDataValue(),
+                devicePath);
         statement.addBatch(sql);
       }
       statement.executeBatch();
