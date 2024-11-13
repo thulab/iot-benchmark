@@ -68,7 +68,7 @@ public class JDBCStrategy extends DMLStrategy {
       for (Record record : batch.getRecords()) {
         String sql =
             getInsertOneBatchSql(
-                batch.getDeviceSchema(), record.getTimestamp(), record.getRecordDataValue());
+                batch.getDeviceSchema(), record.getTimestamp(), record.getRecordDataValue(), devicePath);
         statement.addBatch(sql);
       }
       statement.executeBatch();
@@ -232,9 +232,9 @@ public class JDBCStrategy extends DMLStrategy {
   }
 
   private String getInsertOneBatchSql(
-      DeviceSchema deviceSchema, long timestamp, List<Object> values) {
+      DeviceSchema deviceSchema, long timestamp, List<Object> values, String devicePath) {
     StringBuilder builder = new StringBuilder("insert into ");
-    builder.append(deviceSchema.getDevicePath()).append("(timestamp");
+    builder.append(devicePath).append("(timestamp");
     for (Sensor sensor : deviceSchema.getSensors()) {
       builder.append(",").append(sensor.getName());
     }
