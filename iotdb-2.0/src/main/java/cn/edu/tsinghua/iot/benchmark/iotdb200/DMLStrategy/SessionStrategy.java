@@ -495,10 +495,11 @@ public class SessionStrategy extends DMLStrategy {
       if (session != null) {
         session.close();
       }
-      service.shutdown();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
       LOGGER.error("Failed to close session.");
       throw new TsdbException(ioTDBConnectionException);
+    } finally {
+      service.shutdown();
     }
   }
 }

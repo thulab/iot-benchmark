@@ -8,9 +8,16 @@ public class NamedThreadFactory implements ThreadFactory {
   private final String poolName;
   private final AtomicInteger count = new AtomicInteger(1);
   private final ThreadFactory threadFactory;
+  private Boolean daemon = false;
 
   public NamedThreadFactory(String name) {
     this.poolName = name;
+    this.threadFactory = Executors.defaultThreadFactory();
+  }
+
+  public NamedThreadFactory(String name, Boolean daemon) {
+    this.poolName = name;
+    this.daemon = daemon;
     this.threadFactory = Executors.defaultThreadFactory();
   }
 
@@ -22,6 +29,7 @@ public class NamedThreadFactory implements ThreadFactory {
   public Thread newThread(Runnable r) {
     Thread thread = threadFactory.newThread(r);
     thread.setName(getThreadName());
+    thread.setDaemon(daemon);
     return thread;
   }
 }
