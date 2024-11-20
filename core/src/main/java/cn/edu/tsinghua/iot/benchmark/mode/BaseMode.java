@@ -66,6 +66,7 @@ public abstract class BaseMode {
   protected List<DataClient> dataClients = new ArrayList<>();
   protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement baseModeMeasurement = new Measurement();
+  public static volatile boolean flag = true;
   protected long startTime = 0;
 
   protected abstract boolean preCheck();
@@ -184,6 +185,10 @@ public abstract class BaseMode {
     try {
       // wait for all dataClients finish test
       schemaDownLatch.await();
+      if (!flag) {
+        LOGGER.error("Registering schema failed!");
+        return false;
+      }
       schemaClients.stream()
           .map(SchemaClient::getMeasurement)
           .forEach(baseModeMeasurement::mergeCreateSchemaFinishTime);

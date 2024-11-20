@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -88,7 +89,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
         Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
         registerTemplate(templateSession, template);
       }
-      templateBarrier.await();
+      templateBarrier.await(5, TimeUnit.SECONDS);
       for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
         registerDatabases(pair.getKey(), pair.getValue());
       }
