@@ -218,11 +218,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     while (queryDevices.size() < Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < deviceQueryMaxCount) {
       // get a device belong to [first_device_index, first_device_index + device_number)
-      if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-        deviceId = devices.get(queryDeviceRandom.nextInt(devices.size()));
-      } else {
-        deviceId = queryDeviceRandom.nextInt(config.getQUERY_DEVICE_NUM());
-      }
+      deviceId = devices.get(queryDeviceRandom.nextInt(devices.size()));
       deviceId = deviceId + config.getFIRST_DEVICE_INDEX();
       // avoid duplicate
       if (!queryDeviceIds.contains(deviceId)) {
