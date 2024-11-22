@@ -218,7 +218,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     while (queryDevices.size() < Math.min(deviceQueryMaxCount, config.getQUERY_DEVICE_NUM())
         && queryDeviceIds.size() < deviceQueryMaxCount) {
       // get a device belong to [first_device_index, first_device_index + device_number)
-      deviceId = devices.get(queryDeviceRandom.nextInt(devices.size())) + config.getFIRST_DEVICE_INDEX();
+      deviceId =
+          devices.get(queryDeviceRandom.nextInt(devices.size())) + config.getFIRST_DEVICE_INDEX();
       // avoid duplicate
       if (!queryDeviceIds.contains(deviceId)) {
         queryDeviceIds.add(deviceId);
