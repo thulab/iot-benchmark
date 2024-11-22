@@ -93,7 +93,7 @@ public class SchemaClient implements Runnable {
         } catch (TsdbException e) {
           LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
           result = false;
-          BaseMode.flag = false;
+          BaseMode.stopAllSchemaClient = false;
         }
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
