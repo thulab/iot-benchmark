@@ -186,9 +186,7 @@ public class TableStrategy extends IoTDBModelStrategy {
             ? "time, "
             : "";
     for (int i = 0; i < querySensors.size(); i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
+      builder.append(", ");
       builder
           .append(aggFun)
           .append("(")
