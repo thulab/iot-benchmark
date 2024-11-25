@@ -225,6 +225,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
     String timeArg = getTimeArg(aggFun);
 
     for (int i = 0; i < querySensors.size(); i++) {
+      // The builder only concatenates "SELECT ". Except for the first loop, each subsequent loop
+      // must concatenate a ", ".
       if (i > 0) {
         builder.append(", ");
       }

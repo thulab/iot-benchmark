@@ -180,6 +180,8 @@ public class TableStrategy extends IoTDBModelStrategy {
     List<Sensor> querySensors = devices.get(0).getSensors();
     String timeArg = getTimeArg(aggFun);
     for (int i = 0; i < querySensors.size(); i++) {
+      // The builder has already concatenated "SELECT device_id", so each subsequent loop needs to
+      // concatenate one", ".
       builder.append(", ");
       builder
           .append(aggFun)
