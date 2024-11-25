@@ -490,4 +490,15 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public Logger getLogger() {
     return LOGGER;
   }
+
+  @Override
+  protected String getTimeArg(String aggFunction) {
+    switch (aggFunction) {
+      case Constants.MAX_BY:
+      case Constants.MIN_BY:
+        return "time, ";
+      default:
+        return "";
+    }
+  }
 }
