@@ -224,10 +224,13 @@ public class IoTDBSessionBase extends IoTDB {
                   } else {
                     SessionDataSet.DataIterator iterator = sessionDataSet.iterator();
                     while (iterator.next()) {
-                      line.getAndIncrement();
+                      if (Operation.GROUP_BY_QUERY.equals(operation)) {
+                        line.getAndAdd(iterator.getInt(2));
+                      } else {
+                        line.getAndIncrement();
+                      }
                     }
                   }
-
                   sessionDataSet.close();
                 } catch (StatementExecutionException | IoTDBConnectionException e) {
                   LOGGER.error("exception occurred when execute query={}", executeSQL, e);
