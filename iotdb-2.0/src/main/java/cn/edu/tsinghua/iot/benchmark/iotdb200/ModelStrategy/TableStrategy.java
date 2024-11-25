@@ -208,7 +208,7 @@ public class TableStrategy extends IoTDBModelStrategy {
    * <p>getAggForGroupByQuery
    */
   @Override
-  public String getGroupByQuerySQL(GroupByQuery groupByQuery, Boolean addOrderBy) {
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery, boolean addOrderBy) {
     StringBuilder builder = new StringBuilder();
     // SELECT
     builder

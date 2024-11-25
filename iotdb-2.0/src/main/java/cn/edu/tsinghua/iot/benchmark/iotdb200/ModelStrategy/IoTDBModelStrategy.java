@@ -68,7 +68,7 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun);
 
-  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery, Boolean addOrderBy);
+  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery, boolean addOrderBy);
 
   public abstract String getLatestPointQuerySql(List<DeviceSchema> devices);
 

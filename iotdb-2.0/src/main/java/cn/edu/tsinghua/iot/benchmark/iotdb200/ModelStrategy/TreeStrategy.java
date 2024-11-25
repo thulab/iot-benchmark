@@ -254,7 +254,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String getGroupByQuerySQL(GroupByQuery groupByQuery, Boolean addOrderBy) {
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery, boolean addOrderBy) {
     StringBuilder builder = new StringBuilder();
     // SELECT
     builder
