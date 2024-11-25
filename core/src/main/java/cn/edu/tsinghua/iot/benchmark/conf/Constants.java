@@ -91,4 +91,22 @@ public class Constants {
   public static final String PI_ARCHIVE_CLASS = "cn.edu.tsinghua.iot.benchmark.piarchive.PIArchive";
   public static final String IGINX_CLASS = "cn.edu.tsinghua.iot.benchmark.iginx.IginX";
   public static final String SELF_CHECK_CLASS = "cn.edu.tsinghua.iot.benchmark.tsdb.self.SelfCheck";
+
+  public static final String MAX_TIME = "max_time";
+  public static final String MIN_TIME = "min_time";
+  public static final String TIME_DURATION = "time_duration";
+  public static final String MAX_VALUE = "max_value";
+  public static final String MIN_VALUE = "min_value";
+  public static final String FIRST_VALUE = "first_value";
+  public static final String LAST_VALUE = "last_value";
+
+  public static final String LAST_BY = "last_by";
+  public static final String FIRST_BY = "first_by";
+  public static final String MAX_AGG = "max";
+  public static final String MIN_AGG = "min";
+  public static final String LAST = "last";
+  public static final String FIRST = "first";
+  public static final String COUNT = "count";
+  public static final String MAX_BY = "max_by";
+  public static final String MIN_BY = "min_by";
 }

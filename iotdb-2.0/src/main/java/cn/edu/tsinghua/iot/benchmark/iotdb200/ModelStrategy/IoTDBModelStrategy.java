@@ -67,11 +67,13 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun);
 
-  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery);
+  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery, boolean addOrderBy);
 
   public abstract String getLatestPointQuerySql(List<DeviceSchema> devices);
 
   public abstract void addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+
+  public abstract void addOrderByTimeDesc(StringBuilder builder);
 
   public abstract void addPreciseQueryWhereClause(
       String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder);
@@ -162,19 +164,34 @@ public abstract class IoTDBModelStrategy {
 
   public abstract Logger getLogger();
 
+  /**
+   * </> DESC
+   *
+   * <p>Table model The builder has already concatenated "SELECT device_id, date_bin(20000ms, time),
+   * ".
+   *
+   * <p>Tree model The builder has already concatenated "SELECT ".
+   *
+   * <p>Therefore, the first loop does not need ", "
+   */
   protected String getAggFunForGroupByQuery(List<Sensor> querySensors, String aggFunction) {
     StringBuilder builder = new StringBuilder();
-    builder.append(aggFunction).append("(").append(querySensors.get(0).getName()).append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
+    String timeArg = getTimeArg(aggFunction);
+    for (int i = 0; i < querySensors.size(); i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
       builder
-          .append(", ")
           .append(aggFunction)
           .append("(")
+          .append(timeArg)
           .append(querySensors.get(i).getName())
           .append(")");
     }
     return builder.toString();
   }
+
+  protected abstract String getTimeArg(String aggFunction);
 
   protected String getTimeWhereClause(long start, long end) {
     StringBuilder builder = new StringBuilder();

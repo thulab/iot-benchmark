@@ -456,8 +456,8 @@ public class ConfigDescriptor {
         config.setQUERY_DEVICE_NUM(
             Integer.parseInt(
                 properties.getProperty("QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM() + "")));
-        config.setQUERY_AGGREGATE_FUN(
-            properties.getProperty("QUERY_AGGREGATE_FUN", config.getQUERY_AGGREGATE_FUN()));
+
+        loadAndConvertAggregateFunction(properties);
 
         config.setQUERY_INTERVAL(
             Long.parseLong(
@@ -553,6 +553,38 @@ public class ConfigDescriptor {
     }
   }
 
+  /** for table model */
+  private void loadAndConvertAggregateFunction(Properties properties) {
+    String aggFun = properties.getProperty("QUERY_AGGREGATE_FUN", config.getQUERY_AGGREGATE_FUN());
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+      switch (aggFun) {
+        case Constants.MAX_TIME:
+          config.setQUERY_AGGREGATE_FUN(Constants.LAST_BY);
+          break;
+        case Constants.MIN_TIME:
+          config.setQUERY_AGGREGATE_FUN(Constants.FIRST_BY);
+          break;
+        case Constants.MAX_VALUE:
+          config.setQUERY_AGGREGATE_FUN(Constants.MAX_AGG);
+          break;
+        case Constants.MIN_VALUE:
+          config.setQUERY_AGGREGATE_FUN(Constants.MIN_AGG);
+          break;
+        case Constants.FIRST_VALUE:
+          config.setQUERY_AGGREGATE_FUN(Constants.FIRST);
+          break;
+        case Constants.LAST_VALUE:
+          config.setQUERY_AGGREGATE_FUN(Constants.LAST);
+          break;
+        case Constants.TIME_DURATION:
+          config.setQUERY_AGGREGATE_FUN(Constants.TIME_DURATION);
+          break;
+      }
+    } else {
+      config.setQUERY_AGGREGATE_FUN(aggFun);
+    }
+  }
+
   /** Check validation of config */
   private boolean checkConfig() {
     boolean result = true;
@@ -632,6 +664,18 @@ public class ConfigDescriptor {
         && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
+      result = false;
+    }
+    // TODO Not supported TIME_DURATION、MAX_BY、MIN_BY. iotdb will report errors for these three
+    // types of aggFun.
+    if (config.getQUERY_AGGREGATE_FUN().equals(Constants.MAX_BY)
+        || config.getQUERY_AGGREGATE_FUN().equals(Constants.MIN_BY)) {
+      LOGGER.error("MAX_BY or MIN_BY not yet supported !");
+      result = false;
+    }
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getQUERY_AGGREGATE_FUN().equals(Constants.TIME_DURATION)) {
+      LOGGER.error("TIME_DURATION not yet supported !");
       result = false;
     }
     result &= checkInsertDataTypeProportion();
