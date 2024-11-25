@@ -165,7 +165,10 @@ public abstract class IoTDBModelStrategy {
   public abstract Logger getLogger();
 
   /**
-   * Table model The builder has already concatenated "SELECT device_id, date_bin(20000ms, time), ".
+   * </> DESC
+   *
+   * <p>Table model The builder has already concatenated "SELECT device_id, date_bin(20000ms, time),
+   * ".
    *
    * <p>Tree model The builder has already concatenated "SELECT ".
    *
@@ -175,7 +178,6 @@ public abstract class IoTDBModelStrategy {
     StringBuilder builder = new StringBuilder();
     String timeArg = getTimeArg(aggFunction);
     for (int i = 0; i < querySensors.size(); i++) {
-      //
       if (i > 0) {
         builder.append(", ");
       }
