@@ -19,7 +19,6 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy;
 
-import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -33,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
+import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
