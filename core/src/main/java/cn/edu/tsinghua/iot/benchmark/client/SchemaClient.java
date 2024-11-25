@@ -89,7 +89,7 @@ public class SchemaClient implements Callable<Boolean> {
 
         // register
         try {
-          // When the return value is non-empty, the registerSchema is successful.
+          // When the return value is not null, the registerSchema is successful.
           result = (null != dbWrapper.registerSchema(deviceSchemas));
         } catch (TsdbException e) {
           LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
