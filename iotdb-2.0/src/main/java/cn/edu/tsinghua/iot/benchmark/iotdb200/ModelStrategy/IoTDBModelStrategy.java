@@ -25,6 +25,7 @@ import org.apache.iotdb.session.Session;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -67,11 +68,13 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun);
 
-  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery);
+  public abstract String getGroupByQuerySQL(GroupByQuery groupByQuery, Boolean addOrderBy);
 
   public abstract String getLatestPointQuerySql(List<DeviceSchema> devices);
 
   public abstract void addFromClause(List<DeviceSchema> devices, StringBuilder builder);
+
+  public abstract void addOrderByTimeDesc(StringBuilder builder);
 
   public abstract void addPreciseQueryWhereClause(
       String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder);
@@ -164,12 +167,18 @@ public abstract class IoTDBModelStrategy {
 
   protected String getAggFunForGroupByQuery(List<Sensor> querySensors, String aggFunction) {
     StringBuilder builder = new StringBuilder();
-    builder.append(aggFunction).append("(").append(querySensors.get(0).getName()).append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
+    String timeArg =
+        (Constants.LAST_BY.equals(aggFunction) || Constants.FIRST_BY.equals(aggFunction))
+            ? "time, "
+            : "";
+    for (int i = 0; i < querySensors.size(); i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
       builder
-          .append(", ")
           .append(aggFunction)
           .append("(")
+          .append(timeArg)
           .append(querySensors.get(i).getName())
           .append(")");
     }

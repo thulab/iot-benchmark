@@ -24,6 +24,7 @@ import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 
+import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -168,15 +169,30 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
+  public void addOrderByTimeDesc(StringBuilder builder) {
+    builder.append(" ORDER BY device_id, time desc");
+  }
+
+  @Override
   public String getAggQuerySqlHead(List<DeviceSchema> devices, String aggFun) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT device_id");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    for (int i = 1; i < querySensors.size(); i++) {
+    String timeArg =
+        (Constants.FIRST_BY.equals(aggFun)
+                || Constants.LAST_BY.equals(aggFun)
+                || Constants.MAX_BY.equals(aggFun)
+                || Constants.MIN_BY.equals(aggFun))
+            ? "time, "
+            : "";
+    for (int i = 0; i < querySensors.size(); i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
       builder
-          .append(", ")
           .append(aggFun)
           .append("(")
+          .append(timeArg)
           .append(querySensors.get(i).getName())
           .append(")");
     }
@@ -192,7 +208,7 @@ public class TableStrategy extends IoTDBModelStrategy {
    * <p>getAggForGroupByQuery
    */
   @Override
-  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery, Boolean addOrderBy) {
     StringBuilder builder = new StringBuilder();
     // SELECT
     builder
@@ -219,10 +235,12 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append(groupByQuery.getGranularity())
         .append("ms, time)");
     // ORDER BY
-    builder
-        .append(" order by device_id, date_bin(")
-        .append(groupByQuery.getGranularity())
-        .append("ms, time) desc");
+    if (addOrderBy) {
+      builder
+          .append(" order by device_id, date_bin(")
+          .append(groupByQuery.getGranularity())
+          .append("ms, time) desc");
+    }
     return builder.toString();
   }
 

@@ -362,7 +362,7 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
+    String sql = modelStrategy.getGroupByQuerySQL(groupByQuery, false);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
@@ -400,7 +400,7 @@ public class IoTDB implements IDatabase {
         0,
         builder);
     // ORDER BY
-    builder.append(" ORDER BY time desc");
+    modelStrategy.addOrderByTimeDesc(builder);
     return executeQueryAndGetStatus(builder.toString(), Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -425,7 +425,7 @@ public class IoTDB implements IDatabase {
         (int) valueRangeQuery.getValueThreshold(),
         builder);
     // ORDER BY
-    builder.append(" ORDER BY time desc");
+    modelStrategy.addOrderByTimeDesc(builder);
     return executeQueryAndGetStatus(
         builder.toString(), Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
@@ -439,7 +439,7 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
-    String sql = modelStrategy.getGroupByQuerySQL(groupByQuery);
+    String sql = modelStrategy.getGroupByQuerySQL(groupByQuery, true);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 

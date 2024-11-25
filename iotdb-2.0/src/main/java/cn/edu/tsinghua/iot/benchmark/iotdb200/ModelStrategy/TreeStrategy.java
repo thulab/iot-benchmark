@@ -25,6 +25,7 @@ import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
 
+import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
@@ -221,12 +222,17 @@ public class TreeStrategy extends IoTDBModelStrategy {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(aggFun).append("(").append(querySensors.get(0).getName()).append(")");
-    for (int i = 1; i < querySensors.size(); i++) {
+    String timeArg =
+        (Constants.MAX_BY.equals(aggFun) || Constants.MIN_BY.equals(aggFun)) ? "time, " : "";
+
+    for (int i = 0; i < querySensors.size(); i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
       builder
-          .append(", ")
           .append(aggFun)
           .append("(")
+          .append(timeArg)
           .append(querySensors.get(i).getName())
           .append(")");
     }
@@ -243,7 +249,12 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public String getGroupByQuerySQL(GroupByQuery groupByQuery) {
+  public void addOrderByTimeDesc(StringBuilder builder) {
+    builder.append(" ORDER BY time desc");
+  }
+
+  @Override
+  public String getGroupByQuerySQL(GroupByQuery groupByQuery, Boolean addOrderBy) {
     StringBuilder builder = new StringBuilder();
     // SELECT
     builder
@@ -260,7 +271,9 @@ public class TreeStrategy extends IoTDBModelStrategy {
         groupByQuery.getEndTimestamp(),
         groupByQuery.getGranularity());
     // ORDER BY
-    builder.append(" ORDER BY time desc");
+    if (addOrderBy) {
+      builder.append(" ORDER BY time desc");
+    }
     return builder.toString();
   }
 
