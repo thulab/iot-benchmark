@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -105,7 +106,17 @@ public class TreeStrategy extends IoTDBModelStrategy {
           registerTimeSeries(pair.getKey(), pair.getValue());
         }
       }
+    } catch (BrokenBarrierException exception) {
+      LOGGER.error("Barrier was broken", exception);
+      throw new TsdbException(exception);
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      LOGGER.warn("Thread was interrupted", exception);
+      throw new TsdbException(exception);
     } catch (Exception e) {
+      templateBarrier.reset();
+      schemaBarrier.reset();
+      activateTemplateBarrier.reset();
       throw new TsdbException(e);
     }
   }

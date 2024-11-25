@@ -38,8 +38,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -176,19 +178,31 @@ public abstract class BaseMode {
       SchemaClient schemaClient = new SchemaClient(i, schemaDownLatch, schemaBarrier);
       schemaClients.add(schemaClient);
     }
+    List<Future<Boolean>> futures = new ArrayList<>();
     for (SchemaClient schemaClient : schemaClients) {
-      schemaExecutorService.submit(schemaClient);
+      Future<Boolean> future = schemaExecutorService.submit(schemaClient);
+      futures.add(future);
     }
     startTime = System.nanoTime();
     schemaExecutorService.shutdown();
     try {
       // wait for all dataClients finish test
       schemaDownLatch.await();
+      for (Future<Boolean> future : futures) {
+        Boolean result = future.get();
+        if (!result) {
+          LOGGER.error("Registering schema failed!");
+          return false;
+        }
+      }
       schemaClients.stream()
           .map(SchemaClient::getMeasurement)
           .forEach(baseModeMeasurement::mergeCreateSchemaFinishTime);
     } catch (InterruptedException e) {
       LOGGER.error("Exception occurred during waiting for all threads finish.", e);
+      Thread.currentThread().interrupt();
+    } catch (ExecutionException e) {
+      LOGGER.error("Exception occurred during getting result of tasks.", e);
       Thread.currentThread().interrupt();
     }
     LOGGER.info("Registering schema successful!");

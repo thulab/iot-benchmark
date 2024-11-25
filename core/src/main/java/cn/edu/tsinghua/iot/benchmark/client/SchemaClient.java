@@ -32,10 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
-public class SchemaClient implements Runnable {
+public class SchemaClient implements Callable<Boolean> {
   private static final Logger LOGGER = LoggerFactory.getLogger(SchemaClient.class);
 
   protected static Config config = ConfigDescriptor.getInstance().getConfig();
@@ -77,7 +78,7 @@ public class SchemaClient implements Runnable {
   }
 
   @Override
-  public void run() {
+  public Boolean call() {
     try {
       try {
         if (dbWrapper != null) {
@@ -88,7 +89,8 @@ public class SchemaClient implements Runnable {
 
         // register
         try {
-          result = (null == dbWrapper.registerSchema(deviceSchemas));
+          // When the return value is not null, the registerSchema is successful.
+          result = (null != dbWrapper.registerSchema(deviceSchemas));
         } catch (TsdbException e) {
           LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
           result = false;
@@ -106,6 +108,7 @@ public class SchemaClient implements Runnable {
       }
     } finally {
       countDownLatch.countDown();
+      return result;
     }
   }
 
