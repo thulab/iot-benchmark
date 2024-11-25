@@ -22,7 +22,6 @@ package cn.edu.tsinghua.iot.benchmark.client;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
-import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -93,7 +92,6 @@ public class SchemaClient implements Runnable {
         } catch (TsdbException e) {
           LOGGER.error("Register {} schema failed because ", config.getNET_DEVICE(), e);
           result = false;
-          BaseMode.stopAllSchemaClient = false;
         }
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);

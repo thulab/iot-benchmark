@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy;
 
+import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
@@ -53,8 +54,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -80,32 +81,58 @@ public class TreeStrategy extends IoTDBModelStrategy {
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
-      if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
-        Template template = null;
-        if (config.isTEMPLATE() && !schemaList.isEmpty()) {
-          template = createTemplate(schemaList.get(0));
+      try {
+        if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
+          Template template = null;
+          if (config.isTEMPLATE() && !schemaList.isEmpty()) {
+            template = createTemplate(schemaList.get(0));
+          }
+          int sessionIndex = random.nextInt(sessionListMap.size());
+          Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+          registerTemplate(templateSession, template);
         }
-        int sessionIndex = random.nextInt(sessionListMap.size());
-        Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
-        registerTemplate(templateSession, template);
+      } finally {
+        templateBarrier.await();
+        if (BaseMode.isStopAllSchemaClient()) {
+          return;
+        }
       }
-      templateBarrier.await(5, TimeUnit.SECONDS);
-      for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-        registerDatabases(pair.getKey(), pair.getValue());
+      try {
+        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+          registerDatabases(pair.getKey(), pair.getValue());
+        }
+      } finally {
+        schemaBarrier.await();
+        if (BaseMode.isStopAllSchemaClient()) {
+          return;
+        }
       }
-      schemaBarrier.await();
       if (config.isTEMPLATE()) {
         for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
           activateTemplate(pair.getKey(), pair.getValue());
         }
         activateTemplateBarrier.await();
+        if (BaseMode.isStopAllSchemaClient()) {
+          return;
+        }
       }
       if (!config.isTEMPLATE()) {
         for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
           registerTimeSeries(pair.getKey(), pair.getValue());
         }
       }
+    } catch (BrokenBarrierException exception) {
+      LOGGER.error("Barrier was broken", exception);
+      BaseMode.setStopAllSchemaClient(true);
+      templateBarrier.reset();
+      throw new TsdbException(exception);
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      LOGGER.warn("Thread was interrupted", exception);
+      BaseMode.setStopAllSchemaClient(true);
+      throw new TsdbException(exception);
     } catch (Exception e) {
+      BaseMode.setStopAllSchemaClient(true);
       throw new TsdbException(e);
     }
   }
