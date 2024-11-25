@@ -178,13 +178,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT device_id");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    String timeArg =
-        (Constants.FIRST_BY.equals(aggFun)
-                || Constants.LAST_BY.equals(aggFun)
-                || Constants.MAX_BY.equals(aggFun)
-                || Constants.MIN_BY.equals(aggFun))
-            ? "time, "
-            : "";
+    String timeArg = getTimeArg(aggFun);
     for (int i = 0; i < querySensors.size(); i++) {
       builder.append(", ");
       builder

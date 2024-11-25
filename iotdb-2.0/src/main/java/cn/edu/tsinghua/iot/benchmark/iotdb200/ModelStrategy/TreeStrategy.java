@@ -222,8 +222,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
-    String timeArg =
-        (Constants.MAX_BY.equals(aggFun) || Constants.MIN_BY.equals(aggFun)) ? "time, " : "";
+    String timeArg = getTimeArg(aggFun);
 
     for (int i = 0; i < querySensors.size(); i++) {
       if (i > 0) {
