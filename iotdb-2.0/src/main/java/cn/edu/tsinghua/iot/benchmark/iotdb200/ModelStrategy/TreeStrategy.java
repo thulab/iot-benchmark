@@ -81,40 +81,25 @@ public class TreeStrategy extends IoTDBModelStrategy {
       Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
-      try {
-        if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
-          Template template = null;
-          if (config.isTEMPLATE() && !schemaList.isEmpty()) {
-            template = createTemplate(schemaList.get(0));
-          }
-          int sessionIndex = random.nextInt(sessionListMap.size());
-          Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
-          registerTemplate(templateSession, template);
+      if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
+        Template template = null;
+        if (config.isTEMPLATE() && !schemaList.isEmpty()) {
+          template = createTemplate(schemaList.get(0));
         }
-      } finally {
-        templateBarrier.await();
-        if (BaseMode.isStopAllSchemaClient()) {
-          return;
-        }
+        int sessionIndex = random.nextInt(sessionListMap.size());
+        Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+        registerTemplate(templateSession, template);
       }
-      try {
-        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-          registerDatabases(pair.getKey(), pair.getValue());
-        }
-      } finally {
-        schemaBarrier.await();
-        if (BaseMode.isStopAllSchemaClient()) {
-          return;
-        }
+      templateBarrier.await();
+      for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+        registerDatabases(pair.getKey(), pair.getValue());
       }
+      schemaBarrier.await();
       if (config.isTEMPLATE()) {
         for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
           activateTemplate(pair.getKey(), pair.getValue());
         }
         activateTemplateBarrier.await();
-        if (BaseMode.isStopAllSchemaClient()) {
-          return;
-        }
       }
       if (!config.isTEMPLATE()) {
         for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
@@ -123,16 +108,15 @@ public class TreeStrategy extends IoTDBModelStrategy {
       }
     } catch (BrokenBarrierException exception) {
       LOGGER.error("Barrier was broken", exception);
-      BaseMode.setStopAllSchemaClient(true);
-      templateBarrier.reset();
       throw new TsdbException(exception);
     } catch (InterruptedException exception) {
       Thread.currentThread().interrupt();
       LOGGER.warn("Thread was interrupted", exception);
-      BaseMode.setStopAllSchemaClient(true);
       throw new TsdbException(exception);
     } catch (Exception e) {
-      BaseMode.setStopAllSchemaClient(true);
+      templateBarrier.reset();
+      schemaBarrier.reset();
+      activateTemplateBarrier.reset();
       throw new TsdbException(e);
     }
   }
