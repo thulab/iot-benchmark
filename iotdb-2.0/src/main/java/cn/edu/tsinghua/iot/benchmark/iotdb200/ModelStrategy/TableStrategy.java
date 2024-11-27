@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
+import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
@@ -49,11 +50,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
-  protected static final Set<String> tables = new HashSet<>();
+  private static final AtomicBoolean tableInit = new AtomicBoolean(false);
 
   public TableStrategy(DBConfig dbConfig) {
     super(dbConfig);
@@ -70,8 +72,10 @@ public class TableStrategy extends IoTDBModelStrategy {
         registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
-      for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-        registerTable(pair.getKey(), pair.getValue());
+      if (tableInit.compareAndSet(false, true)) {
+        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+          registerTable(pair.getKey(), pair.getValue().get(0));
+        }
       }
     } catch (Exception e) {
       throw new TsdbException(e);
@@ -94,13 +98,14 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void registerTable(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
+  // A thread creates all the tables.
+  private void registerTable(Session metaSession, TimeseriesSchema timeseriesSchema)
       throws TsdbException {
     try {
       // get all tables
-      Set<String> tableNames = getAllTables(timeseriesSchemas);
+      Set<String> tableNames = MetaDataSchema.getAllTables();
       // register tables
-      DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
+      DeviceSchema deviceSchema = timeseriesSchema.getDeviceSchema();
       HashMap<String, List<String>> tables = new HashMap<>();
       for (String tableName : tableNames) {
         StringBuilder builder = new StringBuilder();
@@ -145,20 +150,6 @@ public class TableStrategy extends IoTDBModelStrategy {
     } catch (Exception e) {
       handleRegisterException(e);
     }
-  }
-
-  public Set<String> getAllTables(List<TimeseriesSchema> schemaList) {
-    Set<String> tableNames = new HashSet<>();
-    for (TimeseriesSchema timeseriesSchema : schemaList) {
-      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
-      synchronized (IoTDB.class) {
-        if (!tables.contains(schema.getTable())) {
-          tableNames.add(schema.getTable());
-          tables.add(schema.getTable());
-        }
-      }
-    }
-    return tableNames;
   }
 
   // region select

@@ -72,6 +72,7 @@ public class RealMetaDataSchema extends MetaDataSchema {
           new DeviceSchema(deviceName, sensors, MetaUtil.getTags(deviceName));
       NAME_DATA_SCHEMA.put(deviceName, deviceSchema);
       GROUPS.add(deviceSchema.getGroup());
+      TABLES.add(deviceSchema.getTable());
       deviceSchemaList.add(deviceSchema);
     }
 
