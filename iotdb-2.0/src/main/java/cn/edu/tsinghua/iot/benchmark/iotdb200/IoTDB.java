@@ -42,6 +42,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.TableStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.TreeStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
+import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
@@ -227,6 +228,7 @@ public class IoTDB implements IDatabase {
     builder.append(getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()));
     modelStrategy.addPreciseQueryWhereClause(
         String.valueOf(preciseQuery.getTimestamp()), preciseQuery.getDeviceSchema(), builder);
+    BaseMode.logSqlIfNotCollect(Operation.PRECISE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.PRECISE_QUERY);
   }
 
@@ -250,6 +252,7 @@ public class IoTDB implements IDatabase {
         rangeQuery.getDeviceSchema(),
         0,
         builder);
+    BaseMode.logSqlIfNotCollect(Operation.RANGE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.RANGE_QUERY);
   }
 
@@ -273,6 +276,7 @@ public class IoTDB implements IDatabase {
         valueRangeQuery.getDeviceSchema(),
         (int) valueRangeQuery.getValueThreshold(),
         builder);
+    BaseMode.logSqlIfNotCollect(Operation.VALUE_RANGE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.VALUE_RANGE_QUERY);
   }
 
@@ -299,6 +303,7 @@ public class IoTDB implements IDatabase {
         aggRangeQuery.getDeviceSchema(),
         0,
         builder);
+    BaseMode.logSqlIfNotCollect(Operation.AGG_RANGE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.AGG_RANGE_QUERY);
   }
 
@@ -324,6 +329,7 @@ public class IoTDB implements IDatabase {
         aggValueQuery.getDeviceSchema(),
         (int) aggValueQuery.getValueThreshold(),
         builder);
+    BaseMode.logSqlIfNotCollect(Operation.AGG_VALUE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.AGG_VALUE_QUERY);
   }
 
@@ -351,6 +357,7 @@ public class IoTDB implements IDatabase {
         aggRangeValueQuery.getDeviceSchema(),
         (int) aggRangeValueQuery.getValueThreshold(),
         builder);
+    BaseMode.logSqlIfNotCollect(Operation.AGG_RANGE_VALUE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.AGG_RANGE_VALUE_QUERY);
   }
 
@@ -363,6 +370,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     String sql = modelStrategy.getGroupByQuerySQL(groupByQuery, false);
+    BaseMode.logSqlIfNotCollect(Operation.GROUP_BY_QUERY, sql);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY);
   }
 
@@ -376,6 +384,7 @@ public class IoTDB implements IDatabase {
     String latestPointSqlHead =
         modelStrategy.getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
     String sql = modelStrategy.addGroupByClauseIfNecessary(latestPointSqlHead);
+    BaseMode.logSqlIfNotCollect(Operation.LATEST_POINT_QUERY, sql);
     return executeQueryAndGetStatus(sql, Operation.LATEST_POINT_QUERY);
   }
 
@@ -401,6 +410,7 @@ public class IoTDB implements IDatabase {
         builder);
     // ORDER BY
     modelStrategy.addOrderByTimeDesc(builder);
+    BaseMode.logSqlIfNotCollect(Operation.RANGE_QUERY_ORDER_BY_TIME_DESC, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
 
@@ -426,6 +436,7 @@ public class IoTDB implements IDatabase {
         builder);
     // ORDER BY
     modelStrategy.addOrderByTimeDesc(builder);
+    BaseMode.logSqlIfNotCollect(Operation.AGG_RANGE_VALUE_QUERY, builder.toString());
     return executeQueryAndGetStatus(
         builder.toString(), Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC);
   }
@@ -440,6 +451,7 @@ public class IoTDB implements IDatabase {
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
     String sql = modelStrategy.getGroupByQuerySQL(groupByQuery, true);
+    BaseMode.logSqlIfNotCollect(Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC, sql);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
   }
 

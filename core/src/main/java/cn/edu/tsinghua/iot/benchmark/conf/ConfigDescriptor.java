@@ -504,6 +504,10 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "RESULT_PRINT_INTERVAL", config.getRESULT_PRINT_INTERVAL() + "")));
+        config.setQUERY_STATEMENT_PRINT(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "QUERY_STATEMENT_PRINT", config.isQUERY_STATEMENT_PRINT() + "")));
 
         config.setTEST_DATA_STORE_IP(
             properties.getProperty("TEST_DATA_STORE_IP", config.getTEST_DATA_STORE_IP()));
