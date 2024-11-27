@@ -53,6 +53,7 @@ import java.util.Set;
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
+  protected static final Set<String> tables = new HashSet<>();
 
   public TableStrategy(DBConfig dbConfig) {
     super(dbConfig);
@@ -96,11 +97,14 @@ public class TableStrategy extends IoTDBModelStrategy {
   private void registerTable(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
       throws TsdbException {
     try {
+      // get all tables
+      Set<String> tableNames = getAllTables(timeseriesSchemas);
+      // register tables
+      DeviceSchema deviceSchema = timeseriesSchemas.get(0).getDeviceSchema();
       HashMap<String, List<String>> tables = new HashMap<>();
-      for (TimeseriesSchema timeseriesSchema : timeseriesSchemas) {
-        DeviceSchema deviceSchema = timeseriesSchema.getDeviceSchema();
+      for (String tableName : tableNames) {
         StringBuilder builder = new StringBuilder();
-        builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
+        builder.append("create table if not exists ").append(tableName).append("(");
         for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
           if (i != 0) builder.append(", ");
           builder
@@ -141,6 +145,20 @@ public class TableStrategy extends IoTDBModelStrategy {
     } catch (Exception e) {
       handleRegisterException(e);
     }
+  }
+
+  public Set<String> getAllTables(List<TimeseriesSchema> schemaList) {
+    Set<String> tableNames = new HashSet<>();
+    for (TimeseriesSchema timeseriesSchema : schemaList) {
+      DeviceSchema schema = timeseriesSchema.getDeviceSchema();
+      synchronized (IoTDB.class) {
+        if (!tables.contains(schema.getTable())) {
+          tableNames.add(schema.getTable());
+          tables.add(schema.getTable());
+        }
+      }
+    }
+    return tableNames;
   }
 
   // region select
