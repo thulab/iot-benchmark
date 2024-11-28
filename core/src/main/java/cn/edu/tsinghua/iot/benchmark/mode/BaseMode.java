@@ -35,7 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
@@ -54,6 +56,8 @@ public abstract class BaseMode {
       Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
+  private static final String RESULT_ITEM = "%-35s";
+  private static final String LATENCY_ITEM = "%-80s";
 
   protected ExecutorService schemaExecutorService =
       Executors.newFixedThreadPool(
@@ -101,6 +105,7 @@ public abstract class BaseMode {
       Thread.currentThread().interrupt();
     }
     postCheck();
+    printSqlStatements();
     scheduler.shutdownNow();
   }
 
@@ -274,5 +279,39 @@ public abstract class BaseMode {
     if (config.isCSV_OUTPUT()) {
       measurement.outputCSV();
     }
+  }
+
+  private static Map<Operation, String> sqlMap = new HashMap<>();
+
+  /**
+   * Each type of query is recorded once.
+   *
+   * @param operation
+   * @param sql
+   */
+  public static void logSqlIfNotCollect(Operation operation, String sql) {
+    sqlMap.computeIfAbsent(operation, k -> sql);
+  }
+
+  /** Output all query statements */
+  private void printSqlStatements() {
+    StringBuilder stringBuilder = new StringBuilder("\n");
+    stringBuilder
+        .append(
+            "----------------------------------------------------------------------------SQL Statements Example---------------------------------------------------------------------")
+        .append('\n');
+    stringBuilder
+        .append(String.format(RESULT_ITEM, "Operation"))
+        .append(String.format(LATENCY_ITEM, "SQL"))
+        .append("\n");
+    for (Map.Entry<Operation, String> entry : sqlMap.entrySet()) {
+      stringBuilder
+          .append(String.format(RESULT_ITEM, entry.getKey()))
+          .append(String.format(LATENCY_ITEM, entry.getValue()))
+          .append("\n");
+    }
+    stringBuilder.append(
+        "------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    System.out.println(stringBuilder.toString());
   }
 }
