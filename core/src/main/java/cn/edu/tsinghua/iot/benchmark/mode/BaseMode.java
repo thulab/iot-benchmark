@@ -295,25 +295,23 @@ public abstract class BaseMode {
 
   /** Output all query statements */
   private void printSqlStatements() {
-    if (config.isQUERY_STATEMENT_PRINT()) {
-      StringBuilder stringBuilder = new StringBuilder("\n");
+    StringBuilder stringBuilder = new StringBuilder("\n");
+    stringBuilder
+        .append(
+            "----------------------------------------------------------------------------SQL Statements Example---------------------------------------------------------------------")
+        .append('\n');
+    stringBuilder
+        .append(String.format(RESULT_ITEM, "Operation"))
+        .append(String.format(LATENCY_ITEM, "SQL"))
+        .append("\n");
+    for (Map.Entry<Operation, String> entry : sqlMap.entrySet()) {
       stringBuilder
-          .append(
-              "----------------------------------------------------------------------------SQL Statements-----------------------------------------------------------------------------")
-          .append('\n');
-      stringBuilder
-          .append(String.format(RESULT_ITEM, "Operation"))
-          .append(String.format(LATENCY_ITEM, "SQL"))
+          .append(String.format(RESULT_ITEM, entry.getKey()))
+          .append(String.format(LATENCY_ITEM, entry.getValue()))
           .append("\n");
-      for (Map.Entry<Operation, String> entry : sqlMap.entrySet()) {
-        stringBuilder
-            .append(String.format(RESULT_ITEM, entry.getKey()))
-            .append(String.format(LATENCY_ITEM, entry.getValue()))
-            .append("\n");
-      }
-      stringBuilder.append(
-          "------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-      System.out.println(stringBuilder.toString());
     }
+    stringBuilder.append(
+        "------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    System.out.println(stringBuilder.toString());
   }
 }

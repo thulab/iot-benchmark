@@ -394,8 +394,6 @@ public class Config {
   private int LOG_PRINT_INTERVAL = 5;
 
   private int RESULT_PRINT_INTERVAL = 3600;
-  /** Print query statement of IoTDB. */
-  private boolean QUERY_STATEMENT_PRINT = false;
 
   // 输出：数据库配置，当前支持IoTDB和MySQL
   /** The Ip of database */
@@ -1418,14 +1416,6 @@ public class Config {
 
   public void setRESULT_PRINT_INTERVAL(int RESULT_PRINT_INTERVAL) {
     this.RESULT_PRINT_INTERVAL = RESULT_PRINT_INTERVAL;
-  }
-
-  public boolean isQUERY_STATEMENT_PRINT() {
-    return QUERY_STATEMENT_PRINT;
-  }
-
-  public void setQUERY_STATEMENT_PRINT(boolean QUERY_STATEMENT_PRINT) {
-    this.QUERY_STATEMENT_PRINT = QUERY_STATEMENT_PRINT;
   }
 
   public String getTEST_DATA_STORE_IP() {
