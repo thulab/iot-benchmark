@@ -31,6 +31,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
@@ -366,7 +367,11 @@ public class SessionStrategy extends DMLStrategy {
               long resultPointNum = line.get();
               if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
                 resultPointNum *= config.getQUERY_SENSOR_NUM();
-                resultPointNum *= config.getQUERY_DEVICE_NUM();
+                if (!config.getIoTDB_DIALECT_MODE().equals(SQLDialect.TABLE)) {
+                  resultPointNum *= config.getQUERY_DEVICE_NUM();
+                }
+              } else if (config.getIoTDB_DIALECT_MODE().equals(SQLDialect.TABLE)) {
+                resultPointNum *= config.getQUERY_SENSOR_NUM();
               }
               queryResultPointNum.set(resultPointNum);
             });

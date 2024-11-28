@@ -208,7 +208,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     builder
         .append("SELECT")
         .append(" device_id,")
-        .append(" date_bin(")
+        .append(" date_bin_gapfill(")
         .append(groupByQuery.getGranularity())
         .append("ms, ")
         .append("time), ")
@@ -225,7 +225,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     addDeviceIDColumnIfNecessary(groupByQuery.getDeviceSchema(), builder);
     // GROUP BY
     builder
-        .append(" group by device_id, date_bin(")
+        .append(" group by device_id, date_bin_gapfill(")
         .append(groupByQuery.getGranularity())
         .append("ms, time)");
     // ORDER BY
