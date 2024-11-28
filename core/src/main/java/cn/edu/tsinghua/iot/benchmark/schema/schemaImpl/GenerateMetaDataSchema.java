@@ -38,22 +38,16 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
     if (sensors == null) {
       return false;
     }
-    // schemaClient, Collect all table names and register them at one time.
+    // schemaClient
     MetaUtil.distributeDevices(
         config.getSCHEMA_CLIENT_NUMBER(),
         SCHEMA_CLIENT_DATA_SCHEMA,
         sensors,
         NAME_DATA_SCHEMA,
-        GROUPS,
-        true);
+        GROUPS);
     // dataClient
     MetaUtil.distributeDevices(
-        config.getDATA_CLIENT_NUMBER(),
-        DATA_CLIENT_DATA_SCHEMA,
-        sensors,
-        NAME_DATA_SCHEMA,
-        GROUPS,
-        false);
+        config.getDATA_CLIENT_NUMBER(), DATA_CLIENT_DATA_SCHEMA, sensors, NAME_DATA_SCHEMA, GROUPS);
     return true;
   }
 }

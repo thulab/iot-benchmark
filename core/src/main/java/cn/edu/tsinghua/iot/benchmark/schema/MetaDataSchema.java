@@ -46,8 +46,6 @@ public abstract class MetaDataSchema {
   protected static final Map<String, DeviceSchema> NAME_DATA_SCHEMA = new ConcurrentHashMap<>();
   /** The set of group */
   protected static final Set<String> GROUPS = new HashSet<>();
-  /** The set of table */
-  protected static final Set<String> TABLES = new HashSet<>();
   /** The singleton of BaseDataSchema */
   private static MetaDataSchema metaDataSchema = null;
   /** The init method of MetaDataSchema */
@@ -100,11 +98,6 @@ public abstract class MetaDataSchema {
   /** Get All Group */
   public Set<String> getAllGroups() {
     return GROUPS;
-  }
-
-  /** Get All Table */
-  public static Set<String> getAllTables() {
-    return TABLES;
   }
 
   /** Singleton */
