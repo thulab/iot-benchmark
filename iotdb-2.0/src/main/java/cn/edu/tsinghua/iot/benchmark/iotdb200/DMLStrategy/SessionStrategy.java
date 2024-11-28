@@ -365,13 +365,14 @@ public class SessionStrategy extends DMLStrategy {
                 isOk.set(false);
               }
               long resultPointNum = line.get();
-              if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
+
+              if (config.getIoTDB_DIALECT_MODE().equals(SQLDialect.TABLE)) {
                 resultPointNum *= config.getQUERY_SENSOR_NUM();
-                if (!config.getIoTDB_DIALECT_MODE().equals(SQLDialect.TABLE)) {
+              } else {
+                if (!Operation.LATEST_POINT_QUERY.equals(operation)) {
                   resultPointNum *= config.getQUERY_DEVICE_NUM();
+                  resultPointNum *= config.getQUERY_SENSOR_NUM();
                 }
-              } else if (config.getIoTDB_DIALECT_MODE().equals(SQLDialect.TABLE)) {
-                resultPointNum *= config.getQUERY_SENSOR_NUM();
               }
               queryResultPointNum.set(resultPointNum);
             });
