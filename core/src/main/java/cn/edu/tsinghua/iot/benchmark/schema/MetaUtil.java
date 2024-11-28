@@ -126,7 +126,7 @@ public class MetaUtil {
         deviceSchemasList.add(deviceSchema);
         nameDataSchema.putIfAbsent(deviceSchema.getDevice(), deviceSchema);
         groups.add(deviceSchema.getGroup());
-        if(collectTables){
+        if (collectTables) {
           MetaDataSchema.TABLES.add(deviceSchema.getTable());
         }
         deviceIndex++;

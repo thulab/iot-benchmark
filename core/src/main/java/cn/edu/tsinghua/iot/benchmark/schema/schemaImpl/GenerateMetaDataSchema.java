@@ -48,7 +48,12 @@ public class GenerateMetaDataSchema extends MetaDataSchema {
         true);
     // dataClient
     MetaUtil.distributeDevices(
-        config.getDATA_CLIENT_NUMBER(), DATA_CLIENT_DATA_SCHEMA, sensors, NAME_DATA_SCHEMA, GROUPS, false);
+        config.getDATA_CLIENT_NUMBER(),
+        DATA_CLIENT_DATA_SCHEMA,
+        sensors,
+        NAME_DATA_SCHEMA,
+        GROUPS,
+        false);
     return true;
   }
 }
