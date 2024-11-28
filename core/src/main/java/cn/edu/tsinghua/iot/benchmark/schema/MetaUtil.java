@@ -110,7 +110,8 @@ public class MetaUtil {
       Map<Integer, List<DeviceSchema>> clientDataSchema,
       List<Sensor> sensors,
       Map<String, DeviceSchema> nameDataSchema,
-      Set<String> groups) {
+      Set<String> groups,
+      boolean collectTables) {
     Map<Integer, Integer> deviceDistributionForClient =
         CommonAlgorithms.distributeDevicesToClients(config.getDEVICE_NUMBER(), clientNumber);
     int deviceIndex = MetaUtil.getDeviceId(0);
@@ -125,6 +126,9 @@ public class MetaUtil {
         deviceSchemasList.add(deviceSchema);
         nameDataSchema.putIfAbsent(deviceSchema.getDevice(), deviceSchema);
         groups.add(deviceSchema.getGroup());
+        if(collectTables){
+          MetaDataSchema.TABLES.add(deviceSchema.getTable());
+        }
         deviceIndex++;
       }
       clientDataSchema.put(clientId, deviceSchemasList);
