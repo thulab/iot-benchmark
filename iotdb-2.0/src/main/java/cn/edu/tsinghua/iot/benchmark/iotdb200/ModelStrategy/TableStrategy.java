@@ -53,7 +53,6 @@ import java.util.Set;
 public class TableStrategy extends IoTDBModelStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TableStrategy.class);
-  protected static final Set<String> tables = new HashSet<>();
 
   public TableStrategy(DBConfig dbConfig) {
     super(dbConfig);
@@ -151,12 +150,7 @@ public class TableStrategy extends IoTDBModelStrategy {
     Set<String> tableNames = new HashSet<>();
     for (TimeseriesSchema timeseriesSchema : schemaList) {
       DeviceSchema schema = timeseriesSchema.getDeviceSchema();
-      synchronized (IoTDB.class) {
-        if (!tables.contains(schema.getTable())) {
-          tableNames.add(schema.getTable());
-          tables.add(schema.getTable());
-        }
-      }
+      tableNames.add(schema.getTable());
     }
     return tableNames;
   }
