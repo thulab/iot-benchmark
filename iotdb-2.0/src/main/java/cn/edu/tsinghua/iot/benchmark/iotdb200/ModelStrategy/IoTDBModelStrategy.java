@@ -108,7 +108,7 @@ public abstract class IoTDBModelStrategy {
       DeviceSchema deviceSchema);
 
   public abstract void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
 
   public abstract String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold);
 
@@ -146,13 +146,13 @@ public abstract class IoTDBModelStrategy {
   public abstract Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnType> columnTypes,
+      List<Tablet.ColumnCategory> columnTypes,
       int maxRowNumber);
 
   public abstract String getInsertTargetName(DeviceSchema schema);
 
   public abstract void addIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch);
+      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
 
   public abstract void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException;

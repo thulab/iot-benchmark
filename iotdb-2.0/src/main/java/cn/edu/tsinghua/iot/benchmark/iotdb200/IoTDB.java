@@ -658,7 +658,7 @@ public class IoTDB implements IDatabase {
   public Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnType> columnTypes,
+      List<Tablet.ColumnCategory> columnTypes,
       int maxRowNumber) {
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
@@ -674,12 +674,12 @@ public class IoTDB implements IDatabase {
   }
 
   public void addIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     modelStrategy.addIDColumnIfNecessary(columnTypes, sensors, batch);
   }
 
   public void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     modelStrategy.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
   }
 
