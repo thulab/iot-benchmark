@@ -122,7 +122,7 @@ public class SessionStrategy extends DMLStrategy {
 
   private Tablet genTablet(IBatch batch) {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
-    List<Tablet.ColumnType> columnTypes = new ArrayList<>();
+    List<Tablet.ColumnCategory> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
     if (config.isIS_DOUBLE_WRITE()) {
       iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
@@ -147,7 +147,6 @@ public class SessionStrategy extends DMLStrategy {
             schemaList,
             columnTypes,
             batch.getRecords().size() * config.getDEVICE_NUM_PER_WRITE());
-    long[] timestamps = tablet.timestamps;
     Object[] values = tablet.values;
     int stepOff = 0;
     batch.reset();
@@ -156,11 +155,10 @@ public class SessionStrategy extends DMLStrategy {
       for (int recordIndex = stepOff;
           recordIndex < (batch.getRecords().size() + stepOff);
           recordIndex++) {
-        tablet.rowSize++;
         Record record = batch.getRecords().get(recordIndex % batch.getRecords().size());
         sensorIndex = 0;
         long currentTime = record.getTimestamp();
-        timestamps[recordIndex] = currentTime;
+        tablet.addTimestamp(recordIndex, currentTime);
         for (int recordValueIndex = 0;
             recordValueIndex < record.getRecordDataValue().size();
             recordValueIndex++) {

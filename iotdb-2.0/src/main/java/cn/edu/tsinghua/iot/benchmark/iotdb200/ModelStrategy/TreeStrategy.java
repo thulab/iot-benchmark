@@ -444,7 +444,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnType> columnTypes,
+      List<Tablet.ColumnCategory> columnTypes,
       int maxRowNumber) {
     return new Tablet(insertTargetName, schemas, maxRowNumber);
   }
@@ -456,13 +456,13 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public void addIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     // do nothing
   }
 
   @Override
   public void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnType> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     // delete the value of the identity column to the value of each record
     for (int i = 0; i < batch.getRecords().size(); i++) {
       List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();
