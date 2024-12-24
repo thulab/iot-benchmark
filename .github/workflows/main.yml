@@ -57,36 +57,15 @@ jobs:
   #----end----
 
   #----start----
-  create-release:
-    runs-on: ubuntu-latest
-    needs: [collect]
-    steps:
-      - name: Create release
-        id: create-release
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: ${{ needs.collect.outputs.date }} ${{ needs.collect.outputs.commit_id_short }} java${{ matrix.java_version }}
-          tag: ${{ needs.collect.outputs.date }}-${{ needs.collect.outputs.commit_id_short }}-java${{ matrix.java_version }}
-          prerelease: false
-          draft: false
-          body: |
-            Auto build...
-            Commit Time: ${{ needs.collect.outputs.commit_time }}
-            Commit ID: ${{ needs.collect.outputs.commit_id }}
-            Java Version: java${{ matrix.java_version }}
-  #----end----
-
-  #----start----
   compile:
     runs-on: ubuntu-latest
-    needs: [collect,create-release]
+    needs: [collect]
     strategy:
       fail-fast: false
       max-parallel: 20
       matrix:
         java_version: [ 8 ]
-        release_db: [ iotdb-1.0,iotdb-1.1,iotdb-1.3,iotdb-2.0,influxdb,influxdb-2.0,timescaledb,timescaledb-cluster ]
+        release_db: [ iotdb-1.3,iotdb-2.0,influxdb,influxdb-2.0,timescaledb,timescaledb-cluster ]
     steps:
       # set java
       - name: Set java ${{ matrix.java_version }}
@@ -140,12 +119,17 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           artifacts: "${{ github.workspace }}/iot-benchmark-${{ matrix.release_db }}-java${{ matrix.java_version }}.zip"
+          body: |
+            Auto build...
+            Commit Time: ${{ needs.collect.outputs.commit_time }}
+            Commit ID: ${{ needs.collect.outputs.commit_id }}
+            Java Version: java${{ matrix.java_version }}
   #----end----
 
   #----start----
   push-commit:
     runs-on: ubuntu-latest
-    needs: [collect,create-release,compile]
+    needs: [collect,compile]
     steps:
       # checkout iot-benchmark
       - name: checkout iot-benchmark
