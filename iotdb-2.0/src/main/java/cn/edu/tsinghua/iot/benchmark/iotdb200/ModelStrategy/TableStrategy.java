@@ -28,6 +28,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
@@ -118,7 +119,7 @@ public class TableStrategy extends IoTDBModelStrategy {
             .append(" ")
             .append(SensorType.STRING)
             .append(" ")
-            .append(Tablet.ColumnCategory.ID);
+            .append(ColumnCategory.TAG);
         for (String key : deviceSchema.getTags().keySet()) {
           builder
               .append(", ")
@@ -126,7 +127,7 @@ public class TableStrategy extends IoTDBModelStrategy {
               .append(" ")
               .append(SensorType.STRING)
               .append(" ")
-              .append(Tablet.ColumnCategory.ID);
+              .append(ColumnCategory.TAG);
         }
         builder.append(")");
         tables

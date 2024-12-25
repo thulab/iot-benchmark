@@ -20,9 +20,9 @@
 package cn.edu.tsinghua.iot.benchmark.entity.enums;
 
 public enum ColumnCategory {
-  ID("ID"),
+  TAG("TAG"),
   ATTRIBUTE("ATTRIBUTE"),
-  MEASUREMENT("MEASUREMENT");
+  FIELD("FIELD");
 
   public String name;
 
@@ -37,6 +37,6 @@ public enum ColumnCategory {
       }
     }
     // default type
-    return ColumnCategory.MEASUREMENT;
+    return ColumnCategory.FIELD;
   }
 }
