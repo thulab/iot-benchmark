@@ -21,13 +21,13 @@ package cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy;
 
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -59,7 +59,7 @@ public abstract class IoTDBModelStrategy {
   }
 
   public abstract void registerSchema(
-      Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
+      Map<SessionManager, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException;
 
   // region select
@@ -140,8 +140,8 @@ public abstract class IoTDBModelStrategy {
     return databaseNames;
   }
 
-  public abstract void registerDatabases(Session metaSession, List<TimeseriesSchema> schemaList)
-      throws TsdbException;
+  public abstract void registerDatabases(
+      SessionManager metaSession, List<TimeseriesSchema> schemaList) throws TsdbException;
 
   public abstract Tablet createTablet(
       String insertTargetName,
@@ -154,10 +154,11 @@ public abstract class IoTDBModelStrategy {
   public abstract void addIDColumnIfNecessary(
       List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
 
-  public abstract void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
+  public abstract void sessionInsertImpl(
+      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException;
 
-  public abstract void sessionCleanupImpl(Session session)
+  public abstract void sessionCleanupImpl(SessionManager sessionManager)
       throws IoTDBConnectionException, StatementExecutionException;
 
   // endregion

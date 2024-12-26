@@ -1,5 +1,7 @@
 package cn.edu.tsinghua.iot.benchmark.iotdb200;
 
+import org.apache.iotdb.rpc.IoTDBConnectionException;
+
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
@@ -31,7 +33,7 @@ public class IoTDBRestAPI extends IoTDB {
   protected final String ROOT_SERIES_NAME;
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  public IoTDBRestAPI(DBConfig dbConfig) {
+  public IoTDBRestAPI(DBConfig dbConfig) throws IoTDBConnectionException {
     super(dbConfig);
     String host = dbConfig.getHOST().get(0);
     baseURL = String.format("http://%s:18080", host);
