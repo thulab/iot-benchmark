@@ -76,8 +76,6 @@ public abstract class SessionManager {
 
   public abstract void init();
 
-  //  public abstract void cleanup();
-
   public abstract void close() throws TsdbException;
 
   // region
