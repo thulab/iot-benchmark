@@ -85,7 +85,7 @@ public class MultiDeviceBatch implements IBatch {
     long measureNum = 0;
     List<Sensor> sensors = deviceSchemas.get(0).getSensors();
     for (Sensor sensor : sensors) {
-      if (sensor.getColumnCategory() == ColumnCategory.MEASUREMENT) {
+      if (sensor.getColumnCategory() == ColumnCategory.FIELD) {
         measureNum++;
       }
     }

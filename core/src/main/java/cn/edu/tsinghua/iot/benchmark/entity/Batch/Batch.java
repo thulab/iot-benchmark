@@ -54,7 +54,7 @@ public class Batch implements IBatch {
     // Count the number of measurements
     List<Sensor> sensors = deviceSchema.getSensors();
     for (Sensor sensor : sensors) {
-      if (sensor.getColumnCategory() == ColumnCategory.MEASUREMENT) {
+      if (sensor.getColumnCategory() == ColumnCategory.FIELD) {
         measureNum++;
       }
     }

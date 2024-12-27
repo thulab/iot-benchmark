@@ -39,7 +39,7 @@ public class Sensor {
   public Sensor(String name, SensorType sensorType) {
     this.name = name;
     this.sensorType = sensorType;
-    this.columnCategory = ColumnCategory.MEASUREMENT;
+    this.columnCategory = ColumnCategory.FIELD;
   }
 
   public Sensor(String name, SensorType sensorType, ColumnCategory columnCategory) {
