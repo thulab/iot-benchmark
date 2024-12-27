@@ -19,10 +19,8 @@
 
 package cn.edu.tsinghua.iot.benchmark.iotdb200;
 
-import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -36,7 +34,10 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.DMLStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.JDBCStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TreeSessionManager;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.IoTDBModelStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.TableStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.TreeStrategy;
@@ -92,9 +93,8 @@ public class IoTDB implements IDatabase {
 
   public static final String ALREADY_KEYWORD = "already";
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final String ORDER_BY_TIME_DESC = " order by time desc ";
 
-  public IoTDB(DBConfig dbConfig) {
+  public IoTDB(DBConfig dbConfig) throws IoTDBConnectionException {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
@@ -108,7 +108,7 @@ public class IoTDB implements IDatabase {
       case DB_IOT_200_SESSION_BY_TABLET:
       case DB_IOT_200_SESSION_BY_RECORD:
       case DB_IOT_200_SESSION_BY_RECORDS:
-        dmlStrategy = new SessionStrategy(this, dbConfig);
+        dmlStrategy = new SessionStrategy(dbConfig, this);
         break;
       case DB_IOT_200_JDBC:
         dmlStrategy = new JDBCStrategy(dbConfig);
@@ -143,32 +143,24 @@ public class IoTDB implements IDatabase {
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
     long start = System.nanoTime();
     if (config.hasWrite()) {
-      Map<Session, List<TimeseriesSchema>> sessionListMap = new HashMap<>();
+      Map<SessionManager, List<TimeseriesSchema>> sessionManagerListMap = new HashMap<>();
       try {
-        // open meta session
-        Session metaSession =
-            new Session.Builder()
-                .host(dbConfig.getHOST().get(0))
-                .port(Integer.parseInt(dbConfig.getPORT().get(0)))
-                .username(dbConfig.getUSERNAME())
-                .password(dbConfig.getPASSWORD())
-                .version(Version.V_1_0)
-                .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
-                .build();
-        metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
-        sessionListMap.put(metaSession, createTimeseries(schemaList));
-        modelStrategy.registerSchema(sessionListMap, schemaList);
+        SessionManager sessionManager;
+        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+          sessionManager = new TableSessionManager(dbConfig);
+        } else {
+          sessionManager = new TreeSessionManager(dbConfig);
+        }
+        sessionManager.open();
+        sessionManagerListMap.put(sessionManager, createTimeseries(schemaList));
+        modelStrategy.registerSchema(sessionManagerListMap, schemaList);
       } catch (Exception e) {
         throw new TsdbException(e);
       } finally {
-        if (!sessionListMap.isEmpty()) {
-          Set<Session> sessions = sessionListMap.keySet();
-          for (Session session : sessions) {
-            try {
-              session.close();
-            } catch (IoTDBConnectionException e) {
-              LOGGER.error("Schema-register session cannot be closed: {}", e.getMessage());
-            }
+        if (!sessionManagerListMap.isEmpty()) {
+          Set<SessionManager> sessions = sessionManagerListMap.keySet();
+          for (SessionManager session : sessions) {
+            session.close();
           }
         }
       }
@@ -663,14 +655,15 @@ public class IoTDB implements IDatabase {
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
 
-  public void sessionCleanupImpl(Session session)
+  public void sessionCleanupImpl(SessionManager sessionManager)
       throws IoTDBConnectionException, StatementExecutionException {
-    modelStrategy.sessionCleanupImpl(session);
+    modelStrategy.sessionCleanupImpl(sessionManager);
   }
 
-  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
+  public void sessionInsertImpl(
+      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
-    modelStrategy.sessionInsertImpl(session, tablet, deviceSchema);
+    modelStrategy.sessionInsertImpl(sessionManager, tablet, deviceSchema);
   }
 
   public void addIDColumnIfNecessary(

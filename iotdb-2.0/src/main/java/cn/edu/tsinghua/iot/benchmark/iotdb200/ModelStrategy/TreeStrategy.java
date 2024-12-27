@@ -22,7 +22,6 @@ package cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
 import org.apache.iotdb.session.template.MeasurementNode;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
@@ -30,6 +29,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
@@ -46,7 +46,6 @@ import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +77,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public void registerSchema(
-      Map<Session, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
+      Map<SessionManager, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
       if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
@@ -87,22 +86,22 @@ public class TreeStrategy extends IoTDBModelStrategy {
           template = createTemplate(schemaList.get(0));
         }
         int sessionIndex = random.nextInt(sessionListMap.size());
-        Session templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
+        SessionManager templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
         registerTemplate(templateSession, template);
       }
       templateBarrier.await();
-      for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+      for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
         registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
       if (config.isTEMPLATE()) {
-        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+        for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
           activateTemplate(pair.getKey(), pair.getValue());
         }
         activateTemplateBarrier.await();
       }
       if (!config.isTEMPLATE()) {
-        for (Map.Entry<Session, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+        for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
           registerTimeSeries(pair.getKey(), pair.getValue());
         }
       }
@@ -151,18 +150,17 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   /** register template */
-  private void registerTemplate(Session metaSession, Template template)
-      throws IoTDBConnectionException, IOException, TsdbException {
+  private void registerTemplate(SessionManager metaSession, Template template)
+      throws TsdbException {
     try {
       metaSession.createSchemaTemplate(template);
-    } catch (StatementExecutionException e) {
-      // do nothing
+    } catch (Exception e) {
       handleRegisterException(e);
     }
   }
 
   @Override
-  public void registerDatabases(Session metaSession, List<TimeseriesSchema> schemaList)
+  public void registerDatabases(SessionManager metaSession, List<TimeseriesSchema> schemaList)
       throws TsdbException {
     // get all database
     Set<String> databaseNames = getAllDataBase(schemaList);
@@ -180,7 +178,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void activateTemplate(Session metaSession, List<TimeseriesSchema> schemaList) {
+  private void activateTemplate(SessionManager metaSession, List<TimeseriesSchema> schemaList) {
     try {
       List<String> devicePaths =
           schemaList.stream()
@@ -192,8 +190,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void registerTimeSeries(Session metaSession, List<TimeseriesSchema> timeseriesSchemas)
-      throws TsdbException {
+  private void registerTimeSeries(
+      SessionManager metaSession, List<TimeseriesSchema> timeseriesSchemas) throws TsdbException {
     // create time series
     for (TimeseriesSchema timeseriesSchema : timeseriesSchemas) {
       try {
@@ -474,21 +472,18 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionInsertImpl(Session session, Tablet tablet, DeviceSchema deviceSchema)
+  public void sessionInsertImpl(
+      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
-    if (config.isVECTOR()) {
-      session.insertAlignedTablet(tablet);
-    } else {
-      session.insertTablet(tablet);
-    }
+    sessionManager.insertTablet(tablet, deviceSchema);
   }
 
   @Override
-  public void sessionCleanupImpl(Session session) {
+  public void sessionCleanupImpl(SessionManager sessionManager) {
     try {
-      session.executeNonQueryStatement(
+      sessionManager.executeNonQueryStatement(
           "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
-      session.executeNonQueryStatement("drop device template " + config.getTEMPLATE_NAME());
+      sessionManager.executeNonQueryStatement("drop device template " + config.getTEMPLATE_NAME());
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:{}", e.getMessage());
     } catch (StatementExecutionException e) {
