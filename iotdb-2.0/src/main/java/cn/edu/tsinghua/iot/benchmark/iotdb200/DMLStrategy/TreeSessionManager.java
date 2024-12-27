@@ -112,7 +112,7 @@ public class TreeSessionManager extends SessionManager {
   }
 
   @Override
-  public void init() {
+  public void open() {
     try {
       if (config.isENABLE_THRIFT_COMPRESSION()) {
         session.open(true);

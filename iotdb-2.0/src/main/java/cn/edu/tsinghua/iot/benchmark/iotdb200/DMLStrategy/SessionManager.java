@@ -74,7 +74,7 @@ public abstract class SessionManager {
   public abstract void insertTablet(Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException;
 
-  public abstract void init();
+  public abstract void open();
 
   public abstract void close() throws TsdbException;
 

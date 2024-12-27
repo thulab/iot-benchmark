@@ -150,8 +150,8 @@ public class IoTDB implements IDatabase {
           sessionManager = new TableSessionManager(dbConfig);
         } else {
           sessionManager = new TreeSessionManager(dbConfig);
-          sessionManager.init();
         }
+        sessionManager.open();
         sessionManagerListMap.put(sessionManager, createTimeseries(schemaList));
         modelStrategy.registerSchema(sessionManagerListMap, schemaList);
       } catch (Exception e) {

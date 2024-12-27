@@ -46,7 +46,6 @@ import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,11 +151,10 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   /** register template */
   private void registerTemplate(SessionManager metaSession, Template template)
-      throws IoTDBConnectionException, IOException, TsdbException {
+      throws TsdbException {
     try {
       metaSession.createSchemaTemplate(template);
-    } catch (StatementExecutionException e) {
-      // do nothing
+    } catch (Exception e) {
       handleRegisterException(e);
     }
   }

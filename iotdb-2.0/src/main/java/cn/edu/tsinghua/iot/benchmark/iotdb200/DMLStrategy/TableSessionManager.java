@@ -79,7 +79,7 @@ public class TableSessionManager extends SessionManager {
       List<String> measurements,
       List<TSDataType> types,
       List<Object> values) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
@@ -89,7 +89,7 @@ public class TableSessionManager extends SessionManager {
       List<List<String>> measurementsList,
       List<List<TSDataType>> typesList,
       List<List<Object>> valuesList) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
@@ -105,7 +105,7 @@ public class TableSessionManager extends SessionManager {
   }
 
   @Override
-  public void init() {
+  public void open() {
     // TableSession combines the build and open operations of the session
   }
 
@@ -121,22 +121,22 @@ public class TableSessionManager extends SessionManager {
 
   @Override
   public void createSchemaTemplate(Template template) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
   public void setStorageGroup(String storageGroup) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
   public void setSchemaTemplate(String templateName, String prefixPath) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
   public void createTimeseriesUsingSchemaTemplate(List<String> devicePathList) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
@@ -147,7 +147,7 @@ public class TableSessionManager extends SessionManager {
       List<TSEncoding> encodings,
       List<CompressionType> compressors,
       List<String> measurementAliasList) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   @Override
@@ -160,7 +160,7 @@ public class TableSessionManager extends SessionManager {
       List<Map<String, String>> tagsList,
       List<Map<String, String>> attributesList,
       List<String> measurementAliasList) {
-    // nothing to do
+    throw new UnsupportedOperationException("TableSession does not implement this function");
   }
 
   private ITableSession builderTableSession(List<String> hostUrls) throws IoTDBConnectionException {
