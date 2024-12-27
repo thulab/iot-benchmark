@@ -453,7 +453,7 @@ public class SessionStrategy extends DMLStrategy {
 
   @Override
   public void init() {
-    sessionManager.init();
+    sessionManager.open();
     this.service = Executors.newSingleThreadExecutor();
   }
 
@@ -470,9 +470,12 @@ public class SessionStrategy extends DMLStrategy {
 
   @Override
   public void close() throws TsdbException {
-    if (sessionManager != null) {
-      sessionManager.close();
+    try {
+      if (sessionManager != null) {
+        sessionManager.close();
+      }
+    } finally {
+      service.shutdown();
     }
-    service.shutdown();
   }
 }
