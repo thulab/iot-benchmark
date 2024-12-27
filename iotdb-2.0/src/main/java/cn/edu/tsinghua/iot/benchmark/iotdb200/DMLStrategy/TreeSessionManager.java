@@ -129,7 +129,7 @@ public class TreeSessionManager extends SessionManager {
     try {
       session.close();
     } catch (IoTDBConnectionException ioTDBConnectionException) {
-      LOGGER.error("Failed to close TableSession because ");
+      LOGGER.error("Failed to close Session because ");
       throw new TsdbException(ioTDBConnectionException);
     }
   }
