@@ -472,16 +472,16 @@ public class TableStrategy extends IoTDBModelStrategy {
       List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     // All sensors are of type measurement
     for (int i = 0; i < sensors.size(); i++) {
-      columnTypes.add(Tablet.ColumnCategory.MEASUREMENT);
+      columnTypes.add(Tablet.ColumnCategory.FIELD);
     }
     // tag and device as ID column
     // Add Identity Column Information to Schema
     sensors.add(new Sensor("device_id", SensorType.STRING));
-    columnTypes.add(Tablet.ColumnCategory.ID);
+    columnTypes.add(Tablet.ColumnCategory.TAG);
     for (String key : batch.getDeviceSchema().getTags().keySet()) {
       // Currently, the identity column can only be String
       sensors.add(new Sensor(key, SensorType.STRING));
-      columnTypes.add(Tablet.ColumnCategory.ID);
+      columnTypes.add(Tablet.ColumnCategory.TAG);
     }
     // Add the value of the identity column to the value of each record
     for (int loop = 0; loop < config.getDEVICE_NUM_PER_WRITE(); loop++) {
