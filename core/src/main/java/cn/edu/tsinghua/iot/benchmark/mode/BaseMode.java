@@ -251,7 +251,11 @@ public abstract class BaseMode {
       List<Operation> operations,
       String prefix,
       boolean needPrintConf) {
-    measurement.setElapseTime((System.nanoTime() - startTime) / NANO_TO_SECOND);
+    double elapseTime = (System.nanoTime() - startTime) / NANO_TO_SECOND;
+    if (elapseTime < 0) {
+      LOGGER.error("elapseTime is negative: {}", elapseTime);
+    }
+    measurement.setElapseTime(elapseTime);
     // sum up all the measurements and calculate statistics
     measurement.resetMeasurementMaps();
     allClientsMeasurement.forEach(measurement::mergeMeasurement);
