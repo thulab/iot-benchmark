@@ -56,6 +56,7 @@ public class Measurement {
   private final Map<Operation, Long> failPointNumMap;
   private static final String RESULT_ITEM = "%-25s";
   private static final String LATENCY_ITEM = "%-12s";
+
   /** Precision = 3 / COMPRESSION */
   private static final int COMPRESSION = (int) (300 / config.getRESULT_PRECISION());
 
@@ -141,6 +142,8 @@ public class Measurement {
                 return operationLatencyDigest.get(operation).centroids().iterator().next().mean();
               }
             };
+        // log negative latency details
+        logNegativeLatencyDetails(operations);
         Metric.MIN_LATENCY.getTypeValueMap().put(operation, quantileOrItself.apply(0.0));
         Metric.MAX_LATENCY.getTypeValueMap().put(operation, quantileOrItself.apply(1.0));
         Metric.P10_LATENCY.getTypeValueMap().put(operation, quantileOrItself.apply(0.1));
@@ -152,6 +155,21 @@ public class Measurement {
         Metric.P99_LATENCY.getTypeValueMap().put(operation, quantileOrItself.apply(0.99));
         Metric.P999_LATENCY.getTypeValueMap().put(operation, quantileOrItself.apply(0.999));
       }
+    }
+  }
+
+  private void logNegativeLatencyDetails(List<Operation> operations) {
+    for (Operation operation : operations) {
+      TDigest tDigest = operationLatencyDigest.get(operation);
+      // Output all centers of mass less than 0 in TDigest.
+      tDigest
+          .centroids()
+          .forEach(
+              centroid -> {
+                if (centroid != null && centroid.mean() < 0) {
+                  LOGGER.error("{}: Centroid mean: {}", operation, centroid.mean());
+                }
+              });
     }
   }
 
