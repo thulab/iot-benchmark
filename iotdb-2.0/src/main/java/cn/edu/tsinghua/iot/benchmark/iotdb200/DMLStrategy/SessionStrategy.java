@@ -141,7 +141,7 @@ public class SessionStrategy extends DMLStrategy {
             schemaList,
             columnTypes,
             batch.getRecords().size() * config.getDEVICE_NUM_PER_WRITE());
-    Object[] values = tablet.values;
+    Object[] values = tablet.getValues();
     int stepOff = 0;
     batch.reset();
     // Convert multiple batches to tablets
