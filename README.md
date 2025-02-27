@@ -89,11 +89,6 @@ Use the following command to complete the construction of iot-benchmark through 
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
-This command will compile the core module of iot-benchmark and all other related databases.hmark through Maven:
-
-```
-mvn clean package -Dmaven.test.skip=true
-```
 This command will compile the core module of iot-benchmark and all other related databases.
 
 ## 3.3. Quick Start
