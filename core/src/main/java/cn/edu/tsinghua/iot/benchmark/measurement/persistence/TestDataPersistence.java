@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.measurement.persistence;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
+import cn.edu.tsinghua.iot.benchmark.measurement.persistence.none.NoneRecorder;
 import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,18 +90,26 @@ public abstract class TestDataPersistence {
       double latency,
       String remark,
       String device) {
-    service.submit(
-        () -> {
-          saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
-        });
+    if(!isNoneRecorder()){
+      service.submit(
+          () -> {
+            saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
+          });
+    }
   }
 
   /** Save result of operation Async */
   public void saveResultAsync(String operation, String key, String value) {
-    service.submit(
-        () -> {
-          saveResult(operation, key, value);
-        });
+    if(!isNoneRecorder()){
+      service.submit(
+          () -> {
+            saveResult(operation, key, value);
+          });
+    }
+  }
+
+  public boolean isNoneRecorder() {
+    return this instanceof NoneRecorder;
   }
 
   /** Close record */
