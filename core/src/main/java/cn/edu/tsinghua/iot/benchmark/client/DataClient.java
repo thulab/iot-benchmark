@@ -57,8 +57,6 @@ public abstract class DataClient implements Runnable {
   protected final IDataWorkLoad dataWorkLoad;
   /** QueryWorkload */
   protected final IQueryWorkLoad queryWorkLoad;
-  /** Log related */
-  protected final ScheduledExecutorService service;
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
@@ -84,9 +82,6 @@ public abstract class DataClient implements Runnable {
     this.clientThreadId = id;
     this.clientDeviceSchemas =
         MetaDataSchema.getInstance().getDeviceSchemaByDataClientId(clientThreadId);
-    this.service =
-        Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory("ShowWorkProgress-" + clientThreadId));
     initDBWrappers();
   }
 
@@ -126,25 +121,10 @@ public abstract class DataClient implements Runnable {
         // wait for that all dataClients start test simultaneously
         barrier.await();
 
-        String currentThread = Thread.currentThread().getName();
-
-        if (!config.isIS_POINT_COMPARISON()) {
-          // print current progress periodically
-          service.scheduleAtFixedRate(
-              () -> {
-                String percent = String.format("%.2f", loopIndex * 100.0D / this.totalLoop);
-                LOGGER.info("{} {}% workload is done.", currentThread, percent);
-              },
-              1,
-              config.getLOG_PRINT_INTERVAL(),
-              TimeUnit.SECONDS);
-        }
-
         doTest();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       } finally {
-        service.shutdown();
         try {
           if (dbWrapper != null) {
             dbWrapper.close();

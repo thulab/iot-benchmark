@@ -25,6 +25,8 @@ import cn.edu.tsinghua.iot.benchmark.extern.DataWriter;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
+import static cn.edu.tsinghua.iot.benchmark.mode.BaseMode.progressMap;
+
 /** This client is using by GenerateMode */
 public class GenerateDataWriteClient extends GenerateBaseClient {
   private DataWriter dataWriter = DataWriter.getDataWriter();
@@ -37,6 +39,7 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   @Override
   protected void doTest() {
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
+      progressMap.putIfAbsent(Thread.currentThread().getName(), loopIndex);
       if (!doGenerate()) {
         break;
       }

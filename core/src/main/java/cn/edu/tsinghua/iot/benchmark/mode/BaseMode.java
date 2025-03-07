@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,6 +46,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -54,6 +56,8 @@ public abstract class BaseMode {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
+  private static final ScheduledExecutorService printService =
+      Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ShowWorkProgress"));
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
   private static final String RESULT_ITEM = "%-35s";
@@ -68,7 +72,10 @@ public abstract class BaseMode {
   protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getSCHEMA_CLIENT_NUMBER());
   protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   protected CountDownLatch dataDownLatch = new CountDownLatch(config.getDATA_CLIENT_NUMBER());
-  protected CyclicBarrier dataBarrier = new CyclicBarrier(config.getDATA_CLIENT_NUMBER());
+  // thread.name, loopIndex
+  public static HashMap<String, Long> progressMap = new HashMap<>();
+  protected static CyclicBarrier dataBarrier;
+  protected long totalLoop = config.getLOOP();
   protected List<DataClient> dataClients = new ArrayList<>();
   protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement baseModeMeasurement = new Measurement();
@@ -81,6 +88,24 @@ public abstract class BaseMode {
     if (!preCheck()) {
       return;
     }
+    dataBarrier =
+        new CyclicBarrier(
+            config.getDATA_CLIENT_NUMBER(),
+            () -> {
+                  printService.scheduleAtFixedRate(
+                      () -> {
+                        if (!config.isIS_POINT_COMPARISON()) {
+                          for (Map.Entry<String, Long> entry : progressMap.entrySet()) {
+                            String percent =
+                                String.format("%.2f", entry.getValue() * 100.0D / this.totalLoop);
+                            LOGGER.info("{} {}% workload is done.", entry.getKey(), percent);
+                          }
+                        }
+                      },
+                      1,
+                      config.getLOG_PRINT_INTERVAL(),
+                      TimeUnit.SECONDS);
+            });
     for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       DataClient client = DataClient.getInstance(i, dataDownLatch, dataBarrier);
       if (client == null) {
@@ -100,6 +125,7 @@ public abstract class BaseMode {
     try {
       // wait for all dataClients finish test
       dataDownLatch.await();
+      printService.shutdown();
     } catch (InterruptedException e) {
       LOGGER.error("Exception occurred during waiting for all threads finish.", e);
       Thread.currentThread().interrupt();

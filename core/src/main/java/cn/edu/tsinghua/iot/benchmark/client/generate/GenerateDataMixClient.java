@@ -27,6 +27,8 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
+import static cn.edu.tsinghua.iot.benchmark.mode.BaseMode.progressMap;
+
 public class GenerateDataMixClient extends GenerateBaseClient {
 
   /** Control operation according to OPERATION_PROPORTION */
@@ -45,6 +47,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   protected void doTest() {
     long start = 0;
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
+      progressMap.put(Thread.currentThread().getName(), loopIndex);
       Operation operation = operationController.getNextOperationType();
       if (config.getOP_MIN_INTERVAL() > 0) {
         start = System.currentTimeMillis();
