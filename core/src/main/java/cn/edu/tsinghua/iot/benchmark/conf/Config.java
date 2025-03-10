@@ -1755,14 +1755,12 @@ public class Config {
         + '\''
         + "\nIS_COPY_MODE="
         + IS_COPY_MODE
-        + '\''
         + "\nIS_ADD_ANOMALY="
         + IS_ADD_ANOMALY
         + "\nANOMALY_RATE="
         + ANOMALY_RATE
         + "\nANOMALY_TIMES="
         + ANOMALY_TIMES
-        + '\''
         + "\nIS_OUT_OF_ORDER="
         + IS_OUT_OF_ORDER
         + "\nOUT_OF_ORDER_MODE="
