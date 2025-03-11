@@ -81,7 +81,7 @@ public class Config {
   private boolean USE_MEASUREMENT = true;
   /** Precision of result, unit: % */
   private double RESULT_PRECISION = 0.1;
-
+  /** Whether to open the Refresh DNList thread */
   private boolean ENABLE_AUTO_FETCH = false;
 
   /** Whether to use benchmark in cluster * */

@@ -21,6 +21,7 @@ package cn.edu.tsinghua.iot.benchmark.measurement.persistence;
 
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.constant.ThreadName;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.none.NoneRecorder;
 import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
@@ -36,7 +37,8 @@ public abstract class TestDataPersistence {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected ExecutorService service =
       Executors.newFixedThreadPool(
-          config.getTEST_DATA_MAX_CONNECTION(), new NamedThreadFactory("ResultPersistence", true));
+          config.getTEST_DATA_MAX_CONNECTION(),
+          new NamedThreadFactory(ThreadName.RESULT_PERSISTENCE.getName(), true));
 
   /**
    * Store system resources metrics data

@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.client.SchemaClient;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.constant.ThreadName;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -54,9 +55,11 @@ public abstract class BaseMode {
   private static final Logger LOGGER = LoggerFactory.getLogger(BaseMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final ScheduledExecutorService scheduler =
-      Executors.newScheduledThreadPool(2, new NamedThreadFactory("ShowResultPeriodically"));
+      Executors.newScheduledThreadPool(
+          2, new NamedThreadFactory(ThreadName.SHOW_RESULT_PERIODICALLY.getName()));
   private static final ScheduledExecutorService printService =
-      Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("ShowWorkProgress"));
+      Executors.newSingleThreadScheduledExecutor(
+          new NamedThreadFactory(ThreadName.SHOW_WORK_PROCESS.getName()));
 
   private static final double NANO_TO_SECOND = 1000000000.0d;
   private static final String RESULT_ITEM = "%-35s";
@@ -64,17 +67,17 @@ public abstract class BaseMode {
 
   protected ExecutorService schemaExecutorService =
       Executors.newFixedThreadPool(
-          config.getSCHEMA_CLIENT_NUMBER(), new NamedThreadFactory("SchemaClient"));
+          config.getSCHEMA_CLIENT_NUMBER(),
+          new NamedThreadFactory(ThreadName.SCHEMA_CLIENT_THREAD.getName()));
   protected ExecutorService executorService =
       Executors.newFixedThreadPool(
-          config.getDATA_CLIENT_NUMBER(), new NamedThreadFactory("DataClient"));
+          config.getDATA_CLIENT_NUMBER(),
+          new NamedThreadFactory(ThreadName.DATA_CLIENT_THREAD.getName()));
   protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getSCHEMA_CLIENT_NUMBER());
   protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   protected CountDownLatch dataDownLatch = new CountDownLatch(config.getDATA_CLIENT_NUMBER());
-  // thread.name, loopIndex
-  public static HashMap<String, Long> progressMap = new HashMap<>();
+  public static HashMap<String, Long> threadNameLoopIndexMap = new HashMap<>();
   protected static CyclicBarrier dataBarrier;
-  protected long totalLoop = config.getLOOP();
   protected List<DataClient> dataClients = new ArrayList<>();
   protected List<SchemaClient> schemaClients = new ArrayList<>();
   protected Measurement baseModeMeasurement = new Measurement();
@@ -94,9 +97,9 @@ public abstract class BaseMode {
               printService.scheduleAtFixedRate(
                   () -> {
                     if (!config.isIS_POINT_COMPARISON()) {
-                      for (Map.Entry<String, Long> entry : progressMap.entrySet()) {
+                      for (Map.Entry<String, Long> entry : threadNameLoopIndexMap.entrySet()) {
                         String percent =
-                            String.format("%.2f", entry.getValue() * 100.0D / this.totalLoop);
+                            String.format("%.2f", entry.getValue() * 100.0D / config.getLOOP());
                         LOGGER.info("{} {}% workload is done.", entry.getKey(), percent);
                       }
                     }

@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.measurement.persistence.csv;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.constant.ThreadName;
 import cn.edu.tsinghua.iot.benchmark.measurement.enums.SystemMetrics;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.TestDataPersistence;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
@@ -138,7 +139,9 @@ public class CSVRecorder extends TestDataPersistence {
         LOGGER.error("", ioException);
       }
     }
-    service = Executors.newSingleThreadExecutor(new NamedThreadFactory("CSVRecorder"));
+    service =
+        Executors.newSingleThreadExecutor(
+            new NamedThreadFactory(ThreadName.CSV_RECORDER.getName()));
   }
 
   /** write header of csv file */
