@@ -82,6 +82,8 @@ public class Config {
   /** Precision of result, unit: % */
   private double RESULT_PRECISION = 0.1;
 
+  private boolean ENABLE_AUTO_FETCH = false;
+
   /** Whether to use benchmark in cluster * */
   private boolean BENCHMARK_CLUSTER = false;
   /** In cluster mode of benchmark, the index of benchmark which will influence index of devices */
@@ -676,6 +678,14 @@ public class Config {
 
   public void setRESULT_PRECISION(double RESULT_PRECISION) {
     this.RESULT_PRECISION = RESULT_PRECISION;
+  }
+
+  public boolean isENABLE_AUTO_FETCH() {
+    return ENABLE_AUTO_FETCH;
+  }
+
+  public void setENABLE_AUTO_FETCH(boolean ENABLE_AUTO_FETCH) {
+    this.ENABLE_AUTO_FETCH = ENABLE_AUTO_FETCH;
   }
 
   public boolean isBENCHMARK_CLUSTER() {

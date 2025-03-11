@@ -90,7 +90,7 @@ public abstract class TestDataPersistence {
       double latency,
       String remark,
       String device) {
-    if(!isNoneRecorder()){
+    if (!isNoneRecorder()) {
       service.submit(
           () -> {
             saveOperationResult(operation, okPoint, failPoint, latency, remark, device);
@@ -100,7 +100,7 @@ public abstract class TestDataPersistence {
 
   /** Save result of operation Async */
   public void saveResultAsync(String operation, String key, String value) {
-    if(!isNoneRecorder()){
+    if (!isNoneRecorder()) {
       service.submit(
           () -> {
             saveResult(operation, key, value);

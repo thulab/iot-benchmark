@@ -46,7 +46,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -92,19 +91,19 @@ public abstract class BaseMode {
         new CyclicBarrier(
             config.getDATA_CLIENT_NUMBER(),
             () -> {
-                  printService.scheduleAtFixedRate(
-                      () -> {
-                        if (!config.isIS_POINT_COMPARISON()) {
-                          for (Map.Entry<String, Long> entry : progressMap.entrySet()) {
-                            String percent =
-                                String.format("%.2f", entry.getValue() * 100.0D / this.totalLoop);
-                            LOGGER.info("{} {}% workload is done.", entry.getKey(), percent);
-                          }
-                        }
-                      },
-                      1,
-                      config.getLOG_PRINT_INTERVAL(),
-                      TimeUnit.SECONDS);
+              printService.scheduleAtFixedRate(
+                  () -> {
+                    if (!config.isIS_POINT_COMPARISON()) {
+                      for (Map.Entry<String, Long> entry : progressMap.entrySet()) {
+                        String percent =
+                            String.format("%.2f", entry.getValue() * 100.0D / this.totalLoop);
+                        LOGGER.info("{} {}% workload is done.", entry.getKey(), percent);
+                      }
+                    }
+                  },
+                  1,
+                  config.getLOG_PRINT_INTERVAL(),
+                  TimeUnit.SECONDS);
             });
     for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       DataClient client = DataClient.getInstance(i, dataDownLatch, dataBarrier);

@@ -114,6 +114,9 @@ public class ConfigDescriptor {
         config.setRESULT_PRECISION(
             Double.parseDouble(
                 properties.getProperty("RESULT_PRECISION", config.getRESULT_PRECISION() + "")));
+        config.setENABLE_AUTO_FETCH(
+            Boolean.parseBoolean(
+                properties.getProperty("ENABLE_AUTO_FETCH", config.isENABLE_AUTO_FETCH() + "")));
 
         config.setDB_SWITCH(
             DBSwitch.getDBType(
