@@ -141,7 +141,6 @@ public class SessionStrategy extends DMLStrategy {
             schemaList,
             columnTypes,
             batch.getRecords().size() * config.getDEVICE_NUM_PER_WRITE());
-    Object[] values = tablet.getValues();
     int stepOff = 0;
     batch.reset();
     // Convert multiple batches to tablets
@@ -158,46 +157,53 @@ public class SessionStrategy extends DMLStrategy {
             recordValueIndex++) {
           switch (sensors.get(sensorIndex).getSensorType()) {
             case BOOLEAN:
-              boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
-              sensorsBool[recordIndex] =
-                  (boolean) (record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  (boolean) record.getRecordDataValue().get(recordValueIndex));
               break;
             case INT32:
-              int[] sensorsInt = (int[]) values[recordValueIndex];
-              sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  (int) record.getRecordDataValue().get(recordValueIndex));
               break;
             case INT64:
-              long[] sensorsLong = (long[]) values[recordValueIndex];
-              sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
+            case TIMESTAMP:
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  (long) record.getRecordDataValue().get(recordValueIndex));
               break;
             case FLOAT:
-              float[] sensorsFloat = (float[]) values[recordValueIndex];
-              sensorsFloat[recordIndex] =
-                  (float) (record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  (float) record.getRecordDataValue().get(recordValueIndex));
               break;
             case DOUBLE:
-              double[] sensorsDouble = (double[]) values[recordValueIndex];
-              sensorsDouble[recordIndex] =
-                  (double) (record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  (double) record.getRecordDataValue().get(recordValueIndex));
               break;
             case TEXT:
             case STRING:
             case BLOB:
-              Binary[] sensorsText = (Binary[]) values[recordValueIndex];
-              sensorsText[recordIndex] =
-                  binaryCache.computeIfAbsent(
-                      (String) record.getRecordDataValue().get(recordValueIndex),
-                      BytesUtils::valueOf);
-              break;
-            case TIMESTAMP:
-              long[] sensorsTimestamp = (long[]) values[recordValueIndex];
-              sensorsTimestamp[recordIndex] =
-                  (long) (record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  binaryCache
+                      .computeIfAbsent(
+                          (String) record.getRecordDataValue().get(recordValueIndex),
+                          BytesUtils::valueOf)
+                      .getValues());
               break;
             case DATE:
-              LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
-              sensorsDate[recordIndex] =
-                  (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  (LocalDate) record.getRecordDataValue().get(recordValueIndex));
               break;
             default:
               LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
