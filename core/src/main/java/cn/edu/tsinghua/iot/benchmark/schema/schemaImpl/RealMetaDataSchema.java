@@ -125,9 +125,17 @@ public class RealMetaDataSchema extends MetaDataSchema {
       if (!f.getAbsolutePath().contains(Constants.SCHEMA_PATH)
           && !f.getAbsolutePath().contains(Constants.INFO_PATH)) {
         String path = f.getAbsolutePath();
-        int lastIndexOf = path.lastIndexOf("\\");
-        String device = path.substring(path.lastIndexOf("\\", lastIndexOf - 1) + 1, lastIndexOf);
-        files.put(device, f.getAbsolutePath());
+        char separator = File.separatorChar;
+        int lastIndexOf = path.lastIndexOf(separator);
+        int secondLastIndexOf = path.lastIndexOf(separator, lastIndexOf - 1);
+        if (secondLastIndexOf == -1 || lastIndexOf == -1) {
+          LOGGER.error("Invalid file path: {}", path);
+        } else {
+          String device = path.substring(secondLastIndexOf + 1, lastIndexOf);
+          files.put(device, f.getAbsolutePath());
+        }
+//        String device = path.substring(path.lastIndexOf("\\", lastIndexOf - 1) + 1, lastIndexOf);
+//        files.put(device, f.getAbsolutePath());
       }
     }
   }
