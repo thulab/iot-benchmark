@@ -134,8 +134,6 @@ public class RealMetaDataSchema extends MetaDataSchema {
           String device = path.substring(secondLastIndexOf + 1, lastIndexOf);
           files.put(device, f.getAbsolutePath());
         }
-//        String device = path.substring(path.lastIndexOf("\\", lastIndexOf - 1) + 1, lastIndexOf);
-//        files.put(device, f.getAbsolutePath());
       }
     }
   }
