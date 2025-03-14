@@ -481,7 +481,9 @@ public class SessionStrategy extends DMLStrategy {
         sessionManager.close();
       }
     } finally {
-      service.shutdown();
+      if (service != null) {
+        service.shutdown();
+      }
     }
   }
 }
