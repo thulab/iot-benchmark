@@ -242,6 +242,18 @@
 
         <dependency>
             <groupId>cn.edu.tsinghua</groupId>
+            <artifactId>iotdb-2.0</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.edu.tsinghua</groupId>
+                    <artifactId>core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.edu.tsinghua</groupId>
             <artifactId>mssqlserver</artifactId>
             <version>${project.version}</version>
             <exclusions>
