@@ -237,6 +237,10 @@
                     <groupId>cn.edu.tsinghua</groupId>
                     <artifactId>core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.iotdb</groupId>
+                    <artifactId>iotdb-session</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
