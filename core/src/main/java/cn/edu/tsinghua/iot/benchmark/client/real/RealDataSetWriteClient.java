@@ -25,13 +25,15 @@ import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class RealDataSetWriteClient extends RealBaseClient {
 
   private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
-  public RealDataSetWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public RealDataSetWriteClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+    super(id, countDownLatch, barrier, loopIndexAtomic);
   }
 
   /** Do Operations */

@@ -48,6 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public abstract class BaseMode {
@@ -76,7 +77,9 @@ public abstract class BaseMode {
   protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getSCHEMA_CLIENT_NUMBER());
   protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   protected CountDownLatch dataDownLatch = new CountDownLatch(config.getDATA_CLIENT_NUMBER());
-  public static HashMap<String, Long> threadNameLoopIndexMap = new HashMap<>();
+
+  public static HashMap<String, AtomicLong> threadNameLoopIndexMap =
+      new HashMap<>(config.getDATA_CLIENT_NUMBER());
   protected static CyclicBarrier dataBarrier;
   protected List<DataClient> dataClients = new ArrayList<>();
   protected List<SchemaClient> schemaClients = new ArrayList<>();
@@ -97,9 +100,11 @@ public abstract class BaseMode {
               printService.scheduleAtFixedRate(
                   () -> {
                     if (!config.isIS_POINT_COMPARISON()) {
-                      for (Map.Entry<String, Long> entry : threadNameLoopIndexMap.entrySet()) {
+                      for (Map.Entry<String, AtomicLong> entry :
+                          threadNameLoopIndexMap.entrySet()) {
                         String percent =
-                            String.format("%.2f", entry.getValue() * 100.0D / config.getLOOP());
+                            String.format(
+                                "%.2f", (entry.getValue().get() * 100.0D) / config.getLOOP());
                         LOGGER.info("{} {}% workload is done.", entry.getKey(), percent);
                       }
                     }
@@ -108,8 +113,16 @@ public abstract class BaseMode {
                   config.getLOG_PRINT_INTERVAL(),
                   TimeUnit.SECONDS);
             });
+
     for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
-      DataClient client = DataClient.getInstance(i, dataDownLatch, dataBarrier);
+      threadNameLoopIndexMap.put(
+          ThreadName.DATA_CLIENT_THREAD.getName() + "-" + i, new AtomicLong(0));
+      DataClient client =
+          DataClient.getInstance(
+              i,
+              dataDownLatch,
+              dataBarrier,
+              threadNameLoopIndexMap.get(ThreadName.DATA_CLIENT_THREAD.getName() + "-" + i));
       if (client == null) {
         return;
       }

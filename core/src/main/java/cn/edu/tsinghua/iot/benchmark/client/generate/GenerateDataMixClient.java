@@ -26,8 +26,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-
-import static cn.edu.tsinghua.iot.benchmark.mode.BaseMode.threadNameLoopIndexMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerateDataMixClient extends GenerateBaseClient {
 
@@ -36,8 +35,9 @@ public class GenerateDataMixClient extends GenerateBaseClient {
 
   private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
-  public GenerateDataMixClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateDataMixClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+    super(id, countDownLatch, barrier, loopIndexAtomic);
     // TODO exclude control model
     this.operationController = new OperationController(id);
   }
@@ -47,7 +47,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   protected void doTest() {
     long start = 0;
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
-      threadNameLoopIndexMap.put(Thread.currentThread().getName(), loopIndex);
+      loopIndexAtomic.set(loopIndex);
       Operation operation = operationController.getNextOperationType();
       if (config.getOP_MIN_INTERVAL() > 0) {
         start = System.currentTimeMillis();

@@ -25,13 +25,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class RealBaseClient extends DataClient implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
 
-  public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public RealBaseClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+    super(id, countDownLatch, barrier, loopIndexAtomic);
   }
 
   @Override

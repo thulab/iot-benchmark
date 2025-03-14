@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class DataClient implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataClient.class);
@@ -65,6 +66,8 @@ public abstract class DataClient implements Runnable {
   /** Loop Index, using for loop and log */
   protected long loopIndex = 0;
 
+  protected AtomicLong loopIndexAtomic;
+
   /** Control the status */
   protected AtomicBoolean isStop = new AtomicBoolean(false);
 
@@ -73,32 +76,34 @@ public abstract class DataClient implements Runnable {
 
   private final CyclicBarrier barrier;
 
-  public DataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public DataClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
     this.queryWorkLoad = QueryWorkLoad.getInstance(id);
     this.clientThreadId = id;
+    this.loopIndexAtomic = loopIndexAtomic;
     this.clientDeviceSchemas =
         MetaDataSchema.getInstance().getDeviceSchemaByDataClientId(clientThreadId);
     initDBWrappers();
   }
 
   public static DataClient getInstance(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_POINT_COMPARISON()) {
-          return new GenerateDataDeviceClient(id, countDownLatch, barrier);
+          return new GenerateDataDeviceClient(id, countDownLatch, barrier, loopIndexAtomic);
         } else {
-          return new GenerateDataMixClient(id, countDownLatch, barrier);
+          return new GenerateDataMixClient(id, countDownLatch, barrier, loopIndexAtomic);
         }
       case GENERATE_DATA:
-        return new GenerateDataWriteClient(id, countDownLatch, barrier);
+        return new GenerateDataWriteClient(id, countDownLatch, barrier, loopIndexAtomic);
       case VERIFICATION_WRITE:
-        return new RealDataSetWriteClient(id, countDownLatch, barrier);
+        return new RealDataSetWriteClient(id, countDownLatch, barrier, loopIndexAtomic);
       case VERIFICATION_QUERY:
-        return new RealDataSetQueryClient(id, countDownLatch, barrier);
+        return new RealDataSetQueryClient(id, countDownLatch, barrier, loopIndexAtomic);
       default:
         LOGGER.warn("No need to create client" + config.getBENCHMARK_WORK_MODE());
         break;

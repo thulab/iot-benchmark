@@ -170,7 +170,6 @@ public class TableSessionManager extends SessionManager {
         .password(dbConfig.getPASSWORD())
         .enableCompression(config.isENABLE_THRIFT_COMPRESSION())
         .enableRedirection(true)
-        .enableAutoFetch(config.isENABLE_AUTO_FETCH())
         .build();
   }
 }

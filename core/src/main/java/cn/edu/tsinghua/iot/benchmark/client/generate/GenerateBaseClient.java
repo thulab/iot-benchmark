@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Responsible for writing and querying generate data. The order and number of operation(e.g.
@@ -46,8 +47,9 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
   /** Actual deviceFloor */
   protected int actualDeviceFloor;
 
-  public GenerateBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateBaseClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+    super(id, countDownLatch, barrier, loopIndexAtomic);
     insertLoopIndex = 0;
     actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
     actualDeviceFloor = MetaUtil.getDeviceId(actualDeviceFloor);

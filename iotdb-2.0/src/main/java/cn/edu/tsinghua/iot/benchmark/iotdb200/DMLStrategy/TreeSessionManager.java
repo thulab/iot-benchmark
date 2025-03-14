@@ -202,7 +202,6 @@ public class TreeSessionManager extends SessionManager {
         .enableRedirection(true)
         .version(Version.V_1_0)
         .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
-        .enableAutoFetch(config.isENABLE_AUTO_FETCH())
         .build();
   }
 }
