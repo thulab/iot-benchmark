@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy;
 
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
+import cn.edu.tsinghua.iot.benchmark.constant.ThreadName;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
@@ -204,7 +205,8 @@ public class JDBCStrategy extends DMLStrategy {
         ioTDBConnection = new SingleNodeJDBCConnection(dbConfig);
         ioTDBConnection.init();
         this.service =
-            Executors.newSingleThreadExecutor(new NamedThreadFactory("DataClientExecuteJob"));
+            Executors.newSingleThreadExecutor(
+                new NamedThreadFactory(ThreadName.DATA_CLIENT_EXECUTE_JOB.getName()));
       } catch (Exception e) {
         throw new TsdbException(e);
       }

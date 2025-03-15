@@ -24,19 +24,22 @@ import cn.edu.tsinghua.iot.benchmark.extern.DataWriter;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** This client is using by GenerateMode */
 public class GenerateDataWriteClient extends GenerateBaseClient {
   private DataWriter dataWriter = DataWriter.getDataWriter();
 
-  public GenerateDataWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateDataWriteClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+    super(id, countDownLatch, barrier, loopIndexAtomic);
   }
 
   /** Do Operations */
   @Override
   protected void doTest() {
     for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
+      loopIndexAtomic.set(loopIndex);
       if (!doGenerate()) {
         break;
       }

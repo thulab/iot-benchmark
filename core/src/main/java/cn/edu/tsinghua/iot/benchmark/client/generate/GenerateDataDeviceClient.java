@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
@@ -37,8 +38,9 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
           * config.getBATCH_SIZE_PER_WRITE();
   private int now = 0;
 
-  public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateDataDeviceClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+    super(id, countDownLatch, barrier, loopIndexAtomic);
   }
 
   @Override

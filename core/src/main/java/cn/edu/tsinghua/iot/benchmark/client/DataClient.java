@@ -32,7 +32,6 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import cn.edu.tsinghua.iot.benchmark.workload.DataWorkLoad;
 import cn.edu.tsinghua.iot.benchmark.workload.QueryWorkLoad;
 import cn.edu.tsinghua.iot.benchmark.workload.interfaces.IDataWorkLoad;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class DataClient implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataClient.class);
@@ -57,8 +57,6 @@ public abstract class DataClient implements Runnable {
   protected final IDataWorkLoad dataWorkLoad;
   /** QueryWorkload */
   protected final IQueryWorkLoad queryWorkLoad;
-  /** Log related */
-  protected final ScheduledExecutorService service;
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
   /** Related Schema */
@@ -68,6 +66,8 @@ public abstract class DataClient implements Runnable {
   /** Loop Index, using for loop and log */
   protected long loopIndex = 0;
 
+  protected AtomicLong loopIndexAtomic;
+
   /** Control the status */
   protected AtomicBoolean isStop = new AtomicBoolean(false);
 
@@ -76,35 +76,34 @@ public abstract class DataClient implements Runnable {
 
   private final CyclicBarrier barrier;
 
-  public DataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public DataClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
     this.queryWorkLoad = QueryWorkLoad.getInstance(id);
     this.clientThreadId = id;
+    this.loopIndexAtomic = loopIndexAtomic;
     this.clientDeviceSchemas =
         MetaDataSchema.getInstance().getDeviceSchemaByDataClientId(clientThreadId);
-    this.service =
-        Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory("ShowWorkProgress-" + clientThreadId));
     initDBWrappers();
   }
 
   public static DataClient getInstance(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_POINT_COMPARISON()) {
-          return new GenerateDataDeviceClient(id, countDownLatch, barrier);
+          return new GenerateDataDeviceClient(id, countDownLatch, barrier, loopIndexAtomic);
         } else {
-          return new GenerateDataMixClient(id, countDownLatch, barrier);
+          return new GenerateDataMixClient(id, countDownLatch, barrier, loopIndexAtomic);
         }
       case GENERATE_DATA:
-        return new GenerateDataWriteClient(id, countDownLatch, barrier);
+        return new GenerateDataWriteClient(id, countDownLatch, barrier, loopIndexAtomic);
       case VERIFICATION_WRITE:
-        return new RealDataSetWriteClient(id, countDownLatch, barrier);
+        return new RealDataSetWriteClient(id, countDownLatch, barrier, loopIndexAtomic);
       case VERIFICATION_QUERY:
-        return new RealDataSetQueryClient(id, countDownLatch, barrier);
+        return new RealDataSetQueryClient(id, countDownLatch, barrier, loopIndexAtomic);
       default:
         LOGGER.warn("No need to create client" + config.getBENCHMARK_WORK_MODE());
         break;
@@ -126,25 +125,10 @@ public abstract class DataClient implements Runnable {
         // wait for that all dataClients start test simultaneously
         barrier.await();
 
-        String currentThread = Thread.currentThread().getName();
-
-        if (!config.isIS_POINT_COMPARISON()) {
-          // print current progress periodically
-          service.scheduleAtFixedRate(
-              () -> {
-                String percent = String.format("%.2f", loopIndex * 100.0D / this.totalLoop);
-                LOGGER.info("{} {}% workload is done.", currentThread, percent);
-              },
-              1,
-              config.getLOG_PRINT_INTERVAL(),
-              TimeUnit.SECONDS);
-        }
-
         doTest();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       } finally {
-        service.shutdown();
         try {
           if (dbWrapper != null) {
             dbWrapper.close();
