@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.extern.DataWriter;
 
@@ -29,14 +30,16 @@ import java.util.concurrent.CyclicBarrier;
 public class GenerateDataWriteClient extends GenerateBaseClient {
   private DataWriter dataWriter = DataWriter.getDataWriter();
 
-  public GenerateDataWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateDataWriteClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
   }
 
   /** Do Operations */
   @Override
   protected void doTest() {
-    for (loopIndex = 0; loopIndex < config.getLOOP(); loopIndex++) {
+    taskProgress.resetLoopIndex();
+    for (; taskProgress.getLoopIndex() < config.getLOOP(); taskProgress.incrementLoopIndex()) {
       if (!doGenerate()) {
         break;
       }
@@ -68,6 +71,6 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   @Override
   protected void initDBWrappers() {
     // do nothing
-    this.totalLoop = config.getLOOP();
+    taskProgress.setTotalLoop(config.getLOOP());
   }
 }

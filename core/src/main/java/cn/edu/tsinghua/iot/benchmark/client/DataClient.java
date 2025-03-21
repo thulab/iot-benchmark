@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.client;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataMixClient;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataWriteClient;
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iot.benchmark.client.real.RealDataSetWriteClient;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -32,7 +33,6 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBWrapper;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
-import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import cn.edu.tsinghua.iot.benchmark.workload.DataWorkLoad;
 import cn.edu.tsinghua.iot.benchmark.workload.QueryWorkLoad;
 import cn.edu.tsinghua.iot.benchmark.workload.interfaces.IDataWorkLoad;
@@ -53,20 +53,20 @@ public abstract class DataClient implements Runnable {
 
   /** The id of client */
   protected final int clientThreadId;
+
   /** RealDataWorkload */
   protected final IDataWorkLoad dataWorkLoad;
+
   /** QueryWorkload */
   protected final IQueryWorkLoad queryWorkLoad;
-  /** Log related */
-  protected final ScheduledExecutorService service;
+
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
+
   /** Related Schema */
   protected final List<DeviceSchema> clientDeviceSchemas;
-  /** Total number of loop */
-  protected long totalLoop = 0;
-  /** Loop Index, using for loop and log */
-  protected long loopIndex = 0;
+
+  protected TaskProgress taskProgress;
 
   /** Control the status */
   protected AtomicBoolean isStop = new AtomicBoolean(false);
@@ -76,7 +76,8 @@ public abstract class DataClient implements Runnable {
 
   private final CyclicBarrier barrier;
 
-  public DataClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+  public DataClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
@@ -84,27 +85,25 @@ public abstract class DataClient implements Runnable {
     this.clientThreadId = id;
     this.clientDeviceSchemas =
         MetaDataSchema.getInstance().getDeviceSchemaByDataClientId(clientThreadId);
-    this.service =
-        Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory("ShowWorkProgress-" + clientThreadId));
+    this.taskProgress = taskProgress;
     initDBWrappers();
   }
 
   public static DataClient getInstance(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_POINT_COMPARISON()) {
-          return new GenerateDataDeviceClient(id, countDownLatch, barrier);
+          return new GenerateDataDeviceClient(id, countDownLatch, barrier, taskProgress);
         } else {
-          return new GenerateDataMixClient(id, countDownLatch, barrier);
+          return new GenerateDataMixClient(id, countDownLatch, barrier, taskProgress);
         }
       case GENERATE_DATA:
-        return new GenerateDataWriteClient(id, countDownLatch, barrier);
+        return new GenerateDataWriteClient(id, countDownLatch, barrier, taskProgress);
       case VERIFICATION_WRITE:
-        return new RealDataSetWriteClient(id, countDownLatch, barrier);
+        return new RealDataSetWriteClient(id, countDownLatch, barrier, taskProgress);
       case VERIFICATION_QUERY:
-        return new RealDataSetQueryClient(id, countDownLatch, barrier);
+        return new RealDataSetQueryClient(id, countDownLatch, barrier, taskProgress);
       default:
         LOGGER.warn("No need to create client" + config.getBENCHMARK_WORK_MODE());
         break;
@@ -123,28 +122,14 @@ public abstract class DataClient implements Runnable {
         if (dbWrapper != null) {
           dbWrapper.init();
         }
+        taskProgress.setThreadName(Thread.currentThread().getName());
         // wait for that all dataClients start test simultaneously
         barrier.await();
-
-        String currentThread = Thread.currentThread().getName();
-
-        if (!config.isIS_POINT_COMPARISON()) {
-          // print current progress periodically
-          service.scheduleAtFixedRate(
-              () -> {
-                String percent = String.format("%.2f", loopIndex * 100.0D / this.totalLoop);
-                LOGGER.info("{} {}% workload is done.", currentThread, percent);
-              },
-              1,
-              config.getLOG_PRINT_INTERVAL(),
-              TimeUnit.SECONDS);
-        }
 
         doTest();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);
       } finally {
-        service.shutdown();
         try {
           if (dbWrapper != null) {
             dbWrapper.close();

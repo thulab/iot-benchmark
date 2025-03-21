@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.real;
 
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 
@@ -30,8 +31,9 @@ public class RealDataSetWriteClient extends RealBaseClient {
 
   private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
-  public RealDataSetWriteClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public RealDataSetWriteClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
   }
 
   /** Do Operations */
@@ -48,7 +50,7 @@ public class RealDataSetWriteClient extends RealBaseClient {
           start = System.currentTimeMillis();
         }
         dbWrapper.insertOneBatchWithCheck(batch);
-        loopIndex++;
+        taskProgress.incrementLoopIndex();
         if (isStop.get()) {
           break;
         }

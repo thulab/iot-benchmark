@@ -26,6 +26,7 @@ import org.apache.iotdb.rpc.StatementExecutionException;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.constant.ThreadName;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
@@ -39,6 +40,7 @@ import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
+import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.tsfile.read.common.Field;
@@ -460,7 +462,9 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void init() {
     sessionManager.open();
-    this.service = Executors.newSingleThreadExecutor();
+    this.service =
+        Executors.newSingleThreadExecutor(
+            new NamedThreadFactory(ThreadName.DATA_CLIENT_EXECUTE_JOB.getName()));
   }
 
   @Override

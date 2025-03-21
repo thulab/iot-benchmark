@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
@@ -37,8 +38,9 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
           * config.getBATCH_SIZE_PER_WRITE();
   private int now = 0;
 
-  public GenerateDataDeviceClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateDataDeviceClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
   }
 
   @Override

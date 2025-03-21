@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
 import cn.edu.tsinghua.iot.benchmark.client.DataClient;
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -46,8 +47,9 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
   /** Actual deviceFloor */
   protected int actualDeviceFloor;
 
-  public GenerateBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public GenerateBaseClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
     insertLoopIndex = 0;
     actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
     actualDeviceFloor = MetaUtil.getDeviceId(actualDeviceFloor);
@@ -56,7 +58,7 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
   @Override
   protected void initDBWrappers() {
     super.initDBWrappers();
-    this.totalLoop = config.getLOOP();
+    taskProgress.setTotalLoop(config.getLOOP());
   }
 
   /** Check whether write batch */

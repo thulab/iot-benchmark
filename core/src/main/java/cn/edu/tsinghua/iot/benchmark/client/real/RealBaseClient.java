@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.client.real;
 
 import cn.edu.tsinghua.iot.benchmark.client.DataClient;
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,16 +31,17 @@ public abstract class RealBaseClient extends DataClient implements Runnable {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(RealBaseClient.class);
 
-  public RealBaseClient(int id, CountDownLatch countDownLatch, CyclicBarrier barrier) {
-    super(id, countDownLatch, barrier);
+  public RealBaseClient(
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
   }
 
   @Override
   protected void initDBWrappers() {
     super.initDBWrappers();
-    this.totalLoop = this.dataWorkLoad.getBatchNumber();
+    taskProgress.setTotalLoop(this.dataWorkLoad.getBatchNumber());
     if (!config.isIS_SENSOR_TS_ALIGNMENT()) {
-      this.totalLoop *= config.getSENSOR_NUMBER();
+      taskProgress.setTotalLoop(this.dataWorkLoad.getBatchNumber() * config.getSENSOR_NUMBER());
     }
   }
 }
