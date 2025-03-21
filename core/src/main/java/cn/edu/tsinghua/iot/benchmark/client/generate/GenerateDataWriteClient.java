@@ -39,7 +39,7 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   @Override
   protected void doTest() {
     taskProgress.resetLoopIndex();
-    for (;taskProgress.getLoopIndex()< config.getLOOP(); taskProgress.incrementLoopIndex()) {
+    for (; taskProgress.getLoopIndex() < config.getLOOP(); taskProgress.incrementLoopIndex()) {
       if (!doGenerate()) {
         break;
       }

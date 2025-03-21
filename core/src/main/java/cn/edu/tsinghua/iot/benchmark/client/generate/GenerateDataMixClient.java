@@ -47,7 +47,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   protected void doTest() {
     long start = 0;
     taskProgress.resetLoopIndex();
-    for (;taskProgress.getLoopIndex()< config.getLOOP(); taskProgress.incrementLoopIndex()) {
+    for (; taskProgress.getLoopIndex() < config.getLOOP(); taskProgress.incrementLoopIndex()) {
       Operation operation = operationController.getNextOperationType();
       if (config.getOP_MIN_INTERVAL() > 0) {
         start = System.currentTimeMillis();
