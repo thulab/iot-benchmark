@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.client;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataMixClient;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataWriteClient;
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iot.benchmark.client.real.RealDataSetWriteClient;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -43,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class DataClient implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(DataClient.class);
@@ -53,20 +53,20 @@ public abstract class DataClient implements Runnable {
 
   /** The id of client */
   protected final int clientThreadId;
+
   /** RealDataWorkload */
   protected final IDataWorkLoad dataWorkLoad;
+
   /** QueryWorkload */
   protected final IQueryWorkLoad queryWorkLoad;
+
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
+
   /** Related Schema */
   protected final List<DeviceSchema> clientDeviceSchemas;
-  /** Total number of loop */
-  protected long totalLoop = 0;
-  /** Loop Index, using for loop and log */
-  protected long loopIndex = 0;
 
-  protected AtomicLong loopIndexAtomic;
+  protected TaskProgress taskProgress;
 
   /** Control the status */
   protected AtomicBoolean isStop = new AtomicBoolean(false);
@@ -77,33 +77,33 @@ public abstract class DataClient implements Runnable {
   private final CyclicBarrier barrier;
 
   public DataClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
     this.countDownLatch = countDownLatch;
     this.barrier = barrier;
     this.dataWorkLoad = DataWorkLoad.getInstance(id);
     this.queryWorkLoad = QueryWorkLoad.getInstance(id);
     this.clientThreadId = id;
-    this.loopIndexAtomic = loopIndexAtomic;
     this.clientDeviceSchemas =
         MetaDataSchema.getInstance().getDeviceSchemaByDataClientId(clientThreadId);
+    this.taskProgress = taskProgress;
     initDBWrappers();
   }
 
   public static DataClient getInstance(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_POINT_COMPARISON()) {
-          return new GenerateDataDeviceClient(id, countDownLatch, barrier, loopIndexAtomic);
+          return new GenerateDataDeviceClient(id, countDownLatch, barrier, taskProgress);
         } else {
-          return new GenerateDataMixClient(id, countDownLatch, barrier, loopIndexAtomic);
+          return new GenerateDataMixClient(id, countDownLatch, barrier, taskProgress);
         }
       case GENERATE_DATA:
-        return new GenerateDataWriteClient(id, countDownLatch, barrier, loopIndexAtomic);
+        return new GenerateDataWriteClient(id, countDownLatch, barrier, taskProgress);
       case VERIFICATION_WRITE:
-        return new RealDataSetWriteClient(id, countDownLatch, barrier, loopIndexAtomic);
+        return new RealDataSetWriteClient(id, countDownLatch, barrier, taskProgress);
       case VERIFICATION_QUERY:
-        return new RealDataSetQueryClient(id, countDownLatch, barrier, loopIndexAtomic);
+        return new RealDataSetQueryClient(id, countDownLatch, barrier, taskProgress);
       default:
         LOGGER.warn("No need to create client" + config.getBENCHMARK_WORK_MODE());
         break;
@@ -122,6 +122,7 @@ public abstract class DataClient implements Runnable {
         if (dbWrapper != null) {
           dbWrapper.init();
         }
+        taskProgress.setThreadName(Thread.currentThread().getName());
         // wait for that all dataClients start test simultaneously
         barrier.await();
 

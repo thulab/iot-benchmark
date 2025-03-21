@@ -19,21 +19,21 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.real;
 
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class RealDataSetQueryClient extends RealBaseClient {
 
   private final Random random = new Random(config.getDATA_SEED() + clientThreadId);
 
   public RealDataSetQueryClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
-    super(id, countDownLatch, barrier, loopIndexAtomic);
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
   }
 
   /** Do Operations */
@@ -51,7 +51,7 @@ public class RealDataSetQueryClient extends RealBaseClient {
         }
         VerificationQuery verificationQuery = queryWorkLoad.getVerifiedQuery(batch);
         dbWrapper.verificationQuery(verificationQuery);
-        loopIndex++;
+        taskProgress.incrementLoopIndex();
         if (isStop.get()) {
           break;
         }

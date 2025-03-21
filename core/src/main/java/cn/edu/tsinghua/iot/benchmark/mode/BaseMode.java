@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.mode;
 import cn.edu.tsinghua.iot.benchmark.client.DataClient;
 import cn.edu.tsinghua.iot.benchmark.client.SchemaClient;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.constant.ThreadName;
@@ -36,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,7 +48,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public abstract class BaseMode {
@@ -77,9 +76,7 @@ public abstract class BaseMode {
   protected CountDownLatch schemaDownLatch = new CountDownLatch(config.getSCHEMA_CLIENT_NUMBER());
   protected CyclicBarrier schemaBarrier = new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   protected CountDownLatch dataDownLatch = new CountDownLatch(config.getDATA_CLIENT_NUMBER());
-
-  public static HashMap<String, AtomicLong> threadNameLoopIndexMap =
-      new HashMap<>(config.getDATA_CLIENT_NUMBER());
+  public static List<TaskProgress> taskProgressList = new ArrayList<>();
   protected static CyclicBarrier dataBarrier;
   protected List<DataClient> dataClients = new ArrayList<>();
   protected List<SchemaClient> schemaClients = new ArrayList<>();
@@ -100,12 +97,10 @@ public abstract class BaseMode {
               printService.scheduleAtFixedRate(
                   () -> {
                     if (!config.isIS_POINT_COMPARISON()) {
-                      for (Map.Entry<String, AtomicLong> entry :
-                          threadNameLoopIndexMap.entrySet()) {
-                        String percent =
-                            String.format(
-                                "%.2f", (entry.getValue().get() * 100.0D) / config.getLOOP());
-                        LOGGER.info("{} {}% workload is done.", entry.getKey(), percent);
+                      for (TaskProgress taskProgress : taskProgressList) {
+                        String percent = String.format("%.2f", taskProgress.getPercent());
+                        LOGGER.info(
+                            "{} {}% workload is done.", taskProgress.getThreadName(), percent);
                       }
                     }
                   },
@@ -115,14 +110,9 @@ public abstract class BaseMode {
             });
 
     for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
-      threadNameLoopIndexMap.put(
-          ThreadName.DATA_CLIENT_THREAD.getName() + "-" + i, new AtomicLong(0));
+      taskProgressList.add(new TaskProgress());
       DataClient client =
-          DataClient.getInstance(
-              i,
-              dataDownLatch,
-              dataBarrier,
-              threadNameLoopIndexMap.get(ThreadName.DATA_CLIENT_THREAD.getName() + "-" + i));
+          DataClient.getInstance(i, dataDownLatch, dataBarrier, taskProgressList.get(i));
       if (client == null) {
         return;
       }

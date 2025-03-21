@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.DeviceQuery;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerateDataDeviceClient extends GenerateBaseClient {
 
@@ -39,8 +39,8 @@ public class GenerateDataDeviceClient extends GenerateBaseClient {
   private int now = 0;
 
   public GenerateDataDeviceClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
-    super(id, countDownLatch, barrier, loopIndexAtomic);
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
   }
 
   @Override

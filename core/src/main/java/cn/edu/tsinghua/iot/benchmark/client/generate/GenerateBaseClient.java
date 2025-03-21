@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iot.benchmark.client.generate;
 
 import cn.edu.tsinghua.iot.benchmark.client.DataClient;
+import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
 import cn.edu.tsinghua.iot.benchmark.distribution.ProbTool;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Responsible for writing and querying generate data. The order and number of operation(e.g.
@@ -48,8 +48,8 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
   protected int actualDeviceFloor;
 
   public GenerateBaseClient(
-      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, AtomicLong loopIndexAtomic) {
-    super(id, countDownLatch, barrier, loopIndexAtomic);
+      int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
+    super(id, countDownLatch, barrier, taskProgress);
     insertLoopIndex = 0;
     actualDeviceFloor = (int) (config.getDEVICE_NUMBER() * config.getREAL_INSERT_RATE());
     actualDeviceFloor = MetaUtil.getDeviceId(actualDeviceFloor);
@@ -58,7 +58,7 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
   @Override
   protected void initDBWrappers() {
     super.initDBWrappers();
-    this.totalLoop = config.getLOOP();
+    taskProgress.setTotalLoop(config.getLOOP());
   }
 
   /** Check whether write batch */
