@@ -25,7 +25,6 @@ import cn.edu.tsinghua.iot.benchmark.extern.DataWriter;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.atomic.AtomicLong;
 
 /** This client is using by GenerateMode */
 public class GenerateDataWriteClient extends GenerateBaseClient {
@@ -40,9 +39,7 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   @Override
   protected void doTest() {
     taskProgress.resetLoopIndex();
-    for (AtomicLong loopIndexAtomic = taskProgress.getLoopIndex();
-        loopIndexAtomic.get() < config.getLOOP();
-        loopIndexAtomic.getAndIncrement()) {
+    for (;taskProgress.getLoopIndex()< config.getLOOP(); taskProgress.incrementLoopIndex()) {
       if (!doGenerate()) {
         break;
       }

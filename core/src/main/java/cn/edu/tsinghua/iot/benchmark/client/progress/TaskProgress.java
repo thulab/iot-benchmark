@@ -1,20 +1,19 @@
 package cn.edu.tsinghua.iot.benchmark.client.progress;
 
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TaskProgress {
   /** Thread name */
   private final AtomicReference<String> threadNameAtomic;
   /** Total number of loop */
-  private AtomicLong totalLoop;
+  private volatile long totalLoop;
   /** Loop Index, using for loop and log */
-  private AtomicLong loopIndex;
+  private volatile long loopIndex;
 
   public TaskProgress() {
     this.threadNameAtomic = new AtomicReference<>();
-    this.totalLoop = new AtomicLong(1);
-    this.loopIndex = new AtomicLong(0);
+    this.totalLoop = 1L;
+    this.loopIndex = 0L;
   }
 
   public void setThreadName(String threadName) {
@@ -26,25 +25,25 @@ public class TaskProgress {
   }
 
   public void setTotalLoop(Long value) {
-    totalLoop.set(value);
+    totalLoop = value;
   }
 
-  public AtomicLong getLoopIndex() {
+  public long getLoopIndex() {
     return loopIndex;
   }
 
   public void resetLoopIndex() {
-    loopIndex.set(0);
+    loopIndex = 0L;
   }
 
   public void incrementLoopIndex() {
-    loopIndex.getAndIncrement();
+    loopIndex++;
   }
 
   public double getPercent() {
-    if (totalLoop.get() == 0) {
+    if (totalLoop == 0) {
       return 0.00D;
     }
-    return (double) loopIndex.get() * 100.0D / totalLoop.get();
+    return (double) loopIndex * 100.0D / totalLoop;
   }
 }

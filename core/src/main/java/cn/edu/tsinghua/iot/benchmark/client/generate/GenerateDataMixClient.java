@@ -27,7 +27,6 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerateDataMixClient extends GenerateBaseClient {
 
@@ -48,9 +47,7 @@ public class GenerateDataMixClient extends GenerateBaseClient {
   protected void doTest() {
     long start = 0;
     taskProgress.resetLoopIndex();
-    for (AtomicLong loopIndexAtomic = taskProgress.getLoopIndex();
-        loopIndexAtomic.get() < config.getLOOP();
-        loopIndexAtomic.getAndIncrement()) {
+    for (;taskProgress.getLoopIndex()< config.getLOOP(); taskProgress.incrementLoopIndex()) {
       Operation operation = operationController.getNextOperationType();
       if (config.getOP_MIN_INTERVAL() > 0) {
         start = System.currentTimeMillis();
