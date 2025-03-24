@@ -125,7 +125,6 @@ public abstract class DataClient implements Runnable {
         taskProgress.setThreadName(Thread.currentThread().getName());
         // wait for that all dataClients start test simultaneously
         barrier.await();
-
         doTest();
       } catch (Exception e) {
         LOGGER.error("Unexpected error: ", e);

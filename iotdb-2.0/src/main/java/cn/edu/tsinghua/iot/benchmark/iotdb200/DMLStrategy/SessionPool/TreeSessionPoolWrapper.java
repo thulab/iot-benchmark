@@ -1,29 +1,12 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool;
 
 import org.apache.iotdb.isession.SessionDataSet;
+import org.apache.iotdb.isession.pool.SessionDataSetWrapper;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
-import org.apache.iotdb.session.Session;
+import org.apache.iotdb.session.pool.SessionPool;
 
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -36,43 +19,62 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TreeSessionManager extends SessionManager {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TableSessionManager.class);
-  private final Session session;
+public class TreeSessionPoolWrapper extends AbstractSessionPool {
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(TreeSessionPoolWrapper.class.getName());
+  private final SessionPool sessionPool;
 
-  public TreeSessionManager(DBConfig dbConfig) {
+  public TreeSessionPoolWrapper(DBConfig dbConfig, Integer maxSize) {
     super(dbConfig);
-    List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
-    for (int i = 0; i < dbConfig.getHOST().size(); i++) {
-      hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
-    }
-    this.session = buidlSession(hostUrls);
+    sessionPool = builderSessionPool(getHostUrls(), maxSize);
+  }
+
+  private SessionPool builderSessionPool(List<String> hostUrls, Integer maxSize) {
+    return new SessionPool.Builder()
+        .nodeUrls(hostUrls)
+        .user(dbConfig.getUSERNAME())
+        .password(dbConfig.getPASSWORD())
+        .enableRedirection(true)
+        .enableAutoFetch(false)
+        .version(Version.V_1_0)
+        .maxSize(maxSize)
+        .build();
   }
 
   @Override
   public void executeNonQueryStatement(String sql)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.executeNonQueryStatement(sql);
+    sessionPool.executeNonQueryStatement(sql);
   }
 
   @Override
   public SessionDataSet executeQueryStatement(String sql)
       throws IoTDBConnectionException, StatementExecutionException {
-    return session.executeQueryStatement(sql);
+    try (SessionDataSetWrapper sessionDataSetWrapper = sessionPool.executeQueryStatement(sql)) {
+      return sessionDataSetWrapper.getSessionDataSet();
+    } catch (RuntimeException e) {
+      // TODO 异常处理
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public SessionDataSet executeQueryStatement(String sql, long timeoutInMs)
-      throws IoTDBConnectionException, StatementExecutionException {
-    return session.executeQueryStatement(sql, timeoutInMs);
+      throws TsdbException, IoTDBConnectionException, StatementExecutionException {
+    try (SessionDataSetWrapper sessionDataSetWrapper =
+        sessionPool.executeQueryStatement(sql, timeoutInMs)) {
+      return sessionDataSetWrapper.getSessionDataSet();
+    } catch (RuntimeException e) {
+      // TODO 异常处理
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
-  protected void insertRecord(
+  public void insertRecord(
       String deviceId,
       long time,
       List<String> measurements,
@@ -80,14 +82,14 @@ public class TreeSessionManager extends SessionManager {
       List<Object> values)
       throws IoTDBConnectionException, StatementExecutionException {
     if (config.isVECTOR()) {
-      session.insertAlignedRecord(deviceId, time, measurements, types, values);
+      sessionPool.insertAlignedRecord(deviceId, time, measurements, types, values);
     } else {
-      session.insertRecord(deviceId, time, measurements, types, values);
+      sessionPool.insertRecord(deviceId, time, measurements, types, values);
     }
   }
 
   @Override
-  protected void insertRecords(
+  public void insertRecords(
       List<String> deviceIds,
       List<Long> times,
       List<List<String>> measurementsList,
@@ -95,9 +97,9 @@ public class TreeSessionManager extends SessionManager {
       List<List<Object>> valuesList)
       throws IoTDBConnectionException, StatementExecutionException {
     if (config.isVECTOR()) {
-      session.insertAlignedRecords(deviceIds, times, measurementsList, typesList, valuesList);
+      sessionPool.insertAlignedRecords(deviceIds, times, measurementsList, typesList, valuesList);
     } else {
-      session.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
+      sessionPool.insertRecords(deviceIds, times, measurementsList, typesList, valuesList);
     }
   }
 
@@ -105,58 +107,43 @@ public class TreeSessionManager extends SessionManager {
   public void insertTablet(Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
     if (config.isVECTOR()) {
-      session.insertAlignedTablet(tablet);
+      sessionPool.insertAlignedTablet(tablet);
     } else {
-      session.insertTablet(tablet);
+      sessionPool.insertTablet(tablet);
     }
   }
 
   @Override
-  public void open() {
-    try {
-      if (config.isENABLE_THRIFT_COMPRESSION()) {
-        session.open(true);
-      } else {
-        session.open();
-      }
-    } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to add session", e);
-    }
-  }
+  public void open() {}
 
   @Override
   public void close() throws TsdbException {
-    try {
-      session.close();
-    } catch (IoTDBConnectionException ioTDBConnectionException) {
-      LOGGER.error("Failed to close Session because ");
-      throw new TsdbException(ioTDBConnectionException);
-    }
+    sessionPool.close();
   }
 
   @Override
   public void createSchemaTemplate(Template template)
       throws IoTDBConnectionException, IOException, StatementExecutionException {
-    session.createSchemaTemplate(template);
+    sessionPool.createSchemaTemplate(template);
   }
 
+  // TODO: 改名
   @Override
   public void setStorageGroup(String storageGroup)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.setStorageGroup(storageGroup);
+    sessionPool.createDatabase(storageGroup);
   }
 
   @Override
   public void setSchemaTemplate(String templateName, String prefixPath)
       throws IoTDBConnectionException, StatementExecutionException {
-
-    session.setSchemaTemplate(templateName, prefixPath);
+    sessionPool.setSchemaTemplate(templateName, prefixPath);
   }
 
   @Override
   public void createTimeseriesUsingSchemaTemplate(List<String> devicePathList)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.createTimeseriesUsingSchemaTemplate(devicePathList);
+    sessionPool.createTimeseriesUsingSchemaTemplate(devicePathList);
   }
 
   @Override
@@ -168,7 +155,7 @@ public class TreeSessionManager extends SessionManager {
       List<CompressionType> compressors,
       List<String> measurementAliasList)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.createAlignedTimeseries(
+    sessionPool.createAlignedTimeseries(
         deviceId, measurements, dataTypes, encodings, compressors, measurementAliasList);
   }
 
@@ -183,7 +170,7 @@ public class TreeSessionManager extends SessionManager {
       List<Map<String, String>> attributesList,
       List<String> measurementAliasList)
       throws IoTDBConnectionException, StatementExecutionException {
-    session.createMultiTimeseries(
+    sessionPool.createMultiTimeseries(
         paths,
         dataTypes,
         encodings,
@@ -192,16 +179,5 @@ public class TreeSessionManager extends SessionManager {
         tagsList,
         attributesList,
         measurementAliasList);
-  }
-
-  public Session buidlSession(List<String> hostUrls) {
-    return new Session.Builder()
-        .nodeUrls(hostUrls)
-        .username(dbConfig.getUSERNAME())
-        .password(dbConfig.getPASSWORD())
-        .enableRedirection(true)
-        .version(Version.V_1_0)
-        .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
-        .build();
   }
 }

@@ -27,7 +27,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
-import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.AbstractSessionPool;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -59,7 +59,8 @@ public abstract class IoTDBModelStrategy {
   }
 
   public abstract void registerSchema(
-      Map<SessionManager, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
+      Map<AbstractSessionPool, List<TimeseriesSchema>> sessionPoolListMap,
+      List<DeviceSchema> schemaList)
       throws TsdbException;
 
   // region select
@@ -141,7 +142,7 @@ public abstract class IoTDBModelStrategy {
   }
 
   public abstract void registerDatabases(
-      SessionManager metaSession, List<TimeseriesSchema> schemaList) throws TsdbException;
+      AbstractSessionPool sessionPool, List<TimeseriesSchema> schemaList) throws TsdbException;
 
   public abstract Tablet createTablet(
       String insertTargetName,
@@ -154,11 +155,7 @@ public abstract class IoTDBModelStrategy {
   public abstract void addIDColumnIfNecessary(
       List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
 
-  public abstract void sessionInsertImpl(
-      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
-      throws IoTDBConnectionException, StatementExecutionException;
-
-  public abstract void sessionCleanupImpl(SessionManager sessionManager)
+  public abstract void sessionCleanupImpl(AbstractSessionPool sessionPool)
       throws IoTDBConnectionException, StatementExecutionException;
 
   // endregion

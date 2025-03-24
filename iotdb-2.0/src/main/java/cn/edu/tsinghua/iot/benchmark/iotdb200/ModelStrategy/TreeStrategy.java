@@ -29,7 +29,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.AbstractSessionPool;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
@@ -77,7 +77,8 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public void registerSchema(
-      Map<SessionManager, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
+      Map<AbstractSessionPool, List<TimeseriesSchema>> sessionPoolListMap,
+      List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
       if (config.isTEMPLATE() && templateInit.compareAndSet(false, true)) {
@@ -85,23 +86,27 @@ public class TreeStrategy extends IoTDBModelStrategy {
         if (config.isTEMPLATE() && !schemaList.isEmpty()) {
           template = createTemplate(schemaList.get(0));
         }
-        int sessionIndex = random.nextInt(sessionListMap.size());
-        SessionManager templateSession = new ArrayList<>(sessionListMap.keySet()).get(sessionIndex);
-        registerTemplate(templateSession, template);
+        int sessionPoolIndex = random.nextInt(sessionPoolListMap.size());
+        AbstractSessionPool sessionPool =
+            new ArrayList<>(sessionPoolListMap.keySet()).get(sessionPoolIndex);
+        registerTemplate(sessionPool, template);
       }
       templateBarrier.await();
-      for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+      for (Map.Entry<AbstractSessionPool, List<TimeseriesSchema>> pair :
+          sessionPoolListMap.entrySet()) {
         registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
       if (config.isTEMPLATE()) {
-        for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+        for (Map.Entry<AbstractSessionPool, List<TimeseriesSchema>> pair :
+            sessionPoolListMap.entrySet()) {
           activateTemplate(pair.getKey(), pair.getValue());
         }
         activateTemplateBarrier.await();
       }
       if (!config.isTEMPLATE()) {
-        for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+        for (Map.Entry<AbstractSessionPool, List<TimeseriesSchema>> pair :
+            sessionPoolListMap.entrySet()) {
           registerTimeSeries(pair.getKey(), pair.getValue());
         }
       }
@@ -150,26 +155,26 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   /** register template */
-  private void registerTemplate(SessionManager metaSession, Template template)
+  private void registerTemplate(AbstractSessionPool sessionPool, Template template)
       throws TsdbException {
     try {
-      metaSession.createSchemaTemplate(template);
+      sessionPool.createSchemaTemplate(template);
     } catch (Exception e) {
       handleRegisterException(e);
     }
   }
 
   @Override
-  public void registerDatabases(SessionManager metaSession, List<TimeseriesSchema> schemaList)
+  public void registerDatabases(AbstractSessionPool sessionPool, List<TimeseriesSchema> schemaList)
       throws TsdbException {
     // get all database
     Set<String> databaseNames = getAllDataBase(schemaList);
     // register database
     for (String databaseName : databaseNames) {
       try {
-        metaSession.setStorageGroup(ROOT_SERIES_NAME + "." + databaseName);
+        sessionPool.setStorageGroup(ROOT_SERIES_NAME + "." + databaseName);
         if (config.isTEMPLATE()) {
-          metaSession.setSchemaTemplate(
+          sessionPool.setSchemaTemplate(
               config.getTEMPLATE_NAME(), ROOT_SERIES_NAME + "." + databaseName);
         }
       } catch (Exception e) {
@@ -178,25 +183,27 @@ public class TreeStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void activateTemplate(SessionManager metaSession, List<TimeseriesSchema> schemaList) {
+  private void activateTemplate(
+      AbstractSessionPool sessionPool, List<TimeseriesSchema> schemaList) {
     try {
       List<String> devicePaths =
           schemaList.stream()
               .map(schema -> ROOT_SERIES_NAME + "." + schema.getDeviceSchema().getDevicePath())
               .collect(Collectors.toList());
-      metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
+      sessionPool.createTimeseriesUsingSchemaTemplate(devicePaths);
     } catch (Throwable t) {
       t.printStackTrace();
     }
   }
 
   private void registerTimeSeries(
-      SessionManager metaSession, List<TimeseriesSchema> timeseriesSchemas) throws TsdbException {
+      AbstractSessionPool sessionPool, List<TimeseriesSchema> timeseriesSchemas)
+      throws TsdbException {
     // create time series
     for (TimeseriesSchema timeseriesSchema : timeseriesSchemas) {
       try {
         if (config.isVECTOR()) {
-          metaSession.createAlignedTimeseries(
+          sessionPool.createAlignedTimeseries(
               timeseriesSchema.getDeviceId(),
               timeseriesSchema.getPaths(),
               timeseriesSchema.getTsDataTypes(),
@@ -204,7 +211,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
               timeseriesSchema.getCompressionTypes(),
               null);
         } else {
-          metaSession.createMultiTimeseries(
+          sessionPool.createMultiTimeseries(
               timeseriesSchema.getPaths(),
               timeseriesSchema.getTsDataTypes(),
               timeseriesSchema.getTsEncodings(),
@@ -472,18 +479,11 @@ public class TreeStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionInsertImpl(
-      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
-      throws IoTDBConnectionException, StatementExecutionException {
-    sessionManager.insertTablet(tablet, deviceSchema);
-  }
-
-  @Override
-  public void sessionCleanupImpl(SessionManager sessionManager) {
+  public void sessionCleanupImpl(AbstractSessionPool sessionPool) {
     try {
-      sessionManager.executeNonQueryStatement(
+      sessionPool.executeNonQueryStatement(
           "drop database root." + config.getDbConfig().getDB_NAME() + ".**");
-      sessionManager.executeNonQueryStatement("drop device template " + config.getTEMPLATE_NAME());
+      sessionPool.executeNonQueryStatement("drop device template " + config.getTEMPLATE_NAME());
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:{}", e.getMessage());
     } catch (StatementExecutionException e) {

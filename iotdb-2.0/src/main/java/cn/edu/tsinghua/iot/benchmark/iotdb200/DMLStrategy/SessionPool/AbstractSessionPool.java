@@ -1,23 +1,4 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy;
+package cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool;
 
 import org.apache.iotdb.isession.SessionDataSet;
 import org.apache.iotdb.isession.template.Template;
@@ -35,15 +16,24 @@ import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.tsfile.write.record.Tablet;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class SessionManager {
+public abstract class AbstractSessionPool {
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
   protected final DBConfig dbConfig;
 
-  public SessionManager(DBConfig dbConfig) {
+  public AbstractSessionPool(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
+  }
+
+  protected List<String> getHostUrls() {
+    List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
+    for (int i = 0; i < dbConfig.getHOST().size(); i++) {
+      hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
+    }
+    return hostUrls;
   }
 
   public abstract void executeNonQueryStatement(String sql)
@@ -55,7 +45,7 @@ public abstract class SessionManager {
   public abstract SessionDataSet executeQueryStatement(String sql, long timeoutInMs)
       throws TsdbException, IoTDBConnectionException, StatementExecutionException;
 
-  protected abstract void insertRecord(
+  public abstract void insertRecord(
       String deviceId,
       long time,
       List<String> measurements,
@@ -63,7 +53,7 @@ public abstract class SessionManager {
       List<Object> values)
       throws IoTDBConnectionException, StatementExecutionException;
 
-  protected abstract void insertRecords(
+  public abstract void insertRecords(
       List<String> deviceIds,
       List<Long> times,
       List<List<String>> measurementsList,
@@ -111,5 +101,4 @@ public abstract class SessionManager {
       List<Map<String, String>> attributesList,
       List<String> measurementAliasList)
       throws IoTDBConnectionException, StatementExecutionException;
-  // endregion
 }

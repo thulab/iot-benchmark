@@ -34,6 +34,9 @@ import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.OperationFailException;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.AbstractSessionPool;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.TableSessionPoolWrapper;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.TreeSessionPoolWrapper;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.utils.IoTDBUtils;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
@@ -74,17 +77,29 @@ public class SessionStrategy extends DMLStrategy {
   static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Map<String, Binary> binaryCache =
       new ConcurrentHashMap<>(config.getWORKLOAD_BUFFER_SIZE(), 1.00f);
+  private static final Map<SQLDialect, AbstractSessionPool> sessionPoolMap =
+      new ConcurrentHashMap<>();
   private final IoTDB iotdb;
-  public final SessionManager sessionManager;
+  private final AbstractSessionPool sessionPool;
+  public static int numberS = 0;
+  private static AtomicInteger activeThreadsUseSessionPool = new AtomicInteger(0);
 
-  public SessionStrategy(DBConfig dbConfig, IoTDB iotdb) throws IoTDBConnectionException {
+  public SessionStrategy(DBConfig dbConfig, IoTDB iotdb, Integer number)
+      throws IoTDBConnectionException {
     super(dbConfig);
     this.iotdb = iotdb;
-    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-      sessionManager = new TableSessionManager(dbConfig);
-    } else {
-      sessionManager = new TreeSessionManager(dbConfig);
-    }
+    activeThreadsUseSessionPool.getAndIncrement();
+    sessionPool = getSessionPool(dbConfig, number);
+  }
+
+  public static AbstractSessionPool getSessionPool(DBConfig dbConfig, int number) {
+    SQLDialect sqlDialect = config.getIoTDB_DIALECT_MODE();
+    return sessionPoolMap.computeIfAbsent(
+        sqlDialect,
+        dialect ->
+            dialect == SQLDialect.TREE
+                ? new TreeSessionPoolWrapper(dbConfig, number)
+                : new TableSessionPoolWrapper(dbConfig, number));
   }
 
   @Override
@@ -108,7 +123,7 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                iotdb.sessionInsertImpl(sessionManager, tablet, batch.getDeviceSchema());
+                sessionPool.insertTablet(tablet, batch.getDeviceSchema());
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
               }
@@ -234,7 +249,7 @@ public class SessionStrategy extends DMLStrategy {
               batch.getDeviceSchema().getSensors(), record.getRecordDataValue().size());
       List<Object> recordDataValue = convertTypeForBLOB(record, dataTypes);
       try {
-        sessionManager.insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
+        sessionPool.insertRecord(deviceId, timestamp, sensors, dataTypes, recordDataValue);
       } catch (IoTDBConnectionException | StatementExecutionException e) {
         failRecord++;
       }
@@ -279,7 +294,7 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                sessionManager.insertRecords(
+                sessionPool.insertRecords(
                     deviceIds, times, measurementsList, typesList, valuesList);
               } catch (IoTDBConnectionException | StatementExecutionException e) {
                 throw new OperationFailException(e);
@@ -313,7 +328,7 @@ public class SessionStrategy extends DMLStrategy {
         service.submit(
             () -> {
               try {
-                SessionDataSet sessionDataSet = sessionManager.executeQueryStatement(executeSQL);
+                SessionDataSet sessionDataSet = sessionPool.executeQueryStatement(executeSQL);
                 if (config.isIS_COMPARISON()) {
                   while (sessionDataSet.hasNext()) {
                     RowRecord rowRecord = sessionDataSet.next();
@@ -378,7 +393,7 @@ public class SessionStrategy extends DMLStrategy {
   public List<Integer> verificationQueryImpl(String sql, Map<Long, List<Object>> recordMap)
       throws IoTDBConnectionException, StatementExecutionException {
     int point = 0, line = 0;
-    try (SessionDataSet sessionDataSet = sessionManager.executeQueryStatement(sql)) {
+    try (SessionDataSet sessionDataSet = sessionPool.executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         RowRecord rowRecord = sessionDataSet.next();
         // The table model and the tree model obtain time differently
@@ -402,7 +417,7 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public List<List<Object>> deviceQueryImpl(String sql) throws Exception {
     List<List<Object>> result = new ArrayList<>();
-    try (SessionDataSet sessionDataSet = sessionManager.executeQueryStatement(sql)) {
+    try (SessionDataSet sessionDataSet = sessionPool.executeQueryStatement(sql)) {
       while (sessionDataSet.hasNext()) {
         List<Object> line = new ArrayList<>();
         RowRecord rowRecord = sessionDataSet.next();
@@ -424,19 +439,19 @@ public class SessionStrategy extends DMLStrategy {
     int totalLineNumber = 0;
     long minTimeStamp, maxTimeStamp;
     try {
-      SessionDataSet sessionDataSet = sessionManager.executeQueryStatement(totalLineNumberSql);
+      SessionDataSet sessionDataSet = sessionPool.executeQueryStatement(totalLineNumberSql);
       while (sessionDataSet.hasNext()) {
         sessionDataSet.next();
         totalLineNumber++;
       }
       sessionDataSet.close();
 
-      sessionDataSet = sessionManager.executeQueryStatement(maxTimestampSql);
+      sessionDataSet = sessionPool.executeQueryStatement(maxTimestampSql);
       RowRecord rowRecord = sessionDataSet.next();
       maxTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
 
-      sessionDataSet = sessionManager.executeQueryStatement(minTimestampSql);
+      sessionDataSet = sessionPool.executeQueryStatement(minTimestampSql);
       rowRecord = sessionDataSet.next();
       minTimeStamp = iotdb.getTimestamp(rowRecord);
       sessionDataSet.close();
@@ -461,7 +476,7 @@ public class SessionStrategy extends DMLStrategy {
 
   @Override
   public void init() {
-    sessionManager.open();
+    // TODO clean 数据、SchemaClient、DataClient 都用到了这里，因此名字写死不合适。
     this.service =
         Executors.newSingleThreadExecutor(
             new NamedThreadFactory(ThreadName.DATA_CLIENT_EXECUTE_JOB.getName()));
@@ -470,7 +485,7 @@ public class SessionStrategy extends DMLStrategy {
   @Override
   public void cleanup() {
     try {
-      iotdb.sessionCleanupImpl(sessionManager);
+      iotdb.sessionCleanupImpl(sessionPool);
     } catch (IoTDBConnectionException e) {
       LOGGER.warn("Failed to connect to IoTDB:" + e.getMessage());
     } catch (StatementExecutionException e) {
@@ -480,14 +495,14 @@ public class SessionStrategy extends DMLStrategy {
 
   @Override
   public void close() throws TsdbException {
+    activeThreadsUseSessionPool.getAndDecrement();
     try {
-      if (sessionManager != null) {
-        sessionManager.close();
+      if (sessionPool != null && activeThreadsUseSessionPool.get() == 0) {
+        sessionPoolMap.remove(config.getIoTDB_DIALECT_MODE());
+        sessionPool.close();
       }
     } finally {
-      if (service != null) {
-        service.shutdown();
-      }
+      service.shutdown();
     }
   }
 }

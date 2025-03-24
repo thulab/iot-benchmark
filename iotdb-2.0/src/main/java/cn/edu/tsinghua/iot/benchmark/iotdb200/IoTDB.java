@@ -34,10 +34,8 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.DMLStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.JDBCStrategy;
-import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.AbstractSessionPool;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionStrategy;
-import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TableSessionManager;
-import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.TreeSessionManager;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.IoTDBModelStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.TableStrategy;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.ModelStrategy.TreeStrategy;
@@ -76,7 +74,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** this class will create more than one connection. */
@@ -108,7 +105,7 @@ public class IoTDB implements IDatabase {
       case DB_IOT_200_SESSION_BY_TABLET:
       case DB_IOT_200_SESSION_BY_RECORD:
       case DB_IOT_200_SESSION_BY_RECORDS:
-        dmlStrategy = new SessionStrategy(dbConfig, this);
+        dmlStrategy = new SessionStrategy(dbConfig, this, config.getDATA_CLIENT_NUMBER());
         break;
       case DB_IOT_200_JDBC:
         dmlStrategy = new JDBCStrategy(dbConfig);
@@ -141,28 +138,17 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
+    // TODO 此处存在问题，没必要对 Map 进行 for 循环，他是sessionPool
+    AbstractSessionPool sessionPoolForSchemaClient =
+        SessionStrategy.getSessionPool(dbConfig, config.getSCHEMA_CLIENT_NUMBER());
     long start = System.nanoTime();
     if (config.hasWrite()) {
-      Map<SessionManager, List<TimeseriesSchema>> sessionManagerListMap = new HashMap<>();
+      Map<AbstractSessionPool, List<TimeseriesSchema>> abstractSessionPoolListMap = new HashMap<>();
       try {
-        SessionManager sessionManager;
-        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-          sessionManager = new TableSessionManager(dbConfig);
-        } else {
-          sessionManager = new TreeSessionManager(dbConfig);
-        }
-        sessionManager.open();
-        sessionManagerListMap.put(sessionManager, createTimeseries(schemaList));
-        modelStrategy.registerSchema(sessionManagerListMap, schemaList);
+        abstractSessionPoolListMap.put(sessionPoolForSchemaClient, createTimeseries(schemaList));
+        modelStrategy.registerSchema(abstractSessionPoolListMap, schemaList);
       } catch (Exception e) {
         throw new TsdbException(e);
-      } finally {
-        if (!sessionManagerListMap.isEmpty()) {
-          Set<SessionManager> sessions = sessionManagerListMap.keySet();
-          for (SessionManager session : sessions) {
-            session.close();
-          }
-        }
       }
     }
     long end = System.nanoTime();
@@ -655,15 +641,9 @@ public class IoTDB implements IDatabase {
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
 
-  public void sessionCleanupImpl(SessionManager sessionManager)
+  public void sessionCleanupImpl(AbstractSessionPool sessionPool)
       throws IoTDBConnectionException, StatementExecutionException {
-    modelStrategy.sessionCleanupImpl(sessionManager);
-  }
-
-  public void sessionInsertImpl(
-      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
-      throws IoTDBConnectionException, StatementExecutionException {
-    modelStrategy.sessionInsertImpl(sessionManager, tablet, deviceSchema);
+    modelStrategy.sessionCleanupImpl(sessionPool);
   }
 
   public void addIDColumnIfNecessary(

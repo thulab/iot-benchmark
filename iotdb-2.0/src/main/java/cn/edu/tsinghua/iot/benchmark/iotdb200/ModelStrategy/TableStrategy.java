@@ -29,7 +29,7 @@ import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
-import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionManager;
+import cn.edu.tsinghua.iot.benchmark.iotdb200.DMLStrategy.SessionPool.AbstractSessionPool;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.IoTDB;
 import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
@@ -63,14 +63,17 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public void registerSchema(
-      Map<SessionManager, List<TimeseriesSchema>> sessionListMap, List<DeviceSchema> schemaList)
+      Map<AbstractSessionPool, List<TimeseriesSchema>> sessionPoolListMap,
+      List<DeviceSchema> schemaList)
       throws TsdbException {
     try {
-      for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+      for (Map.Entry<AbstractSessionPool, List<TimeseriesSchema>> pair :
+          sessionPoolListMap.entrySet()) {
         registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
-      for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
+      for (Map.Entry<AbstractSessionPool, List<TimeseriesSchema>> pair :
+          sessionPoolListMap.entrySet()) {
         registerTable(pair.getKey(), pair.getValue());
       }
     } catch (Exception e) {
@@ -80,13 +83,13 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   /** root.test.g_0.d_0 test is the database name.Ensure that only one client creates the table. */
   @Override
-  public void registerDatabases(SessionManager metaSession, List<TimeseriesSchema> schemaList)
+  public void registerDatabases(AbstractSessionPool sessionPool, List<TimeseriesSchema> schemaList)
       throws TsdbException {
     Set<String> databaseNames = getAllDataBase(schemaList);
     // register storage groups
     for (String databaseName : databaseNames) {
       try {
-        metaSession.executeNonQueryStatement(
+        sessionPool.executeNonQueryStatement(
             "CREATE DATABASE " + dbConfig.getDB_NAME() + "_" + databaseName);
       } catch (Exception e) {
         handleRegisterException(e);
@@ -94,7 +97,8 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void registerTable(SessionManager metaSession, List<TimeseriesSchema> timeseriesSchemas)
+  private void registerTable(
+      AbstractSessionPool sessionPool, List<TimeseriesSchema> timeseriesSchemas)
       throws TsdbException {
     try {
       // get all tables
@@ -137,9 +141,9 @@ public class TableStrategy extends IoTDBModelStrategy {
       }
 
       for (Map.Entry<String, List<String>> database : tables.entrySet()) {
-        metaSession.executeNonQueryStatement("use " + database.getKey());
+        sessionPool.executeNonQueryStatement("use " + database.getKey());
         for (String table : database.getValue()) {
-          metaSession.executeNonQueryStatement(table);
+          sessionPool.executeNonQueryStatement(table);
         }
       }
     } catch (Exception e) {
@@ -505,16 +509,9 @@ public class TableStrategy extends IoTDBModelStrategy {
   }
 
   @Override
-  public void sessionInsertImpl(
-      SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
+  public void sessionCleanupImpl(AbstractSessionPool sessionPool)
       throws IoTDBConnectionException, StatementExecutionException {
-    sessionManager.insertTablet(tablet, deviceSchema);
-  }
-
-  @Override
-  public void sessionCleanupImpl(SessionManager sessionManager)
-      throws IoTDBConnectionException, StatementExecutionException {
-    try (SessionDataSet dataSet = sessionManager.executeQueryStatement("show databases")) {
+    try (SessionDataSet dataSet = sessionPool.executeQueryStatement("show databases")) {
       while (dataSet.hasNext()) {
         String databaseName = dataSet.next().getFields().get(0).toString();
         // filter default database
@@ -522,7 +519,7 @@ public class TableStrategy extends IoTDBModelStrategy {
           continue;
         }
         if (databaseName.contains(dbConfig.getDB_NAME())) {
-          sessionManager.executeNonQueryStatement("drop database " + databaseName);
+          sessionPool.executeNonQueryStatement("drop database " + databaseName);
         }
       }
     } catch (IoTDBConnectionException e) {
