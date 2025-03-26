@@ -138,7 +138,6 @@ public class IoTDB implements IDatabase {
    */
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    // TODO 此处存在问题，没必要对 Map 进行 for 循环，他是sessionPool
     AbstractSessionPool sessionPoolForSchemaClient =
         SessionStrategy.getSessionPool(dbConfig, config.getSCHEMA_CLIENT_NUMBER());
     long start = System.nanoTime();

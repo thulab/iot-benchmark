@@ -476,10 +476,8 @@ public class SessionStrategy extends DMLStrategy {
 
   @Override
   public void init() {
-    // TODO clean 数据、SchemaClient、DataClient 都用到了这里，因此名字写死不合适。
     this.service =
-        Executors.newSingleThreadExecutor(
-            new NamedThreadFactory(ThreadName.DATA_CLIENT_EXECUTE_JOB.getName()));
+        Executors.newSingleThreadExecutor(new NamedThreadFactory(ThreadName.EXECUTE_JOB.getName()));
   }
 
   @Override
