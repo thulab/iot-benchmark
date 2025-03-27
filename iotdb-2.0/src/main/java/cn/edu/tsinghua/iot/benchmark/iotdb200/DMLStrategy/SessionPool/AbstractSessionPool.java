@@ -36,6 +36,7 @@ import org.apache.tsfile.write.record.Tablet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,6 +94,9 @@ public abstract class AbstractSessionPool {
       throws IoTDBConnectionException, IOException, StatementExecutionException;
 
   public abstract void setStorageGroup(String storageGroup)
+      throws IoTDBConnectionException, StatementExecutionException;
+
+  public abstract void registerTable(HashMap<String, List<String>> tables)
       throws IoTDBConnectionException, StatementExecutionException;
 
   public abstract void setSchemaTemplate(String templateName, String prefixPath)

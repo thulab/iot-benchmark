@@ -139,13 +139,7 @@ public class TableStrategy extends IoTDBModelStrategy {
                 dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), k -> new ArrayList<>())
             .add(builder.toString());
       }
-
-      for (Map.Entry<String, List<String>> database : tables.entrySet()) {
-        sessionPool.executeNonQueryStatement("use " + database.getKey());
-        for (String table : database.getValue()) {
-          sessionPool.executeNonQueryStatement(table);
-        }
-      }
+      sessionPool.registerTable(tables);
     } catch (Exception e) {
       handleRegisterException(e);
     }

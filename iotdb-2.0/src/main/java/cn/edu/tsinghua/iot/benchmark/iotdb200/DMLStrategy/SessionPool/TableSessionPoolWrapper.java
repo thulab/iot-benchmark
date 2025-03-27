@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,27 +59,42 @@ public class TableSessionPoolWrapper extends AbstractSessionPool {
         .password(dbConfig.getPASSWORD())
         .enableCompression(config.isENABLE_THRIFT_COMPRESSION())
         .enableRedirection(true)
-        .enableAutoFetch(false)
         .maxSize(maxSize)
         .build();
   }
 
+  /**
+   * In TableSessionPool, the session obtained from the pool needs to be closed manually before it
+   * can be returned to the session pool.
+   *
+   * @param sql
+   * @throws IoTDBConnectionException
+   * @throws StatementExecutionException
+   */
   @Override
   public void executeNonQueryStatement(String sql)
       throws IoTDBConnectionException, StatementExecutionException {
-    tableSessionPool.getSession().executeNonQueryStatement(sql);
+    ITableSession tableSession = tableSessionPool.getSession();
+    tableSession.executeNonQueryStatement(sql);
+    tableSession.close();
   }
 
   @Override
   public SessionDataSet executeQueryStatement(String sql)
       throws IoTDBConnectionException, StatementExecutionException {
-    return tableSessionPool.getSession().executeQueryStatement(sql);
+    ITableSession tableSession = tableSessionPool.getSession();
+    SessionDataSet sessionDataSet = tableSession.executeQueryStatement(sql);
+    tableSession.close();
+    return sessionDataSet;
   }
 
   @Override
   public SessionDataSet executeQueryStatement(String sql, long timeoutInMs)
       throws TsdbException, IoTDBConnectionException, StatementExecutionException {
-    return tableSessionPool.getSession().executeQueryStatement(sql, timeoutInMs);
+    ITableSession tableSession = tableSessionPool.getSession();
+    SessionDataSet sessionDataSet = tableSession.executeQueryStatement(sql, timeoutInMs);
+    tableSession.close();
+    return sessionDataSet;
   }
 
   @Override
@@ -107,13 +123,11 @@ public class TableSessionPoolWrapper extends AbstractSessionPool {
   public void insertTablet(Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
     ITableSession tableSession = tableSessionPool.getSession();
-    if (isFirstExecution) {
-      StringBuilder sql = new StringBuilder();
-      sql.append("use ").append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
-      tableSession.executeNonQueryStatement(sql.toString());
-      isFirstExecution = false;
-    }
+    StringBuilder sql = new StringBuilder();
+    sql.append("use ").append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
+    tableSession.executeNonQueryStatement(sql.toString());
     tableSession.insert(tablet);
+    tableSession.close();
   }
 
   @Override
@@ -139,6 +153,19 @@ public class TableSessionPoolWrapper extends AbstractSessionPool {
   public void setStorageGroup(String storageGroup)
       throws IoTDBConnectionException, StatementExecutionException {
     throw new UnsupportedOperationException("TableSession does not implement this function");
+  }
+
+  @Override
+  public void registerTable(HashMap<String, List<String>> tables)
+      throws IoTDBConnectionException, StatementExecutionException {
+    ITableSession tableSession = tableSessionPool.getSession();
+    for (Map.Entry<String, List<String>> database : tables.entrySet()) {
+      tableSession.executeNonQueryStatement("use " + database.getKey());
+      for (String table : database.getValue()) {
+        tableSession.executeNonQueryStatement(table);
+      }
+    }
+    tableSession.close();
   }
 
   @Override

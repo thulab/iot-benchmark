@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,6 @@ public class TreeSessionPoolWrapper extends AbstractSessionPool {
         .user(dbConfig.getUSERNAME())
         .password(dbConfig.getPASSWORD())
         .enableRedirection(true)
-        .enableAutoFetch(false)
         .version(Version.V_1_0)
         .maxSize(maxSize)
         .waitToGetSessionTimeoutInMs(config.getREAD_OPERATION_TIMEOUT_MS())
@@ -70,10 +70,20 @@ public class TreeSessionPoolWrapper extends AbstractSessionPool {
     sessionPool.executeNonQueryStatement(sql);
   }
 
+  /**
+   * After calling executeQueryStatement of sessionPool, you need to call closeResultSet to return
+   * the session to the pool.
+   *
+   * @param sql
+   * @return
+   * @throws IoTDBConnectionException
+   * @throws StatementExecutionException
+   */
   @Override
   public SessionDataSet executeQueryStatement(String sql)
       throws IoTDBConnectionException, StatementExecutionException {
     SessionDataSetWrapper sessionDataSetWrapper = sessionPool.executeQueryStatement(sql);
+    sessionPool.closeResultSet(sessionDataSetWrapper);
     return sessionDataSetWrapper.getSessionDataSet();
   }
 
@@ -82,6 +92,7 @@ public class TreeSessionPoolWrapper extends AbstractSessionPool {
       throws TsdbException, IoTDBConnectionException, StatementExecutionException {
     SessionDataSetWrapper sessionDataSetWrapper =
         sessionPool.executeQueryStatement(sql, timeoutInMs);
+    sessionPool.closeResultSet(sessionDataSetWrapper);
     return sessionDataSetWrapper.getSessionDataSet();
   }
 
@@ -143,6 +154,12 @@ public class TreeSessionPoolWrapper extends AbstractSessionPool {
   public void setStorageGroup(String storageGroup)
       throws IoTDBConnectionException, StatementExecutionException {
     sessionPool.createDatabase(storageGroup);
+  }
+
+  @Override
+  public void registerTable(HashMap<String, List<String>> tables)
+      throws IoTDBConnectionException, StatementExecutionException {
+    throw new UnsupportedOperationException("TreeSession does not implement this function");
   }
 
   @Override
