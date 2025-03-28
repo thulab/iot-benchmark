@@ -463,8 +463,7 @@ public class SessionStrategy extends DMLStrategy {
   public void init() {
     sessionManager.open();
     this.service =
-        Executors.newSingleThreadExecutor(
-            new NamedThreadFactory(ThreadName.DATA_CLIENT_EXECUTE_JOB.getName()));
+        Executors.newSingleThreadExecutor(new NamedThreadFactory(ThreadName.EXECUTE_JOB.getName()));
   }
 
   @Override

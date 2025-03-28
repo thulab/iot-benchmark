@@ -243,6 +243,8 @@ public class Config {
   private boolean VECTOR = true;
   /** whether to use debug in iotdb */
   private boolean IOTDB_USE_DEBUG = false;
+  /** whether to fetch datanode list */
+  private boolean ENABLE_AUTO_FETCH = false;
   /** the ratio of use debug */
   private double IOTDB_USE_DEBUG_RATIO = 0.01;
 
@@ -1116,6 +1118,14 @@ public class Config {
 
   public void setIOTDB_USE_DEBUG_RATIO(double IOTDB_USE_DEBUG_RATIO) {
     this.IOTDB_USE_DEBUG_RATIO = IOTDB_USE_DEBUG_RATIO;
+  }
+
+  public boolean isENABLE_AUTO_FETCH() {
+    return ENABLE_AUTO_FETCH;
+  }
+
+  public void setENABLE_AUTO_FETCH(boolean ENABLE_AUTO_FETCH) {
+    this.ENABLE_AUTO_FETCH = ENABLE_AUTO_FETCH;
   }
 
   public int getHTTP_CLIENT_POOL_SIZE() {

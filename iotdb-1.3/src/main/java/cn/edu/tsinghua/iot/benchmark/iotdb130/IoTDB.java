@@ -122,7 +122,7 @@ public class IoTDB implements IDatabase {
         ioTDBConnection.init();
         this.service =
             Executors.newSingleThreadExecutor(
-                new NamedThreadFactory(ThreadName.DATA_CLIENT_EXECUTE_JOB.getName()));
+                new NamedThreadFactory(ThreadName.EXECUTE_JOB.getName()));
       } catch (Exception e) {
         throw new TsdbException(e);
       }
