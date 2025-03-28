@@ -7,7 +7,7 @@ public enum ThreadName {
   // -------------------------- ClientService --------------------------
   DATA_CLIENT_THREAD("DataClientService"),
   SCHEMA_CLIENT_THREAD("SchemaClientService"),
-  DATA_CLIENT_EXECUTE_JOB("DataClientExecuteJob"),
+  EXECUTE_JOB("ExecuteJob"),
 
   // -------------------------- showService --------------------------
   SHOW_WORK_PROCESS("ShowWorkProgress"),
