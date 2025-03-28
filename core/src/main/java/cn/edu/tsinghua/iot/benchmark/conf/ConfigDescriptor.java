@@ -358,6 +358,10 @@ public class ConfigDescriptor {
             Double.parseDouble(
                 properties.getProperty(
                     "IOTDB_USE_DEBUG_RATIO", String.valueOf(config.getIOTDB_USE_DEBUG_RATIO()))));
+        config.setENABLE_AUTO_FETCH(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "ENABLE_AUTO_FETCH", String.valueOf(config.isENABLE_AUTO_FETCH()))));
         config.setHTTP_CLIENT_POOL_SIZE(
             Integer.parseInt(
                 properties.getProperty(
