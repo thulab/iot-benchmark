@@ -25,7 +25,10 @@ import org.apache.iotdb.isession.pool.ITableSessionPool;
 import org.apache.iotdb.isession.template.Template;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
+import org.apache.iotdb.session.Session;
+import org.apache.iotdb.session.SessionConnection;
 import org.apache.iotdb.session.pool.TableSessionPoolBuilder;
+import org.apache.iotdb.session.pool.TableSessionWrapper;
 
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -38,6 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +51,6 @@ import java.util.Map;
 public class TableSessionPoolWrapper extends AbstractSessionPool {
   private static final Logger LOGGER = LoggerFactory.getLogger(TableSessionPoolWrapper.class);
   private final ITableSessionPool tableSessionPool;
-  private boolean isFirstExecution = true;
 
   public TableSessionPoolWrapper(DBConfig dbConfig, Integer maxSize) {
     super(dbConfig);
@@ -123,11 +128,44 @@ public class TableSessionPoolWrapper extends AbstractSessionPool {
   public void insertTablet(Tablet tablet, DeviceSchema deviceSchema)
       throws IoTDBConnectionException, StatementExecutionException {
     ITableSession tableSession = tableSessionPool.getSession();
-    StringBuilder sql = new StringBuilder();
-    sql.append("use ").append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
-    tableSession.executeNonQueryStatement(sql.toString());
+    StringBuilder databaseName = new StringBuilder();
+    databaseName.append(dbConfig.getDB_NAME()).append("_").append(deviceSchema.getGroup());
+    changeSessionDatabase(tableSession, databaseName.toString());
     tableSession.insert(tablet);
     tableSession.close();
+  }
+
+  public void changeSessionDatabase(ITableSession tableSession, String databaseName)
+      throws IoTDBConnectionException {
+    try {
+      Field sessionField = TableSessionWrapper.class.getDeclaredField("session");
+      sessionField.setAccessible(true);
+      Session session = (Session) sessionField.get(tableSession);
+
+      if (!databaseName.equals(session.getDatabase())) {
+        tableSession.executeNonQueryStatement("use " + databaseName);
+
+        Method changeDatabaseMethod =
+            Session.class.getDeclaredMethod("changeDatabase", String.class);
+        changeDatabaseMethod.setAccessible(true);
+        changeDatabaseMethod.invoke(session, databaseName);
+
+        Field sessionConnectionField = Session.class.getDeclaredField("defaultSessionConnection");
+        sessionConnectionField.setAccessible(true);
+        SessionConnection sessionConnection =
+            (SessionConnection) sessionConnectionField.get(session);
+
+        Field databaseField = SessionConnection.class.getDeclaredField("database");
+        databaseField.setAccessible(true);
+        databaseField.set(sessionConnection, databaseName);
+      }
+    } catch (NoSuchFieldException
+        | NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException
+        | StatementExecutionException e) {
+      LOGGER.error("Database name modification failed, ", e);
+    }
   }
 
   @Override
