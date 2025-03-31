@@ -218,10 +218,10 @@ All the above information will be recorded in the ```logs``` folder of the runni
 The configuration files are stored in `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values ​​are as follows:**
 
 |       Database       | Version  | Corresponding sub-project |                                                  DB_SWITCH                                                   |
-| :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------: |
+| :------------------: |:--------:| :-----------------------: |:------------------------------------------------------------------------------------------------------------:|
 |  IoTDB(1.0/1.1/1.3)  |   1.x    |         iotdb-1.x         | IoTDB-1x0-JDBC<br>IoTDB-1x0-SESSION_BY_TABLET<br>IoTDB-1x0-SESSION_BY_RECORD<br>IoTDB-1x0-SESSION_BY_RECORDS |
 |       InfluxDB       |   1.x    |         influxdb          |                                                   InfluxDB                                                   |
-|       InfluxDB       |   2.0    |       influxdb-2.0        |                                                 InfluxDB-2.0                                                 |
+|       InfluxDB       |   2.x    |       influxdb-2.0        |                                                 InfluxDB-2.x                                                 |
 |       QuestDB        |  6.0.7   |          questdb          |                                                   QuestDB                                                    |
 | Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                  |
 |   VictoriaMetrics    |  1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                                |
