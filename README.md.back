@@ -264,7 +264,7 @@ The configuration files are stored in `iot-benchmark/iotdb-1.0/target/iot-benchm
 | :------------------: | :------: | :-----------------: | :------------------------------------------------------------------------------------------: |
 | IoTDB(1.0/1.1/1.3) | 1.x | iotdb-1.x | IoTDB-1x0-JDBC<br>IoTDB-1x0-SESSION_BY_TABLET<br>IoTDB-1x0-SESSION_BY_RECORD<br>IoTDB-1x0-SESSION_BY_RECORDS |
 | InfluxDB | 1.x | influxdb | InfluxDB |
-| InfluxDB | 2.0 | influxdb-2.0 | InfluxDB-2.0 |
+| InfluxDB | 2.x | influxdb-2.0 | InfluxDB-2.x |
 | QuestDB | 6.0.7 | questdb | QuestDB |
 | Microsoft SQL Server | 2016 SP2 | mssqlserver | MSSQLSERVER |
 | VictoriaMetrics | 1.64.0 | victoriametrics | VictoriaMetrics |
