@@ -198,7 +198,7 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
   + failOperation: 执行失败的不同操作的 Request/SQL 的数量
   + failPoint: 插入失败的数据点数（对于查询该值总为 0)
   + throughput: 等于```okPoint / Test elapsed time```
-  + <a href = "https://y8dp9fjm8f.feishu.cn/file/boxcndtRvCh3qRNScNm8J5XERWf">参数详细说明</a>
+  + [参数详细说明](result_matrix.pdf)  
 + 不同操作的毫秒级延迟统计
   + 其中```SLOWEST_THREAD``` 是客户端线程中的最大的累积操作时间长度
 

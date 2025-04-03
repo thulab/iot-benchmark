@@ -209,7 +209,7 @@ The output contains the overall information of the test, including:
   + failOperation: The number of Request/SQL for different operations that failed to execute
   + failPoint: The number of data points that failed to insert (this value is always 0 for queries)
   + throughput: equal to ```okPoint / Test elapsed time```
-  + <a href = "https://y8dp9fjm8f.feishu.cn/file/boxcndtRvCh3qRNScNm8J5XERWf">Detailed parameter description</a>
+  + [Detailed parameter description](result_matrix.pdf)  
 + Millisecond latency statistics for different operations
   + Among them, ```SLOWEST_THREAD``` is the maximum cumulative operation time length in the client thread
 
