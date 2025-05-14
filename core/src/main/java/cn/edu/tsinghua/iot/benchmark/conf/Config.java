@@ -312,7 +312,7 @@ public class Config {
 
   // Operation：乱序写入部分
   /** Whether insert out of order */
-  private boolean IS_OUT_OF_ORDER = true;
+  private boolean IS_OUT_OF_ORDER = false;
   /**
    * The mode of out-of-order insertion 0: Out-of-order mode of Poisson distribution 1: Out-of-order
    * mode of batch
@@ -321,7 +321,7 @@ public class Config {
   /** The out of order ratio of batch inserting */
   private double OUT_OF_ORDER_RATIO = 0.5;
   /** Whether use random time interval in inorder data need IS_OUT_OF_ORDER = false */
-  private boolean IS_REGULAR_FREQUENCY = false;
+  private boolean IS_REGULAR_FREQUENCY = true;
 
   /** The expectation and variance of Poisson Distribution based on basic model */
   private double LAMBDA = 2200.0;
