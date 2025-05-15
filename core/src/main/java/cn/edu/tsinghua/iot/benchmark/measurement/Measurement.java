@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 public class Measurement {
 
@@ -56,6 +57,7 @@ public class Measurement {
   private final Map<Operation, Long> failPointNumMap;
   private static final String RESULT_ITEM = "%-25s";
   private static final String LATENCY_ITEM = "%-12s";
+
   /** Precision = 3 / COMPRESSION */
   private static final int COMPRESSION = (int) (300 / config.getRESULT_PRECISION());
 
@@ -132,7 +134,8 @@ public class Measurement {
             .put(operation, operationLatencySumThisClient.get(operation));
         Function<Double, Double> quantileOrItself =
             (q) -> {
-              if (operationLatencyDigest.get(operation).size() > 1) {
+              // Count the number of non-null centroids
+              if (countNonNullCentroids(operationLatencyDigest.get(operation)) > 1) {
                 return operationLatencyDigest.get(operation).quantile(q);
               } else {
                 // com.clearspring.analytics.stream.quantile.TDigest.quantile needs
@@ -155,6 +158,13 @@ public class Measurement {
         Metric.P999_LATENCY.getTypeValueMap().put(operation, quantileOrItself.apply(0.999));
       }
     }
+  }
+
+  private int countNonNullCentroids(TDigest tDigest) {
+    return StreamSupport.stream(tDigest.centroids().spliterator(), false)
+        .filter(Objects::nonNull)
+        .mapToInt(c -> 1)
+        .sum();
   }
 
   private void logNegativeLatencyDetails(List<Operation> operations) {
