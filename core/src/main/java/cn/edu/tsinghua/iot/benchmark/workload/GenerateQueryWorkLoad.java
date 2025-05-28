@@ -219,10 +219,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       }
     }
     long currentQueryLoop = operationLoops.get(operation).getAndIncrement();
-    long timestampOffset;
-    if (config.isENABLE_FIXED_QUERY()) {
-      timestampOffset = 0;
-    } else {
+    long timestampOffset = 0;
+    if (!config.isENABLE_FIXED_QUERY()) {
       timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
     }
     return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
