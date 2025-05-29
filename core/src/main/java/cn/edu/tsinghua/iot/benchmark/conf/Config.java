@@ -351,6 +351,8 @@ public class Config {
    */
   private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0";
 
+  private boolean ENABLE_FIXED_QUERY = true;
+
   private final int OPERATION_PROPORTION_LEN = 12;
   /** The number of sensors involved in each query */
   private int QUERY_SENSOR_NUM = 1;
@@ -1306,6 +1308,14 @@ public class Config {
 
   public int getOPERATION_PROPORTION_LEN() {
     return this.OPERATION_PROPORTION_LEN;
+  }
+
+  public boolean isENABLE_FIXED_QUERY() {
+    return ENABLE_FIXED_QUERY;
+  }
+
+  public void setENABLE_FIXED_QUERY(boolean ENABLE_FIXED_QUERY) {
+    this.ENABLE_FIXED_QUERY = ENABLE_FIXED_QUERY;
   }
 
   public int getQUERY_SENSOR_NUM() {
