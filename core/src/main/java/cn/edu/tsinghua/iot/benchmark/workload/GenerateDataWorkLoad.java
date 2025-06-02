@@ -80,7 +80,11 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   }
 
   /** Get timestamp according to stepOffset */
-  protected long getCurrentTimestamp(long stepOffset) throws WorkloadException {
+  protected long getCurrentTimestamp(int deviceId, long stepOffset) throws WorkloadException {
+    long point_step = config.getPOINT_STEP();
+    if (deviceId < config.getDEVICE_NUMBER() / 2) {
+      point_step /= 2;
+    }
     if (config.isIS_OUT_OF_ORDER()) {
       // change offset according to out of order mode
       switch (config.getOUT_OF_ORDER_MODE()) {
@@ -99,16 +103,16 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     }
 
     // offset of data ahead
-    long offset = config.getPOINT_STEP() * stepOffset;
+    long offset = point_step * stepOffset;
     // timestamp for next data
     long timestamp = 0;
     // change timestamp frequency
     if (config.isIS_REGULAR_FREQUENCY()) {
       // data is in regular frequency, then do nothing
-      timestamp += config.getPOINT_STEP();
+      timestamp += point_step;
     } else {
       // data is not in regular frequency, then use random
-      timestamp += config.getPOINT_STEP() * ThreadLocalRandom.current().nextDouble();
+      timestamp += point_step * ThreadLocalRandom.current().nextDouble();
     }
     long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
     if (config.isIS_RECENT_QUERY()) {
