@@ -34,6 +34,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
+import org.apache.tsfile.enums.ColumnCategory;
 import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
 import org.apache.tsfile.write.schema.IMeasurementSchema;
@@ -108,7 +109,7 @@ public abstract class IoTDBModelStrategy {
       DeviceSchema deviceSchema);
 
   public abstract void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
+      List<ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
 
   public abstract String getValueFilterClause(List<DeviceSchema> deviceSchemas, int valueThreshold);
 
@@ -146,13 +147,13 @@ public abstract class IoTDBModelStrategy {
   public abstract Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnCategory> columnTypes,
+      List<ColumnCategory> columnTypes,
       int maxRowNumber);
 
   public abstract String getInsertTargetName(DeviceSchema schema);
 
   public abstract void addIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
+      List<ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch);
 
   public abstract void sessionInsertImpl(
       SessionManager sessionManager, Tablet tablet, DeviceSchema deviceSchema)
