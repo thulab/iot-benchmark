@@ -26,16 +26,20 @@ import javax.xml.bind.annotation.XmlAttribute;
 public class FunctionParam {
   /** Id of function */
   private String id;
+
   /**
    * Type of function
    *
    * @see FunctionType
    */
   private String functionType;
+
   /** Maximum of function */
   private double max;
+
   /** Minimum of function */
   private double min;
+
   /** Cycle of function For *-k function, only be used to calculate k */
   private long cycle;
 

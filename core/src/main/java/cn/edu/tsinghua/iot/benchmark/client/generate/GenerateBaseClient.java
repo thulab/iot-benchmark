@@ -44,6 +44,7 @@ public abstract class GenerateBaseClient extends DataClient implements Runnable 
 
   /** Insert Loop Index, using for data insertion */
   protected long insertLoopIndex;
+
   /** Actual deviceFloor */
   protected int actualDeviceFloor;
 

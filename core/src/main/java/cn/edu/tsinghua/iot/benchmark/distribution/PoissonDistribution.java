@@ -31,16 +31,22 @@ public class PoissonDistribution {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PoissonDistribution.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
   /** Lambda in basic model */
   private static final double BASIC_MODEL_LAMBDA = 10;
+
   /** Boundary of lambda */
   private static final int LAMBDA_BOUNDARY = 500;
+
   /** MaxK in basic model */
   private static final int BASIC_MODEL_MAX_K = 25;
+
   /** Get random Double */
   private final Random random;
+
   /** Lambda in config */
   private double lambda;
+
   /** MaxK in config */
   private int maxK;
 
