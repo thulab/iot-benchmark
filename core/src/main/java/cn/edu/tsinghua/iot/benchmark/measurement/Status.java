@@ -25,16 +25,22 @@ public class Status {
 
   /** Whether is ok */
   private final boolean isOk;
+
   /** The cost time of query */
   private long costTime;
+
   /** The result point of query */
   private long queryResultPointNum;
+
   /** The exception occurred */
   private Exception exception;
+
   /** errorMessage is our self-defined message used to logged, it can be error SQL or anything */
   private String errorMessage;
+
   /** SQL */
   private String sql;
+
   /** results in record */
   private List<List<Object>> records;
 

@@ -574,6 +574,7 @@ public class BytesUtils {
   }
 
   private static Charset charset = Charset.forName("UTF-8");
+
   /**
    * convert string to byte array using UTF-8 encoding.
    *

@@ -445,6 +445,7 @@ public class QuestDB implements IDatabase {
   private static String addGroupByClause(String sqlHeader, long timeGranularity) {
     return sqlHeader + " GROUP BY ts(" + timeGranularity + ")";
   }
+
   /**
    * Query the latest(max-timestamp) data of one or multiple sensors. e.g. select time, v1... where
    * device = ? and time = max(time)

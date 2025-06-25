@@ -5,8 +5,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class TaskProgress {
   /** Thread name */
   private final AtomicReference<String> threadNameAtomic;
+
   /** Total number of loop */
   private volatile long totalLoop;
+
   /** Loop Index, using for loop and log */
   private volatile long loopIndex;
 

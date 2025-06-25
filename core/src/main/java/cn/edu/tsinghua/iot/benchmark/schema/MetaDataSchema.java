@@ -36,18 +36,24 @@ public abstract class MetaDataSchema {
   private static final String UNKNOWN_DEVICE = "Unknown device: %s";
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
+
   /** DeviceSchema for each schema client */
   protected static final Map<Integer, List<DeviceSchema>> SCHEMA_CLIENT_DATA_SCHEMA =
       new ConcurrentHashMap<>();
+
   /** DeviceSchema for each data client */
   protected static final Map<Integer, List<DeviceSchema>> DATA_CLIENT_DATA_SCHEMA =
       new ConcurrentHashMap<>();
+
   /** Name mapping of DeviceSchema */
   protected static final Map<String, DeviceSchema> NAME_DATA_SCHEMA = new ConcurrentHashMap<>();
+
   /** The set of group */
   protected static final Set<String> GROUPS = new HashSet<>();
+
   /** The singleton of BaseDataSchema */
   private static MetaDataSchema metaDataSchema = null;
+
   /** The init method of MetaDataSchema */
   protected MetaDataSchema() {
     if (!createMetaDataSchema()) {

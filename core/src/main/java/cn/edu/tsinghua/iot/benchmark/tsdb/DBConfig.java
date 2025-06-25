@@ -31,16 +31,22 @@ public class DBConfig {
    * more, in README.md
    */
   private DBSwitch DB_SWITCH = DBSwitch.DB_IOT_200_SESSION_BY_TABLET;
+
   /** The host of database server for IoTDB */
   private List<String> HOST = Collections.singletonList("127.0.0.1");
+
   /** The port of database server */
   private List<String> PORT = Collections.singletonList("6667");
+
   /** The user name of database to use */
   private String USERNAME = "root";
+
   /** The password of user */
   private String PASSWORD = "root";
+
   /** The name of database to use, eg.IoTDB root.{DB_NAME} */
   private String DB_NAME = "test";
+
   /** In some database, it will need token to access, such as InfluxDB 2.0 */
   private String TOKEN = "token";
 

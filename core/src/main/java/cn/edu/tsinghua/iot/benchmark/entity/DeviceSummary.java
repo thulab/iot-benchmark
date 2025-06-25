@@ -3,10 +3,13 @@ package cn.edu.tsinghua.iot.benchmark.entity;
 public class DeviceSummary {
   /** The name of device */
   private String device;
+
   /** Total number of line */
   private int totalLineNumber = 0;
+
   /** Min timestamp */
   private long minTimeStamp = 0;
+
   /** Max timestamp */
   private long maxTimeStamp = 0;
 

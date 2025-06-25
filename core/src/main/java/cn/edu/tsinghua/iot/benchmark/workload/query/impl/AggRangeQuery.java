@@ -29,7 +29,8 @@ public class AggRangeQuery extends RangeQuery {
 
   public AggRangeQuery() {
     super();
-  };
+  }
+  ;
 
   public AggRangeQuery(
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp, String aggFun) {
