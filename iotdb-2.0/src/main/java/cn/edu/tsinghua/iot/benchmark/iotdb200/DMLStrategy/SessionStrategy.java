@@ -41,6 +41,7 @@ import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.utils.NamedThreadFactory;
+import org.apache.tsfile.enums.ColumnCategory;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.apache.tsfile.read.common.Field;
@@ -118,7 +119,7 @@ public class SessionStrategy extends DMLStrategy {
 
   private Tablet genTablet(IBatch batch) {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
-    List<Tablet.ColumnCategory> columnTypes = new ArrayList<>();
+    List<ColumnCategory> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
     if (config.isIS_DOUBLE_WRITE()) {
       iotdb.deleteIDColumnIfNecessary(columnTypes, sensors, batch);

@@ -442,7 +442,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   public Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnCategory> columnTypes,
+      List<org.apache.tsfile.enums.ColumnCategory> columnTypes,
       int maxRowNumber) {
     return new Tablet(
         insertTargetName,
@@ -459,19 +459,21 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public void addIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<org.apache.tsfile.enums.ColumnCategory> columnTypes,
+      List<Sensor> sensors,
+      IBatch batch) {
     // All sensors are of type measurement
     for (int i = 0; i < sensors.size(); i++) {
-      columnTypes.add(Tablet.ColumnCategory.FIELD);
+      columnTypes.add(org.apache.tsfile.enums.ColumnCategory.FIELD);
     }
     // tag and device as ID column
     // Add Identity Column Information to Schema
     sensors.add(new Sensor("device_id", SensorType.STRING));
-    columnTypes.add(Tablet.ColumnCategory.TAG);
+    columnTypes.add(org.apache.tsfile.enums.ColumnCategory.TAG);
     for (String key : batch.getDeviceSchema().getTags().keySet()) {
       // Currently, the identity column can only be String
       sensors.add(new Sensor(key, SensorType.STRING));
-      columnTypes.add(Tablet.ColumnCategory.TAG);
+      columnTypes.add(org.apache.tsfile.enums.ColumnCategory.TAG);
     }
     // Add the value of the identity column to the value of each record
     for (int loop = 0; loop < config.getDEVICE_NUM_PER_WRITE(); loop++) {
@@ -490,7 +492,9 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<org.apache.tsfile.enums.ColumnCategory> columnTypes,
+      List<Sensor> sensors,
+      IBatch batch) {
     // do nothing
   }
 
