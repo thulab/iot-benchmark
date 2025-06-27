@@ -101,6 +101,12 @@ public class GenerateDataMixClient extends GenerateBaseClient {
             case GROUP_BY_QUERY_ORDER_BY_TIME_DESC:
               dbWrapper.groupByQueryOrderByDesc(queryWorkLoad.getGroupByQuery());
               break;
+            case FAST_LAST_PREFIX_QUERY:
+              // 示例：自动生成一个前缀路径列表，可根据实际需求调整
+              java.util.List<String> prefixPaths = new java.util.ArrayList<>();
+              prefixPaths.add("root");
+              dbWrapper.fastLastPrefixQuery(prefixPaths);
+              break;
             default:
               LOGGER.error("Unsupported operation sensorType {}", operation);
           }

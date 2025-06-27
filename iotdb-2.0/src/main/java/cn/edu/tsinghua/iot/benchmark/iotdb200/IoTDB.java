@@ -449,6 +449,42 @@ public class IoTDB implements IDatabase {
   }
 
   /**
+   * Q12: 基于前缀路径的快速 last 查询（iotdb-2.0专用）
+   *
+   * @param prefixPaths 前缀路径列表
+   */
+  public Status fastLastPrefixQuery(List<String> prefixPaths) {
+    // 仅支持 SessionStrategy，反射获取 sessionManager 字段
+    TreeSessionManager treeSessionManager = null;
+    if (dmlStrategy instanceof SessionStrategy) {
+      try {
+        java.lang.reflect.Field field = dmlStrategy.getClass().getDeclaredField("sessionManager");
+        field.setAccessible(true);
+        Object inner = field.get(dmlStrategy);
+        if (inner instanceof TreeSessionManager) {
+          treeSessionManager = (TreeSessionManager) inner;
+        }
+      } catch (Exception e) {
+        LOGGER.error("Q12 反射获取 sessionManager 失败", e);
+      }
+    }
+    if (treeSessionManager == null) {
+      return new Status(
+          false, 0, new Exception("Q12 仅支持 TreeSessionManager"), "Q12 仅支持 TreeSessionManager");
+    }
+    try {
+      Object result = treeSessionManager.executeFastLastDataQueryForOnePrefixPath(prefixPaths);
+      if (!config.isIS_QUIET_MODE()) {
+        LOGGER.info("Q12 fastLastPrefixQuery, prefixPaths: {}", prefixPaths);
+      }
+      return new Status(true, 0, "Q12 fastLastPrefixQuery executed", null);
+    } catch (Exception e) {
+      LOGGER.error("Q12 fastLastPrefixQuery error", e);
+      return new Status(false, 0, e, "Q12 fastLastPrefixQuery error");
+    }
+  }
+
+  /**
    * Generate simple query header.
    *
    * @param devices schema list of query devices

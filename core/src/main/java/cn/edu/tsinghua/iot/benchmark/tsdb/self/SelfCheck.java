@@ -38,6 +38,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class SelfCheck implements IDatabase {
+  @Override
+  public Status fastLastPrefixQuery(List<String> prefixPaths) {
+    return check(new Status(true, null, null));
+  }
+
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger logger = LoggerFactory.getLogger(SelfCheck.class);
   private long loop = 0;

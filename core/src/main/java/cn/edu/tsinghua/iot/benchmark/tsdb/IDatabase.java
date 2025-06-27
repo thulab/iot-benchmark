@@ -41,6 +41,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface IDatabase {
+  /**
+   * Q12: Fast last query for prefix paths (IoTDB 2.0+)
+   *
+   * @param prefixPaths 前缀路径列表
+   * @return status which contains successfully executed flag, error message and so on.
+   */
+  Status fastLastPrefixQuery(List<String> prefixPaths);
 
   /**
    * Initialize any state for this DB. Called once per DB instance; there is one DB instance per
