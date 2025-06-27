@@ -424,6 +424,8 @@ public class Config {
   /** ratio of real writes into mysql */
   private double MYSQL_REAL_INSERT_RATE = 1.0;
 
+  private boolean IS_IGNORE_INTERVAL_RECORD_START_TIME = true;
+
   // 输出：CSV
   /** Whether output the result to an csv file located in data folder */
   private boolean CSV_OUTPUT = true;
@@ -1729,6 +1731,15 @@ public class Config {
 
   public void setVERIFICATION_STEP_SIZE(int VERIFICATION_STEP_SIZE) {
     this.VERIFICATION_STEP_SIZE = VERIFICATION_STEP_SIZE;
+  }
+
+  public boolean isIS_IGNORE_INTERVAL_RECORD_START_TIME() {
+    return IS_IGNORE_INTERVAL_RECORD_START_TIME;
+  }
+
+  public void setIS_IGNORE_INTERVAL_RECORD_START_TIME(
+      boolean IS_IGNORE_INTERVAL_RECORD_START_TIME) {
+    this.IS_IGNORE_INTERVAL_RECORD_START_TIME = IS_IGNORE_INTERVAL_RECORD_START_TIME;
   }
 
   /** write dataset config to info */
