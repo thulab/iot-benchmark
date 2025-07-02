@@ -168,19 +168,11 @@ public abstract class BaseMode {
             } else {
               operations = Operation.getNormalOperation();
             }
-            if (config.isIS_IGNORE_INTERVAL_RECORD_START_TIME()) {
-              middleMeasure(
-                  baseModeMeasurement,
-                  dataClients.stream().map(DataClient::getMeasurement),
-                  startTime,
-                  operations);
-            } else {
-              middleMeasure(
-                  baseModeMeasurement,
-                  dataClients.stream().map(DataClient::getMeasurement),
-                  System.nanoTime(),
-                  operations);
-            }
+            middleMeasure(
+                baseModeMeasurement,
+                dataClients.stream().map(DataClient::getMeasurement),
+                startTime,
+                operations);
           } catch (Exception e) {
             LOGGER.error("Exception occurred during print measurement:", e);
           }

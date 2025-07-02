@@ -424,7 +424,7 @@ public class Config {
   /** ratio of real writes into mysql */
   private double MYSQL_REAL_INSERT_RATE = 1.0;
 
-  private boolean IS_IGNORE_INTERVAL_RECORD_START_TIME = true;
+  private boolean IS_RECORD_CURRENT_REALLY_TIME = false;
 
   // 输出：CSV
   /** Whether output the result to an csv file located in data folder */
@@ -1733,13 +1733,12 @@ public class Config {
     this.VERIFICATION_STEP_SIZE = VERIFICATION_STEP_SIZE;
   }
 
-  public boolean isIS_IGNORE_INTERVAL_RECORD_START_TIME() {
-    return IS_IGNORE_INTERVAL_RECORD_START_TIME;
+  public boolean isIS_RECORD_CURRENT_REALLY_TIME() {
+    return IS_RECORD_CURRENT_REALLY_TIME;
   }
 
-  public void setIS_IGNORE_INTERVAL_RECORD_START_TIME(
-      boolean IS_IGNORE_INTERVAL_RECORD_START_TIME) {
-    this.IS_IGNORE_INTERVAL_RECORD_START_TIME = IS_IGNORE_INTERVAL_RECORD_START_TIME;
+  public void setIS_RECORD_CURRENT_REALLY_TIME(boolean IS_RECORD_CURRENT_REALLY_TIME) {
+    this.IS_RECORD_CURRENT_REALLY_TIME = IS_RECORD_CURRENT_REALLY_TIME;
   }
 
   /** write dataset config to info */

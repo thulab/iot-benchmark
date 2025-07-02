@@ -90,13 +90,28 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
               MetaUtil.getTags(deviceIds.get((int) curLoop % config.getDEVICE_NUMBER())));
       // create data of batch
       List<Record> records = new ArrayList<>();
-      for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
-        long stepOffset =
-            (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE() + batchOffset;
-        records.add(
-            new Record(
-                getCurrentTimestamp(stepOffset),
-                generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), stepOffset)));
+      // Sometimes the current time is used as the timestamp of records, considering the requirement
+      // of test engineer.
+      if (config.isIS_RECORD_CURRENT_REALLY_TIME()) {
+        for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
+          long stepOffset =
+              (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
+                  + batchOffset;
+          records.add(
+              new Record(
+                  System.currentTimeMillis(),
+                  generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), stepOffset)));
+        }
+      } else {
+        for (long batchOffset = 0; batchOffset < recordsNumPerDevice; batchOffset++) {
+          long stepOffset =
+              (curLoop / config.getDEVICE_NUMBER()) * config.getBATCH_SIZE_PER_WRITE()
+                  + batchOffset;
+          records.add(
+              new Record(
+                  getCurrentTimestamp(stepOffset),
+                  generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), stepOffset)));
+        }
       }
       batch.addSchemaAndContent(deviceSchema, records);
     }
