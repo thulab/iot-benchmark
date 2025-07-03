@@ -547,6 +547,12 @@ public class ConfigDescriptor {
 
         config.setCSV_OUTPUT(
             Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT() + "")));
+
+        config.setIS_RECORD_CURRENT_REALLY_TIME(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IS_RECORD_CURRENT_REALLY_TIME",
+                    config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
       } catch (IOException e) {
         e.printStackTrace();
       }
