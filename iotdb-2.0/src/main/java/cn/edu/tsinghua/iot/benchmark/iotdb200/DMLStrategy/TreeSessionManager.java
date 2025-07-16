@@ -203,6 +203,7 @@ public class TreeSessionManager extends SessionManager {
         .version(Version.V_1_0)
         .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
         .enableAutoFetch(config.isENABLE_AUTO_FETCH())
+        .isCompressed(config.isENABLE_IOTDB_RPC_COMPRESSION())
         .build();
   }
 }
