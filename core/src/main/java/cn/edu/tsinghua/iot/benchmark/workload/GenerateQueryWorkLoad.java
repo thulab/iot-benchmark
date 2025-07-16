@@ -52,6 +52,9 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GenerateQueryWorkLoad.class);
 
+  private static volatile List<DeviceSchema> cachedQueryDeviceSchemaListTypeAllow = null;
+  private static volatile List<DeviceSchema> cachedQueryDeviceSchemaListTypeFiltered = null;
+
   private final Random queryDeviceRandom;
   private final Random querySensorRandom;
   private static final long timeStampConst =
@@ -73,14 +76,40 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public PreciseQuery getPreciseQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
+    List<DeviceSchema> queryDevices = getQueryDeviceSchema(true, config.isENABLE_FIXED_QUERY());
     long timestamp = getQueryStartTimestamp(Operation.PRECISE_QUERY);
     return new PreciseQuery(queryDevices, timestamp);
   }
 
+  public List<DeviceSchema> getQueryDeviceSchema(boolean typeAllow, boolean fixedSQl)
+      throws WorkloadException {
+    if (!fixedSQl) {
+      return getQueryDeviceSchemaList(typeAllow);
+    }
+    if (typeAllow) {
+      if (cachedQueryDeviceSchemaListTypeAllow == null) {
+        synchronized (GenerateQueryWorkLoad.class) {
+          if (cachedQueryDeviceSchemaListTypeAllow == null) {
+            cachedQueryDeviceSchemaListTypeAllow = getQueryDeviceSchemaList(typeAllow);
+          }
+        }
+      }
+      return cachedQueryDeviceSchemaListTypeAllow;
+    } else {
+      if (cachedQueryDeviceSchemaListTypeFiltered == null) {
+        synchronized (GenerateQueryWorkLoad.class) {
+          if (cachedQueryDeviceSchemaListTypeFiltered == null) {
+            cachedQueryDeviceSchemaListTypeFiltered = getQueryDeviceSchemaList(typeAllow);
+          }
+        }
+      }
+      return cachedQueryDeviceSchemaListTypeFiltered;
+    }
+  }
+
   @Override
   public RangeQuery getRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
+    List<DeviceSchema> queryDevices = getQueryDeviceSchema(true, config.isENABLE_FIXED_QUERY());
     long startTimestamp = getQueryStartTimestamp(Operation.RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
@@ -88,7 +117,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public ValueRangeQuery getValueRangeQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
+    List<DeviceSchema> queryDevices = getQueryDeviceSchema(false, config.isENABLE_FIXED_QUERY());
     long startTimestamp = getQueryStartTimestamp(Operation.VALUE_RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new ValueRangeQuery(
@@ -98,7 +127,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
   @Override
   public AggRangeQuery getAggRangeQuery() throws WorkloadException {
     List<DeviceSchema> queryDevices =
-        getQueryDeviceSchemaList(config.getQUERY_AGGREGATE_FUN().startsWith("count"));
+        getQueryDeviceSchema(
+            config.getQUERY_AGGREGATE_FUN().startsWith("count"), config.isENABLE_FIXED_QUERY());
     long startTimestamp = getQueryStartTimestamp(Operation.AGG_RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeQuery(
@@ -107,14 +137,14 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public AggValueQuery getAggValueQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
+    List<DeviceSchema> queryDevices = getQueryDeviceSchema(false, config.isENABLE_FIXED_QUERY());
     return new AggValueQuery(
         queryDevices, config.getQUERY_AGGREGATE_FUN(), config.getQUERY_LOWER_VALUE());
   }
 
   @Override
   public AggRangeValueQuery getAggRangeValueQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(false);
+    List<DeviceSchema> queryDevices = getQueryDeviceSchema(false, config.isENABLE_FIXED_QUERY());
     long startTimestamp = getQueryStartTimestamp(Operation.AGG_RANGE_VALUE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new AggRangeValueQuery(
@@ -136,7 +166,8 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
             && config.getANOTHER_DBConfig().getDB_SWITCH() == DBSwitch.DB_INFLUX_2)) {
       typeAllow = false;
     }
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(typeAllow);
+    List<DeviceSchema> queryDevices =
+        getQueryDeviceSchema(typeAllow, config.isENABLE_FIXED_QUERY());
     long startTimestamp = getQueryStartTimestamp(Operation.GROUP_BY_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new GroupByQuery(
@@ -149,7 +180,7 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
 
   @Override
   public LatestPointQuery getLatestPointQuery() throws WorkloadException {
-    List<DeviceSchema> queryDevices = getQueryDeviceSchemaList(true);
+    List<DeviceSchema> queryDevices = getQueryDeviceSchema(true, config.isENABLE_FIXED_QUERY());
     long startTimestamp = getQueryStartTimestamp(Operation.LATEST_POINT_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new LatestPointQuery(
@@ -188,7 +219,10 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
       }
     }
     long currentQueryLoop = operationLoops.get(operation).getAndIncrement();
-    long timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
+    long timestampOffset = 0;
+    if (!config.isENABLE_FIXED_QUERY()) {
+      timestampOffset = currentQueryLoop * config.getSTEP_SIZE() * config.getPOINT_STEP();
+    }
     return Constants.START_TIMESTAMP * timeStampConst + timestampOffset;
   }
 

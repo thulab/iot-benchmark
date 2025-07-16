@@ -43,10 +43,13 @@ public class SchemaClient implements Callable<Boolean> {
 
   /** The id of client */
   protected final int clientThreadId;
+
   /** Tested DataBase */
   protected DBWrapper dbWrapper = null;
+
   /** Related Schema */
   protected final List<DeviceSchema> deviceSchemas;
+
   /** Related Schema Size */
   protected final int deviceSchemasSize;
 
@@ -54,6 +57,7 @@ public class SchemaClient implements Callable<Boolean> {
   private final CountDownLatch countDownLatch;
 
   private final CyclicBarrier barrier;
+
   /** result of register */
   private Boolean result = false;
 

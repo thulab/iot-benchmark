@@ -76,6 +76,7 @@ public class MySqlRecorder extends TestDataPersistence {
           config.getREMARK(),
           projectDateFormat.format(new java.util.Date(EXP_TIME)));
   private static String OPERATION_TABLE_NAME = PROJECT_ID;
+
   /** If now line > CSV_MAX_LINE, then the result will write into other files */
   private static final AtomicLong tableNumber = new AtomicLong(1);
 

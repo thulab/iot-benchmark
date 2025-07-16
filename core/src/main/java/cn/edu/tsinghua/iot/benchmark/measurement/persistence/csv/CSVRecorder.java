@@ -70,6 +70,7 @@ public class CSVRecorder extends TestDataPersistence {
 
   /** The name of host */
   private static String localName;
+
   /** If now line > CSV_MAX_LINE, then the result will write into other files */
   private static final AtomicLong fileNumber = new AtomicLong(1);
 

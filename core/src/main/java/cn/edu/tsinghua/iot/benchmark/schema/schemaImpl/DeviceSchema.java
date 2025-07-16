@@ -42,18 +42,24 @@ public class DeviceSchema implements Cloneable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DeviceSchema.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
   /** prefix of device name */
 
   /** Each device belongs to one group, i.e. database */
   private String group;
+
   /** Each device belongs to one table */
   private String table;
+
   /** Name of device, e.g. DEVICE_NAME_PREFIX + deviceId */
   private String device;
+
   /** List of tags */
   private Map<String, String> tags;
+
   /** Sensors in this device */
   private List<Sensor> sensors;
+
   /** Only used for synthetic data set */
   private int deviceId;
 

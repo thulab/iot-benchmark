@@ -458,6 +458,9 @@ public class ConfigDescriptor {
             Long.parseLong(properties.getProperty("STEP_SIZE", config.getSTEP_SIZE() + "")));
         config.setOPERATION_PROPORTION(
             properties.getProperty("OPERATION_PROPORTION", config.getOPERATION_PROPORTION()));
+        config.setENABLE_FIXED_QUERY(
+            Boolean.parseBoolean(
+                properties.getProperty("ENABLE_FIXED_QUERY", config.isENABLE_FIXED_QUERY() + "")));
         config.setQUERY_SENSOR_NUM(
             Integer.parseInt(
                 properties.getProperty("QUERY_SENSOR_NUM", config.getQUERY_SENSOR_NUM() + "")));
@@ -548,6 +551,12 @@ public class ConfigDescriptor {
 
         config.setCSV_OUTPUT(
             Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT() + "")));
+
+        config.setIS_RECORD_CURRENT_REALLY_TIME(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IS_RECORD_CURRENT_REALLY_TIME",
+                    config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
       } catch (IOException e) {
         e.printStackTrace();
       }

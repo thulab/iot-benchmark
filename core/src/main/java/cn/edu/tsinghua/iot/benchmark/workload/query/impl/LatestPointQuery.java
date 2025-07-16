@@ -27,7 +27,8 @@ public class LatestPointQuery extends AggRangeQuery {
 
   public LatestPointQuery() {
     super();
-  };
+  }
+  ;
 
   public LatestPointQuery(
       List<DeviceSchema> deviceSchema, long startTimestamp, long endTimestamp, String aggFun) {

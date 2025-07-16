@@ -198,7 +198,7 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
   + failOperation: 执行失败的不同操作的 Request/SQL 的数量
   + failPoint: 插入失败的数据点数（对于查询该值总为 0)
   + throughput: 等于```okPoint / Test elapsed time```
-  + <a href = "https://y8dp9fjm8f.feishu.cn/file/boxcndtRvCh3qRNScNm8J5XERWf">参数详细说明</a>
+  + [参数详细说明](result_matrix.pdf)  
 + 不同操作的毫秒级延迟统计
   + 其中```SLOWEST_THREAD``` 是客户端线程中的最大的累积操作时间长度
 
@@ -206,11 +206,11 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 
 配置文件存放在`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0conf`下。当然，对于其他支持数据库您同样可以在相似的路径下找到其配置文件。编辑该文件来自定义测试的类型以及相关配置，**请注意，每次测试前您必须将配置文件中的 DB_SWITCH 参数更改为与待测数据库相匹配，其对应关系和可能取值如下所示：**
 
-|        数据库        |   版本   |     对应子项目      |                                                  DB_SWITCH                                                   |
-| :------------------: | :------: | :-----------------: | :----------------------------------------------------------------------------------------------------------: |
+|        数据库        |    版本    |     对应子项目      |                                                  DB_SWITCH                                                   |
+| :------------------: |:--------:| :-----------------: |:------------------------------------------------------------------------------------------------------------:|
 |  IoTDB(1.0/1.1/1.3)  |   1.x    |      iotdb-1.x      | IoTDB-1x0-JDBC<br>IoTDB-1x0-SESSION_BY_TABLET<br>IoTDB-1x0-SESSION_BY_RECORD<br>IoTDB-1x0-SESSION_BY_RECORDS |
 |       InfluxDB       |   1.x    |      influxdb       |                                                   InfluxDB                                                   |
-|       InfluxDB       |   2.0    |    influxdb-2.0     |                                                 InfluxDB-2.0                                                 |
+|       InfluxDB       |   2.x    |    influxdb-2.0     |                                                 InfluxDB-2.x                                                 |
 |       QuestDB        |  6.0.7   |       questdb       |                                                   QuestDB                                                    |
 | Microsoft SQL Server | 2016 SP2 |     mssqlserver     |                                                 MSSQLSERVER                                                  |
 |   VictoriaMetrics    |  1.64.0  |   victoriametrics   |                                               VictoriaMetrics                                                |

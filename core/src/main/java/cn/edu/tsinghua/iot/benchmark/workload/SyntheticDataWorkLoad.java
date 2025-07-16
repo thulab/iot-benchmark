@@ -66,11 +66,23 @@ public class SyntheticDataWorkLoad extends GenerateDataWorkLoad {
       // create the data of batch
       long rowOffset = insertLoop * config.getBATCH_SIZE_PER_WRITE();
       List<Record> records = new ArrayList<>();
-      for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
-        records.add(
-            new Record(
-                getCurrentTimestamp(rowOffset),
-                generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), rowOffset)));
+      // Sometimes the current time is used as the timestamp of records, considering the requirement
+      // of test engineer.
+      if (config.isIS_RECORD_CURRENT_REALLY_TIME()) {
+        for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
+          records.add(
+              new Record(
+                  System.currentTimeMillis(),
+                  //                  1751342454000L,
+                  generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), rowOffset)));
+        }
+      } else {
+        for (long offset = 0; offset < recordNumPerDevice; offset++, rowOffset++) {
+          records.add(
+              new Record(
+                  getCurrentTimestamp(rowOffset),
+                  generateOneRow(deviceSchema.getDeviceId(), batch.getColIndex(), rowOffset)));
+        }
       }
       // move
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {

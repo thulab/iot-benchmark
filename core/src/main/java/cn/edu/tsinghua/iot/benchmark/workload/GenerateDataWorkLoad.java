@@ -48,6 +48,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
       TimeUtils.getTimestampConst(config.getTIMESTAMP_PRECISION());
+
   /**
    * workloadValues[SENSOR_NUMBER][WORKLOAD_BUFFER_SIZE]。 For those regular data, a piece of data of
    * each sensor is stored for rapid generation according to the law this must after timeStampConst

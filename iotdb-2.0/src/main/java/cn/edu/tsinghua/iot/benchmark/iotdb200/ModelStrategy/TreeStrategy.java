@@ -37,6 +37,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
+import org.apache.tsfile.enums.ColumnCategory;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
@@ -442,7 +443,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
   public Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnCategory> columnTypes,
+      List<ColumnCategory> columnTypes,
       int maxRowNumber) {
     return new Tablet(insertTargetName, schemas, maxRowNumber);
   }
@@ -454,13 +455,13 @@ public class TreeStrategy extends IoTDBModelStrategy {
 
   @Override
   public void addIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     // do nothing
   }
 
   @Override
   public void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     // delete the value of the identity column to the value of each record
     for (int i = 0; i < batch.getRecords().size(); i++) {
       List<Object> dataValue = batch.getRecords().get(i).getRecordDataValue();

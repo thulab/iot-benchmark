@@ -60,6 +60,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
+import org.apache.tsfile.enums.ColumnCategory;
 import org.apache.tsfile.enums.TSDataType;
 import org.apache.tsfile.file.metadata.enums.CompressionType;
 import org.apache.tsfile.file.metadata.enums.TSEncoding;
@@ -650,7 +651,7 @@ public class IoTDB implements IDatabase {
   public Tablet createTablet(
       String insertTargetName,
       List<IMeasurementSchema> schemas,
-      List<Tablet.ColumnCategory> columnTypes,
+      List<ColumnCategory> columnTypes,
       int maxRowNumber) {
     return modelStrategy.createTablet(insertTargetName, schemas, columnTypes, maxRowNumber);
   }
@@ -667,12 +668,12 @@ public class IoTDB implements IDatabase {
   }
 
   public void addIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     modelStrategy.addIDColumnIfNecessary(columnTypes, sensors, batch);
   }
 
   public void deleteIDColumnIfNecessary(
-      List<Tablet.ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
+      List<ColumnCategory> columnTypes, List<Sensor> sensors, IBatch batch) {
     modelStrategy.deleteIDColumnIfNecessary(columnTypes, sensors, batch);
   }
 

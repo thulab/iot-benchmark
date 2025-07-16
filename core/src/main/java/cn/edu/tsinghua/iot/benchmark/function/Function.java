@@ -28,6 +28,7 @@ import java.util.Random;
 public class Function {
 
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
+
   /** use DATA_SEED in config */
   private static final Random random = new Random(config.getDATA_SEED());
 
