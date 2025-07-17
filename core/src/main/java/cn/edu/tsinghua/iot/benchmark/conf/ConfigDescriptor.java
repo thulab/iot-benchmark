@@ -331,9 +331,9 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "ENABLE_THRIFT_COMPRESSION", config.isENABLE_THRIFT_COMPRESSION() + "")));
         config.setENABLE_IOTDB_RPC_COMPRESSION(
-                Boolean.parseBoolean(
-                        properties.getProperty(
-                                "ENABLE_IOTDB_RPC_COMPRESSION", config.isENABLE_IOTDB_RPC_COMPRESSION() + "")));
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "ENABLE_IOTDB_RPC_COMPRESSION", config.isENABLE_IOTDB_RPC_COMPRESSION() + "")));
         config.setSG_STRATEGY(properties.getProperty("SG_STRATEGY", config.getSG_STRATEGY()));
         config.setGROUP_NUMBER(
             Integer.parseInt(
