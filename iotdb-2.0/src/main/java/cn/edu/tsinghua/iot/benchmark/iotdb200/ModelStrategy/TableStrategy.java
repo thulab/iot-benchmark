@@ -69,9 +69,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
-      for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-        registerTable(pair.getKey(), schemaList);
-      }
+      registerTable(sessionListMap.keySet().iterator().next(), schemaList);
     } catch (Exception e) {
       throw new TsdbException(e);
     }
