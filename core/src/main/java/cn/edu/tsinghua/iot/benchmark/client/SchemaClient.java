@@ -85,9 +85,10 @@ public class SchemaClient implements Callable<Boolean> {
   public Boolean call() {
     try {
       try {
-        if (dbWrapper != null) {
-          dbWrapper.init();
-        }
+        // dbWrapper.init will open session
+        // SchemaClient doesn't need to call dbWrapper.init()
+        // session will be opened in dbWrapper.registerSchema method
+
         // wait for that all dataClients start test simultaneously
         barrier.await();
 
