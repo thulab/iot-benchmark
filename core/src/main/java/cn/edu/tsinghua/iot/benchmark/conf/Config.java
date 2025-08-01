@@ -269,6 +269,9 @@ public class Config {
   /** if enable the thrift compression */
   private boolean ENABLE_THRIFT_COMPRESSION = false;
 
+  /** if enable the iotdb-rpc compression */
+  private boolean ENABLE_IOTDB_RPC_COMPRESSION = true;
+
   /** Storage Group Allocation Strategy, currently supported hash/mode/div */
   private String SG_STRATEGY = "mod";
 
@@ -1133,6 +1136,14 @@ public class Config {
 
   public void setENABLE_THRIFT_COMPRESSION(boolean ENABLE_THRIFT_COMPRESSION) {
     this.ENABLE_THRIFT_COMPRESSION = ENABLE_THRIFT_COMPRESSION;
+  }
+
+  public boolean isENABLE_IOTDB_RPC_COMPRESSION() {
+    return ENABLE_IOTDB_RPC_COMPRESSION;
+  }
+
+  public void setENABLE_IOTDB_RPC_COMPRESSION(boolean ENABLE_IOTDB_RPC_COMPRESSION) {
+    this.ENABLE_IOTDB_RPC_COMPRESSION = ENABLE_IOTDB_RPC_COMPRESSION;
   }
 
   public String getSG_STRATEGY() {
@@ -2056,6 +2067,8 @@ public class Config {
 
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
+    configProperties.addProperty(
+        "Extern Param", "ENABLE_IoTDB_RPC_COMPRESSION", this.ENABLE_IOTDB_RPC_COMPRESSION);
     configProperties.addProperty(
         "Extern Param", "WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     configProperties.addProperty(

@@ -24,6 +24,7 @@ import org.apache.iotdb.isession.util.Version;
 import org.apache.iotdb.rpc.IoTDBConnectionException;
 import org.apache.iotdb.rpc.StatementExecutionException;
 import org.apache.iotdb.session.Session;
+import org.apache.iotdb.session.Session.Builder;
 
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
@@ -195,7 +196,7 @@ public class TreeSessionManager extends SessionManager {
   }
 
   public Session buidlSession(List<String> hostUrls) {
-    return new Session.Builder()
+    return new Builder()
         .nodeUrls(hostUrls)
         .username(dbConfig.getUSERNAME())
         .password(dbConfig.getPASSWORD())
@@ -203,6 +204,7 @@ public class TreeSessionManager extends SessionManager {
         .version(Version.V_1_0)
         .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
         .enableAutoFetch(config.isENABLE_AUTO_FETCH())
+        .enableIoTDBRpcCompression(config.isENABLE_IOTDB_RPC_COMPRESSION())
         .build();
   }
 }

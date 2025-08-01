@@ -168,7 +168,8 @@ public class TableSessionManager extends SessionManager {
         .nodeUrls(hostUrls)
         .username(dbConfig.getUSERNAME())
         .password(dbConfig.getPASSWORD())
-        .enableCompression(config.isENABLE_THRIFT_COMPRESSION())
+        .enableCompaction(config.isENABLE_THRIFT_COMPRESSION())
+        .enableCompression(config.isENABLE_IOTDB_RPC_COMPRESSION())
         .enableRedirection(true)
         .enableAutoFetch(config.isENABLE_AUTO_FETCH())
         .build();
