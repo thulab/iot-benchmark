@@ -48,6 +48,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBSwitch;
 import cn.edu.tsinghua.iot.benchmark.utils.BlobUtils;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
@@ -145,14 +146,18 @@ public class IoTDB implements IDatabase {
     long start = System.nanoTime();
     if (config.hasWrite()) {
       Map<SessionManager, List<TimeseriesSchema>> sessionManagerListMap = new HashMap<>();
+      SessionManager sessionManager;
       try {
-        SessionManager sessionManager;
-        if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
-          sessionManager = new TableSessionManager(dbConfig);
+        if (dbConfig.getDB_SWITCH() == DBSwitch.DB_IOT_200_JDBC) {
+          if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE) {
+            sessionManager = new TableSessionManager(dbConfig);
+          } else {
+            sessionManager = new TreeSessionManager(dbConfig);
+          }
+          sessionManager.open();
         } else {
-          sessionManager = new TreeSessionManager(dbConfig);
+          sessionManager = ((SessionStrategy) dmlStrategy).sessionManager;
         }
-        sessionManager.open();
         sessionManagerListMap.put(sessionManager, createTimeseries(schemaList));
         modelStrategy.registerSchema(sessionManagerListMap, schemaList);
       } catch (Exception e) {

@@ -270,7 +270,7 @@ public class Config {
   private boolean ENABLE_THRIFT_COMPRESSION = false;
 
   /** if enable the iotdb-rpc compression */
-  private boolean ENABLE_IOTDB_RPC_COMPRESSION = false;
+  private boolean ENABLE_IOTDB_RPC_COMPRESSION = true;
 
   /** Storage Group Allocation Strategy, currently supported hash/mode/div */
   private String SG_STRATEGY = "mod";
@@ -2068,7 +2068,7 @@ public class Config {
     configProperties.addProperty(
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     configProperties.addProperty(
-            "Extern Param", "ENABLE_IoTDB_RPC_COMPRESSION", this.ENABLE_IOTDB_RPC_COMPRESSION);
+        "Extern Param", "ENABLE_IoTDB_RPC_COMPRESSION", this.ENABLE_IOTDB_RPC_COMPRESSION);
     configProperties.addProperty(
         "Extern Param", "WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     configProperties.addProperty(

@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,9 +69,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         registerDatabases(pair.getKey(), pair.getValue());
       }
       schemaBarrier.await();
-      for (Map.Entry<SessionManager, List<TimeseriesSchema>> pair : sessionListMap.entrySet()) {
-        registerTable(pair.getKey(), pair.getValue());
-      }
+      registerTable(sessionListMap.keySet().iterator().next(), schemaList);
     } catch (Exception e) {
       throw new TsdbException(e);
     }
@@ -94,50 +91,57 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
   }
 
-  private void registerTable(SessionManager metaSession, List<TimeseriesSchema> timeseriesSchemas)
+  private void registerTable(SessionManager metaSession, List<DeviceSchema> deviceSchemas)
       throws TsdbException {
     try {
-      HashMap<String, List<String>> tables = new HashMap<>();
-      for (TimeseriesSchema schema : timeseriesSchemas) {
-        DeviceSchema deviceSchema = schema.getDeviceSchema();
-        StringBuilder builder = new StringBuilder();
-        builder.append("create table if not exists ").append(deviceSchema.getTable()).append("(");
-        // 1.Generate SQL for registering table
-        for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
-          if (i != 0) builder.append(", ");
-          builder
-              .append(deviceSchema.getSensors().get(i).getName())
-              .append(" ")
-              .append(deviceSchema.getSensors().get(i).getSensorType())
-              .append(" ")
-              .append(deviceSchema.getSensors().get(i).getColumnCategory());
-        }
-        builder
-            .append(", device_id")
-            .append(" ")
-            .append(SensorType.STRING)
-            .append(" ")
-            .append(ColumnCategory.TAG);
-        for (String key : deviceSchema.getTags().keySet()) {
-          builder
-              .append(", ")
-              .append(key)
-              .append(" ")
-              .append(SensorType.STRING)
-              .append(" ")
-              .append(ColumnCategory.TAG);
-        }
-        builder.append(")");
+      // dbName -> tableName -> create table sql
+      HashMap<String, Map<String, String>> tables = new HashMap<>();
+      for (DeviceSchema deviceSchema : deviceSchemas) {
         tables
             .computeIfAbsent(
-                dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), k -> new ArrayList<>())
-            .add(builder.toString());
+                dbConfig.getDB_NAME() + "_" + deviceSchema.getGroup(), k -> new HashMap<>())
+            .computeIfAbsent(
+                deviceSchema.getTable(),
+                k -> {
+                  StringBuilder builder = new StringBuilder();
+                  builder
+                      .append("create table if not exists ")
+                      .append(deviceSchema.getTable())
+                      .append("(");
+                  // 1.Generate SQL for registering table
+                  for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
+                    if (i != 0) builder.append(", ");
+                    builder
+                        .append(deviceSchema.getSensors().get(i).getName())
+                        .append(" ")
+                        .append(deviceSchema.getSensors().get(i).getSensorType())
+                        .append(" ")
+                        .append(deviceSchema.getSensors().get(i).getColumnCategory());
+                  }
+                  builder
+                      .append(", device_id")
+                      .append(" ")
+                      .append(SensorType.STRING)
+                      .append(" ")
+                      .append(ColumnCategory.TAG);
+                  for (String key : deviceSchema.getTags().keySet()) {
+                    builder
+                        .append(", ")
+                        .append(key)
+                        .append(" ")
+                        .append(SensorType.STRING)
+                        .append(" ")
+                        .append(ColumnCategory.TAG);
+                  }
+                  builder.append(")");
+                  return builder.toString();
+                });
       }
 
       // 2.Registration table
-      for (Map.Entry<String, List<String>> database : tables.entrySet()) {
+      for (Map.Entry<String, Map<String, String>> database : tables.entrySet()) {
         metaSession.executeNonQueryStatement("use " + database.getKey());
-        for (String table : database.getValue()) {
+        for (String table : database.getValue().values()) {
           metaSession.executeNonQueryStatement(table);
         }
       }
