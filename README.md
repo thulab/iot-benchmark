@@ -33,8 +33,8 @@ IoT-Benchmark is a benchmarking tool used to evaluate the performance of time se
 Currently supports the following databases, versions and connection methods:
 
 |       Database       |  Version   |
-| :------------------: | :--------: |
-|        IoTDB         |    v1.x    |
+| :------------------: |:----------:|
+|        IoTDB         | v1.x, v2.x |
 |       InfluxDB       | v1.x, v2.x |
 |       QuestDB        |   v6.0.7   |
 | Microsoft SQL Server |  2016 SP2  |
