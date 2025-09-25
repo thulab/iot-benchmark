@@ -45,6 +45,30 @@ public class TreeSessionManager extends SessionManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(TableSessionManager.class);
   private final Session session;
 
+  /**
+   * 新增：基于前缀路径的快速 last 查询（第11种查询方式）
+   *
+   * @param prefixPath 例如 Arrays.asList("root", "sg1")
+   * @return SessionDataSet 查询结果
+   */
+  public SessionDataSet executeFastLastDataQueryForOnePrefixPath(List<String> prefixPath)
+      throws IoTDBConnectionException, StatementExecutionException {
+    // 兼容未实现的 session 方法，优先用反射调用
+    try {
+      java.lang.reflect.Method method =
+          session.getClass().getMethod("executeFastLastDataQueryForOnePrefixPath", List.class);
+      Object result = method.invoke(session, prefixPath);
+      return (SessionDataSet) result;
+    } catch (NoSuchMethodException nsme) {
+      LOGGER.error("Session未实现executeFastLastDataQueryForOnePrefixPath方法", nsme);
+      throw new StatementExecutionException(
+          "Session未实现executeFastLastDataQueryForOnePrefixPath方法", nsme);
+    } catch (Exception e) {
+      LOGGER.error("executeFastLastDataQueryForOnePrefixPath failed", e);
+      throw new StatementExecutionException(e);
+    }
+  }
+
   public TreeSessionManager(DBConfig dbConfig) {
     super(dbConfig);
     List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
