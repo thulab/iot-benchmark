@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SingleNodeJDBCConnection {
@@ -58,8 +59,15 @@ public class SingleNodeJDBCConnection {
         Class.forName("org.apache.iotdb.jdbc.IoTDBDriver");
         org.apache.iotdb.jdbc.Config.rpcThriftCompressionEnable =
             config.isENABLE_THRIFT_COMPRESSION();
-        connections[i] =
-            DriverManager.getConnection(urls[i], dbConfig.getUSERNAME(), dbConfig.getPASSWORD());
+        Properties info = new Properties();
+        info.setProperty("user", dbConfig.getUSERNAME());
+        info.setProperty("password", dbConfig.getPASSWORD());
+        if (config.isUSE_SSL()) {
+          info.setProperty("use_ssl", "true");
+          info.setProperty("trust_store", config.getTRUST_STORE_PATH());
+          info.setProperty("trust_store_pwd", config.getTRUST_STORE_PWD());
+        }
+        connections[i] = DriverManager.getConnection(urls[i], info);
       } catch (Exception e) {
         LOGGER.error("Initialize IoTDB failed because ", e);
         throw new TsdbException(e);

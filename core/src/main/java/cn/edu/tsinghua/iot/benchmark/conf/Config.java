@@ -299,6 +299,12 @@ public class Config {
   /** whether to fetch datanode list */
   private boolean ENABLE_AUTO_FETCH = false;
 
+  /** whether to SSL */
+  private boolean USE_SSL = false;
+
+  private String TRUST_STORE_PATH = "";
+  private String TRUST_STORE_PWD = "";
+
   /** the ratio of use debug */
   private double IOTDB_USE_DEBUG_RATIO = 0.01;
 
@@ -1224,6 +1230,30 @@ public class Config {
 
   public void setENABLE_AUTO_FETCH(boolean ENABLE_AUTO_FETCH) {
     this.ENABLE_AUTO_FETCH = ENABLE_AUTO_FETCH;
+  }
+
+  public boolean isUSE_SSL() {
+    return USE_SSL;
+  }
+
+  public void setUSE_SSL(boolean USE_SSL) {
+    this.USE_SSL = USE_SSL;
+  }
+
+  public void setTRUST_STORE_PATH(String TRUST_STORE_PATH) {
+    this.TRUST_STORE_PATH = TRUST_STORE_PATH;
+  }
+
+  public String getTRUST_STORE_PATH() {
+    return TRUST_STORE_PATH;
+  }
+
+  public void setTRUST_STORE_PWD(String TRUST_STORE_PWD) {
+    this.TRUST_STORE_PWD = TRUST_STORE_PWD;
+  }
+
+  public String getTRUST_STORE_PWD() {
+    return TRUST_STORE_PWD;
   }
 
   public int getHTTP_CLIENT_POOL_SIZE() {

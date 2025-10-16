@@ -172,6 +172,9 @@ public class TableSessionManager extends SessionManager {
         .enableCompression(config.isENABLE_IOTDB_RPC_COMPRESSION())
         .enableRedirection(true)
         .enableAutoFetch(config.isENABLE_AUTO_FETCH())
+        .useSSL(config.isUSE_SSL())
+        .trustStore(config.getTRUST_STORE_PATH())
+        .trustStorePwd(config.getTRUST_STORE_PWD())
         .build();
   }
 }

@@ -205,6 +205,9 @@ public class TreeSessionManager extends SessionManager {
         .sqlDialect(config.getIoTDB_DIALECT_MODE().name())
         .enableAutoFetch(config.isENABLE_AUTO_FETCH())
         .enableIoTDBRpcCompression(config.isENABLE_IOTDB_RPC_COMPRESSION())
+        .useSSL(config.isUSE_SSL())
+        .trustStore(config.getTRUST_STORE_PATH())
+        .trustStorePwd(config.getTRUST_STORE_PWD())
         .build();
   }
 }
