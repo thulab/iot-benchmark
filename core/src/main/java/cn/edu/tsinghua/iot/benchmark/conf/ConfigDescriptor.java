@@ -371,6 +371,17 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "HTTP_CLIENT_POOL_SIZE", String.valueOf(config.getHTTP_CLIENT_POOL_SIZE()))));
 
+        config.setUSE_SSL(
+            Boolean.parseBoolean(
+                properties.getProperty("USE_SSL", String.valueOf(config.isUSE_SSL()))));
+
+        config.setTRUST_STORE_PATH(
+            properties.getProperty(
+                "TRUST_STORE_PATH", String.valueOf(config.getTRUST_STORE_PATH())));
+
+        config.setTRUST_STORE_PWD(
+            properties.getProperty("TRUST_STORE_PWD", String.valueOf(config.getTRUST_STORE_PWD())));
+
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
         config.setTIMESCALEDB_REPLICATION_FACTOR(
             Integer.parseInt(
