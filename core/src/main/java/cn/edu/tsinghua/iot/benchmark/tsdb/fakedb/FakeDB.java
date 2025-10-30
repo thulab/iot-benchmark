@@ -36,6 +36,10 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import java.util.List;
 
 public class FakeDB implements IDatabase {
+  @Override
+  public Status fastLastPrefixQuery(List<String> prefixPaths) {
+    return new Status(true, null, null);
+  }
 
   @Override
   public void init() throws TsdbException {}

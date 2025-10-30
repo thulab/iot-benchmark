@@ -51,6 +51,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DBWrapper implements IDatabase {
+  /** Q12: Fast last query for prefix paths (IoTDB 2.0+) */
+  @Override
+  public Status fastLastPrefixQuery(List<String> prefixPaths) {
+    Status status = null;
+    Operation operation = Operation.FAST_LAST_PREFIX_QUERY;
+    String device =
+        (prefixPaths != null && !prefixPaths.isEmpty()) ? prefixPaths.get(0) : "No Prefix";
+    try {
+      List<Status> statuses = new ArrayList<>();
+      for (IDatabase database : databases) {
+        long start = System.nanoTime();
+        status = database.fastLastPrefixQuery(prefixPaths);
+        long end = System.nanoTime();
+        status.setTimeCost(end - start);
+        statuses.add(status);
+      }
+      for (Status sta : statuses) {
+        handleQueryOperation(sta, operation, device);
+      }
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e, device);
+    }
+    return status;
+  }
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DBWrapper.class);
   private static Config config = ConfigDescriptor.getInstance().getConfig();
