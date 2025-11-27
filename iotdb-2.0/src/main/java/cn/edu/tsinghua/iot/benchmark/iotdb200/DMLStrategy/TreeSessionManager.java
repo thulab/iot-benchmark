@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TreeSessionManager extends SessionManager {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TableSessionManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TreeSessionManager.class);
   private final Session session;
 
   public TreeSessionManager(DBConfig dbConfig) {

@@ -202,6 +202,14 @@ public class SessionStrategy extends DMLStrategy {
                           BytesUtils::valueOf)
                       .getValues());
               break;
+            case OBJECT:
+              tablet.addValue(
+                  recordIndex,
+                  recordValueIndex,
+                  true,
+                  0,
+                  (byte[]) record.getRecordDataValue().get(recordValueIndex));
+              break;
             case DATE:
               tablet.addValue(
                   recordIndex,
