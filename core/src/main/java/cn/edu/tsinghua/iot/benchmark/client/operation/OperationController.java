@@ -111,6 +111,8 @@ public class OperationController {
         return Operation.VALUE_RANGE_QUERY_ORDER_BY_TIME_DESC;
       case 12:
         return Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC;
+      case 13:
+        return Operation.SET_OP_QUERY;
       default:
         LOGGER.error("Unsupported operation {}, use default operation: INGESTION.", i);
         return Operation.INGESTION;

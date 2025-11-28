@@ -481,6 +481,14 @@ public class ConfigDescriptor {
 
         loadAndConvertAggregateFunction(properties);
 
+        config.setQUERY_SET_OP_TYPE(
+            checkQuerySetOperationType(
+                (properties.getProperty("QUERY_SET_OP_TYPE", config.getQUERY_SET_OP_TYPE()))));
+
+        config.setQUERY_SET_OP_NUM(
+            Integer.parseInt(
+                properties.getProperty("QUERY_SET_OP_NUM", config.getQUERY_SET_OP_NUM() + "")));
+
         config.setQUERY_INTERVAL(
             Long.parseLong(
                 properties.getProperty("QUERY_INTERVAL", config.getQUERY_INTERVAL() + "")));
@@ -726,6 +734,32 @@ public class ConfigDescriptor {
       }
     }
     return result;
+  }
+
+  /***
+   * 表模型支持集合操作, 树模型不支持
+   */
+  private String checkQuerySetOperationType(String inputSetOperationType) {
+    String setOperationTypeLowerCase = inputSetOperationType.toLowerCase();
+    switch (setOperationTypeLowerCase) {
+      case Constants.UNION:
+      case Constants.UNION_DISTINCT:
+      case Constants.UNION_ALL:
+      case Constants.INTERSECT:
+      case Constants.INTERSECT_DISTINCT:
+      case Constants.INTERSECT_ALL:
+      case Constants.EXCEPT:
+      case Constants.EXCEPT_DISTINCT:
+      case Constants.EXCEPT_ALL:
+        return setOperationTypeLowerCase;
+
+      default:
+        throw new IllegalArgumentException(
+            "Unsupported set operation: "
+                + inputSetOperationType
+                + ". Supported operations are: union, union distinct, union all, intersect, intersect distinct, "
+                + "intersect all, except, except distinct, except all");
+    }
   }
 
   private boolean commonlyUseDB() {

@@ -109,4 +109,14 @@ public class Constants {
   public static final String COUNT = "count";
   public static final String MAX_BY = "max_by";
   public static final String MIN_BY = "min_by";
+
+  public static final String UNION = "union";
+  public static final String UNION_DISTINCT = "union distinct";
+  public static final String UNION_ALL = "union all";
+  public static final String INTERSECT = "intersect";
+  public static final String INTERSECT_DISTINCT = "intersect distinct";
+  public static final String INTERSECT_ALL = "intersect all";
+  public static final String EXCEPT = "except";
+  public static final String EXCEPT_DISTINCT = "except distinct";
+  public static final String EXCEPT_ALL = "except all";
 }

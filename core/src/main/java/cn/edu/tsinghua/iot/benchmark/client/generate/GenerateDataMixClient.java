@@ -101,6 +101,9 @@ public class GenerateDataMixClient extends GenerateBaseClient {
             case GROUP_BY_QUERY_ORDER_BY_TIME_DESC:
               dbWrapper.groupByQueryOrderByDesc(queryWorkLoad.getGroupByQuery());
               break;
+            case SET_OP_QUERY:
+              dbWrapper.setOpQuery(queryWorkLoad.getSetOpQuery());
+              break;
             default:
               LOGGER.error("Unsupported operation sensorType {}", operation);
           }
