@@ -470,6 +470,28 @@ public class DBWrapper implements IDatabase {
   }
 
   @Override
+  public Status deviceQuery(String sql) {
+    Status status = null;
+    Operation operation = Operation.DEVICE_QUERY;
+    try {
+      List<Status> statuses = new ArrayList<>();
+      for (IDatabase database : databases) {
+        long start = System.nanoTime();
+        status = database.deviceQuery(sql);
+        long end = System.nanoTime();
+        status.setTimeCost(end - start);
+        statuses.add(status);
+      }
+      for (Status sta : statuses) {
+        handleQueryOperation(sta, operation, "");
+      }
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e, "");
+    }
+    return status;
+  }
+
+  @Override
   public DeviceSummary deviceSummary(DeviceQuery deviceQuery) throws SQLException, TsdbException {
     DeviceSummary deviceSummary = null;
     try {
