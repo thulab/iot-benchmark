@@ -537,6 +537,7 @@ public class Config {
 
   /** fixed query mode config parameters */
   private String FIXED_QUERY_SQL = "";
+
   private int QUERY_LOOP = 10;
 
   /** init inner functions */
