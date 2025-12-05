@@ -535,6 +535,11 @@ public class Config {
   /** Sensor function */
   private Map<String, FunctionParam> SENSOR_FUNCTION = new HashMap<>();
 
+  /** fixed query mode config parameters */
+  private String FIXED_QUERY_SQL = "";
+
+  private int QUERY_LOOP = 10;
+
   /** init inner functions */
   public void initInnerFunction() {
     FunctionXml xml = null;
@@ -1863,6 +1868,22 @@ public class Config {
 
   public void setIS_RECORD_CURRENT_REALLY_TIME(boolean IS_RECORD_CURRENT_REALLY_TIME) {
     this.IS_RECORD_CURRENT_REALLY_TIME = IS_RECORD_CURRENT_REALLY_TIME;
+  }
+
+  public String getFIXED_QUERY_SQL() {
+    return FIXED_QUERY_SQL;
+  }
+
+  public void setFIXED_QUERY_SQL(String FIXED_QUERY_SQL) {
+    this.FIXED_QUERY_SQL = FIXED_QUERY_SQL;
+  }
+
+  public int getQUERY_LOOP() {
+    return QUERY_LOOP;
+  }
+
+  public void setQUERY_LOOP(int QUERY_LOOP) {
+    this.QUERY_LOOP = QUERY_LOOP;
   }
 
   /** write dataset config to info */

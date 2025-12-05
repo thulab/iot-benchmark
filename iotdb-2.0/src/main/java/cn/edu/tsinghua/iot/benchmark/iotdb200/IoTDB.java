@@ -589,6 +589,21 @@ public class IoTDB implements IDatabase {
     return new Status(true, 0, sql, result);
   }
 
+  @Override
+  public Status deviceQuery(String sql) {
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("Query: {}", sql);
+    }
+    List<List<Object>> result;
+    try {
+      result = dmlStrategy.deviceQueryImpl(sql);
+    } catch (Exception e) {
+      LOGGER.error("Query Error: {}", sql, e);
+      return new Status(false, new TsdbException("Failed to query"), "Failed to query.");
+    }
+    return new Status(true, 0, sql, result);
+  }
+
   protected String getDeviceQuerySql(
       DeviceSchema deviceSchema, long startTimeStamp, long endTimeStamp) {
     StringBuffer sql = new StringBuffer();
