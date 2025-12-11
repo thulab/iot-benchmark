@@ -42,16 +42,22 @@ import java.util.List;
 import java.util.Map;
 
 public class TreeSessionManager extends SessionManager {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TableSessionManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(TreeSessionManager.class);
   private final Session session;
 
-  public TreeSessionManager(DBConfig dbConfig) {
+  public TreeSessionManager(DBConfig dbConfig) throws IoTDBConnectionException {
     super(dbConfig);
     List<String> hostUrls = new ArrayList<>(dbConfig.getHOST().size());
     for (int i = 0; i < dbConfig.getHOST().size(); i++) {
       hostUrls.add(dbConfig.getHOST().get(i) + ":" + dbConfig.getPORT().get(i));
     }
     this.session = buidlSession(hostUrls);
+    try {
+      session.open(config.isENABLE_THRIFT_COMPRESSION());
+    } catch (IoTDBConnectionException e) {
+      session.close();
+      throw e;
+    }
   }
 
   @Override
@@ -113,17 +119,7 @@ public class TreeSessionManager extends SessionManager {
   }
 
   @Override
-  public void open() {
-    try {
-      if (config.isENABLE_THRIFT_COMPRESSION()) {
-        session.open(true);
-      } else {
-        session.open();
-      }
-    } catch (IoTDBConnectionException e) {
-      LOGGER.error("Failed to add session", e);
-    }
-  }
+  public void open() {}
 
   @Override
   public void close() throws TsdbException {
