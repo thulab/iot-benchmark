@@ -38,6 +38,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
@@ -113,6 +114,47 @@ public class GenerateQueryWorkLoad extends QueryWorkLoad {
     long startTimestamp = getQueryStartTimestamp(Operation.RANGE_QUERY);
     long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
     return new RangeQuery(queryDevices, startTimestamp, endTimestamp);
+  }
+
+  /**
+   * The setOpQuery(union, intersect, except) has left and right range, which have same time
+   * attributes and different device range Every child's device in the deviceSchema should be
+   * different, and number of column among every child query should be the same, and the data type
+   * should be compatible
+   */
+  @Override
+  public SetOpQuery getSetOpQuery() throws WorkloadException {
+
+    long startTimestamp = getQueryStartTimestamp(Operation.RANGE_QUERY);
+    long endTimestamp = startTimestamp + config.getQUERY_INTERVAL();
+
+    List<RangeQuery> childRangeQueries = new ArrayList<>();
+    int querySetOpNum = config.getQUERY_SET_OP_NUM();
+    if (querySetOpNum < config.getQUERY_SET_LEAST_OP_NUM()) {
+      throw new IllegalArgumentException(
+          "the number of child set in set operation must be greater than or equal to 2");
+    }
+
+    List<DeviceSchema> firstQueryDeviceSchema =
+        getQueryDeviceSchema(true, config.isENABLE_FIXED_QUERY());
+    DeviceSchema firstDeviceSchema = firstQueryDeviceSchema.get(0);
+
+    for (int i = 0; i < querySetOpNum; i++) {
+
+      List<DeviceSchema> copiedDeviceSchema = new ArrayList<>();
+      List<DeviceSchema> childQueryDevices = getQueryDeviceSchema(true, false);
+      for (DeviceSchema childDeviceSchema : childQueryDevices) {
+        copiedDeviceSchema.add(
+            new DeviceSchema(
+                childDeviceSchema.getDeviceId(),
+                firstDeviceSchema.getSensors(),
+                firstDeviceSchema.getTags()));
+      }
+
+      childRangeQueries.add(new RangeQuery(copiedDeviceSchema, startTimestamp, endTimestamp));
+    }
+
+    return new SetOpQuery(childRangeQueries, config.getQUERY_SET_OP_TYPE());
   }
 
   @Override

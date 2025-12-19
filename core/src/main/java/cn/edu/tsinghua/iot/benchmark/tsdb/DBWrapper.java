@@ -40,6 +40,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.Query;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
@@ -416,6 +417,34 @@ public class DBWrapper implements IDatabase {
         statuses.add(status);
       }
       doComparisonByRecord(valueRangeQuery, operation, statuses);
+    } catch (Exception e) {
+      handleUnexpectedQueryException(operation, e, device);
+    }
+    return status;
+  }
+
+  @Override
+  public Status setOpQuery(SetOpQuery setOpQuery) {
+
+    Status status = null;
+    Operation operation = Operation.SET_OP_QUERY;
+    String device = "No Device";
+
+    RangeQuery firstChildRangeQuery = setOpQuery.getChildRangeQueries().get(0);
+    if (!firstChildRangeQuery.getDeviceSchema().isEmpty()) {
+      device = firstChildRangeQuery.getDeviceSchema().get(0).getDevice();
+    }
+    try {
+      List<Status> statuses = new ArrayList<>();
+      for (IDatabase database : databases) {
+        long start = System.nanoTime();
+        status = database.setOpQuery(setOpQuery);
+        long end = System.nanoTime();
+        status.setTimeCost(end - start);
+        handleQueryOperation(status, operation, device);
+        statuses.add(status);
+      }
+      doComparisonByRecord(setOpQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
     }

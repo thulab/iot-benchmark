@@ -34,6 +34,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 
@@ -165,6 +166,10 @@ public interface IDatabase {
   Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery);
 
   default Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    throw new UnsupportedOperationException("This operation is not supported for this database");
+  }
+
+  default Status setOpQuery(SetOpQuery setOpQuery) {
     throw new UnsupportedOperationException("This operation is not supported for this database");
   }
 

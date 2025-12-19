@@ -509,4 +509,10 @@ public class TreeStrategy extends IoTDBModelStrategy {
         return "";
     }
   }
+
+  @Override
+  public String addSetOp(List<StringBuilder> builders, String setOpType) {
+    throw new IllegalArgumentException(
+        "Set operations (UNION, INTERSECT, EXCEPT) are only supported for table model in IoTDB 2.0, not for tree model, please switch to the table model");
+  }
 }

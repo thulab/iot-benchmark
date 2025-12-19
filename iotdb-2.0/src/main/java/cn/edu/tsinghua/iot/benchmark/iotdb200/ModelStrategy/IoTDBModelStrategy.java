@@ -213,4 +213,7 @@ public abstract class IoTDBModelStrategy {
       throw new TsdbException(e);
     }
   }
+
+  /** add the set operation (union, intersect, except) between child query */
+  public abstract String addSetOp(List<StringBuilder> builders, String setOpType);
 }

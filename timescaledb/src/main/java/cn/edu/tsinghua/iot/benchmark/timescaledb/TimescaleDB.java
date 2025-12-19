@@ -41,6 +41,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
@@ -336,6 +337,47 @@ public class TimescaleDB implements IDatabase {
   }
 
   /**
+   * setOpQuery SQL, eg. (select {sensors} from {devices} where time >= {startTime} and time <=
+   * {endTime}) {set operation} (select {sensors} from {devices} where time >= {startTime} and time
+   *
+   * @param setOpQuery contains multiple child queries and the set operation type (union, intersect,
+   *     except)
+   */
+  @Override
+  public Status setOpQuery(SetOpQuery setOpQuery) {
+
+    List<RangeQuery> childRangeQueries = setOpQuery.getChildRangeQueries();
+    int sensorNum = childRangeQueries.get(0).getDeviceSchema().get(0).getSensors().size();
+
+    List<StringBuilder> builders = new ArrayList<>();
+    for (RangeQuery childRangeQuery : childRangeQueries) {
+      StringBuilder childStringbuilder = getSampleQuerySqlHead(childRangeQuery.getDeviceSchema());
+      addWhereTimeClause(childStringbuilder, childRangeQuery);
+      builders.add(childStringbuilder);
+    }
+
+    String op_sql = addSetOp(builders, setOpQuery.getSetOpType());
+    return executeQueryAndGetStatus(op_sql, sensorNum, Operation.SET_OP_QUERY);
+  }
+
+  /** add the set operation (union, intersect, except) between child query */
+  private String addSetOp(List<StringBuilder> builders, String setOpType) {
+    StringBuilder resultBuilder = new StringBuilder();
+
+    resultBuilder.append("(").append(builders.get(0)).append(")");
+    for (int i = 1; i < builders.size(); i++) {
+      resultBuilder
+          .append(" ")
+          .append(setOpType)
+          .append(" ")
+          .append("(")
+          .append(builders.get(i))
+          .append(")");
+    }
+    return resultBuilder.toString();
+  }
+
+  /**
    * Using in verification
    *
    * @param verificationQuery
@@ -448,7 +490,7 @@ public class TimescaleDB implements IDatabase {
 
   private Status executeQueryAndGetStatus(String sql, int sensorNum, Operation operation) {
     if (!config.isIS_QUIET_MODE()) {
-      LOGGER.debug("{} the query SQL: {}", Thread.currentThread().getName(), sql);
+      LOGGER.info("{} the query SQL: {}", Thread.currentThread().getName(), sql);
     }
     List<List<Object>> records = new ArrayList<>();
     int line = 0;

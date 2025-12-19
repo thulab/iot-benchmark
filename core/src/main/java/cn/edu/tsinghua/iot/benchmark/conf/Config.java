@@ -420,11 +420,11 @@ public class Config {
    * value filtering in reverse order, Eg. select v1... from data where time > ? and time < ? and v1
    * > ? and device in ? order by time desc
    */
-  private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0";
+  private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0:0";
 
   private boolean ENABLE_FIXED_QUERY = true;
 
-  private final int OPERATION_PROPORTION_LEN = 12;
+  private final int OPERATION_PROPORTION_LEN = 13;
 
   /** The number of sensors involved in each query */
   private int QUERY_SENSOR_NUM = 1;
@@ -434,6 +434,14 @@ public class Config {
 
   /** Set aggregate function when aggregate query, Eg. count */
   private String QUERY_AGGREGATE_FUN = "count";
+
+  /** set operation type, Eg. union, intersect, except */
+  private String QUERY_SET_OP_TYPE = "union";
+
+  /** nums of child set in set operation, QUERY_SET_OP_NUM >= 2 */
+  private int QUERY_SET_OP_NUM = 2;
+
+  private final int QUERY_SET_LEAST_OP_NUM = 2;
 
   /**
    * The time interval between the start time and the end time in the query with start and end time
@@ -1458,6 +1466,26 @@ public class Config {
 
   public void setQUERY_DEVICE_NUM(int QUERY_DEVICE_NUM) {
     this.QUERY_DEVICE_NUM = QUERY_DEVICE_NUM;
+  }
+
+  public void setQUERY_SET_OP_TYPE(String QUERY_SET_OP_TYPE) {
+    this.QUERY_SET_OP_TYPE = QUERY_SET_OP_TYPE;
+  }
+
+  public String getQUERY_SET_OP_TYPE() {
+    return this.QUERY_SET_OP_TYPE;
+  }
+
+  public void setQUERY_SET_OP_NUM(int QUERY_SET_OP_NUM) {
+    this.QUERY_SET_OP_NUM = QUERY_SET_OP_NUM;
+  }
+
+  public int getQUERY_SET_OP_NUM() {
+    return this.QUERY_SET_OP_NUM;
+  }
+
+  public int getQUERY_SET_LEAST_OP_NUM() {
+    return QUERY_SET_LEAST_OP_NUM;
   }
 
   public String getQUERY_AGGREGATE_FUN() {

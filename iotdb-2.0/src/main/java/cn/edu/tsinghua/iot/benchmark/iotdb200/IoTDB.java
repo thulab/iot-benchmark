@@ -59,6 +59,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.apache.tsfile.enums.ColumnCategory;
@@ -451,6 +452,41 @@ public class IoTDB implements IDatabase {
     String sql = modelStrategy.getGroupByQuerySQL(groupByQuery, true);
     BaseMode.logSqlIfNotCollect(Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC, sql);
     return executeQueryAndGetStatus(sql, Operation.GROUP_BY_QUERY_ORDER_BY_TIME_DESC);
+  }
+
+  /**
+   * Q12: setOpQuery SQL: (select {sensors} from {devices} where time >= {startTime} and time <=
+   * {endTime}) {set operation} (select {sensors} from {devices} where time >= {startTime} and time
+   *
+   * @param setOpQuery contains multiple child queries and the set operation type (union, intersect,
+   *     except)
+   * @return Status of the query execution
+   */
+  @Override
+  public Status setOpQuery(SetOpQuery setOpQuery) {
+    List<RangeQuery> childRangeQueries = setOpQuery.getChildRangeQueries();
+
+    List<StringBuilder> builders = new ArrayList<>();
+    for (RangeQuery childRangeQuery : childRangeQueries) {
+      StringBuilder childStringBuilder = new StringBuilder();
+      builders.add(childStringBuilder);
+      // SELECT + FROM
+      childStringBuilder.append(getSimpleQuerySqlHead(childRangeQuery.getDeviceSchema()));
+      // WHERE
+      modelStrategy.addWhereClause(
+          true,
+          false,
+          childRangeQuery.getStartTimestamp(),
+          childRangeQuery.getEndTimestamp(),
+          childRangeQuery.getDeviceSchema(),
+          0,
+          childStringBuilder);
+    }
+
+    String resultSql = modelStrategy.addSetOp(builders, setOpQuery.getSetOpType());
+    BaseMode.logSqlIfNotCollect(Operation.SET_OP_QUERY, resultSql);
+
+    return executeQueryAndGetStatus(resultSql, Operation.SET_OP_QUERY);
   }
 
   /**

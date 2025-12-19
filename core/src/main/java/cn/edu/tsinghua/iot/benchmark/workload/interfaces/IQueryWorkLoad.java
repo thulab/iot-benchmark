@@ -10,6 +10,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 
@@ -46,6 +47,12 @@ public interface IQueryWorkLoad extends IWorkLoad {
 
   /** Get latest point query Eg. select time, v1... where device = ? and time = max(time) */
   LatestPointQuery getLatestPointQuery() throws WorkloadException;
+
+  /**
+   * Get set operation query Eg. (select v1 from data1 where time > ? and time < ? and device in ?)
+   * union (select v1 from data2 where time > ? and time < ? and device in ?)
+   */
+  SetOpQuery getSetOpQuery() throws WorkloadException;
 
   /**
    * Return a verified Query

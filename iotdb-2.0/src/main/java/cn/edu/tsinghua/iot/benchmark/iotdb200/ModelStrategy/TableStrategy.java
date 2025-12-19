@@ -554,4 +554,22 @@ public class TableStrategy extends IoTDBModelStrategy {
         return "";
     }
   }
+
+  @Override
+  public String addSetOp(List<StringBuilder> builders, String setOpType) {
+    StringBuilder resultBuilder = new StringBuilder();
+
+    resultBuilder.append("(").append(builders.get(0)).append(")");
+    for (int i = 1; i < builders.size(); i++) {
+      resultBuilder
+          .append(" ")
+          .append(setOpType)
+          .append(" ")
+          .append("(")
+          .append(builders.get(i))
+          .append(")");
+    }
+
+    return resultBuilder.toString();
+  }
 }
