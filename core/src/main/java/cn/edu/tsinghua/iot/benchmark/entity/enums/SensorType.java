@@ -29,7 +29,8 @@ public enum SensorType {
   STRING("STRING"),
   BLOB("BLOB"),
   TIMESTAMP("TIMESTAMP"),
-  DATE("DATE");
+  DATE("DATE"),
+  OBJECT("OBJECT");
 
   public String name;
 

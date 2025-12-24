@@ -198,6 +198,9 @@ public class ConfigDescriptor {
         config.setSTRING_LENGTH(
             Integer.parseInt(
                 properties.getProperty("STRING_LENGTH", config.getSTRING_LENGTH() + "")));
+        config.setOBJECT_LENGTH(
+            Integer.parseInt(
+                properties.getProperty("OBJECT_LENGTH", config.getOBJECT_LENGTH() + "")));
         config.setDOUBLE_LENGTH(
             Integer.parseInt(
                 properties.getProperty("DOUBLE_LENGTH", config.getDOUBLE_LENGTH() + "")));
@@ -942,7 +945,7 @@ public class ConfigDescriptor {
       }
     }
     LOGGER.info(
-        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE= {}",
+        "Init SensorTypes: BOOLEAN:INT32:INT64:FLOAT:DOUBLE:TEXT:STRING:BLOB:TIMESTAMP:DATE:OBJECT= {}",
         config.getINSERT_DATATYPE_PROPORTION());
     return true;
   }

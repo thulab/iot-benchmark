@@ -44,7 +44,7 @@ public class Config {
   private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
 
   /** The total number of data types supported by the benchmark */
-  private final int typeNumber = 10;
+  private final int typeNumber = 11;
 
   // 初始化
   // 初始化：清理数据
@@ -140,14 +140,17 @@ public class Config {
   /** The length of string */
   private int STRING_LENGTH = 2;
 
+  /** The length of object */
+  private int OBJECT_LENGTH = 1000;
+
   /** The length of double */
   private int DOUBLE_LENGTH = 2;
 
   /**
    * 插入数据的比例 Data Type, D1:D2:D3:D4:D5:D6:D7:D8:D9:D9:D10 D1: BOOLEAN D2: INT32 D3: INT64 D4: FLOAT
-   * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE
+   * D5: DOUBLE D6:TEXT D7: STRING D8: BLOB D9: TIMESTAMP D10: DATE D11: OBJECT
    */
-  private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1:0:0:0:0";
+  private String INSERT_DATATYPE_PROPORTION = "1:1:1:1:1:1:0:0:0:0:0";
 
   /** The compress of data */
   private String COMPRESSOR = "LZ4";
@@ -654,7 +657,7 @@ public class Config {
     }
   }
 
-  /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1:0:0:0:0) */
+  /** Generate Probabilities according to proportion(e.g. 1:1:1:1:1:1:0:0:0:0:0) */
   private double[] generateProbabilities(int typeNumber) {
     // Probabilities for Types
     double[] probabilities = new double[typeNumber + 1];
@@ -854,6 +857,14 @@ public class Config {
 
   public void setSTRING_LENGTH(int STRING_LENGTH) {
     this.STRING_LENGTH = STRING_LENGTH;
+  }
+
+  public int getOBJECT_LENGTH() {
+    return OBJECT_LENGTH;
+  }
+
+  public void setOBJECT_LENGTH(int OBJECT_LENGTH) {
+    this.OBJECT_LENGTH = OBJECT_LENGTH;
   }
 
   public int getDOUBLE_LENGTH() {
@@ -1908,6 +1919,8 @@ public class Config {
         + '\''
         + "\nSTRING_LENGTH="
         + STRING_LENGTH
+        + "\nOBJECT_LENGTH="
+        + OBJECT_LENGTH
         + "\nDOUBLE_LENGTH="
         + DOUBLE_LENGTH
         + "\nINSERT_DATATYPE_PROPORTION='"
@@ -2083,6 +2096,7 @@ public class Config {
       configProperties.addProperty(
           "Extern Param", "IS_REGULAR_FREQUENCY", this.IS_REGULAR_FREQUENCY);
       configProperties.addProperty("Extern Param", "STRING_LENGTH", this.STRING_LENGTH);
+      configProperties.addProperty("Extern Param", "OBJECT_LENGTH", this.OBJECT_LENGTH);
       configProperties.addProperty("Extern Param", "DOUBLE_LENGTH", this.DOUBLE_LENGTH);
       if (this.IS_OUT_OF_ORDER) {
         configProperties.addProperty("Extern Param", "OUT_OF_ORDER_MODE", this.OUT_OF_ORDER_MODE);
