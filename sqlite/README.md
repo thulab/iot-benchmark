@@ -1,15 +1,101 @@
 Benchmark SQLite
 ---
 
-# SQLite
-1. Due to the characteristics of SQLite, the test can run the benchmark directly, and the corresponding database files will be created in the directory where the benchmark is run, namely the `${DB_NAME}.db` and `identifier.sqlite` files
-2. Due to implementation reasons, only one Client can write to the file (database) at the same time, so Client_NUMBER must be **1**
+## 1. Environment
 
-# config
+Before running the benchmark, prepare:
+
+1. Java 8
+2. Maven 3.6+
+3. A writable local directory for the benchmark output files
+
+SQLite-specific notes:
+
+1. Due to the characteristics of SQLite, the benchmark can run directly without deploying a separate database service.
+2. The benchmark stores data in local database files under the directory where the benchmark is run. In the original SQLite workflow, the generated files include `${DB_NAME}.db`, and the README also refers to `identifier.sqlite`.
+3. Due to SQLite write concurrency limitations in this module, only one client can write to the database file at the same time, so `CLIENT_NUMBER` must be **1**.
+
+## 2. Database setup
+
+SQLite does not require a separate server-side installation or startup step for this benchmark module.
+
+Before running the test:
+
+1. Set `DB_NAME` to the database name you want to use. In the current module, this determines the main local database file name such as `test.db`.
+2. Keep `CLIENT_NUMBER=1`.
+3. Make sure the benchmark process has permission to create and update files in the working directory.
+
+Additional notes for this module:
+
+- `CREATE_SCHEMA=true` creates the benchmark tables in the local SQLite database file.
+- `IS_DELETE_DATA=true` clears the benchmark tables in the local SQLite database file before the test starts.
+
+## 3. Build benchmark
+
+Build only the SQLite module and its dependencies:
+
+```bash
+mvn -pl sqlite -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+sqlite/target/iot-benchmark-sqlite
+sqlite/target/iot-benchmark-sqlite.zip
+```
+
+## 4. Configure benchmark
+
 [Demo config](config.properties)
 
-# test result
+For the current `sqlite` module, check at least the following items:
+
+| Key             | Required | Description                                                            |
+| :-------------- | :------- | :--------------------------------------------------------------------- |
+| `DB_SWITCH`     | Yes      | Must be `SQLite`.                                                      |
+| `DB_NAME`       | Yes      | Determines the local SQLite database file name, for example `test.db`. |
+| `CLIENT_NUMBER` | Yes      | Must be `1` for this module.                                           |
+| `DEVICE_NUMBER` | Yes      | The sample config in this directory uses `1`.                          |
+| `SENSOR_NUMBER` | Yes      | The sample config in this directory uses `6`.                          |
+
+Notes for SQLite configuration:
+
+- This module keeps the common benchmark configuration items such as `HOST`, `PORT`, `USERNAME`, and `PASSWORD`, but the actual benchmark data is written to the local SQLite file determined by `DB_NAME`.
+- Other workload parameters such as `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- The current module supports the common mixed benchmark flow shown in the sample result, including ingestion, precise query, time range query, value range query, aggregation query, `GROUP_BY`, `LATEST_POINT`, `RANGE_QUERY_DESC`, and `VALUE_RANGE_QUERY_DESC`.
+
+The current `sqlite` module does **not** support the following benchmark features:
+
+- `verificationQueryMode`
+- comparison or verification paths that require framework verification support, including `IS_COMPARISON=true` and `IS_POINT_COMPARISON=true`
+- `GROUP_BY_DESC` in `OPERATION_PROPORTION`
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+
+## 5. Run benchmark
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd sqlite/target/iot-benchmark-sqlite
+./benchmark.sh
 ```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+For normal read/write benchmark runs, use `BENCHMARK_WORK_MODE=testWithDefaultPath` and keep the unsupported options above disabled.
+
+## 6. Test result
+
+```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: SQLite
 OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
