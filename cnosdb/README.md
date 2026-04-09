@@ -2,17 +2,7 @@
 
 This module uses `iot-benchmark` to test CnosDB.
 
-## 1. Overview
-
-The CnosDB adapter is implemented in [CnosDB.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/cnosdb/CnosDB.java) and [CnosConnection.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/cnosdb/CnosConnection.java). Based on the current code, it has the following characteristics:
-
-- It connects through the HTTP SQL endpoint `http://HOST:PORT/api/v1/sql?db=DB_NAME`.
-- It uses `Authorization: Basic cm9vdDo=` by default, which means `root` user with an empty password.
-- Schema registration creates the database with `create database if not exists <db> with shard <CNOSDB_SHARD_NUMBER>`.
-- Cleanup drops the whole benchmark database with `DROP DATABASE IF EXISTS <db>`.
-- The current implementation only uses the first `HOST` and `PORT` value in the configuration.
-
-## 2. Environment
+## 1. Environment
 
 Before running the benchmark, prepare:
 
@@ -20,25 +10,68 @@ Before running the benchmark, prepare:
 2. Maven 3.6+
 3. A running CnosDB instance reachable from the benchmark machine
 
+This module has the following characteristics:
+
+- It uses the CnosDB HTTP SQL service. The sample configuration in this directory uses port `8902`.
+- `DB_NAME` maps to a CnosDB database.
+- `CNOSDB_SHARD_NUMBER` is a CnosDB-specific configuration used when creating the benchmark database.
+- The current implementation uses `Authorization: Basic cm9vdDo=` by default, which means `root` user with an empty password.
+
 Recommended CnosDB checks:
 
-- Enable and expose the HTTP SQL service port. The sample configuration in this directory uses `8902`.
+- Enable and expose the HTTP SQL service port.
 - Ensure the benchmark user can create and drop databases.
-- If your CnosDB instance does not accept `root` with an empty password, you need to adjust the authorization header in [CnosConnection.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/cnosdb/CnosConnection.java).
+- If your CnosDB instance does not accept `root` with an empty password, you need to adjust the authorization setting in the current module before running the benchmark.
 
-## 3. Configuration
+## 2. Database setup
+
+Before running the benchmark, prepare a target CnosDB instance and a benchmark database.
+
+If `CREATE_SCHEMA=true`, the benchmark will create the database named by `DB_NAME` before writing, using the configured `CNOSDB_SHARD_NUMBER`. If you prefer to prepare it manually, create the database in advance, for example:
+
+```sql
+create database if not exists test with shard 32;
+```
+
+Notes specific to CnosDB:
+
+- `DB_NAME` maps to a CnosDB **database**.
+- If `IS_DELETE_DATA=true`, the benchmark will drop the whole target database during cleanup. Do not point `DB_NAME` to a database that contains production data.
+- The current module only uses the first configured `HOST` and `PORT`.
+- Group-by queries are translated to CnosDB time bucketing semantics, so benchmark behavior should be validated against your target CnosDB version before comparing results across systems.
+
+## 3. Build benchmark
+
+Build only the CnosDB module and its dependencies:
+
+```bash
+mvn -pl cnosdb -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the runnable distribution is generated under:
+
+```text
+cnosdb/target/iot-benchmark-cnosdb
+cnosdb/target/iot-benchmark-cnosdb.zip
+```
+
+## 4. Configure benchmark
 
 There is a sample configuration file at [config.properties](./config.properties).
 
-The CnosDB-specific parameters used by this module are:
+For the current `cnosdb` module, check at least the following items:
 
-| Key                   | Required | Description                                                                                                                |
-| :-------------------- | :------- | :------------------------------------------------------------------------------------------------------------------------- |
-| `DB_SWITCH`           | Yes      | Must be `CnosDB`.                                                                                                          |
-| `HOST`                | Yes      | Target CnosDB host. Multiple values can be configured in the framework, but this module currently uses only the first one. |
-| `PORT`                | Yes      | Target HTTP SQL port. The sample uses `8902`.                                                                              |
-| `DB_NAME`             | Yes      | Benchmark database name.                                                                                                   |
-| `CNOSDB_SHARD_NUMBER` | No       | Shard count used when creating the benchmark database. Default is `32`.                                                    |
+| Key                   | Required | Description                                                                                                           |
+| :-------------------- | :------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `DB_SWITCH`           | Yes      | Must be `CnosDB`.                                                                                                     |
+| `HOST`                | Yes      | Target CnosDB host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
+| `PORT`                | Yes      | Target HTTP SQL port. The sample uses `8902`.                                                                         |
+| `DB_NAME`             | Yes      | Target database name in CnosDB.                                                                                       |
+| `CNOSDB_SHARD_NUMBER` | No       | Shard count used when creating the benchmark database. Default is `32`.                                               |
+| `USERNAME`            | No       | Not used by the current `cnosdb` module implementation.                                                               |
+| `PASSWORD`            | No       | Not used by the current `cnosdb` module implementation.                                                               |
 
 Minimal example:
 
@@ -52,20 +85,21 @@ CNOSDB_SHARD_NUMBER=32
 
 Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and query ratios are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
-## 4. Build and Run
+The current `cnosdb` module does **not** support the following benchmark features:
 
-Build only the CnosDB module and its dependencies:
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- point-by-point comparison based on device-level verification interfaces, including `IS_POINT_COMPARISON=true`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+- using `USERNAME` and `PASSWORD` in `config.properties` to authenticate the benchmark connection
 
-```bash
-mvn -pl cnosdb -am package -DskipTests
-```
+The current `cnosdb` module supports the following benchmark features:
 
-After packaging, the runnable distribution is generated under:
+- `verificationQueryMode` is supported for CnosDB
+- `GROUP_BY_DESC` is supported
+- record-based verification/comparison through `verificationQuery` is supported when the overall benchmark configuration is valid
 
-```text
-cnosdb/target/iot-benchmark-cnosdb
-cnosdb/target/iot-benchmark-cnosdb.zip
-```
+## 5. Run benchmark
 
 Run the benchmark with the packaged scripts:
 
@@ -80,15 +114,13 @@ If you want to run with a custom configuration directory or file path:
 ./benchmark.sh -cf conf
 ```
 
-The startup script eventually launches `cn.edu.tsinghua.iot.benchmark.App`, so the standard benchmark modes such as `testWithDefaultPath`, `generateDataMode`, `verificationWriteMode`, and `verificationQueryMode` are available as long as the selected workload is supported by the target database.
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath`.
 
-## 5. Notes
+If you want to run correctness verification queries against CnosDB, `verificationQueryMode` is available for this module. Avoid enabling unsupported options listed above at the same time.
 
-- `IS_DELETE_DATA=true` will drop the benchmark database during cleanup. Do not point `DB_NAME` to a database that contains production data.
-- Because the implementation inherits part of the InfluxDB query path, benchmark behavior should be validated against your target CnosDB version before comparing results across systems.
-- Group-by queries are translated with `date_bin(INTERVAL '<granularity>' MILLISECOND, time)`.
+The test result will be printed in the console and recorded in the generated `logs` directory during execution.
 
-## 6. Sample Result
+## 6. Test result
 
 ```text
 ----------------------Main Configurations----------------------
