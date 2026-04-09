@@ -1,17 +1,39 @@
 Benchmark Microsoft SQL Server
 ---
 
-# environment
-1. MS SQL 2016 SP2 standard version
-2. Access software：Microsoft SQL Server Management(HSSM)
+## 1. Environment
 
-# preconditions
-1. MS SQL Server must open port 1433
-2. MS SQL Server must allow access via TCP/IP
-3. In MS SQL Server, a database consistent with DB_NAME must have been created in advance, use sqlcmd: `create database ${DB_NAME}`
-4. The user test must already exist in MS SQL Server, the password is 12345678, and the database corresponding to DB_NAME must have the corresponding permissions. The creation command (granting all permissions) is as follows:
+Before running the benchmark, prepare:
 
+1. Microsoft SQL Server `2016 SP2` Standard Edition or a compatible newer version
+2. A management client such as Microsoft SQL Server Management Studio (SSMS) or `sqlcmd`
+3. Java 8
+4. Maven 3.6+
+
+Notes specific to Microsoft SQL Server:
+
+- The sample configuration in this directory uses port `1433`.
+- The benchmark connects with the JDBC driver and SQL Server authentication, so username/password login must be enabled.
+- The benchmark database itself must already exist before the module starts.
+
+## 2. Database setup
+
+Before running the benchmark, make sure the following conditions are met:
+
+1. Microsoft SQL Server must open port `1433`.
+2. Microsoft SQL Server must allow access via `TCP/IP`.
+3. In Microsoft SQL Server, a database consistent with `DB_NAME` must have been created in advance. With `sqlcmd`, for example:
+
+```sql
+create database ${DB_NAME}
 ```
+
+4. The benchmark user must already exist in Microsoft SQL Server, and the database corresponding to `DB_NAME` must have the required permissions.
+5. In the SQL Server server properties, set the authentication mode to allow SQL Server authentication so the benchmark can connect with username and password.
+
+The following SQL from the original README is an example that creates user `test` with password `12345678` and grants broad server-level permissions. Keep or narrow these permissions according to your environment policy:
+
+```sql
 USE [master]
 GO
 CREATE LOGIN [test] WITH PASSWORD=N'12345678' MUST_CHANGE, DEFAULT_DATABASE=[master], CHECK_EXPIRATION=ON, CHECK_POLICY=ON
@@ -34,13 +56,87 @@ ALTER SERVER ROLE [sysadmin] ADD MEMBER [test]
 GO
 ```
 
-5. Set the server authentication setting to SQL Server and xxx in the Security tab in the properties of the database (allowing access by user name and password)
+Additional notes for this module:
 
-# config
-[Demo config](config.properties)
+- `CREATE_SCHEMA=true` creates benchmark tables inside the existing database named by `DB_NAME`; it does not create the database itself.
+- `IS_DELETE_DATA=true` drops the benchmark tables created by this module inside `DB_NAME`.
 
-# test result
+## 3. Build benchmark
+
+Build only the Microsoft SQL Server module and its dependencies:
+
+```bash
+mvn -pl mssqlserver -am package -DskipTests
 ```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+mssqlserver/target/iot-benchmark-mssqlserver
+mssqlserver/target/iot-benchmark-mssqlserver.zip
+```
+
+## 4. Configure benchmark
+
+There is a demo configuration file at [config.properties](./config.properties).
+
+For the current `mssqlserver` module, check at least the following items:
+
+| Key | Required | Description |
+| :-- | :-- | :-- |
+| `DB_SWITCH` | Yes | Must be `MSSQLSERVER`. |
+| `HOST` | Yes | Target SQL Server host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
+| `PORT` | Yes | Target SQL Server port. The sample uses `1433`. |
+| `DB_NAME` | Yes | Existing target database name. This module expects the database to exist before startup. |
+| `USERNAME` | Yes | SQL Server login name used by the JDBC connection. |
+| `PASSWORD` | Yes | Password for the SQL Server login. |
+
+Minimal example:
+
+```properties
+DB_SWITCH=MSSQLSERVER
+HOST=127.0.0.1
+PORT=1433
+USERNAME=test
+PASSWORD=12345678
+DB_NAME=ms
+```
+
+Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+
+The current `mssqlserver` module does **not** support the following benchmark features:
+
+- `verificationQueryMode`
+- comparison or verification paths that require framework verification support, including `IS_COMPARISON=true` and `IS_POINT_COMPARISON=true`
+- `GROUP_BY_DESC` in `OPERATION_PROPORTION`
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+
+## 5. Run benchmark
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd mssqlserver/target/iot-benchmark-mssqlserver
+./benchmark.sh
+```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath` and avoid unsupported options listed above.
+
+The test result will be printed in the console and recorded in the generated `logs` directory during execution.
+
+## 6. Test result
+
+```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: MSSQLSERVER
 OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
