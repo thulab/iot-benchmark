@@ -1,22 +1,131 @@
 # Benchmark for KairosDB
-## Installation of KairosDB
-1. Download and decompress the installation file of KairosDB with the following command:
+
+This module uses `iot-benchmark` to test KairosDB.
+
+## 1. Environment
+
+Before running the benchmark, prepare:
+
+1. Java 8
+2. Maven 3.6+
+3. A running KairosDB instance reachable from the benchmark machine
+
+Install and start KairosDB with commands similar to the following:
+
+1. Download and decompress the installation file:
+
 ```shell
 sudo tar -zxvf kairosdb-version.tar.gz -C /path/to/kairosdb
 ```
-2. Start KairosDB in background with the following command:
+
+2. Start KairosDB in background:
+
 ```shell
 cd /path/to/kairosdb
 ./bin/kairosdb.sh start
 ```
-## Configuration of Benchmark
-Because of the rule in KairosDB, the `QUERY_LOWER_VALUE` must be greater than or equal to `0`. You should modify the following parameter in `conf/config.properties`.
+
+Recommended KairosDB checks:
+
+- Ensure the HTTP API is enabled and reachable. The sample configuration in this directory uses port `8080`.
+- Ensure the write API `/api/v1/datapoints` and query API are reachable from the benchmark machine.
+- If you use value-filter queries, plan to set `QUERY_LOWER_VALUE >= 0`.
+
+## 2. Database setup
+
+KairosDB does not require a separate benchmark database or schema creation step before running this module.
+
+Notes specific to KairosDB:
+
+- The benchmark writes sensor data as KairosDB metrics and uses tags such as group and device for query filtering.
+- `CREATE_SCHEMA=true` does not create extra schema objects for this module.
+- `DB_NAME` is present in the shared benchmark configuration model, but the current `kairosdb` module does not use it to isolate benchmark data.
+- If `IS_DELETE_DATA=true`, the cleanup step deletes all non-internal metrics visible to the current KairosDB instance. Do not enable it against a shared or production environment.
+
+## 3. Build benchmark
+
+Build only the KairosDB module and its dependencies:
+
+```bash
+mvn -pl kairosdb -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+kairosdb/target/iot-benchmark-kairosdb
+kairosdb/target/iot-benchmark-kairosdb.zip
+```
+
+## 4. Configure benchmark
+
+There is a [sample configuration file](./config.properties).
+
+For the current `kairosdb` module, check at least the following items:
+
+| Key | Required | Description |
+| :-- | :-- | :-- |
+| `DB_SWITCH` | Yes | Must be `KairosDB`. |
+| `HOST` | Yes | Target KairosDB host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
+| `PORT` | Yes | Target HTTP API port. The sample uses `8080`. |
+| `QUERY_LOWER_VALUE` | Yes for value-filter workloads | Because of the rule in KairosDB, `QUERY_LOWER_VALUE` must be greater than or equal to `0`. |
+| `DB_NAME` | No | Present in the shared configuration model, but not used by the current `kairosdb` module. |
+| `USERNAME` | No | Present in the shared configuration model, but not used by the current `kairosdb` module. |
+| `PASSWORD` | No | Present in the shared configuration model, but not used by the current `kairosdb` module. |
+
+When value-filter queries are enabled, modify the following parameter in `conf/config.properties`:
+
 ```properties
 QUERY_LOWER_VALUE=0
 ```
-There is a [sample configuration file](./config.properties).
-## The Result of Test
+
+Minimal example:
+
+```properties
+DB_SWITCH=KairosDB
+HOST=127.0.0.1
+PORT=8080
+DB_NAME=test
+USERNAME=root
+PASSWORD=root
+QUERY_LOWER_VALUE=0
 ```
+
+Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+
+The current `kairosdb` module does **not** support the following benchmark features:
+
+- `verificationQueryMode`
+- comparison or verification paths that require framework verification support, including `IS_COMPARISON=true` and `IS_POINT_COMPARISON=true`
+- `GROUP_BY_DESC` in `OPERATION_PROPORTION`
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+
+## 5. Run benchmark
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd kairosdb/target/iot-benchmark-kairosdb
+./benchmark.sh
+```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath` and avoid unsupported operations listed above.
+
+The test result will be printed in the console and recorded in the generated `logs` directory during execution.
+
+## 6. Test result
+
+```text
 ----------------------Main Configurations----------------------
 BENCHMARK_WORK_MODE=testWithDefaultPath
 RESULT_PRECISION=0.1%
