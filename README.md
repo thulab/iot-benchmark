@@ -104,11 +104,11 @@ System disk: 512G SSD (INTEL SSDPEKNU512GZ)
 Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 ```
 
-After the compilation is completed, taking IoTDB v1.3 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the official documentation of the target IoTDB version.) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
+After the compilation is completed, taking IoTDB v2.0 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the official documentation of the target IoTDB version.) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
 
 ```
 
-cd iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3
+cd iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0
 ./benchmark.sh
 ```
 
@@ -134,7 +134,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 ########### Database Connection Information ###########
 DOUBLE_WRITE=false
 DBConfig=
-  DB_SWITCH=IoTDB-130-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-200-SESSION_BY_TABLET
   HOST=[127.0.0.1]
 ########### Data Mode ###########
 GROUP_NUMBER=10
@@ -214,7 +214,7 @@ The output contains the overall information of the test, including:
 
 All the above information will be recorded in the ```logs``` folder of the running device.
 
-The configuration files are stored in `iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3/conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values are as follows:**
+The configuration files are stored in `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0/conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values are as follows:**
 
 |       Database       | Version  | Corresponding sub-project |                                                  DB_SWITCH                                                   |
 | :------------------: |:--------:| :-----------------------: |:------------------------------------------------------------------------------------------------------------:|

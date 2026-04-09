@@ -99,11 +99,11 @@ CPU：I7-11700
 数据盘：2T HDD (WDC WD40EZAZ-00SF3B0)
 ```
 
-在完成编译后，以 IoTDB v1.3 为例，**您需要首先在本机的 6667 端口启动相应版本的 IoTDB 服务**。（如果您对于使用 IoTDB 仍有疑问，请参照目标 IoTDB 版本的官方文档。）在成功启动 IoTDB 服务后，您可以进入到 `iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3` 文件夹下，使用 `./benchmark.sh` 启动测试。我们推荐使用匹配的版本进行测试，以此达到最佳效果。
+在完成编译后，以 IoTDB v2.0 为例，**您需要首先在本机的 6667 端口启动相应版本的 IoTDB 服务**。（如果您对于使用 IoTDB 仍有疑问，请参照目标 IoTDB 版本的官方文档。）在成功启动 IoTDB 服务后，您可以进入到 `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` 文件夹下，使用 `./benchmark.sh` 启动测试。我们推荐使用匹配的版本进行测试，以此达到最佳效果。
 
 ```
 
-cd iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3
+cd iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0
 ./benchmark.sh
 ```
 
@@ -129,7 +129,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 ########### Database Connection Information ###########
 DOUBLE_WRITE=false
 DBConfig=
-  DB_SWITCH=IoTDB-130-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-200-SESSION_BY_TABLET
   HOST=[127.0.0.1]
 ########### Data Mode ###########
 GROUP_NUMBER=10
@@ -209,7 +209,7 @@ SET_OP_QUERY             0.00        0.00        0.00        0.00        0.00   
 
 以上的全部信息都会被记录到运行设备的```logs```文件夹中。
 
-配置文件存放在 `iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3/conf` 下。当然，对于其他支持数据库您同样可以在相似的路径下找到其配置文件。编辑该文件来自定义测试的类型以及相关配置，**请注意，每次测试前您必须将配置文件中的 DB_SWITCH 参数更改为与待测数据库相匹配，其对应关系和可能取值如下所示：**
+配置文件存放在 `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0/conf` 下。当然，对于其他支持数据库您同样可以在相似的路径下找到其配置文件。编辑该文件来自定义测试的类型以及相关配置，**请注意，每次测试前您必须将配置文件中的 DB_SWITCH 参数更改为与待测数据库相匹配，其对应关系和可能取值如下所示：**
 
 |        数据库        |    版本    |     对应子项目      |                                                  DB_SWITCH                                                   |
 | :------------------: |:--------:| :-----------------: |:------------------------------------------------------------------------------------------------------------:|
