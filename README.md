@@ -44,9 +44,9 @@ Currently supports the following databases, versions and connection methods:
 |       KairosDB       |     --     |
 |     TimescaleDB      |     --     |
 |     TimescaleDB      |  Cluster   |
-|       TDengine       |  2.2.0.2   |
-|       TDengine       |   3.0.1    |
+|       TDengine       |  2.2.0.2、3.0.1  |
 |      PI Archive      |    2016    |
+|        CnosDB        |     --     |
 
 # 3. Quick Start
 
@@ -62,14 +62,14 @@ Tips:
 
 - The CSV recording mode can only be used in Linux systems to record relevant system information during the test.
 
-- We recommend using MacOs or Linux systems. This article takes MacOS and Linux systems as examples. If you use Windows systems, please use the `benchmark.bat` script in the `conf` folder to start the benchmark.
+- We recommend using MacOS or Linux systems. This article takes MacOS and Linux systems as examples. If you use Windows systems, please use the `benchmark.bat` script in the package root directory to start the benchmark.
 
 ## 3.2. How to get it
 
 After ensuring that the above conditions are met, clone the source code from git:
 
 ```
-git clone https://github.com/apache/iotdb.git
+git clone https://github.com/thulab/iot-benchmark.git
 ```
 
 The default main branch is the master branch. If you want to use other branches, please enter the project root directory after cloning and use the following command to view all available branches:
@@ -84,12 +84,14 @@ After finding the branch name you want to work on, use the following command to 
 git checkout [branch name]
 ```
 
+If you need to benchmark an older IoTDB version, switch to the corresponding `rel/iotdb_xxx` branch first, and then compile the package on that branch.
+
 Use the following command to complete the construction of iot-benchmark through Maven:
 
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
-This command will compile the core module of iot-benchmark and all other related databases.
+This command will compile the `core` module and all modules enabled in the root `pom.xml`.
 
 ## 3.3. Quick Start
 
@@ -102,13 +104,11 @@ System disk: 512G SSD (INTEL SSDPEKNU512GZ)
 Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 ```
 
-After the compilation is completed, taking IoTDB v1.0 as an example, **you need to first start the corresponding version of IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the instructions in [IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md)). After successfully starting the IoTDB service, you can go to the `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0` folder and use `./benchmark.sh` to start the test of IoTDB v1.0. We recommend using the matching version for testing to achieve the best results.
-
-[Test configuration file](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md)
+After the compilation is completed, taking IoTDB v1.3 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the official documentation of the target IoTDB version.) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
 
 ```
 
-cd iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0
+cd iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3
 ./benchmark.sh
 ```
 
@@ -134,7 +134,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 ########### Database Connection Information ###########
 DOUBLE_WRITE=false
 DBConfig=
-  DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
+  DB_SWITCH=IoTDB-130-SESSION_BY_TABLET
   HOST=[127.0.0.1]
 ########### Data Mode ###########
 GROUP_NUMBER=10
@@ -214,24 +214,25 @@ The output contains the overall information of the test, including:
 
 All the above information will be recorded in the ```logs``` folder of the running device.
 
-The configuration files are stored in `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0/iot-benchmark-iotdb-1.0conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values ​​are as follows:**
+The configuration files are stored in `iot-benchmark/iotdb-1.3/target/iot-benchmark-iotdb-1.3/iot-benchmark-iotdb-1.3/conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values are as follows:**
 
 |       Database       | Version  | Corresponding sub-project |                                                  DB_SWITCH                                                   |
 | :------------------: |:--------:| :-----------------------: |:------------------------------------------------------------------------------------------------------------:|
-|  IoTDB(1.0/1.1/1.3)  |   1.x    |         iotdb-1.x         | IoTDB-1x0-JDBC<br>IoTDB-1x0-SESSION_BY_TABLET<br>IoTDB-1x0-SESSION_BY_RECORD<br>IoTDB-1x0-SESSION_BY_RECORDS |
+|        IoTDB         |   1.3    |         iotdb-1.3         | IoTDB-130-JDBC<br>IoTDB-130-REST<br>IoTDB-130-SESSION_BY_TABLET<br>IoTDB-130-SESSION_BY_RECORD<br>IoTDB-130-SESSION_BY_RECORDS |
+|        IoTDB         |   2.x    |         iotdb-2.0         | IoTDB-200-JDBC<br>IoTDB-200-REST<br>IoTDB-200-SESSION_BY_TABLET<br>IoTDB-200-SESSION_BY_RECORD<br>IoTDB-200-SESSION_BY_RECORDS |
 |       InfluxDB       |   1.x    |         influxdb          |                                                   InfluxDB                                                   |
 |       InfluxDB       |   2.x    |       influxdb-2.0        |                                                 InfluxDB-2.x                                                 |
+|        CnosDB        |    --    |          cnosdb           |                                                    CnosDB                                                    |
 |       QuestDB        |  6.0.7   |          questdb          |                                                   QuestDB                                                    |
 | Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                  |
 |   VictoriaMetrics    |  1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                                |
 |     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                  |
 |     TimescaleDB      | Cluster  |    timescaledb-cluster    |                                             TimescaleDB-Cluster                                              |
 |        SQLite        |    --    |          sqlite           |                                                    SQLite                                                    |
-|       OpenTSDB       |    --    |         opentsdb          |                                                   OpenTSDB                                                   |
+|       OpenTSDB       |  2.4.1   |         opentsdb          |                                                   OpenTSDB                                                   |
 |       KairosDB       |    --    |         kairosdb          |                                                   KairosDB                                                   |
-|       TDengine       | 2.2.0.2  |         TDengine          |                                                   TDengine                                                   |
-|       TDengine       |  3.0.1   |         TDengine          |                                                  TDengine-3                                                  |
-|      PI Archive      |   2016   |         PIArchive         |                                                  PIArchive                                                   |
+|       TDengine       | 2.2.0.2  |         tdengine          |                                                   TDengine                                                   |
+|       TDengine       |  3.0.1   |       tdengine-3.0        |                                                  TDengine-3                                                  |
 
 * For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase-EN.md)
 
