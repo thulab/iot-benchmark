@@ -1,29 +1,132 @@
 Benchmark Questdb
 ---
-1. Please note: The CLIENT_NUMBER of QuestDB needs to be configured at startup (less than or equal to pg.net.active.connection.limit, shared.worker.count)!
-2. Please note: The number of Sensors cannot be too many.
 
-# environment(eg. docker)
-1. Pull images：`docker pull questdb/questdb`
-2. Run images：`docker run --rm -p 9000:9000  -p 9009:9009  -p 8812:8812  -p 9003:9003  -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 -e QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20 --name=questdb questdb/questdb`
-3. Supplementary instructions for server deployment, please execute the following command settings before starting the server, for more reference：https://questdb.io/docs/reference/configuration#postgres-wire-protocol
+1. Please note: the `CLIENT_NUMBER` of QuestDB needs to be configured together with the server startup settings, and it should be less than or equal to `pg.net.active.connection.limit` and the available worker capacity.
+2. Please note: the number of sensors should not be too large for this module.
 
+## 1. Environment
+
+Before running the benchmark, prepare:
+
+1. A running QuestDB instance
+2. Java 8
+3. Maven 3.6+
+
+QuestDB-specific notes:
+
+- This module connects through the PostgreSQL wire protocol. The sample configuration in this directory uses port `8812`.
+- The benchmark client concurrency should be planned together with the QuestDB server settings.
+- The sample QuestDB deployment in the original README uses Docker.
+
+Example environment preparation with Docker:
+
+1. Pull the image:
+
+```bash
+docker pull questdb/questdb
 ```
+
+2. Run the image:
+
+```bash
+docker run --rm -p 9000:9000 -p 9009:9009 -p 8812:8812 -p 9003:9003 -e QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1 -e QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20 --name=questdb questdb/questdb
+```
+
+## 2. Database setup
+
+For server deployment, execute the following settings before starting QuestDB. For more reference: <https://questdb.io/docs/reference/configuration#postgres-wire-protocol>
+
+```bash
 export QDB_LINE_TCP_MAINTENANCE_JOB_INTERVAL=1
 export QDB_PG_NET_ACTIVE_CONNECTION_LIMIT=20
 ```
 
-4. If you use the configuration file: conf/server.conf, the location of the corresponding configuration file is /usr/local/var/questdb/conf/server.conf or $HOME/.questdb/conf/server.conf, which is as follows Parameter modification
+If you use the configuration file `conf/server.conf`, the corresponding file is usually located at `/usr/local/var/questdb/conf/server.conf` or `$HOME/.questdb/conf/server.conf`. The original README recommends the following parameter changes:
 
 ```conf
 line.tcp.maintenance.job.interval=1
 pg.net.active.connection.limit=20
 ```
 
-# config
-[Demo config](config.properties)
+Additional notes for this module:
 
-# test result
+- `CLIENT_NUMBER` should not exceed the configured QuestDB connection limit.
+- The current module creates benchmark tables automatically when `CREATE_SCHEMA=true`.
+- `IS_DELETE_DATA=true` drops the benchmark tables whose names start with `DB_NAME`.
+- QuestDB uses the built-in `qdb` database over the PostgreSQL wire protocol. `DB_NAME` in this module is used as the benchmark table name prefix, not as a separate database name to create first.
+
+## 3. Build benchmark
+
+Build only the QuestDB module and its dependencies:
+
+```bash
+mvn -pl questdb -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+questdb/target/iot-benchmark-questdb
+questdb/target/iot-benchmark-questdb.zip
+```
+
+## 4. Configure benchmark
+
+There is a [Demo config](config.properties).
+
+For the current `questdb` module, check at least the following items:
+
+| Key         | Required | Description                                                                                                            |
+| :---------- | :------- | :--------------------------------------------------------------------------------------------------------------------- |
+| `DB_SWITCH` | Yes      | Must be `QuestDB`.                                                                                                     |
+| `HOST`      | Yes      | Target QuestDB host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
+| `PORT`      | Yes      | Target PostgreSQL wire protocol port. The sample uses `8812`.                                                          |
+| `USERNAME`  | Yes      | QuestDB username used by the PostgreSQL wire connection.                                                               |
+| `PASSWORD`  | Yes      | Password for the QuestDB user.                                                                                         |
+| `DB_NAME`   | Yes      | Prefix used by this module when creating benchmark tables.                                                             |
+
+Minimal example:
+
+```properties
+DB_SWITCH=QuestDB
+HOST=127.0.0.1
+PORT=8812
+USERNAME=admin
+PASSWORD=quest
+DB_NAME=test
+```
+
+Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+
+The current `questdb` module does **not** support the following benchmark features:
+
+- `verificationQueryMode`
+- comparison or verification paths that require framework verification support, including `IS_COMPARISON=true` and `IS_POINT_COMPARISON=true`
+- `GROUP_BY_DESC` in `OPERATION_PROPORTION`
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+
+## 5. Run benchmark
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd questdb/target/iot-benchmark-questdb
+./benchmark.sh
+```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath` and keep unsupported options disabled.
+
+## 6. Test result
 ```
 ----------------------Main Configurations----------------------
 DB_SWITCH: QuestDB
