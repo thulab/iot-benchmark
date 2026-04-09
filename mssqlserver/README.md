@@ -84,14 +84,14 @@ There is a demo configuration file at [config.properties](./config.properties).
 
 For the current `mssqlserver` module, check at least the following items:
 
-| Key | Required | Description |
-| :-- | :-- | :-- |
-| `DB_SWITCH` | Yes | Must be `MSSQLSERVER`. |
-| `HOST` | Yes | Target SQL Server host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
-| `PORT` | Yes | Target SQL Server port. The sample uses `1433`. |
-| `DB_NAME` | Yes | Existing target database name. This module expects the database to exist before startup. |
-| `USERNAME` | Yes | SQL Server login name used by the JDBC connection. |
-| `PASSWORD` | Yes | Password for the SQL Server login. |
+| Key         | Required | Description                                                                                                               |
+| :---------- | :------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `DB_SWITCH` | Yes      | Must be `MSSQLSERVER`.                                                                                                    |
+| `HOST`      | Yes      | Target SQL Server host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
+| `PORT`      | Yes      | Target SQL Server port. The sample uses `1433`.                                                                           |
+| `DB_NAME`   | Yes      | Existing target database name. This module expects the database to exist before startup.                                  |
+| `USERNAME`  | Yes      | SQL Server login name used by the JDBC connection.                                                                        |
+| `PASSWORD`  | Yes      | Password for the SQL Server login.                                                                                        |
 
 Minimal example:
 
