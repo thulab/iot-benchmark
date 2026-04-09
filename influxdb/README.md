@@ -1,15 +1,111 @@
-Benchmark influxdb
----
-This project is using iot-benchmark to test influxdb
+# Benchmark for InfluxDB 1.x
 
-# 1. environment
-1. influxdb: 1.8.6-1
+This module uses `iot-benchmark` to test InfluxDB 1.x.
 
-# 2. config
-[Demo config](config.properties)
+## 1. Overview
 
-# 3. test result
+The InfluxDB adapter is implemented in [InfluxDB.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/influxdb/InfluxDB.java) and [InfluxDataModel.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/influxdb/InfluxDataModel.java). Based on the current code, it has the following characteristics:
+
+- It connects to `http://HOST:PORT` and targets an InfluxDB 1.x database named by `DB_NAME`.
+- It uses the Java client `org.influxdb:influxdb-java:2.7`.
+- Schema registration creates the database with `createDatabase(DB_NAME)`.
+- Cleanup drops the whole benchmark database with `deleteDatabase(DB_NAME)`.
+- Data is written into the default retention policy `autogen`.
+- Each benchmark group is stored as an InfluxDB measurement, each device is stored in the `device` tag, and sensor values are stored as fields.
+- Timestamp precision follows the global `TIMESTAMP_PRECISION` setting. This module supports `ms`, `us`, and `ns`.
+- The current implementation only uses the first `HOST` and `PORT` value in the configuration.
+- Although `USERNAME` and `PASSWORD` exist in the configuration file, the current implementation does not pass them when opening the connection.
+
+## 2. Environment
+
+Before running the benchmark, prepare:
+
+1. Java 8
+2. Maven 3.6+
+3. A running InfluxDB 1.x instance reachable from the benchmark machine
+
+The original benchmark result in this directory was produced with:
+
+1. InfluxDB `1.8.6-1`
+
+Recommended InfluxDB checks:
+
+- Ensure the HTTP API is enabled and reachable. The sample configuration in this directory uses port `8086`.
+- Ensure the benchmark process is allowed to create and drop databases.
+- If your InfluxDB deployment requires authentication, you will need to update the module code because the current implementation connects without username/password.
+
+## 3. Configuration
+
+There is a sample configuration file at [config.properties](./config.properties).
+
+The InfluxDB-specific parameters used by this module are:
+
+| Key                   | Required | Description                                                                                                                  |
+| :-------------------- | :------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| `DB_SWITCH`           | Yes      | Must be `InfluxDB`.                                                                                                          |
+| `HOST`                | Yes      | Target InfluxDB host. Multiple values can be configured in the framework, but this module currently uses only the first one. |
+| `PORT`                | Yes      | Target HTTP API port. The sample uses `8086`.                                                                                |
+| `DB_NAME`             | Yes      | Benchmark database name.                                                                                                     |
+| `USERNAME`            | No       | Present in the shared configuration model, but not used by the current `influxdb` module implementation.                     |
+| `PASSWORD`            | No       | Present in the shared configuration model, but not used by the current `influxdb` module implementation.                     |
+| `TIMESTAMP_PRECISION` | No       | Global benchmark setting. `ms`, `us`, and `ns` are supported by this module. Default is `ms`.                                |
+
+Minimal example:
+
+```properties
+DB_SWITCH=InfluxDB
+HOST=127.0.0.1
+PORT=8086
+DB_NAME=test
+USERNAME=root
+PASSWORD=root
+TIMESTAMP_PRECISION=ms
 ```
+
+Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, `QUERY_INTERVAL`, and `RESULT_ROW_LIMIT` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+
+## 4. Build and Run
+
+Build only the InfluxDB module and its dependencies:
+
+```bash
+mvn -pl influxdb -am package -DskipTests
+```
+
+After packaging, the runnable distribution is generated under:
+
+```text
+influxdb/target/iot-benchmark-influxdb
+influxdb/target/iot-benchmark-influxdb.zip
+```
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd influxdb/target/iot-benchmark-influxdb
+./benchmark.sh
+```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+The startup script eventually launches `cn.edu.tsinghua.iot.benchmark.App`, so the standard benchmark modes such as `testWithDefaultPath`, `generateDataMode`, `verificationWriteMode`, and `verificationQueryMode` are available as long as the selected workload is supported by InfluxDB 1.x.
+
+## 5. Notes
+
+- `IS_DELETE_DATA=true` will drop the whole benchmark database during cleanup. Do not point `DB_NAME` to a database that contains production data.
+- Query statements are generated in InfluxQL against measurements named after benchmark groups, with device filtering implemented through the `device` tag.
+- Batch writes use consistency level `ALL`.
+- Query result counting depends on the returned series and columns from InfluxDB, and `RESULT_ROW_LIMIT` is appended as `limit N` when configured.
+
+## 6. Sample Result
+
+The following sample result comes from the original README content in this directory:
+
+```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: InfluxDB
 OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
@@ -32,31 +128,31 @@ main measurements:
 Create schema cost 0.02 second
 Test elapsed time (not include schema creation): 23.81 second
 ----------------------------------------------------------Result Matrix----------------------------------------------------------
-Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s) 
-INGESTION           1824                5472000             0                   0                   229823.86           
-PRECISE_POINT       1831                0                   0                   0                   0.00                
-TIME_RANGE          1776                58026               0                   0                   2437.09             
-VALUE_RANGE         1871                61099               0                   0                   2566.16             
-AGG_RANGE           1734                1403                0                   0                   58.93               
-AGG_VALUE           1769                1757                0                   0                   73.79               
-AGG_RANGE_VALUE     1790                1478                0                   0                   62.08               
-GROUP_BY            1912                21344               0                   0                   896.45              
-LATEST_POINT        1841                1809                0                   0                   75.98               
-RANGE_QUERY_DESC    1875                59689               0                   0                   2506.94             
-VALUE_RANGE_QUERY_DESC1777                57475               0                   0                   2413.95             
+Operation           okOperation         okPoint             failOperation       failPoint           throughput(point/s)
+INGESTION           1824                5472000             0                   0                   229823.86
+PRECISE_POINT       1831                0                   0                   0                   0.00
+TIME_RANGE          1776                58026               0                   0                   2437.09
+VALUE_RANGE         1871                61099               0                   0                   2566.16
+AGG_RANGE           1734                1403                0                   0                   58.93
+AGG_VALUE           1769                1757                0                   0                   73.79
+AGG_RANGE_VALUE     1790                1478                0                   0                   62.08
+GROUP_BY            1912                21344               0                   0                   896.45
+LATEST_POINT        1841                1809                0                   0                   75.98
+RANGE_QUERY_DESC    1875                59689               0                   0                   2506.94
+VALUE_RANGE_QUERY_DESC1777                57475               0                   0                   2413.95
 ---------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------Latency (ms) Matrix--------------------------------------------------------------------------
 Operation           AVG         MIN         P10         P25         MEDIAN      P75         P90         P95         P99         P999        MAX         SLOWEST_THREAD
-INGESTION           49.53       19.05       32.12       35.50       40.55       49.93       66.68       86.37       171.74      635.29      652.59      5115.04     
-PRECISE_POINT       19.85       1.07        8.90        11.23       15.71       23.49       34.36       44.64       83.47       165.52      218.22      2427.25     
-TIME_RANGE          20.41       1.74        9.73        11.85       15.97       23.60       34.78       45.81       93.63       138.73      179.34      2054.51     
-VALUE_RANGE         21.50       1.84        9.76        12.26       16.32       24.95       36.28       49.40       102.84      209.85      297.07      2474.57     
-AGG_RANGE           20.27       1.79        9.50        11.69       15.60       23.28       33.22       44.46       102.41      205.31      257.87      2408.83     
-AGG_VALUE           21.15       2.50        10.14       12.32       16.24       23.97       36.39       45.56       84.75       278.99      347.58      2354.46     
-AGG_RANGE_VALUE     20.80       1.59        9.47        11.75       16.12       23.72       34.43       46.94       100.46      181.82      270.81      2516.03     
-GROUP_BY            20.54       1.39        9.82        11.80       15.84       23.26       35.74       47.68       88.66       141.62      170.65      2425.34     
-LATEST_POINT        20.56       1.43        9.51        11.45       15.79       23.66       35.70       45.27       83.91       230.50      246.98      2528.49     
-RANGE_QUERY_DESC    21.35       1.88        9.76        12.10       16.42       24.42       36.04       47.86       105.55      205.40      221.11      2627.79     
-VALUE_RANGE_QUERY_DESC21.97       1.49        9.88        12.22       16.45       24.63       35.99       52.92       111.61      231.46      291.88      2506.34     
+INGESTION           49.53       19.05       32.12       35.50       40.55       49.93       66.68       86.37       171.74      635.29      652.59      5115.04
+PRECISE_POINT       19.85       1.07        8.90        11.23       15.71       23.49       34.36       44.64       83.47       165.52      218.22      2427.25
+TIME_RANGE          20.41       1.74        9.73        11.85       15.97       23.60       34.78       45.81       93.63       138.73      179.34      2054.51
+VALUE_RANGE         21.50       1.84        9.76        12.26       16.32       24.95       36.28       49.40       102.84      209.85      297.07      2474.57
+AGG_RANGE           20.27       1.79        9.50        11.69       15.60       23.28       33.22       44.46       102.41      205.31      257.87      2408.83
+AGG_VALUE           21.15       2.50        10.14       12.32       16.24       23.97       36.39       45.56       84.75       278.99      347.58      2354.46
+AGG_RANGE_VALUE     20.80       1.59        9.47        11.75       16.12       23.72       34.43       46.94       100.46      181.82      270.81      2516.03
+GROUP_BY            20.54       1.39        9.82        11.80       15.84       23.26       35.74       47.68       88.66       141.62      170.65      2425.34
+LATEST_POINT        20.56       1.43        9.51        11.45       15.79       23.66       35.70       45.27       83.91       230.50      246.98      2528.49
+RANGE_QUERY_DESC    21.35       1.88        9.76        12.10       16.42       24.42       36.04       47.86       105.55      205.40      221.11      2627.79
+VALUE_RANGE_QUERY_DESC21.97       1.49        9.88        12.22       16.45       24.63       35.99       52.92       111.61      231.46      291.88      2506.34
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
