@@ -2,53 +2,79 @@
 
 This module uses `iot-benchmark` to test InfluxDB 1.x.
 
-## 1. Overview
+## 1. Environment
 
-The InfluxDB adapter is implemented in [InfluxDB.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/influxdb/InfluxDB.java) and [InfluxDataModel.java](./src/main/java/cn/edu/tsinghua/iot/benchmark/influxdb/InfluxDataModel.java). Based on the current code, it has the following characteristics:
-
-- It connects to `http://HOST:PORT` and targets an InfluxDB 1.x database named by `DB_NAME`.
-- It uses the Java client `org.influxdb:influxdb-java:2.7`.
-- Schema registration creates the database with `createDatabase(DB_NAME)`.
-- Cleanup drops the whole benchmark database with `deleteDatabase(DB_NAME)`.
-- Data is written into the default retention policy `autogen`.
-- Each benchmark group is stored as an InfluxDB measurement, each device is stored in the `device` tag, and sensor values are stored as fields.
-- Timestamp precision follows the global `TIMESTAMP_PRECISION` setting. This module supports `ms`, `us`, and `ns`.
-- The current implementation only uses the first `HOST` and `PORT` value in the configuration.
-- Although `USERNAME` and `PASSWORD` exist in the configuration file, the current implementation does not pass them when opening the connection.
-
-## 2. Environment
-
-Before running the benchmark, prepare:
+Prepare the following environment before running the benchmark:
 
 1. Java 8
 2. Maven 3.6+
 3. A running InfluxDB 1.x instance reachable from the benchmark machine
 
-The original benchmark result in this directory was produced with:
+The original benchmark result in this directory was produced with InfluxDB `1.8.6-1`
 
-1. InfluxDB `1.8.6-1`
+This module is intended for InfluxDB 1.x and therefore uses:
 
-Recommended InfluxDB checks:
+- an InfluxDB database named by `DB_NAME`, instead of bucket and organization
+- InfluxQL for the benchmark query workload
+- no token-based authentication configuration
+
+Recommended checks:
 
 - Ensure the HTTP API is enabled and reachable. The sample configuration in this directory uses port `8086`.
-- Ensure the benchmark process is allowed to create and drop databases.
-- If your InfluxDB deployment requires authentication, you will need to update the module code because the current implementation connects without username/password.
+- Ensure the benchmark process is allowed to create and drop databases if `CREATE_SCHEMA=true` or `IS_DELETE_DATA=true`.
+- If your InfluxDB deployment requires authentication, this module cannot directly use `USERNAME` and `PASSWORD` for the benchmark connection.
 
-## 3. Configuration
+## 2. Database setup
+
+Before running the benchmark, prepare a target InfluxDB 1.x instance and a benchmark database.
+
+If `CREATE_SCHEMA=true`, the benchmark will create the database named by `DB_NAME` before writing. If you prefer to prepare it manually, create the database in advance, for example:
+
+```sql
+CREATE DATABASE test
+```
+
+Notes specific to InfluxDB 1.x:
+
+- `DB_NAME` maps to an InfluxDB **database**.
+- Benchmark data is written to the default retention policy `autogen`.
+- If `IS_DELETE_DATA=true`, the benchmark will drop the whole target database during cleanup. Do not point `DB_NAME` to a database that contains production data.
+- The current module only uses the first configured `HOST` and `PORT`.
+
+## 3. Build benchmark
+
+Build only the InfluxDB 1.x module and its dependencies:
+
+```bash
+mvn -pl influxdb -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+influxdb/target/iot-benchmark-influxdb
+influxdb/target/iot-benchmark-influxdb.zip
+```
+
+## 4. Configure benchmark
 
 There is a sample configuration file at [config.properties](./config.properties).
 
-The InfluxDB-specific parameters used by this module are:
+For the current `influxdb` module, check at least the following items:
 
-| Key                   | Required | Description                                                                                                                  |
-| :-------------------- | :------- | :--------------------------------------------------------------------------------------------------------------------------- |
-| `DB_SWITCH`           | Yes      | Must be `InfluxDB`.                                                                                                          |
-| `HOST`                | Yes      | Target InfluxDB host. Multiple values can be configured in the framework, but this module currently uses only the first one. |
-| `PORT`                | Yes      | Target HTTP API port. The sample uses `8086`.                                                                                |
-| `DB_NAME`             | Yes      | Benchmark database name.                                                                                                     |
-| `USERNAME`            | No       | Present in the shared configuration model, but not used by the current `influxdb` module implementation.                     |
-| `PASSWORD`            | No       | Present in the shared configuration model, but not used by the current `influxdb` module implementation.                     |
-| `TIMESTAMP_PRECISION` | No       | Global benchmark setting. `ms`, `us`, and `ns` are supported by this module. Default is `ms`.                                |
+| Key                   | Required | Description                                                                                                             |
+| :-------------------- | :------- | :---------------------------------------------------------------------------------------------------------------------- |
+| `DB_SWITCH`           | Yes      | Must be `InfluxDB`.                                                                                                     |
+| `HOST`                | Yes      | Target InfluxDB host. If multiple hosts are configured in the framework, this module currently uses only the first one. |
+| `PORT`                | Yes      | Target HTTP API port. The sample uses `8086`.                                                                           |
+| `DB_NAME`             | Yes      | Target database name in InfluxDB 1.x.                                                                                   |
+| `USERNAME`            | No       | Present in the shared configuration model, but not used by the current `influxdb` module connection logic.              |
+| `PASSWORD`            | No       | Present in the shared configuration model, but not used by the current `influxdb` module connection logic.              |
+| `TIMESTAMP_PRECISION` | No       | `ms`, `us`, and `ns` are supported by this module. Default is `ms`.                                                     |
+| `RESULT_ROW_LIMIT`    | No       | Supported by this module. When configured, it is appended to query SQL as `limit N`.                                    |
+| `ALIGN_BY_DEVICE`     | No       | Supported by this module.                                                                                               |
 
 Minimal example:
 
@@ -62,22 +88,23 @@ PASSWORD=root
 TIMESTAMP_PRECISION=ms
 ```
 
-Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, `QUERY_INTERVAL`, and `RESULT_ROW_LIMIT` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global template under `configuration/conf/config.properties`.
 
-## 4. Build and Run
+The current `influxdb` module does **not** support the following benchmark features:
 
-Build only the InfluxDB module and its dependencies:
+- `IS_DOUBLE_WRITE=true` when InfluxDB 1.x participates in `testWithDefaultPath`
+- point-by-point comparison based on device-level verification interfaces, including `IS_POINT_COMPARISON=true`
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- authenticated InfluxDB 1.x deployments that require the benchmark to log in with `USERNAME` and `PASSWORD`
 
-```bash
-mvn -pl influxdb -am package -DskipTests
-```
+Supported but easy to confuse with the InfluxDB 2.x module:
 
-After packaging, the runnable distribution is generated under:
+- `verificationQueryMode` is supported for InfluxDB 1.x
+- `GROUP_BY_DESC` is supported
+- `RESULT_ROW_LIMIT` is supported
+- `ALIGN_BY_DEVICE` is supported
 
-```text
-influxdb/target/iot-benchmark-influxdb
-influxdb/target/iot-benchmark-influxdb.zip
-```
+## 5. Run benchmark
 
 Run the benchmark with the packaged scripts:
 
@@ -86,22 +113,19 @@ cd influxdb/target/iot-benchmark-influxdb
 ./benchmark.sh
 ```
 
-If you want to run with a custom configuration directory or file path:
+If you want to use a custom configuration directory or file path:
 
 ```bash
 ./benchmark.sh -cf conf
 ```
 
-The startup script eventually launches `cn.edu.tsinghua.iot.benchmark.App`, so the standard benchmark modes such as `testWithDefaultPath`, `generateDataMode`, `verificationWriteMode`, and `verificationQueryMode` are available as long as the selected workload is supported by InfluxDB 1.x.
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath`.
 
-## 5. Notes
+If you want to run correctness verification queries against a single InfluxDB 1.x instance, `verificationQueryMode` is available for this module. Avoid enabling unsupported options listed above at the same time.
 
-- `IS_DELETE_DATA=true` will drop the whole benchmark database during cleanup. Do not point `DB_NAME` to a database that contains production data.
-- Query statements are generated in InfluxQL against measurements named after benchmark groups, with device filtering implemented through the `device` tag.
-- Batch writes use consistency level `ALL`.
-- Query result counting depends on the returned series and columns from InfluxDB, and `RESULT_ROW_LIMIT` is appended as `limit N` when configured.
+The test result will be printed in the console and recorded in the generated `logs` directory during execution.
 
-## 6. Sample Result
+## 6. Test result
 
 The following sample result comes from the original README content in this directory:
 
