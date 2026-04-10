@@ -1,7 +1,7 @@
 # 1. Automation script
 
 ## 1.1. One-click script startup
-You can use the `cli-benchmark.sh` script to start IoTDB, monitoring IoTDB Benchmark, and testing IoTDB Benchmark in one click, but please note that the script will clean up **all data** in IoTDB when it starts, so please use it with caution.
+You can use the `cli-benchmark.sh` script to start IoTDB, the monitoring-side IoT Benchmark, and the test-side IoT Benchmark in one click, but please note that the script will clean up **all data** in IoTDB when it starts, so please use it with caution.
 
 First, you need to modify the `IOTDB_HOME` parameter in `cli-benchmark.sh` to the folder where your local IoTDB is located.
 

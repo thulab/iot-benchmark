@@ -1,6 +1,6 @@
 # OpenTSDB in benchmark
 
-This document is about how to install, deploy OpenTSDB, and how to test its inserting or querying performance by `iot-benchmark`.
+This document is about how to install and deploy OpenTSDB, and how to test its insertion or query performance with IoT Benchmark.
 
 ## 1. Environment
 

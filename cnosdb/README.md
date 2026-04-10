@@ -1,6 +1,6 @@
 # Benchmark for CnosDB
 
-This module uses `iot-benchmark` to test CnosDB.
+This module uses IoT Benchmark to test CnosDB.
 
 ## 1. Environment
 

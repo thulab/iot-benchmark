@@ -1,6 +1,6 @@
 # Benchmark for InfluxDB 1.x
 
-This module uses `iot-benchmark` to test InfluxDB 1.x.
+This module uses IoT Benchmark to test InfluxDB 1.x.
 
 ## 1. Environment
 

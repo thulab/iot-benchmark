@@ -417,7 +417,7 @@ VALUE_RANGE_QUERY_DESC   13.08       0.08        0.31        0.61        1.16   
 
 # 4. 6.2.4 常规测试模式之使用系统记录（单数据库） Benchmark的配置
 
-假设您的 IoTDB 服务器 IP 是 192.168.130.9，并且您安装了 iot-benchmark 的测试客户端服务器已授权访问 IoTDB 服务器。
+假设您的 IoTDB 服务器 IP 是 192.168.130.9，并且您安装了 IoT Benchmark 的测试客户端服务器已授权访问 IoTDB 服务器。
 
 当前版本的信息记录依赖于 iostat。请确保 iostat 已安装在 IoTDB 服务器中。
 
@@ -504,7 +504,7 @@ REMARK=
 
 # 6. 6.2.6 生成数据模式 Benchmark的配置
 
-为了生成可以重复使用的数据集，iot-benchmark提供生成数据集的模式，生成数据集到FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
+为了生成可以重复使用的数据集，IoT Benchmark 提供生成数据集的模式，生成数据集到 FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
 
 用户可以通过修改`BIG_BATCH_SIZE`来控制每个文件中包含的batch的个数
 

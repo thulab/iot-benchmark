@@ -1,7 +1,7 @@
 # 1. Developer Guide
-1. All interfaces of iot-benchmark are in the core module.
+1. All interfaces of IoT Benchmark are in the core module.
 
-2. All database tests of iot-benchmark are implemented in various Maven subprojects.
+2. All database tests of IoT Benchmark are implemented in various Maven subprojects.
 
 3. If you want to run Benchmark using editors such as IDEA:
    

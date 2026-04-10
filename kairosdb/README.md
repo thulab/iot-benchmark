@@ -1,6 +1,6 @@
 # Benchmark for KairosDB
 
-This module uses `iot-benchmark` to test KairosDB.
+This module uses IoT Benchmark to test KairosDB.
 
 ## 1. Environment
 

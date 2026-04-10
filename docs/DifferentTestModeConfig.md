@@ -408,7 +408,7 @@ VALUE_RANGE_QUERY_DESC   13.08       0.08        0.31        0.61        1.16   
 
 # 4. Regular test mode: Use system logging (single database) Benchmark configuration
 
-Assume that your IoTDB server IP is 192.168.130.9, and the test client server where you installed iot-benchmark has authorized access to the IoTDB server.
+Assume that your IoTDB server IP is 192.168.130.9, and the test client server where you installed IoT Benchmark has authorized access to the IoTDB server.
 
 The current version of information logging depends on iostat. Please make sure that iostat is installed in the IoTDB server.
 
@@ -486,7 +486,7 @@ The subsequent operations are consistent with the above.
 
 # 6. Generate data mode Benchmark configuration
 
-In order to generate reusable data sets, iot-benchmark provides a data set generation mode, which generates data sets to FILE_PATH for subsequent use in correctness write mode and correctness query mode.
+In order to generate reusable data sets, IoT Benchmark provides a data set generation mode, which generates data sets to FILE_PATH for subsequent use in correctness write mode and correctness query mode.
 
 Users can control the number of batches contained in each file by modifying `BIG_BATCH_SIZE`
 

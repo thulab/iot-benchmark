@@ -1,7 +1,7 @@
 # 1. 自动化脚本
 
 ## 1.1. 一键化启动脚本
-您可以通过`cli-benchmark.sh`脚本一键化启动IoTDB、监控的IoTDB Benchmark和测试的IoTDB Benchmark，但需要注意该脚本启动时会清理IoTDB中的**所有数据**，请谨慎使用。
+您可以通过 `cli-benchmark.sh` 脚本一键启动 IoTDB、监控侧的 IoT Benchmark 和测试侧的 IoT Benchmark，但需要注意该脚本启动时会清理 IoTDB 中的**所有数据**，请谨慎使用。
 
 首先，您需要修改`cli-benchmark.sh`中的`IOTDB_HOME`参数为您本地的IoTDB所在的文件夹。
 

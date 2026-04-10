@@ -1,4 +1,4 @@
-## 1. Different operation modes of iot-benchmark
+## 1. Different operation modes of IoT Benchmark
 
 Again, before you start any new test case, you need to confirm whether the configuration information in the configuration file ```config.properties``` meets your expectations.
 
@@ -74,15 +74,15 @@ General test mode can support users to perform read-write mixed tests (query the
 
 ## 5. General test mode: use system records (single database)
 
-IoTDB Benchmark supports recording system data during the test. In the currently documented workflow, this part uses CSV-based records together with system monitoring.
+IoT Benchmark supports recording system data during the test. In the currently documented workflow, this part uses CSV-based records together with system monitoring.
 
 ## 6. Conventional test mode: test process persistence (single database)
 
-For subsequent analysis, iot-benchmark can persist test information to a backend database such as IoTDB or MySQL (if you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```).
+For subsequent analysis, IoT Benchmark can persist test information to a backend database such as IoTDB or MySQL (if you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```).
 
 ## 7. Generate data mode
 
-In order to generate reusable data sets, iot-benchmark provides a mode for generating data sets, generating data sets to FILE_PATH for subsequent use in correctness write mode and correctness query mode.
+In order to generate reusable data sets, IoT Benchmark provides a mode for generating data sets, generating data sets to FILE_PATH for subsequent use in correctness write mode and correctness query mode.
 
 ## 8. Correctness write mode (single database, external data set)
 
@@ -94,7 +94,7 @@ Before running this mode, you need to use the correctness write mode to write da
 
 ## 10. Dual database mode
 
-To complete the correctness verification more conveniently and quickly, iot-benchmark also supports dual database mode.
+To complete the correctness verification more conveniently and quickly, IoT Benchmark also supports dual database mode.
 
 1. For all the test scenarios mentioned above, unless otherwise specified, dual databases are supported. Please **start the test** in the `verification` project.
 2. `IS_COMPARISON` and `IS_POINT_COMPARISON` are mutually exclusive; only one verification method should be enabled at a time.
@@ -106,11 +106,11 @@ In order to perform the correctness verification below, you first need to write 
 
 ## 12. Correctness single point query mode (dual database comparison)
 
-In order to more efficiently verify the correctness of database data, iot-benchmark provides correctness verification by comparing the data between two databases. Note: Before performing this test, please use the general test mode of writing (dual databases) to complete the database writing. Currently, it is recommended to use the JDBC method.
+In order to more efficiently verify the correctness of database data, IoT Benchmark provides correctness verification by comparing the data between two databases. Note: Before performing this test, please use the general test mode of writing (dual databases) to complete the database writing. Currently, it is recommended to use the JDBC method.
 
 ## 13. Correctness function query mode (dual database comparison)
 
-In order to more efficiently verify the correctness of database queries, iot-benchmark provides correctness verification by comparing the differences in data query results between two databases.
+In order to more efficiently verify the correctness of database queries, IoT Benchmark provides correctness verification by comparing the differences in data query results between two databases.
 
 Note:
 
