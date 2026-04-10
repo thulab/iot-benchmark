@@ -2,7 +2,6 @@
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
 ** This document shows the specific configuration and execution of several test scenarios given in README.md **
-** This document shows the specific configuration and execution of several test scenarios given in README.md **
 
 # 1. Query in regular test mode (single database, no system records) Benchmark configuration
 
@@ -1045,7 +1044,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
