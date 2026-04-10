@@ -1,23 +1,133 @@
 Benchmark victoriaMetrics
 ---
 
-# environment(eg. docker)
-1. docker image: https://hub.docker.com/r/victoriametrics/victoria-metrics/
+## 1. Environment
 
-2. The process of environment configuration
-    1. `docker pull victoriametrics/victoria-metrics`
-    2. `docker run -it --rm -v /path/to/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 -d --name=victoria victoriametrics/victoria-metrics -retentionPeriod=30 -search.latencyOffset=1s -search.disableCache=true -search.maxPointsPerTimeseries=10000000`
-    3. Please pay special attention to the design of the retentionPeriod parameter during environment configuration. The unit of this parameter is month, and the range of time series allowed to be inserted is (current month-retentionPeriod, current month)
-3. Query API based on Prometheus: https://blog.csdn.net/zhouwenjun0820/article/details/105823389
+Before running the benchmark, prepare:
 
-# config
+1. A running VictoriaMetrics instance
+2. Java 8
+3. Maven 3.6+
+
+## 2. Database setup
+
+VictoriaMetrics can be started with Docker:
+
+1. Docker image: <https://hub.docker.com/r/victoriametrics/victoria-metrics/>
+2. Environment setup process:
+
+```bash
+docker pull victoriametrics/victoria-metrics
+docker run -it --rm -v /path/to/victoria-metrics-data:/victoria-metrics-data -p 8428:8428 -d --name=victoria victoriametrics/victoria-metrics -retentionPeriod=30 -search.latencyOffset=1s -search.disableCache=true -search.maxPointsPerTimeseries=10000000
+```
+
+Please pay special attention to the `retentionPeriod` parameter during environment configuration. The unit of this parameter is month, and the allowed insert time range is `(current month - retentionPeriod, current month)`.
+
+Query API based on Prometheus: <https://blog.csdn.net/zhouwenjun0820/article/details/105823389>
+
+
+VictoriaMetrics does not require creating a separate database or schema before the benchmark starts.
+
+Before running the benchmark:
+
+1. Start VictoriaMetrics and make sure the benchmark machine can access the HTTP API port configured in `PORT`. The sample configuration in this directory uses `8428`.
+2. Make sure the retention policy of the running instance covers the benchmark write timestamps.
+3. If you plan to use `IS_DELETE_DATA=true`, make sure the VictoriaMetrics admin delete API is enabled in your deployment.
+
+Additional notes for this module:
+
+- The current module writes through VictoriaMetrics HTTP import and query APIs.
+- `DB_NAME` is used as an extra label `db` for writing, querying, and deleting benchmark data. It is not a separate database to create in advance.
+- `CREATE_SCHEMA=true` does not create any schema object for this module.
+- `IS_DELETE_DATA=true` deletes the series matched by `db="${DB_NAME}"`.
+
+## 3. Build benchmark
+
+Build only the VictoriaMetrics module and its dependencies:
+
+```bash
+mvn -pl victoriametrics -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+victoriametrics/target/iot-benchmark-victoriametrics
+victoriametrics/target/iot-benchmark-victoriametrics.zip
+```
+
+## 4. Configure benchmark
+
 1. [Demo config](config.properties)
 
-# test result
-1. View all data results：`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}"}`
-2. View some data results：`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}", device="xxx", sensor="xxx"}`
+For the current `victoriametrics` module, check at least the following items:
 
+| Key         | Required | Description                                                                                 |
+| :---------- | :------- | :------------------------------------------------------------------------------------------ |
+| `DB_SWITCH` | Yes      | Must be `VictoriaMetrics`.                                                                  |
+| `HOST`      | Yes      | VictoriaMetrics host or IP. Do not add the `http://` prefix here.                           |
+| `PORT`      | Yes      | VictoriaMetrics HTTP API port. The sample uses `8428`.                                      |
+| `DB_NAME`   | Yes      | Label value used as `db="${DB_NAME}"` in write, query, and delete requests.                 |
+| `USERNAME`  | No       | Kept in the common config format, but the current module does not use it for HTTP requests. |
+| `PASSWORD`  | No       | Kept in the common config format, but the current module does not use it for HTTP requests. |
+
+Minimal example:
+
+```properties
+DB_SWITCH=VictoriaMetrics
+HOST=127.0.0.1
+PORT=8428
+USERNAME=root
+PASSWORD=root
+DB_NAME=test
 ```
+
+Notes for VictoriaMetrics configuration:
+
+- `HOST` and `PORT` point to the VictoriaMetrics HTTP API endpoint.
+- `DB_NAME` is a benchmark label, not a database name in the traditional relational sense.
+- This module does not need schema creation.
+- VictoriaMetrics samples are numeric. For benchmark data type proportions, keep text disabled. A typical setting is `INSERT_DATATYPE_PROPORTION=1:1:1:1:1:0`.
+- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+
+The current `victoriametrics` module does **not** support the following benchmark features:
+
+- `verificationQueryMode`
+- comparison or verification paths that require framework verification support, including `IS_COMPARISON=true` and `IS_POINT_COMPARISON=true`
+- text writes in `INSERT_DATATYPE_PROPORTION`, so the text ratio should remain `0`
+- `GROUP_BY_DESC` in `OPERATION_PROPORTION`
+- `SET_OPERATION` in `OPERATION_PROPORTION`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+
+## 5. Run benchmark
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd victoriametrics/target/iot-benchmark-victoriametrics
+./benchmark.sh
+```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath` and keep the unsupported options above disabled.
+
+## 6. Test result
+
+View all data results:
+`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}"}`
+
+View some data results:
+`${HOST}:${PORT}/api/v1/export?match={db="${DB_NAME}", device="xxx", sensor="xxx"}`
+
+```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: VictoriaMetrics
 OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
