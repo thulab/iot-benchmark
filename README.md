@@ -104,7 +104,7 @@ System disk: 512G SSD (INTEL SSDPEKNU512GZ)
 Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 ```
 
-After the compilation is completed, taking IoTDB v2.0 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the official documentation of the target IoTDB version.) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
+After the compilation is completed, taking IoTDB v2.0 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the instructions in [IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md)) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
 
 ```
 
