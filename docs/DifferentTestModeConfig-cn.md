@@ -4,6 +4,10 @@
 ** This document shows the specific configuration and execution of several test scenarios given in README.md **
 ** 该文档展示了README.md中给出的几种测试场景的具体配置以及具体执行情况 **
 
+> 注意：
+> 1. 根据当前代码，`BENCHMARK_WORK_MODE` 支持 `testWithDefaultPath`、`generateDataMode`、`verificationWriteMode` 和 `verificationQueryMode`。
+> 2. 根据当前代码，`OPERATION_PROPORTION` 共有 13 段，最后两段分别对应 `GROUP_BY_DESC` 和 `SET_OPERATION`。
+
 # 1. 常规测试模式之查询(单数据库，不使用系统记录) Benchmark的配置 
 
 修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_DELETE_DATA=false```，来关闭数据清理)：
@@ -15,7 +19,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -85,7 +89,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -156,7 +160,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -225,7 +229,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -285,7 +289,7 @@ VALUE_RANGE_QUERY_DESC   13.19       0.37        0.65        0.86        1.46   
 
 # 3. 6.2.3 常规测试模式之读写混合模式（单数据库，查询最近写入数据） Benchmark的配置
 
-修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=true```，来关闭最近查询模式)：
+修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=true```，来开启最近查询模式)：
 
 ```properties
 ### Main Data Ingestion and Query Shared Parameters
@@ -294,7 +298,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -353,7 +357,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -417,8 +421,8 @@ VALUE_RANGE_QUERY_DESC   13.08       0.08        0.31        0.61        1.16   
 
 当前版本的信息记录依赖于 iostat。请确保 iostat 已安装在 IoTDB 服务器中。
 
-之后配置```config.properties```
-假设您使用的参数与[简单指引](../#61-常规测试模式之写入单数据库)中的参数相同。您应该添加的新参数是 TEST_DATA_PERSISTENCE 和 MONITOR_INTERVAL，例如：
+之后配置`config.properties`
+假设您使用的参数与 [README-cn.md](../README-cn.md) 中快速开始示例的参数相同。您需要新增的参数是 `TEST_DATA_PERSISTENCE` 和 `MONITOR_INTERVAL`，例如：
 
 ```properties
 TEST_DATA_PERSISTENCE=CSV
@@ -426,7 +430,7 @@ MONITOR_INTERVAL=0
 ```
 
 > 1. TEST_DATA_PERSISTENCE=CSV 表示测试结果保存到CSV中。
-> 2. INTERVAL=0 表示服务器信息记录的间隔最小为 2 秒。 如果您设置 INTERVAL=n，那么间隔将为 n+2 秒，因为记录过程至少需要2秒。在进行长时间测试时，您可能希望将 INTERVAL 设置得更长。
+> 2. `MONITOR_INTERVAL=0` 表示服务器信息记录的最小间隔为 2 秒。如果您设置 `MONITOR_INTERVAL=n`，那么实际间隔将为 `n+2` 秒，因为记录过程本身至少需要 2 秒。
 
 ## 4.1. Benchmark的启动
 
@@ -447,15 +451,15 @@ MONITOR_INTERVAL=0
 TEST_DATA_PERSISTENCE=MySQL
 # 数据库的IP地址
 TEST_DATA_STORE_IP=127.0.0.1
-# 数据库的端口号
-TEST_DATA_STORE_PORT=6667
+# 数据库的端口号（MySQL 默认为 3306）
+TEST_DATA_STORE_PORT=3306
 # 数据库的名称
 TEST_DATA_STORE_DB=result
 # 数据库用户名
 TEST_DATA_STORE_USER=root
 # 数据库用户密码
 TEST_DATA_STORE_PW=root
-# 数据库读超时，单位毫秒
+# 数据库写入超时，单位毫秒
 TEST_DATA_WRITE_TIME_OUT=300000
 # 数据库写入并发池最多限制
 TEST_DATA_MAX_CONNECTION=1
@@ -470,21 +474,21 @@ REMARK=
 
 # 5. 6.2.5 常规测试模式之测试过程持久化（单数据库） Benchmark配置
 
-目前支持的存储数据库为IoTDB和MySQL，以MySQL为例，你需要修改```config.properties```文件中的如下配置：
+当前代码支持的测试结果持久化数据库为 IoTDB 和 MySQL。以 MySQL 为例，你需要修改`config.properties`中的如下配置：
 
 ```properties
 TEST_DATA_PERSISTENCE=MySQL
 # 数据库的IP地址
 TEST_DATA_STORE_IP=127.0.0.1
-# 数据库的端口号
-TEST_DATA_STORE_PORT=6667
+# 数据库的端口号（MySQL 默认为 3306）
+TEST_DATA_STORE_PORT=3306
 # 数据库的名称
 TEST_DATA_STORE_DB=result
 # 数据库用户名
 TEST_DATA_STORE_USER=root
 # 数据库用户密码
 TEST_DATA_STORE_PW=root
-# 数据库读超时，单位毫秒
+# 数据库写入超时，单位毫秒
 TEST_DATA_WRITE_TIME_OUT=300000
 # 数据库写入并发池最多限制
 TEST_DATA_MAX_CONNECTION=1
@@ -514,13 +518,13 @@ DEVICE_NUMBER=5
 SENSOR_NUMBER=10
 CLIENT_NUMBER=5
 BATCH_SIZE_PER_WRITE=10
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 # 每个数据文件包含的Batch个数
 BIG_BATCH_SIZE=100
 ```
 
 > 注意：
-> FILE_PATH文件夹应当为空文件夹，如果非空则会报错，生成的数据集会存放到这个文件夹中。
+> 在开始生成数据集之前，`FILE_PATH` 下已有的内容会被删除。
 
 ## 6.1. Benchmark的启动
 
@@ -541,9 +545,9 @@ BIG_BATCH_SIZE=100
 ```
 
 > 注意：
-> 1. 数据存放位置为FILE_PATH文件夹下，其目录结构为/d_xxx/batch_xxx.txt
-> 2. 设备和传感器的相关元数据存放在FILE_PATH/schema.txt中
-> 3. 数据集的相关信息存放在FILE_PATH/info.txt中
+> 1. 生成的数据存放在 `FILE_PATH/<device>/BigBatch_<n>.csv`
+> 2. 设备和传感器的元数据存放在 `FILE_PATH/schema.txt`
+> 3. 数据集的相关信息存放在 `FILE_PATH/info.txt`
 
 以下是info.txt的一个实例：
 
@@ -604,7 +608,7 @@ BIG_BATCH_SIZE=100
 ```
 
 > 注意：
-> 1. FILE_PATH文件夹应当为使用生成数据模式生成的数据集
+> 1. `FILE_PATH` 文件夹中应当包含通过 `generateDataMode` 生成的数据集
 > 2. 运行该模式时其他参数应当和info.txt中的描述**保持一致**
 
 
@@ -670,7 +674,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=5
 LOOP=10000
 BATCH_SIZE_PER_WRITE=10
@@ -715,8 +719,8 @@ BIG_BATCH_SIZE=100
 ```
 
 > 注意：
-> 1. FILE_PATH文件夹应当为使用生成数据模式生成的数据集
-> 2. 运行该模式时其他参数应当和info.txt中的描述**保持一致**
+> 1. `FILE_PATH` 文件夹中应当包含通过 `generateDataMode` 生成的数据集
+> 2. 运行该模式时其他参数应当和 `info.txt` 中的描述保持一致
  
 ## 8.1. Benchmark的启动
 
@@ -761,7 +765,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=5
 LOOP=10000
 BATCH_SIZE_PER_WRITE=10
@@ -833,7 +837,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -847,7 +851,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verification/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -890,7 +894,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
@@ -960,7 +964,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -974,7 +978,7 @@ LOOP=1000
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verification/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1017,7 +1021,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
@@ -1054,7 +1058,7 @@ DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27 
 
 # 12. 6.2.12 正确性功能查询模式（双数据库比较） Benchmark的配置
 
-如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
+如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性功能查询（双数据库比较）
 
 ```
 # 是否将两个数据库中的查询结果集进行比较
@@ -1068,7 +1072,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -1082,7 +1086,7 @@ LOOP=100
 
 在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
 
-之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+之后您进入到`iot-benchmark/verification/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
 
 ```sh
 > ./benchmark.sh
@@ -1124,7 +1128,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1

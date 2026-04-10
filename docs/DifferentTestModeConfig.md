@@ -14,7 +14,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -84,7 +84,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -153,7 +153,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -223,7 +223,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -282,7 +282,7 @@ VALUE_RANGE_QUERY_DESC   13.19       0.37        0.65        0.86        1.46   
 
 # 3. Conventional test mode - read-write mixed mode (single database, query the most recently written data) Benchmark configuration
 
-Modify the relevant parameters in the ```config.properties``` file as follows (pay special attention to setting ```IS_RECENT_QUERY=true``` to turn off the most recent query mode):
+Modify the relevant parameters in the ```config.properties``` file as follows (pay special attention to setting ```IS_RECENT_QUERY=true``` to enable the most recent query mode):
 
 ```properties
 ### Main Data Ingestion and Query Shared Parameters
@@ -291,7 +291,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -350,7 +350,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -412,8 +412,8 @@ Assume that your IoTDB server IP is 192.168.130.9, and the test client server wh
 
 The current version of information logging depends on iostat. Please make sure that iostat is installed in the IoTDB server.
 
-Then configure ```config.properties```
-Assume that the parameters you use are the same as those in [Simple Guide](../#61-Regular test mode write single database). The new parameters you should add are TEST_DATA_PERSISTENCE and MONITOR_INTERVAL, for example:
+Then configure `config.properties`.
+Assume that the parameters you use are the same as those in the quick-start example in [README.md](../README.md). The new parameters you should add are `TEST_DATA_PERSISTENCE` and `MONITOR_INTERVAL`, for example:
 
 ```properties
 TEST_DATA_PERSISTENCE=CSV
@@ -421,7 +421,7 @@ MONITOR_INTERVAL=0
 ```
 
 > 1. TEST_DATA_PERSISTENCE=CSV means that the test results are saved in CSV.
-> 2. INTERVAL=0 means that the minimum interval for server information logging is 2 seconds. If you set INTERVAL=n, the interval will be n+2 seconds, because the recording process takes at least 2 seconds. When doing long tests, you may want to set INTERVAL to a longer value.
+> 2. `MONITOR_INTERVAL=0` means that the minimum interval for server information logging is 2 seconds. If you set `MONITOR_INTERVAL=n`, the interval will be `n+2` seconds, because the recording process itself takes at least 2 seconds.
 
 ## 4.1. Starting the Benchmark
 
@@ -439,15 +439,15 @@ The other subsequent processes are similar to those described above, and the gen
 TEST_DATA_PERSISTENCE=MySQL
 # Database IP address
 TEST_DATA_STORE_IP=127.0.0.1
-# Database port number
-TEST_DATA_STORE_PORT=6667
+# Database port number (3306 for MySQL)
+TEST_DATA_STORE_PORT=3306
 # Database name
 TEST_DATA_STORE_DB=result
 # Database user name
 TEST_DATA_STORE_USER=root
 # Database user password
 TEST_DATA_STORE_PW=root
-# Database read timeout, in milliseconds
+# Database write timeout, in milliseconds
 TEST_DATA_WRITE_TIME_OUT=300000
 # Maximum limit for database write concurrent pool
 TEST_DATA_MAX_CONNECTION=1
@@ -460,21 +460,21 @@ Subsequent operations are consistent with the above.
 
 # 5. Conventional test mode: test process persistence (single database) Benchmark configuration
 
-Currently supported storage databases are IoTDB and MySQL. Taking MySQL as an example, you need to modify the following configuration in the ```config.properties``` file:
+For database persistence backends, the current code supports IoTDB and MySQL. Taking MySQL as an example, you need to modify the following configuration in `config.properties`:
 
 ```properties
 TEST_DATA_PERSISTENCE=MySQL
 # Database IP address
 TEST_DATA_STORE_IP=127.0.0.1
-# Database port number
-TEST_DATA_STORE_PORT=6667
+# Database port number (3306 for MySQL)
+TEST_DATA_STORE_PORT=3306
 # Database name
 TEST_DATA_STORE_DB=result
 # Database user name
 TEST_DATA_STORE_USER=root
 # Database user password
 TEST_DATA_STORE_PW=root
-# Database read timeout, in milliseconds
+# Database write timeout, in milliseconds
 TEST_DATA_WRITE_TIME_OUT=300000
 # Database write concurrent pool maximum limit
 TEST_DATA_MAX_CONNECTION=1
@@ -500,13 +500,13 @@ DEVICE_NUMBER=5
 SENSOR_NUMBER=10
 CLIENT_NUMBER=5
 BATCH_SIZE_PER_WRITE=10
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 # Number of batches contained in each data file
 BIG_BATCH_SIZE=100
 ```
 
 > Note:
-> The FILE_PATH folder should be an empty folder. If it is not empty, an error will be reported and the generated data set will be stored in this folder.
+> The `FILE_PATH` folder should be an empty folder. If it is not empty, an error will be reported and the generated data set will be stored in this folder.
 
 ## 6.1. Start Benchmark
 
@@ -527,9 +527,9 @@ After the data generation starts, you can see the scrolling execution informatio
 ```
 
 > Note:
-> 1. The data is stored in the FILE_PATH folder, and its directory structure is /d_xxx/batch_xxx.txt
-> 2. The metadata of the device and sensor is stored in FILE_PATH/schema.txt
-> 3. The relevant information of the data set is stored in FILE_PATH/info.txt
+> 1. The generated data is stored under `FILE_PATH/<device>/BigBatch_<n>.csv`.
+> 2. The metadata of devices and sensors is stored in `FILE_PATH/schema.txt`.
+> 3. The dataset metadata is stored in `FILE_PATH/info.txt`.
 
 The following is an example of info.txt:
 
@@ -589,7 +589,7 @@ BIG_BATCH_SIZE=100
 ```
 
 > Note:
-> 1. The FILE_PATH folder should be the dataset generated using the generated data mode
+> 1. The `FILE_PATH` folder should contain a dataset generated by `generateDataMode`
 > 2. When running this mode, other parameters should be consistent with the description in info.txt.
 
 External data sets, that is, if you need to use existing real data to expand and insert into the database, you need to set it as follows
@@ -654,7 +654,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=5
 LOOP=10000
 BATCH_SIZE_PER_WRITE=10
@@ -698,8 +698,8 @@ BIG_BATCH_SIZE=100
 ```
 
 > Note:
-> 1. The FILE_PATH folder should be the data set generated using the generated data mode
-> 2. When running this mode, other parameters should be consistent with the description in info.txt**
+> 1. The `FILE_PATH` folder should contain a dataset generated by `generateDataMode`
+> 2. When running this mode, other parameters should be consistent with the description in `info.txt`.
 
 ## 8.1. Start Benchmark
 
@@ -744,7 +744,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=5
 LOOP=10000
 BATCH_SIZE_PER_WRITE=10
@@ -813,7 +813,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -827,7 +827,7 @@ LOOP=1000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the local machine and start the TimescaleDB service on port 5432
 
-Then go to `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
+Then go to `iot-benchmark/verification/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
@@ -870,7 +870,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
@@ -938,7 +938,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -952,7 +952,7 @@ LOOP=1000
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the local machine and start the TimescaleDB service on port 5432
 
-Then go to `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
+Then go to `iot-benchmark/verification/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
@@ -995,7 +995,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
@@ -1031,7 +1031,7 @@ DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27 
 
 # 12. Correctness function query mode (double database comparison) Benchmark configuration
 
-Complete the dual database configuration in `config.properties` as described in the dual database mode, and modify the following configuration to start the correctness single point query (double database comparison)
+Complete the dual database configuration in `config.properties` as described in the dual database mode, and modify the following configuration to start the correctness function query (double database comparison)
 
 ```
 # Whether to compare the query result sets in the two databases
@@ -1044,7 +1044,7 @@ BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -1058,7 +1058,7 @@ LOOP=100
 
 Before starting the test, you need to start the IoTDB service on port 6667 of the local machine and start the TimescaleDB service on port 5432
 
-Then go to `iot-benchmark/verfication/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
+Then go to `iot-benchmark/verification/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
@@ -1100,7 +1100,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
