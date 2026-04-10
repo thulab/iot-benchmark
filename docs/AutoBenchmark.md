@@ -1,25 +1,25 @@
-# 1. 自动化脚本
+# 1. Automation script
 
-## 1.1. 一键化启动脚本
-您可以通过`cli-benchmark.sh`脚本一键化启动IoTDB、监控的IoTDB Benchmark和测试的IoTDB Benchmark，但需要注意该脚本启动时会清理IoTDB中的**所有数据**，请谨慎使用。
+## 1.1. One-click script startup
+You can use the `cli-benchmark.sh` script to start IoTDB, monitoring IoTDB Benchmark, and testing IoTDB Benchmark in one click, but please note that the script will clean up **all data** in IoTDB when it starts, so please use it with caution.
 
-首先，您需要修改`cli-benchmark.sh`中的`IOTDB_HOME`参数为您本地的IoTDB所在的文件夹。
+First, you need to modify the `IOTDB_HOME` parameter in `cli-benchmark.sh` to the folder where your local IoTDB is located.
 
-然后您可以使用脚本启动测试
+Then you can use the script to start the test
 
 ```sh
 > ./cli-benchmark.sh
 ```
 
-测试完成后您可以在`logs`文件夹中查看测试相关日志，在`server-logs`文件夹中查看监控相关日志。
+After the test is completed, you can view the test-related logs in the `logs` folder and the monitoring-related logs in the `server-logs` folder.
 
-## 1.2. 自动执行多项测试
+## 1.2. Automatic execution of multiple tests
 
-通常，除非与其他测试结果进行比较，否则单个测试是没有意义的。因此，我们提供了一个接口来通过一次启动执行多个测试。
+Usually, a single test is meaningless unless it is compared with other test results. Therefore, we provide an interface to execute multiple tests with a single startup.
 
-### 1.2.1. 配置 routine
+### 1.2.1. Configure routine
 
-这个文件的每一行应该是每个测试过程会改变的参数（否则就变成复制测试）。例如，"例程"文件是：
+Each line of this file should be a parameter that will change during each test (otherwise it becomes a duplicate test). For example, the "routine" file is:
 
 ```
 LOOP=10 DEVICE_NUMBER=100 TEST
@@ -27,31 +27,31 @@ LOOP=20 DEVICE_NUMBER=50 TEST
 LOOP=50 DEVICE_NUMBER=20 TEST
 ```
 
-然后依次执行3个LOOP参数分别为10、20、50的测试过程。
+Then the test process with 3 LOOP parameters of 10, 20, and 50 is executed in sequence.
 
-> 注意：
-> 您可以使用“LOOP=20 DEVICE_NUMBER=10 TEST”等格式更改每个测试中的多个参数，不允许使用不必要的空间。 关键字"TEST"意味着新的测试开始。如果您更改不同的参数，更改后的参数将保留在下一次测试中。
+> Note:
+> You can change multiple parameters in each test using the format of "LOOP=20 DEVICE_NUMBER=10 TEST", and unnecessary space is not allowed. The keyword "TEST" means a new test starts. If you change different parameters, the changed parameters will be retained in the next test.
 
-### 1.2.2. 开始测试
+### 1.2.2. Start the test
 
-配置文件routine后，您可以通过启动脚本启动多测试任务：
+After configuring the file routine, you can start the multi-test task by launching the script:
 
 ```sh
 > ./rep-benchmark.sh
 ```
 
-然后测试信息将显示在终端中。
+Then the test information will be displayed in the terminal.
 
-> 注意：
-> 如果您关闭终端或失去与客户端机器的连接，测试过程将终止。 如果输出传输到终端，则与任何其他情况相同。
+> Note:
+> If you close the terminal or lose the connection with the client machine, the test process will terminate. If the output is piped to a terminal, it is the same as in any other case.
 
-使用此接口通常需要很长时间，您可能希望将测试过程作为守护程序执行。这样，您可以通过启动脚本将测试任务作为守护程序启动：
+Using this interface usually takes a long time and you may want to execute the test process as a daemon. To do so, you can start the test task as a daemon via a startup script:
 
 ```sh
 > ./rep-benchmark.sh > /dev/null 2>&1 &
 ```
 
-在这种情况下，如果您想知道发生了什么，可以通过以下命令查看日志信息：
+In this case, if you want to know what is going on, you can view the log information via the following command:
 
 ```sh
 > cd ./logs

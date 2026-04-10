@@ -1,6 +1,10 @@
-# 1. 开发者指引
-1. iot-benchmark的所有的接口均在core模块中。
-2. iot-benchmark的所有的数据库测试的实现均在各个maven子项目中。
-3. 如果你想要使用IDEA等编辑器运行Benchmark：
-   1. 可以在每一个maven子项目下找到test文件目录下的TestEntrance，运行对应测试。
-   2. 以IoTDB 1.0为例，你可以运行`iotdb-1.0/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
+# 1. Developer Guide
+1. All interfaces of iot-benchmark are in the core module.
+
+2. All database tests of iot-benchmark are implemented in various Maven subprojects.
+
+3. If you want to run Benchmark using editors such as IDEA:
+   
+    -- You can find TestEntrance in the test file directory under each Maven subproject and run the corresponding test.
+   
+    -- Taking IoTDB 1.0 as an example, you can run `iotdb-1.0/src/main/test/cn/edu/tsinghua/iotdb/benchmark/TestEntrance`
