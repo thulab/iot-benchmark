@@ -30,20 +30,20 @@ IoT-Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 
 目前支持如下数据库、版本和连接方式：
 
-|        数据库        |    版本     |
-| :------------------: |:---------:|
-|        IoTDB         | v1.x、v2.x |
-|       InfluxDB       | v1.x、v2.x |
-|       QuestDB        |  v6.0.7   |
-| Microsoft SQL Server | 2016 SP2  |
-|   VictoriaMetrics    |  v1.64.0  |
-|        SQLite        |    --     |
-|       OpenTSDB       |   2.4.1   |
-|       KairosDB       |    --     |
-|     TimescaleDB      |    --     |
-|     TimescaleDB      |  Cluster  |
-|       TDengine       | 2.2.0.2、3.0.1  |
-|        CnosDB        |    --     |
+|        数据库        |      版本      |
+| :------------------: | :------------: |
+|        IoTDB         |   v1.x、v2.x   |
+|       InfluxDB       |   v1.x、v2.x   |
+|       QuestDB        |     v6.0.7     |
+| Microsoft SQL Server |    2016 SP2    |
+|   VictoriaMetrics    |    v1.64.0     |
+|        SQLite        |       --       |
+|       OpenTSDB       |     2.4.1      |
+|       KairosDB       |       --       |
+|     TimescaleDB      |       --       |
+|     TimescaleDB      |    Cluster     |
+|       TDengine       | 2.2.0.2、3.0.1 |
+|        CnosDB        |       --       |
 
 # 3. 快速开始
 
@@ -100,6 +100,12 @@ CPU：I7-11700
 ```
 
 在完成编译后，以 IoTDB v2.0 为例，**您需要首先在本机的 6667 端口启动相应版本的 IoTDB 服务**。（如果您对于使用 IoTDB 仍有疑问，请参照目标 IoTDB 版本的官方文档。）在成功启动 IoTDB 服务后，您可以进入到 `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` 文件夹下，使用 `./benchmark.sh` 启动测试。我们推荐使用匹配的版本进行测试，以此达到最佳效果。
+
+需要额外说明的是，最新的 IoT-Benchmark 2.0 默认参数已经开启 RPC 压缩，因此测试 IoTDB 2.x 时要求目标版本为 IoTDB `2.0.6+`。如果需要测试 `2.0.6` 之前的 IoTDB `2.0.x` 版本，请将配置项设置为：
+
+```properties
+ENABLE_IOTDB_RPC_COMPRESSION=false
+```
 
 ```
 
@@ -211,32 +217,32 @@ SET_OP_QUERY             0.00        0.00        0.00        0.00        0.00   
 
 配置文件存放在 `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0/conf` 下。当然，对于其他支持数据库您同样可以在相似的路径下找到其配置文件。编辑该文件来自定义测试的类型以及相关配置，**请注意，每次测试前您必须将配置文件中的 DB_SWITCH 参数更改为与待测数据库相匹配，其对应关系和可能取值如下所示：**
 
-|        数据库        |    版本    |     对应子项目      |                                                  DB_SWITCH                                                   |
-| :------------------: |:--------:| :-----------------: |:------------------------------------------------------------------------------------------------------------:|
+|        数据库        |   版本   |     对应子项目      |                                                           DB_SWITCH                                                            |
+| :------------------: | :------: | :-----------------: | :----------------------------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   1.3    |      iotdb-1.3      | IoTDB-130-JDBC<br>IoTDB-130-REST<br>IoTDB-130-SESSION_BY_TABLET<br>IoTDB-130-SESSION_BY_RECORD<br>IoTDB-130-SESSION_BY_RECORDS |
 |        IoTDB         |   2.x    |      iotdb-2.0      | IoTDB-200-JDBC<br>IoTDB-200-REST<br>IoTDB-200-SESSION_BY_TABLET<br>IoTDB-200-SESSION_BY_RECORD<br>IoTDB-200-SESSION_BY_RECORDS |
-|       InfluxDB       |   1.x    |      influxdb       |                                                   InfluxDB                                                   |
-|       InfluxDB       |   2.x    |    influxdb-2.0     |                                                 InfluxDB-2.x                                                 |
-|        CnosDB        |    --    |       cnosdb        |                                                    CnosDB                                                    |
-|       QuestDB        |  6.0.7   |       questdb       |                                                   QuestDB                                                    |
-| Microsoft SQL Server | 2016 SP2 |     mssqlserver     |                                                 MSSQLSERVER                                                  |
-|   VictoriaMetrics    |  1.64.0  |   victoriametrics   |                                               VictoriaMetrics                                                |
-|     TimescaleDB      |    --    |     timescaledb     |                                                 TimescaleDB                                                  |
-|     TimescaleDB      | Cluster  | timescaledb-cluster |                                             TimescaleDB-Cluster                                              |
-|        SQLite        |    --    |       sqlite        |                                                    SQLite                                                    |
-|       OpenTSDB       |  2.4.1   |      opentsdb       |                                                   OpenTSDB                                                   |
-|       KairosDB       |    --    |      kairosdb       |                                                   KairosDB                                                   |
-|       TDengine       | 2.2.0.2  |      tdengine       |                                                   TDengine                                                   |
-|       TDengine       |  3.0.1   |    tdengine-3.0     |                                                  TDengine-3                                                  |
+|       InfluxDB       |   1.x    |      influxdb       |                                                            InfluxDB                                                            |
+|       InfluxDB       |   2.x    |    influxdb-2.0     |                                                          InfluxDB-2.x                                                          |
+|        CnosDB        |    --    |       cnosdb        |                                                             CnosDB                                                             |
+|       QuestDB        |  6.0.7   |       questdb       |                                                            QuestDB                                                             |
+| Microsoft SQL Server | 2016 SP2 |     mssqlserver     |                                                          MSSQLSERVER                                                           |
+|   VictoriaMetrics    |  1.64.0  |   victoriametrics   |                                                        VictoriaMetrics                                                         |
+|     TimescaleDB      |    --    |     timescaledb     |                                                          TimescaleDB                                                           |
+|     TimescaleDB      | Cluster  | timescaledb-cluster |                                                      TimescaleDB-Cluster                                                       |
+|        SQLite        |    --    |       sqlite        |                                                             SQLite                                                             |
+|       OpenTSDB       |  2.4.1   |      opentsdb       |                                                            OpenTSDB                                                            |
+|       KairosDB       |    --    |      kairosdb       |                                                            KairosDB                                                            |
+|       TDengine       | 2.2.0.2  |      tdengine       |                                                            TDengine                                                            |
+|       TDengine       |  3.0.1   |    tdengine-3.0     |                                                           TDengine-3                                                           |
 
 * 不同数据库使用说明详见 [被测数据库示例说明](./docs/DifferentTestDatabase.md)
 
 同时，您还可以更改 BENCHMARK_WORK_MODE 参数调整 iot-benchmark 的运行模式，目前已经支持：
 
-|    模式名称    |  BENCHMARK_WORK_MODE  | 模式内容                                                                        |
-| :------------: | :-------------------: | :------------------------------------------------------------------------------ |
-|  常规测试模式  |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                    |
-|  生成数据模式  |   generateDataMode    | Benchmark 生成数据集到 FILE_PATH 路径中                                            |
+|    模式名称    |  BENCHMARK_WORK_MODE  | 模式内容                                                                          |
+| :------------: | :-------------------: | :-------------------------------------------------------------------------------- |
+|  常规测试模式  |  testWithDefaultPath  | 支持多种读和写操作的混合负载                                                      |
+|  生成数据模式  |   generateDataMode    | Benchmark 生成数据集到 FILE_PATH 路径中                                           |
 | 正确性写入模式 | verificationWriteMode | 从 FILE_PATH 路径中加载数据集进行写入，目前支持 IoTDB v1.0 及更新的版本           |
 | 正确性查询模式 | verificationQueryMode | 从 FILE_PATH 路径中加载数据集和数据库中进行比对，目前支持 IoTDB v1.0 及更新的版本 |
 

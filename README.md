@@ -32,21 +32,21 @@ IoT-Benchmark is a benchmarking tool used to evaluate the performance of time se
 
 Currently supports the following databases, versions and connection methods:
 
-|       Database       |  Version   |
-| :------------------: |:----------:|
-|        IoTDB         | v1.x, v2.x |
-|       InfluxDB       | v1.x, v2.x |
-|       QuestDB        |   v6.0.7   |
-| Microsoft SQL Server |  2016 SP2  |
-|   VictoriaMetrics    |  v1.64.0   |
-|        SQLite        |     --     |
-|       OpenTSDB       |   2.4.1    |
-|       KairosDB       |     --     |
-|     TimescaleDB      |     --     |
-|     TimescaleDB      |  Cluster   |
-|       TDengine       |  2.2.0.2、3.0.1  |
-|      PI Archive      |    2016    |
-|        CnosDB        |     --     |
+|       Database       |    Version     |
+| :------------------: | :------------: |
+|        IoTDB         |   v1.x, v2.x   |
+|       InfluxDB       |   v1.x, v2.x   |
+|       QuestDB        |     v6.0.7     |
+| Microsoft SQL Server |    2016 SP2    |
+|   VictoriaMetrics    |    v1.64.0     |
+|        SQLite        |       --       |
+|       OpenTSDB       |     2.4.1      |
+|       KairosDB       |       --       |
+|     TimescaleDB      |       --       |
+|     TimescaleDB      |    Cluster     |
+|       TDengine       | 2.2.0.2、3.0.1 |
+|      PI Archive      |      2016      |
+|        CnosDB        |       --       |
 
 # 3. Quick Start
 
@@ -105,6 +105,12 @@ Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 ```
 
 After the compilation is completed, taking IoTDB v2.0 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the instructions in [IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md)) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
+
+For the latest IoT-Benchmark 2.0 default parameters, RPC compression is enabled by default. This means IoTDB 2.x testing requires IoTDB `2.0.6+`. If you need to test an IoTDB `2.0.x` version earlier than `2.0.6`, set:
+
+```properties
+ENABLE_IOTDB_RPC_COMPRESSION=false
+```
 
 ```
 
@@ -216,23 +222,23 @@ All the above information will be recorded in the ```logs``` folder of the runni
 
 The configuration files are stored in `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0/conf`. Of course, you can also find the configuration files of other supported databases in similar paths. Edit the file to define the test type and related configuration. **Please note that before each test, you must change the DB_SWITCH parameter in the configuration file to match the database to be tested. The corresponding relationship and possible values are as follows:**
 
-|       Database       | Version  | Corresponding sub-project |                                                  DB_SWITCH                                                   |
-| :------------------: |:--------:| :-----------------------: |:------------------------------------------------------------------------------------------------------------:|
+|       Database       | Version  | Corresponding sub-project |                                                           DB_SWITCH                                                            |
+| :------------------: | :------: | :-----------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
 |        IoTDB         |   1.3    |         iotdb-1.3         | IoTDB-130-JDBC<br>IoTDB-130-REST<br>IoTDB-130-SESSION_BY_TABLET<br>IoTDB-130-SESSION_BY_RECORD<br>IoTDB-130-SESSION_BY_RECORDS |
 |        IoTDB         |   2.x    |         iotdb-2.0         | IoTDB-200-JDBC<br>IoTDB-200-REST<br>IoTDB-200-SESSION_BY_TABLET<br>IoTDB-200-SESSION_BY_RECORD<br>IoTDB-200-SESSION_BY_RECORDS |
-|       InfluxDB       |   1.x    |         influxdb          |                                                   InfluxDB                                                   |
-|       InfluxDB       |   2.x    |       influxdb-2.0        |                                                 InfluxDB-2.x                                                 |
-|        CnosDB        |    --    |          cnosdb           |                                                    CnosDB                                                    |
-|       QuestDB        |  6.0.7   |          questdb          |                                                   QuestDB                                                    |
-| Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                 MSSQLSERVER                                                  |
-|   VictoriaMetrics    |  1.64.0  |      victoriametrics      |                                               VictoriaMetrics                                                |
-|     TimescaleDB      |    --    |        timescaledb        |                                                 TimescaleDB                                                  |
-|     TimescaleDB      | Cluster  |    timescaledb-cluster    |                                             TimescaleDB-Cluster                                              |
-|        SQLite        |    --    |          sqlite           |                                                    SQLite                                                    |
-|       OpenTSDB       |  2.4.1   |         opentsdb          |                                                   OpenTSDB                                                   |
-|       KairosDB       |    --    |         kairosdb          |                                                   KairosDB                                                   |
-|       TDengine       | 2.2.0.2  |         tdengine          |                                                   TDengine                                                   |
-|       TDengine       |  3.0.1   |       tdengine-3.0        |                                                  TDengine-3                                                  |
+|       InfluxDB       |   1.x    |         influxdb          |                                                            InfluxDB                                                            |
+|       InfluxDB       |   2.x    |       influxdb-2.0        |                                                          InfluxDB-2.x                                                          |
+|        CnosDB        |    --    |          cnosdb           |                                                             CnosDB                                                             |
+|       QuestDB        |  6.0.7   |          questdb          |                                                            QuestDB                                                             |
+| Microsoft SQL Server | 2016 SP2 |        mssqlserver        |                                                          MSSQLSERVER                                                           |
+|   VictoriaMetrics    |  1.64.0  |      victoriametrics      |                                                        VictoriaMetrics                                                         |
+|     TimescaleDB      |    --    |        timescaledb        |                                                          TimescaleDB                                                           |
+|     TimescaleDB      | Cluster  |    timescaledb-cluster    |                                                      TimescaleDB-Cluster                                                       |
+|        SQLite        |    --    |          sqlite           |                                                             SQLite                                                             |
+|       OpenTSDB       |  2.4.1   |         opentsdb          |                                                            OpenTSDB                                                            |
+|       KairosDB       |    --    |         kairosdb          |                                                            KairosDB                                                            |
+|       TDengine       | 2.2.0.2  |         tdengine          |                                                            TDengine                                                            |
+|       TDengine       |  3.0.1   |       tdengine-3.0        |                                                           TDengine-3                                                           |
 
 * For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase-EN.md)
 
