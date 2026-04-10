@@ -2,6 +2,9 @@
 
 Again, before you start any new test case, you need to confirm whether the configuration information in the configuration file ```config.properties``` meets your expectations.
 
+> Note:
+> 1. Specific database modules may not support every operation in `OPERATION_PROPORTION`; check the target module README if needed.
+
 ### 1.1. General test mode: write (single database)
 
 Assume that the workload parameters are:
@@ -24,7 +27,7 @@ HOST=127.0.0.1
 PORT=6667
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -53,12 +56,13 @@ LAMBDA=2200.0
 MAX_K=170000
 ```
 
-Some basic modification operations of parameters have been introduced here, and the relevant settings will be omitted in the following part. If necessary, please enter the following page to view.
-[Testconfigurations](https://github.com/supersshhhh/iot-benchmark/blob/patch-1/Testconfigurations.md)
+Some basic modification operations of parameters have been introduced here, and the relevant settings will be omitted in the following part. If necessary, please refer to the detailed configuration examples in [DifferenttestModeConfig.md](./DifferenttestModeConfig.md).
 
 ## 2. General test mode: query (single database, no system records)
 
 In addition to writing data, the general test mode can also query data.
+
+When there is no write operation in the workload, `IS_DELETE_DATA` and `CREATE_SCHEMA` are not needed, and `IS_RECENT_QUERY` will be disabled automatically.
 
 ## 3. General test mode: read-write mixed mode (single database)
 
@@ -70,11 +74,11 @@ General test mode can support users to perform read-write mixed tests (query the
 
 ## 5. General test mode: use system records (single database)
 
-IoTDB Benchmark supports you to use the database to store system data during the test. Currently, it supports the use of CSV records.
+IoTDB Benchmark supports recording system data during the test. In the currently documented workflow, this part uses CSV-based records together with system monitoring.
 
 ## 6. Conventional test mode: test process persistence (single database)
 
-For subsequent analysis, iot-benchmark can store test information in the database (if you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```)
+For subsequent analysis, iot-benchmark can persist test information to a backend database such as IoTDB or MySQL (if you do not want to store test data, set ```TEST_DATA_PERSISTENCE=None```).
 
 ## 7. Generate data mode
 
@@ -82,19 +86,19 @@ In order to generate reusable data sets, iot-benchmark provides a mode for gener
 
 ## 8. Correctness write mode (single database, external data set)
 
-In order to verify the correctness of data set writing, you can use this mode to write the data set generated in the generate data mode. Currently, this mode only supports IoTDB v1.0 and later versions and InfluxDB v1.x
+In order to verify the correctness of data set writing, you can use this mode to write the data set generated in generate data mode back into the target database. This mode is also used in dataset-based verification workflows.
 
 ## 9. Correctness single-point query mode (single database, external data set)
 
-Before running this mode, you need to use the correctness write mode to write data to the database. To verify the correctness of the data set written, you can use this mode to query the data set written to the database. Currently, this mode only supports IoTDB v1.0 and InfluxDB v1.x.
+Before running this mode, you need to use the correctness write mode to write data to the database. To verify the correctness of the written data set, you can use `verificationQueryMode` to query the data set written to the database. According to the current code and module support, this mode is available in modules including IoTDB v1.0 and later, InfluxDB v1.x, TimescaleDB, and CnosDB.
 
 ## 10. Dual database mode
 
 To complete the correctness verification more conveniently and quickly, iot-benchmark also supports dual database mode.
 
 1. For all the test scenarios mentioned above, unless otherwise specified, dual databases are supported. Please **start the test** in the `verification` project.
-
-2. For the relevant test scenarios for correctness verification below, they must be run in dual database mode, and currently only IoTDB v1.0 and newer versions and timescaledb are supported.
+2. `IS_COMPARISON` and `IS_POINT_COMPARISON` are mutually exclusive; only one verification method should be enabled at a time.
+3. According to the current code, double write only support IoTDB v1.0 and newer versions and timescaledb.
 
 ## 11. General test mode: write (dual database)
 
@@ -116,6 +120,5 @@ Note:
 
 ## 14. Further explanation of correctness verification
 
-1. Currently, the correctness verification part only supports IoTDB v1.0 and later versions and TimeScaleDB
-
-2. [Quick Guide](../verification/README.md)
+1. For dataset-based single-database verification, `verificationQueryMode` is the dedicated mode.
+2. For dual-database verification workflows, please refer to the verification guide in [Quick Guide](../verification/README.md).
