@@ -1,20 +1,123 @@
 Benchmark for timescaleDB
 ---
 
-# environment
-1. use docker:
-    1. run timescaleDB:`docker run -it --rm -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=postgres timescale/timescaledb:latest-pg12`
-       1. username:postgres, password:postgres
-       2. default username and password: postgres
-    2. access timescaleDB:`docker exec -it timescaledb psql -U postgres`
-2. more details: https://hub.docker.com/r/timescale/timescaledb/
+## 1. Environment
 
-# config
+Before running the benchmark, prepare:
+
+1. A running TimescaleDB instance
+2. Java 8
+3. Maven 3.6+
+
+## 2. Database setup
+1. Run TimescaleDB:
+
+```bash
+docker run -it --rm -d --name timescaledb -p 5432:5432 -e POSTGRES_PASSWORD=postgres timescale/timescaledb:latest-pg12
+```
+
+The default username and password are:
+
+- `USERNAME=postgres`
+- `PASSWORD=postgres`
+
+2. Access TimescaleDB:
+
+```bash
+docker exec -it timescaledb psql -U postgres
+```
+
+More details: <https://hub.docker.com/r/timescale/timescaledb/>
+
+Before running the benchmark:
+
+1. Make sure the PostgreSQL database specified by `DB_NAME` already exists. The sample configuration in this directory uses `DB_NAME=postgres`.
+2. Make sure the target database has the TimescaleDB extension available so that the module can create a hypertable.
+3. Make sure the benchmark user has permission to create tables and query data in that database.
+
+Additional notes for this module:
+
+- `CREATE_SCHEMA=true` creates a benchmark table in the existing PostgreSQL database and converts it to a TimescaleDB hypertable.
+- `CREATE_SCHEMA=true` does not create the PostgreSQL database itself.
+- `IS_DELETE_DATA=true` drops the benchmark table created by this module in the connected database.
+- In the current implementation, `DB_NAME` is used both as the JDBC database name and as the benchmark table name created inside that database.
+
+## 3. Build benchmark
+
+Build only the TimescaleDB module and its dependencies:
+
+```bash
+mvn -pl timescaledb -am package -DskipTests
+```
+
+This command has been verified locally in this repository.
+
+After packaging, the benchmark tool is generated under:
+
+```text
+timescaledb/target/iot-benchmark-timescaledb
+timescaledb/target/iot-benchmark-timescaledb.zip
+```
+
+## 4. Configure benchmark
+
 [Demo config](config.properties)
 
-# test result
+For the current `timescaledb` module, check at least the following items:
 
+| Key         | Required | Description                                                                                    |
+| :---------- | :------- | :--------------------------------------------------------------------------------------------- |
+| `DB_SWITCH` | Yes      | Must be `TimescaleDB`.                                                                         |
+| `HOST`      | Yes      | Target TimescaleDB or PostgreSQL host. The sample uses `127.0.0.1`.                            |
+| `PORT`      | Yes      | Target PostgreSQL port. The sample uses `5432`.                                                |
+| `USERNAME`  | Yes      | Database username. The Docker example uses `postgres`.                                         |
+| `PASSWORD`  | Yes      | Database password. The Docker example uses `postgres`.                                         |
+| `DB_NAME`   | Yes      | Existing PostgreSQL database name. In this module it is also used as the benchmark table name. |
+
+Minimal example:
+
+```properties
+DB_SWITCH=TimescaleDB
+HOST=127.0.0.1
+PORT=5432
+USERNAME=postgres
+PASSWORD=postgres
+DB_NAME=postgres
 ```
+
+Notes for TimescaleDB configuration:
+
+- `DB_NAME` should be an existing database that the benchmark can connect to.
+- This module also creates and drops a benchmark table with the same name as `DB_NAME`, so avoid using a database name that conflicts with your own table naming policy.
+- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- This module supports `verificationQueryMode`, comparison paths, and `SET_OPERATION`.
+
+The current `timescaledb` module does **not** support the following benchmark features:
+
+- `GROUP_BY_DESC` in `OPERATION_PROPORTION`
+- `ALIGN_BY_DEVICE=true`
+- `RESULT_ROW_LIMIT >= 0`
+
+## 5. Run benchmark
+
+Run the benchmark with the packaged scripts:
+
+```bash
+cd timescaledb/target/iot-benchmark-timescaledb
+./benchmark.sh
+```
+
+If you want to run with a custom configuration directory or file path:
+
+```bash
+./benchmark.sh -cf conf
+```
+
+For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaultPath` and keep the unsupported options above disabled.
+
+## 6. Test result
+
+```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: TimescaleDB
 OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
