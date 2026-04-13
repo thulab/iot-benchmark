@@ -93,7 +93,7 @@ PASSWORD=root
 QUERY_LOWER_VALUE=0
 ```
 
-Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
 The current `kairosdb` module does **not** support the following benchmark features:
 
@@ -144,7 +144,8 @@ INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
 IS_DELETE_DATA=false
 CREATE_SCHEMA=false
 IS_CLIENT_BIND=true
-CLIENT_NUMBER=5
+SCHEMA_CLIENT_NUMBER=5
+DATA_CLIENT_NUMBER=5
 GROUP_NUMBER=20
 SG_STRATEGY=mod
 DEVICE_NUMBER=5

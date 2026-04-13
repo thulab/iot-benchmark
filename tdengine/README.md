@@ -81,7 +81,7 @@ Notes for TDengine configuration:
 
 - If you follow the hostname mapping example in `Environment`, keep `HOST=tdengine`. If you connect by IP directly, set `HOST` to that reachable IP address instead.
 - `DB_NAME` is the database operated by this module, not only a logical prefix.
-- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 - The current module supports the common mixed benchmark flow shown in the sample result, including ingestion, precise query, time range query, value range query, aggregation query, `GROUP_BY`, `LATEST_POINT`, `RANGE_QUERY_DESC`, and `VALUE_RANGE_QUERY_DESC`.
 
 The current `tdengine` module does **not** support the following benchmark features:
@@ -127,7 +127,8 @@ QUERY_INTERVAL=250000
 SENSOR_NUMBER=10
 RESULT_PRECISION=0.1%
 POINT_STEP=5000
-CLIENT_NUMBER=5
+SCHEMA_CLIENT_NUMBER=5
+DATA_CLIENT_NUMBER=5
 SG_STRATEGY=mod
 REAL_INSERT_RATE=1.0
 OUT_OF_ORDER_MODE=0

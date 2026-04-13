@@ -90,7 +90,7 @@ Notes for VictoriaMetrics configuration:
 - `DB_NAME` is a benchmark label, not a database name in the traditional relational sense.
 - This module does not need schema creation.
 - VictoriaMetrics samples are numeric. For benchmark data type proportions, keep text disabled. A typical setting is `INSERT_DATATYPE_PROPORTION=1:1:1:1:1:0`.
-- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
 The current `victoriametrics` module does **not** support the following benchmark features:
 
@@ -134,7 +134,8 @@ OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:0
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
+SCHEMA_CLIENT_NUMBER: 5
+DATA_CLIENT_NUMBER: 5
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 5
 SENSOR_NUMBER: 20

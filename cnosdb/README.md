@@ -83,7 +83,7 @@ DB_NAME=test
 CNOSDB_SHARD_NUMBER=32
 ```
 
-Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and query ratios are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and query ratios are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
 The current `cnosdb` module does **not** support the following benchmark features:
 
@@ -141,7 +141,8 @@ IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
 OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:1
-CLIENT_NUMBER=20
+SCHEMA_CLIENT_NUMBER=20
+DATA_CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=10
 DEVICE_NUM_PER_WRITE=1
