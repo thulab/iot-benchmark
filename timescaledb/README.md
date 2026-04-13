@@ -120,7 +120,7 @@ For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaul
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: TimescaleDB
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
@@ -134,7 +134,7 @@ LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
+OUT_OF_ORDER_MODE: POISSON
 OUT_OF_ORDER_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:

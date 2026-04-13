@@ -132,7 +132,7 @@ The following sample result comes from the original README content in this direc
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: InfluxDB
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true

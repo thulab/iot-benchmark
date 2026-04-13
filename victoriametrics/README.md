@@ -130,7 +130,7 @@ View some data results:
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: VictoriaMetrics
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:0
 IS_CLIENT_BIND: true

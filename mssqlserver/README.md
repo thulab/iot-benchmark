@@ -139,7 +139,7 @@ The test result will be printed in the console and recorded in the generated `lo
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: MSSQLSERVER
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
