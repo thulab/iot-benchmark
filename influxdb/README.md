@@ -1,6 +1,6 @@
 # Benchmark for InfluxDB 1.x
 
-This module uses `iot-benchmark` to test InfluxDB 1.x.
+This module uses IoT Benchmark to test InfluxDB 1.x.
 
 ## 1. Environment
 
@@ -88,7 +88,7 @@ PASSWORD=root
 TIMESTAMP_PRECISION=ms
 ```
 
-Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global template under `configuration/conf/config.properties`.
+Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global template under `configuration/conf/config.properties`.
 
 The current `influxdb` module does **not** support the following benchmark features:
 
@@ -132,11 +132,12 @@ The following sample result comes from the original README content in this direc
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: InfluxDB
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 20
+SCHEMA_CLIENT_NUMBER: 20
+DATA_CLIENT_NUMBER: 20
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 20
 SENSOR_NUMBER: 300

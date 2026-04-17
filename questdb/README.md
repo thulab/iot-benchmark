@@ -1,7 +1,7 @@
 Benchmark Questdb
 ---
 
-1. Please note: the `CLIENT_NUMBER` of QuestDB needs to be configured together with the server startup settings, and it should be less than or equal to `pg.net.active.connection.limit` and the available worker capacity.
+1. Please note: the QuestDB benchmark client counts, especially `DATA_CLIENT_NUMBER` and `SCHEMA_CLIENT_NUMBER`, need to be configured together with the server startup settings, and they should be less than or equal to `pg.net.active.connection.limit` and the available worker capacity.
 2. Please note: the number of sensors should not be too large for this module.
 
 ## 1. Environment
@@ -50,7 +50,7 @@ pg.net.active.connection.limit=20
 
 Additional notes for this module:
 
-- `CLIENT_NUMBER` should not exceed the configured QuestDB connection limit.
+- `DATA_CLIENT_NUMBER` and `SCHEMA_CLIENT_NUMBER` should not exceed the configured QuestDB connection limit.
 - The current module creates benchmark tables automatically when `CREATE_SCHEMA=true`.
 - `IS_DELETE_DATA=true` drops the benchmark tables whose names start with `DB_NAME`.
 - QuestDB uses the built-in `qdb` database over the PostgreSQL wire protocol. `DB_NAME` in this module is used as the benchmark table name prefix, not as a separate database name to create first.
@@ -98,7 +98,7 @@ PASSWORD=quest
 DB_NAME=test
 ```
 
-Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
 The current `questdb` module does **not** support the following benchmark features:
 
@@ -130,11 +130,12 @@ For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaul
 ```
 ----------------------Main Configurations----------------------
 DB_SWITCH: QuestDB
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
+SCHEMA_CLIENT_NUMBER: 5
+DATA_CLIENT_NUMBER: 5
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 5
 SENSOR_NUMBER: 10
@@ -143,7 +144,7 @@ LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
+OUT_OF_ORDER_MODE: POISSON
 OUT_OF_ORDER_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:

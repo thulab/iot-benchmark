@@ -87,7 +87,7 @@ Notes for TimescaleDB Cluster configuration:
 - `DB_NAME` should be an existing database that the benchmark can connect to.
 - This module also creates and drops a benchmark table with the same name as `DB_NAME`.
 - `TIMESCALEDB_REPLICATION_FACTOR` is specific to this module and affects distributed hypertable creation.
-- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
 The current `timescaledb-cluster` module does **not** support the following benchmark features:
 

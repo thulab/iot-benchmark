@@ -15,7 +15,7 @@ IoT Benchmark
 
 ![IoT Benchmark 架构](https://github.com/apache/iotdb/assets/46039728/1fbf027d-0955-4de6-b727-57dbeaf2a5ab)
 
-IoT-Benchmark 是用来评估时序数据库、实时数据库在工业物联网（IIoT）场景下的性能的基准测试工具，具有如下特点：
+IoT Benchmark 是用来评估时序数据库、实时数据库在工业物联网（IIoT）场景下的性能的基准测试工具，具有如下特点：
 1. **跨平台支持**：支持主流操作系统，通过简单命令即可启动测试并获得结果。
 2. **集多种测试功能于一身，能够满足多样化的测试需求**：
    1. 按照配置生成周期性的时间序列数据并直接插入和查询。
@@ -81,12 +81,12 @@ git checkout [分支名]
 
 如果需要针对更旧版本的 IoTDB 进行测试，请先切换到对应的 `rel/iotdb_xxx` 分支，再在该分支上编译对应的 benchmark 安装包。
 
-使用如下命令通过 Maven 完成 iot-benchmark 的构建：
+使用如下命令通过 Maven 完成 IoT Benchmark 的构建：
 
 ```
 mvn clean package -Dmaven.test.skip=true
 ```
-该命令会编译 iot-benchmark 的 `core` 模块，以及根 `pom.xml` 中默认启用的所有模块。
+该命令会编译 IoT Benchmark 的 `core` 模块，以及根 `pom.xml` 中默认启用的所有模块。
 
 ## 3.3. 快速开始
 
@@ -101,7 +101,7 @@ CPU：I7-11700
 
 在完成编译后，以 IoTDB v2.0 为例，**您需要首先在本机的 6667 端口启动相应版本的 IoTDB 服务**。（如果您对于使用 IoTDB 仍有疑问，请参照目标 IoTDB 版本的官方文档。）在成功启动 IoTDB 服务后，您可以进入到 `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` 文件夹下，使用 `./benchmark.sh` 启动测试。我们推荐使用匹配的版本进行测试，以此达到最佳效果。
 
-需要额外说明的是，最新的 IoT-Benchmark 2.0 默认参数已经开启 RPC 压缩，因此测试 IoTDB 2.x 时要求目标版本为 IoTDB `2.0.6+`。如果需要测试 `2.0.6` 之前的 IoTDB `2.0.x` 版本，请将配置项设置为：
+需要额外说明的是，最新的 IoT Benchmark 2.0 默认参数已经开启 RPC 压缩，因此测试 IoTDB 2.x 时要求目标版本为 IoTDB `2.0.6+`。如果需要测试 `2.0.6` 之前的 IoTDB `2.0.x` 版本，请将配置项设置为：
 
 ```properties
 ENABLE_IOTDB_RPC_COMPRESSION=false
@@ -146,8 +146,9 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0
-CLIENT_NUMBER=20
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
+SCHEMA_CLIENT_NUMBER=20
+DATA_CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
 START_TIME=2022-01-01T00:00:00+08:00
@@ -237,7 +238,7 @@ SET_OP_QUERY             0.00        0.00        0.00        0.00        0.00   
 
 * 不同数据库使用说明详见 [被测数据库示例说明](./docs/DifferentTestDatabase.md)
 
-同时，您还可以更改 BENCHMARK_WORK_MODE 参数调整 iot-benchmark 的运行模式，目前已经支持：
+同时，您还可以更改 BENCHMARK_WORK_MODE 参数调整 IoT Benchmark 的运行模式，目前已经支持：
 
 |    模式名称    |  BENCHMARK_WORK_MODE  | 模式内容                                                                          |
 | :------------: | :-------------------: | :-------------------------------------------------------------------------------- |

@@ -1,6 +1,6 @@
 0.1. Benchmark influxdb 2.0
 ---
-This project is using iot-benchmark to test influxdb 2
+This project uses IoT Benchmark to test InfluxDB 2.
 
 Notice, default config of influxdb2 is not support too many write in a short time.
 
@@ -69,11 +69,12 @@ The test result will be printed in the console and recorded in the generated `lo
 ```
 ----------------------Main Configurations----------------------
 DB_SWITCH: InfluxDB-2.0
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
+SCHEMA_CLIENT_NUMBER: 5
+DATA_CLIENT_NUMBER: 5
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 5
 SENSOR_NUMBER: 10

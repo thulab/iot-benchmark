@@ -89,7 +89,7 @@ Notes for TimescaleDB configuration:
 
 - `DB_NAME` should be an existing database that the benchmark can connect to.
 - This module also creates and drops a benchmark table with the same name as `DB_NAME`, so avoid using a database name that conflicts with your own table naming policy.
-- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 - This module supports `verificationQueryMode`, comparison paths, and `SET_OPERATION`.
 
 The current `timescaledb` module does **not** support the following benchmark features:
@@ -120,11 +120,12 @@ For a normal mixed read/write benchmark, use `BENCHMARK_WORK_MODE=testWithDefaul
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: TimescaleDB
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 5
+SCHEMA_CLIENT_NUMBER: 5
+DATA_CLIENT_NUMBER: 5
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 5
 SENSOR_NUMBER: 10
@@ -133,7 +134,7 @@ LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
+OUT_OF_ORDER_MODE: POISSON
 OUT_OF_ORDER_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:

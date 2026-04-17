@@ -2,11 +2,10 @@
 ![](https://img.shields.io/badge/java--language-1.8-blue.svg)
 
 ** This document shows the specific configuration and execution of several test scenarios given in README.md **
-** 该文档展示了README.md中给出的几种测试场景的具体配置以及具体执行情况 **
 
-# 1. 常规测试模式之查询(单数据库，不使用系统记录) Benchmark的配置 
+# 1. Query in regular test mode (single database, no system records) Benchmark configuration
 
-修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_DELETE_DATA=false```，来关闭数据清理)：
+Modify the relevant parameters in the ```config.properties``` file as follows (pay special attention to setting ```IS_DELETE_DATA=false``` to turn off data cleaning):
 
 ```properties
 ### Main Data Ingestion and Query Shared Parameters
@@ -15,7 +14,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -38,22 +37,22 @@ QUERY_INTERVAL=250000
 GROUP_BY_TIME_UNIT=20000
 ```
 
-> 注意：
-> `config.properties`中包含了查询相关的配置参数，您可以通过查看示例文件来了解。
+> Note:
+> `config.properties` contains query-related configuration parameters, which you can learn by viewing the sample file.
 
-## 1.1. Benchmark的启动 
+## 1.1. Benchmark startup
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine.
 
-之后您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then you go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 1.2. Benchmark的执行
+## 1.2. Benchmark execution
 
-测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
+After the test is started, you can see the scrolling test execution information, some of which are as follows:
 
 ```
 ...
@@ -64,7 +63,7 @@ GROUP_BY_TIME_UNIT=20000
 ...
 ```
 
-当测试结束后，最后会显示出本次测试的统计信息，如下所示：
+When the test is finished, the statistical information of this test will be displayed as follows:
 
 ```
 2022-05-08 14:55:47,915 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -85,7 +84,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -140,14 +139,12 @@ VALUE_RANGE_QUERY_DESC   5.44        0.52        2.05        2.68        3.62   
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-> 注意：
-> 当 okOperation 小于 1000 或 100 时，因为我们使用 T-Digest 算法，分位数 P99 和 P999 甚至可能大于 MAX（该算法在该场景中使用插值）。
+> Note:
+> When okOperation is less than 1000 or 100, because we use the T-Digest algorithm, the quantiles P99 and P999 may even be greater than MAX (the algorithm uses interpolation in this scenario).
 
+# 2. Benchmark configuration for the conventional test mode of mixed read-write mode (single database)
 
-
-# 2. 6.2.2 常规测试模式之读写混合模式（单数据库） Benchmark的配置
-
-修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=false```，来关闭最近查询模式)：
+Modify the relevant parameters in the ```config.properties``` file as follows (pay special attention to setting ```IS_RECENT_QUERY=false``` to turn off the recent query mode):
 
 ```properties
 ### Main Data Ingestion and Query Shared Parameters
@@ -156,7 +153,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -181,19 +178,20 @@ QUERY_INTERVAL=250000
 GROUP_BY_TIME_UNIT=20000
 ```
 
-## 2.1. Benchmark的启动
+## 2.1. Start Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine.
 
-之后您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start Benchmark (currently only the following script is executed in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 2.2. Benchmark的执行
+## 2.2. Execution of Benchmark
 
-测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
+After the test is started, you can see the scrolling test execution information, some of which are as follows:
+
 
 ```
 ...
@@ -204,7 +202,7 @@ GROUP_BY_TIME_UNIT=20000
 ...
 ```
 
-当测试结束后，最后会显示出本次测试的统计信息，如下所示：
+When the test is finished, the statistical information of this test will be displayed as follows:
 
 ```
 2022-05-08 15:02:03,959 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -225,7 +223,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -282,10 +280,9 @@ VALUE_RANGE_QUERY_DESC   13.19       0.37        0.65        0.86        1.46   
 
 
 
+# 3. Conventional test mode - read-write mixed mode (single database, query the most recently written data) Benchmark configuration
 
-# 3. 6.2.3 常规测试模式之读写混合模式（单数据库，查询最近写入数据） Benchmark的配置
-
-修改```config.properties```文件中的相关参数如下(其中格外注意设置```IS_RECENT_QUERY=true```，来关闭最近查询模式)：
+Modify the relevant parameters in the ```config.properties``` file as follows (pay special attention to setting ```IS_RECENT_QUERY=true``` to enable the most recent query mode):
 
 ```properties
 ### Main Data Ingestion and Query Shared Parameters
@@ -294,7 +291,7 @@ PORT=6667
 IS_DELETE_DATA=false
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 BENCHMARK_WORK_MODE=testWithDefaultPath
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=10
 DEVICE_NUMBER=50
 SENSOR_NUMBER=500
@@ -319,19 +316,19 @@ QUERY_INTERVAL=250000
 GROUP_BY_TIME_UNIT=20000
 ```
 
-## 3.1. Benchmark的启动
+## 3.1. Start Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine.
 
-之后您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start Benchmark (currently only the following script is executed in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 3.2. Benchmark的执行
+## 3.2. Execution of Benchmark
 
-测试启动后，你可以看到滚动的测试执行信息，其中部分信息如下：
+After the test is started, you can see the scrolling test execution information, some of which are as follows:
 
 ```
 ...
@@ -353,7 +350,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=1:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
@@ -409,130 +406,119 @@ VALUE_RANGE_QUERY_DESC   13.08       0.08        0.31        0.61        1.16   
 ```
 
 
+# 4. Regular test mode: Use system logging (single database) Benchmark configuration
 
+Assume that your IoTDB server IP is 192.168.130.9, and the test client server where you installed IoT Benchmark has authorized access to the IoTDB server.
 
-# 4. 6.2.4 常规测试模式之使用系统记录（单数据库） Benchmark的配置
+The current version of information logging depends on iostat. Please make sure that iostat is installed in the IoTDB server.
 
-假设您的 IoTDB 服务器 IP 是 192.168.130.9，并且您安装了 iot-benchmark 的测试客户端服务器已授权访问 IoTDB 服务器。
-
-当前版本的信息记录依赖于 iostat。请确保 iostat 已安装在 IoTDB 服务器中。
-
-之后配置```config.properties```
-假设您使用的参数与[简单指引](../#61-常规测试模式之写入单数据库)中的参数相同。您应该添加的新参数是 TEST_DATA_PERSISTENCE 和 MONITOR_INTERVAL，例如：
+Then configure `config.properties`.
+Assume that the parameters you use are the same as those in the quick-start example in [README.md](../README.md). The new parameters you should add are `TEST_DATA_PERSISTENCE` and `MONITOR_INTERVAL`, for example:
 
 ```properties
 TEST_DATA_PERSISTENCE=CSV
 MONITOR_INTERVAL=0
 ```
 
-> 1. TEST_DATA_PERSISTENCE=CSV 表示测试结果保存到CSV中。
-> 2. INTERVAL=0 表示服务器信息记录的间隔最小为 2 秒。 如果您设置 INTERVAL=n，那么间隔将为 n+2 秒，因为记录过程至少需要2秒。在进行长时间测试时，您可能希望将 INTERVAL 设置得更长。
+> 1. TEST_DATA_PERSISTENCE=CSV means that the test results are saved in CSV.
+> 2. `MONITOR_INTERVAL=0` means that the minimum interval for server information logging is 2 seconds. If you set `MONITOR_INTERVAL=n`, the interval will be `n+2` seconds, because the recording process itself takes at least 2 seconds.
 
-## 4.1. Benchmark的启动
+## 4.1. Starting the Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine.
 
-之后您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then you go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
 ```
 
-其他后续过程和上文所述类似，最后生成的相关文件会存放在```data```目录下。
-
-
-
+The other subsequent processes are similar to those described above, and the generated related files will be stored in the ```data``` directory.
 
 ```properties
 TEST_DATA_PERSISTENCE=MySQL
-# 数据库的IP地址
+# Database IP address
 TEST_DATA_STORE_IP=127.0.0.1
-# 数据库的端口号
-TEST_DATA_STORE_PORT=6667
-# 数据库的名称
+# Database port number (3306 for MySQL)
+TEST_DATA_STORE_PORT=3306
+# Database name
 TEST_DATA_STORE_DB=result
-# 数据库用户名
+# Database user name
 TEST_DATA_STORE_USER=root
-# 数据库用户密码
+# Database user password
 TEST_DATA_STORE_PW=root
-# 数据库读超时，单位毫秒
+# Database write timeout, in milliseconds
 TEST_DATA_WRITE_TIME_OUT=300000
-# 数据库写入并发池最多限制
+# Maximum limit for database write concurrent pool
 TEST_DATA_MAX_CONNECTION=1
-# 对本次实验的备注，作为表名的一部分存入数据库(如MySQL)中，注意不要有.等特殊字符
+# Notes for this experiment, stored in the database (such as MySQL) as part of the table name, be careful not to have special characters such as.
 REMARK=
 ```
 
-后续操作和上文保持一致。
+Subsequent operations are consistent with the above.
 
 
+# 5. Conventional test mode: test process persistence (single database) Benchmark configuration
 
-
-# 5. 6.2.5 常规测试模式之测试过程持久化（单数据库） Benchmark配置
-
-目前支持的存储数据库为IoTDB和MySQL，以MySQL为例，你需要修改```config.properties```文件中的如下配置：
+For database persistence backends, the current code supports IoTDB and MySQL. Taking MySQL as an example, you need to modify the following configuration in `config.properties`:
 
 ```properties
 TEST_DATA_PERSISTENCE=MySQL
-# 数据库的IP地址
+# Database IP address
 TEST_DATA_STORE_IP=127.0.0.1
-# 数据库的端口号
-TEST_DATA_STORE_PORT=6667
-# 数据库的名称
+# Database port number (3306 for MySQL)
+TEST_DATA_STORE_PORT=3306
+# Database name
 TEST_DATA_STORE_DB=result
-# 数据库用户名
+# Database user name
 TEST_DATA_STORE_USER=root
-# 数据库用户密码
+# Database user password
 TEST_DATA_STORE_PW=root
-# 数据库读超时，单位毫秒
+# Database write timeout, in milliseconds
 TEST_DATA_WRITE_TIME_OUT=300000
-# 数据库写入并发池最多限制
+# Database write concurrent pool maximum limit
 TEST_DATA_MAX_CONNECTION=1
-# 对本次实验的备注，作为表名的一部分存入数据库(如MySQL)中，注意不要有.等特殊字符
+# The notes for this experiment are stored in the database (such as MySQL) as part of the table name. Be careful not to include special characters such as .
 REMARK=
 ```
 
-后续操作和上文保持一致。
+The subsequent operations are consistent with the above.
 
+# 6. Generate data mode Benchmark configuration
 
+In order to generate reusable data sets, IoT Benchmark provides a data set generation mode, which generates data sets to FILE_PATH for subsequent use in correctness write mode and correctness query mode.
 
+Users can control the number of batches contained in each file by modifying `BIG_BATCH_SIZE`
 
-
-# 6. 6.2.6 生成数据模式 Benchmark的配置
-
-为了生成可以重复使用的数据集，iot-benchmark提供生成数据集的模式，生成数据集到FILE_PATH，以供后续使用正确性写入模式和正确性查询模式使用。
-
-用户可以通过修改`BIG_BATCH_SIZE`来控制每个文件中包含的batch的个数
-
-为此，你需要修改```config.properties```中的如下配置：
+To do this, you need to modify the following configuration in ```config.properties```:
 
 ```
 BENCHMARK_WORK_MODE=generateDataMode
-# 数据集存储地址
+# Data set storage address
 FILE_PATH=data/test
 DEVICE_NUMBER=5
 SENSOR_NUMBER=10
 CLIENT_NUMBER=5
 BATCH_SIZE_PER_WRITE=10
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
-# 每个数据文件包含的Batch个数
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
+# Number of batches contained in each data file
 BIG_BATCH_SIZE=100
 ```
 
-> 注意：
-> FILE_PATH文件夹应当为空文件夹，如果非空则会报错，生成的数据集会存放到这个文件夹中。
+> Note:
+> The `FILE_PATH` folder should be an empty folder. If it is not empty, an error will be reported and the generated data set will be stored in this folder.
 
-## 6.1. Benchmark的启动
+## 6.1. Start Benchmark
 
-您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start Benchmark (currently only the following script is executed in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 6.2. Benchmark的执行
+## 6.2. Execution of Benchmark
 
-生成数据启动后，你可以看到滚动的执行信息。当测试结束后，最后会显示出本次生成的数据集的信息，如下所示：
+After the data generation starts, you can see the scrolling execution information. When the test is finished, the information of the data set generated this time will be displayed, as shown below:
 
 ```
 2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:43 - Data Location: data/test 
@@ -540,12 +526,12 @@ BIG_BATCH_SIZE=100
 2022-05-08 15:07:19,641 INFO  cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode:45 - Generate Info Location: data/test/info.txt 
 ```
 
-> 注意：
-> 1. 数据存放位置为FILE_PATH文件夹下，其目录结构为/d_xxx/batch_xxx.txt
-> 2. 设备和传感器的相关元数据存放在FILE_PATH/schema.txt中
-> 3. 数据集的相关信息存放在FILE_PATH/info.txt中
+> Note:
+> 1. The generated data is stored under `FILE_PATH/<device>/BigBatch_<n>.csv`.
+> 2. The metadata of devices and sensors is stored in `FILE_PATH/schema.txt`.
+> 3. The dataset metadata is stored in `FILE_PATH/info.txt`.
 
-以下是info.txt的一个实例：
+The following is an example of info.txt:
 
 ```
 LOOP=10000
@@ -590,25 +576,23 @@ SENSORS=[s_0, s_1, s_2, s_3, s_4, s_5, s_6, s_7, s_8, s_9]
 
 
 
+# 7. Verification Write Mode (Single Database, External Dataset) Benchmark Configuration
 
-# 7. 6.2.7 正确性写入模式（单数据库，外部数据集） Benchmark的配置
-
-为此，你需要修改```config.properties```中的如下配置：
+To do this, you need to modify the following configuration in ```config.properties```:
 
 ```
 BENCHMARK_WORK_MODE=verificationWriteMode
-# 数据集存储地址
+# Dataset storage address
 FILE_PATH=data/test
-# 每个数据文件包含的Batch个数
+# Number of batches contained in each data file
 BIG_BATCH_SIZE=100
 ```
 
-> 注意：
-> 1. FILE_PATH文件夹应当为使用生成数据模式生成的数据集
-> 2. 运行该模式时其他参数应当和info.txt中的描述**保持一致**
+> Note:
+> 1. The `FILE_PATH` folder should contain a dataset generated by `generateDataMode`
+> 2. When running this mode, other parameters should be consistent with the description in info.txt.
 
-
-外部数据集，即如果需要使用现有的真实数据进行扩展插入到数据库中，需要设置如下
+External data sets, that is, if you need to use existing real data to expand and insert into the database, you need to set it as follows
 ```
 BENCHMARK_WORK_MODE=verificationWriteMode
 FILE_PATH=data/test
@@ -617,28 +601,28 @@ CLIENT_NUMBER=1
 BATCH_SIZE_PER_WRITE=100
 IS_COPY_MODE=true
 ```
-需要在FILE_PATH中添加外部数据集
+You need to add an external data set in FILE_PATH
 ```
 + FILE_PATH
-   + d_0
-       + *.csv  # 将第一列修改为如"Sensor,s_0,s_1,..."
-   + schema.txt # 每一行解释每个Sensor的Type,如"d_0 s_0 3\n d_0 s_1 4"
++ d_0
++ *.csv # Modify the first column to "Sensor, s_0, s_1,..."
++ schema.txt # Each line explains the Type of each Sensor, such as "d_0 s_0 3\n d_0 s_1 4"
 ```
-添加完成后，即可运行。
+After adding, you can run it.
 
-## 7.1. Benchmark的启动
+## 7.1. Start Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine.
 
-之后您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start Benchmark (currently only the following script is executed in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 7.2. Benchmark的执行
+## 7.2. Benchmark execution
 
-写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+After writing data, you can see the scrolling execution information, some of which are as follows:
 
 ```
 ...
@@ -649,7 +633,7 @@ IS_COPY_MODE=true
 ...
 ```
 
-当测试结束后，最后会显示出写入数据集的信息，如下所示：
+When the test is finished, the information about the written data set will be displayed as follows:
 
 ```
 2022-05-08 15:08:38,751 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -670,7 +654,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=5
 LOOP=10000
 BATCH_SIZE_PER_WRITE=10
@@ -701,35 +685,34 @@ INGESTION                0.52        0.02        0.02        0.03        0.03   
 
 
 
+# 8. Correctness single-point query mode (single database, external data set) Benchmark configuration
 
-# 8. 6.2.8 正确性单点查询模式（单数据库，外部数据集） Benchmark的配置
-
-为此，你需要修改```config.properties```中的如下配置：
+To do this, you need to modify the following configuration in ```config.properties```:
 
 ```
 BENCHMARK_WORK_MODE=verificationQueryMode
-# 数据集存储地址
+# Data set storage address
 FILE_PATH=data/test
-# 每个数据文件包含的Batch个数
+# Number of batches contained in each data file
 BIG_BATCH_SIZE=100
 ```
 
-> 注意：
-> 1. FILE_PATH文件夹应当为使用生成数据模式生成的数据集
-> 2. 运行该模式时其他参数应当和info.txt中的描述**保持一致**
- 
-## 8.1. Benchmark的启动
+> Note:
+> 1. The `FILE_PATH` folder should contain a dataset generated by `generateDataMode`
+> 2. When running this mode, other parameters should be consistent with the description in `info.txt`.
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务。
+## 8.1. Start Benchmark
 
-之后您进入到`iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine.
+
+Then go to `iot-benchmark/iotdb-1.0/target/iot-benchmark-iotdb-1.0` and run the following command to start Benchmark (currently only the following script is executed in Unix/OS X system):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 8.2. Benchmark的执行
-写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+## 8.2. Benchmark execution
+After writing data and starting, you can see the scrolling execution information, some of which are as follows:
 
 ```
 ...
@@ -740,7 +723,7 @@ BIG_BATCH_SIZE=100
 ...
 ```
 
-当测试结束后，最后会显示出写入数据集的信息，如下所示：
+When the test is finished, the information about the written data set will be displayed as follows:
 
 ```
 2022-05-08 15:11:50,033 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -761,7 +744,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=5
 LOOP=10000
 BATCH_SIZE_PER_WRITE=10
@@ -791,49 +774,46 @@ VERIFICATION_QUERY       14.48       0.96        11.40       12.67       14.43  
 ```
 
 
-# 9. 6.2.9 双数据库模式 Benchmark配置
+# 9. Dual database mode Benchmark configuration
 
-为了完成双数据库配置，您需要对`config.properties`完成如下修改：
+To complete the dual database configuration, you need to modify `config.properties` as follows:
 
 ```
-################ Benchmark：双写模式 ####################
-# 双写模式仅支持不同数据库之间进行比较，不支持同一个数据库不同版本进行双写
+################# Benchmark: Dual write mode #####################
+# Dual write mode only supports comparison between different databases, and does not support dual write of different versions of the same database
 IS_DOUBLE_WRITE=true
-# 另一个写入的数据库，目前的格式为{name}{-version}{-insert mode}(注意-号)其全部参考值参见README文件
+# Another database to write to, the current format is {name}{-version}{-insert mode} (note the - sign). For all reference values, see the README file
 ANOTHER_DB_SWITCH=TimescaleDB
-# 另一个写入的数据库的主机
+# The host of the other database to write to
 ANOTHER_HOST=127.0.0.1
-# 另一个写入的数据库的端口
+# The port of the other database to write to
 ANOTHER_PORT=5432
-# 另一个写入的数据库的用户名
+# The user name of the other database to write to
 ANOTHER_USERNAME=postgres
-# 另一个写入的数据库的密码，如果为多个数据库，则要求保持一致
+# The password of the other database to be written. If there are multiple databases, they must be consistent.
 ANOTHER_PASSWORD=postgres
-# 另一个写入的数据库的名称
+# The name of the other database to be written
 ANOTHER_DB_NAME=postgres
-# 另一个数据库认证使用的Token，目前仅限于InfluxDB 2.0使用
+# The token used for authentication of another database, currently limited to InfluxDB 2.0
 ANOTHER_TOKEN=token
-# 是否将两个数据库中的查询结果集进行比较
+# Whether to compare the query result sets in the two databases
 IS_COMPARISON=false
-# 是否进行两个数据库间点对点数据对比
+# Whether to perform point-to-point data comparison between the two databases
 IS_POINT_COMPARISON=false
 ```
 
+# 10. Configuration of the write (dual database) benchmark in the normal test mode
 
+Complete the dual database configuration in `config.properties` as described in the dual database mode
 
-
-# 10. 6.2.10 常规测试模式之写入(双数据库) Benchmark的配置
-
-如双数据库模式中描述的方式在`config.properties`完成双数据库配置
-
-此外，请在`config.properties`中修改如下配置：
+In addition, please modify the following configuration in `config.properties`:
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -843,19 +823,19 @@ POINT_STEP=200
 LOOP=1000
 ```
 
-## 10.1. Benchmark的启动
+## 10.1. Starting the Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine and start the TimescaleDB service on port 5432
 
-之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then go to `iot-benchmark/verification/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 10.2. Benchmark的执行
+## 10.2. Benchmark execution
 
-写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+After writing data and starting, you can see the scrolling execution information, some of which are as follows:
 
 ```
 ...
@@ -866,7 +846,7 @@ LOOP=1000
 ...
 ```
 
-当测试结束后，最后会显示出写入数据集的信息，如下所示：
+When the test is finished, the information about the written data set will be displayed as follows:
 
 ```
 2022-05-12 09:48:00,160 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished.
@@ -890,7 +870,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
@@ -943,24 +923,22 @@ VALUE_RANGE_QUERY_DESC   0.00        0.00        0.00        0.00        0.00   
 
 
 
+# 11. Correctness single-point query mode (dual database comparison) Benchmark configuration
 
-# 11. 6.2.11 正确性单点查询模式（双数据库比较） Benchmark的配置
-
-如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
+Complete the dual database configuration in `config.properties` as described in the dual database mode, and modify the following configuration to start the correctness single-point query (dual database comparison)
 
 ```
-# 是否进行两个数据库间点对点数据对比
+# Whether to compare data between two databases point-to-point
 IS_POINT_COMPARISON=true
 ```
-
-此外，请在`config.properties`中修改如下配置：
+In addition, please modify the following configuration in `config.properties`:
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -970,19 +948,19 @@ POINT_STEP=200
 LOOP=1000
 ```
 
-## 11.1. Benchmark的启动
+## 11.1. Starting the Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine and start the TimescaleDB service on port 5432
 
-之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then go to `iot-benchmark/verification/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 11.2. Benchmark的执行
+## 11.2. Benchmark execution
 
-写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+After writing data and starting, you can see the scrolling execution information, some of which are as follows:
 
 ```
 ...
@@ -993,7 +971,7 @@ LOOP=1000
 ...
 ```
 
-当测试结束后，最后会显示相关的信息，如下所示：
+When the test is finished, the information about the written data set will be displayed as follows:
 
 ```
 2022-05-12 09:49:53,669 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -1017,7 +995,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1
@@ -1051,24 +1029,22 @@ DEVICE_QUERY             918.19      701.50      709.92      786.73      857.27 
 
 
 
+# 12. Correctness function query mode (double database comparison) Benchmark configuration
 
-# 12. 6.2.12 正确性功能查询模式（双数据库比较） Benchmark的配置
-
-如双数据库模式中描述的方式在`config.properties`完成双数据库配置，其中修改如下配置，开始正确性单点查询（双数据库比较）
+Complete the dual database configuration in `config.properties` as described in the dual database mode, and modify the following configuration to start the correctness function query (double database comparison)
 
 ```
-# 是否将两个数据库中的查询结果集进行比较
+# Whether to compare the query result sets in the two databases
 IS_COMPARISON=true
 ```
-
-此外，请在`config.properties`中修改如下配置（注意：`LOOP=100`，避免查询超出写入范围）
+In addition, please modify the following configuration in `config.properties` (note: `LOOP=100`, to avoid the query exceeding the write range)
 
 ```
 BENCHMARK_WORK_MODE=testWithDefaultPath
 DB_SWITCH=IoTDB-100-SESSION_BY_TABLET
 HOST=127.0.0.1
 PORT=6667
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 GROUP_NUMBER=20
 DEVICE_NUMBER=20
 SENSOR_NUMBER=300
@@ -1078,18 +1054,18 @@ POINT_STEP=5000
 LOOP=100
 ```
 
-## 12.1. Benchmark的启动
+## 12.1. Starting the Benchmark
 
-在启动测试之前，您需要在本机的6667端口启动IoTDB服务，并且在5432端口启动TimescaleDB服务
+Before starting the test, you need to start the IoTDB service on port 6667 of the local machine and start the TimescaleDB service on port 5432
 
-之后您进入到`iot-benchmark/verfication/target/iot-benchmark-verification`中运行如下命令来启动Benchmark(目前仅Unix/OS X系统中执行如下脚本)：
+Then go to `iot-benchmark/verification/target/iot-benchmark-verification` and run the following command to start the Benchmark (currently only the following script is executed in Unix/OS X systems):
 
 ```sh
 > ./benchmark.sh
 ```
 
-## 12.2. Benchmark的执行
-写入数据启动后，你可以看到滚动的执行信息，其中部分信息如下：
+## 12.2. Benchmark execution
+After writing data and starting, you can see the scrolling execution information, some of which are as follows:
 
 ```
 ...
@@ -1100,7 +1076,7 @@ LOOP=100
 ...
 ```
 
-当测试结束后，最后会显示出写入数据集的信息，如下所示：
+When the test is finished, the information about the written data set will be displayed as follows:
 
 ```
 2022-05-12 09:53:55,078 INFO  cn.edu.tsinghua.iot.benchmark.mode.BaseMode:154 - All dataClients finished. 
@@ -1124,7 +1100,7 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 CLIENT_NUMBER=20
 LOOP=1000
 BATCH_SIZE_PER_WRITE=1

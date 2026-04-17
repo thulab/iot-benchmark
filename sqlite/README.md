@@ -13,7 +13,7 @@ SQLite-specific notes:
 
 1. Due to the characteristics of SQLite, the benchmark can run directly without deploying a separate database service.
 2. The benchmark stores data in local database files under the directory where the benchmark is run. In the original SQLite workflow, the generated files include `${DB_NAME}.db`, and the README also refers to `identifier.sqlite`.
-3. Due to SQLite write concurrency limitations in this module, only one client can write to the database file at the same time, so `CLIENT_NUMBER` must be **1**.
+3. Due to SQLite write concurrency limitations in this module, only one data client can write to the database file at the same time, so `DATA_CLIENT_NUMBER` must be **1**. If you use the current shared config template, keeping `SCHEMA_CLIENT_NUMBER=1` is also recommended.
 
 ## 2. Database setup
 
@@ -22,7 +22,7 @@ SQLite does not require a separate server-side installation or startup step for 
 Before running the test:
 
 1. Set `DB_NAME` to the database name you want to use. In the current module, this determines the main local database file name such as `test.db`.
-2. Keep `CLIENT_NUMBER=1`.
+2. Keep `DATA_CLIENT_NUMBER=1`. If you use the current shared config template, also keep `SCHEMA_CLIENT_NUMBER=1`.
 3. Make sure the benchmark process has permission to create and update files in the working directory.
 
 Additional notes for this module:
@@ -55,11 +55,12 @@ For the current `sqlite` module, check at least the following items:
 
 | Key             | Required | Description                                                            |
 | :-------------- | :------- | :--------------------------------------------------------------------- |
-| `DB_SWITCH`     | Yes      | Must be `SQLite`.                                                      |
-| `DB_NAME`       | Yes      | Determines the local SQLite database file name, for example `test.db`. |
-| `CLIENT_NUMBER` | Yes      | Must be `1` for this module.                                           |
-| `DEVICE_NUMBER` | Yes      | The sample config in this directory uses `1`.                          |
-| `SENSOR_NUMBER` | Yes      | The sample config in this directory uses `6`.                          |
+| `DB_SWITCH`            | Yes      | Must be `SQLite`.                                                      |
+| `DB_NAME`              | Yes      | Determines the local SQLite database file name, for example `test.db`. |
+| `DATA_CLIENT_NUMBER`   | Yes      | Must be `1` for this module.                                           |
+| `SCHEMA_CLIENT_NUMBER` | No       | Recommended to keep `1` when using the current shared config template. |
+| `DEVICE_NUMBER`        | Yes      | The sample config in this directory uses `1`.                          |
+| `SENSOR_NUMBER`        | Yes      | The sample config in this directory uses `6`.                          |
 
 Notes for SQLite configuration:
 
@@ -98,11 +99,12 @@ For normal read/write benchmark runs, use `BENCHMARK_WORK_MODE=testWithDefaultPa
 ```text
 ----------------------Main Configurations----------------------
 DB_SWITCH: SQLite
-OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION: 1:1:1:1:1:1:1:1:1:1:1:0:0
 ENABLE_THRIFT_COMPRESSION: false
 INSERT_DATATYPE_PROPORTION: 1:1:1:1:1:1
 IS_CLIENT_BIND: true
-CLIENT_NUMBER: 1
+SCHEMA_CLIENT_NUMBER: 1
+DATA_CLIENT_NUMBER: 1
 GROUP_NUMBER: 20
 DEVICE_NUMBER: 1
 SENSOR_NUMBER: 6
@@ -111,7 +113,7 @@ LOOP: 1000
 POINT_STEP: 5000
 QUERY_INTERVAL: 250000
 IS_OUT_OF_ORDER: false
-OUT_OF_ORDER_MODE: 0
+OUT_OF_ORDER_MODE: POISSON
 OUT_OF_ORDER_RATIO: 0.5
 ---------------------------------------------------------------
 main measurements:

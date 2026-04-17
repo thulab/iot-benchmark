@@ -90,7 +90,7 @@ Notes for TDengine 3.0 configuration:
 
 - `DB_NAME` is the database operated by this module, not only a logical prefix.
 - `TDENGINE_WAL_LEVEL` and `TDENGINE_REPLICA` are specific to this module and are used when the benchmark creates the database automatically.
-- Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+- Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 - This module supports `GROUP_BY_DESC` in `OPERATION_PROPORTION`.
 - This module also supports `ALIGN_BY_DEVICE=true` and `RESULT_ROW_LIMIT >= 0`.
 

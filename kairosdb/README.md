@@ -1,6 +1,6 @@
 # Benchmark for KairosDB
 
-This module uses `iot-benchmark` to test KairosDB.
+This module uses IoT Benchmark to test KairosDB.
 
 ## 1. Environment
 
@@ -93,7 +93,7 @@ PASSWORD=root
 QUERY_LOWER_VALUE=0
 ```
 
-Other workload parameters such as `CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
+Other workload parameters such as `SCHEMA_CLIENT_NUMBER`, `DATA_CLIENT_NUMBER`, `LOOP`, `BATCH_SIZE_PER_WRITE`, `OPERATION_PROPORTION`, and `QUERY_INTERVAL` are inherited from the global benchmark configuration template under `configuration/conf/config.properties`.
 
 The current `kairosdb` module does **not** support the following benchmark features:
 
@@ -139,12 +139,13 @@ DBConfig=
   TOKEN=token
 DOUBLE_WRITE=false
 BENCHMARK_CLUSTER=false
-OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1
+OPERATION_PROPORTION=0:1:1:1:1:1:1:1:1:1:1:0:0
 INSERT_DATATYPE_PROPORTION=1:1:1:1:1:1
 IS_DELETE_DATA=false
 CREATE_SCHEMA=false
 IS_CLIENT_BIND=true
-CLIENT_NUMBER=5
+SCHEMA_CLIENT_NUMBER=5
+DATA_CLIENT_NUMBER=5
 GROUP_NUMBER=20
 SG_STRATEGY=mod
 DEVICE_NUMBER=5
@@ -157,7 +158,7 @@ POINT_STEP=5000
 OP_MIN_INTERVAL=0
 QUERY_INTERVAL=250000
 IS_OUT_OF_ORDER=false
-OUT_OF_ORDER_MODE=0
+OUT_OF_ORDER_MODE=POISSON
 OUT_OF_ORDER_RATIO=0.5
 IS_REGULAR_FREQUENCY=true
 START_TIME=2018-9-20T00:00:00+08:00

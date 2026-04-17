@@ -17,7 +17,7 @@ You can also read [中文版本](README-cn.md).
 
 ![IoT Benchmark Architecture](https://github.com/apache/iotdb/assets/46039728/1fbf027d-0955-4de6-b727-57dbeaf2a5ab)
 
-IoT-Benchmark is a benchmarking tool used to evaluate the performance of time series databases and real-time databases in the Industrial Internet of Things (IIoT) scenario. It has the following features:
+IoT Benchmark is a benchmarking tool used to evaluate the performance of time series databases and real-time databases in the Industrial Internet of Things (IIoT) scenario. It has the following features:
 1. **Cross-platform support**: Supports mainstream operating systems, and can start tests and obtain results through simple commands.
 2. **Integrates multiple test functions in one, able to meet diverse test needs**:
    1. Generates periodic time series data according to the configuration and directly inserts and queries.
@@ -86,7 +86,7 @@ git checkout [branch name]
 
 If you need to benchmark an older IoTDB version, switch to the corresponding `rel/iotdb_xxx` branch first, and then compile the package on that branch.
 
-Use the following command to complete the construction of iot-benchmark through Maven:
+Use the following command to complete the construction of IoT Benchmark through Maven:
 
 ```
 mvn clean package -Dmaven.test.skip=true
@@ -106,7 +106,7 @@ Data disk: 2T HDD (WDC WD40EZAZ-00SF3B0)
 
 After the compilation is completed, taking IoTDB v2.0 as an example, **you need to first start the corresponding version of the IoTDB service on port 6667 of the local machine**. (If you still have questions about using IoTDB, please refer to the instructions in [IoTDB_README.md](https://github.com/apache/iotdb/blob/master/README_ZH.md)) After successfully starting the IoTDB service, go to the `iot-benchmark/iotdb-2.0/target/iot-benchmark-iotdb-2.0/iot-benchmark-iotdb-2.0` folder and use `./benchmark.sh` to start the test. We recommend using the matching version for testing to achieve the best results.
 
-For the latest IoT-Benchmark 2.0 default parameters, RPC compression is enabled by default. This means IoTDB 2.x testing requires IoTDB `2.0.6+`. If you need to test an IoTDB `2.0.x` version earlier than `2.0.6`, set:
+For the latest IoT Benchmark 2.0 default parameters, RPC compression is enabled by default. This means IoTDB 2.x testing requires IoTDB `2.0.6+`. If you need to test an IoTDB `2.0.x` version earlier than `2.0.6`, set:
 
 ```properties
 ENABLE_IOTDB_RPC_COMPRESSION=false
@@ -151,8 +151,9 @@ IS_SENSOR_TS_ALIGNMENT=true
 IS_OUT_OF_ORDER=false
 OUT_OF_ORDER_RATIO=0.5
 ########### Data Amount ###########
-OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0
-CLIENT_NUMBER=20
+OPERATION_PROPORTION=1:0:0:0:0:0:0:0:0:0:0:0:0
+SCHEMA_CLIENT_NUMBER=20
+DATA_CLIENT_NUMBER=20
 LOOP=10000
 BATCH_SIZE_PER_WRITE=100
 START_TIME=2022-01-01T00:00:00+08:00
@@ -242,7 +243,7 @@ The configuration files are stored in `iot-benchmark/iotdb-2.0/target/iot-benchm
 
 * For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase-EN.md)
 
-At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjust the running mode of iot-benchmark. Currently, the following are supported:
+At the same time, you can also change the BENCHMARK_WORK_MODE parameter to adjust the running mode of IoT Benchmark. Currently, the following are supported:
 
 |       Mode name        |  BENCHMARK_WORK_MODE  | Mode content                                                                                                                     |
 | :--------------------: | :-------------------: | :------------------------------------------------------------------------------------------------------------------------------- |
