@@ -201,6 +201,10 @@ public class ConfigDescriptor {
         config.setOBJECT_LENGTH(
             Integer.parseInt(
                 properties.getProperty("OBJECT_LENGTH", config.getOBJECT_LENGTH() + "")));
+        config.setOBJECT_QUERY_FULL_CONTENT(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "OBJECT_QUERY_FULL_CONTENT", config.isOBJECT_QUERY_FULL_CONTENT() + "")));
         config.setDOUBLE_LENGTH(
             Integer.parseInt(
                 properties.getProperty("DOUBLE_LENGTH", config.getDOUBLE_LENGTH() + "")));

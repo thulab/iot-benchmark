@@ -500,12 +500,20 @@ public class IoTDB implements IDatabase {
     builder.append("SELECT ");
     builder.append(modelStrategy.selectTimeColumnIfNecessary());
     List<Sensor> querySensors = devices.get(0).getSensors();
-    builder.append(querySensors.get(0).getName());
+    boolean useReadObject = config.isOBJECT_QUERY_FULL_CONTENT();
+    builder.append(getSensorColumnName(querySensors.get(0), useReadObject));
     for (int i = 1; i < querySensors.size(); i++) {
-      builder.append(", ").append(querySensors.get(i).getName());
+      builder.append(", ").append(getSensorColumnName(querySensors.get(i), useReadObject));
     }
     modelStrategy.addFromClause(devices, builder);
     return builder.toString();
+  }
+
+  private String getSensorColumnName(Sensor sensor, boolean useReadObject) {
+    if (useReadObject && sensor.getSensorType() == SensorType.OBJECT) {
+      return "READ_OBJECT(" + sensor.getName() + ")";
+    }
+    return sensor.getName();
   }
 
   protected Status executeQueryAndGetStatus(String sql, Operation operation) {
