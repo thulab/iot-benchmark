@@ -143,6 +143,9 @@ public class Config {
   /** The length of object */
   private int OBJECT_LENGTH = 1000;
 
+  /** Whether to use READ_OBJECT function for object type sensors in Q1,Q2,Q3,Q9,Q10 queries */
+  private boolean OBJECT_QUERY_FULL_CONTENT = false;
+
   /** The length of double */
   private int DOUBLE_LENGTH = 2;
 
@@ -865,6 +868,14 @@ public class Config {
 
   public void setOBJECT_LENGTH(int OBJECT_LENGTH) {
     this.OBJECT_LENGTH = OBJECT_LENGTH;
+  }
+
+  public boolean isOBJECT_QUERY_FULL_CONTENT() {
+    return OBJECT_QUERY_FULL_CONTENT;
+  }
+
+  public void setOBJECT_QUERY_FULL_CONTENT(boolean OBJECT_QUERY_FULL_CONTENT) {
+    this.OBJECT_QUERY_FULL_CONTENT = OBJECT_QUERY_FULL_CONTENT;
   }
 
   public int getDOUBLE_LENGTH() {
@@ -1921,6 +1932,8 @@ public class Config {
         + STRING_LENGTH
         + "\nOBJECT_LENGTH="
         + OBJECT_LENGTH
+        + "\nOBJECT_QUERY_FULL_CONTENT="
+        + OBJECT_QUERY_FULL_CONTENT
         + "\nDOUBLE_LENGTH="
         + DOUBLE_LENGTH
         + "\nINSERT_DATATYPE_PROPORTION='"
