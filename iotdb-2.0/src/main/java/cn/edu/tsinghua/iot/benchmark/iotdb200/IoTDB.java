@@ -674,6 +674,8 @@ public class IoTDB implements IDatabase {
         return config.getENCODING_TIMESTAMP();
       case DATE:
         return config.getENCODING_DATE();
+      case OBJECT:
+        return "PLAIN";
       default:
         LOGGER.error("Unsupported data sensorType {}.", dataSensorType);
         return null;

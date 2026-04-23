@@ -181,6 +181,11 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
               }
               value = builder.toString();
               break;
+            case OBJECT:
+              byte[] object = new byte[config.getOBJECT_LENGTH()];
+              dataRandom.nextBytes(object);
+              value = object;
+              break;
             case DATE:
               value = LocalDate.ofEpochDay(number.shortValue());
               break;
