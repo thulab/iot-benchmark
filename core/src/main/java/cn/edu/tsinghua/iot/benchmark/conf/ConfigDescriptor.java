@@ -821,12 +821,14 @@ public class ConfigDescriptor {
       LOGGER.error("DEVICE_NUM_PER_WRITE must be greater than 0");
       return false;
     }
-    // tableMode
+    // tableMode: each client must be bound to a single database to avoid frequent database
+    // switching
     if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-        && config.getDATA_CLIENT_NUMBER() % config.getIoTDB_TABLE_NUMBER() != 0) {
+        && config.hasWrite()
+        && config.getDATA_CLIENT_NUMBER() % config.getGROUP_NUMBER() != 0) {
       LOGGER.error(
-          "TableMode must ensure that a client only writes to one table. Therefore, a client only switches database once.\n"
-              + "please make DATA_CLIENT_NUMBER % IoTDB_TABLE_NUMBER == 0");
+          "TableMode must ensure that a client only writes to one database.\n"
+              + "please make DATA_CLIENT_NUMBER % GROUP_NUMBER == 0");
       return false;
     }
     if (dnw == 1) {
