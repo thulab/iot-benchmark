@@ -4,6 +4,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.exception.WorkloadException;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
@@ -128,6 +129,27 @@ public class MetaUtil {
         deviceIndex++;
       }
       clientDataSchema.put(clientId, deviceSchemasList);
+    }
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE && config.hasWrite()) {
+      for (Map.Entry<Integer, List<DeviceSchema>> entry : clientDataSchema.entrySet()) {
+        List<DeviceSchema> schemas = entry.getValue();
+        if (schemas.isEmpty()) {
+          continue;
+        }
+        String expectedGroup = schemas.get(0).getGroup();
+        for (DeviceSchema schema : schemas) {
+          if (!expectedGroup.equals(schema.getGroup())) {
+            LOGGER.error(
+                "Client {} has devices across multiple databases ({} and {}). "
+                    + "In TableMode, each client must be bound to a single database.",
+                entry.getKey(),
+                expectedGroup,
+                schema.getGroup());
+            throw new RuntimeException(
+                "Device distribution violated single-database-per-client constraint in TableMode");
+          }
+        }
+      }
     }
   }
 
