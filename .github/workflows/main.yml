@@ -79,22 +79,22 @@ jobs:
           repository: 'thulab/iot-benchmark'
           ref: 'master'
           fetch-depth: 0
-      # checkout iotdb
-      - name: Checkout iotdb
-        uses: actions/checkout@v4
-        if: ${{ matrix.release_db == 'iotdb-2.0' }}
-        with:
-          path: iotdb
-          repository: 'apache/iotdb'
-          ref: 'master'
-          fetch-depth: 0
-      # compile iotdb
-      - name: Compile iotdb
-        if: ${{ matrix.release_db == 'iotdb-2.0' }}
-        run: |
-          cd ${{ github.workspace }}/iotdb
-          mvn clean
-          mvn install -DskipTests -am -pl iotdb-client/session
+      # checkout & compile iotdb — no longer needed since iotdb-2.0 now
+      # uses released version 2.0.8 from Maven Central
+      # - name: Checkout iotdb
+      #   uses: actions/checkout@v4
+      #   if: ${{ matrix.release_db == 'iotdb-2.0' }}
+      #   with:
+      #     path: iotdb
+      #     repository: 'apache/iotdb'
+      #     ref: 'master'
+      #     fetch-depth: 0
+      # - name: Compile iotdb
+      #   if: ${{ matrix.release_db == 'iotdb-2.0' }}
+      #   run: |
+      #     cd ${{ github.workspace }}/iotdb
+      #     mvn clean
+      #     mvn install -DskipTests -am -pl iotdb-client/session
       # compile benchmark
       - name: Build benchmark binaries
         id: compile-benchmark
