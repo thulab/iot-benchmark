@@ -1,10 +1,8 @@
 name: compile benchmark
 on:
-  #  push:
-  #    branches:
-  #      - master
-  schedule:
-      - cron: "* */24 * * *"
+  push:
+    branches:
+      - master
   workflow_dispatch:
 jobs:
   #----start----
