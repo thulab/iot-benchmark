@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataDeviceClient;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataMixClient;
 import cn.edu.tsinghua.iot.benchmark.client.generate.GenerateDataWriteClient;
 import cn.edu.tsinghua.iot.benchmark.client.progress.TaskProgress;
+import cn.edu.tsinghua.iot.benchmark.client.real.FixedQueryClient;
 import cn.edu.tsinghua.iot.benchmark.client.real.RealDataSetQueryClient;
 import cn.edu.tsinghua.iot.benchmark.client.real.RealDataSetWriteClient;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -104,6 +105,8 @@ public abstract class DataClient implements Runnable {
         return new RealDataSetWriteClient(id, countDownLatch, barrier, taskProgress);
       case VERIFICATION_QUERY:
         return new RealDataSetQueryClient(id, countDownLatch, barrier, taskProgress);
+      case FIXED_QUERY:
+        return new FixedQueryClient(id, countDownLatch, barrier, taskProgress);
       default:
         LOGGER.warn("No need to create client" + config.getBENCHMARK_WORK_MODE());
         break;
