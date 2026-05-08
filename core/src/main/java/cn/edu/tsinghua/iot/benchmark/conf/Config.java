@@ -350,6 +350,9 @@ public class Config {
   /** Whether to randomly select the minimum execution interval of the operation */
   private boolean OP_MIN_INTERVAL_RANDOM = false;
 
+  /** The interval between each write batch in ms, 0 means no interval */
+  private long INTERVAL_BETWEEN_WRITE_BATCH = 0;
+
   /** The max time for writing in ms */
   private int WRITE_OPERATION_TIMEOUT_MS = 120000;
 
@@ -1310,6 +1313,14 @@ public class Config {
     this.OP_MIN_INTERVAL_RANDOM = OP_MIN_INTERVAL_RANDOM;
   }
 
+  public long getINTERVAL_BETWEEN_WRITE_BATCH() {
+    return INTERVAL_BETWEEN_WRITE_BATCH;
+  }
+
+  public void setINTERVAL_BETWEEN_WRITE_BATCH(long INTERVAL_BETWEEN_WRITE_BATCH) {
+    this.INTERVAL_BETWEEN_WRITE_BATCH = INTERVAL_BETWEEN_WRITE_BATCH;
+  }
+
   public int getWRITE_OPERATION_TIMEOUT_MS() {
     return WRITE_OPERATION_TIMEOUT_MS;
   }
@@ -2042,6 +2053,8 @@ public class Config {
     configProperties.addProperty("Data Amount", "OP_MIN_INTERVAL", this.OP_MIN_INTERVAL);
     configProperties.addProperty(
         "Data Amount", "OP_MIN_INTERVAL_RANDOM", this.OP_MIN_INTERVAL_RANDOM);
+    configProperties.addProperty(
+        "Data Amount", "INTERVAL_BETWEEN_WRITE_BATCH", this.INTERVAL_BETWEEN_WRITE_BATCH);
     configProperties.addProperty(
         "Data Amount", "INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
     configProperties.addProperty(

@@ -417,6 +417,11 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty(
                     "OP_MIN_INTERVAL_RANDOM", config.isOP_MIN_INTERVAL_RANDOM() + "")));
+        config.setINTERVAL_BETWEEN_WRITE_BATCH(
+            Long.parseLong(
+                properties.getProperty(
+                    "INTERVAL_BETWEEN_WRITE_BATCH",
+                    config.getINTERVAL_BETWEEN_WRITE_BATCH() + "")));
         config.setWRITE_OPERATION_TIMEOUT_MS(
             Integer.parseInt(
                 properties.getProperty(
