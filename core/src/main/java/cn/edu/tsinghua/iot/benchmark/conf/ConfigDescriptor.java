@@ -348,6 +348,13 @@ public class ConfigDescriptor {
         config.setIoTDB_TABLE_NUMBER(
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+        config.setIoTDB_TABLE_TIME_COLUMN(
+            properties.getProperty("IoTDB_TABLE_TIME_COLUMN", config.getIoTDB_TABLE_TIME_COLUMN()));
+        config.setIoTDB_TABLE_WRITABLE_VIEW(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IoTDB_TABLE_WRITABLE_VIEW",
+                    String.valueOf(config.isIoTDB_TABLE_WRITABLE_VIEW()))));
 
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
