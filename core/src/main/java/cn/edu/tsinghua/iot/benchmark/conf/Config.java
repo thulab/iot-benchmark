@@ -284,6 +284,12 @@ public class Config {
   /** The number of storage group, must less than or equal to number of devices */
   private int GROUP_NUMBER = 1;
 
+  /** The name of time column in table model */
+  private String IoTDB_TABLE_TIME_COLUMN = "time";
+
+  /** Whether to create and use writable views in table model */
+  private boolean IoTDB_TABLE_WRITABLE_VIEW = false;
+
   /** The number of table, In the tree model, it is equal to group_number */
   private int IoTDB_TABLE_NUMBER = 1;
 
@@ -1199,6 +1205,22 @@ public class Config {
 
   public void setGROUP_NUMBER(int GROUP_NUMBER) {
     this.GROUP_NUMBER = GROUP_NUMBER;
+  }
+
+  public String getIoTDB_TABLE_TIME_COLUMN() {
+    return IoTDB_TABLE_TIME_COLUMN;
+  }
+
+  public void setIoTDB_TABLE_TIME_COLUMN(String ioTDB_TABLE_TIME_COLUMN) {
+    IoTDB_TABLE_TIME_COLUMN = ioTDB_TABLE_TIME_COLUMN;
+  }
+
+  public boolean isIoTDB_TABLE_WRITABLE_VIEW() {
+    return IoTDB_TABLE_WRITABLE_VIEW;
+  }
+
+  public void setIoTDB_TABLE_WRITABLE_VIEW(boolean ioTDB_TABLE_WRITABLE_VIEW) {
+    IoTDB_TABLE_WRITABLE_VIEW = ioTDB_TABLE_WRITABLE_VIEW;
   }
 
   public int getIoTDB_TABLE_NUMBER() {
