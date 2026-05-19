@@ -108,6 +108,11 @@ public class TableStrategy extends IoTDBModelStrategy {
                       .append("create table if not exists ")
                       .append(deviceSchema.getTable())
                       .append("(");
+                  // 0.Add time column if customized
+                  String timeColumn = config.getIoTDB_TABLE_TIME_COLUMN();
+                  if (!"time".equals(timeColumn)) {
+                    builder.append(timeColumn).append(" TIMESTAMP TIME, ");
+                  }
                   // 1.Generate SQL for registering table
                   for (int i = 0; i < deviceSchema.getSensors().size(); i++) {
                     if (i != 0) builder.append(", ");
