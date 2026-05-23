@@ -5,6 +5,7 @@ This page is an index of quick guides for database modules that are present in t
 > Note:
 > 1. The links below point to module-level README files.
 > 2. Some modules are not enabled in the default build. For example, the `pi` module is commented out in `pom.xml` and needs to be enabled manually before building.
+> 3. For which test operations each database supports (write / Q1–Q12 / verification queries, etc.), see [Test Operations Supported by Each Database](./OperationSupportMatrix.md).
 
 ## 1.1. Testing InfluxDB v1.x
 [Quick Guide](../influxdb/README.md)
