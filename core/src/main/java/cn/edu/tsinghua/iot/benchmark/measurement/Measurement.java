@@ -468,19 +468,19 @@ public class Measurement {
     return operationLatencySumThisClient;
   }
 
-  private long getOkOperationNum(Operation operation) {
+  public long getOkOperationNum(Operation operation) {
     return okOperationNumMap.get(operation);
   }
 
-  private long getFailOperationNum(Operation operation) {
+  public long getFailOperationNum(Operation operation) {
     return failOperationNumMap.get(operation);
   }
 
-  private long getOkPointNum(Operation operation) {
+  public long getOkPointNum(Operation operation) {
     return okPointNumMap.get(operation);
   }
 
-  private long getFailPointNum(Operation operation) {
+  public long getFailPointNum(Operation operation) {
     return failPointNumMap.get(operation);
   }
 
