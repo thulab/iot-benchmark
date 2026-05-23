@@ -33,21 +33,28 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
   private static final Logger LOGGER = LoggerFactory.getLogger(SingletonWorkDataWorkLoad.class);
   private static final List<Sensor> SENSORS = Collections.synchronizedList(config.getSENSORS());
   private static SingletonWorkDataWorkLoad singletonWorkDataWorkLoad = null;
-  private static final AtomicInteger sensorIndex = new AtomicInteger();
   private final AtomicLong insertLoop = new AtomicLong(0);
+
+  /**
+   * The value insertLoop starts at; the sensor cursor is derived as (curLoop - insertStartIndex).
+   */
+  private final long insertStartIndex;
+
   private static final List<Integer> deviceIds = MetaUtil.sortDeviceId();
 
   private SingletonWorkDataWorkLoad() {
     if (config.isIS_OUT_OF_ORDER()) {
       long startIndex = (long) (config.getLOOP() * config.getOUT_OF_ORDER_RATIO());
       this.insertLoop.set(startIndex);
+      this.insertStartIndex = startIndex;
+    } else {
+      this.insertStartIndex = 0L;
     }
   }
 
@@ -79,15 +86,20 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
       if (config.isIS_SENSOR_TS_ALIGNMENT()) {
         sensors = SENSORS;
       } else {
-        int sensorId = sensorIndex.getAndIncrement() % config.getSENSOR_NUMBER();
+        // Derive the sensor cursor from the SAME curLoop reserved above so the (device, sensor)
+        // pairing is atomic: a single insertLoop.getAndIncrement() fixes both. A separate counter
+        // could be incremented by a concurrent caller between the two reads, mis-pairing the device
+        // with another caller's sensor (defect #3). Single-threaded this yields the same sequence,
+        // because insertLoop and the old sensor counter advanced in lockstep on this branch.
+        int sensorId = (int) ((curLoop - insertStartIndex) % config.getSENSOR_NUMBER());
         batch.setColIndex(sensorId);
         sensors.add(SENSORS.get(sensorId));
       }
       DeviceSchema deviceSchema =
           new DeviceSchema(
-              MetaUtil.getDeviceId(deviceIds.get((int) curLoop % config.getDEVICE_NUMBER())),
+              MetaUtil.getDeviceId(deviceIds.get((int) (curLoop % config.getDEVICE_NUMBER()))),
               sensors,
-              MetaUtil.getTags(deviceIds.get((int) curLoop % config.getDEVICE_NUMBER())));
+              MetaUtil.getTags(deviceIds.get((int) (curLoop % config.getDEVICE_NUMBER()))));
       // create data of batch
       List<Record> records = new ArrayList<>();
       // Sometimes the current time is used as the timestamp of records, considering the requirement
