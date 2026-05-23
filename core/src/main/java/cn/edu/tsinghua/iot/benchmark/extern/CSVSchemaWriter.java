@@ -54,7 +54,7 @@ public class CSVSchemaWriter extends SchemaWriter {
                     try {
                       Files.delete(subPath);
                     } catch (IOException e) {
-                      e.printStackTrace();
+                      LOGGER.error("Failed to delete {}", subPath, e);
                     }
                   });
         }
@@ -81,11 +81,9 @@ public class CSVSchemaWriter extends SchemaWriter {
           infoPath, config.toInfoText().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
       return true;
     } catch (IOException ioException) {
-      ioException.printStackTrace();
       LOGGER.error(
-          "Failed to generate Schema. Please check whether "
-              + config.getFILE_PATH()
-              + " is empty.");
+          "Failed to generate Schema. Please check whether " + config.getFILE_PATH() + " is empty.",
+          ioException);
       return false;
     }
   }

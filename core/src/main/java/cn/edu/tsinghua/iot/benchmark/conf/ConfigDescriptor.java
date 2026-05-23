@@ -596,7 +596,7 @@ public class ConfigDescriptor {
                     "IS_RECORD_CURRENT_REALLY_TIME",
                     config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.error("Failed to load config file", e);
       }
       try {
         inputStream.close();

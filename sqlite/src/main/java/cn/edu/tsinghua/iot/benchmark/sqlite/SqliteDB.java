@@ -231,8 +231,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("preciseQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -259,8 +258,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("rangeQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -288,8 +286,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("valueRangeQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -321,8 +318,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("aggRangeQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -348,8 +344,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("aggValueQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -379,8 +374,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("aggRangeValueQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -408,8 +402,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("groupByQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -453,8 +446,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("latestPointQuery failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -482,8 +474,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("rangeQueryOrderByDesc failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -512,8 +503,7 @@ public class SqliteDB implements IDatabase {
       statement.close();
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("valueRangeQueryOrderByDesc failed", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
