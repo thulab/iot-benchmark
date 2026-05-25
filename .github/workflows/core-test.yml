@@ -23,9 +23,3 @@ jobs:
         run: |
           cd ${{ github.workspace }}/iot-benchmark
           mvn -B test -pl core
-      - name: upload jacoco report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: jacoco-core
-          path: iot-benchmark/core/target/site/jacoco/

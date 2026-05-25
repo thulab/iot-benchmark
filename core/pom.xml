@@ -116,24 +116,23 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.12</version>
-        <executions>
-          <execution>
-            <id>prepare-agent</id>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>test</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.4</version>
+        <configuration>
+          <!--
+            Tests trigger ConfigDescriptor, which resolves config.properties and
+            function.xml relative to "benchmark-conf" (default: configuration/conf).
+            Surefire forks with workingDirectory=core/, where these files don't
+            exist, so Config.initInnerFunction() hits a missing function.xml and
+            calls System.exit(0) (crashing the fork). Point benchmark-conf at the
+            repo-root config dir so the files resolve. The root config.properties
+            is fully commented out, so config stays at defaults.
+          -->
+          <systemPropertyVariables>
+            <benchmark-conf>${project.parent.basedir}/configuration/conf</benchmark-conf>
+          </systemPropertyVariables>
+        </configuration>
       </plugin>
     </plugins>
   </build>
