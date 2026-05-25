@@ -69,6 +69,7 @@ public class SingletonWorkDataWorkLoadConcurrencyTest extends BenchmarkTestBase 
   private boolean origOutOfOrder;
   private int origDataClientNumber;
   private int origSchemaClientNumber;
+  private String origOperationProportion;
 
   @Before
   public void setUp() {
@@ -79,7 +80,15 @@ public class SingletonWorkDataWorkLoadConcurrencyTest extends BenchmarkTestBase 
     origOutOfOrder = config.isIS_OUT_OF_ORDER();
     origDataClientNumber = config.getDATA_CLIENT_NUMBER();
     origSchemaClientNumber = config.getSCHEMA_CLIENT_NUMBER();
+    origOperationProportion = config.getOPERATION_PROPORTION();
 
+    // Write must be enabled BEFORE the workload classes load: GenerateDataWorkLoad builds its
+    // static final workloadValues array once, in initWorkloadValues(), which returns null when
+    // config.hasWrite() (OPERATION_PROPORTION's first field) is 0. getOneBatch() then dereferences
+    // that null array -> NPE. A preceding test (e.g. OperationControllerTest) can leave
+    // OPERATION_PROPORTION on a read-only value, so we force a write workload here rather than
+    // relying on the shared singleton's current state.
+    config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0:0:0:0:0");
     // SENSOR_NUMBER stays at its default (200) so the pre-populated SENSORS list is consistent.
     config.setDEVICE_NUMBER(SIZE);
     // Force the buggy else-branch that pairs a device with a single sensor cursor.
@@ -103,6 +112,7 @@ public class SingletonWorkDataWorkLoadConcurrencyTest extends BenchmarkTestBase 
     config.setIS_OUT_OF_ORDER(origOutOfOrder);
     config.setDATA_CLIENT_NUMBER(origDataClientNumber);
     config.setSCHEMA_CLIENT_NUMBER(origSchemaClientNumber);
+    config.setOPERATION_PROPORTION(origOperationProportion);
   }
 
   @Test
