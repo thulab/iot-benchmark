@@ -69,17 +69,27 @@ public class DBWrapper implements IDatabase {
     DBFactory dbFactory = new DBFactory();
     for (DBConfig dbConfig : dbConfigs) {
       try {
-        IDatabase database = dbFactory.getDatabase(dbConfig);
-        if (database == null) {
-          LOGGER.error("Failed to get database: " + dbConfig);
-        }
-        databases.add(database);
+        // getDatabase never returns null: it returns an instance or throws.
+        databases.add(dbFactory.getDatabase(dbConfig));
       } catch (Exception e) {
-        LOGGER.error("Failed to get database because", e);
+        // Fail fast. Swallowing this leaves databases empty so every later operation no-ops and
+        // the benchmark "succeeds" while reading/writing nothing.
+        throw new IllegalStateException("Failed to initialize database for config:" + dbConfig, e);
       }
     }
     PersistenceFactory persistenceFactory = new PersistenceFactory();
     recorder = persistenceFactory.getPersistence();
+  }
+
+  /**
+   * Test seam: build a wrapper around already-instantiated databases, bypassing {@link DBFactory}.
+   * Lets unit tests inject fake {@link IDatabase} doubles with controllable return values, which
+   * the public {@code List<DBConfig>} constructor (reflection via DBFactory) cannot do.
+   */
+  static DBWrapper forTest(List<IDatabase> databases) {
+    DBWrapper dbWrapper = new DBWrapper(new ArrayList<DBConfig>());
+    dbWrapper.databases = databases;
+    return dbWrapper;
   }
 
   public Measurement getMeasurement() {
@@ -286,9 +296,9 @@ public class DBWrapper implements IDatabase {
         status = database.aggRangeValueQuery(aggRangeValueQuery);
         long end = System.nanoTime();
         status.setTimeCost(end - start);
+        handleQueryOperation(status, operation, device);
         statuses.add(status);
       }
-      handleQueryOperation(status, operation, device);
       doComparisonByRecord(aggRangeValueQuery, operation, statuses);
     } catch (Exception e) {
       handleUnexpectedQueryException(operation, e, device);
@@ -504,28 +514,33 @@ public class DBWrapper implements IDatabase {
     try {
       List<DeviceSummary> deviceSummaries = new ArrayList<>();
       for (IDatabase database : databases) {
-        deviceSummary = database.deviceSummary(deviceQuery);
-        if (deviceSummary == null) {
+        DeviceSummary summary = database.deviceSummary(deviceQuery);
+        if (summary == null) {
           LOGGER.error("Failed to get summary: {}", database.getClass().getName());
           continue;
         }
-        deviceSummaries.add(deviceSummary);
+        deviceSummaries.add(summary);
       }
-      DeviceSummary base = deviceSummaries.get(0);
+      if (deviceSummaries.isEmpty()) {
+        LOGGER.error("No device summary obtained from any database.");
+        return null;
+      }
+      // deviceSummary now holds the agreed-upon summary (non-null), so the final log and return
+      // below are safe; previously the last loop iteration could leave it null and NPE.
+      deviceSummary = deviceSummaries.get(0);
       for (int i = 1; i < deviceSummaries.size(); i++) {
-        if (!base.equals(deviceSummaries.get(i))) {
+        if (!deviceSummary.equals(deviceSummaries.get(i))) {
           LOGGER.error("Error number of different database: ");
-          LOGGER.error("DB1:" + base);
+          LOGGER.error("DB1:" + deviceSummary);
           LOGGER.error("DB2:" + deviceSummaries.get(i));
           return null;
         }
       }
     } catch (Exception e) {
-      LOGGER.error("Failed to get summary of device");
-      e.printStackTrace();
+      LOGGER.error("Failed to get summary of device", e);
       return null;
     }
-    LOGGER.info("Device Summary:" + deviceSummary.toString());
+    LOGGER.info("Device Summary:" + deviceSummary);
     return deviceSummary;
   }
 
@@ -605,6 +620,13 @@ public class DBWrapper implements IDatabase {
   private int doPointComparison(List<Status> statuses, DeviceQuery deviceQuery) {
     int totalPointNumber = 0;
 
+    if (statuses.size() < 2) {
+      // Point comparison needs two databases (double write); with one it must skip, not crash.
+      LOGGER.error(
+          "Point comparison requires at least two databases but got {}; skipping comparison.",
+          statuses.size());
+      return -1;
+    }
     long start = System.nanoTime();
     Status status1 = statuses.get(0);
     Status status2 = statuses.get(1);
