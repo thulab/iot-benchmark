@@ -80,7 +80,7 @@ public class KairosDB implements IDatabase {
       client =
           new HttpClient("http://" + dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0));
     } catch (MalformedURLException e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to init KairosDB client due to malformed URL", e);
       throw new TsdbException(
           "Init KairosDB client failed, the url is "
               + dbConfig.getHOST()

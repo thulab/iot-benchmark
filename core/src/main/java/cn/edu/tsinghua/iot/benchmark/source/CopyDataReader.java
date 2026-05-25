@@ -128,8 +128,7 @@ public class CopyDataReader extends DataReader {
         records.add(record);
       }
     } catch (Exception exception) {
-      exception.printStackTrace();
-      LOGGER.error("Failed to read file:" + exception.getMessage());
+      LOGGER.error("Failed to read file", exception);
     }
     batch = new Batch(deviceSchema, records);
     deltaTimeStamp = curtimestamp - begin;

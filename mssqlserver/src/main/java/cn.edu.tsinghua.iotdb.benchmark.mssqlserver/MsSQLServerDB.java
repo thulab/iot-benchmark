@@ -122,8 +122,7 @@ public class MsSQLServerDB implements IDatabase {
         }
       }
     } catch (Exception e) {
-      e.printStackTrace();
-      LOGGER.warn("Connect Error!");
+      LOGGER.warn("Connect Error!", e);
       throw new TsdbException("Connect Error!", e);
     }
   }
@@ -311,8 +310,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("preciseQuery Error!");
+      LOGGER.error("preciseQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -339,8 +337,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("rangeQuery Error!");
+      LOGGER.error("rangeQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -368,8 +365,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("valueRangeQuery Error!");
+      LOGGER.error("valueRangeQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -400,8 +396,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("aggRangeQuery Error!");
+      LOGGER.error("aggRangeQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -425,8 +420,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("aggValueQuery Error!");
+      LOGGER.error("aggValueQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -454,8 +448,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("aggRangeValueQuery Error!");
+      LOGGER.error("aggRangeValueQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -482,8 +475,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("groupByQuery Error!");
+      LOGGER.error("groupByQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -508,8 +500,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("latestPointQuery Error!");
+      LOGGER.error("latestPointQuery Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -536,8 +527,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("rangeQueryOrderByDesc Error!");
+      LOGGER.error("rangeQueryOrderByDesc Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }
@@ -565,8 +555,7 @@ public class MsSQLServerDB implements IDatabase {
       }
       return new Status(true, result);
     } catch (SQLException sqlException) {
-      sqlException.printStackTrace();
-      LOGGER.error("valueRangeQueryOrderByDesc Error!");
+      LOGGER.error("valueRangeQueryOrderByDesc Error!", sqlException);
       return new Status(false, 0, sqlException, sqlException.getMessage());
     }
   }

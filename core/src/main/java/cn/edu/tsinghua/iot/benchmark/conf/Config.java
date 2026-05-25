@@ -568,7 +568,7 @@ public class Config {
       Unmarshaller unmarshaller = context.createUnmarshaller();
       xml = (FunctionXml) unmarshaller.unmarshal(input);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to init inner function from function.xml", e);
       System.exit(0);
     }
     List<FunctionParam> xmlFuctions = xml.getFunctions();
