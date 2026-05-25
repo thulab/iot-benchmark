@@ -133,7 +133,7 @@ public class VictoriaMetrics implements IDatabase {
           CREATE_URL, body.toString(), "text/plain; version=0.0.4; charset=utf-8");
       return new Status(true);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to insert one batch into VictoriaMetrics", e);
       return new Status(false, 0, e, e.toString());
     }
   }

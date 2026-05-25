@@ -90,8 +90,7 @@ public class QuestDB implements IDatabase {
               String.format(URL_QUEST, dbConfig.getHOST().get(0), dbConfig.getPORT().get(0)),
               properties);
     } catch (SQLException | ClassNotFoundException e) {
-      e.printStackTrace();
-      LOGGER.error("Failed to init database");
+      LOGGER.error("Failed to init database", e);
       throw new TsdbException("Failed to init database, maybe there is too much connections", e);
     }
   }
@@ -239,7 +238,7 @@ public class QuestDB implements IDatabase {
       statement.close();
       return new Status(true);
     } catch (SQLException e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to insert batch into QuestDB", e);
       System.out.println("Error!");
       return new Status(false, 0, e, e.toString());
     }
@@ -531,7 +530,7 @@ public class QuestDB implements IDatabase {
       queryResultPointNum = line * config.getQUERY_SENSOR_NUM() * config.getDEVICE_NUMBER();
       return new Status(true, queryResultPointNum);
     } catch (SQLException e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to execute QuestDB query", e);
       return new Status(false, 0, e, e.toString());
     }
   }

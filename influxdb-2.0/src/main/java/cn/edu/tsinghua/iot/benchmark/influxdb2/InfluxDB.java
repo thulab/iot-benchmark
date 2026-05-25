@@ -432,7 +432,7 @@ public class InfluxDB implements IDatabase {
           Status status = executeQueryAndGetStatus(sql);
           result += status.getQueryResultPointNum();
         } catch (Exception e) {
-          e.printStackTrace();
+          LOGGER.error("Failed to execute aggRangeValueQuery", e);
         }
       }
     }

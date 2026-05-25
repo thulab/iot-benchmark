@@ -79,7 +79,7 @@ public class PIArchive implements IDatabase {
           connection.prepareStatement("delete pipoint..classic where tag like 'g_%'");
       deletePointsStatement.execute();
     } catch (SQLException throwables) {
-      throwables.printStackTrace();
+      LOGGER.error("Failed to cleanup PI Archive data", throwables);
     }
   }
 
@@ -89,7 +89,7 @@ public class PIArchive implements IDatabase {
       try {
         connection.close();
       } catch (SQLException e) {
-        e.printStackTrace();
+        LOGGER.error("Failed to close PI Archive connection", e);
       }
     }
   }
@@ -120,7 +120,7 @@ public class PIArchive implements IDatabase {
         pStatement.clearBatch();
         pStatement.close();
       } catch (SQLException e) {
-        e.printStackTrace();
+        LOGGER.error("Failed to register PI Archive schema", e);
         throw new TsdbException(e);
       }
     }
@@ -326,7 +326,7 @@ public class PIArchive implements IDatabase {
           resultLineNum * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
       return new Status(true, queryResultPointNum);
     } catch (SQLException throwables) {
-      throwables.printStackTrace();
+      LOGGER.error("Failed to execute PI Archive query", throwables);
       return new Status(false, 0);
     }
   }

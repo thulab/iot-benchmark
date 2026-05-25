@@ -187,7 +187,7 @@ public class TreeStrategy extends IoTDBModelStrategy {
               .collect(Collectors.toList());
       metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
     } catch (Throwable t) {
-      t.printStackTrace();
+      LOGGER.error("Failed to activate schema template", t);
     }
   }
 

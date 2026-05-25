@@ -596,7 +596,7 @@ public class ConfigDescriptor {
                     "IS_RECORD_CURRENT_REALLY_TIME",
                     config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.error("Failed to load config file", e);
       }
       try {
         inputStream.close();
@@ -641,14 +641,14 @@ public class ConfigDescriptor {
   }
 
   /** Check validation of config */
-  private boolean checkConfig() {
+  boolean checkConfig() {
     boolean result = true;
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_CLIENT_BIND()
-            && config.getDEVICE_NUMBER() < config.getSCHEMA_CLIENT_NUMBER()
-            && config.getDEVICE_NUMBER() < config.getDATA_CLIENT_NUMBER()) {
+            && (config.getDEVICE_NUMBER() < config.getSCHEMA_CLIENT_NUMBER()
+                || config.getDEVICE_NUMBER() < config.getDATA_CLIENT_NUMBER())) {
           LOGGER.error(
               "In client bind way, the number of schema client and data client should be less than the number of device");
           result = false;
