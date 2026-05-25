@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.distribution;
 
+import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
-public class PoissonDistributionTest {
+public class PoissonDistributionTest extends BenchmarkTestBase {
   /** Method: getNextPoissonDelta() */
   @Test
   public void testGetNextPoissonDelta() {
