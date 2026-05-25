@@ -118,3 +118,9 @@ When adding a new configuration parameter, must complete **all three steps**:
 1. **`Config.java`** — 添加字段、getter/setter
 2. **`ConfigDescriptor.java`** — 在 `loadProps()` 中从 properties 读取并 set 到 config（否则配置文件中的值不会生效）
 3. **`configuration/conf/config.properties`** — 添加注释说明和默认值示例
+
+## SpriCoder 工作规则（固定，优先级最高）
+
+1. **称呼规则**：每次回复前必须使用「SpriCoder」作为称呼。
+2. **决策确认**：遇到不确定的代码设计问题时，必须先询问 SpriCoder，不得直接行动。
+3. **代码兼容性**：不要写兼容性代码，除非 SpriCoder 主动要求。
