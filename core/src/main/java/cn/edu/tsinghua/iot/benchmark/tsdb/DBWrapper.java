@@ -525,8 +525,6 @@ public class DBWrapper implements IDatabase {
         LOGGER.error("No device summary obtained from any database.");
         return null;
       }
-      // deviceSummary now holds the agreed-upon summary (non-null), so the final log and return
-      // below are safe; previously the last loop iteration could leave it null and NPE.
       deviceSummary = deviceSummaries.get(0);
       for (int i = 1; i < deviceSummaries.size(); i++) {
         if (!deviceSummary.equals(deviceSummaries.get(i))) {
