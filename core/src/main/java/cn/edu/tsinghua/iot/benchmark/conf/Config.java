@@ -348,7 +348,7 @@ public class Config {
 
   // 被测系统是DolphinDB时的参数
   /** the bucket count of the second-level HASH(deviceId) partition */
-  private int DOLPHINDB_DEVICE_HASH_BUCKETS = 1000;
+  private int DOLPHINDB_DEVICE_HASH_BUCKETS = 100;
 
   // Operation 相关参数
   /**
