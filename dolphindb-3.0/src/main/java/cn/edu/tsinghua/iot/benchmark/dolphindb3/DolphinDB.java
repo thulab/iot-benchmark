@@ -113,8 +113,17 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public void cleanup() throws TsdbException {
-    // implemented in Task 16
-    throw new TsdbException("cleanup not implemented yet");
+    if (!cleanupDone.compareAndSet(false, true)) {
+      return; // another client already dropped the database
+    }
+    String script = "if(existsDatabase(\"" + dbPath + "\")) { dropDatabase(\"" + dbPath + "\") }";
+    try (java.sql.Statement st = jdbcConn.createStatement()) {
+      LOGGER.info("Cleanup: {}", script);
+      st.execute(script);
+    } catch (SQLException e) {
+      LOGGER.error("Failed to drop DolphinDB database", e);
+      throw new TsdbException("Failed to drop DolphinDB database", e);
+    }
   }
 
   @Override
