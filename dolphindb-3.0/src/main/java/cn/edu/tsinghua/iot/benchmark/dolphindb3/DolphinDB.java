@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.dolphindb3;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
@@ -29,6 +30,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggValueQuery;
@@ -44,9 +46,12 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class DolphinDB implements IDatabase {
 
@@ -128,8 +133,66 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    // implemented in Task 17
-    throw new TsdbException("registerSchema not implemented yet");
+    long start = System.nanoTime();
+    if (config.hasWrite()) {
+      try {
+        if (schemaInited.compareAndSet(false, true)) {
+          createDatabaseAndTable();
+        }
+        schemaBarrier.await();
+      } catch (Exception e) {
+        LOGGER.error("Failed to register DolphinDB schema", e);
+        throw new TsdbException("Failed to register DolphinDB schema", e);
+      }
+    }
+    return TimeUtils.convertToSeconds(System.nanoTime() - start, "ns");
+  }
+
+  private void createDatabaseAndTable() throws SQLException {
+    long startMs = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
+    long durationMs = config.getLOOP() * config.getBATCH_SIZE_PER_WRITE() * config.getPOINT_STEP();
+    long endMs = startMs + durationMs;
+    long bucketMs = (long) config.getDOLPHINDB_PARTITION_DAYS() * 86_400_000L;
+    List<Long> boundaries = new ArrayList<>();
+    for (long t = startMs; t < endMs + bucketMs; t += bucketMs) {
+      boundaries.add(t);
+    }
+    String rangeArr =
+        boundaries.stream()
+            .map(t -> "timestamp(" + t + "l)")
+            .collect(Collectors.joining(", ", "[", "]"));
+
+    StringBuilder cols = new StringBuilder("`ts`deviceId");
+    StringBuilder types = new StringBuilder("[TIMESTAMP, SYMBOL");
+    for (Sensor sensor : config.getSENSORS()) {
+      cols.append("`").append(sensor.getName());
+      types.append(", ").append(typeMap(sensor.getSensorType()));
+    }
+    types.append("]");
+
+    String script =
+        "rangeBoundaries = "
+            + rangeArr
+            + "\n"
+            + "db1 = database(\"\", RANGE, rangeBoundaries)\n"
+            + "db2 = database(\"\", HASH, [SYMBOL, "
+            + config.getDOLPHINDB_DEVICE_HASH_BUCKETS()
+            + "])\n"
+            + "db  = database(\""
+            + dbPath
+            + "\", COMPO, [db1, db2])\n"
+            + "schema = table(1:0, "
+            + cols
+            + ", "
+            + types
+            + ")\n"
+            + "db.createPartitionedTable(schema, \""
+            + TABLE_NAME
+            + "\", `ts`deviceId)";
+    try (Statement st = jdbcConn.createStatement()) {
+      LOGGER.info("Create schema script:\n{}", script);
+      st.execute(script);
+    }
   }
 
   @Override
