@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.dolphindb3;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
@@ -39,6 +40,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
+import com.xxdb.comm.ErrorCodeInfo;
 import com.xxdb.multithreadedtablewriter.MultithreadedTableWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,8 +199,43 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
-    // implemented in Task 19
-    return new Status(false);
+    DeviceSchema device = batch.getDeviceSchema();
+    String deviceId = device.getDevice();
+    List<Sensor> sensors = device.getSensors();
+    try {
+      ensureMtw();
+      for (Record record : batch.getRecords()) {
+        Object[] row = new Object[2 + sensors.size()];
+        row[0] = new java.sql.Timestamp(record.getTimestamp());
+        row[1] = deviceId;
+        List<Object> vals = record.getRecordDataValue();
+        for (int i = 0; i < sensors.size(); i++) {
+          row[i + 2] = convertValue(vals.get(i), sensors.get(i).getSensorType());
+        }
+        ErrorCodeInfo ret = mtw.insert(row);
+        if (ret.hasError()) {
+          return new Status(false, 0, new SQLException(ret.getErrorInfo()), ret.getErrorInfo());
+        }
+      }
+      awaitDrain();
+      MultithreadedTableWriter.Status st = mtw.getStatus();
+      if (st.hasError()) {
+        return new Status(false, 0, new SQLException(st.getErrorInfo()), st.getErrorInfo());
+      }
+      return new Status(true);
+    } catch (Exception e) {
+      LOGGER.error("Failed to insert batch into DolphinDB", e);
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+  private void awaitDrain() throws InterruptedException {
+    while (true) {
+      MultithreadedTableWriter.Status st = mtw.getStatus();
+      if (st.unsentRows == 0) return;
+      if (st.hasError()) return;
+      Thread.sleep(1);
+    }
   }
 
   @Override
@@ -249,6 +286,56 @@ public class DolphinDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     return new Status(false);
+  }
+
+  private synchronized void ensureMtw() throws Exception {
+    if (mtw != null) return;
+    int batchSize = config.getBATCH_SIZE_PER_WRITE() * config.getDEVICE_NUM_PER_WRITE();
+    mtw =
+        new MultithreadedTableWriter(
+            dbConfig.getHOST().get(0),
+            Integer.parseInt(dbConfig.getPORT().get(0)),
+            dbConfig.getUSERNAME(),
+            dbConfig.getPASSWORD(),
+            dbPath,
+            TABLE_NAME,
+            false,
+            false,
+            null,
+            batchSize,
+            0.01f,
+            1,
+            "",
+            null,
+            MultithreadedTableWriter.Mode.M_Append,
+            null);
+  }
+
+  private static Object convertValue(Object v, SensorType type) {
+    switch (type) {
+      case BOOLEAN:
+        return (Boolean) v;
+      case INT32:
+        return (Integer) v;
+      case INT64:
+        return (Long) v;
+      case FLOAT:
+        return (Float) v;
+      case DOUBLE:
+        return (Double) v;
+      case TEXT:
+      case STRING:
+        return String.valueOf(v);
+      case BLOB:
+      case OBJECT:
+        return v instanceof byte[] ? v : String.valueOf(v).getBytes();
+      case TIMESTAMP:
+        return new java.sql.Timestamp((Long) v);
+      case DATE:
+        return java.sql.Date.valueOf(String.valueOf(v));
+      default:
+        return String.valueOf(v);
+    }
   }
 
   @Override
