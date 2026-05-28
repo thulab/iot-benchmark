@@ -241,17 +241,61 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status preciseQuery(PreciseQuery preciseQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = preciseQuery.getDeviceSchema();
+    String sql =
+        "SELECT "
+            + sensorColumns(devs.get(0).getSensors())
+            + " FROM "
+            + tableRef()
+            + " WHERE ts = "
+            + tsLiteral(preciseQuery.getTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs);
+    return executeQueryAndCount(sql);
   }
 
   @Override
   public Status rangeQuery(RangeQuery rangeQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = rangeQuery.getDeviceSchema();
+    String sql =
+        "SELECT "
+            + sensorColumns(devs.get(0).getSensors())
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(rangeQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(rangeQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs);
+    return executeQueryAndCount(sql);
   }
 
   @Override
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = valueRangeQuery.getDeviceSchema();
+    List<Sensor> sensors = devs.get(0).getSensors();
+    StringBuilder valueClause = new StringBuilder();
+    for (Sensor sensor : sensors) {
+      valueClause
+          .append(" AND ")
+          .append(sensor.getName())
+          .append(" > ")
+          .append(valueRangeQuery.getValueThreshold());
+    }
+    String sql =
+        "SELECT "
+            + sensorColumns(sensors)
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(valueRangeQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(valueRangeQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs)
+            + valueClause;
+    return executeQueryAndCount(sql);
   }
 
   @Override
