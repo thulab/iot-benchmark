@@ -348,8 +348,8 @@ public class ConfigDescriptor {
         config.setIoTDB_TABLE_NUMBER(
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
-        config.setIoTDB_TABLE_TIME_COLUMN(
-            properties.getProperty("IoTDB_TABLE_TIME_COLUMN", config.getIoTDB_TABLE_TIME_COLUMN()));
+        config.setTABLE_TIME_COLUMN(
+            properties.getProperty("TABLE_TIME_COLUMN", config.getTABLE_TIME_COLUMN()));
         config.setIoTDB_TABLE_WRITABLE_VIEW(
             Boolean.parseBoolean(
                 properties.getProperty(
@@ -414,10 +414,6 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "CNOSDB_SHARD_NUMBER", config.getCNOSDB_SHARD_NUMBER() + "")));
-        config.setDOLPHINDB_PARTITION_DAYS(
-            Integer.parseInt(
-                properties.getProperty(
-                    "DOLPHINDB_PARTITION_DAYS", config.getDOLPHINDB_PARTITION_DAYS() + "")));
         config.setDOLPHINDB_DEVICE_HASH_BUCKETS(
             Integer.parseInt(
                 properties.getProperty(

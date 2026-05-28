@@ -285,7 +285,7 @@ public class Config {
   private int GROUP_NUMBER = 1;
 
   /** The name of time column in table model */
-  private String IoTDB_TABLE_TIME_COLUMN = "time";
+  private String TABLE_TIME_COLUMN = "time";
 
   /** Whether to create and use writable views in table model */
   private boolean IoTDB_TABLE_WRITABLE_VIEW = false;
@@ -347,9 +347,6 @@ public class Config {
   private int CNOSDB_SHARD_NUMBER = 32;
 
   // 被测系统是DolphinDB时的参数
-  /** the partition granularity (in days) of the first-level RANGE(ts) partition */
-  private int DOLPHINDB_PARTITION_DAYS = 7;
-
   /** the bucket count of the second-level HASH(deviceId) partition */
   private int DOLPHINDB_DEVICE_HASH_BUCKETS = 1000;
 
@@ -1214,12 +1211,12 @@ public class Config {
     this.GROUP_NUMBER = GROUP_NUMBER;
   }
 
-  public String getIoTDB_TABLE_TIME_COLUMN() {
-    return IoTDB_TABLE_TIME_COLUMN;
+  public String getTABLE_TIME_COLUMN() {
+    return TABLE_TIME_COLUMN;
   }
 
-  public void setIoTDB_TABLE_TIME_COLUMN(String ioTDB_TABLE_TIME_COLUMN) {
-    IoTDB_TABLE_TIME_COLUMN = ioTDB_TABLE_TIME_COLUMN;
+  public void setTABLE_TIME_COLUMN(String TABLE_TIME_COLUMN) {
+    this.TABLE_TIME_COLUMN = TABLE_TIME_COLUMN;
   }
 
   public boolean isIoTDB_TABLE_WRITABLE_VIEW() {
@@ -1832,14 +1829,6 @@ public class Config {
 
   public void setCNOSDB_SHARD_NUMBER(int CNOSDB_SHARD_NUMBER) {
     this.CNOSDB_SHARD_NUMBER = CNOSDB_SHARD_NUMBER;
-  }
-
-  public int getDOLPHINDB_PARTITION_DAYS() {
-    return DOLPHINDB_PARTITION_DAYS;
-  }
-
-  public void setDOLPHINDB_PARTITION_DAYS(int DOLPHINDB_PARTITION_DAYS) {
-    this.DOLPHINDB_PARTITION_DAYS = DOLPHINDB_PARTITION_DAYS;
   }
 
   public int getDOLPHINDB_DEVICE_HASH_BUCKETS() {
