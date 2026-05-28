@@ -578,12 +578,11 @@ public class DolphinDB implements IDatabase {
         devs.get(0).getSensors().stream()
             .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
             .collect(Collectors.joining(", "));
-    // DolphinDB GROUP BY alias is not visible in ORDER BY; inline the bar() expression.
+    // Distributed SQL forbids mixing raw expressions and aggregates in SELECT;
+    // alias the bar() bucket in GROUP BY and reference the alias in ORDER BY.
     String barExpr = "bar(" + timeColumn + ", " + groupByQuery.getGranularity() + "l)";
     String sql =
         "SELECT "
-            + barExpr
-            + ", "
             + aggCols
             + " FROM "
             + tableRef(devs.get(0))
@@ -599,9 +598,8 @@ public class DolphinDB implements IDatabase {
             + deviceInList(devs)
             + " GROUP BY "
             + barExpr
-            + " ORDER BY "
-            + barExpr
-            + " DESC";
+            + " AS bucket"
+            + " ORDER BY bucket DESC";
     return executeQueryAndCount(sql);
   }
 
