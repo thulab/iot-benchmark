@@ -85,21 +85,39 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public void init() throws TsdbException {
-    try {
-      conn = new DBConnection();
-      boolean ok =
-          conn.connect(
-              dbConfig.getHOST().get(0),
-              Integer.parseInt(dbConfig.getPORT().get(0)),
-              dbConfig.getUSERNAME(),
-              dbConfig.getPASSWORD());
-      if (!ok) {
-        throw new TsdbException("Failed to connect DolphinDB: connect() returned false");
+    // DolphinDB's RSA-based login (getDynamicPublicKey) can fail with a transient
+    // key-file race when multiple connections are established concurrently.  Retry
+    // up to 3 times with a short back-off so the server has time to clean up stale
+    // key files from previous sessions.
+    IOException lastError = null;
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      try {
+        conn = new DBConnection();
+        boolean ok =
+            conn.connect(
+                dbConfig.getHOST().get(0),
+                Integer.parseInt(dbConfig.getPORT().get(0)),
+                dbConfig.getUSERNAME(),
+                dbConfig.getPASSWORD());
+        if (ok) {
+          return;
+        }
+        throw new IOException("connect() returned false");
+      } catch (IOException e) {
+        lastError = e;
+        LOGGER.warn("DolphinDB connect attempt {}/3 failed: {}", attempt, e.getMessage());
+        if (attempt < 3) {
+          try {
+            Thread.sleep(200L * attempt);
+          } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new TsdbException("Interrupted while connecting to DolphinDB", ie);
+          }
+        }
       }
-    } catch (IOException e) {
-      LOGGER.error("Failed to connect DolphinDB", e);
-      throw new TsdbException("Failed to connect DolphinDB", e);
     }
+    LOGGER.error("Failed to connect DolphinDB after 3 attempts", lastError);
+    throw new TsdbException("Failed to connect DolphinDB after 3 attempts", lastError);
   }
 
   @Override
@@ -457,10 +475,13 @@ public class DolphinDB implements IDatabase {
         devs.get(0).getSensors().stream()
             .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
             .collect(Collectors.joining(", "));
+    // DolphinDB does not allow a GROUP BY alias to be referenced in ORDER BY within
+    // the same SELECT clause.  Use the full bar() expression in ORDER BY instead.
+    String barExpr = "bar(ts, " + groupByQuery.getGranularity() + "l)";
     String sql =
-        "SELECT bar(ts, "
-            + groupByQuery.getGranularity()
-            + "l) AS tb, "
+        "SELECT "
+            + barExpr
+            + ", "
             + aggCols
             + " FROM "
             + tableRef()
@@ -470,7 +491,11 @@ public class DolphinDB implements IDatabase {
             + tsLiteral(groupByQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + " GROUP BY tb ORDER BY tb DESC";
+            + " GROUP BY "
+            + barExpr
+            + " ORDER BY "
+            + barExpr
+            + " DESC";
     return executeQueryAndCount(sql);
   }
 
