@@ -373,12 +373,38 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = groupByQuery.getDeviceSchema();
+    String aggCols =
+        devs.get(0).getSensors().stream()
+            .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
+            .collect(Collectors.joining(", "));
+    String sql =
+        "SELECT "
+            + aggCols
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(groupByQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(groupByQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs)
+            + " GROUP BY bar(ts, "
+            + groupByQuery.getGranularity()
+            + "l)";
+    return executeQueryAndCount(sql);
   }
 
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = latestPointQuery.getDeviceSchema();
+    String lastCols =
+        devs.get(0).getSensors().stream()
+            .map(s -> "last(" + s.getName() + ")")
+            .collect(Collectors.joining(", "));
+    String sql =
+        "SELECT " + lastCols + " FROM " + tableRef() + " WHERE deviceId IN " + deviceInList(devs);
+    return executeQueryAndCount(sql);
   }
 
   @Override
