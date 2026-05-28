@@ -87,10 +87,8 @@ public class SingletonWorkDataWorkLoad extends GenerateDataWorkLoad {
         sensors = SENSORS;
       } else {
         // Derive the sensor cursor from the SAME curLoop reserved above so the (device, sensor)
-        // pairing is atomic: a single insertLoop.getAndIncrement() fixes both. A separate counter
-        // could be incremented by a concurrent caller between the two reads, mis-pairing the device
-        // with another caller's sensor (defect #3). Single-threaded this yields the same sequence,
-        // because insertLoop and the old sensor counter advanced in lockstep on this branch.
+        // pairing is atomic. With two independent counters a concurrent caller could increment
+        // the sensor counter between reads, mis-pairing this device with another caller's sensor.
         int sensorId = (int) ((curLoop - insertStartIndex) % config.getSENSOR_NUMBER());
         batch.setColIndex(sensorId);
         sensors.add(SENSORS.get(sensorId));

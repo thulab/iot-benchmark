@@ -30,6 +30,15 @@ mvn spotless:apply
 
 Spotless runs automatically during `validate` phase. On JDK <= 11, spotless is skipped by default (profile `.java-11-below`).
 
+## CI Gates (PR-blocking)
+
+`.github/workflows/` runs on every push/PR to `master`:
+
+- **`core-test.yml`** — `mvn -B test -pl core` on JDK 8. Any new core unit test must pass here.
+- **`spotless.yml`** — `mvn spotless:check`. Run `mvn spotless:apply` locally before pushing.
+
+`main.yml` is a release-artifact build (matrix over `iotdb-1.3`, `iotdb-2.0`, `influxdb`, `influxdb-2.0`, `timescaledb`, `timescaledb-cluster`) triggered on master pushes, not a PR gate.
+
 ## Running a Benchmark
 
 After building, the distributable is at `<module>/target/iot-benchmark-<module>/iot-benchmark-<module>/`:
@@ -111,6 +120,16 @@ Key parameters:
 - Import order: `org.apache.iotdb`, default, `javax`, `java`, static
 - UNIX line endings
 
+## Writing Tests in `core`
+
+Any test that directly or transitively touches `ConfigDescriptor` (i.e. anything that calls `ConfigDescriptor.getInstance()` or instantiates a class with a `static Config config = ...` field) **must extend `BenchmarkTestBase`** (`core/src/test/java/.../BenchmarkTestBase.java`).
+
+**Why**: `Config.initInnerFunction()` reads `function.xml` from the directory named by the `benchmark-conf` system property (default `configuration/conf`). When `function.xml` is missing it calls `System.exit(0)`, which silently kills the surefire fork. Under `mvn test -pl core` the working directory is the `core/` module — `configuration/conf` does not exist there. `BenchmarkTestBase`'s static initializer points `benchmark-conf` at `../configuration/conf` before any subclass static fields run.
+
+Other landmines (see memory `core-test-static-singleton-landmines`):
+- Static singletons capture config at class-load time — set `System.setProperty` / mutate `Config` **before** the class under test is referenced.
+- Tests that spawn threads sharing `SingletonWorkDataWorkLoad` need explicit reset between runs.
+
 ## Adding a New Config Parameter
 
 When adding a new configuration parameter, must complete **all three steps**:
@@ -118,9 +137,3 @@ When adding a new configuration parameter, must complete **all three steps**:
 1. **`Config.java`** — 添加字段、getter/setter
 2. **`ConfigDescriptor.java`** — 在 `loadProps()` 中从 properties 读取并 set 到 config（否则配置文件中的值不会生效）
 3. **`configuration/conf/config.properties`** — 添加注释说明和默认值示例
-
-## SpriCoder 工作规则（固定，优先级最高）
-
-1. **称呼规则**：每次回复前必须使用「SpriCoder」作为称呼。
-2. **决策确认**：遇到不确定的代码设计问题时，必须先询问 SpriCoder，不得直接行动。
-3. **代码兼容性**：不要写兼容性代码，除非 SpriCoder 主动要求。
