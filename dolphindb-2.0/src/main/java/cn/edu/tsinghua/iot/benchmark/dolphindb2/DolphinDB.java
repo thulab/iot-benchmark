@@ -266,34 +266,40 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
-    DeviceSchema device = batch.getDeviceSchema();
-    String dbPath = dbPathOf(device);
-    String tableName = device.getTable();
-    String deviceId = device.getDevice();
-    List<Sensor> sensors = device.getSensors();
     int tagCount = config.getTAG_NUMBER();
-    // Pre-resolve tag values once per batch (they are device-static).
-    Object[] tagValues = new Object[tagCount];
-    for (int t = 0; t < tagCount; t++) {
-      tagValues[t] = device.getTags().get(config.getTAG_KEY_PREFIX() + t);
-    }
     try {
-      MultithreadedTableWriter mtw = ensureMtw(dbPath, tableName);
-      for (Record record : batch.getRecords()) {
-        Object[] row = new Object[2 + tagCount + sensors.size()];
-        row[0] = new java.sql.Timestamp(record.getTimestamp());
-        row[1] = deviceId;
+      batch.reset();
+      // Every device in a MultiDeviceBatch is guaranteed to belong to the same table (the framework
+      // partitions devices per client per table), so the first device picks the writer for the
+      // whole batch.
+      DeviceSchema first = batch.getDeviceSchema();
+      List<Sensor> sensors = first.getSensors();
+      MultithreadedTableWriter mtw = ensureMtw(dbPathOf(first), first.getTable());
+      while (true) {
+        DeviceSchema device = batch.getDeviceSchema();
+        String deviceId = device.getDevice();
+        Object[] tagValues = new Object[tagCount];
         for (int t = 0; t < tagCount; t++) {
-          row[2 + t] = tagValues[t];
+          tagValues[t] = device.getTags().get(config.getTAG_KEY_PREFIX() + t);
         }
-        List<Object> vals = record.getRecordDataValue();
-        for (int i = 0; i < sensors.size(); i++) {
-          row[2 + tagCount + i] = convertValue(vals.get(i), sensors.get(i).getSensorType());
+        for (Record record : batch.getRecords()) {
+          Object[] row = new Object[2 + tagCount + sensors.size()];
+          row[0] = new java.sql.Timestamp(record.getTimestamp());
+          row[1] = deviceId;
+          for (int t = 0; t < tagCount; t++) {
+            row[2 + t] = tagValues[t];
+          }
+          List<Object> vals = record.getRecordDataValue();
+          for (int i = 0; i < sensors.size(); i++) {
+            row[2 + tagCount + i] = convertValue(vals.get(i), sensors.get(i).getSensorType());
+          }
+          ErrorCodeInfo ret = mtw.insert(row);
+          if (ret.hasError()) {
+            return new Status(false, 0, new Exception(ret.getErrorInfo()), ret.getErrorInfo());
+          }
         }
-        ErrorCodeInfo ret = mtw.insert(row);
-        if (ret.hasError()) {
-          return new Status(false, 0, new Exception(ret.getErrorInfo()), ret.getErrorInfo());
-        }
+        if (!batch.hasNext()) break;
+        batch.next();
       }
       awaitDrain(mtw);
       MultithreadedTableWriter.Status st = mtw.getStatus();

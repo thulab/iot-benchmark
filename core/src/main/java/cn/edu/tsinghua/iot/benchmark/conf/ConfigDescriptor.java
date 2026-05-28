@@ -720,8 +720,9 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    if ((config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getDbConfig().getDB_SWITCH().getType() == DBType.IoTDB
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
       result = false;
@@ -851,11 +852,13 @@ public class ConfigDescriptor {
     if (dnw == 1) {
       return true;
     }
-    if (config.getDbConfig().getDB_SWITCH().getType() != DBType.IoTDB) {
-      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB");
+    DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
+    if (dbType != DBType.IoTDB && dbType != DBType.DolphinDB) {
+      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB or DolphinDB");
       return false;
     }
-    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
+    if (dbType == DBType.IoTDB
+        && config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
         && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_RECORDS) {
       LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
       return false;
