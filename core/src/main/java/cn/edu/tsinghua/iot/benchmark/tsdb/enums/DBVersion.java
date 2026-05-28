@@ -27,7 +27,8 @@ public enum DBVersion {
   InfluxDB_2("2.x"),
   TimescaleDB_Cluster("cluster"),
   TDengine_3("3"),
-  DolphinDB_3("3");
+  DolphinDB_3("3"),
+  DolphinDB_2("2");
 
   String version;
 
