@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -335,6 +336,40 @@ public class DolphinDB implements IDatabase {
         return java.sql.Date.valueOf(String.valueOf(v));
       default:
         return String.valueOf(v);
+    }
+  }
+
+  private String tableRef() {
+    return "loadTable(\"" + dbPath + "\", \"" + TABLE_NAME + "\")";
+  }
+
+  private static String tsLiteral(long epochMs) {
+    return "timestamp(" + epochMs + "l)";
+  }
+
+  private static String deviceInList(List<DeviceSchema> devs) {
+    return devs.stream()
+        .map(d -> "'" + d.getDevice() + "'")
+        .collect(Collectors.joining(", ", "(", ")"));
+  }
+
+  private static String sensorColumns(List<Sensor> sensors) {
+    return sensors.stream().map(Sensor::getName).collect(Collectors.joining(", "));
+  }
+
+  private Status executeQueryAndCount(String sql) {
+    if (!config.isIS_QUIET_MODE()) {
+      LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
+    }
+    int rows = 0;
+    try (Statement st = jdbcConn.createStatement();
+        ResultSet rs = st.executeQuery(sql)) {
+      while (rs.next()) rows++;
+      long points = (long) rows * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
+      return new Status(true, points);
+    } catch (SQLException e) {
+      LOGGER.error("DolphinDB query failed: {}", sql, e);
+      return new Status(false, 0, e, e.toString());
     }
   }
 
