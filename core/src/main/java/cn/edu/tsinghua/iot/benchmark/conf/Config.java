@@ -346,6 +346,13 @@ public class Config {
   /** the shard number of cnosdb, which affects the parallelism of write and query operations */
   private int CNOSDB_SHARD_NUMBER = 32;
 
+  // 被测系统是DolphinDB时的参数
+  /** the partition granularity (in days) of the first-level RANGE(ts) partition */
+  private int DOLPHINDB_PARTITION_DAYS = 7;
+
+  /** the bucket count of the second-level HASH(deviceId) partition */
+  private int DOLPHINDB_DEVICE_HASH_BUCKETS = 1000;
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
@@ -1825,6 +1832,22 @@ public class Config {
 
   public void setCNOSDB_SHARD_NUMBER(int CNOSDB_SHARD_NUMBER) {
     this.CNOSDB_SHARD_NUMBER = CNOSDB_SHARD_NUMBER;
+  }
+
+  public int getDOLPHINDB_PARTITION_DAYS() {
+    return DOLPHINDB_PARTITION_DAYS;
+  }
+
+  public void setDOLPHINDB_PARTITION_DAYS(int DOLPHINDB_PARTITION_DAYS) {
+    this.DOLPHINDB_PARTITION_DAYS = DOLPHINDB_PARTITION_DAYS;
+  }
+
+  public int getDOLPHINDB_DEVICE_HASH_BUCKETS() {
+    return DOLPHINDB_DEVICE_HASH_BUCKETS;
+  }
+
+  public void setDOLPHINDB_DEVICE_HASH_BUCKETS(int DOLPHINDB_DEVICE_HASH_BUCKETS) {
+    this.DOLPHINDB_DEVICE_HASH_BUCKETS = DOLPHINDB_DEVICE_HASH_BUCKETS;
   }
 
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {
