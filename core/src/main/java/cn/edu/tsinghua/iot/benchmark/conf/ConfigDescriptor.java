@@ -414,6 +414,15 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "CNOSDB_SHARD_NUMBER", config.getCNOSDB_SHARD_NUMBER() + "")));
+        config.setDOLPHINDB_PARTITION_DAYS(
+            Integer.parseInt(
+                properties.getProperty(
+                    "DOLPHINDB_PARTITION_DAYS", config.getDOLPHINDB_PARTITION_DAYS() + "")));
+        config.setDOLPHINDB_DEVICE_HASH_BUCKETS(
+            Integer.parseInt(
+                properties.getProperty(
+                    "DOLPHINDB_DEVICE_HASH_BUCKETS",
+                    config.getDOLPHINDB_DEVICE_HASH_BUCKETS() + "")));
         config.setOP_MIN_INTERVAL(
             Long.parseLong(
                 properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));
@@ -953,8 +962,8 @@ public class ConfigDescriptor {
   protected boolean checkInsertDataTypeProportion() {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
-      // When not iotdb, the last four digits of the data ratio must be 0
+    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB && dbType != DBType.DolphinDB) {
+      // When not iotdb/dolphindb, the last four digits of the data ratio must be 0
       for (int i = config.getTypeNumber() - 4; i < splits.length; i++) {
         if (!splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, this database do not support those type.");
