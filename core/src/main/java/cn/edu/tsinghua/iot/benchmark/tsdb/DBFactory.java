@@ -116,6 +116,9 @@ public class DBFactory {
         case DB_QUESTDB:
           dbClass = Constants.QUESTDB_CLASS;
           break;
+        case DB_DOLPHINDB_3:
+          dbClass = Constants.DOLPHINDB3_CLASS;
+          break;
         case DB_MSSQLSERVER:
           dbClass = Constants.MSSQLSERVER_CLASS;
           break;
