@@ -34,3 +34,6 @@ mvnw.cmd
 
 data
 .vscode
+
+# Superpowers skill workspace (specs/plans are workflow artifacts, not project docs)
+docs/superpowers/
