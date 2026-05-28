@@ -52,13 +52,14 @@
 
 ## DolphinDB
 
-DolphinDB v3.x 适配。写入使用 `MultithreadedTableWriter`（DolphinDB 官方推荐的高吞吐 Java API），查询走原生 `DBConnection.run()` 接口。建表为单宽表 `device_data`，DFS 复合分区：
+DolphinDB v2.x 和 v3.x 适配，分别由 `dolphindb-2.0`（Java API `2.00.11.1`）和 `dolphindb-3.0`（Java API `3.00.0.2`）两个模块支持。写入使用 `MultithreadedTableWriter`（DolphinDB 官方推荐的高吞吐 Java API），查询走原生 `DBConnection.run()` 接口。建表为单宽表 `device_data`，DFS 复合分区：
 
 - **一级**：`RANGE(ts)`，默认 7 天一个分区（`DOLPHINDB_PARTITION_DAYS`）
 - **二级**：`HASH([SYMBOL, 1000])` on `deviceId`（`DOLPHINDB_DEVICE_HASH_BUCKETS`）
 
 ### 通过 Docker 启动本地 DolphinDB
 
+DolphinDB v3.x（搭配 `dolphindb-3.0` 模块）：
 ```bash
 # Apple Silicon
 docker pull --platform linux/arm64 dolphindb/dolphindb:v3.00.5
@@ -71,9 +72,20 @@ docker run -d --name ddb \
   dolphindb/dolphindb:v3.00.5
 ```
 
+DolphinDB v2.x（搭配 `dolphindb-2.0` 模块）：
+```bash
+docker pull --platform linux/arm64 dolphindb/dolphindb:v2.00.18
+docker run -d --name ddb \
+  -p 8848:8848 \
+  --ulimit nofile=65536:65536 \
+  dolphindb/dolphindb:v2.00.18
+```
+
 Web GUI: `http://127.0.0.1:8848`（默认 `admin` / `123456`）。
 
 ### 关键配置
+
+v3.x 用 `DB_SWITCH=DolphinDB-3`，v2.x 用 `DB_SWITCH=DolphinDB-2`：
 
 ```properties
 DB_SWITCH=DolphinDB-3

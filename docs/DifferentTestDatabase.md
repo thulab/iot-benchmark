@@ -52,13 +52,14 @@ This page is an index of quick guides for database modules that are present in t
 
 ## DolphinDB
 
-DolphinDB v3.x integration. Writes use `MultithreadedTableWriter` (DolphinDB's recommended high-throughput Java API); queries go through the native `DBConnection.run()` API. Schema is a single DFS partitioned table `device_data` with composite partitioning:
+DolphinDB v2.x and v3.x integration via two sibling modules (`dolphindb-2.0` uses Java API `2.00.11.1`; `dolphindb-3.0` uses Java API `3.00.0.2`). Writes use `MultithreadedTableWriter` (DolphinDB's recommended high-throughput Java API); queries go through the native `DBConnection.run()` API. Schema is a single DFS partitioned table `device_data` with composite partitioning:
 
 - **Level 1**: `RANGE(ts)` with 7-day granularity by default (`DOLPHINDB_PARTITION_DAYS`)
 - **Level 2**: `HASH([SYMBOL, 1000])` on `deviceId` (`DOLPHINDB_DEVICE_HASH_BUCKETS`)
 
 ### Start a local DolphinDB via Docker
 
+For DolphinDB v3.x (use with the `dolphindb-3.0` module):
 ```bash
 # Apple Silicon
 docker pull --platform linux/arm64 dolphindb/dolphindb:v3.00.5
@@ -71,9 +72,20 @@ docker run -d --name ddb \
   dolphindb/dolphindb:v3.00.5
 ```
 
+For DolphinDB v2.x (use with the `dolphindb-2.0` module):
+```bash
+docker pull --platform linux/arm64 dolphindb/dolphindb:v2.00.18
+docker run -d --name ddb \
+  -p 8848:8848 \
+  --ulimit nofile=65536:65536 \
+  dolphindb/dolphindb:v2.00.18
+```
+
 Web GUI: `http://127.0.0.1:8848` (default `admin` / `123456`).
 
 ### Key config
+
+For v3.x use `DB_SWITCH=DolphinDB-3`; for v2.x use `DB_SWITCH=DolphinDB-2`:
 
 ```properties
 DB_SWITCH=DolphinDB-3
