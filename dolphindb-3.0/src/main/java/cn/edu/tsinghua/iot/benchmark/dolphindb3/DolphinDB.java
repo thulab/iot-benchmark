@@ -39,6 +39,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
+import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import com.xxdb.comm.ErrorCodeInfo;
 import com.xxdb.multithreadedtablewriter.MultithreadedTableWriter;
@@ -409,12 +410,96 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status rangeQueryOrderByDesc(RangeQuery rangeQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = rangeQuery.getDeviceSchema();
+    String sql =
+        "SELECT "
+            + sensorColumns(devs.get(0).getSensors())
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(rangeQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(rangeQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs)
+            + " ORDER BY ts DESC";
+    return executeQueryAndCount(sql);
   }
 
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = valueRangeQuery.getDeviceSchema();
+    List<Sensor> sensors = devs.get(0).getSensors();
+    StringBuilder valueClause = new StringBuilder();
+    for (Sensor sensor : sensors) {
+      valueClause
+          .append(" AND ")
+          .append(sensor.getName())
+          .append(" > ")
+          .append(valueRangeQuery.getValueThreshold());
+    }
+    String sql =
+        "SELECT "
+            + sensorColumns(sensors)
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(valueRangeQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(valueRangeQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs)
+            + valueClause
+            + " ORDER BY ts DESC";
+    return executeQueryAndCount(sql);
+  }
+
+  @Override
+  public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
+    List<DeviceSchema> devs = groupByQuery.getDeviceSchema();
+    String aggCols =
+        devs.get(0).getSensors().stream()
+            .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
+            .collect(Collectors.joining(", "));
+    String sql =
+        "SELECT bar(ts, "
+            + groupByQuery.getGranularity()
+            + "l) AS tb, "
+            + aggCols
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(groupByQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(groupByQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs)
+            + " GROUP BY tb ORDER BY tb DESC";
+    return executeQueryAndCount(sql);
+  }
+
+  @Override
+  public Status setOpQuery(SetOpQuery setOpQuery) {
+    List<RangeQuery> childQueries = setOpQuery.getChildRangeQueries();
+    String op = setOpQuery.getSetOpType().toUpperCase();
+    StringBuilder sql = new StringBuilder();
+    for (int i = 0; i < childQueries.size(); i++) {
+      if (i > 0) sql.append(" ").append(op).append(" ");
+      RangeQuery child = childQueries.get(i);
+      List<DeviceSchema> devs = child.getDeviceSchema();
+      sql.append("(SELECT ")
+          .append(sensorColumns(devs.get(0).getSensors()))
+          .append(" FROM ")
+          .append(tableRef())
+          .append(" WHERE ts >= ")
+          .append(tsLiteral(child.getStartTimestamp()))
+          .append(" AND ts <= ")
+          .append(tsLiteral(child.getEndTimestamp()))
+          .append(" AND deviceId IN ")
+          .append(deviceInList(devs))
+          .append(")");
+    }
+    return executeQueryAndCount(sql.toString());
   }
 
   private synchronized void ensureMtw() throws Exception {
