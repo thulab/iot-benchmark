@@ -26,7 +26,8 @@ public enum DBVersion {
   IOTDB_100("100"),
   InfluxDB_2("2.x"),
   TimescaleDB_Cluster("cluster"),
-  TDengine_3("3");
+  TDengine_3("3"),
+  DolphinDB_3("3");
 
   String version;
 
