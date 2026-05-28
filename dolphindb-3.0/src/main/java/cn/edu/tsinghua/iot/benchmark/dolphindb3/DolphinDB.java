@@ -41,16 +41,14 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
+import com.xxdb.DBConnection;
 import com.xxdb.comm.ErrorCodeInfo;
+import com.xxdb.data.Entity;
 import com.xxdb.multithreadedtablewriter.MultithreadedTableWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
@@ -77,7 +75,7 @@ public class DolphinDB implements IDatabase {
   private final DBConfig dbConfig;
   private final String dbPath;
 
-  private Connection jdbcConn;
+  private DBConnection conn;
   private MultithreadedTableWriter mtw;
 
   public DolphinDB(DBConfig dbConfig) {
@@ -88,15 +86,17 @@ public class DolphinDB implements IDatabase {
   @Override
   public void init() throws TsdbException {
     try {
-      String url =
-          String.format(
-              "jdbc:dolphindb://%s:%s?user=%s&password=%s",
+      conn = new DBConnection();
+      boolean ok =
+          conn.connect(
               dbConfig.getHOST().get(0),
-              dbConfig.getPORT().get(0),
+              Integer.parseInt(dbConfig.getPORT().get(0)),
               dbConfig.getUSERNAME(),
               dbConfig.getPASSWORD());
-      jdbcConn = DriverManager.getConnection(url);
-    } catch (SQLException e) {
+      if (!ok) {
+        throw new TsdbException("Failed to connect DolphinDB: connect() returned false");
+      }
+    } catch (IOException e) {
       LOGGER.error("Failed to connect DolphinDB", e);
       throw new TsdbException("Failed to connect DolphinDB", e);
     }
@@ -111,12 +111,8 @@ public class DolphinDB implements IDatabase {
         LOGGER.warn("Failed to wait for MTW completion", e);
       }
     }
-    if (jdbcConn != null) {
-      try {
-        jdbcConn.close();
-      } catch (SQLException e) {
-        LOGGER.warn("Failed to close DolphinDB JDBC connection", e);
-      }
+    if (conn != null) {
+      conn.close();
     }
   }
 
@@ -126,10 +122,10 @@ public class DolphinDB implements IDatabase {
       return; // another client already dropped the database
     }
     String script = "if(existsDatabase(\"" + dbPath + "\")) { dropDatabase(\"" + dbPath + "\") }";
-    try (java.sql.Statement st = jdbcConn.createStatement()) {
+    try {
       LOGGER.info("Cleanup: {}", script);
-      st.execute(script);
-    } catch (SQLException e) {
+      conn.run(script);
+    } catch (IOException e) {
       LOGGER.error("Failed to drop DolphinDB database", e);
       throw new TsdbException("Failed to drop DolphinDB database", e);
     }
@@ -152,18 +148,20 @@ public class DolphinDB implements IDatabase {
     return TimeUtils.convertToSeconds(System.nanoTime() - start, "ns");
   }
 
-  private void createDatabaseAndTable() throws SQLException {
+  private void createDatabaseAndTable() throws IOException {
     long startMs = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
     long durationMs = config.getLOOP() * config.getBATCH_SIZE_PER_WRITE() * config.getPOINT_STEP();
     long endMs = startMs + durationMs;
     long bucketMs = (long) config.getDOLPHINDB_PARTITION_DAYS() * 86_400_000L;
+    // DolphinDB RANGE partition boundaries must be DATE literals (YYYY.MM.DD), not TIMESTAMP.
+    // A TIMESTAMP column can be partitioned using DATE-type range boundaries.
     List<Long> boundaries = new ArrayList<>();
     for (long t = startMs; t < endMs + bucketMs; t += bucketMs) {
       boundaries.add(t);
     }
     String rangeArr =
         boundaries.stream()
-            .map(t -> "timestamp(" + t + "l)")
+            .map(t -> epochMsToDateLiteral(t))
             .collect(Collectors.joining(", ", "[", "]"));
 
     StringBuilder cols = new StringBuilder("`ts`deviceId");
@@ -193,10 +191,8 @@ public class DolphinDB implements IDatabase {
             + "db.createPartitionedTable(schema, \""
             + TABLE_NAME
             + "\", `ts`deviceId)";
-    try (Statement st = jdbcConn.createStatement()) {
-      LOGGER.info("Create schema script:\n{}", script);
-      st.execute(script);
-    }
+    LOGGER.info("Create schema script:\n{}", script);
+    conn.run(script);
   }
 
   @Override
@@ -216,13 +212,13 @@ public class DolphinDB implements IDatabase {
         }
         ErrorCodeInfo ret = mtw.insert(row);
         if (ret.hasError()) {
-          return new Status(false, 0, new SQLException(ret.getErrorInfo()), ret.getErrorInfo());
+          return new Status(false, 0, new Exception(ret.getErrorInfo()), ret.getErrorInfo());
         }
       }
       awaitDrain();
       MultithreadedTableWriter.Status st = mtw.getStatus();
       if (st.hasError()) {
-        return new Status(false, 0, new SQLException(st.getErrorInfo()), st.getErrorInfo());
+        return new Status(false, 0, new Exception(st.getErrorInfo()), st.getErrorInfo());
       }
       return new Status(true);
     } catch (Exception e) {
@@ -505,6 +501,8 @@ public class DolphinDB implements IDatabase {
   private synchronized void ensureMtw() throws Exception {
     if (mtw != null) return;
     int batchSize = config.getBATCH_SIZE_PER_WRITE() * config.getDEVICE_NUM_PER_WRITE();
+    // "ts" is the first (RANGE) partition column and is required by MTW for partitioned tables.
+    // For COMPO partitions, either partitioning column name is accepted.
     mtw =
         new MultithreadedTableWriter(
             dbConfig.getHOST().get(0),
@@ -519,7 +517,7 @@ public class DolphinDB implements IDatabase {
             batchSize,
             0.01f,
             1,
-            "",
+            "ts",
             null,
             MultithreadedTableWriter.Mode.M_Append,
             null);
@@ -552,6 +550,18 @@ public class DolphinDB implements IDatabase {
     }
   }
 
+  /**
+   * Converts an epoch millisecond timestamp to a DolphinDB DATE literal string (YYYY.MM.DD).
+   * DolphinDB RANGE partition boundaries must be DATE literals; a TIMESTAMP column can be range-
+   * partitioned using DATE-type boundaries (DolphinDB handles the implicit widening).
+   */
+  private static String epochMsToDateLiteral(long epochMs) {
+    java.time.LocalDate date =
+        java.time.Instant.ofEpochMilli(epochMs).atZone(java.time.ZoneOffset.UTC).toLocalDate();
+    return String.format(
+        "%04d.%02d.%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+  }
+
   private String tableRef() {
     return "loadTable(\"" + dbPath + "\", \"" + TABLE_NAME + "\")";
   }
@@ -574,13 +584,12 @@ public class DolphinDB implements IDatabase {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
     }
-    int rows = 0;
-    try (Statement st = jdbcConn.createStatement();
-        ResultSet rs = st.executeQuery(sql)) {
-      while (rs.next()) rows++;
+    try {
+      Entity result = conn.run(sql);
+      int rows = result.rows();
       long points = (long) rows * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
       return new Status(true, points);
-    } catch (SQLException e) {
+    } catch (IOException e) {
       LOGGER.error("DolphinDB query failed: {}", sql, e);
       return new Status(false, 0, e, e.toString());
     }
