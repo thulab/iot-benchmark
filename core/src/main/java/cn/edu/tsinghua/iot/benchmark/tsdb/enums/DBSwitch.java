@@ -67,6 +67,7 @@ public enum DBSwitch {
   DB_TDENGINE(DBType.TDengine, null, null),
   DB_TDENGINE_3(DBType.TDengine, DBVersion.TDengine_3, null),
   DB_QUESTDB(DBType.QuestDB, null, null),
+  DB_DOLPHINDB_3(DBType.DolphinDB, DBVersion.DolphinDB_3, null),
   DB_MSSQLSERVER(DBType.MSSQLSERVER, null, null),
   DB_VICTORIAMETRICS(DBType.VictoriaMetrics, null, null),
   DB_PIARCHIVE(DBType.PIArchive, null, null),
