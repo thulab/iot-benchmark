@@ -300,17 +300,75 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = aggRangeQuery.getDeviceSchema();
+    String aggCols =
+        devs.get(0).getSensors().stream()
+            .map(s -> aggRangeQuery.getAggFun() + "(" + s.getName() + ")")
+            .collect(Collectors.joining(", "));
+    String sql =
+        "SELECT "
+            + aggCols
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(aggRangeQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(aggRangeQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs);
+    return executeQueryAndCount(sql);
   }
 
   @Override
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = aggValueQuery.getDeviceSchema();
+    List<Sensor> sensors = devs.get(0).getSensors();
+    String aggCols =
+        sensors.stream()
+            .map(s -> aggValueQuery.getAggFun() + "(" + s.getName() + ")")
+            .collect(Collectors.joining(", "));
+    StringBuilder valueClause = new StringBuilder();
+    for (int i = 0; i < sensors.size(); i++) {
+      valueClause.append(i == 0 ? " WHERE " : " AND ");
+      valueClause
+          .append(sensors.get(i).getName())
+          .append(" > ")
+          .append(aggValueQuery.getValueThreshold());
+    }
+    valueClause.append(" AND deviceId IN ").append(deviceInList(devs));
+    String sql = "SELECT " + aggCols + " FROM " + tableRef() + valueClause;
+    return executeQueryAndCount(sql);
   }
 
   @Override
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
-    return new Status(false);
+    List<DeviceSchema> devs = aggRangeValueQuery.getDeviceSchema();
+    List<Sensor> sensors = devs.get(0).getSensors();
+    String aggCols =
+        sensors.stream()
+            .map(s -> aggRangeValueQuery.getAggFun() + "(" + s.getName() + ")")
+            .collect(Collectors.joining(", "));
+    StringBuilder valueClause = new StringBuilder();
+    for (Sensor sensor : sensors) {
+      valueClause
+          .append(" AND ")
+          .append(sensor.getName())
+          .append(" > ")
+          .append(aggRangeValueQuery.getValueThreshold());
+    }
+    String sql =
+        "SELECT "
+            + aggCols
+            + " FROM "
+            + tableRef()
+            + " WHERE ts >= "
+            + tsLiteral(aggRangeValueQuery.getStartTimestamp())
+            + " AND ts <= "
+            + tsLiteral(aggRangeValueQuery.getEndTimestamp())
+            + " AND deviceId IN "
+            + deviceInList(devs)
+            + valueClause;
+    return executeQueryAndCount(sql);
   }
 
   @Override
