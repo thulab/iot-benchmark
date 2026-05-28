@@ -106,6 +106,14 @@ public class DolphinDB implements IDatabase {
       } catch (IOException e) {
         lastError = e;
         LOGGER.warn("DolphinDB connect attempt {}/3 failed: {}", attempt, e.getMessage());
+        if (conn != null) {
+          try {
+            conn.close();
+          } catch (Exception ignored) {
+            // best-effort cleanup
+          }
+          conn = null;
+        }
         if (attempt < 3) {
           try {
             Thread.sleep(200L * attempt);
