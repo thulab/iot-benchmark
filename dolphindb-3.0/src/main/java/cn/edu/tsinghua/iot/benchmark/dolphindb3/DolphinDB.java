@@ -50,8 +50,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -61,35 +66,34 @@ public class DolphinDB implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Logger LOGGER = LoggerFactory.getLogger(DolphinDB.class);
 
-  private static final String TABLE_NAME = "device_data";
-
-  /** Guard so only one schema client creates the database+table. */
+  /** Guard so only one schema client creates the databases+tables. */
   private static final AtomicBoolean schemaInited = new AtomicBoolean(false);
 
-  /** Guard so only one client drops the database in cleanup. */
+  /** Guard so only one client drops the databases in cleanup. */
   private static final AtomicBoolean cleanupDone = new AtomicBoolean(false);
 
   /** Schema clients wait on this so all of them return after schema is fully created. */
   private static final CyclicBarrier schemaBarrier =
       new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
 
+  /** All DFS database paths created during registerSchema, used in cleanup. */
+  private static final Set<String> createdDbPaths = ConcurrentHashMap.newKeySet();
+
   private final DBConfig dbConfig;
-  private final String dbPath;
+  private final String timeColumn = config.getTABLE_TIME_COLUMN();
 
   private DBConnection conn;
-  private MultithreadedTableWriter mtw;
+
+  /** Per-instance MTW cache keyed by "dbPath::tableName". */
+  private final Map<String, MultithreadedTableWriter> mtwCache = new HashMap<>();
 
   public DolphinDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
-    this.dbPath = "dfs://" + dbConfig.getDB_NAME();
   }
 
   @Override
   public void init() throws TsdbException {
-    // DolphinDB's RSA-based login (getDynamicPublicKey) can fail with a transient
-    // key-file race when multiple connections are established concurrently.  Retry
-    // up to 3 times with a short back-off so the server has time to clean up stale
-    // key files from previous sessions.
+    // RSA-based login can race on key files when many clients connect concurrently; retry.
     IOException lastError = null;
     for (int attempt = 1; attempt <= 3; attempt++) {
       try {
@@ -131,13 +135,14 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    if (mtw != null) {
+    for (MultithreadedTableWriter mtw : mtwCache.values()) {
       try {
         mtw.waitForThreadCompletion();
       } catch (Exception e) {
         LOGGER.warn("Failed to wait for MTW completion", e);
       }
     }
+    mtwCache.clear();
     if (conn != null) {
       conn.close();
     }
@@ -146,15 +151,17 @@ public class DolphinDB implements IDatabase {
   @Override
   public void cleanup() throws TsdbException {
     if (!cleanupDone.compareAndSet(false, true)) {
-      return; // another client already dropped the database
+      return; // another client already dropped the databases
     }
-    String script = "if(existsDatabase(\"" + dbPath + "\")) { dropDatabase(\"" + dbPath + "\") }";
-    try {
-      LOGGER.info("Cleanup: {}", script);
-      conn.run(script);
-    } catch (IOException e) {
-      LOGGER.error("Failed to drop DolphinDB database", e);
-      throw new TsdbException("Failed to drop DolphinDB database", e);
+    for (String dbPath : createdDbPaths) {
+      String script = "if(existsDatabase(\"" + dbPath + "\")) { dropDatabase(\"" + dbPath + "\") }";
+      try {
+        LOGGER.info("Cleanup: {}", script);
+        conn.run(script);
+      } catch (IOException e) {
+        LOGGER.error("Failed to drop DolphinDB database {}", dbPath, e);
+        throw new TsdbException("Failed to drop DolphinDB database " + dbPath, e);
+      }
     }
   }
 
@@ -164,7 +171,7 @@ public class DolphinDB implements IDatabase {
     if (config.hasWrite()) {
       try {
         if (schemaInited.compareAndSet(false, true)) {
-          createDatabaseAndTable();
+          createDatabasesAndTables(schemaList);
         }
         schemaBarrier.await();
       } catch (Exception e) {
@@ -175,68 +182,93 @@ public class DolphinDB implements IDatabase {
     return TimeUtils.convertToSeconds(System.nanoTime() - start, "ns");
   }
 
-  private void createDatabaseAndTable() throws IOException {
-    long startMs = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
-    long durationMs = config.getLOOP() * config.getBATCH_SIZE_PER_WRITE() * config.getPOINT_STEP();
-    long endMs = startMs + durationMs;
-    long bucketMs = (long) config.getDOLPHINDB_PARTITION_DAYS() * 86_400_000L;
-    // DolphinDB RANGE partition boundaries must be DATE literals (YYYY.MM.DD), not TIMESTAMP.
-    // A TIMESTAMP column can be partitioned using DATE-type range boundaries.
-    List<Long> boundaries = new ArrayList<>();
-    for (long t = startMs; t < endMs + bucketMs; t += bucketMs) {
-      boundaries.add(t);
+  private void createDatabasesAndTables(List<DeviceSchema> schemaList) throws IOException {
+    Map<String, Set<String>> groupToTables = new LinkedHashMap<>();
+    for (DeviceSchema schema : schemaList) {
+      groupToTables
+          .computeIfAbsent(schema.getGroup(), k -> new LinkedHashSet<>())
+          .add(schema.getTable());
     }
-    String rangeArr =
-        boundaries.stream()
-            .map(t -> epochMsToDateLiteral(t))
-            .collect(Collectors.joining(", ", "[", "]"));
 
-    StringBuilder cols = new StringBuilder("`ts`deviceId");
-    StringBuilder types = new StringBuilder("[TIMESTAMP, SYMBOL");
-    // Tag columns from TAG_NUMBER come right after deviceId; each is dictionary-encoded SYMBOL.
+    long startMs = TimeUtils.convertDateStrToTimestamp(config.getSTART_TIME());
+    long durationMs =
+        (long) config.getLOOP() * config.getBATCH_SIZE_PER_WRITE() * config.getPOINT_STEP();
+    long endMs = startMs + durationMs + 86_400_000L; // pad by 1 day for the right boundary
+    String startDate = epochMsToDateLiteral(startMs);
+    String endDate = epochMsToDateLiteral(endMs);
+
+    for (Map.Entry<String, Set<String>> entry : groupToTables.entrySet()) {
+      String dbPath = "dfs://" + dbConfig.getDB_NAME() + "_" + entry.getKey();
+      createdDbPaths.add(dbPath);
+
+      // Drop pre-existing database so reruns are idempotent.
+      conn.run("if(existsDatabase(\"" + dbPath + "\")) { dropDatabase(\"" + dbPath + "\") }");
+
+      String createDbSql =
+          "create database \""
+              + dbPath
+              + "\" partitioned by VALUE("
+              + startDate
+              + ".."
+              + endDate
+              + "), HASH([SYMBOL, "
+              + config.getDOLPHINDB_DEVICE_HASH_BUCKETS()
+              + "]), engine='TSDB'";
+      LOGGER.info("Create DB: {}", createDbSql);
+      conn.run(createDbSql);
+
+      for (String tableName : entry.getValue()) {
+        String createTableSql = buildCreateTableSql(dbPath, tableName);
+        LOGGER.info("Create Table: {}", createTableSql);
+        conn.run(createTableSql);
+      }
+    }
+  }
+
+  private String buildCreateTableSql(String dbPath, String tableName) {
+    StringBuilder cols = new StringBuilder();
+    cols.append(timeColumn).append(" TIMESTAMP,\n");
+    cols.append("    deviceId SYMBOL");
     int tagCount = config.getTAG_NUMBER();
     for (int t = 0; t < tagCount; t++) {
-      cols.append("`").append(config.getTAG_KEY_PREFIX()).append(t);
-      types.append(", SYMBOL");
+      cols.append(",\n    ").append(config.getTAG_KEY_PREFIX()).append(t).append(" SYMBOL");
     }
     for (Sensor sensor : config.getSENSORS()) {
-      cols.append("`").append(sensor.getName());
-      // A sensor marked as TAG-category is a low-cardinality categorical label even
-      // if its declared SensorType is TEXT/STRING; map it to SYMBOL.
-      String columnType =
+      cols.append(",\n    ").append(sensor.getName()).append(" ");
+      // ColumnCategory.TAG sensors are categorical; force SYMBOL regardless of declared SensorType.
+      cols.append(
           sensor.getColumnCategory() == ColumnCategory.TAG
               ? "SYMBOL"
-              : typeMap(sensor.getSensorType());
-      types.append(", ").append(columnType);
+              : typeMap(sensor.getSensorType()));
     }
-    types.append("]");
 
-    String script =
-        "rangeBoundaries = "
-            + rangeArr
-            + "\n"
-            + "db1 = database(\"\", RANGE, rangeBoundaries)\n"
-            + "db2 = database(\"\", HASH, [SYMBOL, "
-            + config.getDOLPHINDB_DEVICE_HASH_BUCKETS()
-            + "])\n"
-            + "db  = database(\""
-            + dbPath
-            + "\", COMPO, [db1, db2])\n"
-            + "schema = table(1:0, "
-            + cols
-            + ", "
-            + types
-            + ")\n"
-            + "db.createPartitionedTable(schema, \""
-            + TABLE_NAME
-            + "\", `ts`deviceId)";
-    LOGGER.info("Create schema script:\n{}", script);
-    conn.run(script);
+    StringBuilder sortCols = new StringBuilder("[`deviceId");
+    for (int t = 0; t < tagCount; t++) {
+      sortCols.append(", `").append(config.getTAG_KEY_PREFIX()).append(t);
+    }
+    sortCols.append(", `").append(timeColumn).append("]");
+
+    // partitioned-by order must match db: VALUE(<time>) then HASH(deviceId).
+    return "create table \""
+        + dbPath
+        + "\".\""
+        + tableName
+        + "\" (\n    "
+        + cols
+        + "\n)\npartitioned by "
+        + timeColumn
+        + ", deviceId,\n"
+        + "sortColumns="
+        + sortCols
+        + ",\n"
+        + "keepDuplicates=LAST";
   }
 
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
     DeviceSchema device = batch.getDeviceSchema();
+    String dbPath = dbPathOf(device);
+    String tableName = device.getTable();
     String deviceId = device.getDevice();
     List<Sensor> sensors = device.getSensors();
     int tagCount = config.getTAG_NUMBER();
@@ -246,7 +278,7 @@ public class DolphinDB implements IDatabase {
       tagValues[t] = device.getTags().get(config.getTAG_KEY_PREFIX() + t);
     }
     try {
-      ensureMtw();
+      MultithreadedTableWriter mtw = ensureMtw(dbPath, tableName);
       for (Record record : batch.getRecords()) {
         Object[] row = new Object[2 + tagCount + sensors.size()];
         row[0] = new java.sql.Timestamp(record.getTimestamp());
@@ -263,7 +295,7 @@ public class DolphinDB implements IDatabase {
           return new Status(false, 0, new Exception(ret.getErrorInfo()), ret.getErrorInfo());
         }
       }
-      awaitDrain();
+      awaitDrain(mtw);
       MultithreadedTableWriter.Status st = mtw.getStatus();
       if (st.hasError()) {
         return new Status(false, 0, new Exception(st.getErrorInfo()), st.getErrorInfo());
@@ -275,7 +307,7 @@ public class DolphinDB implements IDatabase {
     }
   }
 
-  private void awaitDrain() throws InterruptedException {
+  private void awaitDrain(MultithreadedTableWriter mtw) throws InterruptedException {
     while (true) {
       MultithreadedTableWriter.Status st = mtw.getStatus();
       if (st.unsentRows == 0) return;
@@ -291,8 +323,10 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + sensorColumns(devs.get(0).getSensors())
             + " FROM "
-            + tableRef()
-            + " WHERE ts = "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " = "
             + tsLiteral(preciseQuery.getTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs);
@@ -306,10 +340,14 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + sensorColumns(devs.get(0).getSensors())
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(rangeQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(rangeQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs);
@@ -332,10 +370,14 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + sensorColumns(sensors)
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(valueRangeQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(valueRangeQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
@@ -354,10 +396,14 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + aggCols
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(aggRangeQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(aggRangeQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs);
@@ -381,7 +427,7 @@ public class DolphinDB implements IDatabase {
           .append(aggValueQuery.getValueThreshold());
     }
     valueClause.append(" AND deviceId IN ").append(deviceInList(devs));
-    String sql = "SELECT " + aggCols + " FROM " + tableRef() + valueClause;
+    String sql = "SELECT " + aggCols + " FROM " + tableRef(devs.get(0)) + valueClause;
     return executeQueryAndCount(sql);
   }
 
@@ -405,10 +451,14 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + aggCols
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(aggRangeValueQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(aggRangeValueQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
@@ -427,14 +477,20 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + aggCols
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(groupByQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(groupByQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + " GROUP BY bar(ts, "
+            + " GROUP BY bar("
+            + timeColumn
+            + ", "
             + groupByQuery.getGranularity()
             + "l)";
     return executeQueryAndCount(sql);
@@ -448,7 +504,12 @@ public class DolphinDB implements IDatabase {
             .map(s -> "last(" + s.getName() + ")")
             .collect(Collectors.joining(", "));
     String sql =
-        "SELECT " + lastCols + " FROM " + tableRef() + " WHERE deviceId IN " + deviceInList(devs);
+        "SELECT "
+            + lastCols
+            + " FROM "
+            + tableRef(devs.get(0))
+            + " WHERE deviceId IN "
+            + deviceInList(devs);
     return executeQueryAndCount(sql);
   }
 
@@ -459,14 +520,20 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + sensorColumns(devs.get(0).getSensors())
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(rangeQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(rangeQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + " ORDER BY ts DESC";
+            + " ORDER BY "
+            + timeColumn
+            + " DESC";
     return executeQueryAndCount(sql);
   }
 
@@ -486,15 +553,21 @@ public class DolphinDB implements IDatabase {
         "SELECT "
             + sensorColumns(sensors)
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(valueRangeQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(valueRangeQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
             + valueClause
-            + " ORDER BY ts DESC";
+            + " ORDER BY "
+            + timeColumn
+            + " DESC";
     return executeQueryAndCount(sql);
   }
 
@@ -505,19 +578,22 @@ public class DolphinDB implements IDatabase {
         devs.get(0).getSensors().stream()
             .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
             .collect(Collectors.joining(", "));
-    // DolphinDB does not allow a GROUP BY alias to be referenced in ORDER BY within
-    // the same SELECT clause.  Use the full bar() expression in ORDER BY instead.
-    String barExpr = "bar(ts, " + groupByQuery.getGranularity() + "l)";
+    // DolphinDB GROUP BY alias is not visible in ORDER BY; inline the bar() expression.
+    String barExpr = "bar(" + timeColumn + ", " + groupByQuery.getGranularity() + "l)";
     String sql =
         "SELECT "
             + barExpr
             + ", "
             + aggCols
             + " FROM "
-            + tableRef()
-            + " WHERE ts >= "
+            + tableRef(devs.get(0))
+            + " WHERE "
+            + timeColumn
+            + " >= "
             + tsLiteral(groupByQuery.getStartTimestamp())
-            + " AND ts <= "
+            + " AND "
+            + timeColumn
+            + " <= "
             + tsLiteral(groupByQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
@@ -541,10 +617,14 @@ public class DolphinDB implements IDatabase {
       sql.append("(SELECT ")
           .append(sensorColumns(devs.get(0).getSensors()))
           .append(" FROM ")
-          .append(tableRef())
-          .append(" WHERE ts >= ")
+          .append(tableRef(devs.get(0)))
+          .append(" WHERE ")
+          .append(timeColumn)
+          .append(" >= ")
           .append(tsLiteral(child.getStartTimestamp()))
-          .append(" AND ts <= ")
+          .append(" AND ")
+          .append(timeColumn)
+          .append(" <= ")
           .append(tsLiteral(child.getEndTimestamp()))
           .append(" AND deviceId IN ")
           .append(deviceInList(devs))
@@ -553,11 +633,13 @@ public class DolphinDB implements IDatabase {
     return executeQueryAndCount(sql.toString());
   }
 
-  private synchronized void ensureMtw() throws Exception {
-    if (mtw != null) return;
+  private synchronized MultithreadedTableWriter ensureMtw(String dbPath, String tableName)
+      throws Exception {
+    String key = dbPath + "::" + tableName;
+    MultithreadedTableWriter mtw = mtwCache.get(key);
+    if (mtw != null) return mtw;
     int batchSize = config.getBATCH_SIZE_PER_WRITE() * config.getDEVICE_NUM_PER_WRITE();
-    // "ts" is the first (RANGE) partition column and is required by MTW for partitioned tables.
-    // For COMPO partitions, either partitioning column name is accepted.
+    // partitionCol is the time column (the VALUE-partitioned column at the DB level).
     mtw =
         new MultithreadedTableWriter(
             dbConfig.getHOST().get(0),
@@ -565,17 +647,19 @@ public class DolphinDB implements IDatabase {
             dbConfig.getUSERNAME(),
             dbConfig.getPASSWORD(),
             dbPath,
-            TABLE_NAME,
+            tableName,
             false,
             false,
             null,
             batchSize,
             0.01f,
             1,
-            "ts",
+            timeColumn,
             null,
             MultithreadedTableWriter.Mode.M_Append,
             null);
+    mtwCache.put(key, mtw);
+    return mtw;
   }
 
   private static Object convertValue(Object v, SensorType type) {
@@ -605,11 +689,7 @@ public class DolphinDB implements IDatabase {
     }
   }
 
-  /**
-   * Converts an epoch millisecond timestamp to a DolphinDB DATE literal string (YYYY.MM.DD).
-   * DolphinDB RANGE partition boundaries must be DATE literals; a TIMESTAMP column can be range-
-   * partitioned using DATE-type boundaries (DolphinDB handles the implicit widening).
-   */
+  // VALUE() partition boundaries require DolphinDB DATE literal (YYYY.MM.DD).
   private static String epochMsToDateLiteral(long epochMs) {
     java.time.LocalDate date =
         java.time.Instant.ofEpochMilli(epochMs).atZone(java.time.ZoneOffset.UTC).toLocalDate();
@@ -617,8 +697,12 @@ public class DolphinDB implements IDatabase {
         "%04d.%02d.%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
   }
 
-  private String tableRef() {
-    return "loadTable(\"" + dbPath + "\", \"" + TABLE_NAME + "\")";
+  private String dbPathOf(DeviceSchema schema) {
+    return "dfs://" + dbConfig.getDB_NAME() + "_" + schema.getGroup();
+  }
+
+  private String tableRef(DeviceSchema schema) {
+    return "loadTable(\"" + dbPathOf(schema) + "\", \"" + schema.getTable() + "\")";
   }
 
   private static String tsLiteral(long epochMs) {
