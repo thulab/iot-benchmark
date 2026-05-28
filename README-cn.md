@@ -43,7 +43,7 @@ IoT Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 |     TimescaleDB      |       --       |
 |     TimescaleDB      |    Cluster     |
 |       TDengine       | 2.2.0.2、3.0.1 |
-|      DolphinDB       |      v3.x      |
+|      DolphinDB       |   v2.x、v3.x   |
 |        CnosDB        |       --       |
 
 # 3. 快速开始
@@ -237,6 +237,7 @@ SET_OP_QUERY             0.00        0.00        0.00        0.00        0.00   
 |       TDengine       | 2.2.0.2  |      tdengine       |                                                            TDengine                                                            |
 |       TDengine       |  3.0.1   |    tdengine-3.0     |                                                           TDengine-3                                                           |
 |       DolphinDB      |   3.x    |    dolphindb-3.0    |                                                          DolphinDB-3                                                           |
+|       DolphinDB      |   2.x    |    dolphindb-2.0    |                                                          DolphinDB-2                                                           |
 
 * 不同数据库使用说明详见 [被测数据库示例说明](./docs/DifferentTestDatabase.md)
 
