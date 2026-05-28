@@ -49,3 +49,45 @@
 ## 1.14. 测试 PI Archive
 
 [快速指引](../pi/README.md)
+
+## DolphinDB
+
+DolphinDB v3.x 适配。写入使用 `MultithreadedTableWriter`（DolphinDB 官方推荐的高吞吐 Java API），查询走原生 `DBConnection.run()` 接口。建表为单宽表 `device_data`，DFS 复合分区：
+
+- **一级**：`RANGE(ts)`，默认 7 天一个分区（`DOLPHINDB_PARTITION_DAYS`）
+- **二级**：`HASH([SYMBOL, 1000])` on `deviceId`（`DOLPHINDB_DEVICE_HASH_BUCKETS`）
+
+### 通过 Docker 启动本地 DolphinDB
+
+```bash
+# Apple Silicon
+docker pull --platform linux/arm64 dolphindb/dolphindb:v3.00.5
+# Intel
+# docker pull dolphindb/dolphindb:v3.00.5
+
+docker run -d --name ddb \
+  -p 8848:8848 \
+  --ulimit nofile=65536:65536 \
+  dolphindb/dolphindb:v3.00.5
+```
+
+Web GUI: `http://127.0.0.1:8848`（默认 `admin` / `123456`）。
+
+### 关键配置
+
+```properties
+DB_SWITCH=DolphinDB-3
+HOST=127.0.0.1
+PORT=8848
+USERNAME=admin
+PASSWORD=123456
+DB_NAME=benchmark
+DOLPHINDB_PARTITION_DAYS=7
+DOLPHINDB_DEVICE_HASH_BUCKETS=1000
+```
+
+### 注意事项
+
+- DolphinDB 社区版单节点 8GB 内存上限。更大规模 benchmark 需申请企业版授权。
+- `DOLPHINDB_DEVICE_HASH_BUCKETS` 默认 1000 对齐 DolphinDB 官方 IoT 示例。设备数极少时可调小（例如 100）以降低元数据开销。
+- RANGE 分区边界由 `START_TIME` 加 `LOOP × BATCH_SIZE_PER_WRITE × POINT_STEP` 计算并向上对齐到下一个 `DOLPHINDB_PARTITION_DAYS` 桶。

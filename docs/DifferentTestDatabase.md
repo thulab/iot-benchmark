@@ -49,3 +49,45 @@ This page is an index of quick guides for database modules that are present in t
 ## 1.14. Testing PI Archive
 
 [Quick Guide](../pi/README.md)
+
+## DolphinDB
+
+DolphinDB v3.x integration. Writes use `MultithreadedTableWriter` (DolphinDB's recommended high-throughput Java API); queries go through the native `DBConnection.run()` API. Schema is a single DFS partitioned table `device_data` with composite partitioning:
+
+- **Level 1**: `RANGE(ts)` with 7-day granularity by default (`DOLPHINDB_PARTITION_DAYS`)
+- **Level 2**: `HASH([SYMBOL, 1000])` on `deviceId` (`DOLPHINDB_DEVICE_HASH_BUCKETS`)
+
+### Start a local DolphinDB via Docker
+
+```bash
+# Apple Silicon
+docker pull --platform linux/arm64 dolphindb/dolphindb:v3.00.5
+# Intel
+# docker pull dolphindb/dolphindb:v3.00.5
+
+docker run -d --name ddb \
+  -p 8848:8848 \
+  --ulimit nofile=65536:65536 \
+  dolphindb/dolphindb:v3.00.5
+```
+
+Web GUI: `http://127.0.0.1:8848` (default `admin` / `123456`).
+
+### Key config
+
+```properties
+DB_SWITCH=DolphinDB-3
+HOST=127.0.0.1
+PORT=8848
+USERNAME=admin
+PASSWORD=123456
+DB_NAME=benchmark
+DOLPHINDB_PARTITION_DAYS=7
+DOLPHINDB_DEVICE_HASH_BUCKETS=1000
+```
+
+### Notes
+
+- DolphinDB community edition has an 8 GB memory limit per node. For larger benchmarks, request an enterprise license.
+- `DOLPHINDB_DEVICE_HASH_BUCKETS` defaults to 1000 to match the DolphinDB official IoT demo. For very small device counts, smaller bucket counts (e.g. 100) may reduce metadata overhead.
+- RANGE partition boundaries are computed from `START_TIME` + `LOOP × BATCH_SIZE_PER_WRITE × POINT_STEP` and rounded up to the next `DOLPHINDB_PARTITION_DAYS` bucket.
