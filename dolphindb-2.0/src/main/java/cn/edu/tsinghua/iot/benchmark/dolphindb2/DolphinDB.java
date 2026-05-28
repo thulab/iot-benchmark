@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
@@ -192,9 +193,21 @@ public class DolphinDB implements IDatabase {
 
     StringBuilder cols = new StringBuilder("`ts`deviceId");
     StringBuilder types = new StringBuilder("[TIMESTAMP, SYMBOL");
+    // Tag columns from TAG_NUMBER come right after deviceId; each is dictionary-encoded SYMBOL.
+    int tagCount = config.getTAG_NUMBER();
+    for (int t = 0; t < tagCount; t++) {
+      cols.append("`").append(config.getTAG_KEY_PREFIX()).append(t);
+      types.append(", SYMBOL");
+    }
     for (Sensor sensor : config.getSENSORS()) {
       cols.append("`").append(sensor.getName());
-      types.append(", ").append(typeMap(sensor.getSensorType()));
+      // A sensor marked as TAG-category is a low-cardinality categorical label even
+      // if its declared SensorType is TEXT/STRING; map it to SYMBOL.
+      String columnType =
+          sensor.getColumnCategory() == ColumnCategory.TAG
+              ? "SYMBOL"
+              : typeMap(sensor.getSensorType());
+      types.append(", ").append(columnType);
     }
     types.append("]");
 
@@ -226,15 +239,24 @@ public class DolphinDB implements IDatabase {
     DeviceSchema device = batch.getDeviceSchema();
     String deviceId = device.getDevice();
     List<Sensor> sensors = device.getSensors();
+    int tagCount = config.getTAG_NUMBER();
+    // Pre-resolve tag values once per batch (they are device-static).
+    Object[] tagValues = new Object[tagCount];
+    for (int t = 0; t < tagCount; t++) {
+      tagValues[t] = device.getTags().get(config.getTAG_KEY_PREFIX() + t);
+    }
     try {
       ensureMtw();
       for (Record record : batch.getRecords()) {
-        Object[] row = new Object[2 + sensors.size()];
+        Object[] row = new Object[2 + tagCount + sensors.size()];
         row[0] = new java.sql.Timestamp(record.getTimestamp());
         row[1] = deviceId;
+        for (int t = 0; t < tagCount; t++) {
+          row[2 + t] = tagValues[t];
+        }
         List<Object> vals = record.getRecordDataValue();
         for (int i = 0; i < sensors.size(); i++) {
-          row[i + 2] = convertValue(vals.get(i), sensors.get(i).getSensorType());
+          row[2 + tagCount + i] = convertValue(vals.get(i), sensors.get(i).getSensorType());
         }
         ErrorCodeInfo ret = mtw.insert(row);
         if (ret.hasError()) {
