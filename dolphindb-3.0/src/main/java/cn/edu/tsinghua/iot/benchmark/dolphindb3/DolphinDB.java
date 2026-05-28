@@ -19,7 +19,10 @@
 
 package cn.edu.tsinghua.iot.benchmark.dolphindb3;
 
+import cn.edu.tsinghua.iot.benchmark.conf.Config;
+import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -34,30 +37,95 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.LatestPointQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.PreciseQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
+import com.xxdb.multithreadedtablewriter.MultithreadedTableWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DolphinDB implements IDatabase {
-  public DolphinDB(DBConfig dbConfig) {}
 
-  @Override
-  public void init() throws TsdbException {
-    throw new TsdbException("DolphinDB adapter not implemented yet");
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
+  private static final Logger LOGGER = LoggerFactory.getLogger(DolphinDB.class);
+
+  private static final String TABLE_NAME = "device_data";
+
+  /** Guard so only one schema client creates the database+table. */
+  private static final AtomicBoolean schemaInited = new AtomicBoolean(false);
+
+  /** Guard so only one client drops the database in cleanup. */
+  private static final AtomicBoolean cleanupDone = new AtomicBoolean(false);
+
+  /** Schema clients wait on this so all of them return after schema is fully created. */
+  private static final CyclicBarrier schemaBarrier =
+      new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
+
+  private final DBConfig dbConfig;
+  private final String dbPath;
+
+  private Connection jdbcConn;
+  private MultithreadedTableWriter mtw;
+
+  public DolphinDB(DBConfig dbConfig) {
+    this.dbConfig = dbConfig;
+    this.dbPath = "dfs://" + dbConfig.getDB_NAME();
   }
 
   @Override
-  public void cleanup() throws TsdbException {}
+  public void init() throws TsdbException {
+    try {
+      String url =
+          String.format(
+              "jdbc:dolphindb://%s:%s?user=%s&password=%s",
+              dbConfig.getHOST().get(0),
+              dbConfig.getPORT().get(0),
+              dbConfig.getUSERNAME(),
+              dbConfig.getPASSWORD());
+      jdbcConn = DriverManager.getConnection(url);
+    } catch (SQLException e) {
+      LOGGER.error("Failed to connect DolphinDB", e);
+      throw new TsdbException("Failed to connect DolphinDB", e);
+    }
+  }
 
   @Override
-  public void close() throws TsdbException {}
+  public void close() throws TsdbException {
+    if (mtw != null) {
+      try {
+        mtw.waitForThreadCompletion();
+      } catch (Exception e) {
+        LOGGER.warn("Failed to wait for MTW completion", e);
+      }
+    }
+    if (jdbcConn != null) {
+      try {
+        jdbcConn.close();
+      } catch (SQLException e) {
+        LOGGER.warn("Failed to close DolphinDB JDBC connection", e);
+      }
+    }
+  }
+
+  @Override
+  public void cleanup() throws TsdbException {
+    // implemented in Task 16
+    throw new TsdbException("cleanup not implemented yet");
+  }
 
   @Override
   public Double registerSchema(List<DeviceSchema> schemaList) throws TsdbException {
-    return 0.0;
+    // implemented in Task 17
+    throw new TsdbException("registerSchema not implemented yet");
   }
 
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
+    // implemented in Task 19
     return new Status(false);
   }
 
@@ -109,5 +177,34 @@ public class DolphinDB implements IDatabase {
   @Override
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     return new Status(false);
+  }
+
+  @Override
+  public String typeMap(SensorType iotdbSensorType) {
+    switch (iotdbSensorType) {
+      case BOOLEAN:
+        return "BOOL";
+      case INT32:
+        return "INT";
+      case INT64:
+        return "LONG";
+      case FLOAT:
+        return "FLOAT";
+      case DOUBLE:
+        return "DOUBLE";
+      case TEXT:
+      case STRING:
+        return "STRING";
+      case BLOB:
+      case OBJECT:
+        return "BLOB";
+      case TIMESTAMP:
+        return "TIMESTAMP";
+      case DATE:
+        return "DATE";
+      default:
+        LOGGER.warn("Unsupported sensorType {}, falling back to STRING.", iotdbSensorType);
+        return "STRING";
+    }
   }
 }
