@@ -213,7 +213,7 @@ public class DolphinDB implements IDatabase {
               + endDate
               + "), HASH([SYMBOL, "
               + config.getDOLPHINDB_DEVICE_HASH_BUCKETS()
-              + "]), engine='TSDB'";
+              + "]), engine='TSDB', atomic='CHUNK'";
       LOGGER.info("Create DB: {}", createDbSql);
       conn.run(createDbSql);
 
