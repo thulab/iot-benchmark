@@ -241,8 +241,8 @@ The configuration files are stored in `iot-benchmark/iotdb-2.0/target/iot-benchm
 |       KairosDB       |    --    |         kairosdb          |                                                            KairosDB                                                            |
 |       TDengine       | 2.2.0.2  |         tdengine          |                                                            TDengine                                                            |
 |       TDengine       |  3.0.1   |       tdengine-3.0        |                                                           TDengine-3                                                           |
-|       DolphinDB      |   3.x    |       dolphindb-3.0       |                                                          DolphinDB-3                                                           |
-|       DolphinDB      |   2.x    |       dolphindb-2.0       |                                                          DolphinDB-2                                                           |
+|       DolphinDB      |   3.x    |       dolphindb-3.0       |                                                   DolphinDB-3-MTW / DolphinDB-3-PTA                                            |
+|       DolphinDB      |   2.x    |       dolphindb-2.0       |                                                   DolphinDB-2-MTW / DolphinDB-2-PTA                                            |
 
 * For detailed instructions on using different databases, see [Tested Database Example Instructions](./docs/DifferentTestDatabase-EN.md)
 

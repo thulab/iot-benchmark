@@ -32,6 +32,7 @@ import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode;
 import cn.edu.tsinghua.iot.benchmark.utils.TimeUtils;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeValueQuery;
@@ -43,13 +44,30 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import com.xxdb.DBConnection;
+import com.xxdb.DBConnectionPool;
+import com.xxdb.ExclusiveDBConnectionPool;
 import com.xxdb.comm.ErrorCodeInfo;
+import com.xxdb.data.BasicBooleanVector;
+import com.xxdb.data.BasicDateVector;
+import com.xxdb.data.BasicDoubleVector;
+import com.xxdb.data.BasicFloatVector;
+import com.xxdb.data.BasicIntVector;
+import com.xxdb.data.BasicLongVector;
+import com.xxdb.data.BasicStringVector;
+import com.xxdb.data.BasicTable;
+import com.xxdb.data.BasicTimestampVector;
 import com.xxdb.data.Entity;
+import com.xxdb.data.Vector;
 import com.xxdb.multithreadedtablewriter.MultithreadedTableWriter;
+import com.xxdb.route.PartitionedTableAppender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -64,9 +82,11 @@ import java.util.stream.Collectors;
 /**
  * DolphinDB adapter. Schema and query semantics mirror the iotdb-2.0 table model: one wide table
  * per (group, table) with a TIMESTAMP time column, a {@code deviceId} SYMBOL, optional tag SYMBOL
- * columns and one column per sensor. Writes go through one {@link MultithreadedTableWriter} per
- * client thread (used as a buffered synchronous writer, see {@code ensureMtw}); queries run through
- * the native {@link DBConnection} API because dolphindb-javaapi does not register a JDBC driver.
+ * columns and one column per sensor. Two write paths are selectable via {@code DB_SWITCH}: {@code
+ * MTW} ({@link MultithreadedTableWriter}, a per-client buffered row writer, see {@code ensureMtw})
+ * and {@code PTA} ({@link PartitionedTableAppender}, a per-batch columnar append routed through a
+ * {@link DBConnectionPool}, see {@code ensureAppender}). Queries run through the native {@link
+ * DBConnection} API because dolphindb-javaapi does not register a JDBC driver.
  */
 public class DolphinDB implements IDatabase {
 
@@ -89,13 +109,27 @@ public class DolphinDB implements IDatabase {
   private final DBConfig dbConfig;
   private final String timeColumn = config.getTABLE_TIME_COLUMN();
 
+  /** Connection count for the PartitionedTableAppender pool (parallel partition appends). */
+  private static final int PTA_POOL_SIZE = 4;
+
   private DBConnection conn;
 
-  /** Per-instance MTW cache keyed by "dbPath::tableName". */
+  /** True when DB_SWITCH selects the PartitionedTableAppender write path instead of MTW. */
+  private final boolean usePartitionedTableAppender;
+
+  /** Per-instance MTW cache keyed by "dbPath::tableName" (MTW write path). */
   private final Map<String, MultithreadedTableWriter> mtwCache = new HashMap<>();
+
+  /** Per-instance PartitionedTableAppender cache keyed by "dbPath::tableName" (PTA write path). */
+  private final Map<String, PartitionedTableAppender> appenderCache = new HashMap<>();
+
+  /** Lazily-created connection pool shared by all appenders of this instance (PTA write path). */
+  private DBConnectionPool appenderPool;
 
   public DolphinDB(DBConfig dbConfig) {
     this.dbConfig = dbConfig;
+    this.usePartitionedTableAppender =
+        dbConfig.getDB_SWITCH().getInsertMode() == DBInsertMode.INSERT_USE_PTA;
   }
 
   @Override
@@ -150,6 +184,15 @@ public class DolphinDB implements IDatabase {
       }
     }
     mtwCache.clear();
+    appenderCache.clear();
+    if (appenderPool != null) {
+      try {
+        appenderPool.shutdown();
+      } catch (Exception e) {
+        LOGGER.warn("Failed to shut down DolphinDB connection pool", e);
+      }
+      appenderPool = null;
+    }
     if (conn != null) {
       conn.close();
     }
@@ -273,6 +316,13 @@ public class DolphinDB implements IDatabase {
 
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
+    return usePartitionedTableAppender
+        ? insertOneBatchViaAppender(batch)
+        : insertOneBatchViaMtw(batch);
+  }
+
+  /** MultithreadedTableWriter path: feed rows one by one, then drain the writer. */
+  private Status insertOneBatchViaMtw(IBatch batch) {
     int tagCount = config.getTAG_NUMBER();
     try {
       batch.reset();
@@ -320,6 +370,76 @@ public class DolphinDB implements IDatabase {
       return new Status(true);
     } catch (Exception e) {
       LOGGER.error("Failed to insert batch into DolphinDB", e);
+      return new Status(false, 0, e, e.toString());
+    }
+  }
+
+  /**
+   * PartitionedTableAppender path: transpose the whole MultiDeviceBatch into one columnar {@link
+   * BasicTable} (same column order as {@code buildCreateTableSql}) and append it once; the appender
+   * routes rows to their partitions through the connection pool.
+   */
+  private Status insertOneBatchViaAppender(IBatch batch) {
+    int tagCount = config.getTAG_NUMBER();
+    try {
+      batch.reset();
+      DeviceSchema first = batch.getDeviceSchema();
+      List<Sensor> sensors = first.getSensors();
+
+      // Column builders, in table order: time, deviceId, tag_*, s_0..s_n.
+      List<Long> timeCol = new ArrayList<>();
+      List<String> deviceCol = new ArrayList<>();
+      List<List<String>> tagCols = new ArrayList<>(tagCount);
+      for (int t = 0; t < tagCount; t++) {
+        tagCols.add(new ArrayList<>());
+      }
+      ColumnBuilder[] sensorCols = new ColumnBuilder[sensors.size()];
+      for (int i = 0; i < sensors.size(); i++) {
+        sensorCols[i] = new ColumnBuilder(sensors.get(i));
+      }
+
+      while (true) {
+        DeviceSchema device = batch.getDeviceSchema();
+        String deviceId = device.getDevice();
+        String[] tagValues = new String[tagCount];
+        for (int t = 0; t < tagCount; t++) {
+          tagValues[t] = device.getTags().get(config.getTAG_KEY_PREFIX() + t);
+        }
+        for (Record record : batch.getRecords()) {
+          timeCol.add(record.getTimestamp());
+          deviceCol.add(deviceId);
+          for (int t = 0; t < tagCount; t++) {
+            tagCols.get(t).add(tagValues[t]);
+          }
+          List<Object> vals = record.getRecordDataValue();
+          for (int i = 0; i < sensors.size(); i++) {
+            sensorCols[i].add(vals.get(i));
+          }
+        }
+        if (!batch.hasNext()) break;
+        batch.next();
+      }
+
+      List<String> colNames = new ArrayList<>();
+      List<Vector> cols = new ArrayList<>();
+      colNames.add(timeColumn);
+      cols.add(timestampVector(timeCol));
+      colNames.add("deviceId");
+      cols.add(new BasicStringVector(deviceCol));
+      for (int t = 0; t < tagCount; t++) {
+        colNames.add(config.getTAG_KEY_PREFIX() + t);
+        cols.add(new BasicStringVector(tagCols.get(t)));
+      }
+      for (int i = 0; i < sensors.size(); i++) {
+        colNames.add(sensors.get(i).getName());
+        cols.add(sensorCols[i].toVector());
+      }
+
+      PartitionedTableAppender appender = ensureAppender(dbPathOf(first), first.getTable());
+      appender.append(new BasicTable(colNames, cols));
+      return new Status(true);
+    } catch (Exception e) {
+      LOGGER.error("Failed to append batch into DolphinDB", e);
       return new Status(false, 0, e, e.toString());
     }
   }
@@ -673,6 +793,30 @@ public class DolphinDB implements IDatabase {
     return mtw;
   }
 
+  private synchronized PartitionedTableAppender ensureAppender(String dbPath, String tableName)
+      throws Exception {
+    if (appenderPool == null) {
+      // One shared pool per adapter instance; multiple connections let the appender write to
+      // distinct partitions in parallel (DolphinDB forbids concurrent writers on one partition).
+      appenderPool =
+          new ExclusiveDBConnectionPool(
+              dbConfig.getHOST().get(0),
+              Integer.parseInt(dbConfig.getPORT().get(0)),
+              dbConfig.getUSERNAME(),
+              dbConfig.getPASSWORD(),
+              PTA_POOL_SIZE,
+              false, // loadBalance
+              false); // highAvailability
+    }
+    String key = dbPath + "::" + tableName;
+    PartitionedTableAppender appender = appenderCache.get(key);
+    if (appender != null) return appender;
+    // partitionColName = the VALUE-partitioned time column, matching the DB-level partition.
+    appender = new PartitionedTableAppender(dbPath, tableName, timeColumn, appenderPool);
+    appenderCache.put(key, appender);
+    return appender;
+  }
+
   private static Object convertValue(Object v, SensorType type) {
     switch (type) {
       case BOOLEAN:
@@ -697,6 +841,104 @@ public class DolphinDB implements IDatabase {
         return java.sql.Date.valueOf(String.valueOf(v));
       default:
         return String.valueOf(v);
+    }
+  }
+
+  /** Build a TIMESTAMP column from epoch-millis values (the table time column, PTA path). */
+  private static Vector timestampVector(List<Long> epochMillis) {
+    BasicTimestampVector vector = new BasicTimestampVector(epochMillis.size());
+    for (int i = 0; i < epochMillis.size(); i++) {
+      vector.setTimestamp(
+          i, LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis.get(i)), ZoneOffset.UTC));
+    }
+    return vector;
+  }
+
+  /**
+   * Accumulates one sensor column for the PTA path and materializes it into the matching DolphinDB
+   * {@link Vector}. Column type follows the same rule as {@code buildCreateTableSql}: a {@link
+   * ColumnCategory#TAG} sensor is SYMBOL (rendered as STRING) regardless of its declared type.
+   */
+  private static final class ColumnBuilder {
+    private final SensorType type;
+    private final boolean asSymbol;
+    private final List<Object> values = new ArrayList<>();
+
+    ColumnBuilder(Sensor sensor) {
+      this.type = sensor.getSensorType();
+      this.asSymbol = sensor.getColumnCategory() == ColumnCategory.TAG;
+    }
+
+    void add(Object value) {
+      values.add(value);
+    }
+
+    Vector toVector() {
+      int n = values.size();
+      if (asSymbol) {
+        return new BasicStringVector(stringValues());
+      }
+      switch (type) {
+        case BOOLEAN:
+          BasicBooleanVector booleans = new BasicBooleanVector(n);
+          for (int i = 0; i < n; i++) {
+            booleans.setBoolean(i, (Boolean) values.get(i));
+          }
+          return booleans;
+        case INT32:
+          BasicIntVector ints = new BasicIntVector(n);
+          for (int i = 0; i < n; i++) {
+            ints.setInt(i, (Integer) values.get(i));
+          }
+          return ints;
+        case INT64:
+          BasicLongVector longs = new BasicLongVector(n);
+          for (int i = 0; i < n; i++) {
+            longs.setLong(i, (Long) values.get(i));
+          }
+          return longs;
+        case FLOAT:
+          BasicFloatVector floats = new BasicFloatVector(n);
+          for (int i = 0; i < n; i++) {
+            floats.setFloat(i, (Float) values.get(i));
+          }
+          return floats;
+        case DOUBLE:
+          BasicDoubleVector doubles = new BasicDoubleVector(n);
+          for (int i = 0; i < n; i++) {
+            doubles.setDouble(i, (Double) values.get(i));
+          }
+          return doubles;
+        case TIMESTAMP:
+          BasicTimestampVector timestamps = new BasicTimestampVector(n);
+          for (int i = 0; i < n; i++) {
+            timestamps.setTimestamp(
+                i,
+                LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli((Long) values.get(i)), ZoneOffset.UTC));
+          }
+          return timestamps;
+        case DATE:
+          BasicDateVector dates = new BasicDateVector(n);
+          for (int i = 0; i < n; i++) {
+            dates.setDate(i, java.time.LocalDate.parse(String.valueOf(values.get(i))));
+          }
+          return dates;
+        case TEXT:
+        case STRING:
+        case BLOB:
+        case OBJECT:
+        default:
+          return new BasicStringVector(stringValues());
+      }
+    }
+
+    private List<String> stringValues() {
+      List<String> out = new ArrayList<>(values.size());
+      for (Object v : values) {
+        out.add(String.valueOf(v));
+      }
+      return out;
     }
   }
 

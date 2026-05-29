@@ -85,21 +85,23 @@ Web GUI: `http://127.0.0.1:8848`（默认 `admin` / `123456`）。
 
 ### 关键配置
 
-v3.x 用 `DB_SWITCH=DolphinDB-3`，v2.x 用 `DB_SWITCH=DolphinDB-2`：
+`DB_SWITCH` 同时指定版本（3 / 2）与写入方式（`MTW` / `PTA`）：
+
+- `DolphinDB-3-MTW` / `DolphinDB-2-MTW` —— `MultithreadedTableWriter`，按行缓冲写入。
+- `DolphinDB-3-PTA` / `DolphinDB-2-PTA` —— `PartitionedTableAppender`，每个 batch 列式整表追加（经连接池路由分区）。
 
 ```properties
-DB_SWITCH=DolphinDB-3
+DB_SWITCH=DolphinDB-3-MTW
 HOST=127.0.0.1
 PORT=8848
 USERNAME=admin
 PASSWORD=123456
 DB_NAME=benchmark
-DOLPHINDB_PARTITION_DAYS=7
-DOLPHINDB_DEVICE_HASH_BUCKETS=1000
+DOLPHINDB_DEVICE_HASH_BUCKETS=100
 ```
 
 ### 注意事项
 
 - DolphinDB 社区版单节点 8GB 内存上限。更大规模 benchmark 需申请企业版授权。
-- `DOLPHINDB_DEVICE_HASH_BUCKETS` 默认 1000 对齐 DolphinDB 官方 IoT 示例。设备数极少时可调小（例如 100）以降低元数据开销。
-- RANGE 分区边界由 `START_TIME` 加 `LOOP × BATCH_SIZE_PER_WRITE × POINT_STEP` 计算并向上对齐到下一个 `DOLPHINDB_PARTITION_DAYS` 桶。
+- `DOLPHINDB_DEVICE_HASH_BUCKETS` 默认 100。设备数很大时可调大以把数据分散到更多 HASH 分区。
+- 时间列采用按天的 VALUE 分区，分区日期范围由 `START_TIME` 加 `LOOP × BATCH_SIZE_PER_WRITE × POINT_STEP`（再留一天右边距）推算。

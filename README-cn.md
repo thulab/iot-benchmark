@@ -236,8 +236,8 @@ SET_OP_QUERY             0.00        0.00        0.00        0.00        0.00   
 |       KairosDB       |    --    |      kairosdb       |                                                            KairosDB                                                            |
 |       TDengine       | 2.2.0.2  |      tdengine       |                                                            TDengine                                                            |
 |       TDengine       |  3.0.1   |    tdengine-3.0     |                                                           TDengine-3                                                           |
-|       DolphinDB      |   3.x    |    dolphindb-3.0    |                                                          DolphinDB-3                                                           |
-|       DolphinDB      |   2.x    |    dolphindb-2.0    |                                                          DolphinDB-2                                                           |
+|       DolphinDB      |   3.x    |    dolphindb-3.0    |                                                   DolphinDB-3-MTW / DolphinDB-3-PTA                                            |
+|       DolphinDB      |   2.x    |    dolphindb-2.0    |                                                   DolphinDB-2-MTW / DolphinDB-2-PTA                                            |
 
 * 不同数据库使用说明详见 [被测数据库示例说明](./docs/DifferentTestDatabase.md)
 

@@ -85,21 +85,23 @@ Web GUI: `http://127.0.0.1:8848` (default `admin` / `123456`).
 
 ### Key config
 
-For v3.x use `DB_SWITCH=DolphinDB-3`; for v2.x use `DB_SWITCH=DolphinDB-2`:
+`DB_SWITCH` selects the version (3 / 2) and the write path (`MTW` / `PTA`):
+
+- `DolphinDB-3-MTW` / `DolphinDB-2-MTW` — `MultithreadedTableWriter`, a buffered row writer.
+- `DolphinDB-3-PTA` / `DolphinDB-2-PTA` — `PartitionedTableAppender`, a per-batch columnar append routed through a connection pool.
 
 ```properties
-DB_SWITCH=DolphinDB-3
+DB_SWITCH=DolphinDB-3-MTW
 HOST=127.0.0.1
 PORT=8848
 USERNAME=admin
 PASSWORD=123456
 DB_NAME=benchmark
-DOLPHINDB_PARTITION_DAYS=7
-DOLPHINDB_DEVICE_HASH_BUCKETS=1000
+DOLPHINDB_DEVICE_HASH_BUCKETS=100
 ```
 
 ### Notes
 
 - DolphinDB community edition has an 8 GB memory limit per node. For larger benchmarks, request an enterprise license.
-- `DOLPHINDB_DEVICE_HASH_BUCKETS` defaults to 1000 to match the DolphinDB official IoT demo. For very small device counts, smaller bucket counts (e.g. 100) may reduce metadata overhead.
-- RANGE partition boundaries are computed from `START_TIME` + `LOOP × BATCH_SIZE_PER_WRITE × POINT_STEP` and rounded up to the next `DOLPHINDB_PARTITION_DAYS` bucket.
+- `DOLPHINDB_DEVICE_HASH_BUCKETS` defaults to 100. For very large device counts a larger value spreads data across more HASH partitions.
+- The time column uses fixed per-day VALUE partitioning; the partition date range is derived from `START_TIME` + `LOOP × BATCH_SIZE_PER_WRITE × POINT_STEP` (plus a one-day right margin).
