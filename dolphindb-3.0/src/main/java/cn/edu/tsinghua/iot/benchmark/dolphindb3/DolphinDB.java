@@ -61,6 +61,13 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+/**
+ * DolphinDB adapter. Schema and query semantics mirror the iotdb-2.0 table model: one wide table
+ * per (group, table) with a TIMESTAMP time column, a {@code deviceId} SYMBOL, optional tag SYMBOL
+ * columns and one column per sensor. Writes go through one {@link MultithreadedTableWriter} per
+ * client thread (used as a buffered synchronous writer, see {@code ensureMtw}); queries run through
+ * the native {@link DBConnection} API because dolphindb-javaapi does not register a JDBC driver.
+ */
 public class DolphinDB implements IDatabase {
 
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
@@ -301,7 +308,11 @@ public class DolphinDB implements IDatabase {
         if (!batch.hasNext()) break;
         batch.next();
       }
-      awaitDrain(mtw);
+      if (!awaitDrain(mtw)) {
+        String msg = "MultithreadedTableWriter drain timed out after WRITE_OPERATION_TIMEOUT_MS";
+        LOGGER.error(msg);
+        return new Status(false, 0, new Exception(msg), msg);
+      }
       MultithreadedTableWriter.Status st = mtw.getStatus();
       if (st.hasError()) {
         return new Status(false, 0, new Exception(st.getErrorInfo()), st.getErrorInfo());
@@ -313,11 +324,22 @@ public class DolphinDB implements IDatabase {
     }
   }
 
-  private void awaitDrain(MultithreadedTableWriter mtw) throws InterruptedException {
+  /**
+   * Wait until the MTW background sender has flushed all buffered rows. Returns {@code true} once
+   * {@code unsentRows == 0} or an error is reported; returns {@code false} if the write timeout
+   * elapses first, so the caller can fail the batch instead of blocking forever on a stalled
+   * server.
+   */
+  private boolean awaitDrain(MultithreadedTableWriter mtw) throws InterruptedException {
+    long deadline = System.nanoTime() + config.getWRITE_OPERATION_TIMEOUT_MS() * 1_000_000L;
     while (true) {
       MultithreadedTableWriter.Status st = mtw.getStatus();
-      if (st.unsentRows == 0) return;
-      if (st.hasError()) return;
+      if (st.unsentRows == 0 || st.hasError()) {
+        return true;
+      }
+      if (System.nanoTime() >= deadline) {
+        return false;
+      }
       Thread.sleep(1);
     }
   }
@@ -364,14 +386,7 @@ public class DolphinDB implements IDatabase {
   public Status valueRangeQuery(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> devs = valueRangeQuery.getDeviceSchema();
     List<Sensor> sensors = devs.get(0).getSensors();
-    StringBuilder valueClause = new StringBuilder();
-    for (Sensor sensor : sensors) {
-      valueClause
-          .append(" AND ")
-          .append(sensor.getName())
-          .append(" > ")
-          .append(valueRangeQuery.getValueThreshold());
-    }
+    String valueClause = valueFilterClause(sensors, valueRangeQuery.getValueThreshold());
     String sql =
         "SELECT "
             + sensorColumns(sensors)
@@ -394,12 +409,11 @@ public class DolphinDB implements IDatabase {
   @Override
   public Status aggRangeQuery(AggRangeQuery aggRangeQuery) {
     List<DeviceSchema> devs = aggRangeQuery.getDeviceSchema();
-    String aggCols =
-        devs.get(0).getSensors().stream()
-            .map(s -> aggRangeQuery.getAggFun() + "(" + s.getName() + ")")
-            .collect(Collectors.joining(", "));
+    String aggCols = aggColumns(devs.get(0).getSensors(), aggRangeQuery.getAggFun());
+    // Aggregate per device (GROUP BY deviceId) to mirror iotdb-2.0 table model, which projects
+    // device_id and groups by it so each device yields one aggregated row.
     String sql =
-        "SELECT "
+        "SELECT deviceId, "
             + aggCols
             + " FROM "
             + tableRef(devs.get(0))
@@ -412,7 +426,8 @@ public class DolphinDB implements IDatabase {
             + " <= "
             + tsLiteral(aggRangeQuery.getEndTimestamp())
             + " AND deviceId IN "
-            + deviceInList(devs);
+            + deviceInList(devs)
+            + " GROUP BY deviceId";
     return executeQueryAndCount(sql);
   }
 
@@ -420,20 +435,18 @@ public class DolphinDB implements IDatabase {
   public Status aggValueQuery(AggValueQuery aggValueQuery) {
     List<DeviceSchema> devs = aggValueQuery.getDeviceSchema();
     List<Sensor> sensors = devs.get(0).getSensors();
-    String aggCols =
-        sensors.stream()
-            .map(s -> aggValueQuery.getAggFun() + "(" + s.getName() + ")")
-            .collect(Collectors.joining(", "));
-    StringBuilder valueClause = new StringBuilder();
-    for (int i = 0; i < sensors.size(); i++) {
-      valueClause.append(i == 0 ? " WHERE " : " AND ");
-      valueClause
-          .append(sensors.get(i).getName())
-          .append(" > ")
-          .append(aggValueQuery.getValueThreshold());
-    }
-    valueClause.append(" AND deviceId IN ").append(deviceInList(devs));
-    String sql = "SELECT " + aggCols + " FROM " + tableRef(devs.get(0)) + valueClause;
+    String aggCols = aggColumns(sensors, aggValueQuery.getAggFun());
+    String valueClause = valueFilterClause(sensors, aggValueQuery.getValueThreshold());
+    // Aggregate per device (GROUP BY deviceId), matching iotdb-2.0 table model.
+    String sql =
+        "SELECT deviceId, "
+            + aggCols
+            + " FROM "
+            + tableRef(devs.get(0))
+            + " WHERE deviceId IN "
+            + deviceInList(devs)
+            + valueClause
+            + " GROUP BY deviceId";
     return executeQueryAndCount(sql);
   }
 
@@ -441,20 +454,11 @@ public class DolphinDB implements IDatabase {
   public Status aggRangeValueQuery(AggRangeValueQuery aggRangeValueQuery) {
     List<DeviceSchema> devs = aggRangeValueQuery.getDeviceSchema();
     List<Sensor> sensors = devs.get(0).getSensors();
-    String aggCols =
-        sensors.stream()
-            .map(s -> aggRangeValueQuery.getAggFun() + "(" + s.getName() + ")")
-            .collect(Collectors.joining(", "));
-    StringBuilder valueClause = new StringBuilder();
-    for (Sensor sensor : sensors) {
-      valueClause
-          .append(" AND ")
-          .append(sensor.getName())
-          .append(" > ")
-          .append(aggRangeValueQuery.getValueThreshold());
-    }
+    String aggCols = aggColumns(sensors, aggRangeValueQuery.getAggFun());
+    String valueClause = valueFilterClause(sensors, aggRangeValueQuery.getValueThreshold());
+    // Aggregate per device (GROUP BY deviceId), matching iotdb-2.0 table model.
     String sql =
-        "SELECT "
+        "SELECT deviceId, "
             + aggCols
             + " FROM "
             + tableRef(devs.get(0))
@@ -468,19 +472,21 @@ public class DolphinDB implements IDatabase {
             + tsLiteral(aggRangeValueQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + valueClause;
+            + valueClause
+            + " GROUP BY deviceId";
     return executeQueryAndCount(sql);
   }
 
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
     List<DeviceSchema> devs = groupByQuery.getDeviceSchema();
-    String aggCols =
-        devs.get(0).getSensors().stream()
-            .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
-            .collect(Collectors.joining(", "));
+    String aggCols = aggColumns(devs.get(0).getSensors(), groupByQuery.getAggFun());
+    // Group by device AND time bucket and project both, mirroring iotdb-2.0 table model
+    // (SELECT device_id, date_bin(...), agg(s) ... GROUP BY device_id, date_bin(...)). The bucket
+    // alias is defined in GROUP BY and referenced by name in SELECT, the form DolphinDB expects.
+    String barExpr = "bar(" + timeColumn + ", " + groupByQuery.getGranularity() + "l)";
     String sql =
-        "SELECT "
+        "SELECT deviceId, bucket, "
             + aggCols
             + " FROM "
             + tableRef(devs.get(0))
@@ -494,11 +500,9 @@ public class DolphinDB implements IDatabase {
             + tsLiteral(groupByQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + " GROUP BY bar("
-            + timeColumn
-            + ", "
-            + groupByQuery.getGranularity()
-            + "l)";
+            + " GROUP BY deviceId, "
+            + barExpr
+            + " AS bucket";
     return executeQueryAndCount(sql);
   }
 
@@ -509,13 +513,17 @@ public class DolphinDB implements IDatabase {
         devs.get(0).getSensors().stream()
             .map(s -> "last(" + s.getName() + ")")
             .collect(Collectors.joining(", "));
+    // Latest point per device: GROUP BY deviceId yields one latest row per device, mirroring the
+    // iotdb-2.0 table model (SELECT device_id, last_by(s, time) ... GROUP BY device_id). On a DFS
+    // table DolphinDB's last()+group-by gives the same per-group latest value.
     String sql =
-        "SELECT "
+        "SELECT deviceId, "
             + lastCols
             + " FROM "
             + tableRef(devs.get(0))
             + " WHERE deviceId IN "
-            + deviceInList(devs);
+            + deviceInList(devs)
+            + " GROUP BY deviceId";
     return executeQueryAndCount(sql);
   }
 
@@ -537,7 +545,7 @@ public class DolphinDB implements IDatabase {
             + tsLiteral(rangeQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + " ORDER BY "
+            + " ORDER BY deviceId, "
             + timeColumn
             + " DESC";
     return executeQueryAndCount(sql);
@@ -547,14 +555,7 @@ public class DolphinDB implements IDatabase {
   public Status valueRangeQueryOrderByDesc(ValueRangeQuery valueRangeQuery) {
     List<DeviceSchema> devs = valueRangeQuery.getDeviceSchema();
     List<Sensor> sensors = devs.get(0).getSensors();
-    StringBuilder valueClause = new StringBuilder();
-    for (Sensor sensor : sensors) {
-      valueClause
-          .append(" AND ")
-          .append(sensor.getName())
-          .append(" > ")
-          .append(valueRangeQuery.getValueThreshold());
-    }
+    String valueClause = valueFilterClause(sensors, valueRangeQuery.getValueThreshold());
     String sql =
         "SELECT "
             + sensorColumns(sensors)
@@ -571,7 +572,7 @@ public class DolphinDB implements IDatabase {
             + " AND deviceId IN "
             + deviceInList(devs)
             + valueClause
-            + " ORDER BY "
+            + " ORDER BY deviceId, "
             + timeColumn
             + " DESC";
     return executeQueryAndCount(sql);
@@ -580,15 +581,12 @@ public class DolphinDB implements IDatabase {
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
     List<DeviceSchema> devs = groupByQuery.getDeviceSchema();
-    String aggCols =
-        devs.get(0).getSensors().stream()
-            .map(s -> groupByQuery.getAggFun() + "(" + s.getName() + ")")
-            .collect(Collectors.joining(", "));
-    // Distributed SQL forbids mixing raw expressions and aggregates in SELECT;
-    // alias the bar() bucket in GROUP BY and reference the alias in ORDER BY.
+    String aggCols = aggColumns(devs.get(0).getSensors(), groupByQuery.getAggFun());
+    // Same per-device + time-bucket grouping as groupByQuery, ordered by device then bucket desc
+    // (iotdb-2.0: ORDER BY device_id, date_bin(...) desc).
     String barExpr = "bar(" + timeColumn + ", " + groupByQuery.getGranularity() + "l)";
     String sql =
-        "SELECT "
+        "SELECT deviceId, bucket, "
             + aggCols
             + " FROM "
             + tableRef(devs.get(0))
@@ -602,10 +600,10 @@ public class DolphinDB implements IDatabase {
             + tsLiteral(groupByQuery.getEndTimestamp())
             + " AND deviceId IN "
             + deviceInList(devs)
-            + " GROUP BY "
+            + " GROUP BY deviceId, "
             + barExpr
             + " AS bucket"
-            + " ORDER BY bucket DESC";
+            + " ORDER BY deviceId, bucket DESC";
     return executeQueryAndCount(sql);
   }
 
@@ -618,7 +616,12 @@ public class DolphinDB implements IDatabase {
       if (i > 0) sql.append(" ").append(op).append(" ");
       RangeQuery child = childQueries.get(i);
       List<DeviceSchema> devs = child.getDeviceSchema();
+      // Project the time and device columns alongside the sensor values so the set operation keeps
+      // row identity (otherwise rows from different timestamps/devices with equal sensor readings
+      // would be wrongly merged by UNION/INTERSECT/EXCEPT).
       sql.append("(SELECT ")
+          .append(timeColumn)
+          .append(", deviceId, ")
           .append(sensorColumns(devs.get(0).getSensors()))
           .append(" FROM ")
           .append(tableRef(devs.get(0)))
@@ -643,25 +646,29 @@ public class DolphinDB implements IDatabase {
     MultithreadedTableWriter mtw = mtwCache.get(key);
     if (mtw != null) return mtw;
     int batchSize = config.getBATCH_SIZE_PER_WRITE() * config.getDEVICE_NUM_PER_WRITE();
-    // partitionCol is the time column (the VALUE-partitioned column at the DB level).
+    // One MTW per client thread with threadCount=1: the writer is deliberately used as a buffered
+    // *synchronous* writer (drained at the end of every batch via awaitDrain) so the concurrency
+    // model matches the other adapters — one in-flight writer per data client — rather than letting
+    // MTW spin up its own sender pool. This trades MTW's internal multi-thread pipeline throughput
+    // for parity with the rest of the benchmark.
     mtw =
         new MultithreadedTableWriter(
-            dbConfig.getHOST().get(0),
-            Integer.parseInt(dbConfig.getPORT().get(0)),
-            dbConfig.getUSERNAME(),
-            dbConfig.getPASSWORD(),
-            dbPath,
-            tableName,
-            false,
-            false,
-            null,
-            batchSize,
-            0.01f,
-            1,
-            timeColumn,
-            null,
-            MultithreadedTableWriter.Mode.M_Append,
-            null);
+            dbConfig.getHOST().get(0), // host
+            Integer.parseInt(dbConfig.getPORT().get(0)), // port
+            dbConfig.getUSERNAME(), // userId
+            dbConfig.getPASSWORD(), // password
+            dbPath, // dbName (DFS path)
+            tableName, // tableName
+            false, // useSSL
+            false, // enableHighAvailability
+            null, // highAvailabilitySites
+            batchSize, // batchSize: flush threshold (rows)
+            0.01f, // throttle seconds
+            1, // threadCount (single sender, see note above)
+            timeColumn, // partitionCol (the VALUE-partitioned time column)
+            null, // compressTypes
+            MultithreadedTableWriter.Mode.M_Append, // mode
+            null); // modeOption
     mtwCache.put(key, mtw);
     return mtw;
   }
@@ -695,8 +702,16 @@ public class DolphinDB implements IDatabase {
 
   // VALUE() partition boundaries require DolphinDB DATE literal (YYYY.MM.DD).
   private static String epochMsToDateLiteral(long epochMs) {
-    java.time.LocalDate date =
-        java.time.Instant.ofEpochMilli(epochMs).atZone(java.time.ZoneOffset.UTC).toLocalDate();
+    return toDateLiteral(
+        java.time.Instant.ofEpochMilli(epochMs).atZone(java.time.ZoneOffset.UTC).toLocalDate());
+  }
+
+  // DATE value filter compares against a DolphinDB DATE literal (YYYY.MM.DD).
+  private static String epochDayToDateLiteral(long epochDay) {
+    return toDateLiteral(java.time.LocalDate.ofEpochDay(epochDay));
+  }
+
+  private static String toDateLiteral(java.time.LocalDate date) {
     return String.format(
         "%04d.%02d.%02d", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
   }
@@ -723,6 +738,33 @@ public class DolphinDB implements IDatabase {
     return sensors.stream().map(Sensor::getName).collect(Collectors.joining(", "));
   }
 
+  /** {@code <aggFun>(s_0), <aggFun>(s_1), ...} for the SELECT list of aggregation queries. */
+  private static String aggColumns(List<Sensor> sensors, String aggFun) {
+    return sensors.stream()
+        .map(s -> aggFun + "(" + s.getName() + ")")
+        .collect(Collectors.joining(", "));
+  }
+
+  /**
+   * Build the value-filter fragment {@code AND s_0 > v AND s_1 > v ...} applied to every sensor,
+   * matching iotdb-2.0 table model (TableStrategy#getValueFilterClause). The threshold is truncated
+   * to int like the IoTDB adapter; DATE columns compare against a DolphinDB {@code YYYY.MM.DD} date
+   * literal instead of a raw number.
+   */
+  private static String valueFilterClause(List<Sensor> sensors, double valueThreshold) {
+    int threshold = (int) valueThreshold;
+    StringBuilder builder = new StringBuilder();
+    for (Sensor sensor : sensors) {
+      builder.append(" AND ").append(sensor.getName()).append(" > ");
+      if (sensor.getSensorType() == SensorType.DATE) {
+        builder.append(epochDayToDateLiteral(Math.abs(threshold)));
+      } else {
+        builder.append(threshold);
+      }
+    }
+    return builder.toString();
+  }
+
   private Status executeQueryAndCount(String sql) {
     if (!config.isIS_QUIET_MODE()) {
       LOGGER.info("{} query SQL: {}", Thread.currentThread().getName(), sql);
@@ -730,7 +772,11 @@ public class DolphinDB implements IDatabase {
     try {
       Entity result = conn.run(sql);
       int rows = result.rows();
-      long points = (long) rows * config.getQUERY_SENSOR_NUM() * config.getQUERY_DEVICE_NUM();
+      // Align with iotdb-2.0 table model (SessionStrategy#executeQueryAndGetStatusImpl): the result
+      // point count is the actual number of returned rows times QUERY_SENSOR_NUM. The device
+      // dimension is already carried by the rows (queries return one row per device, or per
+      // device+time-bucket), so it must NOT be multiplied in again.
+      long points = (long) rows * config.getQUERY_SENSOR_NUM();
       return new Status(true, points);
     } catch (IOException e) {
       LOGGER.error("DolphinDB query failed: {}", sql, e);
