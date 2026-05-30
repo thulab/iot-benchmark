@@ -87,6 +87,10 @@ public class Constants {
   public static final String VICTORIAMETRICS =
       "cn.edu.tsinghua.iot.benchmark.victoriametrics.VictoriaMetrics";
   public static final String QUESTDB_CLASS = "cn.edu.tsinghua.iot.benchmark.questdb.QuestDB";
+  public static final String DOLPHINDB3_CLASS =
+      "cn.edu.tsinghua.iot.benchmark.dolphindb3.DolphinDB";
+  public static final String DOLPHINDB2_CLASS =
+      "cn.edu.tsinghua.iot.benchmark.dolphindb2.DolphinDB";
   public static final String SQLITE_CLASS = "cn.edu.tsinghua.iot.benchmark.sqlite.SqliteDB";
   public static final String PI_ARCHIVE_CLASS = "cn.edu.tsinghua.iot.benchmark.piarchive.PIArchive";
   public static final String IGINX_CLASS = "cn.edu.tsinghua.iot.benchmark.iginx.IginX";

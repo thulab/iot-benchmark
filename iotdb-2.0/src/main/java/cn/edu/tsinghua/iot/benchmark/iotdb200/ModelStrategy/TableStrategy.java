@@ -109,7 +109,7 @@ public class TableStrategy extends IoTDBModelStrategy {
                       .append(deviceSchema.getTable())
                       .append("(");
                   // 0.Add time column if customized
-                  String timeColumn = config.getIoTDB_TABLE_TIME_COLUMN();
+                  String timeColumn = config.getTABLE_TIME_COLUMN();
                   if (!"time".equals(timeColumn)) {
                     builder.append(timeColumn).append(" TIMESTAMP TIME, ");
                   }
@@ -176,7 +176,7 @@ public class TableStrategy extends IoTDBModelStrategy {
   @Override
   public String selectTimeColumnIfNecessary() {
     if (config.getBENCHMARK_WORK_MODE() == BenchmarkMode.VERIFICATION_QUERY) {
-      return config.getIoTDB_TABLE_TIME_COLUMN() + ", ";
+      return config.getTABLE_TIME_COLUMN() + ", ";
     } else {
       return "";
     }
@@ -199,10 +199,7 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public void addOrderByTimeDesc(StringBuilder builder) {
-    builder
-        .append(" ORDER BY device_id, ")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
-        .append(" desc");
+    builder.append(" ORDER BY device_id, ").append(config.getTABLE_TIME_COLUMN()).append(" desc");
   }
 
   @Override
@@ -243,7 +240,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append(" date_bin(")
         .append(groupByQuery.getGranularity())
         .append("ms, ")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
+        .append(config.getTABLE_TIME_COLUMN())
         .append("), ")
         .append(
             getAggFunForGroupByQuery(
@@ -261,7 +258,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append(" group by device_id, date_bin(")
         .append(groupByQuery.getGranularity())
         .append("ms, ")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
+        .append(config.getTABLE_TIME_COLUMN())
         .append(")");
     // ORDER BY
     if (addOrderBy) {
@@ -269,7 +266,7 @@ public class TableStrategy extends IoTDBModelStrategy {
           .append(" order by device_id, date_bin(")
           .append(groupByQuery.getGranularity())
           .append("ms, ")
-          .append(config.getIoTDB_TABLE_TIME_COLUMN())
+          .append(config.getTABLE_TIME_COLUMN())
           .append(") desc");
     }
     return builder.toString();
@@ -285,7 +282,7 @@ public class TableStrategy extends IoTDBModelStrategy {
       String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder) {
     builder
         .append(" WHERE ")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
+        .append(config.getTABLE_TIME_COLUMN())
         .append(" = ")
         .append(strTime)
         .append(" AND ")
@@ -343,17 +340,14 @@ public class TableStrategy extends IoTDBModelStrategy {
   @Override
   public String getLatestPointQuerySql(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
-    builder
-        .append("SELECT device_id, last(")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
-        .append(")");
+    builder.append("SELECT device_id, last(").append(config.getTABLE_TIME_COLUMN()).append(")");
     List<Sensor> querySensors = devices.get(0).getSensors();
     for (int i = 0; i < querySensors.size(); i++) {
       builder
           .append(", last_by(")
           .append(querySensors.get(i).getName())
           .append(", ")
-          .append(config.getIoTDB_TABLE_TIME_COLUMN())
+          .append(config.getTABLE_TIME_COLUMN())
           .append(")");
     }
     addFromClause(devices, builder);
@@ -392,14 +386,14 @@ public class TableStrategy extends IoTDBModelStrategy {
       Map<Long, List<Object>> recordMap,
       DeviceSchema deviceSchema) {
     sql.append(" WHERE (")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
+        .append(config.getTABLE_TIME_COLUMN())
         .append(" = ")
         .append(records.get(0).getTimestamp());
     recordMap.put(records.get(0).getTimestamp(), records.get(0).getRecordDataValue());
     for (int i = 1; i < records.size(); i++) {
       Record record = records.get(i);
       sql.append(" or ")
-          .append(config.getIoTDB_TABLE_TIME_COLUMN())
+          .append(config.getTABLE_TIME_COLUMN())
           .append(" = ")
           .append(record.getTimestamp());
       recordMap.put(record.getTimestamp(), record.getRecordDataValue());
@@ -422,11 +416,11 @@ public class TableStrategy extends IoTDBModelStrategy {
     StringBuilder builder = new StringBuilder();
     builder
         .append(" ")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
+        .append(config.getTABLE_TIME_COLUMN())
         .append(" >= ")
         .append(String.valueOf(start))
         .append(" AND ")
-        .append(config.getIoTDB_TABLE_TIME_COLUMN())
+        .append(config.getTABLE_TIME_COLUMN())
         .append(" <= ")
         .append(String.valueOf(end));
     return builder.toString();
@@ -488,7 +482,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         + deviceSchema.getTable()
         + getViewSuffix()
         + " order by "
-        + config.getIoTDB_TABLE_TIME_COLUMN()
+        + config.getTABLE_TIME_COLUMN()
         + " desc limit 1";
   }
 
@@ -502,7 +496,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         + deviceSchema.getTable()
         + getViewSuffix()
         + " order by "
-        + config.getIoTDB_TABLE_TIME_COLUMN()
+        + config.getTABLE_TIME_COLUMN()
         + " limit 1";
   }
 
@@ -624,7 +618,7 @@ public class TableStrategy extends IoTDBModelStrategy {
       case Constants.LAST_BY:
       case Constants.MAX_BY:
       case Constants.MIN_BY:
-        return config.getIoTDB_TABLE_TIME_COLUMN() + ", ";
+        return config.getTABLE_TIME_COLUMN() + ", ";
       default:
         return "";
     }

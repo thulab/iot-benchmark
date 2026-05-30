@@ -19,6 +19,8 @@
         <module>tdengine</module>
         <module>tdengine-3.0</module>
         <module>questdb</module>
+        <module>dolphindb-3.0</module>
+        <module>dolphindb-2.0</module>
         <module>timescaledb</module>
         <module>timescaledb-cluster</module>
         <module>victoriametrics</module>

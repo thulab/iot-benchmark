@@ -285,7 +285,7 @@ public class Config {
   private int GROUP_NUMBER = 1;
 
   /** The name of time column in table model */
-  private String IoTDB_TABLE_TIME_COLUMN = "time";
+  private String TABLE_TIME_COLUMN = "time";
 
   /** Whether to create and use writable views in table model */
   private boolean IoTDB_TABLE_WRITABLE_VIEW = false;
@@ -345,6 +345,10 @@ public class Config {
   // 被测系统是CnosDB时的参数
   /** the shard number of cnosdb, which affects the parallelism of write and query operations */
   private int CNOSDB_SHARD_NUMBER = 32;
+
+  // 被测系统是DolphinDB时的参数
+  /** the bucket count of the second-level HASH(deviceId) partition */
+  private int DOLPHINDB_DEVICE_HASH_BUCKETS = 8;
 
   // Operation 相关参数
   /**
@@ -1207,12 +1211,12 @@ public class Config {
     this.GROUP_NUMBER = GROUP_NUMBER;
   }
 
-  public String getIoTDB_TABLE_TIME_COLUMN() {
-    return IoTDB_TABLE_TIME_COLUMN;
+  public String getTABLE_TIME_COLUMN() {
+    return TABLE_TIME_COLUMN;
   }
 
-  public void setIoTDB_TABLE_TIME_COLUMN(String ioTDB_TABLE_TIME_COLUMN) {
-    IoTDB_TABLE_TIME_COLUMN = ioTDB_TABLE_TIME_COLUMN;
+  public void setTABLE_TIME_COLUMN(String TABLE_TIME_COLUMN) {
+    this.TABLE_TIME_COLUMN = TABLE_TIME_COLUMN;
   }
 
   public boolean isIoTDB_TABLE_WRITABLE_VIEW() {
@@ -1825,6 +1829,14 @@ public class Config {
 
   public void setCNOSDB_SHARD_NUMBER(int CNOSDB_SHARD_NUMBER) {
     this.CNOSDB_SHARD_NUMBER = CNOSDB_SHARD_NUMBER;
+  }
+
+  public int getDOLPHINDB_DEVICE_HASH_BUCKETS() {
+    return DOLPHINDB_DEVICE_HASH_BUCKETS;
+  }
+
+  public void setDOLPHINDB_DEVICE_HASH_BUCKETS(int DOLPHINDB_DEVICE_HASH_BUCKETS) {
+    this.DOLPHINDB_DEVICE_HASH_BUCKETS = DOLPHINDB_DEVICE_HASH_BUCKETS;
   }
 
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {

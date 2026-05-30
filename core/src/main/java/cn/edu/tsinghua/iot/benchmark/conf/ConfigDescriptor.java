@@ -348,8 +348,8 @@ public class ConfigDescriptor {
         config.setIoTDB_TABLE_NUMBER(
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
-        config.setIoTDB_TABLE_TIME_COLUMN(
-            properties.getProperty("IoTDB_TABLE_TIME_COLUMN", config.getIoTDB_TABLE_TIME_COLUMN()));
+        config.setTABLE_TIME_COLUMN(
+            properties.getProperty("TABLE_TIME_COLUMN", config.getTABLE_TIME_COLUMN()));
         config.setIoTDB_TABLE_WRITABLE_VIEW(
             Boolean.parseBoolean(
                 properties.getProperty(
@@ -414,6 +414,11 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "CNOSDB_SHARD_NUMBER", config.getCNOSDB_SHARD_NUMBER() + "")));
+        config.setDOLPHINDB_DEVICE_HASH_BUCKETS(
+            Integer.parseInt(
+                properties.getProperty(
+                    "DOLPHINDB_DEVICE_HASH_BUCKETS",
+                    config.getDOLPHINDB_DEVICE_HASH_BUCKETS() + "")));
         config.setOP_MIN_INTERVAL(
             Long.parseLong(
                 properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));
@@ -715,8 +720,9 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    if ((config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
-        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getDbConfig().getDB_SWITCH().getType() == DBType.IoTDB
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
       result = false;
@@ -846,11 +852,13 @@ public class ConfigDescriptor {
     if (dnw == 1) {
       return true;
     }
-    if (config.getDbConfig().getDB_SWITCH().getType() != DBType.IoTDB) {
-      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB");
+    DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
+    if (dbType != DBType.IoTDB && dbType != DBType.DolphinDB) {
+      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB or DolphinDB");
       return false;
     }
-    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
+    if (dbType == DBType.IoTDB
+        && config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
         && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_RECORDS) {
       LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
       return false;
@@ -953,8 +961,8 @@ public class ConfigDescriptor {
   protected boolean checkInsertDataTypeProportion() {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
-      // When not iotdb, the last four digits of the data ratio must be 0
+    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB && dbType != DBType.DolphinDB) {
+      // When not iotdb/dolphindb, the last four digits of the data ratio must be 0
       for (int i = config.getTypeNumber() - 4; i < splits.length; i++) {
         if (!splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, this database do not support those type.");

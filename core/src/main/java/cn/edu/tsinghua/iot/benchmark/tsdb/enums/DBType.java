@@ -33,6 +33,7 @@ public enum DBType {
   QuestDB("QuestDB"),
   MSSQLSERVER("MsSqlServer"),
   VictoriaMetrics("VictoriaMetrics"),
+  DolphinDB("DolphinDB"),
   PIArchive("PIArchive"),
   SQLite("SQLite"),
   IginX("IginX"),
