@@ -110,7 +110,7 @@ public class DolphinDB implements IDatabase {
   private final String timeColumn = config.getTABLE_TIME_COLUMN();
 
   /** Connection count for the PartitionedTableAppender pool (parallel partition appends). */
-  private static final int PTA_POOL_SIZE = 4;
+  private static final int PTA_POOL_SIZE = 1;
 
   private DBConnection conn;
 
