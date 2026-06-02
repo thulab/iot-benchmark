@@ -25,13 +25,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -50,13 +46,10 @@ public class RealMetaDataSchemaTest extends BenchmarkTestBase {
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
   private File writeDeviceFile(String device) throws IOException {
+    // getAllFiles maps device -> path purely from directory structure; file content is never read.
     File deviceDir = folder.newFolder(device);
     File csv = new File(deviceDir, "BigBatch_0.csv");
-    try (BufferedWriter writer =
-        new BufferedWriter(
-            new OutputStreamWriter(new FileOutputStream(csv), StandardCharsets.UTF_8))) {
-      writer.write("Sensor,s_0\n1000,1\n");
-    }
+    assertTrue(csv.createNewFile());
     return csv;
   }
 
