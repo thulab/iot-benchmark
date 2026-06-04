@@ -104,8 +104,12 @@ public class TsFileDataReader extends DataReader {
     try {
       while (true) {
         if (currentRs != null && currentRs.next()) {
-          long time = currentRs.getLong(1); // column 1 == Time
           String device = TsFileSchemaReader.deviceName(currentRs, currentTagNames);
+          if (device == null) { // malformed/external data: no usable device id — skip this row
+            LOGGER.warn("Skipping TsFile row with no usable device id in {}", currentFileName);
+            continue;
+          }
+          long time = currentRs.getLong(1); // column 1 == Time
           List<Object> values = new ArrayList<>(currentFieldNames.size());
           for (int i = 0; i < currentFieldNames.size(); i++) {
             values.add(readValue(currentRs, currentFieldNames.get(i), currentFieldTypes.get(i)));

@@ -69,10 +69,21 @@ public class TsFileSchemaReader extends SchemaReader {
     }
     List<String> devices = new ArrayList<>();
     String lastDevice = null;
+    boolean warnedNoId = false;
     ResultSet rs = reader.query(table.getTableName(), queryCols, Long.MIN_VALUE, Long.MAX_VALUE);
     try {
       while (rs.next()) {
         String device = deviceName(rs, tagCols);
+        if (device == null) { // malformed/external data: no usable device identifier
+          if (!warnedNoId) {
+            LOGGER.warn(
+                "Skipping rows with no usable device id in table {} (tag columns={})",
+                table.getTableName(),
+                tagCols);
+            warnedNoId = true;
+          }
+          continue;
+        }
         if (!device.equals(lastDevice)) { // rows are grouped by device
           if (!devices.contains(device)) {
             devices.add(device);
@@ -86,16 +97,24 @@ public class TsFileSchemaReader extends SchemaReader {
     return devices;
   }
 
-  /** device_id TAG if present, else all TAG values joined by '.'. */
+  /**
+   * device_id TAG if present, else all TAG values joined by '.'. Returns {@code null} when no
+   * usable identifier exists (null device_id value, or a table with no TAG columns) so callers can
+   * skip the row instead of building a {@code DeviceSchema(null/"")}, which would NPE in
+   * device-name parsing.
+   */
   static String deviceName(ResultSet rs, List<String> tagCols) {
+    String name;
     if (tagCols.contains(TsFileTableModelMapping.DEVICE_ID_COLUMN)) {
-      return rs.getString(TsFileTableModelMapping.DEVICE_ID_COLUMN);
+      name = rs.getString(TsFileTableModelMapping.DEVICE_ID_COLUMN);
+    } else {
+      List<String> parts = new ArrayList<>();
+      for (String tag : tagCols) {
+        parts.add(rs.getString(tag));
+      }
+      name = String.join(".", parts);
     }
-    List<String> parts = new ArrayList<>();
-    for (String tag : tagCols) {
-      parts.add(rs.getString(tag));
-    }
-    return String.join(".", parts);
+    return (name == null || name.isEmpty()) ? null : name;
   }
 
   /** Recursively collect *.tsfile files under root (info.txt and others ignored). */

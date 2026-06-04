@@ -59,4 +59,16 @@ public class TsFileSchemaReaderTest extends BenchmarkTestBase {
     assertEquals(SensorType.DOUBLE, sensors.get(1).getSensorType());
     assertEquals(SensorType.BOOLEAN, sensors.get(2).getSensorType());
   }
+
+  /** A table with no TAG/device_id column must be skipped (no devices), not crash with an NPE. */
+  @Test
+  public void tableWithoutDeviceIdYieldsNoDevicesWithoutNpe() throws Exception {
+    File data = new File(folder.getRoot(), "notag.tsfile");
+    TsFileTestFixtures.writeTableWithoutDeviceId(data);
+    config.setFILE_PATH(folder.getRoot().getAbsolutePath());
+
+    Map<String, List<Sensor>> result = new TsFileSchemaReader().getDeviceSchemaList();
+
+    assertTrue(result.isEmpty());
+  }
 }

@@ -77,4 +77,31 @@ public class TsFileTestFixtures {
     t.addValue(row, "s_1", s1);
     t.addValue(row, "s_2", s2);
   }
+
+  /**
+   * Writes a malformed-for-benchmark table with only FIELD columns and NO TAG/device_id column, so
+   * rows have no usable device identifier. Used to verify the reader skips them instead of NPEing.
+   */
+  public static void writeTableWithoutDeviceId(File file) throws Exception {
+    List<IMeasurementSchema> cols = new ArrayList<>();
+    cols.add(new MeasurementSchema("s_0", TSDataType.INT32));
+    cols.add(new MeasurementSchema("s_1", TSDataType.DOUBLE));
+    List<ColumnCategory> cats = Arrays.asList(ColumnCategory.FIELD, ColumnCategory.FIELD);
+    TableSchema schema = new TableSchema("t_notag", cols, cats);
+
+    List<String> names = Arrays.asList("s_0", "s_1");
+    List<TSDataType> types = Arrays.asList(TSDataType.INT32, TSDataType.DOUBLE);
+
+    try (DeviceTableModelWriter w = new DeviceTableModelWriter(file, schema, 10 * 1024 * 1024L)) {
+      Tablet t = new Tablet("t_notag", names, types, cats, 2);
+      t.addTimestamp(0, 1L);
+      t.addValue(0, "s_0", 1);
+      t.addValue(0, "s_1", 0.1);
+      t.addTimestamp(1, 2L);
+      t.addValue(1, "s_0", 2);
+      t.addValue(1, "s_1", 0.2);
+      t.setRowSize(2);
+      w.write(t);
+    }
+  }
 }
