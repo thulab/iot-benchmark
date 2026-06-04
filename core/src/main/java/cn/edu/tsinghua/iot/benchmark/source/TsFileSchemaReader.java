@@ -99,7 +99,7 @@ public class TsFileSchemaReader extends SchemaReader {
   }
 
   /** Recursively collect *.tsfile files under root (info.txt and others ignored). */
-  static List<File> listTsFiles(File root) {
+  public static List<File> listTsFiles(File root) {
     List<File> out = new ArrayList<>();
     File[] children = root.listFiles();
     if (children == null) {

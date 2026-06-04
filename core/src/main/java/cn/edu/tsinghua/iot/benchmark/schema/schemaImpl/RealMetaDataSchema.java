@@ -22,11 +22,13 @@ package cn.edu.tsinghua.iot.benchmark.schema.schemaImpl;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import cn.edu.tsinghua.iot.benchmark.conf.RealDatasetFormat;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
 import cn.edu.tsinghua.iot.benchmark.source.CSVSchemaReader;
 import cn.edu.tsinghua.iot.benchmark.source.SchemaReader;
+import cn.edu.tsinghua.iot.benchmark.source.TsFileSchemaReader;
 import cn.edu.tsinghua.iot.benchmark.utils.CommonAlgorithms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +46,8 @@ public class RealMetaDataSchema extends MetaDataSchema {
 
   @Override
   protected boolean createMetaDataSchema() {
-    SchemaReader schemaReader = new CSVSchemaReader();
+    boolean isTsFile = config.getREAL_DATASET_FORMAT() == RealDatasetFormat.TSFILE;
+    SchemaReader schemaReader = isTsFile ? new TsFileSchemaReader() : new CSVSchemaReader();
     String pathStr = config.getFILE_PATH();
     Path path = Paths.get(pathStr);
     // Check the existence of dataset
@@ -57,12 +60,8 @@ public class RealMetaDataSchema extends MetaDataSchema {
       LOGGER.error("There are difference between benchmark and dataset");
       return false;
     }
-    // Load file from dataset
-    Map<String, String> files = new LinkedHashMap<>();
-    getAllFiles(pathStr, files);
-    LOGGER.info("Total files: {}", files.size());
 
-    // Load sensor type from dataset
+    // Load sensor type from dataset and register device schemas (common to both formats)
     Map<String, List<Sensor>> deviceSchemaMap = schemaReader.getDeviceSchemaList();
     List<DeviceSchema> deviceSchemaList = new ArrayList<>();
     for (Map.Entry<String, List<Sensor>> device : deviceSchemaMap.entrySet()) {
@@ -75,37 +74,47 @@ public class RealMetaDataSchema extends MetaDataSchema {
       deviceSchemaList.add(deviceSchema);
     }
 
-    // Split into client And store Type
+    // Split device schemas into clients (common)
     for (int i = 0; i < deviceSchemaList.size(); i++) {
       int schemaClientId = i % config.getSCHEMA_CLIENT_NUMBER();
       int dataClientId = i % config.getDATA_CLIENT_NUMBER();
       DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      if (!SCHEMA_CLIENT_DATA_SCHEMA.containsKey(schemaClientId)) {
-        SCHEMA_CLIENT_DATA_SCHEMA.put(schemaClientId, new ArrayList<>());
-      }
-      if (!DATA_CLIENT_DATA_SCHEMA.containsKey(dataClientId)) {
-        DATA_CLIENT_DATA_SCHEMA.put(dataClientId, new ArrayList<>());
-      }
-      SCHEMA_CLIENT_DATA_SCHEMA.get(schemaClientId).add(deviceSchema);
-      DATA_CLIENT_DATA_SCHEMA.get(dataClientId).add(deviceSchema);
+      SCHEMA_CLIENT_DATA_SCHEMA
+          .computeIfAbsent(schemaClientId, k -> new ArrayList<>())
+          .add(deviceSchema);
+      DATA_CLIENT_DATA_SCHEMA
+          .computeIfAbsent(dataClientId, k -> new ArrayList<>())
+          .add(deviceSchema);
     }
 
-    // Split data files into data client
+    // Distribute data files to data clients
     List<List<String>> clientFiles = new ArrayList<>();
     for (int i = 0; i < config.getDATA_CLIENT_NUMBER(); i++) {
       clientFiles.add(new ArrayList<>());
     }
-    Map<Integer, Integer> deviceDistributionForDataClient =
-        CommonAlgorithms.distributeDevicesToClients(
-            config.getDEVICE_NUMBER(), config.getDATA_CLIENT_NUMBER());
-    List<Integer> deviceIds = MetaUtil.sortDeviceId();
-    int index = 0;
-    for (int clientId = 0; clientId < config.getDATA_CLIENT_NUMBER(); clientId++) {
-      int fileNumber = deviceDistributionForDataClient.get(clientId);
-      for (int fileId = 0; fileId < fileNumber; fileId++, index++) {
-        String device = config.getDEVICE_NAME_PREFIX() + deviceIds.get(index);
-        String filePath = files.get(device);
-        clientFiles.get(clientId).add(filePath);
+    if (isTsFile) {
+      // file-level: round-robin every *.tsfile across data clients
+      List<File> tsFiles = TsFileSchemaReader.listTsFiles(new File(pathStr));
+      LOGGER.info("Total TsFiles: {}", tsFiles.size());
+      for (int i = 0; i < tsFiles.size(); i++) {
+        clientFiles.get(i % config.getDATA_CLIENT_NUMBER()).add(tsFiles.get(i).getAbsolutePath());
+      }
+    } else {
+      // CSV: device -> single file, distributed by device count (unchanged behavior)
+      Map<String, String> files = new LinkedHashMap<>();
+      getAllFiles(pathStr, files);
+      LOGGER.info("Total files: {}", files.size());
+      Map<Integer, Integer> deviceDistributionForDataClient =
+          CommonAlgorithms.distributeDevicesToClients(
+              config.getDEVICE_NUMBER(), config.getDATA_CLIENT_NUMBER());
+      List<Integer> deviceIds = MetaUtil.sortDeviceId();
+      int index = 0;
+      for (int clientId = 0; clientId < config.getDATA_CLIENT_NUMBER(); clientId++) {
+        int fileNumber = deviceDistributionForDataClient.get(clientId);
+        for (int fileId = 0; fileId < fileNumber; fileId++, index++) {
+          String device = config.getDEVICE_NAME_PREFIX() + deviceIds.get(index);
+          clientFiles.get(clientId).add(files.get(device));
+        }
       }
     }
     MetaUtil.setClientFiles(clientFiles);
