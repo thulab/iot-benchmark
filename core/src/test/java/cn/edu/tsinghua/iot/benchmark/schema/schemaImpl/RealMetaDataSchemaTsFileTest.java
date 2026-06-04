@@ -41,6 +41,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class RealMetaDataSchemaTsFileTest extends BenchmarkTestBase {
@@ -79,5 +80,32 @@ public class RealMetaDataSchemaTsFileTest extends BenchmarkTestBase {
       rows += b.getRecords().size();
     }
     assertEquals(4, rows);
+  }
+
+  /**
+   * Regression: when client count exceeds device count, every schema/data client id must still get
+   * a (possibly empty) device list, not null — otherwise SchemaClient NPEs during registration.
+   */
+  @Test
+  public void everyClientGetsNonNullBucketWhenClientCountExceedsDevices() throws Exception {
+    // fixture has 2 devices (d_0, d_1); use 20 clients so ids 2..19 receive no device
+    File data = new File(folder.getRoot(), "data_0.tsfile");
+    TsFileTestFixtures.writeSampleTable(data);
+    config.setREAL_DATASET_FORMAT(RealDatasetFormat.TSFILE);
+    config.setFILE_PATH(folder.getRoot().getAbsolutePath());
+    config.setBENCHMARK_WORK_MODE(BenchmarkMode.VERIFICATION_WRITE);
+    config.setDATA_CLIENT_NUMBER(20);
+    config.setSCHEMA_CLIENT_NUMBER(20);
+    Files.write(
+        Paths.get(folder.getRoot().getAbsolutePath(), Constants.INFO_PATH),
+        config.toInfoText().getBytes(StandardCharsets.UTF_8));
+
+    RealMetaDataSchema schema = new RealMetaDataSchema();
+    assertTrue(schema.createMetaDataSchema());
+
+    for (int id = 0; id < 20; id++) {
+      assertNotNull("schema client " + id, schema.getDeviceSchemaBySchemaClientId(id));
+      assertNotNull("data client " + id, schema.getDeviceSchemaByDataClientId(id));
+    }
   }
 }

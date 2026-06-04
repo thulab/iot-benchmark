@@ -74,17 +74,22 @@ public class RealMetaDataSchema extends MetaDataSchema {
       deviceSchemaList.add(deviceSchema);
     }
 
-    // Split device schemas into clients (common)
+    // Split device schemas into clients (common). Pre-create a bucket for EVERY client id so that
+    // clients with no devices (when client count > device count) get an empty list, not null —
+    // SchemaClient/DataClient look up by id and would otherwise NPE. Mirrors
+    // MetaUtil.distributeDevices.
+    for (int c = 0; c < config.getSCHEMA_CLIENT_NUMBER(); c++) {
+      SCHEMA_CLIENT_DATA_SCHEMA.put(c, new ArrayList<>());
+    }
+    for (int c = 0; c < config.getDATA_CLIENT_NUMBER(); c++) {
+      DATA_CLIENT_DATA_SCHEMA.put(c, new ArrayList<>());
+    }
     for (int i = 0; i < deviceSchemaList.size(); i++) {
       int schemaClientId = i % config.getSCHEMA_CLIENT_NUMBER();
       int dataClientId = i % config.getDATA_CLIENT_NUMBER();
       DeviceSchema deviceSchema = deviceSchemaList.get(i);
-      SCHEMA_CLIENT_DATA_SCHEMA
-          .computeIfAbsent(schemaClientId, k -> new ArrayList<>())
-          .add(deviceSchema);
-      DATA_CLIENT_DATA_SCHEMA
-          .computeIfAbsent(dataClientId, k -> new ArrayList<>())
-          .add(deviceSchema);
+      SCHEMA_CLIENT_DATA_SCHEMA.get(schemaClientId).add(deviceSchema);
+      DATA_CLIENT_DATA_SCHEMA.get(dataClientId).add(deviceSchema);
     }
 
     // Distribute data files to data clients
