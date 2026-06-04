@@ -40,7 +40,9 @@ public abstract class SchemaReader {
       List<String> nowConfigs = new ArrayList<>(Arrays.asList(config.toInfoText().split("\n")));
       Map<String, String> differs = new HashMap<>();
       for (int i = 0; i < nowConfigs.size(); i++) {
-        String configValue = configs.get(i);
+        // A shorter info.txt (e.g. from an older benchmark version with fewer config lines) must be
+        // reported as a difference, not crash with IndexOutOfBounds.
+        String configValue = i < configs.size() ? configs.get(i) : "";
         String nowConfigValue = nowConfigs.get(i);
         if (!nowConfigValue.equals(configValue)) {
           differs.put(configValue, nowConfigValue);
