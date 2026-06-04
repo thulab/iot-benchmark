@@ -38,14 +38,18 @@ public class GenerateDataWriteClient extends GenerateBaseClient {
   /** Do Operations */
   @Override
   protected void doTest() {
-    taskProgress.resetLoopIndex();
-    for (; taskProgress.getLoopIndex() < config.getLOOP(); taskProgress.incrementLoopIndex()) {
-      if (!doGenerate()) {
-        break;
+    try {
+      taskProgress.resetLoopIndex();
+      for (; taskProgress.getLoopIndex() < config.getLOOP(); taskProgress.incrementLoopIndex()) {
+        if (!doGenerate()) {
+          break;
+        }
+        if (isStop.get()) {
+          break;
+        }
       }
-      if (isStop.get()) {
-        break;
-      }
+    } finally {
+      dataWriter.close();
     }
   }
 
