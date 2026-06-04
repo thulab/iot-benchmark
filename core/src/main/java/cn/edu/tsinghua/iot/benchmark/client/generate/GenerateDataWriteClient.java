@@ -28,7 +28,7 @@ import java.util.concurrent.CyclicBarrier;
 
 /** This client is using by GenerateMode */
 public class GenerateDataWriteClient extends GenerateBaseClient {
-  private DataWriter dataWriter = DataWriter.getDataWriter();
+  private DataWriter dataWriter = DataWriter.getDataWriter(clientThreadId);
 
   public GenerateDataWriteClient(
       int id, CountDownLatch countDownLatch, CyclicBarrier barrier, TaskProgress taskProgress) {
