@@ -600,6 +600,12 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "IS_RECORD_CURRENT_REALLY_TIME",
                     config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
+
+        config.setFIXED_QUERY_SQL(
+            properties.getProperty("FIXED_QUERY_SQL", config.getFIXED_QUERY_SQL()));
+
+        config.setQUERY_LOOP(
+            Integer.parseInt(properties.getProperty("QUERY_LOOP", config.getQUERY_LOOP() + "")));
       } catch (IOException e) {
         LOGGER.error("Failed to load config file", e);
       }
