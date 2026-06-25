@@ -14,8 +14,8 @@
     <name>Benchmark MS SQL Server</name>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>${compile.version}</maven.compiler.source>
+        <maven.compiler.target>${targetJavaVersion}</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>6.2.0.jre8</version>
+            <version>13.4.0.jre11</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>

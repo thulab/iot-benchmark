@@ -9,7 +9,7 @@ Benchmark Questdb
 Before running the benchmark, prepare:
 
 1. A running QuestDB instance
-2. Java 8
+2. Java 17
 3. Maven 3.6+
 
 QuestDB-specific notes:

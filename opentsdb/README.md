@@ -14,7 +14,7 @@ OpenTSDB should be installed in a Linux system. The following prerequisites shou
 
 For the benchmark side, also prepare:
 
-- Java 8
+- Java 17
 - Maven 3.6+
 
 ### Installation of the prerequisites

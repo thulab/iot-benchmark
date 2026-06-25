@@ -34,7 +34,7 @@ Spotless runs automatically during `validate` phase. On JDK <= 11, spotless is s
 
 `.github/workflows/` runs on every push/PR to `master`:
 
-- **`core-test.yml`** — `mvn -B test -pl core` on JDK 8. Any new core unit test must pass here.
+- **`core-test.yml`** — `mvn -B test -pl core` on JDK 17. Any new core unit test must pass here.
 - **`spotless.yml`** — `mvn spotless:check`. Run `mvn spotless:apply` locally before pushing.
 
 `main.yml` is a release-artifact build (matrix over `iotdb-1.3`, `iotdb-2.0`, `influxdb`, `influxdb-2.0`, `timescaledb`, `timescaledb-cluster`) triggered on master pushes, not a PR gate.
@@ -115,7 +115,7 @@ Key parameters:
 
 ## Code Style
 
-- Java 8 source level
+- Java 17 source level
 - Google Java Format enforced by Spotless
 - Import order: `org.apache.iotdb`, default, `javax`, `java`, static
 - UNIX line endings

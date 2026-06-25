@@ -7,7 +7,7 @@ Before running the benchmark, prepare:
 
 1. Microsoft SQL Server `2016 SP2` Standard Edition or a compatible newer version
 2. A management client such as Microsoft SQL Server Management Studio (SSMS) or `sqlcmd`
-3. Java 8
+3. Java 17
 4. Maven 3.6+
 
 Notes specific to Microsoft SQL Server:

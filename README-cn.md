@@ -1,7 +1,7 @@
 IoT Benchmark
 ---
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
-![](https://img.shields.io/badge/java--language-1.8-blue.svg)
+![](https://img.shields.io/badge/java--language-17-blue.svg)
 
 - [1. 概述](#1-概述)
 - [2. 支持的数据库类型](#2-支持的数据库类型)
@@ -52,7 +52,7 @@ IoT Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 
 为了使用 IoT Benchmark，你需要拥有：
 
-1. Java 8
+1. Java 17
 2. Maven：不建议使用镜像源，国内可以使用阿里云镜像源。
 3. 合适版本的数据库
 
