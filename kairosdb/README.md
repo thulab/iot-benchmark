@@ -6,7 +6,7 @@ This module uses IoT Benchmark to test KairosDB.
 
 Before running the benchmark, prepare:
 
-1. Java 8
+1. Java 17
 2. Maven 3.6+
 3. A running KairosDB instance reachable from the benchmark machine
 

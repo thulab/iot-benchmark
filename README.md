@@ -1,7 +1,7 @@
 IoT Benchmark
 ---
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
-![](https://img.shields.io/badge/java--language-1.8-blue.svg)
+![](https://img.shields.io/badge/java--language-17-blue.svg)
 
 You can also read [中文版本](README-cn.md).
 
@@ -55,7 +55,7 @@ Currently supports the following databases, versions and connection methods:
 
 To use IoT Benchmark, you need:
 
-1. Java 8
+1. Java 17
 2. Maven: It is not recommended to use the mirror source. You can use the Alibaba Cloud mirror source in China.
 3. The appropriate version of the database
 

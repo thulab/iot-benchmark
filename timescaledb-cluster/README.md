@@ -6,7 +6,7 @@ Benchmark for timescaleDB
 Before running the benchmark, prepare:
 
 1. A running TimescaleDB multi-node or cluster deployment
-2. Java 8
+2. Java 17
 3. Maven 3.6+
 
 The sample configuration in this directory uses:
