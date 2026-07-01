@@ -204,6 +204,13 @@ public class TreeSessionManager extends SessionManager {
         .useSSL(config.isUSE_SSL())
         .trustStore(config.getTRUST_STORE_PATH())
         .trustStorePwd(config.getTRUST_STORE_PWD())
+        .keyStore(emptyToNull(config.getKEY_STORE_PATH()))
+        .keyStorePwd(emptyToNull(config.getKEY_STORE_PWD()))
+        .sslProtocol(config.getSSL_PROTOCOL())
         .build();
+  }
+
+  private String emptyToNull(String value) {
+    return value == null || value.isEmpty() ? null : value;
   }
 }

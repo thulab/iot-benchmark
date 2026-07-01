@@ -63,9 +63,15 @@ public class SingleNodeJDBCConnection {
         info.setProperty("user", dbConfig.getUSERNAME());
         info.setProperty("password", dbConfig.getPASSWORD());
         if (config.isUSE_SSL()) {
-          info.setProperty("use_ssl", "true");
-          info.setProperty("trust_store", config.getTRUST_STORE_PATH());
-          info.setProperty("trust_store_pwd", config.getTRUST_STORE_PWD());
+          info.setProperty(org.apache.iotdb.jdbc.Config.USE_SSL, "true");
+          info.setProperty(org.apache.iotdb.jdbc.Config.TRUST_STORE, config.getTRUST_STORE_PATH());
+          info.setProperty(
+              org.apache.iotdb.jdbc.Config.TRUST_STORE_PWD, config.getTRUST_STORE_PWD());
+          if (!config.getKEY_STORE_PATH().isEmpty()) {
+            info.setProperty(org.apache.iotdb.jdbc.Config.KEY_STORE, config.getKEY_STORE_PATH());
+            info.setProperty(org.apache.iotdb.jdbc.Config.KEY_STORE_PWD, config.getKEY_STORE_PWD());
+          }
+          info.setProperty(org.apache.iotdb.jdbc.Config.SSL_PROTOCOL, config.getSSL_PROTOCOL());
         }
         connections[i] = DriverManager.getConnection(urls[i], info);
       } catch (Exception e) {

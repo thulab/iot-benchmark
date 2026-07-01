@@ -316,6 +316,9 @@ public class Config {
 
   private String TRUST_STORE_PATH = "";
   private String TRUST_STORE_PWD = "";
+  private String KEY_STORE_PATH = "";
+  private String KEY_STORE_PWD = "";
+  private String SSL_PROTOCOL = "TLS";
 
   /** the ratio of use debug */
   private double IOTDB_USE_DEBUG_RATIO = 0.01;
@@ -1315,6 +1318,30 @@ public class Config {
     return TRUST_STORE_PWD;
   }
 
+  public void setKEY_STORE_PATH(String KEY_STORE_PATH) {
+    this.KEY_STORE_PATH = KEY_STORE_PATH;
+  }
+
+  public String getKEY_STORE_PATH() {
+    return KEY_STORE_PATH;
+  }
+
+  public void setKEY_STORE_PWD(String KEY_STORE_PWD) {
+    this.KEY_STORE_PWD = KEY_STORE_PWD;
+  }
+
+  public String getKEY_STORE_PWD() {
+    return KEY_STORE_PWD;
+  }
+
+  public void setSSL_PROTOCOL(String SSL_PROTOCOL) {
+    this.SSL_PROTOCOL = SSL_PROTOCOL;
+  }
+
+  public String getSSL_PROTOCOL() {
+    return SSL_PROTOCOL;
+  }
+
   public int getHTTP_CLIENT_POOL_SIZE() {
     return HTTP_CLIENT_POOL_SIZE;
   }
@@ -2201,6 +2228,12 @@ public class Config {
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     configProperties.addProperty(
         "Extern Param", "ENABLE_IoTDB_RPC_COMPRESSION", this.ENABLE_IOTDB_RPC_COMPRESSION);
+    configProperties.addProperty("Extern Param", "USE_SSL", this.USE_SSL);
+    configProperties.addProperty("Extern Param", "TRUST_STORE_PATH", this.TRUST_STORE_PATH);
+    configProperties.addProperty("Extern Param", "TRUST_STORE_PWD", this.TRUST_STORE_PWD);
+    configProperties.addProperty("Extern Param", "KEY_STORE_PATH", this.KEY_STORE_PATH);
+    configProperties.addProperty("Extern Param", "KEY_STORE_PWD", this.KEY_STORE_PWD);
+    configProperties.addProperty("Extern Param", "SSL_PROTOCOL", this.SSL_PROTOCOL);
     configProperties.addProperty(
         "Extern Param", "WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     configProperties.addProperty(
