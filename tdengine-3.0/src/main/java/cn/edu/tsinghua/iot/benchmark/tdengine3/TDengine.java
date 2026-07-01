@@ -70,7 +70,7 @@ public class TDengine implements IDatabase {
   private static final String FROM = " FROM ";
   private static final String WHERE = " WHERE ";
   private static final String ORDER_BY_TIME_DESC = " order by time desc ";
-  private static final String ORDER_BY_WSTART_DESC = " order by _wstart desc ";
+  private static final String ORDER_BY_TBNAME_WSTART_DESC = " order by tbname, _wstart desc ";
   private static final AtomicBoolean isInit = new AtomicBoolean(false);
 
   private final String CREATE_STABLE;
@@ -359,12 +359,13 @@ public class TDengine implements IDatabase {
   }
 
   /**
-   * eg. SELECT count(s_3) FROM group_4 WHERE ( device = 'd_16' ) AND time >= 1535558430000000000
-   * AND time <=8680000000000 GROUP BY time(20000ms).
+   * eg. SELECT tbname, _wstart, count(s_3) FROM group_4 WHERE ( device = 'd_16' ) AND time >=
+   * 1535558430000000000 AND time <=8680000000000 partition by tbname interval(20000a).
    */
   @Override
   public Status groupByQuery(GroupByQuery groupByQuery) {
-    String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sqlHeader =
+        getGroupByQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sql =
         addWhereClause(
             sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
@@ -406,12 +407,13 @@ public class TDengine implements IDatabase {
 
   @Override
   public Status groupByQueryOrderByDesc(GroupByQuery groupByQuery) {
-    String sqlHeader = getAggQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
+    String sqlHeader =
+        getGroupByQuerySqlHead(groupByQuery.getDeviceSchema(), groupByQuery.getAggFun());
     String sql =
         addWhereClause(
             sqlHeader, groupByQuery, null, getTableNameFilterForAlignByDevice(groupByQuery));
     sql = addGroupByClause(sql, groupByQuery.getGranularity());
-    sql += ORDER_BY_WSTART_DESC;
+    sql += ORDER_BY_TBNAME_WSTART_DESC;
     return addTailClausesAndExecuteQueryAndGetStatus(sql);
   }
 
@@ -551,6 +553,34 @@ public class TDengine implements IDatabase {
   }
 
   /**
+   * generate group by query header, aligned with IoTDB table mode which selects {@code device_id}
+   * and the time-window start column. For TDengine these are {@code tbname} and {@code _wstart};
+   * both must be selected explicitly, otherwise they are absent from the result set.
+   *
+   * <p>e.g. SELECT tbname, _wstart, count(s_0), count(s_3) FROM device
+   *
+   * @param devices schema list of query devices
+   * @param method aggregate function, e.g. count
+   * @return group by query header with tbname and _wstart prepended.
+   */
+  private static String getGroupByQuerySqlHead(List<DeviceSchema> devices, String method) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("SELECT tbname, _wstart, ");
+    List<Sensor> querySensors = devices.get(0).getSensors();
+    builder.append(method).append("(").append(querySensors.get(0)).append(")");
+    for (int i = 1; i < querySensors.size(); i++) {
+      builder
+          .append(", ")
+          .append(method)
+          .append("(")
+          .append(querySensors.get(i).getName())
+          .append(")");
+    }
+    builder.append(generateFromClause(devices));
+    return builder.toString();
+  }
+
+  /**
    * generate aggregation query header.
    *
    * @param devices schema list of query devices
@@ -577,13 +607,16 @@ public class TDengine implements IDatabase {
   }
 
   /**
-   * add group by clause for query.
+   * add partition-by-tbname and time-window (interval) clause for group by query, so that each
+   * sub-table is aggregated independently. This aligns the result shape with IoTDB table mode
+   * {@code group by device_id, date_bin(...)} (one row per device per window, with tbname and
+   * _wstart returned).
    *
    * @param sqlHeader sql header
-   * @param timeGranularity time granularity of group by
+   * @param timeGranularity time granularity of interval
    */
   private static String addGroupByClause(String sqlHeader, long timeGranularity) {
-    return sqlHeader + " interval (" + timeGranularity + "a)";
+    return sqlHeader + " partition by tbname interval (" + timeGranularity + "a)";
   }
 
   @Override
