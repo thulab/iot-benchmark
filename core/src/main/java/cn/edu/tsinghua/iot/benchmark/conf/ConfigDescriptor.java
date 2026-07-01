@@ -396,6 +396,15 @@ public class ConfigDescriptor {
         config.setTRUST_STORE_PWD(
             properties.getProperty("TRUST_STORE_PWD", String.valueOf(config.getTRUST_STORE_PWD())));
 
+        config.setKEY_STORE_PATH(
+            properties.getProperty("KEY_STORE_PATH", String.valueOf(config.getKEY_STORE_PATH())));
+
+        config.setKEY_STORE_PWD(
+            properties.getProperty("KEY_STORE_PWD", String.valueOf(config.getKEY_STORE_PWD())));
+
+        config.setSSL_PROTOCOL(
+            properties.getProperty("SSL_PROTOCOL", String.valueOf(config.getSSL_PROTOCOL())));
+
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
         config.setTIMESCALEDB_REPLICATION_FACTOR(
             Integer.parseInt(
