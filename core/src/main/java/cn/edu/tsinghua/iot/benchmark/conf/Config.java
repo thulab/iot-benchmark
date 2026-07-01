@@ -441,7 +441,7 @@ public class Config {
    */
   private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0:0";
 
-  private boolean ENABLE_FIXED_QUERY = true;
+  private boolean ENABLE_FIXED_QUERY = false;
 
   private final int OPERATION_PROPORTION_LEN = 13;
 
