@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_REST;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
@@ -105,6 +106,12 @@ public class ConfigDescriptor {
                     "BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
         config.setREST_AUTHORIZATION(
             properties.getProperty("REST_AUTHORIZATION", config.getREST_AUTHORIZATION()));
+        String restAuthorization = System.getenv("BENCHMARK_REST_AUTHORIZATION");
+        if (restAuthorization != null && !restAuthorization.isEmpty()) {
+          config.setREST_AUTHORIZATION(restAuthorization);
+        }
+        config.setREST_PORT(
+            Integer.parseInt(properties.getProperty("REST_PORT", config.getREST_PORT() + "")));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
@@ -124,6 +131,14 @@ public class ConfigDescriptor {
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
+        String benchmarkUsername = System.getenv("BENCHMARK_USERNAME");
+        String benchmarkPassword = System.getenv("BENCHMARK_PASSWORD");
+        if (benchmarkUsername != null && !benchmarkUsername.isEmpty()) {
+          config.setUSERNAME(benchmarkUsername);
+        }
+        if (benchmarkPassword != null && !benchmarkPassword.isEmpty()) {
+          config.setPASSWORD(benchmarkPassword);
+        }
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
 
@@ -731,9 +746,10 @@ public class ConfigDescriptor {
     }
     if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
         && config.getDbConfig().getDB_SWITCH().getType() == DBType.IoTDB
-        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET) {
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_REST) {
       LOGGER.error(
-          "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
+          "The iotdb table model only supports INSERT_USE_SESSION_TABLET and INSERT_USE_REST! Please modify DB_SWITCH in the configuration file.");
       result = false;
     }
     // TODO Not supported TIME_DURATION、MAX_BY、MIN_BY. iotdb will report errors for these three

@@ -101,6 +101,9 @@ public class Config {
   /** Authorization header for REST interface */
   private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
 
+  /** Port for REST interface */
+  private int REST_PORT = 18080;
+
   // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
@@ -715,6 +718,14 @@ public class Config {
 
   public void setREST_AUTHORIZATION(String REST_AUTHORIZATION) {
     this.REST_AUTHORIZATION = REST_AUTHORIZATION;
+  }
+
+  public int getREST_PORT() {
+    return REST_PORT;
+  }
+
+  public void setREST_PORT(int REST_PORT) {
+    this.REST_PORT = REST_PORT;
   }
 
   public long IncrementAndGetCURRENT_RECORD_LINE() {

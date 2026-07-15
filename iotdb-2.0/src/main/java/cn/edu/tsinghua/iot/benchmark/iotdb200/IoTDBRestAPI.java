@@ -8,6 +8,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SQLDialect;
 import cn.edu.tsinghua.iot.benchmark.exception.DBConnectException;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -25,19 +26,34 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class IoTDBRestAPI extends IoTDB {
   private static final Logger LOGGER = LoggerFactory.getLogger(IoTDBRestAPI.class);
-  private final OkHttpClient client = new OkHttpClient();
+  private static final Gson GSON = new Gson();
+  private final OkHttpClient client;
   private final String baseURL;
+  private final DBConfig dbConfig;
   protected final String ROOT_SERIES_NAME;
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public IoTDBRestAPI(DBConfig dbConfig) throws IoTDBConnectionException {
-    super(dbConfig);
+    this(dbConfig, false);
+  }
+
+  IoTDBRestAPI(DBConfig dbConfig, boolean skipDmlStrategy) throws IoTDBConnectionException {
+    super(dbConfig, !skipDmlStrategy);
+    this.dbConfig = dbConfig;
+    long timeout = config.getWRITE_OPERATION_TIMEOUT_MS();
+    client =
+        new OkHttpClient.Builder()
+            .connectTimeout(timeout, TimeUnit.MILLISECONDS)
+            .readTimeout(timeout, TimeUnit.MILLISECONDS)
+            .writeTimeout(timeout, TimeUnit.MILLISECONDS)
+            .build();
     String host = dbConfig.getHOST().get(0);
-    baseURL = String.format("http://%s:18080", host);
-    ROOT_SERIES_NAME = "root";
+    baseURL = String.format("http://%s:%d", host, config.getREST_PORT());
+    ROOT_SERIES_NAME = String.format("root.%s", dbConfig.getDB_NAME());
   }
 
   private Request constructRequest(String api, String json) {
@@ -54,15 +70,16 @@ public class IoTDBRestAPI extends IoTDB {
 
   @Override
   public void cleanup() {
-    String json = "{\"sql\":\"delete database root.**\"}";
-    Request request = constructRequest("/rest/v2/nonQuery", json);
-    try {
-      Response response = client.newCall(request).execute();
-      response.close();
-      LOGGER.info("Finish clean data!");
-    } catch (Exception e) {
-      LOGGER.warn("No Data to Clean!");
+    if (isTableMode()) {
+      for (int group = 0; group < config.getGROUP_NUMBER(); group++) {
+        String database =
+            String.format("%s_%s%d", dbConfig.getDB_NAME(), config.getGROUP_NAME_PREFIX(), group);
+        executeNonQuery("drop database if exists " + database);
+      }
+    } else {
+      executeNonQuery("delete database root." + dbConfig.getDB_NAME() + ".**");
     }
+    LOGGER.info("Finish clean data!");
   }
 
   @Override
@@ -71,21 +88,31 @@ public class IoTDBRestAPI extends IoTDB {
   @Override
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
     String json = generatePayload(batch);
-    Request request = constructRequest("/rest/v2/insertTablet", json);
+    String api = isTableMode() ? "/rest/table/v1/insertTablet" : "/rest/v2/insertTablet";
+    Request request = constructRequest(api, json);
     try {
       Response response = client.newCall(request).execute();
+      String body = response.body() == null ? "" : response.body().string();
+      boolean success = isSuccessful(response, body);
+      if (!success) {
+        LOGGER.warn("Insert failed: HTTP {}, body {}", response.code(), body);
+      }
       response.close();
-      return new Status(true);
+      return new Status(success);
     } catch (IOException e) {
-      LOGGER.warn("Insert failed!");
-      return new Status(false);
+      LOGGER.warn("Insert failed: {}", e.toString());
+      return new Status(false, e, "REST insert failed");
     }
   }
 
   private String generatePayload(IBatch batch) {
+    return isTableMode() ? generateTablePayload(batch) : generateTreePayload(batch);
+  }
+
+  private String generateTreePayload(IBatch batch) {
     DeviceSchema schema = batch.getDeviceSchema();
     IoTDBRestPayload payload = new IoTDBRestPayload();
-    payload.device = String.format("root.%s", schema.getDevicePath());
+    payload.device = String.format("%s.%s", ROOT_SERIES_NAME, schema.getDevicePath());
     payload.is_aligned = config.isIS_SENSOR_TS_ALIGNMENT();
 
     List<String> measurements = new ArrayList<>();
@@ -112,7 +139,39 @@ public class IoTDBRestAPI extends IoTDB {
     payload.timestamps = timestamps;
     payload.values = values;
 
-    return new Gson().toJson(payload);
+    return GSON.toJson(payload);
+  }
+
+  private String generateTablePayload(IBatch batch) {
+    DeviceSchema schema = batch.getDeviceSchema();
+    IoTDBTableRestPayload payload = new IoTDBTableRestPayload();
+    payload.database = dbConfig.getDB_NAME() + "_" + schema.getGroup();
+    payload.table = schema.getTable();
+
+    for (Sensor sensor : schema.getSensors()) {
+      payload.column_names.add(sensor.getName());
+      payload.column_categories.add("FIELD");
+      payload.data_types.add(sensor.getSensorType().name);
+    }
+    payload.column_names.add("device_id");
+    payload.column_categories.add("TAG");
+    payload.data_types.add("STRING");
+    for (String key : schema.getTags().keySet()) {
+      payload.column_names.add(key);
+      payload.column_categories.add("TAG");
+      payload.data_types.add("STRING");
+    }
+
+    for (Record record : batch.getRecords()) {
+      payload.timestamps.add(record.getTimestamp());
+      List<Object> row = new ArrayList<>(record.getRecordDataValue());
+      row.add(schema.getDevice());
+      for (String key : schema.getTags().keySet()) {
+        row.add(schema.getTags().get(key));
+      }
+      payload.values.add(row);
+    }
+    return GSON.toJson(payload);
   }
 
   @Override
@@ -122,13 +181,16 @@ public class IoTDBRestAPI extends IoTDB {
 
   private Status executeQueryAndGetStatus(String sql) {
     String json = String.format("{\"sql\":\"%s\"}", sql);
-    Request request = constructRequest("/rest/v2/query", json);
+    String api = isTableMode() ? "/rest/table/v1/query" : "/rest/v2/query";
+    Request request = constructRequest(api, json);
     try {
       Response response = client.newCall(request).execute();
       String body = response.body().string();
-      IoTDBRestQueryResult queryResult = new Gson().fromJson(body, IoTDBRestQueryResult.class);
+      IoTDBRestQueryResult queryResult = GSON.fromJson(body, IoTDBRestQueryResult.class);
       response.close();
-      if (queryResult.timestamps == null && response.code() == 200) {
+      if (queryResult.timestamps == null && queryResult.values != null) {
+        return new Status(true, queryResult.values.size());
+      } else if (queryResult.timestamps == null && response.code() == 200) {
         // The aggregate query has no timestamps and only one result
         return new Status(true);
       } else {
@@ -137,6 +199,37 @@ public class IoTDBRestAPI extends IoTDB {
     } catch (IOException e) {
       LOGGER.warn("Execute Query Failed!");
       return new Status(false);
+    }
+  }
+
+  private void executeNonQuery(String sql) {
+    String api = isTableMode() ? "/rest/table/v1/nonQuery" : "/rest/v2/nonQuery";
+    String json = GSON.toJson(new IoTDBRestSql(sql));
+    Request request = constructRequest(api, json);
+    try (Response response = client.newCall(request).execute()) {
+      String body = response.body() == null ? "" : response.body().string();
+      if (!isSuccessful(response, body)) {
+        LOGGER.warn("Non-query failed: HTTP {}, body {}", response.code(), body);
+      }
+    } catch (IOException e) {
+      LOGGER.warn("Non-query failed: {}", e.getMessage());
+    }
+  }
+
+  private boolean isTableMode() {
+    return config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE;
+  }
+
+  private boolean isSuccessful(Response response, String body) {
+    if (!response.isSuccessful()) {
+      return false;
+    }
+    try {
+      IoTDBRestStatus status = GSON.fromJson(body, IoTDBRestStatus.class);
+      return status != null && status.code == 200;
+    } catch (RuntimeException e) {
+      LOGGER.warn("Invalid REST response body: {}", body);
+      return false;
     }
   }
 
@@ -154,5 +247,27 @@ public class IoTDBRestAPI extends IoTDB {
     public List<String> column_names;
     public List<Long> timestamps;
     public List<List<Object>> values;
+  }
+
+  private static class IoTDBRestStatus {
+    public int code;
+  }
+
+  private static class IoTDBRestSql {
+    public final String sql;
+
+    private IoTDBRestSql(String sql) {
+      this.sql = sql;
+    }
+  }
+
+  private static class IoTDBTableRestPayload {
+    public final List<Long> timestamps = new ArrayList<>();
+    public final List<String> column_names = new ArrayList<>();
+    public final List<String> column_categories = new ArrayList<>();
+    public final List<String> data_types = new ArrayList<>();
+    public final List<List<Object>> values = new ArrayList<>();
+    public String table;
+    public String database;
   }
 }

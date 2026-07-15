@@ -98,6 +98,11 @@ public class IoTDB implements IDatabase {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public IoTDB(DBConfig dbConfig) throws IoTDBConnectionException {
+    this(dbConfig, true);
+  }
+
+  protected IoTDB(DBConfig dbConfig, boolean initializeDmlStrategy)
+      throws IoTDBConnectionException {
     this.dbConfig = dbConfig;
     ROOT_SERIES_NAME = "root." + dbConfig.getDB_NAME();
     DELETE_SERIES_SQL = "delete storage group root." + dbConfig.getDB_NAME() + ".*";
@@ -106,6 +111,10 @@ public class IoTDB implements IDatabase {
         config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
             ? new TableStrategy(dbConfig)
             : new TreeStrategy(dbConfig);
+    if (!initializeDmlStrategy) {
+      dmlStrategy = null;
+      return;
+    }
     switch (dbConfig.getDB_SWITCH()) {
       case DB_IOT_200_REST:
       case DB_IOT_200_SESSION_BY_TABLET:
