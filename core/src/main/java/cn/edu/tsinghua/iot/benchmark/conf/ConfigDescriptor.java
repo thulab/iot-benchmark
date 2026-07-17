@@ -131,14 +131,6 @@ public class ConfigDescriptor {
         config.setPORT(Arrays.asList(ports.split(",")));
         config.setUSERNAME(properties.getProperty("USERNAME", config.getDbConfig().getUSERNAME()));
         config.setPASSWORD(properties.getProperty("PASSWORD", config.getDbConfig().getPASSWORD()));
-        String benchmarkUsername = System.getenv("BENCHMARK_USERNAME");
-        String benchmarkPassword = System.getenv("BENCHMARK_PASSWORD");
-        if (benchmarkUsername != null && !benchmarkUsername.isEmpty()) {
-          config.setUSERNAME(benchmarkUsername);
-        }
-        if (benchmarkPassword != null && !benchmarkPassword.isEmpty()) {
-          config.setPASSWORD(benchmarkPassword);
-        }
         config.setDB_NAME(properties.getProperty("DB_NAME", config.getDbConfig().getDB_NAME()));
         config.setTOKEN(properties.getProperty("TOKEN", config.getDbConfig().getTOKEN()));
 

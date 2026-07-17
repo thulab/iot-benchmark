@@ -42,6 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,6 +51,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class IoTDBRestAPITest {
@@ -157,6 +159,32 @@ public class IoTDBRestAPITest {
     assertEquals(4321, client.writeTimeoutMillis());
   }
 
+  @Test
+  public void malformedQueryResponsePreservesParsingFailure() throws Exception {
+    server.enqueue(
+        new MockResponse()
+            .setResponseCode(200)
+            .setHeader("Content-Type", "application/json")
+            .setBody("not-json"));
+
+    Status status = executeQuery(newRestAPI(), "select * from table_0");
+
+    assertFalse(status.isOk());
+    assertNotNull(status.getException());
+    assertEquals("REST query failed", status.getErrorMessage());
+  }
+
+  @Test
+  public void emptyQueryResponsePreservesFailure() throws Exception {
+    server.enqueue(new MockResponse().setResponseCode(200).setBody(""));
+
+    Status status = executeQuery(newRestAPI(), "select * from table_0");
+
+    assertFalse(status.isOk());
+    assertNotNull(status.getException());
+    assertEquals("REST query failed", status.getErrorMessage());
+  }
+
   private IoTDBRestAPI newRestAPI() throws Exception {
     DBConfig dbConfig = new DBConfig();
     dbConfig.setDB_SWITCH(DBSwitch.DB_IOT_200_REST);
@@ -164,6 +192,12 @@ public class IoTDBRestAPITest {
     dbConfig.setPORT(Collections.singletonList("6667"));
     dbConfig.setDB_NAME("benchmark");
     return new IoTDBRestAPI(dbConfig, true);
+  }
+
+  private Status executeQuery(IoTDBRestAPI restAPI, String sql) throws Exception {
+    Method method = IoTDBRestAPI.class.getDeclaredMethod("executeQueryAndGetStatus", String.class);
+    method.setAccessible(true);
+    return (Status) method.invoke(restAPI, sql);
   }
 
   private Batch newBatch() {

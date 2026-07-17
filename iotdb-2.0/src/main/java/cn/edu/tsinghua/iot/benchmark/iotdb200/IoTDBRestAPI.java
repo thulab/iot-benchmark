@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,14 +91,13 @@ public class IoTDBRestAPI extends IoTDB {
     String json = generatePayload(batch);
     String api = isTableMode() ? "/rest/table/v1/insertTablet" : "/rest/v2/insertTablet";
     Request request = constructRequest(api, json);
-    try {
-      Response response = client.newCall(request).execute();
-      String body = response.body() == null ? "" : response.body().string();
+    try (Response response = client.newCall(request).execute()) {
+      ResponseBody responseBody = response.body();
+      String body = responseBody == null ? "" : responseBody.string();
       boolean success = isSuccessful(response, body);
       if (!success) {
         LOGGER.warn("Insert failed: HTTP {}, body {}", response.code(), body);
       }
-      response.close();
       return new Status(success);
     } catch (IOException e) {
       LOGGER.warn("Insert failed: {}", e.toString());
@@ -183,11 +183,16 @@ public class IoTDBRestAPI extends IoTDB {
     String json = String.format("{\"sql\":\"%s\"}", sql);
     String api = isTableMode() ? "/rest/table/v1/query" : "/rest/v2/query";
     Request request = constructRequest(api, json);
-    try {
-      Response response = client.newCall(request).execute();
-      String body = response.body().string();
+    try (Response response = client.newCall(request).execute()) {
+      ResponseBody responseBody = response.body();
+      if (responseBody == null) {
+        throw new IOException("REST query response body is empty");
+      }
+      String body = responseBody.string();
       IoTDBRestQueryResult queryResult = GSON.fromJson(body, IoTDBRestQueryResult.class);
-      response.close();
+      if (queryResult == null) {
+        throw new IOException("REST query response body is empty");
+      }
       if (queryResult.timestamps == null && queryResult.values != null) {
         return new Status(true, queryResult.values.size());
       } else if (queryResult.timestamps == null && response.code() == 200) {
@@ -196,9 +201,9 @@ public class IoTDBRestAPI extends IoTDB {
       } else {
         return new Status(true, queryResult.timestamps.size());
       }
-    } catch (IOException e) {
-      LOGGER.warn("Execute Query Failed!");
-      return new Status(false);
+    } catch (IOException | RuntimeException e) {
+      LOGGER.warn("Execute query failed: {}", e.toString());
+      return new Status(false, e, "REST query failed");
     }
   }
 
