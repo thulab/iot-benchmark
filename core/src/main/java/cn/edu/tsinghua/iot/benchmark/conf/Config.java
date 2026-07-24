@@ -197,6 +197,12 @@ public class Config {
   /** The path of file */
   private String FILE_PATH = "data/test";
 
+  /**
+   * Format of the real dataset on disk: CSV or TSFILE (table model). Used by generate +
+   * verification.
+   */
+  private RealDatasetFormat REAL_DATASET_FORMAT = RealDatasetFormat.CSV;
+
   /** The size of Big Batch */
   private int BIG_BATCH_SIZE = 100;
 
@@ -1015,6 +1021,14 @@ public class Config {
 
   public void setFILE_PATH(String FILE_PATH) {
     this.FILE_PATH = FILE_PATH;
+  }
+
+  public RealDatasetFormat getREAL_DATASET_FORMAT() {
+    return REAL_DATASET_FORMAT;
+  }
+
+  public void setREAL_DATASET_FORMAT(RealDatasetFormat REAL_DATASET_FORMAT) {
+    this.REAL_DATASET_FORMAT = REAL_DATASET_FORMAT;
   }
 
   public int getDEVICE_NUMBER() {
@@ -2082,7 +2096,10 @@ public class Config {
         + "\nQUERY_SEED="
         + QUERY_SEED
         + "\nWORKLOAD_BUFFER_SIZE="
-        + WORKLOAD_BUFFER_SIZE;
+        + WORKLOAD_BUFFER_SIZE
+        + "\nREAL_DATASET_FORMAT='"
+        + REAL_DATASET_FORMAT
+        + '\'';
   }
 
   /** get properties from config, one property in one line. */
@@ -2207,6 +2224,7 @@ public class Config {
     configProperties.addProperty("Extern Param", "ANOMALY_RATE", this.ANOMALY_RATE);
     configProperties.addProperty("Extern Param", "ANOMALY_TIMES", this.ANOMALY_TIMES);
     configProperties.addProperty("Extern Param", "IS_COPY_MODE", this.IS_COPY_MODE);
+    configProperties.addProperty("Extern Param", "REAL_DATASET_FORMAT", this.REAL_DATASET_FORMAT);
 
     /* The config of schema */
     configProperties.addProperty("Extern Param", "IS_CLIENT_BIND", this.IS_CLIENT_BIND);

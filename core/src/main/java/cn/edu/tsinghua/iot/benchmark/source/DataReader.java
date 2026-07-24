@@ -33,6 +33,10 @@ public abstract class DataReader {
   protected String currentFileName;
 
   public static DataReader getInstance(List<String> files) {
+    if (config.getREAL_DATASET_FORMAT()
+        == cn.edu.tsinghua.iot.benchmark.conf.RealDatasetFormat.TSFILE) {
+      return new TsFileDataReader(files);
+    }
     if (config.isIS_COPY_MODE()) {
       return new CopyDataReader(files);
     } else {

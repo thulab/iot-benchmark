@@ -474,6 +474,10 @@ public class ConfigDescriptor {
         config.setIS_COPY_MODE(
             Boolean.parseBoolean(
                 properties.getProperty("IS_COPY_MODE", config.isIS_COPY_MODE() + "")));
+        config.setREAL_DATASET_FORMAT(
+            RealDatasetFormat.getRealDatasetFormat(
+                properties.getProperty(
+                    "REAL_DATASET_FORMAT", config.getREAL_DATASET_FORMAT().name())));
         config.setIS_ADD_ANOMALY(
             Boolean.parseBoolean(
                 properties.getProperty("IS_ADD_ANOMALY", config.isIS_ADD_ANOMALY() + "")));
