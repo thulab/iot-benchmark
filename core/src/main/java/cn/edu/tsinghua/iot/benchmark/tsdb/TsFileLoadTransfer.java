@@ -5,6 +5,8 @@ import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,9 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class TsFileLoadTransfer {
   private static final Map<String, Boolean> PREPARED_REMOTE_DIRS = new ConcurrentHashMap<>();
   private static final Map<String, File> ASKPASS_FILES = new ConcurrentHashMap<>();
-  private static final String CONTROL_DIR =
-      System.getProperty("java.io.tmpdir") + "/iot-benchmark-ssh-control";
-  private static final String KNOWN_HOSTS_FILE = CONTROL_DIR + "/known_hosts";
+  private static final boolean WINDOWS =
+      System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win");
+  private static final Path CONTROL_DIR =
+      Paths.get(System.getProperty("java.io.tmpdir"), "iot-benchmark-ssh-control");
+  private static final Path KNOWN_HOSTS_FILE = CONTROL_DIR.resolve("known_hosts");
 
   private TsFileLoadTransfer() {}
 
@@ -80,8 +84,8 @@ public final class TsFileLoadTransfer {
 
   private static String[] sshCommand(String host, String remoteCommand) throws IOException {
     List<String> command = new ArrayList<>();
-    command.add("ssh");
-    addControlMasterOptions(command, host);
+    command.add(sshExecutable());
+    addSshOptions(command, host);
     command.add(host);
     command.add(remoteCommand);
     return command.toArray(new String[0]);
@@ -90,23 +94,30 @@ public final class TsFileLoadTransfer {
   private static String[] scpCommand(String localPath, String remoteSpec, String host)
       throws IOException {
     List<String> command = new ArrayList<>();
-    command.add("scp");
-    addControlMasterOptions(command, host);
+    command.add(scpExecutable());
+    addSshOptions(command, host);
     command.add(localPath);
     command.add(remoteSpec);
     return command.toArray(new String[0]);
   }
 
-  private static void addControlMasterOptions(List<String> command, String host)
-      throws IOException {
-    Files.createDirectories(new File(CONTROL_DIR).toPath());
-    String controlPath = CONTROL_DIR + "/cm-" + host.replaceAll("[^A-Za-z0-9._@-]", "_") + "-%p";
-    command.add("-o");
-    command.add("ControlMaster=auto");
-    command.add("-o");
-    command.add("ControlPath=" + controlPath);
-    command.add("-o");
-    command.add("ControlPersist=300");
+  /**
+   * Uses the native OpenSSH client on every platform. Unix clients support ControlMaster sockets;
+   * the Windows OpenSSH port does not provide a compatible Unix-domain socket implementation, so it
+   * deliberately uses a plain connection per command instead.
+   */
+  private static void addSshOptions(List<String> command, String host) throws IOException {
+    Files.createDirectories(CONTROL_DIR);
+    if (!WINDOWS) {
+      String controlPath =
+          CONTROL_DIR.resolve("cm-" + host.replaceAll("[^A-Za-z0-9._@-]", "_") + "-%p").toString();
+      command.add("-o");
+      command.add("ControlMaster=auto");
+      command.add("-o");
+      command.add("ControlPath=" + controlPath);
+      command.add("-o");
+      command.add("ControlPersist=300");
+    }
     // Password-mode SSH is non-interactive because it uses SSH_ASKPASS. Without accept-new, the
     // first connection to a DataNode blocks on the host-key confirmation prompt and every client
     // routed to that node stalls. accept-new records only an unknown key; a changed known key is
@@ -114,7 +125,15 @@ public final class TsFileLoadTransfer {
     command.add("-o");
     command.add("StrictHostKeyChecking=accept-new");
     command.add("-o");
-    command.add("UserKnownHostsFile=" + KNOWN_HOSTS_FILE);
+    command.add("UserKnownHostsFile=" + KNOWN_HOSTS_FILE.toString());
+  }
+
+  private static String sshExecutable() {
+    return WINDOWS ? "ssh.exe" : "ssh";
+  }
+
+  private static String scpExecutable() {
+    return WINDOWS ? "scp.exe" : "scp";
   }
 
   private static void run(String password, String... command)
@@ -129,12 +148,24 @@ public final class TsFileLoadTransfer {
 
   private static File createAskPass(String password) {
     try {
-      File askPass = Files.createTempFile("iot-benchmark-ssh-askpass-", ".sh").toFile();
+      File askPass =
+          Files.createTempFile("iot-benchmark-ssh-askpass-", WINDOWS ? ".cmd" : ".sh").toFile();
       askPass.deleteOnExit();
-      Files.write(
-          askPass.toPath(),
-          Arrays.asList("#!/bin/sh", "printf '%s\\n' \"$TSFILE_LOAD_REMOTE_PASSWORD\""));
-      if (!askPass.setExecutable(true, true)) {
+      if (WINDOWS) {
+        // Read the password from the environment rather than embedding it in a command line. This
+        // also avoids cmd.exe metacharacters in passwords. Windows OpenSSH invokes .cmd askpass
+        // helpers through the normal command processor.
+        Files.write(
+            askPass.toPath(),
+            Arrays.asList(
+                "@echo off",
+                "powershell.exe -NoProfile -NonInteractive -Command \"[Console]::Out.WriteLine($env:TSFILE_LOAD_REMOTE_PASSWORD)\""));
+      } else {
+        Files.write(
+            askPass.toPath(),
+            Arrays.asList("#!/bin/sh", "printf '%s\\n' \"$TSFILE_LOAD_REMOTE_PASSWORD\""));
+      }
+      if (!WINDOWS && !askPass.setExecutable(true, true)) {
         throw new IllegalStateException("Unable to make SSH password helper executable");
       }
       return askPass;
