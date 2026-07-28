@@ -200,7 +200,10 @@ public class Config {
   private String TSFILE_LOAD_LOCAL_DIR = "";
   private boolean TSFILE_LOAD_CLEANUP = true;
 
-  /** Number of field values written to each external TsFile in tsFileLoadMode. */
+  /**
+   * Number of field values written to each external TsFile in legacy point-based tsFileLoadMode
+   * splitting. Ignored when TSFILE_LOAD_ROWS_PER_FILE is positive.
+   */
   private int TSFILE_LOAD_POINTS_PER_FILE = 10000;
 
   /** Maximum number of devices included in each external TsFile in tsFileLoadMode. */

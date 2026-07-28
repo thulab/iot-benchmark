@@ -8,11 +8,12 @@ import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.BuiltTsFile;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult;
+import cn.edu.tsinghua.iot.benchmark.workload.SyntheticDataWorkLoad;
+import cn.edu.tsinghua.iot.benchmark.workload.interfaces.IDataWorkLoad;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +37,8 @@ public class TsFileLoadClient extends GenerateBaseClient {
 
   @Override
   protected void doTest() {
-    Map<String, Integer> deviceBuckets = new HashMap<>();
-    Map<String, Integer> groupDeviceCounts = new HashMap<>();
-    Map<String, FileBuffer> fileBuffers = new LinkedHashMap<>();
+    List<List<DeviceSchema>> deviceGroups = splitDeviceGroups();
+    taskProgress.setTotalLoop((long) config.getLOOP() * deviceGroups.size());
     LoadStatistics statistics = new LoadStatistics();
     AtomicReference<Exception> transferFailure = new AtomicReference<>();
     int pipelineDepth = Math.max(0, config.getTSFILE_LOAD_PIPELINE_DEPTH());
@@ -59,74 +59,10 @@ public class TsFileLoadClient extends GenerateBaseClient {
 
     taskProgress.resetLoopIndex();
     try {
-      for (; taskProgress.getLoopIndex() < config.getLOOP(); taskProgress.incrementLoopIndex()) {
-        int innerLoop = config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : config.getSENSOR_NUMBER();
-        for (int i = 0; i < clientDeviceSchemas.size(); i += config.getDEVICE_NUM_PER_WRITE()) {
-          for (int j = 0; j < innerLoop; j++) {
-            IBatch batch = dataWorkLoad.getOneBatch();
-            if (checkBatch(batch)) {
-              batch.reset();
-              while (true) {
-                if (batch.getDeviceSchema().getSensors().stream()
-                    .anyMatch(sensor -> sensor.getSensorType() == SensorType.OBJECT)) {
-                  throw new IllegalArgumentException(
-                      "tsFileLoadMode does not support OBJECT sensors.");
-                }
-                FileBuffer fileBuffer =
-                    getFileBuffer(batch, deviceBuckets, groupDeviceCounts, fileBuffers);
-                List<Record> records = batch.getRecords();
-                int recordStart = 0;
-                while (recordStart < records.size()) {
-                  int valuesPerRecord = records.get(recordStart).getRecordDataValue().size();
-                  if (valuesPerRecord <= 0) {
-                    throw new IllegalArgumentException(
-                        "A TsFile record must contain at least one value.");
-                  }
-                  if (!fileBuffer.isEmpty() && wouldExceedFileLimit(fileBuffer, valuesPerRecord)) {
-                    flush(fileBuffer, statistics, transferQueue, transferFailure);
-                  }
-
-                  int recordEnd = recordStart;
-                  while (recordEnd < records.size()) {
-                    int recordValues = records.get(recordEnd).getRecordDataValue().size();
-                    if (recordValues <= 0) {
-                      throw new IllegalArgumentException(
-                          "A TsFile record must contain at least one value.");
-                    }
-                    if (wouldExceedFileLimit(fileBuffer, recordValues)) {
-                      break;
-                    }
-                    fileBuffer.points += recordValues;
-                    fileBuffer.rows++;
-                    recordEnd++;
-                  }
-                  // A single row can be wider than the configured file point count. Rows cannot
-                  // be split without changing the original Tablet data, so keep that row intact.
-                  if (recordEnd == recordStart) {
-                    fileBuffer.points += valuesPerRecord;
-                    fileBuffer.rows++;
-                    recordEnd++;
-                  }
-                  fileBuffer.append(
-                      batch.getDeviceSchema(), records.subList(recordStart, recordEnd));
-                  recordStart = recordEnd;
-                  if (isFileLimitReached(fileBuffer)) {
-                    flush(fileBuffer, statistics, transferQueue, transferFailure);
-                  }
-                }
-                if (!batch.hasNext()) {
-                  break;
-                }
-                batch.next();
-              }
-              batch.reset();
-            }
-          }
+      for (List<DeviceSchema> deviceGroup : deviceGroups) {
+        if (!generateDeviceGroup(deviceGroup, statistics, transferQueue, transferFailure)) {
+          break;
         }
-        if (isStop.get()) break;
-      }
-      for (FileBuffer fileBuffer : fileBuffers.values()) {
-        flush(fileBuffer, statistics, transferQueue, transferFailure);
       }
       if (transferQueue != null) {
         transferQueue.put(POISON);
@@ -164,6 +100,95 @@ public class TsFileLoadClient extends GenerateBaseClient {
         statistics.buildNanos / 1_000_000.0,
         statistics.transferNanos / 1_000_000.0,
         statistics.loadNanos / 1_000_000.0);
+  }
+
+  /**
+   * Generates and flushes one bounded device group before advancing to the next group. This keeps
+   * only one external TsFile's rows in memory instead of accumulating one buffer per device group
+   * for the entire workload.
+   */
+  private boolean generateDeviceGroup(
+      List<DeviceSchema> deviceGroup,
+      LoadStatistics statistics,
+      BlockingQueue<BuiltTsFile> transferQueue,
+      AtomicReference<Exception> transferFailure)
+      throws Exception {
+    IDataWorkLoad groupWorkload = new SyntheticDataWorkLoad(deviceGroup);
+    FileBuffer fileBuffer = new FileBuffer();
+    int innerLoop = config.isIS_SENSOR_TS_ALIGNMENT() ? 1 : config.getSENSOR_NUMBER();
+    for (int loop = 0; loop < config.getLOOP(); loop++) {
+      for (int i = 0; i < deviceGroup.size(); i += config.getDEVICE_NUM_PER_WRITE()) {
+        for (int j = 0; j < innerLoop; j++) {
+          IBatch batch = groupWorkload.getOneBatch();
+          if (checkBatch(batch)) {
+            appendBatch(batch, fileBuffer, statistics, transferQueue, transferFailure);
+          }
+        }
+      }
+      taskProgress.incrementLoopIndex();
+      if (isStop.get()) {
+        return false;
+      }
+    }
+    flush(fileBuffer, statistics, transferQueue, transferFailure);
+    return true;
+  }
+
+  private void appendBatch(
+      IBatch batch,
+      FileBuffer fileBuffer,
+      LoadStatistics statistics,
+      BlockingQueue<BuiltTsFile> transferQueue,
+      AtomicReference<Exception> transferFailure)
+      throws Exception {
+    batch.reset();
+    while (true) {
+      if (batch.getDeviceSchema().getSensors().stream()
+          .anyMatch(sensor -> sensor.getSensorType() == SensorType.OBJECT)) {
+        throw new IllegalArgumentException("tsFileLoadMode does not support OBJECT sensors.");
+      }
+      List<Record> records = batch.getRecords();
+      int recordStart = 0;
+      while (recordStart < records.size()) {
+        int valuesPerRecord = records.get(recordStart).getRecordDataValue().size();
+        if (valuesPerRecord <= 0) {
+          throw new IllegalArgumentException("A TsFile record must contain at least one value.");
+        }
+        if (!fileBuffer.isEmpty() && wouldExceedFileLimit(fileBuffer, valuesPerRecord)) {
+          flush(fileBuffer, statistics, transferQueue, transferFailure);
+        }
+
+        int recordEnd = recordStart;
+        while (recordEnd < records.size()) {
+          int recordValues = records.get(recordEnd).getRecordDataValue().size();
+          if (recordValues <= 0) {
+            throw new IllegalArgumentException("A TsFile record must contain at least one value.");
+          }
+          if (wouldExceedFileLimit(fileBuffer, recordValues)) {
+            break;
+          }
+          fileBuffer.points += recordValues;
+          fileBuffer.rows++;
+          recordEnd++;
+        }
+        // Rows cannot be split without changing the original Tablet data.
+        if (recordEnd == recordStart) {
+          fileBuffer.points += valuesPerRecord;
+          fileBuffer.rows++;
+          recordEnd++;
+        }
+        fileBuffer.append(batch.getDeviceSchema(), records.subList(recordStart, recordEnd));
+        recordStart = recordEnd;
+        if (isFileLimitReached(fileBuffer)) {
+          flush(fileBuffer, statistics, transferQueue, transferFailure);
+        }
+      }
+      if (!batch.hasNext()) {
+        break;
+      }
+      batch.next();
+    }
+    batch.reset();
   }
 
   private void drainTransfers(
@@ -231,24 +256,29 @@ public class TsFileLoadClient extends GenerateBaseClient {
     return dbWrapper.buildTsFile(batches, file);
   }
 
-  private FileBuffer getFileBuffer(
-      IBatch batch,
-      Map<String, Integer> deviceBuckets,
-      Map<String, Integer> groupDeviceCounts,
-      Map<String, FileBuffer> fileBuffers) {
-    DeviceSchema schema = batch.getDeviceSchema();
-    // A table-model LOAD is executed after USE <database>, so one external TsFile must never mix
-    // groups (which are distinct databases). Tree model is also safe with this narrower grouping.
-    String deviceKey = schema.getGroup() + "." + schema.getDevice();
-    Integer bucket = deviceBuckets.get(deviceKey);
-    if (bucket == null) {
-      int groupDeviceCount = groupDeviceCounts.getOrDefault(schema.getGroup(), 0);
-      bucket = groupDeviceCount / config.getTSFILE_LOAD_MAX_DEVICES_PER_FILE();
-      deviceBuckets.put(deviceKey, bucket);
-      groupDeviceCounts.put(schema.getGroup(), groupDeviceCount + 1);
+  private List<List<DeviceSchema>> splitDeviceGroups() {
+    if (config.getDEVICE_NUM_PER_WRITE() != 1) {
+      throw new IllegalArgumentException(
+          "tsFileLoadMode requires DEVICE_NUM_PER_WRITE=1 for bounded device-group generation.");
     }
-    String fileKey = schema.getGroup() + "." + bucket;
-    return fileBuffers.computeIfAbsent(fileKey, ignored -> new FileBuffer());
+    Map<String, List<DeviceSchema>> schemasByGroup = new LinkedHashMap<>();
+    for (DeviceSchema schema : clientDeviceSchemas) {
+      schemasByGroup.computeIfAbsent(schema.getGroup(), ignored -> new ArrayList<>()).add(schema);
+    }
+    List<List<DeviceSchema>> deviceGroups = new ArrayList<>();
+    for (List<DeviceSchema> schemas : schemasByGroup.values()) {
+      for (int offset = 0;
+          offset < schemas.size();
+          offset += config.getTSFILE_LOAD_MAX_DEVICES_PER_FILE()) {
+        deviceGroups.add(
+            new ArrayList<>(
+                schemas.subList(
+                    offset,
+                    Math.min(
+                        offset + config.getTSFILE_LOAD_MAX_DEVICES_PER_FILE(), schemas.size()))));
+      }
+    }
+    return deviceGroups;
   }
 
   private boolean wouldExceedFileLimit(FileBuffer fileBuffer, int valuesPerRecord) {

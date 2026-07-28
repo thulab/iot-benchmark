@@ -248,9 +248,6 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "TSFILE_LOAD_POINTS_PER_FILE", config.getTSFILE_LOAD_POINTS_PER_FILE() + "")));
-        if (config.getTSFILE_LOAD_POINTS_PER_FILE() <= 0) {
-          throw new IllegalArgumentException("TSFILE_LOAD_POINTS_PER_FILE must be greater than 0");
-        }
         config.setTSFILE_LOAD_MAX_DEVICES_PER_FILE(
             Integer.parseInt(
                 properties.getProperty(
@@ -266,6 +263,11 @@ public class ConfigDescriptor {
                     "TSFILE_LOAD_ROWS_PER_FILE", config.getTSFILE_LOAD_ROWS_PER_FILE() + "")));
         if (config.getTSFILE_LOAD_ROWS_PER_FILE() < 0) {
           throw new IllegalArgumentException("TSFILE_LOAD_ROWS_PER_FILE must not be negative");
+        }
+        if (config.getTSFILE_LOAD_ROWS_PER_FILE() == 0
+            && config.getTSFILE_LOAD_POINTS_PER_FILE() <= 0) {
+          throw new IllegalArgumentException(
+              "Set TSFILE_LOAD_ROWS_PER_FILE, or set TSFILE_LOAD_POINTS_PER_FILE for legacy point-based splitting");
         }
         config.setTSFILE_LOAD_PIPELINE_DEPTH(
             Integer.parseInt(
