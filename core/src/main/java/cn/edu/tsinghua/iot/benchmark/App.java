@@ -25,6 +25,7 @@ import cn.edu.tsinghua.iot.benchmark.measurement.persistence.csv.CSVShutdownHook
 import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
 import cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode;
 import cn.edu.tsinghua.iot.benchmark.mode.TestWithDefaultPathMode;
+import cn.edu.tsinghua.iot.benchmark.mode.TsFileLoadMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationQueryMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationWriteMode;
 import org.slf4j.Logger;
@@ -63,6 +64,9 @@ public class App {
         break;
       case VERIFICATION_QUERY:
         baseMode = new VerificationQueryMode();
+        break;
+      case TSFILE_LOAD:
+        baseMode = new TsFileLoadMode();
         break;
       default:
         throw new SQLException("Unsupported mode:" + config.getBENCHMARK_WORK_MODE());

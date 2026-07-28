@@ -231,6 +231,49 @@ public class ConfigDescriptor {
         config.setENCODING_DATE(properties.getProperty("ENCODING_DATE", config.getENCODING_DATE()));
 
         config.setFILE_PATH(properties.getProperty("FILE_PATH", config.getFILE_PATH()));
+        config.setTSFILE_LOAD_REMOTE_HOST(
+            properties.getProperty("TSFILE_LOAD_REMOTE_HOST", config.getTSFILE_LOAD_REMOTE_HOST()));
+        config.setTSFILE_LOAD_REMOTE_PASSWORD(
+            properties.getProperty(
+                "TSFILE_LOAD_REMOTE_PASSWORD", config.getTSFILE_LOAD_REMOTE_PASSWORD()));
+        config.setTSFILE_LOAD_REMOTE_DIR(
+            properties.getProperty("TSFILE_LOAD_REMOTE_DIR", config.getTSFILE_LOAD_REMOTE_DIR()));
+        config.setTSFILE_LOAD_LOCAL_DIR(
+            properties.getProperty("TSFILE_LOAD_LOCAL_DIR", config.getTSFILE_LOAD_LOCAL_DIR()));
+        config.setTSFILE_LOAD_CLEANUP(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "TSFILE_LOAD_CLEANUP", config.isTSFILE_LOAD_CLEANUP() + "")));
+        config.setTSFILE_LOAD_POINTS_PER_FILE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TSFILE_LOAD_POINTS_PER_FILE", config.getTSFILE_LOAD_POINTS_PER_FILE() + "")));
+        if (config.getTSFILE_LOAD_POINTS_PER_FILE() <= 0) {
+          throw new IllegalArgumentException("TSFILE_LOAD_POINTS_PER_FILE must be greater than 0");
+        }
+        config.setTSFILE_LOAD_MAX_DEVICES_PER_FILE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TSFILE_LOAD_MAX_DEVICES_PER_FILE",
+                    config.getTSFILE_LOAD_MAX_DEVICES_PER_FILE() + "")));
+        if (config.getTSFILE_LOAD_MAX_DEVICES_PER_FILE() <= 0) {
+          throw new IllegalArgumentException(
+              "TSFILE_LOAD_MAX_DEVICES_PER_FILE must be greater than 0");
+        }
+        config.setTSFILE_LOAD_ROWS_PER_FILE(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TSFILE_LOAD_ROWS_PER_FILE", config.getTSFILE_LOAD_ROWS_PER_FILE() + "")));
+        if (config.getTSFILE_LOAD_ROWS_PER_FILE() < 0) {
+          throw new IllegalArgumentException("TSFILE_LOAD_ROWS_PER_FILE must not be negative");
+        }
+        config.setTSFILE_LOAD_PIPELINE_DEPTH(
+            Integer.parseInt(
+                properties.getProperty(
+                    "TSFILE_LOAD_PIPELINE_DEPTH", config.getTSFILE_LOAD_PIPELINE_DEPTH() + "")));
+        if (config.getTSFILE_LOAD_PIPELINE_DEPTH() < 0) {
+          throw new IllegalArgumentException("TSFILE_LOAD_PIPELINE_DEPTH must not be negative");
+        }
         config.setBIG_BATCH_SIZE(
             Integer.parseInt(
                 properties.getProperty("BIG_BATCH_SIZE", config.getBIG_BATCH_SIZE() + "")));
@@ -704,6 +747,7 @@ public class ConfigDescriptor {
         break;
     }
     if ((config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getBENCHMARK_WORK_MODE() != BenchmarkMode.TSFILE_LOAD
         && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
       LOGGER.error(
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");

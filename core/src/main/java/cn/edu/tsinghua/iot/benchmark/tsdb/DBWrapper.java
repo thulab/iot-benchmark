@@ -46,6 +46,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +85,28 @@ public class DBWrapper implements IDatabase {
 
   public Measurement getMeasurement() {
     return measurement;
+  }
+
+  public TsFileLoadResult buildAndLoadTsFile(List<IBatch> batches, File file, int clientId)
+      throws Exception {
+    if (databases.size() != 1) {
+      throw new IllegalArgumentException("tsFileLoadMode does not support double write");
+    }
+    return databases.get(0).buildAndLoadTsFile(batches, file, clientId);
+  }
+
+  public BuiltTsFile buildTsFile(List<IBatch> batches, File file) throws Exception {
+    if (databases.size() != 1) {
+      throw new IllegalArgumentException("tsFileLoadMode does not support double write");
+    }
+    return databases.get(0).buildTsFile(batches, file);
+  }
+
+  public TsFileLoadResult transferAndLoadTsFile(BuiltTsFile built, int clientId) throws Exception {
+    if (databases.size() != 1) {
+      throw new IllegalArgumentException("tsFileLoadMode does not support double write");
+    }
+    return databases.get(0).transferAndLoadTsFile(built, clientId);
   }
 
   @Override

@@ -38,6 +38,7 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.SetOpQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.VerificationQuery;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -75,6 +76,28 @@ public interface IDatabase {
    * @return status which contains successfully executed flag, error message and so on.
    */
   Status insertOneBatch(IBatch batch) throws DBConnectException;
+
+  /** Build a portable TsFile from benchmark batches and load it into the target database. */
+  default TsFileLoadResult buildAndLoadTsFile(List<IBatch> batches, File file) throws Exception {
+    throw new UnsupportedOperationException("TsFile LOAD is not supported for this database");
+  }
+
+  /** Build and load one TsFile using the connection assigned to a benchmark data client. */
+  default TsFileLoadResult buildAndLoadTsFile(List<IBatch> batches, File file, int clientId)
+      throws Exception {
+    BuiltTsFile built = buildTsFile(batches, file);
+    return transferAndLoadTsFile(built, clientId);
+  }
+
+  /** Construct one local TsFile without staging or LOAD. */
+  default BuiltTsFile buildTsFile(List<IBatch> batches, File file) throws Exception {
+    throw new UnsupportedOperationException("TsFile LOAD is not supported for this database");
+  }
+
+  /** Stage and LOAD a previously built TsFile using the client's assigned DataNode. */
+  default TsFileLoadResult transferAndLoadTsFile(BuiltTsFile built, int clientId) throws Exception {
+    throw new UnsupportedOperationException("TsFile LOAD is not supported for this database");
+  }
 
   default Status insertOneBatchWithCheck(IBatch batch) throws Exception {
     batch.reset();

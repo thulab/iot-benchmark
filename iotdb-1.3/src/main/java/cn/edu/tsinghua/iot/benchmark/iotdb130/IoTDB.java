@@ -59,6 +59,7 @@ import org.apache.tsfile.file.metadata.enums.TSEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -141,14 +142,18 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    if (ioTDBConnection != null) {
-      ioTDBConnection.close();
-    }
-    if (service != null) {
-      service.shutdownNow();
-    }
-    if (task != null) {
-      task.cancel(true);
+    try {
+      if (ioTDBConnection != null) {
+        ioTDBConnection.close();
+      }
+      if (service != null) {
+        service.shutdownNow();
+      }
+      if (task != null) {
+        task.cancel(true);
+      }
+    } finally {
+      TsFileLoadWriter.closeLoadSession();
     }
   }
 
@@ -381,6 +386,30 @@ public class IoTDB implements IDatabase {
     } catch (Exception e) {
       return new Status(false, 0, e, e.toString());
     }
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult buildAndLoadTsFile(
+      List<IBatch> batches, File file) throws Exception {
+    return buildAndLoadTsFile(batches, file, -1);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult buildAndLoadTsFile(
+      List<IBatch> batches, File file, int clientId) throws Exception {
+    return TsFileLoadWriter.buildAndLoad(dbConfig, ROOT_SERIES_NAME, batches, file, clientId);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.BuiltTsFile buildTsFile(List<IBatch> batches, File file)
+      throws Exception {
+    return TsFileLoadWriter.build(ROOT_SERIES_NAME, batches, file);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult transferAndLoadTsFile(
+      cn.edu.tsinghua.iot.benchmark.tsdb.BuiltTsFile built, int clientId) throws Exception {
+    return TsFileLoadWriter.transferAndLoad(dbConfig, built, clientId);
   }
 
   /**

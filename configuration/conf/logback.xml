@@ -94,6 +94,10 @@
 		</filter>
 	</appender>
 
+	<!-- External TSFile construction can close thousands of files per LOAD run. Keep Benchmark
+	     progress and timing at INFO while suppressing this per-file dependency-library message. -->
+	<logger name="org.apache.tsfile.write.TsFileWriter" level="WARN" />
+
 
 	<root level="INFO">
 		<appender-ref ref="FILEDEBUG" />

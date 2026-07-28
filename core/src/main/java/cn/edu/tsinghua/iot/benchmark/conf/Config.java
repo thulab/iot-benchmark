@@ -194,6 +194,27 @@ public class Config {
   /** The path of file */
   private String FILE_PATH = "data/test";
 
+  private String TSFILE_LOAD_REMOTE_HOST = "";
+  private String TSFILE_LOAD_REMOTE_PASSWORD = "";
+  private String TSFILE_LOAD_REMOTE_DIR = "";
+  private String TSFILE_LOAD_LOCAL_DIR = "";
+  private boolean TSFILE_LOAD_CLEANUP = true;
+
+  /** Number of field values written to each external TsFile in tsFileLoadMode. */
+  private int TSFILE_LOAD_POINTS_PER_FILE = 10000;
+
+  /** Maximum number of devices included in each external TsFile in tsFileLoadMode. */
+  private int TSFILE_LOAD_MAX_DEVICES_PER_FILE = 100;
+
+  /** Maximum number of timestamp rows in each external TsFile; zero means use point count only. */
+  private int TSFILE_LOAD_ROWS_PER_FILE = 0;
+
+  /**
+   * Number of built TsFiles that may wait for transfer/LOAD while the client builds the next file.
+   * 0 disables pipelining; 1 is double-buffering (recommended).
+   */
+  private int TSFILE_LOAD_PIPELINE_DEPTH = 1;
+
   /** The size of Big Batch */
   private int BIG_BATCH_SIZE = 100;
 
@@ -988,6 +1009,78 @@ public class Config {
 
   public void setFILE_PATH(String FILE_PATH) {
     this.FILE_PATH = FILE_PATH;
+  }
+
+  public String getTSFILE_LOAD_REMOTE_HOST() {
+    return TSFILE_LOAD_REMOTE_HOST;
+  }
+
+  public void setTSFILE_LOAD_REMOTE_HOST(String value) {
+    TSFILE_LOAD_REMOTE_HOST = value;
+  }
+
+  public String getTSFILE_LOAD_REMOTE_PASSWORD() {
+    return TSFILE_LOAD_REMOTE_PASSWORD;
+  }
+
+  public void setTSFILE_LOAD_REMOTE_PASSWORD(String value) {
+    TSFILE_LOAD_REMOTE_PASSWORD = value;
+  }
+
+  public String getTSFILE_LOAD_REMOTE_DIR() {
+    return TSFILE_LOAD_REMOTE_DIR;
+  }
+
+  public void setTSFILE_LOAD_REMOTE_DIR(String value) {
+    TSFILE_LOAD_REMOTE_DIR = value;
+  }
+
+  public String getTSFILE_LOAD_LOCAL_DIR() {
+    return TSFILE_LOAD_LOCAL_DIR;
+  }
+
+  public void setTSFILE_LOAD_LOCAL_DIR(String value) {
+    TSFILE_LOAD_LOCAL_DIR = value;
+  }
+
+  public boolean isTSFILE_LOAD_CLEANUP() {
+    return TSFILE_LOAD_CLEANUP;
+  }
+
+  public int getTSFILE_LOAD_POINTS_PER_FILE() {
+    return TSFILE_LOAD_POINTS_PER_FILE;
+  }
+
+  public void setTSFILE_LOAD_POINTS_PER_FILE(int TSFILE_LOAD_POINTS_PER_FILE) {
+    this.TSFILE_LOAD_POINTS_PER_FILE = TSFILE_LOAD_POINTS_PER_FILE;
+  }
+
+  public int getTSFILE_LOAD_MAX_DEVICES_PER_FILE() {
+    return TSFILE_LOAD_MAX_DEVICES_PER_FILE;
+  }
+
+  public void setTSFILE_LOAD_MAX_DEVICES_PER_FILE(int TSFILE_LOAD_MAX_DEVICES_PER_FILE) {
+    this.TSFILE_LOAD_MAX_DEVICES_PER_FILE = TSFILE_LOAD_MAX_DEVICES_PER_FILE;
+  }
+
+  public int getTSFILE_LOAD_ROWS_PER_FILE() {
+    return TSFILE_LOAD_ROWS_PER_FILE;
+  }
+
+  public void setTSFILE_LOAD_ROWS_PER_FILE(int TSFILE_LOAD_ROWS_PER_FILE) {
+    this.TSFILE_LOAD_ROWS_PER_FILE = TSFILE_LOAD_ROWS_PER_FILE;
+  }
+
+  public int getTSFILE_LOAD_PIPELINE_DEPTH() {
+    return TSFILE_LOAD_PIPELINE_DEPTH;
+  }
+
+  public void setTSFILE_LOAD_PIPELINE_DEPTH(int TSFILE_LOAD_PIPELINE_DEPTH) {
+    this.TSFILE_LOAD_PIPELINE_DEPTH = TSFILE_LOAD_PIPELINE_DEPTH;
+  }
+
+  public void setTSFILE_LOAD_CLEANUP(boolean value) {
+    TSFILE_LOAD_CLEANUP = value;
   }
 
   public int getDEVICE_NUMBER() {

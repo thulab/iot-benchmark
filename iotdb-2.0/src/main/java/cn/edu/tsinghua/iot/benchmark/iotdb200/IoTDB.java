@@ -72,6 +72,7 @@ import org.apache.tsfile.write.schema.IMeasurementSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,7 +134,11 @@ public class IoTDB implements IDatabase {
 
   @Override
   public void close() throws TsdbException {
-    dmlStrategy.close();
+    try {
+      dmlStrategy.close();
+    } finally {
+      TsFileLoadWriter.closeLoadSession();
+    }
   }
 
   /**
@@ -214,6 +219,30 @@ public class IoTDB implements IDatabase {
   public Status insertOneBatch(IBatch batch) throws DBConnectException {
     String deviceId = IoTDBUtils.getDevicePath(batch.getDeviceSchema(), ROOT_SERIES_NAME);
     return dmlStrategy.insertOneBatch(batch, deviceId);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult buildAndLoadTsFile(
+      List<IBatch> batches, File file) throws Exception {
+    return buildAndLoadTsFile(batches, file, -1);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult buildAndLoadTsFile(
+      List<IBatch> batches, File file, int clientId) throws Exception {
+    return TsFileLoadWriter.buildAndLoad(dbConfig, ROOT_SERIES_NAME, batches, file, clientId);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.BuiltTsFile buildTsFile(List<IBatch> batches, File file)
+      throws Exception {
+    return TsFileLoadWriter.build(dbConfig, ROOT_SERIES_NAME, batches, file);
+  }
+
+  @Override
+  public cn.edu.tsinghua.iot.benchmark.tsdb.TsFileLoadResult transferAndLoadTsFile(
+      cn.edu.tsinghua.iot.benchmark.tsdb.BuiltTsFile built, int clientId) throws Exception {
+    return TsFileLoadWriter.transferAndLoad(dbConfig, built, clientId);
   }
 
   /**
