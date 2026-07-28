@@ -5,7 +5,7 @@
 Before running the benchmark, prepare:
 
 1. A running TDengine server
-2. Java 8
+2. Java 17
 3. Maven 3.6+
 4. A benchmark machine that can access the TDengine server
 

@@ -154,9 +154,23 @@ public class GenerateDataMixClient extends GenerateBaseClient {
           if (isStop.get()) {
             return true;
           }
+          long batchStart = 0;
+          if (config.getINTERVAL_BETWEEN_WRITE_BATCH() > 0) {
+            batchStart = System.currentTimeMillis();
+          }
           IBatch batch = dataWorkLoad.getOneBatch();
           if (checkBatch(batch)) {
             dbWrapper.insertOneBatchWithCheck(batch);
+          }
+          if (config.getINTERVAL_BETWEEN_WRITE_BATCH() > 0) {
+            long elapsed = System.currentTimeMillis() - batchStart;
+            if (elapsed < config.getINTERVAL_BETWEEN_WRITE_BATCH()) {
+              try {
+                Thread.sleep(config.getINTERVAL_BETWEEN_WRITE_BATCH() - elapsed);
+              } catch (InterruptedException e) {
+                LOGGER.error("Wait between write batch failed because ", e);
+              }
+            }
           }
         }
       }

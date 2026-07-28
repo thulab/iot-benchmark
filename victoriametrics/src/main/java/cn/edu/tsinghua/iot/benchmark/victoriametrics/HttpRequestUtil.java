@@ -1,5 +1,8 @@
 package cn.edu.tsinghua.iot.benchmark.victoriametrics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,6 +11,8 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class HttpRequestUtil {
+  private static final Logger LOGGER = LoggerFactory.getLogger(HttpRequestUtil.class);
+
   /**
    * Send Get Request to target URL
    *
@@ -36,7 +41,7 @@ public class HttpRequestUtil {
         result.append(line);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to send GET request to {}", url, e);
       throw e;
     } finally {
       try {
@@ -44,7 +49,7 @@ public class HttpRequestUtil {
           in.close();
         }
       } catch (Exception e2) {
-        e2.printStackTrace();
+        LOGGER.error("Failed to close connection after GET request", e2);
       }
     }
     return result.toString();

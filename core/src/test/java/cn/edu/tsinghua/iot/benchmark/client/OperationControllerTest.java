@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.client;
 
+import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.client.operation.OperationController;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
@@ -30,30 +31,54 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class OperationControllerTest {
+public class OperationControllerTest extends BenchmarkTestBase {
 
   private static Config config = ConfigDescriptor.getInstance().getConfig();
 
+  private String originalProportion;
+
   @Before
-  public void before() {}
+  public void before() {
+    originalProportion = config.getOPERATION_PROPORTION();
+  }
 
   @After
-  public void after() {}
+  public void after() {
+    // restore the shared config singleton so this test does not pollute others
+    config.setOPERATION_PROPORTION(originalProportion);
+  }
 
   @Test
   public void testGetNextOperationType() {
-    config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0:0:0");
-    OperationController operationController = new OperationController(0);
-
+    // length is derived from the operation set so adding new operations does not break this test
+    int opCount = Operation.getNormalOperation().size();
     int loop = 10000;
+
+    config.setOPERATION_PROPORTION(proportionWithSingleOne(opCount, 0));
+    OperationController operationController = new OperationController(0);
     for (int i = 0; i < loop; i++) {
       Assert.assertEquals(Operation.INGESTION, operationController.getNextOperationType());
     }
 
-    config.setOPERATION_PROPORTION("0:1:0:0:0:0:0:0:0:0:0");
+    config.setOPERATION_PROPORTION(proportionWithSingleOne(opCount, 1));
     operationController = new OperationController(0);
     for (int i = 0; i < loop; i++) {
       assertEquals(Operation.PRECISE_QUERY, operationController.getNextOperationType());
     }
+  }
+
+  /**
+   * Build an OPERATION_PROPORTION string of {@code length} colon-separated fields, with "1" at
+   * {@code oneIndex} and "0" everywhere else.
+   */
+  private static String proportionWithSingleOne(int length, int oneIndex) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < length; i++) {
+      if (i > 0) {
+        sb.append(":");
+      }
+      sb.append(i == oneIndex ? "1" : "0");
+    }
+    return sb.toString();
   }
 }

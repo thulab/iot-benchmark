@@ -19,6 +19,8 @@
         <module>tdengine</module>
         <module>tdengine-3.0</module>
         <module>questdb</module>
+        <module>dolphindb-3.0</module>
+        <module>dolphindb-2.0</module>
         <module>timescaledb</module>
         <module>timescaledb-cluster</module>
         <module>victoriametrics</module>
@@ -32,9 +34,9 @@
     </modules>
 
     <properties>
-        <compile.version>1.8</compile.version>
-        <targetJavaVersion>1.8</targetJavaVersion>
-        <maven.compiler.source>1.8</maven.compiler.source>
+        <compile.version>17</compile.version>
+        <targetJavaVersion>17</targetJavaVersion>
+        <maven.compiler.source>${compile.version}</maven.compiler.source>
         <maven.compiler.target>${targetJavaVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.13.1</junit.version>
@@ -45,7 +47,7 @@
         <spotless.skip>false</spotless.skip>
         <spotless.version>2.43.0</spotless.version>
         <google.java.format.version>1.22.0</google.java.format.version>
-        <org.slf4j.version>1.7.30</org.slf4j.version>
+        <org.slf4j.version>1.7.36</org.slf4j.version>
     </properties>
 
     <dependencies>
@@ -55,12 +57,6 @@
             <version>${junit.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-
     </dependencies>
     <build>
         <pluginManagement>
@@ -68,10 +64,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.3</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>${compile.version}</source>
-                        <target>${compile.version}</target>
+                        <target>${targetJavaVersion}</target>
                         <encoding>UTF-8</encoding>
                     </configuration>
                 </plugin>

@@ -17,25 +17,40 @@
  * under the License.
  */
 
-package cn.edu.tsinghua.iot.benchmark.workload.schema;
+package cn.edu.tsinghua.iot.benchmark.utils;
 
-import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iot.benchmark.conf.Constants;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Test;
 
-public class DeviceSchemaTest {
+import java.io.File;
 
-  private String strategy = null;
+import static org.junit.Assert.assertEquals;
 
-  @Before
-  public void setUp() {
-    strategy = ConfigDescriptor.getInstance().getConfig().getSG_STRATEGY();
-    ConfigDescriptor.getInstance().getConfig().setSG_STRATEGY(Constants.MOD_SG_ASSIGN_MODE);
+public class FileUtilsTest {
+
+  private static final String SEP = File.separator;
+
+  @Test
+  public void testUnionSingleSegment() {
+    assertEquals("a", FileUtils.union("a"));
   }
 
-  @After
-  public void tearDown() {
-    ConfigDescriptor.getInstance().getConfig().setSG_STRATEGY(strategy);
+  @Test
+  public void testUnionTwoSegments() {
+    assertEquals("a" + SEP + "b", FileUtils.union("a", "b"));
+  }
+
+  @Test
+  public void testUnionMultipleSegments() {
+    assertEquals("a" + SEP + "b" + SEP + "c" + SEP + "d", FileUtils.union("a", "b", "c", "d"));
+  }
+
+  @Test
+  public void testUnionEmptyArray() {
+    assertEquals("", FileUtils.union());
+  }
+
+  @Test
+  public void testUnionWithEmptySegment() {
+    assertEquals("a" + SEP + SEP + "b", FileUtils.union("a", "", "b"));
   }
 }

@@ -101,6 +101,9 @@ public class Config {
   /** Authorization header for REST interface */
   private String REST_AUTHORIZATION = "Basic cm9vdDpyb290";
 
+  /** Port for REST interface */
+  private int REST_PORT = 18080;
+
   // 初始化：双写模式
   /** whether to operate another database */
   private boolean IS_DOUBLE_WRITE = false;
@@ -308,6 +311,12 @@ public class Config {
   /** The number of storage group, must less than or equal to number of devices */
   private int GROUP_NUMBER = 1;
 
+  /** The name of time column in table model */
+  private String TABLE_TIME_COLUMN = "time";
+
+  /** Whether to create and use writable views in table model */
+  private boolean IoTDB_TABLE_WRITABLE_VIEW = false;
+
   /** The number of table, In the tree model, it is equal to group_number */
   private int IoTDB_TABLE_NUMBER = 1;
 
@@ -334,6 +343,9 @@ public class Config {
 
   private String TRUST_STORE_PATH = "";
   private String TRUST_STORE_PWD = "";
+  private String KEY_STORE_PATH = "";
+  private String KEY_STORE_PWD = "";
+  private String SSL_PROTOCOL = "TLS";
 
   /** the ratio of use debug */
   private double IOTDB_USE_DEBUG_RATIO = 0.01;
@@ -364,6 +376,10 @@ public class Config {
   /** the shard number of cnosdb, which affects the parallelism of write and query operations */
   private int CNOSDB_SHARD_NUMBER = 32;
 
+  // 被测系统是DolphinDB时的参数
+  /** the bucket count of the second-level HASH(deviceId) partition */
+  private int DOLPHINDB_DEVICE_HASH_BUCKETS = 8;
+
   // Operation 相关参数
   /**
    * The operation execution interval if operation time > OP_MIN_INTERVAL, then execute next
@@ -373,6 +389,9 @@ public class Config {
 
   /** Whether to randomly select the minimum execution interval of the operation */
   private boolean OP_MIN_INTERVAL_RANDOM = false;
+
+  /** The interval between each write batch in ms, 0 means no interval */
+  private long INTERVAL_BETWEEN_WRITE_BATCH = 0;
 
   /** The max time for writing in ms */
   private int WRITE_OPERATION_TIMEOUT_MS = 120000;
@@ -452,7 +471,7 @@ public class Config {
    */
   private String OPERATION_PROPORTION = "1:0:0:0:0:0:0:0:0:0:0:0:0";
 
-  private boolean ENABLE_FIXED_QUERY = true;
+  private boolean ENABLE_FIXED_QUERY = false;
 
   private final int OPERATION_PROPORTION_LEN = 13;
 
@@ -583,7 +602,7 @@ public class Config {
       Unmarshaller unmarshaller = context.createUnmarshaller();
       xml = (FunctionXml) unmarshaller.unmarshal(input);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to init inner function from function.xml", e);
       System.exit(0);
     }
     List<FunctionParam> xmlFuctions = xml.getFunctions();
@@ -723,6 +742,14 @@ public class Config {
 
   public void setREST_AUTHORIZATION(String REST_AUTHORIZATION) {
     this.REST_AUTHORIZATION = REST_AUTHORIZATION;
+  }
+
+  public int getREST_PORT() {
+    return REST_PORT;
+  }
+
+  public void setREST_PORT(int REST_PORT) {
+    this.REST_PORT = REST_PORT;
   }
 
   public long IncrementAndGetCURRENT_RECORD_LINE() {
@@ -1294,6 +1321,22 @@ public class Config {
     this.GROUP_NUMBER = GROUP_NUMBER;
   }
 
+  public String getTABLE_TIME_COLUMN() {
+    return TABLE_TIME_COLUMN;
+  }
+
+  public void setTABLE_TIME_COLUMN(String TABLE_TIME_COLUMN) {
+    this.TABLE_TIME_COLUMN = TABLE_TIME_COLUMN;
+  }
+
+  public boolean isIoTDB_TABLE_WRITABLE_VIEW() {
+    return IoTDB_TABLE_WRITABLE_VIEW;
+  }
+
+  public void setIoTDB_TABLE_WRITABLE_VIEW(boolean ioTDB_TABLE_WRITABLE_VIEW) {
+    IoTDB_TABLE_WRITABLE_VIEW = ioTDB_TABLE_WRITABLE_VIEW;
+  }
+
   public int getIoTDB_TABLE_NUMBER() {
     return IoTDB_TABLE_NUMBER;
   }
@@ -1382,6 +1425,30 @@ public class Config {
     return TRUST_STORE_PWD;
   }
 
+  public void setKEY_STORE_PATH(String KEY_STORE_PATH) {
+    this.KEY_STORE_PATH = KEY_STORE_PATH;
+  }
+
+  public String getKEY_STORE_PATH() {
+    return KEY_STORE_PATH;
+  }
+
+  public void setKEY_STORE_PWD(String KEY_STORE_PWD) {
+    this.KEY_STORE_PWD = KEY_STORE_PWD;
+  }
+
+  public String getKEY_STORE_PWD() {
+    return KEY_STORE_PWD;
+  }
+
+  public void setSSL_PROTOCOL(String SSL_PROTOCOL) {
+    this.SSL_PROTOCOL = SSL_PROTOCOL;
+  }
+
+  public String getSSL_PROTOCOL() {
+    return SSL_PROTOCOL;
+  }
+
   public int getHTTP_CLIENT_POOL_SIZE() {
     return HTTP_CLIENT_POOL_SIZE;
   }
@@ -1404,6 +1471,14 @@ public class Config {
 
   public void setOP_MIN_INTERVAL_RANDOM(boolean OP_MIN_INTERVAL_RANDOM) {
     this.OP_MIN_INTERVAL_RANDOM = OP_MIN_INTERVAL_RANDOM;
+  }
+
+  public long getINTERVAL_BETWEEN_WRITE_BATCH() {
+    return INTERVAL_BETWEEN_WRITE_BATCH;
+  }
+
+  public void setINTERVAL_BETWEEN_WRITE_BATCH(long INTERVAL_BETWEEN_WRITE_BATCH) {
+    this.INTERVAL_BETWEEN_WRITE_BATCH = INTERVAL_BETWEEN_WRITE_BATCH;
   }
 
   public int getWRITE_OPERATION_TIMEOUT_MS() {
@@ -1890,6 +1965,14 @@ public class Config {
     this.CNOSDB_SHARD_NUMBER = CNOSDB_SHARD_NUMBER;
   }
 
+  public int getDOLPHINDB_DEVICE_HASH_BUCKETS() {
+    return DOLPHINDB_DEVICE_HASH_BUCKETS;
+  }
+
+  public void setDOLPHINDB_DEVICE_HASH_BUCKETS(int DOLPHINDB_DEVICE_HASH_BUCKETS) {
+    this.DOLPHINDB_DEVICE_HASH_BUCKETS = DOLPHINDB_DEVICE_HASH_BUCKETS;
+  }
+
   public void setIS_DOUBLE_WRITE(boolean IS_DOUBLE_WRITE) {
     this.IS_DOUBLE_WRITE = IS_DOUBLE_WRITE;
   }
@@ -2139,6 +2222,8 @@ public class Config {
     configProperties.addProperty(
         "Data Amount", "OP_MIN_INTERVAL_RANDOM", this.OP_MIN_INTERVAL_RANDOM);
     configProperties.addProperty(
+        "Data Amount", "INTERVAL_BETWEEN_WRITE_BATCH", this.INTERVAL_BETWEEN_WRITE_BATCH);
+    configProperties.addProperty(
         "Data Amount", "INSERT_DATATYPE_PROPORTION", this.INSERT_DATATYPE_PROPORTION);
     configProperties.addProperty(
         "Data Amount",
@@ -2250,6 +2335,12 @@ public class Config {
         "Extern Param", "ENABLE_THRIFT_COMPRESSION", this.ENABLE_THRIFT_COMPRESSION);
     configProperties.addProperty(
         "Extern Param", "ENABLE_IoTDB_RPC_COMPRESSION", this.ENABLE_IOTDB_RPC_COMPRESSION);
+    configProperties.addProperty("Extern Param", "USE_SSL", this.USE_SSL);
+    configProperties.addProperty("Extern Param", "TRUST_STORE_PATH", this.TRUST_STORE_PATH);
+    configProperties.addProperty("Extern Param", "TRUST_STORE_PWD", this.TRUST_STORE_PWD);
+    configProperties.addProperty("Extern Param", "KEY_STORE_PATH", this.KEY_STORE_PATH);
+    configProperties.addProperty("Extern Param", "KEY_STORE_PWD", this.KEY_STORE_PWD);
+    configProperties.addProperty("Extern Param", "SSL_PROTOCOL", this.SSL_PROTOCOL);
     configProperties.addProperty(
         "Extern Param", "WRITE_OPERATION_TIMEOUT_MS", this.WRITE_OPERATION_TIMEOUT_MS);
     configProperties.addProperty(

@@ -22,6 +22,7 @@ package cn.edu.tsinghua.iot.benchmark.tsdb.fakedb;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
+import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.IDatabase;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.AggRangeQuery;
@@ -36,6 +37,15 @@ import cn.edu.tsinghua.iot.benchmark.workload.query.impl.ValueRangeQuery;
 import java.util.List;
 
 public class FakeDB implements IDatabase {
+
+  public FakeDB() {}
+
+  /**
+   * {@link cn.edu.tsinghua.iot.benchmark.tsdb.DBFactory#getDatabase} instantiates every adapter via
+   * its {@code (DBConfig)} constructor; without this one FakeDB cannot be loaded by {@code
+   * DB_SWITCH=FakeDB}. The config is unused because FakeDB talks to no real database.
+   */
+  public FakeDB(DBConfig dbConfig) {}
 
   @Override
   public void init() throws TsdbException {}

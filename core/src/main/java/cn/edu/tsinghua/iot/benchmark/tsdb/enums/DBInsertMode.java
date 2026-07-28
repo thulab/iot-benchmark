@@ -25,7 +25,12 @@ public enum DBInsertMode {
   INSERT_USE_SESSION("SESSION"),
   INSERT_USE_SESSION_TABLET("SESSION_BY_TABLET"),
   INSERT_USE_SESSION_RECORD("SESSION_BY_RECORD"),
-  INSERT_USE_SESSION_RECORDS("SESSION_BY_RECORDS");
+  INSERT_USE_SESSION_RECORDS("SESSION_BY_RECORDS"),
+
+  // DolphinDB write paths: MultithreadedTableWriter (buffered row writer) and
+  // PartitionedTableAppender (per-batch columnar append via a connection pool).
+  INSERT_USE_MTW("MTW"),
+  INSERT_USE_PTA("PTA");
 
   String insertType;
 

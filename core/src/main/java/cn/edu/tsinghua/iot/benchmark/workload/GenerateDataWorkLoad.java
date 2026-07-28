@@ -69,7 +69,9 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   protected List<Object> generateOneRow(int deviceIndex, int colIndex, long stepOffset)
       throws WorkloadException {
     List<Object> values = new ArrayList<>(config.getSENSOR_NUMBER());
-    int index = (int) (Math.abs(stepOffset * (deviceIndex + 1)) % config.getWORKLOAD_BUFFER_SIZE());
+    int index =
+        (int)
+            Math.floorMod(stepOffset * (deviceIndex + 1), (long) config.getWORKLOAD_BUFFER_SIZE());
     if (colIndex == -1) {
       for (int i = 0; i < config.getSENSOR_NUMBER(); i++) {
         values.add(workloadValues[i][index]);

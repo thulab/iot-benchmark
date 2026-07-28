@@ -324,7 +324,7 @@ This module uses IoT Benchmark to test YourDB.
 
 Before running the benchmark, prepare:
 
-1. Java 8
+1. Java 17
 2. Maven 3.6+
 3. A running YourDB instance reachable from the benchmark machine
 

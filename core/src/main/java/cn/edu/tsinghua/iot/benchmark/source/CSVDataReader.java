@@ -121,8 +121,7 @@ public class CSVDataReader extends DataReader {
         records.add(record);
       }
     } catch (Exception exception) {
-      exception.printStackTrace();
-      LOGGER.error("Failed to read file:" + exception.getMessage());
+      LOGGER.error("Failed to read file", exception);
     }
     return new Batch(deviceSchema, records);
   }

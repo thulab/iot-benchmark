@@ -6,7 +6,7 @@ Benchmark victoriaMetrics
 Before running the benchmark, prepare:
 
 1. A running VictoriaMetrics instance
-2. Java 8
+2. Java 17
 3. Maven 3.6+
 
 ## 2. Database setup

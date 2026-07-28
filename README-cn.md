@@ -1,7 +1,7 @@
 IoT Benchmark
 ---
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
-![](https://img.shields.io/badge/java--language-1.8-blue.svg)
+![](https://img.shields.io/badge/java--language-17-blue.svg)
 
 - [1. 概述](#1-概述)
 - [2. 支持的数据库类型](#2-支持的数据库类型)
@@ -43,6 +43,7 @@ IoT Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 |     TimescaleDB      |       --       |
 |     TimescaleDB      |    Cluster     |
 |       TDengine       | 2.2.0.2、3.0.1 |
+|      DolphinDB       |   v2.x、v3.x   |
 |        CnosDB        |       --       |
 
 # 3. 快速开始
@@ -51,7 +52,7 @@ IoT Benchmark 是用来评估时序数据库、实时数据库在工业物联网
 
 为了使用 IoT Benchmark，你需要拥有：
 
-1. Java 8
+1. Java 17
 2. Maven：不建议使用镜像源，国内可以使用阿里云镜像源。
 3. 合适版本的数据库
 
@@ -235,6 +236,8 @@ SET_OP_QUERY             0.00        0.00        0.00        0.00        0.00   
 |       KairosDB       |    --    |      kairosdb       |                                                            KairosDB                                                            |
 |       TDengine       | 2.2.0.2  |      tdengine       |                                                            TDengine                                                            |
 |       TDengine       |  3.0.1   |    tdengine-3.0     |                                                           TDengine-3                                                           |
+|       DolphinDB      |   3.x    |    dolphindb-3.0    |                                                   DolphinDB-3-MTW / DolphinDB-3-PTA                                            |
+|       DolphinDB      |   2.x    |    dolphindb-2.0    |                                                   DolphinDB-2-MTW / DolphinDB-2-PTA                                            |
 
 * 不同数据库使用说明详见 [被测数据库示例说明](./docs/DifferentTestDatabase.md)
 

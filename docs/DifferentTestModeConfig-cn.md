@@ -1,5 +1,5 @@
 ![](https://img.shields.io/badge/platform-MacOS%20%7C%20Linux%20%7C%20Windows-yellow.svg)
-![](https://img.shields.io/badge/java--language-1.8-blue.svg)
+![](https://img.shields.io/badge/java--language-17-blue.svg)
 
 ** This document shows the specific configuration and execution of several test scenarios given in README.md **
 ** 该文档展示了README.md中给出的几种测试场景的具体配置以及具体执行情况 **

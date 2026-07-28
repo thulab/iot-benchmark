@@ -6,7 +6,7 @@ This module uses IoT Benchmark to test CnosDB.
 
 Before running the benchmark, prepare:
 
-1. Java 8
+1. Java 17
 2. Maven 3.6+
 3. A running CnosDB instance reachable from the benchmark machine
 

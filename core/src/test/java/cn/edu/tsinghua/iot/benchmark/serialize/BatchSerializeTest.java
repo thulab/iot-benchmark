@@ -19,6 +19,7 @@
 
 package cn.edu.tsinghua.iot.benchmark.serialize;
 
+import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
@@ -35,7 +36,7 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
-public class BatchSerializeTest {
+public class BatchSerializeTest extends BenchmarkTestBase {
 
   @Before
   public void before() throws Exception {}

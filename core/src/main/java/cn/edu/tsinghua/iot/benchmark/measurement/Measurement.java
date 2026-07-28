@@ -46,8 +46,14 @@ public class Measurement {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final Map<Operation, TDigest> operationLatencyDigest =
       new EnumMap<>(Operation.class);
-  private static final Map<Operation, Double> operationLatencySumAllClient =
-      new EnumMap<>(Operation.class);
+
+  /**
+   * Aggregated latency sum across all clients. This is per-aggregator state (reset on every {@link
+   * #resetMeasurementMaps()}); it must NOT be static, otherwise repeated middle measurements keep
+   * accumulating into it and inflate AVG_LATENCY.
+   */
+  private final Map<Operation, Double> operationLatencySumAllClient;
+
   private double createSchemaFinishTime = 0;
   private double elapseTime;
   private final Map<Operation, Double> operationLatencySumThisClient;
@@ -65,7 +71,6 @@ public class Measurement {
     for (Operation operation : Operation.values()) {
       operationLatencyDigest.put(
           operation, new TDigest(COMPRESSION, new Random(config.getDATA_SEED())));
-      operationLatencySumAllClient.put(operation, 0D);
     }
   }
 
@@ -75,6 +80,7 @@ public class Measurement {
     okPointNumMap = new EnumMap<>(Operation.class);
     failPointNumMap = new EnumMap<>(Operation.class);
     operationLatencySumThisClient = new EnumMap<>(Operation.class);
+    operationLatencySumAllClient = new EnumMap<>(Operation.class);
     resetMeasurementMaps();
   }
 
@@ -85,6 +91,7 @@ public class Measurement {
       okPointNumMap.put(operation, 0L);
       failPointNumMap.put(operation, 0L);
       operationLatencySumThisClient.put(operation, 0D);
+      operationLatencySumAllClient.put(operation, 0D);
     }
   }
 
@@ -220,7 +227,8 @@ public class Measurement {
             "failPoint",
             "throughput(point/s)"));
     for (Operation operation : operations) {
-      String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+      double throughputValue = elapseTime > 0 ? okPointNumMap.get(operation) / elapseTime : 0.0;
+      String throughput = String.format("%.2f", throughputValue);
       stringBuilder.append(
           String.format(
               format.toString(),
@@ -371,11 +379,9 @@ public class Measurement {
 
     /** Write config to csv */
     private void outputConfigToCSV(File csv) {
-      try {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+      try (BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true))) {
         bw.write("Main Configurations" + System.lineSeparator());
         bw.write(config.getAllConfigProperties().toString());
-        bw.close();
       } catch (IOException e) {
         LOGGER.error("Exception occurred during operating buffer writer because: ", e);
       }
@@ -383,8 +389,7 @@ public class Measurement {
 
     /** Write result metric to csv */
     private void outputResultMetricToCSV(File csv) {
-      try {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+      try (BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true))) {
         bw.newLine();
         bw.write("Result Matrix");
         bw.newLine();
@@ -401,7 +406,8 @@ public class Measurement {
                 + ","
                 + "throughput(point/s)");
         for (Operation operation : Operation.values()) {
-          String throughput = String.format("%.2f", okPointNumMap.get(operation) / elapseTime);
+          double throughputValue = elapseTime > 0 ? okPointNumMap.get(operation) / elapseTime : 0.0;
+          String throughput = String.format("%.2f", throughputValue);
           bw.newLine();
           bw.write(
               operation.getName()
@@ -416,7 +422,6 @@ public class Measurement {
                   + ","
                   + throughput);
         }
-        bw.close();
       } catch (IOException e) {
         LOGGER.error("Exception occurred during operating buffer writer because: ", e);
       }
@@ -424,8 +429,7 @@ public class Measurement {
 
     /** Write Latency metric to csv */
     private void outputLatencyMetricsToCSV(File csv) {
-      try {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+      try (BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true))) {
         bw.newLine();
         bw.write("Latency (ms) Matrix");
         bw.newLine();
@@ -442,7 +446,6 @@ public class Measurement {
           }
           bw.newLine();
         }
-        bw.close();
       } catch (IOException e) {
         LOGGER.error("Exception occurred during operating buffer writer because: ", e);
       }
@@ -450,15 +453,13 @@ public class Measurement {
   }
 
   private void outputSchemaMetricsToCSV(File csv) {
-    try {
-      BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true));
+    try (BufferedWriter bw = new BufferedWriter(new FileWriter(csv, true))) {
       bw.newLine();
       bw.write(String.format("Schema cost(s),%.2f", createSchemaFinishTime));
       bw.newLine();
       bw.write(
           String.format("Test elapsed time (not include schema creation)(s),%.2f", elapseTime));
       bw.newLine();
-      bw.close();
     } catch (IOException e) {
       LOGGER.error("Exception occurred during operating buffer writer because: ", e);
     }
@@ -468,19 +469,19 @@ public class Measurement {
     return operationLatencySumThisClient;
   }
 
-  private long getOkOperationNum(Operation operation) {
+  public long getOkOperationNum(Operation operation) {
     return okOperationNumMap.get(operation);
   }
 
-  private long getFailOperationNum(Operation operation) {
+  public long getFailOperationNum(Operation operation) {
     return failOperationNumMap.get(operation);
   }
 
-  private long getOkPointNum(Operation operation) {
+  public long getOkPointNum(Operation operation) {
     return okPointNumMap.get(operation);
   }
 
-  private long getFailPointNum(Operation operation) {
+  public long getFailPointNum(Operation operation) {
     return failPointNumMap.get(operation);
   }
 

@@ -5,7 +5,7 @@ Benchmark SQLite
 
 Before running the benchmark, prepare:
 
-1. Java 8
+1. Java 17
 2. Maven 3.6+
 3. A writable local directory for the benchmark output files
 

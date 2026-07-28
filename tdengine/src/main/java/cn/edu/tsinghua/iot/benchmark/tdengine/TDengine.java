@@ -102,7 +102,7 @@ public class TDengine implements IDatabase {
                   dbConfig.getPASSWORD()));
       LOGGER.info("TDengine init success.");
     } catch (SQLException | ClassNotFoundException e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to initialize TDengine connection", e);
     }
   }
 

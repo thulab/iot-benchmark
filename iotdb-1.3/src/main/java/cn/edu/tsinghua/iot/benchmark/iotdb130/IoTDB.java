@@ -259,7 +259,7 @@ public class IoTDB implements IDatabase {
       metaSession.createSchemaTemplate(template);
     } catch (StatementExecutionException e) {
       // do nothing
-      e.printStackTrace();
+      LOGGER.error("Failed to create schema template", e);
     }
   }
 
@@ -297,7 +297,7 @@ public class IoTDB implements IDatabase {
               .collect(Collectors.toList());
       metaSession.createTimeseriesUsingSchemaTemplate(devicePaths);
     } catch (Throwable t) {
-      t.printStackTrace();
+      LOGGER.error("Failed to activate schema template", t);
     }
   }
 

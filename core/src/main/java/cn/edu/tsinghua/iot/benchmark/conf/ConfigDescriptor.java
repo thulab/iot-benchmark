@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_REST;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
 
@@ -105,6 +106,12 @@ public class ConfigDescriptor {
                     "BENCHMARK_WORK_MODE", config.getBENCHMARK_WORK_MODE() + "")));
         config.setREST_AUTHORIZATION(
             properties.getProperty("REST_AUTHORIZATION", config.getREST_AUTHORIZATION()));
+        String restAuthorization = System.getenv("BENCHMARK_REST_AUTHORIZATION");
+        if (restAuthorization != null && !restAuthorization.isEmpty()) {
+          config.setREST_AUTHORIZATION(restAuthorization);
+        }
+        config.setREST_PORT(
+            Integer.parseInt(properties.getProperty("REST_PORT", config.getREST_PORT() + "")));
         config.setTEST_MAX_TIME(
             Long.parseLong(
                 properties.getProperty("TEST_MAX_TIME", config.getTEST_MAX_TIME() + "")));
@@ -393,6 +400,13 @@ public class ConfigDescriptor {
         config.setIoTDB_TABLE_NUMBER(
             Integer.parseInt(
                 properties.getProperty("IoTDB_TABLE_NUMBER", config.getIoTDB_TABLE_NUMBER() + "")));
+        config.setTABLE_TIME_COLUMN(
+            properties.getProperty("TABLE_TIME_COLUMN", config.getTABLE_TIME_COLUMN()));
+        config.setIoTDB_TABLE_WRITABLE_VIEW(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "IoTDB_TABLE_WRITABLE_VIEW",
+                    String.valueOf(config.isIoTDB_TABLE_WRITABLE_VIEW()))));
 
         config.setIOTDB_SESSION_POOL_SIZE(
             Integer.parseInt(
@@ -434,6 +448,15 @@ public class ConfigDescriptor {
         config.setTRUST_STORE_PWD(
             properties.getProperty("TRUST_STORE_PWD", String.valueOf(config.getTRUST_STORE_PWD())));
 
+        config.setKEY_STORE_PATH(
+            properties.getProperty("KEY_STORE_PATH", String.valueOf(config.getKEY_STORE_PATH())));
+
+        config.setKEY_STORE_PWD(
+            properties.getProperty("KEY_STORE_PWD", String.valueOf(config.getKEY_STORE_PWD())));
+
+        config.setSSL_PROTOCOL(
+            properties.getProperty("SSL_PROTOCOL", String.valueOf(config.getSSL_PROTOCOL())));
+
         config.setCOMPRESSION(properties.getProperty("COMPRESSION", "NONE"));
         config.setTIMESCALEDB_REPLICATION_FACTOR(
             Integer.parseInt(
@@ -452,6 +475,11 @@ public class ConfigDescriptor {
             Integer.parseInt(
                 properties.getProperty(
                     "CNOSDB_SHARD_NUMBER", config.getCNOSDB_SHARD_NUMBER() + "")));
+        config.setDOLPHINDB_DEVICE_HASH_BUCKETS(
+            Integer.parseInt(
+                properties.getProperty(
+                    "DOLPHINDB_DEVICE_HASH_BUCKETS",
+                    config.getDOLPHINDB_DEVICE_HASH_BUCKETS() + "")));
         config.setOP_MIN_INTERVAL(
             Long.parseLong(
                 properties.getProperty("OP_MIN_INTERVAL", config.getOP_MIN_INTERVAL() + "")));
@@ -462,6 +490,11 @@ public class ConfigDescriptor {
             Boolean.parseBoolean(
                 properties.getProperty(
                     "OP_MIN_INTERVAL_RANDOM", config.isOP_MIN_INTERVAL_RANDOM() + "")));
+        config.setINTERVAL_BETWEEN_WRITE_BATCH(
+            Long.parseLong(
+                properties.getProperty(
+                    "INTERVAL_BETWEEN_WRITE_BATCH",
+                    config.getINTERVAL_BETWEEN_WRITE_BATCH() + "")));
         config.setWRITE_OPERATION_TIMEOUT_MS(
             Integer.parseInt(
                 properties.getProperty(
@@ -629,7 +662,7 @@ public class ConfigDescriptor {
                     "IS_RECORD_CURRENT_REALLY_TIME",
                     config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.error("Failed to load config file", e);
       }
       try {
         inputStream.close();
@@ -674,14 +707,14 @@ public class ConfigDescriptor {
   }
 
   /** Check validation of config */
-  private boolean checkConfig() {
+  boolean checkConfig() {
     boolean result = true;
     // Checking config according to mode
     switch (config.getBENCHMARK_WORK_MODE()) {
       case TEST_WITH_DEFAULT_PATH:
         if (config.isIS_CLIENT_BIND()
-            && config.getDEVICE_NUMBER() < config.getSCHEMA_CLIENT_NUMBER()
-            && config.getDEVICE_NUMBER() < config.getDATA_CLIENT_NUMBER()) {
+            && (config.getDEVICE_NUMBER() < config.getSCHEMA_CLIENT_NUMBER()
+                || config.getDEVICE_NUMBER() < config.getDATA_CLIENT_NUMBER())) {
           LOGGER.error(
               "In client bind way, the number of schema client and data client should be less than the number of device");
           result = false;
@@ -748,11 +781,13 @@ public class ConfigDescriptor {
       default:
         break;
     }
-    if ((config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TABLE
+        && config.getDbConfig().getDB_SWITCH().getType() == DBType.IoTDB
         && config.getBENCHMARK_WORK_MODE() != BenchmarkMode.TSFILE_LOAD
-        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET)) {
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_TABLET
+        && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_REST) {
       LOGGER.error(
-          "The iotdb table model only supports INSERT_USE_SESSION_TABLET! Please modify DB_SWITCH in the configuration file.");
+          "The iotdb table model only supports INSERT_USE_SESSION_TABLET, INSERT_USE_REST, and tsFileLoadMode! Please modify DB_SWITCH or BENCHMARK_WORK_MODE in the configuration file.");
       result = false;
     }
     // TODO Not supported TIME_DURATION、MAX_BY、MIN_BY. iotdb will report errors for these three
@@ -880,11 +915,13 @@ public class ConfigDescriptor {
     if (dnw == 1) {
       return true;
     }
-    if (config.getDbConfig().getDB_SWITCH().getType() != DBType.IoTDB) {
-      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB");
+    DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
+    if (dbType != DBType.IoTDB && dbType != DBType.DolphinDB) {
+      LOGGER.error("DEVICE_NUM_PER_WRITE is only supported in IoTDB or DolphinDB");
       return false;
     }
-    if (config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
+    if (dbType == DBType.IoTDB
+        && config.getIoTDB_DIALECT_MODE() == SQLDialect.TREE
         && config.getDbConfig().getDB_SWITCH().getInsertMode() != INSERT_USE_SESSION_RECORDS) {
       LOGGER.error("The combination of DEVICE_NUM_PER_WRITE and insert-mode is not supported");
       return false;
@@ -987,8 +1024,8 @@ public class ConfigDescriptor {
   protected boolean checkInsertDataTypeProportion() {
     DBType dbType = config.getDbConfig().getDB_SWITCH().getType();
     String[] splits = config.getINSERT_DATATYPE_PROPORTION().split(":");
-    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB) {
-      // When not iotdb, the last four digits of the data ratio must be 0
+    if (dbType != DBType.IoTDB && dbType != DBType.DoubleIoTDB && dbType != DBType.DolphinDB) {
+      // When not iotdb/dolphindb, the last four digits of the data ratio must be 0
       for (int i = config.getTypeNumber() - 4; i < splits.length; i++) {
         if (!splits[i].equals("0")) {
           LOGGER.warn("INSERT_DATATYPE_PROPORTION error, this database do not support those type.");

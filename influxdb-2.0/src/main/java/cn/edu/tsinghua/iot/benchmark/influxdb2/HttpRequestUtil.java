@@ -8,10 +8,13 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
 public class HttpRequestUtil {
+  private static final Logger LOGGER = LoggerFactory.getLogger(HttpRequestUtil.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public static int writeData(String url, String body, String contentType, String token)
@@ -41,7 +44,7 @@ public class HttpRequestUtil {
       httpResponse = httpClient.execute(httpPost);
       responseCode = httpResponse.getStatusLine().getStatusCode();
     } catch (Exception var) {
-      var.printStackTrace();
+      LOGGER.error("Failed to write data to InfluxDB via HTTP", var);
       throw var;
     } finally {
       if (httpResponse != null) {

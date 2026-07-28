@@ -22,6 +22,8 @@ package cn.edu.tsinghua.iot.benchmark.tsdb;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.conf.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +31,7 @@ import java.sql.SQLException;
 
 public class DBFactory {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(DBFactory.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public DBFactory() {}
@@ -113,6 +116,14 @@ public class DBFactory {
         case DB_QUESTDB:
           dbClass = Constants.QUESTDB_CLASS;
           break;
+        case DB_DOLPHINDB_3_MTW:
+        case DB_DOLPHINDB_3_PTA:
+          dbClass = Constants.DOLPHINDB3_CLASS;
+          break;
+        case DB_DOLPHINDB_2_MTW:
+        case DB_DOLPHINDB_2_PTA:
+          dbClass = Constants.DOLPHINDB2_CLASS;
+          break;
         case DB_MSSQLSERVER:
           dbClass = Constants.MSSQLSERVER_CLASS;
           break;
@@ -142,7 +153,7 @@ public class DBFactory {
         | ClassNotFoundException
         | NoSuchMethodException
         | InvocationTargetException e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to instantiate database {}", dbConfig.getDB_SWITCH(), e);
     }
     throw new SQLException("init database " + dbConfig.getDB_SWITCH() + " failed");
   }

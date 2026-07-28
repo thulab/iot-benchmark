@@ -129,9 +129,9 @@ public class BytesUtils {
       throw new IllegalArgumentException("Invalid input: ret.length != 2");
     }
     int value = 0;
-    value |= ret[0];
+    value |= ret[0] & 0xFF;
     value = value << 8;
-    value |= ret[1];
+    value |= ret[1] & 0xFF;
     return value;
   }
 

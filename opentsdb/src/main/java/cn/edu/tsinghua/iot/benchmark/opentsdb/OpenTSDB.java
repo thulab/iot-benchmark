@@ -105,7 +105,7 @@ public class OpenTSDB implements IDatabase {
       HttpRequest.sendPost(writeUrl, sql);
       return new Status(true);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to insert one batch into OpenTSDB", e);
       return new Status(false, 0, e, e.toString());
     }
   }
@@ -263,7 +263,7 @@ public class OpenTSDB implements IDatabase {
       LOGGER.debug("{} 查到数据点数: {}", Thread.currentThread().getName(), pointNum);
       return new Status(true, pointNum);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Failed to execute query against OpenTSDB", e);
       return new Status(false, 0, e, sql);
     }
   }
