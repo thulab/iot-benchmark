@@ -49,6 +49,6 @@ public class VerificationQuery extends Query {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("deviceSchema=").append(deviceSchema);
     stringBuilder.append(" records=").append(records);
-    return stringBuilder;
+    return appendTagFilter(stringBuilder);
   }
 }

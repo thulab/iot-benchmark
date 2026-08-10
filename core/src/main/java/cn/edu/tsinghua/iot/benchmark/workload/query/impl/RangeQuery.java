@@ -65,6 +65,6 @@ public class RangeQuery extends Query {
     stringBuilder.append(" startTimeStamp=").append(startTimestamp);
     stringBuilder.append(" endTimeStamp=").append(endTimestamp);
     stringBuilder.append(" desc=").append(desc);
-    return stringBuilder;
+    return appendTagFilter(stringBuilder);
   }
 }

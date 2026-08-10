@@ -27,18 +27,7 @@ public class MetaUtil {
   private static final String TAG_VALUE_PREFIX = config.getTAG_VALUE_PREFIX();
   private static final int TAG_NUMBER = config.getTAG_NUMBER();
   private static final List<Integer> TAG_VALUE_CARDINALITY = config.getTAG_VALUE_CARDINALITY();
-  private static final List<Long> LEVEL_CARDINALITY =
-      Arrays.asList(new Long[TAG_VALUE_CARDINALITY.size() + 1]);
-
-  static {
-    int idx = TAG_VALUE_CARDINALITY.size();
-    long sum = 1;
-    LEVEL_CARDINALITY.set(idx--, 1L);
-    for (; idx >= 0; idx--) {
-      sum *= TAG_VALUE_CARDINALITY.get(idx);
-      LEVEL_CARDINALITY.set(idx, sum);
-    }
-  }
+  private static final List<Long> LEVEL_CARDINALITY = buildLevelCardinality(TAG_VALUE_CARDINALITY);
 
   private static List<List<String>> CLIENT_FILES;
 
@@ -216,17 +205,82 @@ public class MetaUtil {
    * @return tags pair
    */
   public static Map<String, String> getTags(String deviceName) {
-    if (TAG_NUMBER == 0) {
+    return createTags(deviceName, TAG_NUMBER, TAG_KEY_PREFIX, TAG_VALUE_PREFIX, LEVEL_CARDINALITY);
+  }
+
+  /**
+   * Calculates tags from an explicit tag configuration.
+   *
+   * <p>The normal {@link #getTags(String)} path uses the configuration captured at benchmark
+   * startup. Query metadata discovery uses this overload so its per-table value enumeration is
+   * based on the exact configuration being validated and tested.
+   */
+  public static Map<String, String> getTags(
+      String deviceName,
+      int tagNumber,
+      String tagKeyPrefix,
+      String tagValuePrefix,
+      List<Integer> tagValueCardinality) {
+    if (tagNumber != tagValueCardinality.size()) {
+      throw new IllegalArgumentException("tagNumber must be equal to tagValueCardinality's size");
+    }
+    return createTags(
+        deviceName,
+        tagNumber,
+        tagKeyPrefix,
+        tagValuePrefix,
+        buildLevelCardinality(tagValueCardinality));
+  }
+
+  /** Calculates one tag value without materializing all tags for the device. */
+  public static String getTagValue(
+      String deviceName, int tagIndex, String tagValuePrefix, List<Integer> tagValueCardinality) {
+    if (tagIndex < 0 || tagIndex >= tagValueCardinality.size()) {
+      throw new IllegalArgumentException("tagIndex is outside tagValueCardinality");
+    }
+    long levelCardinality = 1;
+    for (int i = tagIndex; i < tagValueCardinality.size(); i++) {
+      int cardinality = tagValueCardinality.get(i);
+      if (cardinality <= 0) {
+        throw new IllegalArgumentException("tagValueCardinality must contain positive values");
+      }
+      levelCardinality *= cardinality;
+    }
+    long nextLevelCardinality = levelCardinality / tagValueCardinality.get(tagIndex);
+    long id = Math.abs(deviceName.hashCode());
+    long tagValueId = (id % levelCardinality) / nextLevelCardinality;
+    return tagValuePrefix + tagValueId;
+  }
+
+  private static Map<String, String> createTags(
+      String deviceName,
+      int tagNumber,
+      String tagKeyPrefix,
+      String tagValuePrefix,
+      List<Long> levelCardinality) {
+    if (tagNumber == 0) {
       return Collections.emptyMap();
     }
     long id = Math.abs(deviceName.hashCode());
     Map<String, String> res = new HashMap<>();
-    for (int i = 0; i < LEVEL_CARDINALITY.size() - 1; i++) {
-      id = id % LEVEL_CARDINALITY.get(i);
-      long tagValueId = id / LEVEL_CARDINALITY.get(i + 1);
-      res.put(TAG_KEY_PREFIX + i, TAG_VALUE_PREFIX + tagValueId);
+    for (int i = 0; i < levelCardinality.size() - 1; i++) {
+      id = id % levelCardinality.get(i);
+      long tagValueId = id / levelCardinality.get(i + 1);
+      res.put(tagKeyPrefix + i, tagValuePrefix + tagValueId);
     }
     return res;
+  }
+
+  private static List<Long> buildLevelCardinality(List<Integer> tagValueCardinality) {
+    List<Long> levelCardinality = Arrays.asList(new Long[tagValueCardinality.size() + 1]);
+    int idx = tagValueCardinality.size();
+    long product = 1;
+    levelCardinality.set(idx--, 1L);
+    for (; idx >= 0; idx--) {
+      product *= tagValueCardinality.get(idx);
+      levelCardinality.set(idx, product);
+    }
+    return levelCardinality;
   }
 
   /**

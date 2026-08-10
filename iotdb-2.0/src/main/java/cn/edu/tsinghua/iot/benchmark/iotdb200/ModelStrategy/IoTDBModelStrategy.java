@@ -33,6 +33,7 @@ import cn.edu.tsinghua.iot.benchmark.iotdb200.TimeseriesSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.workload.query.TagFilter;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import org.apache.tsfile.enums.ColumnCategory;
 import org.apache.tsfile.read.common.RowRecord;
@@ -72,12 +73,24 @@ public abstract class IoTDBModelStrategy {
 
   public abstract String getLatestPointQuerySql(List<DeviceSchema> devices);
 
+  public String getLatestPointQuerySql(List<DeviceSchema> devices, TagFilter tagFilter) {
+    return getLatestPointQuerySql(devices);
+  }
+
   public abstract void addFromClause(List<DeviceSchema> devices, StringBuilder builder);
 
   public abstract void addOrderByTimeDesc(StringBuilder builder);
 
   public abstract void addPreciseQueryWhereClause(
       String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder);
+
+  public void addPreciseQueryWhereClause(
+      String strTime,
+      List<DeviceSchema> deviceSchemas,
+      TagFilter tagFilter,
+      StringBuilder builder) {
+    addPreciseQueryWhereClause(strTime, deviceSchemas, builder);
+  }
 
   public abstract void addWhereClause(
       boolean addTime,
@@ -88,6 +101,18 @@ public abstract class IoTDBModelStrategy {
       int valueThreshold,
       StringBuilder builder);
 
+  public void addWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      TagFilter tagFilter,
+      StringBuilder builder) {
+    addWhereClause(addTime, addValue, start, end, deviceSchemas, valueThreshold, builder);
+  }
+
   public abstract void addAggWhereClause(
       boolean addTime,
       boolean addValue,
@@ -97,8 +122,25 @@ public abstract class IoTDBModelStrategy {
       int valueThreshold,
       StringBuilder builder);
 
+  public void addAggWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      TagFilter tagFilter,
+      StringBuilder builder) {
+    addAggWhereClause(addTime, addValue, start, end, deviceSchemas, valueThreshold, builder);
+  }
+
   public abstract void addWhereValueClauseIfNecessary(
       List<DeviceSchema> devices, StringBuilder builder);
+
+  public void addWhereValueClauseIfNecessary(
+      List<DeviceSchema> devices, TagFilter tagFilter, StringBuilder builder) {
+    addWhereValueClauseIfNecessary(devices, builder);
+  }
 
   public abstract String addGroupByClauseIfNecessary(String sql);
 

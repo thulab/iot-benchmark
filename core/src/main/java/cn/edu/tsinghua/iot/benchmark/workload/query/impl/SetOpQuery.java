@@ -62,6 +62,6 @@ public class SetOpQuery extends Query {
     }
     resultBuilder.append("setOpType=").append(setOpType);
 
-    return resultBuilder;
+    return appendTagFilter(resultBuilder);
   }
 }

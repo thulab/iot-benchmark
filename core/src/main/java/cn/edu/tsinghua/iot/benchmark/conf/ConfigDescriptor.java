@@ -518,6 +518,17 @@ public class ConfigDescriptor {
         config.setQUERY_DEVICE_NUM(
             Integer.parseInt(
                 properties.getProperty("QUERY_DEVICE_NUM", config.getQUERY_DEVICE_NUM() + "")));
+        config.setENABLE_QUERY_TAG_FILTER(
+            Boolean.parseBoolean(
+                properties.getProperty(
+                    "ENABLE_QUERY_TAG_FILTER", config.isENABLE_QUERY_TAG_FILTER() + "")));
+        config.setQUERY_TAG_INDEX(
+            Integer.parseInt(
+                properties.getProperty("QUERY_TAG_INDEX", config.getQUERY_TAG_INDEX() + "")));
+        config.setQUERY_TAG_VALUE_NUM(
+            Integer.parseInt(
+                properties.getProperty(
+                    "QUERY_TAG_VALUE_NUM", config.getQUERY_TAG_VALUE_NUM() + "")));
 
         loadAndConvertAggregateFunction(properties);
 
@@ -765,6 +776,7 @@ public class ConfigDescriptor {
     result &= checkDatabaseTableDeviceRelationship();
     result &= checkDeviceNumPerWrite();
     result &= checkTag();
+    result &= checkQueryTagFilter();
     if (!commonlyUseDB()) {
       if (config.isALIGN_BY_DEVICE()) {
         result = false;
@@ -923,6 +935,73 @@ public class ConfigDescriptor {
       return false;
     }
     return true;
+  }
+
+  private boolean checkQueryTagFilter() {
+    if (!config.isENABLE_QUERY_TAG_FILTER()) {
+      return true;
+    }
+
+    boolean result = true;
+    if (config.getIoTDB_DIALECT_MODE() != SQLDialect.TABLE) {
+      LOGGER.error("ENABLE_QUERY_TAG_FILTER only supports the IoTDB 2.0 table model.");
+      result = false;
+    }
+    if (!supportsQueryTagFilter(config.getDbConfig())) {
+      LOGGER.error(
+          "ENABLE_QUERY_TAG_FILTER only supports IoTDB 2.0, but DB_SWITCH is {}.",
+          config.getDbConfig().getDB_SWITCH());
+      result = false;
+    }
+    if (config.isIS_DOUBLE_WRITE() && !supportsQueryTagFilter(config.getANOTHER_DBConfig())) {
+      LOGGER.error(
+          "ENABLE_QUERY_TAG_FILTER requires both databases in double-write mode to support the IoTDB 2.0 table model, but ANOTHER_DB_SWITCH is {}.",
+          config.getANOTHER_DBConfig().getDB_SWITCH());
+      result = false;
+    }
+
+    if (config.getTAG_NUMBER() <= 0) {
+      LOGGER.error("TAG_NUMBER must be greater than 0 when ENABLE_QUERY_TAG_FILTER is true.");
+      return false;
+    }
+
+    int tagIndex = config.getQUERY_TAG_INDEX();
+    if (tagIndex < 0 || tagIndex >= config.getTAG_NUMBER()) {
+      LOGGER.error(
+          "QUERY_TAG_INDEX must be in [0, TAG_NUMBER), but QUERY_TAG_INDEX is {} and TAG_NUMBER is {}.",
+          tagIndex,
+          config.getTAG_NUMBER());
+      return false;
+    }
+    if (tagIndex >= config.getTAG_VALUE_CARDINALITY().size()) {
+      LOGGER.error(
+          "QUERY_TAG_INDEX {} does not have a corresponding TAG_VALUE_CARDINALITY entry.",
+          tagIndex);
+      return false;
+    }
+
+    int cardinality = config.getTAG_VALUE_CARDINALITY().get(tagIndex);
+    if (cardinality <= 0) {
+      LOGGER.error(
+          "TAG_VALUE_CARDINALITY[{}] must be greater than 0 when ENABLE_QUERY_TAG_FILTER is true, but it is {}.",
+          tagIndex,
+          cardinality);
+      return false;
+    }
+    int queryTagValueNum = config.getQUERY_TAG_VALUE_NUM();
+    if (queryTagValueNum < 0 || queryTagValueNum > cardinality) {
+      LOGGER.error(
+          "QUERY_TAG_VALUE_NUM must be in [0, TAG_VALUE_CARDINALITY[QUERY_TAG_INDEX]]. Zero means all actual distinct values of the selected tag in each query table, but it is {} and the configured cardinality is {}.",
+          queryTagValueNum,
+          cardinality);
+      return false;
+    }
+    return result;
+  }
+
+  private boolean supportsQueryTagFilter(DBConfig dbConfig) {
+    return dbConfig.getDB_SWITCH().getType() == DBType.IoTDB
+        && dbConfig.getDB_SWITCH().getVersion() == DBVersion.IOTDB_200;
   }
 
   private void checkQuery() {

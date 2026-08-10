@@ -28,6 +28,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -86,5 +89,17 @@ public class MetaUtilTest extends BenchmarkTestBase {
       int groupId = Integer.parseInt(MetaUtil.getGroupIdFromDeviceName(MetaUtil.getDeviceName(i)));
       assertTrue("groupId must be in [0, groupNumber)", groupId >= 0 && groupId < groupNumber);
     }
+  }
+
+  @Test
+  public void testCalculateTagsFromExplicitConfiguration() {
+    Map<String, String> tags =
+        MetaUtil.getTags("d_0", 2, "actual_tag_", "actual_value_", Arrays.asList(3, 4));
+
+    assertEquals("actual_value_2", tags.get("actual_tag_0"));
+    assertEquals("actual_value_1", tags.get("actual_tag_1"));
+    assertEquals(
+        tags.get("actual_tag_1"),
+        MetaUtil.getTagValue("d_0", 1, "actual_value_", Arrays.asList(3, 4)));
   }
 }

@@ -71,6 +71,6 @@ public class DeviceQuery extends Query {
     stringBuilder.append("DeviceSchema=").append(deviceSchema);
     stringBuilder.append(" startTimeStamp=").append(startTimestamp);
     stringBuilder.append(" endTimeStamp=").append(endTimestamp);
-    return stringBuilder;
+    return appendTagFilter(stringBuilder);
   }
 }
