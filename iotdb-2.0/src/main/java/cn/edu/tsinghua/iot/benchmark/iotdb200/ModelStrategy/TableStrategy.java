@@ -36,6 +36,7 @@ import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
 import cn.edu.tsinghua.iot.benchmark.tsdb.DBConfig;
 import cn.edu.tsinghua.iot.benchmark.tsdb.TsdbException;
+import cn.edu.tsinghua.iot.benchmark.workload.query.TagFilter;
 import cn.edu.tsinghua.iot.benchmark.workload.query.impl.GroupByQuery;
 import org.apache.tsfile.read.common.RowRecord;
 import org.apache.tsfile.write.record.Tablet;
@@ -252,7 +253,7 @@ public class TableStrategy extends IoTDBModelStrategy {
         .append(" WHERE")
         .append(
             getTimeWhereClause(groupByQuery.getStartTimestamp(), groupByQuery.getEndTimestamp()));
-    addDeviceIDColumnIfNecessary(groupByQuery.getDeviceSchema(), builder);
+    addQueryFilterIfNecessary(groupByQuery.getDeviceSchema(), groupByQuery.getTagFilter(), builder);
     // GROUP BY
     builder
         .append(" group by device_id, date_bin(")
@@ -272,21 +273,34 @@ public class TableStrategy extends IoTDBModelStrategy {
     return builder.toString();
   }
 
-  private void addDeviceIDColumnIfNecessary(
-      List<DeviceSchema> deviceSchemas, StringBuilder builder) {
-    builder.append(" AND").append(getDeviceIDColumn(deviceSchemas));
+  private void addQueryFilterIfNecessary(
+      List<DeviceSchema> deviceSchemas, TagFilter tagFilter, StringBuilder builder) {
+    if (tagFilter == null) {
+      builder.append(" AND").append(getDeviceIDColumn(deviceSchemas));
+    } else {
+      builder.append(" AND ").append(getTagFilterClause(tagFilter));
+    }
   }
 
   @Override
   public void addPreciseQueryWhereClause(
       String strTime, List<DeviceSchema> deviceSchemas, StringBuilder builder) {
+    addPreciseQueryWhereClause(strTime, deviceSchemas, null, builder);
+  }
+
+  @Override
+  public void addPreciseQueryWhereClause(
+      String strTime,
+      List<DeviceSchema> deviceSchemas,
+      TagFilter tagFilter,
+      StringBuilder builder) {
     builder
         .append(" WHERE ")
         .append(config.getTABLE_TIME_COLUMN())
         .append(" = ")
         .append(strTime)
-        .append(" AND ")
-        .append(getDeviceIDColumn(deviceSchemas));
+        .append(" AND ");
+    appendQueryFilter(deviceSchemas, tagFilter, builder);
   }
 
   @Override
@@ -298,6 +312,19 @@ public class TableStrategy extends IoTDBModelStrategy {
       List<DeviceSchema> deviceSchemas,
       int valueThreshold,
       StringBuilder builder) {
+    addWhereClause(addTime, addValue, start, end, deviceSchemas, valueThreshold, null, builder);
+  }
+
+  @Override
+  public void addWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      TagFilter tagFilter,
+      StringBuilder builder) {
     builder.append(" WHERE");
     if (addTime) {
       builder.append(getTimeWhereClause(start, end));
@@ -305,7 +332,8 @@ public class TableStrategy extends IoTDBModelStrategy {
     if (addValue) {
       builder.append(getValueFilterClause(deviceSchemas, valueThreshold));
     }
-    builder.append(" AND ").append(getDeviceIDColumn(deviceSchemas));
+    builder.append(" AND ");
+    appendQueryFilter(deviceSchemas, tagFilter, builder);
   }
 
   @Override
@@ -316,6 +344,19 @@ public class TableStrategy extends IoTDBModelStrategy {
       long end,
       List<DeviceSchema> deviceSchemas,
       int valueThreshold,
+      StringBuilder builder) {
+    addAggWhereClause(addTime, addValue, start, end, deviceSchemas, valueThreshold, null, builder);
+  }
+
+  @Override
+  public void addAggWhereClause(
+      boolean addTime,
+      boolean addValue,
+      long start,
+      long end,
+      List<DeviceSchema> deviceSchemas,
+      int valueThreshold,
+      TagFilter tagFilter,
       StringBuilder builder) {
     builder.append(" WHERE");
     if (addTime) {
@@ -328,7 +369,9 @@ public class TableStrategy extends IoTDBModelStrategy {
       }
       builder.append(valueFilterClause);
     }
-    builder.append(" AND ").append(getDeviceIDColumn(deviceSchemas)).append(" GROUP BY device_id ");
+    builder.append(" AND ");
+    appendQueryFilter(deviceSchemas, tagFilter, builder);
+    builder.append(" GROUP BY device_id ");
   }
 
   @Override
@@ -339,6 +382,11 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public String getLatestPointQuerySql(List<DeviceSchema> devices) {
+    return getLatestPointQuerySql(devices, null);
+  }
+
+  @Override
+  public String getLatestPointQuerySql(List<DeviceSchema> devices, TagFilter tagFilter) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT device_id, last(").append(config.getTABLE_TIME_COLUMN()).append(")");
     List<Sensor> querySensors = devices.get(0).getSensors();
@@ -351,7 +399,7 @@ public class TableStrategy extends IoTDBModelStrategy {
           .append(")");
     }
     addFromClause(devices, builder);
-    addWhereValueClauseIfNecessary(devices, builder);
+    addWhereValueClauseIfNecessary(devices, tagFilter, builder);
     return builder.toString();
   }
 
@@ -377,6 +425,32 @@ public class TableStrategy extends IoTDBModelStrategy {
     }
     builder.append(")");
     return builder.toString();
+  }
+
+  private void appendQueryFilter(
+      List<DeviceSchema> deviceSchemas, TagFilter tagFilter, StringBuilder builder) {
+    if (tagFilter == null) {
+      builder.append(getDeviceIDColumn(deviceSchemas));
+    } else {
+      builder.append(getTagFilterClause(tagFilter));
+    }
+  }
+
+  private String getTagFilterClause(TagFilter tagFilter) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(tagFilter.getTagKey()).append(" IN (");
+    List<String> tagValues = tagFilter.getTagValues();
+    for (int i = 0; i < tagValues.size(); i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append("'").append(escapeStringLiteral(tagValues.get(i))).append("'");
+    }
+    return builder.append(")").toString();
+  }
+
+  private String escapeStringLiteral(String value) {
+    return value.replace("'", "''");
   }
 
   @Override
@@ -601,7 +675,17 @@ public class TableStrategy extends IoTDBModelStrategy {
 
   @Override
   public void addWhereValueClauseIfNecessary(List<DeviceSchema> devices, StringBuilder builder) {
-    builder.append(" WHERE").append(getDeviceIDColumn(devices));
+    addWhereValueClauseIfNecessary(devices, null, builder);
+  }
+
+  @Override
+  public void addWhereValueClauseIfNecessary(
+      List<DeviceSchema> devices, TagFilter tagFilter, StringBuilder builder) {
+    if (tagFilter == null) {
+      builder.append(" WHERE").append(getDeviceIDColumn(devices));
+    } else {
+      builder.append(" WHERE ").append(getTagFilterClause(tagFilter));
+    }
   }
 
   // endregion

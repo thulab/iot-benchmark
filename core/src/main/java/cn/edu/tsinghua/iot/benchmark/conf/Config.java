@@ -457,6 +457,15 @@ public class Config {
   /** The number of devices involved in each query */
   private int QUERY_DEVICE_NUM = 1;
 
+  /** Whether to use a tag column filter instead of the device_id filter in queries */
+  private boolean ENABLE_QUERY_TAG_FILTER = false;
+
+  /** Zero-based index of the tag column used as the query filter */
+  private int QUERY_TAG_INDEX = 0;
+
+  /** Number of tag values in the IN-list; zero means all actual values in the query table */
+  private int QUERY_TAG_VALUE_NUM = 0;
+
   /** Set aggregate function when aggregate query, Eg. count */
   private String QUERY_AGGREGATE_FUN = "count";
 
@@ -1565,6 +1574,30 @@ public class Config {
     this.QUERY_DEVICE_NUM = QUERY_DEVICE_NUM;
   }
 
+  public boolean isENABLE_QUERY_TAG_FILTER() {
+    return ENABLE_QUERY_TAG_FILTER;
+  }
+
+  public void setENABLE_QUERY_TAG_FILTER(boolean ENABLE_QUERY_TAG_FILTER) {
+    this.ENABLE_QUERY_TAG_FILTER = ENABLE_QUERY_TAG_FILTER;
+  }
+
+  public int getQUERY_TAG_INDEX() {
+    return QUERY_TAG_INDEX;
+  }
+
+  public void setQUERY_TAG_INDEX(int QUERY_TAG_INDEX) {
+    this.QUERY_TAG_INDEX = QUERY_TAG_INDEX;
+  }
+
+  public int getQUERY_TAG_VALUE_NUM() {
+    return QUERY_TAG_VALUE_NUM;
+  }
+
+  public void setQUERY_TAG_VALUE_NUM(int QUERY_TAG_VALUE_NUM) {
+    this.QUERY_TAG_VALUE_NUM = QUERY_TAG_VALUE_NUM;
+  }
+
   public void setQUERY_SET_OP_TYPE(String QUERY_SET_OP_TYPE) {
     this.QUERY_SET_OP_TYPE = QUERY_SET_OP_TYPE;
   }
@@ -2070,6 +2103,12 @@ public class Config {
         + QUERY_SENSOR_NUM
         + "\nQUERY_DEVICE_NUM="
         + QUERY_DEVICE_NUM
+        + "\nENABLE_QUERY_TAG_FILTER="
+        + ENABLE_QUERY_TAG_FILTER
+        + "\nQUERY_TAG_INDEX="
+        + QUERY_TAG_INDEX
+        + "\nQUERY_TAG_VALUE_NUM="
+        + QUERY_TAG_VALUE_NUM
         + "\nQUERY_AGGREGATE_FUN='"
         + QUERY_AGGREGATE_FUN
         + '\''
@@ -2154,6 +2193,10 @@ public class Config {
     configProperties.addProperty("Data Amount", "COMPRESSOR", this.COMPRESSOR);
     if (hasQuery()) {
       configProperties.addProperty("Query Param", "QUERY_DEVICE_NUM", this.QUERY_DEVICE_NUM);
+      configProperties.addProperty(
+          "Query Param", "ENABLE_QUERY_TAG_FILTER", this.ENABLE_QUERY_TAG_FILTER);
+      configProperties.addProperty("Query Param", "QUERY_TAG_INDEX", this.QUERY_TAG_INDEX);
+      configProperties.addProperty("Query Param", "QUERY_TAG_VALUE_NUM", this.QUERY_TAG_VALUE_NUM);
       configProperties.addProperty("Query Param", "QUERY_SENSOR_NUM", this.QUERY_SENSOR_NUM);
       configProperties.addProperty("Query Param", "QUERY_INTERVAL", this.QUERY_INTERVAL);
       configProperties.addProperty("Query Param", "STEP_SIZE", this.STEP_SIZE);

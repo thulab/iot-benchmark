@@ -19,9 +19,28 @@
 
 package cn.edu.tsinghua.iot.benchmark.workload.query.impl;
 
+import cn.edu.tsinghua.iot.benchmark.workload.query.TagFilter;
 import com.alibaba.fastjson.annotation.JSONField;
 
 public abstract class Query {
+
+  private TagFilter tagFilter;
+
+  public TagFilter getTagFilter() {
+    return tagFilter;
+  }
+
+  public void setTagFilter(TagFilter tagFilter) {
+    this.tagFilter = tagFilter;
+  }
+
+  protected StringBuilder appendTagFilter(StringBuilder queryAttrs) {
+    if (tagFilter != null) {
+      queryAttrs.append(" tagFilter=").append(tagFilter);
+    }
+    return queryAttrs;
+  }
+
   /** get attributes of query */
   @JSONField(serialize = false)
   public abstract StringBuilder getQueryAttrs();

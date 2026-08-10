@@ -414,6 +414,27 @@ public class MySqlRecorder extends TestDataPersistence {
             String.format(
                 SAVE_CONFIG,
                 "'" + PROJECT_ID + "'",
+                "'ENABLE_QUERY_TAG_FILTER'",
+                "'" + config.isENABLE_QUERY_TAG_FILTER() + "'");
+        statement.addBatch(sql);
+        sql =
+            String.format(
+                SAVE_CONFIG,
+                "'" + PROJECT_ID + "'",
+                "'QUERY_TAG_INDEX'",
+                "'" + config.getQUERY_TAG_INDEX() + "'");
+        statement.addBatch(sql);
+        sql =
+            String.format(
+                SAVE_CONFIG,
+                "'" + PROJECT_ID + "'",
+                "'QUERY_TAG_VALUE_NUM'",
+                "'" + config.getQUERY_TAG_VALUE_NUM() + "'");
+        statement.addBatch(sql);
+        sql =
+            String.format(
+                SAVE_CONFIG,
+                "'" + PROJECT_ID + "'",
                 "'QUERY_SENSOR_NUM'",
                 "'" + config.getQUERY_SENSOR_NUM() + "'");
         statement.addBatch(sql);

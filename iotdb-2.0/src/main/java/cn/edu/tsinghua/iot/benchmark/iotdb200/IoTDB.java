@@ -235,7 +235,10 @@ public class IoTDB implements IDatabase {
     StringBuilder builder = new StringBuilder();
     builder.append(getSimpleQuerySqlHead(preciseQuery.getDeviceSchema()));
     modelStrategy.addPreciseQueryWhereClause(
-        String.valueOf(preciseQuery.getTimestamp()), preciseQuery.getDeviceSchema(), builder);
+        String.valueOf(preciseQuery.getTimestamp()),
+        preciseQuery.getDeviceSchema(),
+        preciseQuery.getTagFilter(),
+        builder);
     BaseMode.logSqlIfNotCollect(Operation.PRECISE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.PRECISE_QUERY);
   }
@@ -259,6 +262,7 @@ public class IoTDB implements IDatabase {
         rangeQuery.getEndTimestamp(),
         rangeQuery.getDeviceSchema(),
         0,
+        rangeQuery.getTagFilter(),
         builder);
     BaseMode.logSqlIfNotCollect(Operation.RANGE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.RANGE_QUERY);
@@ -283,6 +287,7 @@ public class IoTDB implements IDatabase {
         valueRangeQuery.getEndTimestamp(),
         valueRangeQuery.getDeviceSchema(),
         (int) valueRangeQuery.getValueThreshold(),
+        valueRangeQuery.getTagFilter(),
         builder);
     BaseMode.logSqlIfNotCollect(Operation.VALUE_RANGE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.VALUE_RANGE_QUERY);
@@ -310,6 +315,7 @@ public class IoTDB implements IDatabase {
         aggRangeQuery.getEndTimestamp(),
         aggRangeQuery.getDeviceSchema(),
         0,
+        aggRangeQuery.getTagFilter(),
         builder);
     BaseMode.logSqlIfNotCollect(Operation.AGG_RANGE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.AGG_RANGE_QUERY);
@@ -336,6 +342,7 @@ public class IoTDB implements IDatabase {
         aggValueQuery.getEndTimestamp(),
         aggValueQuery.getDeviceSchema(),
         (int) aggValueQuery.getValueThreshold(),
+        aggValueQuery.getTagFilter(),
         builder);
     BaseMode.logSqlIfNotCollect(Operation.AGG_VALUE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.AGG_VALUE_QUERY);
@@ -364,6 +371,7 @@ public class IoTDB implements IDatabase {
         aggRangeValueQuery.getEndTimestamp(),
         aggRangeValueQuery.getDeviceSchema(),
         (int) aggRangeValueQuery.getValueThreshold(),
+        aggRangeValueQuery.getTagFilter(),
         builder);
     BaseMode.logSqlIfNotCollect(Operation.AGG_RANGE_VALUE_QUERY, builder.toString());
     return executeQueryAndGetStatus(builder.toString(), Operation.AGG_RANGE_VALUE_QUERY);
@@ -390,7 +398,8 @@ public class IoTDB implements IDatabase {
   @Override
   public Status latestPointQuery(LatestPointQuery latestPointQuery) {
     String latestPointSqlHead =
-        modelStrategy.getLatestPointQuerySql(latestPointQuery.getDeviceSchema());
+        modelStrategy.getLatestPointQuerySql(
+            latestPointQuery.getDeviceSchema(), latestPointQuery.getTagFilter());
     String sql = modelStrategy.addGroupByClauseIfNecessary(latestPointSqlHead);
     BaseMode.logSqlIfNotCollect(Operation.LATEST_POINT_QUERY, sql);
     return executeQueryAndGetStatus(sql, Operation.LATEST_POINT_QUERY);
@@ -415,6 +424,7 @@ public class IoTDB implements IDatabase {
         rangeQuery.getEndTimestamp(),
         rangeQuery.getDeviceSchema(),
         0,
+        rangeQuery.getTagFilter(),
         builder);
     // ORDER BY
     modelStrategy.addOrderByTimeDesc(builder);
@@ -441,6 +451,7 @@ public class IoTDB implements IDatabase {
         valueRangeQuery.getEndTimestamp(),
         valueRangeQuery.getDeviceSchema(),
         (int) valueRangeQuery.getValueThreshold(),
+        valueRangeQuery.getTagFilter(),
         builder);
     // ORDER BY
     modelStrategy.addOrderByTimeDesc(builder);
@@ -489,6 +500,7 @@ public class IoTDB implements IDatabase {
           childRangeQuery.getEndTimestamp(),
           childRangeQuery.getDeviceSchema(),
           0,
+          childRangeQuery.getTagFilter(),
           childStringBuilder);
     }
 

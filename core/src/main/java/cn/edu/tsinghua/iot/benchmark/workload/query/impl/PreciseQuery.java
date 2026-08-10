@@ -48,6 +48,6 @@ public class PreciseQuery extends Query {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("deviceSchema=").append(deviceSchema);
     stringBuilder.append(" timeStamp=").append(timestamp);
-    return stringBuilder;
+    return appendTagFilter(stringBuilder);
   }
 }
