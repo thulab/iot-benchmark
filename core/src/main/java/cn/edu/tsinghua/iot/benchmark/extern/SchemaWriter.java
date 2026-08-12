@@ -32,6 +32,10 @@ public abstract class SchemaWriter {
 
   /** Get Basic Writer */
   public static SchemaWriter getBasicWriter() {
+    if (config.getREAL_DATASET_FORMAT()
+        == cn.edu.tsinghua.iot.benchmark.conf.RealDatasetFormat.TSFILE) {
+      return new TsFileSchemaWriter();
+    }
     return new CSVSchemaWriter();
   }
 

@@ -47,37 +47,4 @@ public class CSVSchemaReader extends SchemaReader {
     }
     return result;
   }
-
-  @Override
-  public boolean checkDataSet() {
-    Path path = Paths.get(config.getFILE_PATH(), Constants.INFO_PATH);
-    if (!Files.exists(path) || !Files.isRegularFile(path)) {
-      return false;
-    }
-    try {
-      List<String> configs = Files.readAllLines(path);
-      List<String> nowConfigs = new ArrayList<>(Arrays.asList(config.toInfoText().split("\n")));
-      Map<String, String> differs = new HashMap<>();
-      for (int i = 0; i < nowConfigs.size(); i++) {
-        String configValue = configs.get(i);
-        String nowConfigValue = nowConfigs.get(i);
-        if (!nowConfigValue.equals(configValue)) {
-          differs.put(configValue, nowConfigValue);
-        }
-      }
-      for (Map.Entry<String, String> differ : differs.entrySet()) {
-        LOGGER.error(
-            "The config in dataSet is "
-                + differ.getKey()
-                + " but now config is "
-                + differ.getValue());
-      }
-      if (differs.size() != 0) {
-        return false;
-      }
-    } catch (IOException exception) {
-      LOGGER.error("Failed to check config");
-    }
-    return true;
-  }
 }

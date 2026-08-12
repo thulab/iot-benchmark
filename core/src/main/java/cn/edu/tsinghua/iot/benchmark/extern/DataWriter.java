@@ -27,7 +27,11 @@ public abstract class DataWriter {
 
   protected static final Config config = ConfigDescriptor.getInstance().getConfig();
 
-  public static DataWriter getDataWriter() {
+  public static DataWriter getDataWriter(int clientId) {
+    if (config.getREAL_DATASET_FORMAT()
+        == cn.edu.tsinghua.iot.benchmark.conf.RealDatasetFormat.TSFILE) {
+      return new TsFileDataWriter(clientId);
+    }
     return new CSVDataWriter();
   }
 
@@ -37,4 +41,7 @@ public abstract class DataWriter {
    * @param insertLoopIndex loop index of batch
    */
   public abstract boolean writeBatch(IBatch batch, long insertLoopIndex) throws Exception;
+
+  /** Flush and release any open resources. No-op for append-style writers (CSV). */
+  public void close() {}
 }
