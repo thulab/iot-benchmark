@@ -70,6 +70,14 @@
       <version>${iotdb.version}</version>
     </dependency>
     <dependency>
+      <!-- logback 1.3.x 是 slf4j 2.x 生态，必须显式带上 slf4j-api 2.x；
+           否则 Maven 仲裁会选 core 传递的 1.7.36，运行期 NoClassDefFoundError:
+           org.slf4j.spi.LoggingEventAware（iotdb-jdbc SNAPSHOT 传递依赖漂移时尤其致命） -->
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.9</version>
+    </dependency>
+    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>${logback.version}</version>
