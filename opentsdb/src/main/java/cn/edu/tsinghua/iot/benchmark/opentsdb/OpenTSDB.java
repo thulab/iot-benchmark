@@ -61,7 +61,9 @@ public class OpenTSDB implements IDatabase {
     }
     sensorRandom = new Random(1 + config.getQUERY_SEED());
     String openUrl = dbConfig.getHOST().get(0) + ":" + dbConfig.getPORT().get(0);
-    writeUrl = openUrl + "/api/put?summary ";
+    // ?summary 模式要求每个数据点带 summary 字段，而 OpenTSDBDataModel 没有该字段，
+    // 在 OpenTSDB 2.4.1 上会 400；普通 put 模式配合 auto_create_metrics 即可写入
+    writeUrl = openUrl + "/api/put";
     queryUrl = openUrl + "/api/query";
   }
 
@@ -84,6 +86,12 @@ public class OpenTSDB implements IDatabase {
         LOGGER.info("Delete old data of {} ...", metricName);
         LOGGER.debug("Delete request response: {}", response);
       } catch (IOException e) {
+        // 空库首跑时 metric 不存在，OpenTSDB 返回 400（No such name），
+        // 此时没有旧数据可删，跳过即可，不应中断压测
+        if (e.getMessage() != null && e.getMessage().contains("No such name")) {
+          LOGGER.warn("Metric {} does not exist yet, skip delete.", metricName);
+          continue;
+        }
         LOGGER.error("Delete old OpenTSDB metric {} failed. Error: {}", metricName, e.getMessage());
         throw new TsdbException(e);
       }
