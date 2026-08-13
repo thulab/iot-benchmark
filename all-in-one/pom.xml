@@ -27,102 +27,103 @@
     <version>1.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>core</artifactId>
-  <name>Benchmark Core</name>
+  <artifactId>all-in-one</artifactId>
+  <name>Benchmark All-in-One</name>
 
   <dependencies>
     <dependency>
-      <groupId>commons-cli</groupId>
-      <artifactId>commons-cli</artifactId>
-      <version>${common.cli.version}</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>core</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.18.0</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>influxdb</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.weakref</groupId>
-      <artifactId>jmxutils</artifactId>
-      <version>1.21</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>influxdb-2.0</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.44</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>cnosdb</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.alibaba</groupId>
-      <artifactId>fastjson</artifactId>
-      <version>1.2.83</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>kairosdb</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>2.10.1</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>opentsdb</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>net.agkn</groupId>
-      <artifactId>hll</artifactId>
-      <version>1.6.0</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>tdengine</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.clearspring.analytics</groupId>
-      <artifactId>stream</artifactId>
-      <version>2.9.8</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>tdengine-3.0</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>2.3.1</version>
-      <scope>compile</scope>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>questdb</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>javax.activation</groupId>
-      <artifactId>activation</artifactId>
-      <version>1.1</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>dolphindb-3.0</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <version>2.3.1</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>dolphindb-2.0</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.opencsv</groupId>
-      <artifactId>opencsv</artifactId>
-      <version>5.5.2</version>
-    </dependency>
-    <!-- 日志套装：all-in-one 的 FakeDB/SelfCheck 场景只用 lib/core，
-         缺少 slf4j 绑定会 NOP（Latency 矩阵走 LOGGER.info 全部丢失） -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <version>${org.slf4j.version}</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>timescaledb</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jul-to-slf4j</artifactId>
-      <version>${org.slf4j.version}</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>timescaledb-cluster</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${org.slf4j.version}</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>victoriametrics</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-reload4j</artifactId>
-      <version>${org.slf4j.version}</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>iotdb-2.0</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>${logback.version}</version>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>iotdb-1.3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>mssqlserver</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>cn.edu.tsinghua</groupId>
+      <artifactId>sqlite</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
-
   <build>
-    <finalName>iot-benchmark-core</finalName>
+    <finalName>iot-benchmark-all-in-one</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -153,5 +154,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

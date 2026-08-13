@@ -29,6 +29,7 @@
         <module>mssqlserver</module>
         <module>sqlite</module>
         <module>verification</module>
+        <module>all-in-one</module>
 <!--        <module>pi</module>-->
 <!--        <module>iginx</module>-->
     </modules>

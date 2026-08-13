@@ -98,10 +98,73 @@ echo Using configuration file: "${benchmark_conf}"
 # set MAIN_CLASS
 MAIN_CLASS=cn.edu.tsinghua.iot.benchmark.App
 # set CLASSPATH
+# all-in-one 布局（存在 lib/core 目录）时：
+#   先加载 DB_SWITCH 对应的专属目录 lib/<db>，再加载 lib/core，
+#   保证各模块优先使用自己版本的同名依赖；FakeDB/SelfCheck 仅用 lib/core。
+#   用 classpath 通配符（lib/<dir>/*）由 java 自行展开 jar；
+#   Windows（Git Bash/MSYS）下路径转 C:/ 形式、分隔符用分号，Linux/macOS 用冒号。
+# 旧布局（lib 直接放 jar）保持原行为。
 CLASSPATH=""
-for f in ${BENCHMARK_HOME}/lib/*.jar; do
-  CLASSPATH=${CLASSPATH}":"$f
-done
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*)
+    CP_SEP=";"
+    ;;
+  *)
+    CP_SEP=":"
+    ;;
+esac
+if [ -d "${BENCHMARK_HOME}/lib/core" ]; then
+  CONF_FILE="${benchmark_conf}"
+  if [ -d "${benchmark_conf}" ]; then
+    CONF_FILE="${benchmark_conf}/config.properties"
+  fi
+  DB_SWITCH=$(grep -E '^DB_SWITCH=' "${CONF_FILE}" 2>/dev/null | head -n1 | cut -d'=' -f2- | tr -d ' ')
+  if [ -z "${DB_SWITCH}" ]; then
+    DB_SWITCH=$(grep -E '^#[[:space:]]*DB_SWITCH=' "${CONF_FILE}" 2>/dev/null | head -n1 | sed 's/^#[[:space:]]*//' | cut -d'=' -f2- | tr -d ' ')
+  fi
+  DB_LIB_DIR=""
+  case "${DB_SWITCH}" in
+    IoTDB-200-*) DB_LIB_DIR="iotdb-2.0" ;;
+    IoTDB-130-*) DB_LIB_DIR="iotdb-1.3" ;;
+    InfluxDB-2*) DB_LIB_DIR="influxdb-2.0" ;;
+    InfluxDB*)   DB_LIB_DIR="influxdb" ;;
+    OpenTSDB*)   DB_LIB_DIR="opentsdb" ;;
+    CnosDB*)     DB_LIB_DIR="cnosdb" ;;
+    KairosDB*)   DB_LIB_DIR="kairosdb" ;;
+    TimescaleDB-cluster*) DB_LIB_DIR="timescaledb-cluster" ;;
+    TimescaleDB*) DB_LIB_DIR="timescaledb" ;;
+    TDengine-3*) DB_LIB_DIR="tdengine-3.0" ;;
+    TDengine*)   DB_LIB_DIR="tdengine" ;;
+    QuestDB*)    DB_LIB_DIR="questdb" ;;
+    MsSqlServer*) DB_LIB_DIR="mssqlserver" ;;
+    VictoriaMetrics*) DB_LIB_DIR="victoriametrics" ;;
+    DolphinDB-3*) DB_LIB_DIR="dolphindb-3.0" ;;
+    DolphinDB-2*) DB_LIB_DIR="dolphindb-2.0" ;;
+    SQLite*)     DB_LIB_DIR="sqlite" ;;
+    *)           DB_LIB_DIR="" ;;
+  esac
+  CP_HOME="${BENCHMARK_HOME}"
+  if [ "${CP_SEP}" = ";" ]; then
+    CP_HOME="$(cd "${BENCHMARK_HOME}" && pwd -W)"
+  fi
+  CP_DB_LIBS=""
+  if [ -n "${DB_LIB_DIR}" ] && [ -d "${BENCHMARK_HOME}/lib/${DB_LIB_DIR}" ]; then
+    CP_DB_LIBS="${CP_HOME}/lib/${DB_LIB_DIR}/*"
+  fi
+  if [ -n "${CP_DB_LIBS}" ]; then
+    CLASSPATH="${CP_DB_LIBS}${CP_SEP}${CP_HOME}/lib/core/*"
+  else
+    CLASSPATH="${CP_HOME}/lib/core/*"
+  fi
+else
+  CP_HOME="${BENCHMARK_HOME}"
+  if [ "${CP_SEP}" = ";" ]; then
+    CP_HOME="$(cd "${BENCHMARK_HOME}" && pwd -W)"
+  fi
+  for f in ${CP_HOME}/lib/*.jar; do
+    CLASSPATH=${CLASSPATH}${CP_SEP}$f
+  done
+fi
 
 # set benchmark_parms
 benchmark_parms="$benchmark_parms -Duser.timezone=GMT+8"
