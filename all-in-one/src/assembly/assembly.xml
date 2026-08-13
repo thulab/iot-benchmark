@@ -35,8 +35,10 @@
 <assembly>
     <id>all-in-one</id>
     <formats>
+        <!-- 只出 dir：去重（exec-maven-plugin）在 package 阶段本 execution 之后执行，
+             zip 由 maven-antrun-plugin 在去重后重建（ant zipfileset filemode 与 JDK
+             版本无关，能保住 .sh 可执行位），见 all-in-one/pom.xml -->
         <format>dir</format>
-        <format>zip</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
     <fileSets>

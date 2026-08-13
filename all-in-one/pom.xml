@@ -152,6 +152,62 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <!-- 去重：lib/<db> 中与 lib/core 内容一致的 jar 删除（同名不同版本保留）。
+               与 assembly 同 phase，按声明顺序在其之后执行。-->
+          <execution>
+            <id>dedup-lib</id>
+            <phase>package</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>cn.edu.tsinghua.iot.benchmark.allinone.DedupTool</mainClass>
+              <arguments>
+                <argument>${project.build.directory}/iot-benchmark-all-in-one/iot-benchmark-all-in-one/lib</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <!-- 用去重后的 dir 产物重建 zip：ant 的 zipfileset filemode 与 JDK 版本无关，
+               能保住 .sh 的可执行位（DedupTool 无法用 JDK 21 写 zip 权限位）。
+               与 dedup 同 phase，按声明顺序在其之后执行。-->
+          <execution>
+            <id>repackage-zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <zip destfile="${project.build.directory}/iot-benchmark-all-in-one.zip" whenempty="skip">
+                  <!-- 不含 `/` 的 pattern 只匹配 dir 顶层 -->
+                  <zipfileset dir="${project.build.directory}/iot-benchmark-all-in-one/iot-benchmark-all-in-one"
+                              prefix="iot-benchmark-all-in-one"
+                              excludes="bin/**,*.sh,**/*.sh"/>
+                  <zipfileset dir="${project.build.directory}/iot-benchmark-all-in-one/iot-benchmark-all-in-one/bin"
+                              prefix="iot-benchmark-all-in-one/bin"
+                              filemode="755"/>
+                  <zipfileset dir="${project.build.directory}/iot-benchmark-all-in-one/iot-benchmark-all-in-one"
+                              prefix="iot-benchmark-all-in-one"
+                              includes="*.sh"
+                              filemode="755"/>
+                </zip>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
