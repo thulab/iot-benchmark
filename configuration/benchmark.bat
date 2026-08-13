@@ -84,6 +84,9 @@ if exist "%BENCHMARK_HOME%\lib\core\" (
     for %%f in ("%BENCHMARK_HOME%\lib\%DB_LIB_DIR%\*.jar") do call :append "%%~f"
   )
   for %%f in ("%BENCHMARK_HOME%\lib\core\*.jar") do call :append "%%~f"
+  @REM conf 也放入 classpath：SLF4J 选中 reload4j（log4j 1.2）binding 的模块
+  @REM （如 iotdb-2.0/1.3）依赖 classpath 上的 log4j.properties，否则 LOGGER 输出被吞。
+  call :append "%BENCHMARK_HOME%\conf"
 ) else (
   set CLASSPATH="%BENCHMARK_HOME%\lib\*"
 )

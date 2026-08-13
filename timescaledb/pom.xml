@@ -39,6 +39,11 @@
             <artifactId>slf4j-reload4j</artifactId>
             <version>${org.slf4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.11</version>
+        </dependency>
     </dependencies>
 
     <build>

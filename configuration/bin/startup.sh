@@ -151,10 +151,14 @@ if [ -d "${BENCHMARK_HOME}/lib/core" ]; then
   if [ -n "${DB_LIB_DIR}" ] && [ -d "${BENCHMARK_HOME}/lib/${DB_LIB_DIR}" ]; then
     CP_DB_LIBS="${CP_HOME}/lib/${DB_LIB_DIR}/*"
   fi
+  # conf 目录也放入 classpath：logback.xml 有 -Dlogback.configurationFile 显式指定，
+  # 但 SLF4J 选中 reload4j（log4j 1.2）binding 的模块（如 iotdb-2.0/1.3，其 lib 里的
+  # logback-classic 1.3.x 对 slf4j-api 1.7 不可见）需要 classpath 上的 log4j.properties
+  # 才有 appender，否则 LOGGER 输出（含 Latency 矩阵）被吞。
   if [ -n "${CP_DB_LIBS}" ]; then
-    CLASSPATH="${CP_DB_LIBS}${CP_SEP}${CP_HOME}/lib/core/*"
+    CLASSPATH="${CP_DB_LIBS}${CP_SEP}${CP_HOME}/lib/core/*${CP_SEP}${CP_HOME}/conf"
   else
-    CLASSPATH="${CP_HOME}/lib/core/*"
+    CLASSPATH="${CP_HOME}/lib/core/*${CP_SEP}${CP_HOME}/conf"
   fi
 else
   CP_HOME="${BENCHMARK_HOME}"
