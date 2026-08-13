@@ -56,12 +56,18 @@ public class TDengine implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
-  private static final String TAOS_URL = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
+  // TAOS-RS 走 REST 连接器（纯 Java），不依赖 libtaos 原生库：JNI 连接器（jdbc:TAOS://）
+  // 在无 TDengine 客户端库的环境下会抛 UnsatisfiedLinkError，打包发行版无法使用。
+  private static final String TAOS_URL = "jdbc:TAOS-RS://%s:%s/?user=%s&password=%s";
 
   private static final String CREATE_DATABASE = "create database if not exists %s";
   private static final String DROP_DATABASE = "drop database if exists %s";
-  private static final String USE_DB = "use %s";
   private static final String SUPER_TABLE_NAME = "device";
+
+  /** REST 连接器下 use 语句不生效（httpd 无状态，返回 succ 但 db 不切换），SQL 一律用 db.表名 全限定前缀。 */
+  private String qName(String name) {
+    return testDatabaseName + "." + name;
+  }
 
   private final String CREATE_STABLE;
   private final String CREATE_TABLE;
@@ -146,8 +152,6 @@ public class TDengine implements IDatabase {
       try (Statement statement = connection.createStatement()) {
         // create database
         statement.execute(String.format(CREATE_DATABASE, testDatabaseName));
-        // use database
-        statement.execute(String.format(USE_DB, testDatabaseName));
 
         // create super table
         StringBuilder superSql = new StringBuilder();
@@ -160,16 +164,16 @@ public class TDengine implements IDatabase {
           }
         }
         superSql.deleteCharAt(superSql.length() - 1);
-        String superTableCreateSql = String.format(CREATE_STABLE, SUPER_TABLE_NAME, superSql);
+        String superTableCreateSql =
+            String.format(CREATE_STABLE, qName(SUPER_TABLE_NAME), superSql);
         LOGGER.info(superTableCreateSql);
         statement.execute(superTableCreateSql);
 
         // create tables
-        statement.execute(String.format(USE_DB, testDatabaseName));
         for (DeviceSchema deviceSchema : schemaList) {
           List<String> params = new ArrayList<>();
-          params.add(deviceSchema.getDevice());
-          params.add(SUPER_TABLE_NAME);
+          params.add(qName(deviceSchema.getDevice()));
+          params.add(qName(SUPER_TABLE_NAME));
           params.add(deviceSchema.getDevice());
           params.addAll(MetaUtil.getTags(deviceSchema.getDeviceId()).values());
           statement.execute(String.format(CREATE_TABLE, params.toArray()));
@@ -187,10 +191,9 @@ public class TDengine implements IDatabase {
   @Override
   public Status insertOneBatch(IBatch batch) {
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, testDatabaseName));
       StringBuilder builder = new StringBuilder();
       DeviceSchema deviceSchema = batch.getDeviceSchema();
-      builder.append("insert into ").append(deviceSchema.getDevice()).append(" values ");
+      builder.append("insert into ").append(qName(deviceSchema.getDevice())).append(" values ");
       for (Record record : batch.getRecords()) {
         builder.append(
             getInsertOneRecordSql(
@@ -364,7 +367,7 @@ public class TDengine implements IDatabase {
    * @return Simple Query header. e.g. SELECT s_0, s_3 FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  private static String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
+  private String getSimpleQuerySqlHead(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
@@ -384,9 +387,9 @@ public class TDengine implements IDatabase {
    * @param devices schema list of query devices
    * @return from and where clause
    */
-  private static String generateConstrainForDevices(List<DeviceSchema> devices) {
+  private String generateConstrainForDevices(List<DeviceSchema> devices) {
     StringBuilder builder = new StringBuilder();
-    builder.append(" FROM ").append(devices.get(0).getDevice());
+    builder.append(" FROM ").append(qName(devices.get(0).getDevice()));
     // builder.append(" WHERE ");
     /*for (DeviceSchema d : devices) {
       builder.append(" device = '").append(d.getDevice()).append("' OR");
@@ -405,7 +408,6 @@ public class TDengine implements IDatabase {
     int line = 0;
     int queryResultPointNum = 0;
     try (Statement statement = connection.createStatement()) {
-      statement.execute(String.format(USE_DB, testDatabaseName));
       try (ResultSet resultSet = statement.executeQuery(sql)) {
         while (resultSet.next()) {
           line++;
@@ -476,7 +478,7 @@ public class TDengine implements IDatabase {
    * @return Simple Query header. e.g. SELECT count(s_0), count(s_3) FROM root.group_0, root.group_1
    *     WHERE(device='d_0' OR device='d_1')
    */
-  private static String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
+  private String getAggQuerySqlHead(List<DeviceSchema> devices, String method) {
     StringBuilder builder = new StringBuilder();
     builder.append("SELECT ");
     List<Sensor> querySensors = devices.get(0).getSensors();
