@@ -22,11 +22,12 @@
         <dependency>
             <groupId>com.taosdata.jdbc</groupId>
             <artifactId>taos-jdbcdriver</artifactId>
-            <!-- 2.0.32 只兼容 TDengine 2.x 服务端：JNI 模式与 3.x 客户端库
-                 不兼容（缺 commitCallbackHandler 符号），REST 模式读不到 3.x
-                 响应的 code 字段（NPE: status is null）。3.2.9 兼容 3.x
-                 服务端的 REST 与 JNI 两种连接器（3.4.2.2 实测）。 -->
-            <version>3.2.9</version>
+            <!-- 上游原状 2.0.32（JNI 连接器）。实测：JNI 连 3.4.2.2 服务端通过（需
+                 配套客户端库 libtaos.so，通过 LD_LIBRARY_PATH 或
+                 -Djava.library.path 指定）；driver 与 libtaos 版本必须配套——3.2.9
+                 配 3.4.2.2 的 libtaos 会报 NoSuchMethodError。无客户端库的环境可
+                 改用 REST 连接器：把 URL 换成 jdbc:TAOS-RS://（见 TDengine.java）。 -->
+            <version>2.0.32</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

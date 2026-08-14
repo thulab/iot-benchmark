@@ -61,9 +61,11 @@ public class TDengine implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
 
   private static final String TDENGINE_DRIVER = "com.taosdata.jdbc.TSDBDriver";
-  // TAOS-RS 走 REST 连接器（纯 Java），不依赖 libtaos 原生库：JNI 连接器（jdbc:TAOS://）
-  // 在无 TDengine 客户端库的环境下会抛 UnsatisfiedLinkError，打包发行版无法使用。
-  private static final String TDENGINE_URL = "jdbc:TAOS-RS://%s:%s/?user=%s&password=%s";
+  // 默认 JNI 连接器（jdbc:TAOS:// 原生协议），需要 TDengine 客户端库（libtaos.so/libtaos.dll，
+  // 可把 libtaos 软链到具体版本）并在启动参数里指定 java.library.path（如
+  // -Djava.library.path=<so 所在目录>）；无客户端库的环境可改用 REST 连接器（纯 Java，走
+  // 6041 REST 端口）：把 URL 的 jdbc:TAOS:// 换成 jdbc:TAOS-RS:// 即可。
+  private static final String TDENGINE_URL = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
   protected static final CyclicBarrier superTableBarrier =
       new CyclicBarrier(config.getSCHEMA_CLIENT_NUMBER());
   private static final String USE_DB = "use %s";
