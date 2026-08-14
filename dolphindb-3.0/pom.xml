@@ -23,6 +23,14 @@
             <groupId>com.dolphindb</groupId>
             <artifactId>dolphindb-javaapi</artifactId>
             <version>3.00.0.2</version>
+            <exclusions>
+                <!-- 排除传递的 slf4j-simple（第三方绑定），全项目统一走 lib/core 的
+                     logback 绑定，避免 ServiceLoader 误选 simple 输出到 stdout -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
