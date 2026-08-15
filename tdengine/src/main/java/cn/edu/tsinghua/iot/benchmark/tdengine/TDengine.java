@@ -56,11 +56,6 @@ public class TDengine implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(TDengine.class);
 
   private static final String TAOS_DRIVER = "com.taosdata.jdbc.TSDBDriver";
-  // 默认 JNI 连接器（jdbc:TAOS:// 原生协议），需要 TDengine 客户端库（libtaos.so/libtaos.dll，
-  // 可把 libtaos 软链到具体版本）并在启动参数里指定 java.library.path（如
-  // -Djava.library.path=<so 所在目录>）；无客户端库的环境可改用 REST 连接器（纯 Java，走
-  // 6041 REST 端口）：把 URL 的 jdbc:TAOS:// 换成 jdbc:TAOS-RS:// 即可，注意 REST 下 use
-  // 语句不生效（httpd 无状态），需同步把 SQL 改为 db.表名 全限定前缀。
   private static final String TAOS_URL = "jdbc:TAOS://%s:%s/?user=%s&password=%s";
 
   private static final String CREATE_DATABASE = "create database if not exists %s";
