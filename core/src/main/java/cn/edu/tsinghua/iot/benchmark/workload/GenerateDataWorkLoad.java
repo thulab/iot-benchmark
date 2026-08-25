@@ -44,6 +44,10 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final PoissonDistribution poissonDistribution =
       new PoissonDistribution(poissonRandom);
   private static final Random dataRandom = new Random(config.getDATA_SEED());
+  // Random for sparse matrix write (NULL_RATIO), seeded by DATA_SEED so that the null pattern is
+  // deterministic and reproducible. All data clients share the same seed and thus generate the
+  // same null pattern.
+  private final Random nullRandom = new Random(config.getDATA_SEED());
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
@@ -78,6 +82,17 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       }
     } else {
       values.add(workloadValues[colIndex][index]);
+    }
+    // Sparse matrix write: each cell is null with probability NULL_RATIO, independently. The
+    // values list is a fresh copy, so setting null here never mutates the shared static
+    // workloadValues. When IS_SENSOR_TS_ALIGNMENT is false the list holds a single value and the
+    // coin flip degenerates to a per-value probability.
+    if (config.getNULL_RATIO() > 0) {
+      for (int i = 0; i < values.size(); i++) {
+        if (probTool.returnTrueByProb(config.getNULL_RATIO(), nullRandom)) {
+          values.set(i, null);
+        }
+      }
     }
     return values;
   }

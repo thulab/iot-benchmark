@@ -69,6 +69,31 @@ public class BatchSerializeTest extends BenchmarkTestBase {
     assertEquals(batch, deserializeBatch);
   }
 
+  /** Null values (sparse matrix write, NULL_RATIO) must survive the serialize round-trip. */
+  @Test
+  public void testSerializeWithNulls() throws Exception {
+    List<Sensor> sensors = new ArrayList<>();
+    sensors.add(new Sensor("s1", SensorType.DOUBLE));
+    sensors.add(new Sensor("s2", SensorType.DOUBLE));
+    DeviceSchema deviceSchema = new DeviceSchema("d1", sensors, new HashMap<>());
+    List<Record> records = new LinkedList<>();
+    for (int i = 0; i < 12; i++) {
+      List<Object> value = new ArrayList<>();
+      // Alternate between a full row and a row with a null in every other column.
+      value.add(i % 2 == 0 ? "v" + i : null);
+      value.add(i % 2 == 1 ? "v" + i : null);
+      records.add(new Record(i, value));
+    }
+
+    Batch batch = new Batch(deviceSchema, records);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    batch.serialize(outputStream);
+    ByteArrayInputStream inputStreamStream = new ByteArrayInputStream(outputStream.toByteArray());
+    IBatch deserializeBatch = Batch.deserialize(inputStreamStream);
+
+    assertEquals(batch, deserializeBatch);
+  }
+
   private Record buildRecord(long time, int size) {
     List<Object> value = new ArrayList<>();
     for (int i = 0; i < size; i++) {

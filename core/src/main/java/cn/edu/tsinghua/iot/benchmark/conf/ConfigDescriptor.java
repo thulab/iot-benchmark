@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_JDBC;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_REST;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_RECORDS;
 import static cn.edu.tsinghua.iot.benchmark.tsdb.enums.DBInsertMode.INSERT_USE_SESSION_TABLET;
@@ -268,6 +269,8 @@ public class ConfigDescriptor {
                   properties.getProperty(
                       "TS_ALIGNMENT_RATIO", config.getTS_ALIGNMENT_RATIO() + "")));
         }
+        config.setNULL_RATIO(
+            Double.parseDouble(properties.getProperty("NULL_RATIO", config.getNULL_RATIO() + "")));
         config.setIS_CLIENT_BIND(
             Boolean.parseBoolean(
                 properties.getProperty("IS_CLIENT_BIND", config.isIS_CLIENT_BIND() + "")));
@@ -748,6 +751,9 @@ public class ConfigDescriptor {
           "The iotdb table model only supports INSERT_USE_SESSION_TABLET and INSERT_USE_REST! Please modify DB_SWITCH in the configuration file.");
       result = false;
     }
+    if (config.getNULL_RATIO() != 0) {
+      result &= checkNullRatio();
+    }
     // TODO Not supported TIME_DURATION、MAX_BY、MIN_BY. iotdb will report errors for these three
     // types of aggFun.
     if (config.getQUERY_AGGREGATE_FUN().equals(Constants.MAX_BY)
@@ -784,6 +790,74 @@ public class ConfigDescriptor {
       }
     }
     return result;
+  }
+
+  /**
+   * Check whether the configuration supports sparse matrix write (NULL_RATIO > 0).
+   *
+   * <p>NULL_RATIO is only supported for:
+   *
+   * <ul>
+   *   <li>IoTDB-1.3 and IoTDB-2.0 switches (DBType.IoTDB && DBVersion.IOTDB_130 / IOTDB_200), whose
+   *       modules handle null values in their write path
+   *   <li>the INSERT_USE_SESSION_TABLET and INSERT_USE_JDBC insert modes
+   *   <li>work modes other than verificationWriteMode / verificationQueryMode
+   * </ul>
+   */
+  private boolean checkNullRatio() {
+    boolean result = true;
+    double nullRatio = config.getNULL_RATIO();
+    if (nullRatio < 0 || nullRatio > 1) {
+      LOGGER.error(
+          "Invalid parameter NULL_RATIO: {}, whose value range should be [0, 1]", nullRatio);
+      result = false;
+    }
+    BenchmarkMode workMode = config.getBENCHMARK_WORK_MODE();
+    if (workMode == BenchmarkMode.VERIFICATION_WRITE
+        || workMode == BenchmarkMode.VERIFICATION_QUERY) {
+      LOGGER.error(
+          "NULL_RATIO is not supported in {} mode. Please use testWithDefaultPath or generateDataMode.",
+          workMode);
+      result = false;
+    }
+    if (!checkNullRatioDbSwitch(config.getDbConfig().getDB_SWITCH(), "DB_SWITCH")) {
+      result = false;
+    }
+    if (config.isIS_DOUBLE_WRITE()) {
+      if (!checkNullRatioDbSwitch(
+          config.getANOTHER_DBConfig().getDB_SWITCH(), "ANOTHER_DB_SWITCH")) {
+        result = false;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * NULL_RATIO is supported for IoTDB-1.3 and IoTDB-2.0 with the SESSION_BY_TABLET or JDBC insert
+   * modes (the only write paths with null support in those modules).
+   */
+  private boolean checkNullRatioDbSwitch(DBSwitch dbSwitch, String configKey) {
+    if (dbSwitch.getType() != DBType.IoTDB
+        || (dbSwitch.getVersion() != DBVersion.IOTDB_200
+            && dbSwitch.getVersion() != DBVersion.IOTDB_130)) {
+      LOGGER.error(
+          "NULL_RATIO is only supported for IoTDB-1.3 and IoTDB-2.0, but {} is {}. Please set {} to an IoTDB-130 or IoTDB-200 switch.",
+          configKey,
+          dbSwitch,
+          configKey);
+      return false;
+    }
+    if (dbSwitch.getInsertMode() != INSERT_USE_SESSION_TABLET
+        && dbSwitch.getInsertMode() != INSERT_USE_JDBC) {
+      LOGGER.error(
+          "NULL_RATIO only supports INSERT_USE_SESSION_TABLET and INSERT_USE_JDBC, but the insert mode of {} {} is {}. Please modify {}.",
+          configKey,
+          dbSwitch,
+          dbSwitch.getInsertMode(),
+          configKey);
+      return false;
+    }
+    return true;
   }
 
   /***

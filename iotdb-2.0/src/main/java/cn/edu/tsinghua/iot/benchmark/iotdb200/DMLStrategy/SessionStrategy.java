@@ -158,37 +158,31 @@ public class SessionStrategy extends DMLStrategy {
         for (int recordValueIndex = 0;
             recordValueIndex < record.getRecordDataValue().size();
             recordValueIndex++) {
+          Object value = record.getRecordDataValue().get(recordValueIndex);
+          // Sparse matrix write (NULL_RATIO): the measurement-name addValue overload handles
+          // null natively (marks the cell in the tablet BitMaps and stores a typed null
+          // sentinel). A null reaching the typed switch below would NPE, so skip it.
+          if (value == null) {
+            tablet.addValue(sensors.get(sensorIndex).getName(), recordIndex, (Object) null);
+            sensorIndex++;
+            continue;
+          }
           switch (sensors.get(sensorIndex).getSensorType()) {
             case BOOLEAN:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (boolean) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (boolean) value);
               break;
             case INT32:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (int) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (int) value);
               break;
             case INT64:
             case TIMESTAMP:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (long) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (long) value);
               break;
             case FLOAT:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (float) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (float) value);
               break;
             case DOUBLE:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (double) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (double) value);
               break;
             case TEXT:
             case STRING:
@@ -196,25 +190,13 @@ public class SessionStrategy extends DMLStrategy {
               tablet.addValue(
                   recordIndex,
                   recordValueIndex,
-                  binaryCache
-                      .computeIfAbsent(
-                          (String) record.getRecordDataValue().get(recordValueIndex),
-                          BytesUtils::valueOf)
-                      .getValues());
+                  binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf).getValues());
               break;
             case OBJECT:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  true,
-                  0,
-                  (byte[]) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, true, 0, (byte[]) value);
               break;
             case DATE:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (LocalDate) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (LocalDate) value);
               break;
             default:
               LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());

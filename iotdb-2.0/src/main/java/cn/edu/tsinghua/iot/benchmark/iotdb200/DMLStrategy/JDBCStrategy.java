@@ -252,6 +252,13 @@ public class JDBCStrategy extends DMLStrategy {
     int sensorIndex = 0;
     List<Sensor> sensors = deviceSchema.getSensors();
     for (Object value : values) {
+      // Sparse matrix write (NULL_RATIO): null becomes the SQL literal null, valid for any
+      // column type in the IoTDB tree model. Skip the type-specific quoting below.
+      if (value == null) {
+        builder.append(",").append("null");
+        sensorIndex++;
+        continue;
+      }
       switch (sensors.get(sensorIndex).getSensorType()) {
         case BOOLEAN:
         case INT32:
