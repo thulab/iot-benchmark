@@ -220,8 +220,9 @@ public class Config {
 
   /**
    * The ratio of null values per row and per column (sparse matrix write). Each cell is null with
-   * probability NULL_RATIO independently. 0.0 = disabled (dense); 0.9 = 90% of cells are null. Only
-   * supported for IoTDB-2.0 switches and the SESSION_BY_TABLET / JDBC insert modes.
+   * probability NULL_RATIO independently. 0.0 = disabled (dense); 0.9 = 90% of cells are null.
+   * Supported for IoTDB-1.3 (tree model) and IoTDB-2.0 (tree and table model) switches with the
+   * SESSION_BY_TABLET / JDBC insert modes.
    */
   private double NULL_RATIO = 0.0;
 

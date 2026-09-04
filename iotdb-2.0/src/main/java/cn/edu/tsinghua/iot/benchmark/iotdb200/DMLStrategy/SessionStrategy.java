@@ -104,7 +104,7 @@ public class SessionStrategy extends DMLStrategy {
   }
 
   private Status insertOneBatchByTablet(IBatch batch) {
-    Tablet tablet = genTablet(batch);
+    Tablet tablet = genTablet(iotdb, batch);
     task =
         service.submit(
             () -> {
@@ -117,7 +117,7 @@ public class SessionStrategy extends DMLStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
-  private Tablet genTablet(IBatch batch) {
+  static Tablet genTablet(IoTDB iotdb, IBatch batch) {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<ColumnCategory> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
