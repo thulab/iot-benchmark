@@ -48,13 +48,15 @@ public class IoTDBClusterSession extends IoTDBSessionBase {
         boolean enableCompression,
         boolean enableRedirection) {
       this.sessionPool =
-          new SessionPool(
-              hostUrls,
-              dbConfig.getUSERNAME(),
-              dbConfig.getPASSWORD(),
-              MAX_SESSION_CONNECTION_PER_CLIENT,
-              config.isENABLE_THRIFT_COMPRESSION(),
-              true);
+          new SessionPool.Builder()
+              .nodeUrls(hostUrls)
+              .user(user)
+              .password(password)
+              .maxSize(maxSize)
+              .enableCompression(enableCompression)
+              .enableRedirection(enableRedirection)
+              .thriftMaxFrameSize(config.getIOTDB_THRIFT_MAX_FRAME_SIZE())
+              .build();
     }
 
     @Override

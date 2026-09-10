@@ -168,6 +168,7 @@ public class IoTDB implements IDatabase {
                 .port(Integer.parseInt(dbConfig.getPORT().get(0)))
                 .username(dbConfig.getUSERNAME())
                 .password(dbConfig.getPASSWORD())
+                .thriftMaxFrameSize(config.getIOTDB_THRIFT_MAX_FRAME_SIZE())
                 .version(Version.V_1_0)
                 .build();
         metaSession.open(config.isENABLE_THRIFT_COMPRESSION());
