@@ -92,6 +92,66 @@
       <artifactId>opencsv</artifactId>
       <version>5.5.2</version>
     </dependency>
+    <!-- 日志套装：all-in-one 的 FakeDB/SelfCheck 场景只用 lib/core，
+         缺少 slf4j 绑定会 NOP（Latency 矩阵走 LOGGER.info 全部丢失）。
+         绑定统一由 slf4j-reload4j（2.0.9）提供，配置走 conf/log4j.properties；
+         不声明 logback——core 目录若同时携带两个绑定，JVM 对 classpath
+         通配符（lib/core/*）的展开顺序未指定，SLF4J 2.x ServiceLoader
+         会随机选取其一。iotdb / dolphindb 模块自带 logback / log4j12 绑定，
+         经「模块目录优先」规则确定性生效。 -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>${org.slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>${org.slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${org.slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-reload4j</artifactId>
+      <version>${org.slf4j.version}</version>
+    </dependency>
   </dependencies>
+
+  <build>
+    <finalName>iot-benchmark-core</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <!-- Package binaries-->
+          <execution>
+            <id>server-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/assembly/assembly.xml</descriptor>
+              </descriptors>
+              <appendAssemblyId>false</appendAssemblyId>
+              <archive>
+                <manifest>
+                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

@@ -32,7 +32,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MsSQLServerDB implements IDatabase {
   private static final Logger LOGGER = LoggerFactory.getLogger(MsSQLServerDB.class);
@@ -68,9 +70,11 @@ public class MsSQLServerDB implements IDatabase {
     "SELECT * from %s where pk_fk_Id in (?) and pk_TimeStamp >= ? and pk_TimeStamp <= ? and value > ? order by pk_TimeStamp desc",
   };
 
-  private PreparedStatement[] insertStatements = new PreparedStatement[6];
+  // 槽位数 = SensorType 枚举值个数；此前写死 6，枚举扩展后 ordinal 越界（ArrayIndexOutOfBounds）
+  private PreparedStatement[] insertStatements = new PreparedStatement[SensorType.values().length];
   // first: sensorType second: query index
-  private PreparedStatement[][] queryStatements = new PreparedStatement[6][10];
+  private PreparedStatement[][] queryStatements =
+      new PreparedStatement[SensorType.values().length][10];
 
   private static final String DELETE_TABLE = "drop table if exists %s_%s";
   private DBConfig dbConfig;
@@ -94,7 +98,10 @@ public class MsSQLServerDB implements IDatabase {
                   + ":"
                   + dbConfig.getPORT().get(0)
                   + ";DataBaseName="
-                  + dbConfig.getDB_NAME(),
+                  + dbConfig.getDB_NAME()
+                  // mssql-jdbc 12.2+ 默认 encrypt=true，容器/自签证书环境会因 PKIX 校验失败
+                  // 连不上；压测场景显式关闭加密。
+                  + ";encrypt=false",
               dbConfig.getUSERNAME(),
               dbConfig.getPASSWORD());
 
@@ -135,8 +142,13 @@ public class MsSQLServerDB implements IDatabase {
   public void cleanup() throws TsdbException {
     try {
       Statement statement = connection.createStatement();
+      // 类型映射存在多对一（如 TEXT 与 default 分支都映射 text），按唯一表名 drop 一次
+      Set<String> dropped = new HashSet<>();
       for (SensorType sensorType : SensorType.values()) {
-        statement.execute(String.format(DELETE_TABLE, dbConfig.getDB_NAME(), typeMap(sensorType)));
+        if (dropped.add(typeMap(sensorType))) {
+          statement.execute(
+              String.format(DELETE_TABLE, dbConfig.getDB_NAME(), typeMap(sensorType)));
+        }
       }
       statement.close();
     } catch (SQLException sqlException) {
@@ -170,11 +182,17 @@ public class MsSQLServerDB implements IDatabase {
     try {
       start = System.nanoTime();
       Statement statement = connection.createStatement();
+      // 类型映射存在多对一（TEXT 与 default 分支都映射 text、FLOAT 与 DOUBLE 都映射 float），
+      // 按唯一表名建表，避免 "already an object named" 撞表
+      Set<String> created = new HashSet<>();
       for (SensorType sensorType : SensorType.values()) {
         if (sensorType == SensorType.DOUBLE) {
           continue;
         }
         String sysType = typeMap(sensorType);
+        if (!created.add(sysType)) {
+          continue;
+        }
         String createSQL =
             String.format(
                 CREATE_TABLE,

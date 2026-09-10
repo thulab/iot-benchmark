@@ -21,11 +21,13 @@ package cn.edu.tsinghua.iot.benchmark.opentsdb;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 
 /** From https://www.cnblogs.com/zhuawang/archive/2012/12/08/2809380.html */
 public class HttpRequest {
@@ -94,7 +96,7 @@ public class HttpRequest {
     try {
       URL realUrl = new URL(url);
       // 打开和URL之间的连接
-      URLConnection conn = realUrl.openConnection();
+      HttpURLConnection conn = (HttpURLConnection) realUrl.openConnection();
       // 设置通用的请求属性
       conn.setRequestProperty("accept", "*/*");
       conn.setRequestProperty("connection", "Keep-Alive");
@@ -103,12 +105,13 @@ public class HttpRequest {
       // 发送POST请求必须设置如下两行
       conn.setDoOutput(true);
       conn.setDoInput(true);
-      // 获取URLConnection对象对应的输出流
-      out = new PrintWriter(conn.getOutputStream());
-      // 发送请求参数
-      if (param != null) out.print(param);
-      // flush输出流的缓冲
-      out.flush();
+      // OpenTSDB 2.x 的 Netty HTTP 层不支持 chunked 传输编码：批量写入的 JSON 体
+      // （约 90KB）超过 HttpURLConnection 内部缓冲后会隐式走 chunked，被服务端
+      // 400 拒绝（Chunked request not supported）。显式固定长度强制 Content-Length，
+      // 并统一按 UTF-8 编码输出
+      byte[] body = (param == null ? "" : param).getBytes(StandardCharsets.UTF_8);
+      conn.setFixedLengthStreamingMode(body.length);
+      conn.getOutputStream().write(body);
       // 定义BufferedReader输入流来读取URL的响应
       in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
       String line;
@@ -153,7 +156,27 @@ public class HttpRequest {
       while ((line = in.readLine()) != null) {
         result += line;
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
+      // 非 2xx 时 getInputStream 抛 IOException；把错误响应体拼进异常消息，
+      // 便于调用方按错误内容（如空库时的 No such name）做容错处理
+      try {
+        HttpURLConnection errorConn = (HttpURLConnection) new URL(url).openConnection();
+        InputStream errorStream = errorConn.getErrorStream();
+        if (errorStream != null) {
+          StringBuilder body = new StringBuilder();
+          BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
+          String line;
+          while ((line = errorReader.readLine()) != null) {
+            body.append(line);
+          }
+          errorReader.close();
+          throw new IOException(e.getMessage() + " | body: " + body);
+        }
+      } catch (IOException inner) {
+        if (inner.getMessage() != null && inner.getMessage().contains(" | body: ")) {
+          throw inner;
+        }
+      }
       throw e;
     }
     // 使用finally块来关闭输出流、输入流

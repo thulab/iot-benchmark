@@ -70,12 +70,50 @@ set JAVA_OPTS=-ea^
 
 @REM ***** CLASSPATH library setting *****
 @REM Ensure that any user defined CLASSPATH variables are not used on startup
-set CLASSPATH="%BENCHMARK_HOME%\lib\*"
-@REM set CLASSPATH=%CLASSPATH%;iotdb.IoTDB
+@REM all-in-one 布局（存在 lib\core 目录）时：先加载 DB_SWITCH 对应的专属目录
+@REM lib\<db>，再加载 lib\core；旧布局（lib 直接放 jar）保持原行为。
+set CLASSPATH=
+set DB_LIB_DIR=
+if exist "%BENCHMARK_HOME%\lib\core\" (
+  for /f "tokens=1,* delims==" %%a in ('findstr /b /c:"DB_SWITCH=" "%BENCHMARK_CONF%\config.properties" 2^>nul') do set "DB_SWITCH=%%b"
+  if not defined DB_SWITCH for /f "tokens=1,* delims==" %%a in ('findstr /b /c:"# DB_SWITCH=" "%BENCHMARK_CONF%\config.properties" 2^>nul') do set "DB_SWITCH=%%b"
+  if not defined DB_SWITCH for /f "tokens=1,* delims==" %%a in ('findstr /b /c:"#DB_SWITCH=" "%BENCHMARK_CONF%\config.properties" 2^>nul') do set "DB_SWITCH=%%b"
+  if defined DB_SWITCH set "DB_SWITCH=%DB_SWITCH: =%"
+  if defined DB_SWITCH call :select_db_lib
+  if defined DB_LIB_DIR if exist "%BENCHMARK_HOME%\lib\%DB_LIB_DIR%\" (
+    for %%f in ("%BENCHMARK_HOME%\lib\%DB_LIB_DIR%\*.jar") do call :append "%%~f"
+  )
+  for %%f in ("%BENCHMARK_HOME%\lib\core\*.jar") do call :append "%%~f"
+  @REM conf 也放入 classpath：SLF4J 选中 reload4j（log4j 1.2）binding 的模块
+  @REM （如 iotdb-2.0/1.3）依赖 classpath 上的 log4j.properties，否则 LOGGER 输出被吞。
+  call :append "%BENCHMARK_HOME%\conf"
+) else (
+  set CLASSPATH="%BENCHMARK_HOME%\lib\*"
+)
 goto okClasspath
 
+:select_db_lib
+echo.%DB_SWITCH%|findstr /b /c:"IoTDB-200-" >nul && set "DB_LIB_DIR=iotdb-2.0" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"IoTDB-130-" >nul && set "DB_LIB_DIR=iotdb-1.3" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"InfluxDB-2" >nul && set "DB_LIB_DIR=influxdb-2.0" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"InfluxDB" >nul && set "DB_LIB_DIR=influxdb" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"OpenTSDB" >nul && set "DB_LIB_DIR=opentsdb" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"CnosDB" >nul && set "DB_LIB_DIR=cnosdb" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"KairosDB" >nul && set "DB_LIB_DIR=kairosdb" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"TimescaleDB-cluster" >nul && set "DB_LIB_DIR=timescaledb-cluster" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"TimescaleDB" >nul && set "DB_LIB_DIR=timescaledb" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"TDengine-3" >nul && set "DB_LIB_DIR=tdengine-3.0" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"TDengine" >nul && set "DB_LIB_DIR=tdengine" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"QuestDB" >nul && set "DB_LIB_DIR=questdb" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"MsSqlServer" >nul && set "DB_LIB_DIR=mssqlserver" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"VictoriaMetrics" >nul && set "DB_LIB_DIR=victoriametrics" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"DolphinDB-3" >nul && set "DB_LIB_DIR=dolphindb-3.0" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"DolphinDB-2" >nul && set "DB_LIB_DIR=dolphindb-2.0" && goto :eof
+echo.%DB_SWITCH%|findstr /b /c:"SQLite" >nul && set "DB_LIB_DIR=sqlite" && goto :eof
+goto :eof
+
 :append
-set CLASSPATH=%CLASSPATH%;%1
+set CLASSPATH=%CLASSPATH%;%~1
 
 goto :eof
 
@@ -84,7 +122,7 @@ goto :eof
 
 rem echo CLASSPATH: %CLASSPATH%
 
-"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp .;./lib/* %MAIN_CLASS% -cf %BENCHMARK_HOME%/conf
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp "%CLASSPATH%" %MAIN_CLASS% -cf %BENCHMARK_HOME%/conf
 goto finally
 
 :err
