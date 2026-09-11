@@ -773,8 +773,10 @@ public class IoTDB implements IDatabase {
     int sensorIndex = 0;
     List<Sensor> sensors = deviceSchema.getSensors();
     for (Object value : values) {
-      // Sparse matrix write (NULL_RATIO): null becomes the SQL literal null, valid for any
-      // column type in the IoTDB tree model. Skip the type-specific quoting below.
+      // Sparse matrix write (NULL_RATIO): null becomes the SQL literal null, which is valid for
+      // any column type in the tree model. Skip the type-specific quoting below, which would
+      // otherwise render the Java literal "null" as an unquoted ident (fine by luck) or as the
+      // string 'null' / X'null' (silently a wrong value).
       if (value == null) {
         builder.append(",").append("null");
         sensorIndex++;

@@ -23,7 +23,12 @@ import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
 import cn.edu.tsinghua.iot.benchmark.client.operation.Operation;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.DeviceSummary;
+import cn.edu.tsinghua.iot.benchmark.entity.Record;
+import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
+import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
 import cn.edu.tsinghua.iot.benchmark.measurement.Measurement;
 import cn.edu.tsinghua.iot.benchmark.measurement.Status;
 import cn.edu.tsinghua.iot.benchmark.schema.schemaImpl.DeviceSchema;
@@ -185,6 +190,78 @@ public class DBWrapperTest extends BenchmarkTestBase {
       row.add(1);
       records.add(row);
       return new Status(true, 1, "fake-sql", records);
+    }
+  }
+
+  /**
+   * Sparse matrix write: the ingestion counters must reflect the non-null cells only. {@code
+   * Batch.pointNum()} reports the 6 reserved cells, but 2 of them are null and are never sent, so
+   * the wrapper has to record 4. Counting the reserved cells instead would inflate the reported
+   * throughput by 1/(1 - NULL_RATIO) - at the {@code NULL_RATIO=0.9} the PR documents, roughly ten
+   * times the real figure.
+   */
+  @Test
+  public void insertOneBatchCountsOnlyNonNullCells() throws Exception {
+    double originalNullRatio = config.getNULL_RATIO();
+    config.setNULL_RATIO(0.5);
+    try {
+      DeviceSchema schema = new DeviceSchema();
+      schema.setDevice("d_0");
+      schema.setSensors(
+          Arrays.asList(
+              new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+              new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+      List<Record> records =
+          Arrays.asList(
+              new Record(0, new ArrayList<>(Arrays.asList(null, 1L))),
+              new Record(1, new ArrayList<>(Arrays.asList(2.5D, null))),
+              new Record(2, new ArrayList<>(Arrays.asList(3.5D, 3L))));
+      Batch batch = new Batch(schema, records);
+
+      assertEquals("the batch reserves six cells", 6L, batch.pointNum());
+      assertEquals("two cells are null, so four carry a value", 4L, batch.nonNullPointNum());
+
+      DBWrapper wrapper = DBWrapper.forTest(Collections.<IDatabase>singletonList(new FakeDB()));
+      wrapper.insertOneBatch(batch);
+
+      Measurement measurement = wrapper.getMeasurement();
+      assertEquals(
+          "ingestion must count the four non-null cells, not the six reserved ones",
+          4L,
+          measurement.getOkPointNum(Operation.INGESTION));
+    } finally {
+      config.setNULL_RATIO(originalNullRatio);
+    }
+  }
+
+  /** A dense batch must still report every reserved cell, i.e. the fix must not lose points. */
+  @Test
+  public void insertOneBatchCountsEveryCellWhenDense() throws Exception {
+    double originalNullRatio = config.getNULL_RATIO();
+    config.setNULL_RATIO(0.0);
+    try {
+      DeviceSchema schema = new DeviceSchema();
+      schema.setDevice("d_0");
+      schema.setSensors(
+          Arrays.asList(
+              new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+              new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+      List<Record> records =
+          Arrays.asList(
+              new Record(0, new ArrayList<>(Arrays.asList(1.5D, 1L))),
+              new Record(1, new ArrayList<>(Arrays.asList(2.5D, 2L))),
+              new Record(2, new ArrayList<>(Arrays.asList(3.5D, 3L))));
+      Batch batch = new Batch(schema, records);
+
+      DBWrapper wrapper = DBWrapper.forTest(Collections.<IDatabase>singletonList(new FakeDB()));
+      wrapper.insertOneBatch(batch);
+
+      assertEquals(
+          "a dense batch must still report all six cells",
+          6L,
+          wrapper.getMeasurement().getOkPointNum(Operation.INGESTION));
+    } finally {
+      config.setNULL_RATIO(originalNullRatio);
     }
   }
 }

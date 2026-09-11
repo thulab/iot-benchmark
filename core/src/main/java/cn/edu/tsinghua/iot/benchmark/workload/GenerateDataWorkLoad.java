@@ -44,10 +44,8 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
   private static final PoissonDistribution poissonDistribution =
       new PoissonDistribution(poissonRandom);
   private static final Random dataRandom = new Random(config.getDATA_SEED());
-  // Random for sparse matrix write (NULL_RATIO), seeded by DATA_SEED so that the null pattern is
-  // deterministic and reproducible. All data clients share the same seed and thus generate the
-  // same null pattern.
-  private final Random nullRandom = new Random(config.getDATA_SEED());
+  // Seed for the sparse matrix write (NULL_RATIO) null pattern.
+  private static final long NULL_SEED = config.getDATA_SEED();
   private static final String CHAR_TABLE =
       "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final long timeStampConst =
@@ -85,16 +83,45 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
     }
     // Sparse matrix write: each cell is null with probability NULL_RATIO, independently. The
     // values list is a fresh copy, so setting null here never mutates the shared static
-    // workloadValues. When IS_SENSOR_TS_ALIGNMENT is false the list holds a single value and the
-    // coin flip degenerates to a per-value probability.
+    // workloadValues.
     if (config.getNULL_RATIO() > 0) {
       for (int i = 0; i < values.size(); i++) {
-        if (probTool.returnTrueByProb(config.getNULL_RATIO(), nullRandom)) {
+        // When IS_SENSOR_TS_ALIGNMENT is false the row holds a single column, whose index is the
+        // cursor carried by colIndex rather than the loop index.
+        int columnIndex = colIndex == -1 ? i : colIndex;
+        if (isNullCell(deviceIndex, stepOffset, columnIndex)) {
           values.set(i, null);
         }
       }
     }
     return values;
+  }
+
+  /**
+   * Decides whether the cell identified by {@code (deviceId, stepOffset, columnIndex)} is null.
+   *
+   * <p>The decision is derived from {@code DATA_SEED} and the cell coordinates instead of from a
+   * shared {@link Random}, so it does not depend on the order in which data clients consume random
+   * numbers: the same cell is null (or not) in every run, no matter which thread generates it. This
+   * matters because {@link SingletonWorkDataWorkLoad} is shared across data client threads when
+   * {@code IS_CLIENT_BIND=false}.
+   *
+   * <p>This method is pure, so it needs no synchronization.
+   */
+  private static boolean isNullCell(long deviceId, long stepOffset, int columnIndex) {
+    // Mix the coordinates into the seed, then apply the murmur3 finalizer so that neighbouring
+    // coordinates do not yield correlated decisions.
+    long hash = NULL_SEED;
+    hash = hash * 31 + deviceId;
+    hash = hash * 31 + stepOffset;
+    hash = hash * 31 + columnIndex;
+    hash ^= hash >>> 33;
+    hash *= 0xff51afd7ed558ccdL;
+    hash ^= hash >>> 33;
+    hash *= 0xc4ceb9fe1a85ec53L;
+    hash ^= hash >>> 33;
+    // The high 24 bits are the best mixed; map them onto [0, 1).
+    return (hash >>> 40) / (double) (1 << 24) < config.getNULL_RATIO();
   }
 
   /** Get timestamp according to stepOffset */

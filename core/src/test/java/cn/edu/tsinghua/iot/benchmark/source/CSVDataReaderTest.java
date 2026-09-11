@@ -22,10 +22,12 @@ package cn.edu.tsinghua.iot.benchmark.source;
 import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
 import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iot.benchmark.entity.Batch.Batch;
 import cn.edu.tsinghua.iot.benchmark.entity.Batch.IBatch;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.SensorType;
+import cn.edu.tsinghua.iot.benchmark.extern.CSVDataWriter;
 import cn.edu.tsinghua.iot.benchmark.mode.enums.BenchmarkMode;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaDataSchema;
 import cn.edu.tsinghua.iot.benchmark.schema.MetaUtil;
@@ -280,5 +282,143 @@ public class CSVDataReaderTest extends BenchmarkTestBase {
     assertEquals(4000L, second.get(1).getTimestamp());
 
     assertFalse(reader.hasNextBatch());
+  }
+
+  /**
+   * Sparse matrix write: {@code CSVDataWriter} encodes a null cell as an empty field, which the
+   * reader must decode back to null for every type. Feeding "" to the typed parsers instead would
+   * throw for numbers and dates and would silently turn a null boolean into {@code false} and a
+   * null string into the text {@code ""}.
+   */
+  @Test
+  public void decodesEmptyFieldsAsNullForEveryType() throws IOException {
+    config.setBATCH_SIZE_PER_WRITE(100);
+    String device = "d_8000005";
+    nameDataSchema.put(
+        device,
+        new DeviceSchema(
+            device,
+            Arrays.asList(
+                new Sensor("n_bool", SensorType.BOOLEAN),
+                new Sensor("n_int", SensorType.INT32),
+                new Sensor("n_long", SensorType.INT64),
+                new Sensor("n_float", SensorType.FLOAT),
+                new Sensor("n_double", SensorType.DOUBLE),
+                new Sensor("n_text", SensorType.TEXT),
+                new Sensor("n_date", SensorType.DATE),
+                new Sensor("n_ts", SensorType.TIMESTAMP)),
+            MetaUtil.getTags(device)));
+    try {
+      // Row 1: every cell null. Row 2: every cell populated. Row 3: mixed.
+      String csv =
+          writeRawDeviceCsv(
+              device,
+              "Sensor,n_bool,n_int,n_long,n_float,n_double,n_text,n_date,n_ts\n"
+                  + "1000,,,,,,,,\n"
+                  + "2000,true,42,9999999999,1.5,2.5,hello,2024-01-01,123456789\n"
+                  + "3000,true,,7,,3.5,,2024-02-02,\n");
+
+      DataReader reader = new CSVDataReader(Collections.singletonList(csv));
+      assertTrue(reader.hasNextBatch());
+      List<Record> records = reader.nextBatch().getRecords();
+      assertEquals(3, records.size());
+
+      List<Object> allNull = records.get(0).getRecordDataValue();
+      assertEquals(8, allNull.size());
+      for (int i = 0; i < allNull.size(); i++) {
+        assertEquals("column " + i + " must decode to null", null, allNull.get(i));
+      }
+
+      List<Object> full = records.get(1).getRecordDataValue();
+      assertEquals(Boolean.TRUE, full.get(0));
+      assertEquals(Integer.valueOf(42), full.get(1));
+      assertEquals(Long.valueOf(9999999999L), full.get(2));
+      assertEquals(Float.valueOf(1.5f), full.get(3));
+      assertEquals(Double.valueOf(2.5d), full.get(4));
+      assertEquals("hello", full.get(5));
+      assertEquals(LocalDate.of(2024, 1, 1), full.get(6));
+      assertEquals(Long.valueOf(123456789L), full.get(7));
+
+      List<Object> mixed = records.get(2).getRecordDataValue();
+      assertEquals(Boolean.TRUE, mixed.get(0));
+      assertEquals(null, mixed.get(1));
+      assertEquals(Long.valueOf(7L), mixed.get(2));
+      assertEquals(null, mixed.get(3));
+      assertEquals(Double.valueOf(3.5d), mixed.get(4));
+      assertEquals(null, mixed.get(5));
+      assertEquals(LocalDate.of(2024, 2, 2), mixed.get(6));
+      assertEquals(null, mixed.get(7));
+    } finally {
+      nameDataSchema.remove(device);
+    }
+  }
+
+  /**
+   * The writer and the reader must agree on how a null cell is represented: a sparse batch written
+   * with {@code CSVDataWriter} and read back must reproduce the same null positions. This is the
+   * round-trip that {@code generateDataMode} relies on.
+   */
+  @Test
+  public void writerAndReaderRoundTripNullPositions() throws Exception {
+    config.setBATCH_SIZE_PER_WRITE(100);
+    double origNullRatio = config.getNULL_RATIO();
+    config.setNULL_RATIO(1.0);
+    try {
+      List<Sensor> sensors =
+          Arrays.asList(
+              new Sensor("c_bool", SensorType.BOOLEAN),
+              new Sensor("c_int", SensorType.INT32),
+              new Sensor("c_long", SensorType.INT64),
+              new Sensor("c_float", SensorType.FLOAT),
+              new Sensor("c_double", SensorType.DOUBLE),
+              new Sensor("c_text", SensorType.TEXT));
+      List<Record> records = new ArrayList<>();
+      // 3 rows: fully null, fully populated, then mixed.
+      records.add(
+          new Record(1000L, new ArrayList<>(Arrays.asList(null, null, null, null, null, null))));
+      records.add(
+          new Record(
+              2000L, new ArrayList<>(Arrays.asList(true, 42, 9999999999L, 1.5f, 2.5d, "hello"))));
+      records.add(
+          new Record(3000L, new ArrayList<>(Arrays.asList(false, null, 7L, null, 3.5d, null))));
+      IBatch batch =
+          new Batch(new DeviceSchema(DEVICE, sensors, MetaUtil.getTags(DEVICE)), records);
+
+      // CSVDataWriter honours FILE_PATH and the writer's own BIG_BATCH_SIZE layout.
+      File root = folder.newFolder("csv-root");
+      File deviceDir = new File(root, DEVICE);
+      assertTrue(deviceDir.mkdirs());
+      String origFilePath = config.getFILE_PATH();
+      config.setFILE_PATH(root.getAbsolutePath());
+      try {
+        assertTrue(new CSVDataWriter().writeBatch(batch, 0));
+      } finally {
+        config.setFILE_PATH(origFilePath);
+      }
+
+      String written = new File(deviceDir, "BigBatch_0.csv").getAbsolutePath();
+      DataReader reader = new CSVDataReader(Collections.singletonList(written));
+      assertTrue(reader.hasNextBatch());
+      List<Record> read = reader.nextBatch().getRecords();
+      assertEquals(records.size(), read.size());
+
+      for (int r = 0; r < records.size(); r++) {
+        List<Object> expected = records.get(r).getRecordDataValue();
+        List<Object> actual = read.get(r).getRecordDataValue();
+        assertEquals(records.get(r).getTimestamp(), read.get(r).getTimestamp());
+        assertEquals(expected.size(), actual.size());
+        for (int c = 0; c < expected.size(); c++) {
+          assertEquals(
+              "null position must survive the CSV round-trip at row " + r + " column " + c,
+              expected.get(c) == null,
+              actual.get(c) == null);
+          if (expected.get(c) != null) {
+            assertEquals(expected.get(c), actual.get(c));
+          }
+        }
+      }
+    } finally {
+      config.setNULL_RATIO(origNullRatio);
+    }
   }
 }

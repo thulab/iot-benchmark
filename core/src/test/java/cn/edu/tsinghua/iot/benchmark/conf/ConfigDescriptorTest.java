@@ -26,6 +26,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -226,5 +232,61 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     assertFalse(
         "NULL_RATIO must be rejected when ANOTHER_DB_SWITCH is not IoTDB-1.3/2.0",
         ConfigDescriptor.getInstance().checkConfig());
+  }
+
+  @Test
+  public void testNullRatioRejectedWhenNotANumber() {
+    setUpValidNullRatioContext();
+    config.setNULL_RATIO(Double.NaN);
+    assertFalse(
+        "NaN must be rejected: every comparison with NaN is false, so a naive range check lets it "
+            + "through",
+        ConfigDescriptor.getInstance().checkConfig());
+    config.setNULL_RATIO(Double.POSITIVE_INFINITY);
+    assertFalse("positive infinity must be rejected", ConfigDescriptor.getInstance().checkConfig());
+    config.setNULL_RATIO(Double.NEGATIVE_INFINITY);
+    assertFalse("negative infinity must be rejected", ConfigDescriptor.getInstance().checkConfig());
+  }
+
+  /**
+   * The value must arrive through the configuration file, which is the path users actually use: the
+   * other tests here set the field directly and so would keep passing if {@code loadProps} stopped
+   * reading {@code NULL_RATIO}.
+   */
+  @Test
+  public void testNullRatioIsLoadedFromConfigFile() throws Exception {
+    Path confDir = Files.createTempDirectory("null-ratio-conf");
+    Path configFile = confDir.resolve("config.properties");
+    Files.write(configFile, "NULL_RATIO=0.9\n".getBytes(StandardCharsets.UTF_8));
+    // Config.initInnerFunction() reads function.xml from the same directory and calls
+    // System.exit(0) when it is missing, so the temp conf dir needs the real file copied in.
+    Path functionFile = confDir.resolve("function.xml");
+    Files.copy(
+        Paths.get(System.getProperty(Constants.BENCHMARK_CONF), "function.xml"), functionFile);
+
+    String originalConf = System.getProperty(Constants.BENCHMARK_CONF);
+    System.setProperty(Constants.BENCHMARK_CONF, confDir.toString());
+    try {
+      // ConfigDescriptor is a singleton whose constructor already ran, so exercise it through a
+      // fresh instance instead of rebuilding the singleton.
+      Constructor<ConfigDescriptor> constructor = ConfigDescriptor.class.getDeclaredConstructor();
+      constructor.setAccessible(true);
+      ConfigDescriptor reloaded = constructor.newInstance();
+      assertEquals(
+          "NULL_RATIO from config.properties must reach Config",
+          0.9,
+          reloaded.getConfig().getNULL_RATIO(),
+          1e-9);
+      // Leaving these at their defaults proves the file was the source of the value.
+      assertEquals(
+          "the temp config file carries no other setting",
+          ConfigDescriptor.getInstance().getConfig().getDEVICE_NUMBER(),
+          reloaded.getConfig().getDEVICE_NUMBER());
+    } finally {
+      System.setProperty(Constants.BENCHMARK_CONF, originalConf);
+      Files.deleteIfExists(functionFile);
+      Files.deleteIfExists(configFile);
+      Files.deleteIfExists(confDir);
+    }
   }
 }

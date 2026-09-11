@@ -63,6 +63,46 @@ public class Batch implements IBatch {
   }
 
   /**
+   * The cells this batch actually writes, i.e. {@link #pointNum()} minus the null ones.
+   *
+   * <p>Under sparse matrix write ({@code NULL_RATIO > 0}) a batch still reserves {@code measureNum
+   * * records.size()} cells, but a null cell is omitted from the write request and so must not be
+   * reported as a written point. This is what the measurement layer counts, so with {@code
+   * NULL_RATIO=0.9} the reported throughput reflects the values that were really written rather
+   * than the ten times larger cell capacity.
+   *
+   * <p>{@link #pointNum()} deliberately keeps returning the reserved cell count: that is the
+   * denominator of the sparse ratio, so {@code nonNullPointNum() / pointNum()} still reports the
+   * realised density.
+   *
+   * <p>The count is paired with the schema rather than taken over the raw value list. The IoTDB
+   * table model appends its ID columns (device id and tags) to every record inside {@code
+   * insertOneBatch}, and the wrapper measures only afterwards; counting raw values would therefore
+   * also count those appended identifiers and report more points than {@link #pointNum()} - the
+   * very inflation this method exists to prevent. Positions past the schema's sensors are not
+   * points, and neither are non-FIELD columns.
+   *
+   * <p>Nulls are counted from the data, not from {@code NULL_RATIO}: a null can reach a batch
+   * without the configuration asking for one, so trusting the config would silently over-report
+   * those cells. Walking the values costs far less than the write it is measuring.
+   */
+  @Override
+  public long nonNullPointNum() {
+    List<Sensor> sensors = deviceSchema.getSensors();
+    long pointNum = 0;
+    for (Record record : records) {
+      List<Object> values = record.getRecordDataValue();
+      int limit = Math.min(values.size(), sensors.size());
+      for (int i = 0; i < limit; i++) {
+        if (sensors.get(i).getColumnCategory() == ColumnCategory.FIELD && values.get(i) != null) {
+          pointNum++;
+        }
+      }
+    }
+    return pointNum;
+  }
+
+  /**
    * serialize to output stream
    *
    * @param outputStream output stream

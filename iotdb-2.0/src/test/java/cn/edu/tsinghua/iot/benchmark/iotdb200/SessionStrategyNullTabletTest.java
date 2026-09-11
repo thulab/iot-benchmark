@@ -129,6 +129,60 @@ public class SessionStrategyNullTabletTest {
     return bitMaps;
   }
 
+  /** A device whose every measurement cell is null, i.e. a fully sparse row. */
+  private Batch fullyNullBatch() {
+    Map<String, String> tags = new LinkedHashMap<>();
+    tags.put("region", "beijing");
+    DeviceSchema schema =
+        new DeviceSchema(
+            "0",
+            "0",
+            "d_0",
+            Arrays.asList(
+                new Sensor("s_0", SensorType.DOUBLE),
+                new Sensor("s_1", SensorType.INT64),
+                new Sensor("s_2", SensorType.TEXT)),
+            tags);
+    return new Batch(
+        schema,
+        Arrays.asList(
+            new Record(1L, new ArrayList<>(Arrays.asList(null, null, null))),
+            new Record(2L, new ArrayList<>(Arrays.asList(null, null, null)))));
+  }
+
+  /**
+   * A fully null tablet is the {@code NULL_RATIO=1} case, which the configuration explicitly
+   * allows. No measurement {@code addValue} runs, so every measurement cell must still end up
+   * marked: {@code addTimestamp} calls {@code Tablet.initBitMapsWithApiUsage}, which allocates the
+   * BitMaps and {@code markAll()}s every column, and each typed {@code addValue} then unmarks its
+   * own cell. A cell that is never written therefore stays marked, i.e. null - which is exactly
+   * what a sparse write needs.
+   */
+  @Test
+  public void fullyNullTabletMarksEveryMeasurementCell() throws Exception {
+    for (SQLDialect dialect : Arrays.asList(SQLDialect.TREE, SQLDialect.TABLE)) {
+      Batch batch = fullyNullBatch();
+      Tablet tablet = genTablet(dialect, batch);
+      BitMap[] bitMaps = bitMapsOf(tablet);
+
+      // The first three columns are the s_0/s_1/s_2 measurements; the table model appends the
+      // device_id and tag ID columns after them, which legitimately carry real values.
+      for (int column = 0; column < 3; column++) {
+        for (int row = 0; row < 2; row++) {
+          assertTrue(
+              "every measurement cell of a fully null tablet must be marked in the "
+                  + dialect
+                  + " model (column "
+                  + column
+                  + ", row "
+                  + row
+                  + ")",
+              bitMaps[column].isMarked(row));
+        }
+      }
+    }
+  }
+
   @Test
   public void treeModelMarksNullCellInBitMap() throws Exception {
     Batch batch = newBatch();

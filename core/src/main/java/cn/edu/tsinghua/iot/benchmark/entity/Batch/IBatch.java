@@ -29,9 +29,22 @@ public interface IBatch {
   /**
    * Use the row protocol which means data are organized in List[timestamp, List[value]]
    *
-   * @return data point number of one device in this batch
+   * @return the number of cells this batch reserves for one device, i.e. the point count of a dense
+   *     write. Under sparse matrix write ({@code NULL_RATIO > 0}) some of those cells are null and
+   *     are not written; use {@link #nonNullPointNum()} to count only the written ones.
    */
   long pointNum();
+
+  /**
+   * The number of cells this batch actually writes, i.e. {@link #pointNum()} minus the null cells.
+   *
+   * <p>The measurement layer counts written points with this method, so sparse writes do not
+   * inflate the reported throughput. Implementations may return {@link #pointNum()} when no cell of
+   * the batch is null.
+   *
+   * @return the number of non-null cells in this batch
+   */
+  long nonNullPointNum();
 
   DeviceSchema getDeviceSchema();
 

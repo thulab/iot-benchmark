@@ -159,11 +159,13 @@ public class SessionStrategy extends DMLStrategy {
             recordValueIndex < record.getRecordDataValue().size();
             recordValueIndex++) {
           Object value = record.getRecordDataValue().get(recordValueIndex);
-          // Sparse matrix write (NULL_RATIO): the measurement-name addValue overload handles
-          // null natively (marks the cell in the tablet BitMaps and stores a typed null
-          // sentinel). A null reaching the typed switch below would NPE, so skip it.
+          // Sparse matrix write (NULL_RATIO): a cell left untouched in the Tablet is naturally
+          // null, so a null value needs no addValue call at all. addTimestamp already ran
+          // initBitMapsWithApiUsage, which markAll()s every column, and each typed addValue
+          // unmarks only its own cell - so skipping the call leaves this cell marked, i.e. null.
+          // The typed overloads below would NPE on a null, and the measurement-name overload
+          // would reach the same place indirectly.
           if (value == null) {
-            tablet.addValue(sensors.get(sensorIndex).getName(), recordIndex, (Object) null);
             sensorIndex++;
             continue;
           }
@@ -279,17 +281,28 @@ public class SessionStrategy extends DMLStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
-  private List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
+  /**
+   * Rewrites BLOB columns from String to Binary, leaving every other column (and every null)
+   * untouched.
+   *
+   * <p>Static because it depends only on its arguments and the static {@code binaryCache}; that
+   * lets the null-handling be unit tested without opening a session.
+   */
+  static List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
     // String change to Binary
     List<Object> dataValue = record.getRecordDataValue();
     for (int recordValueIndex = 0;
         recordValueIndex < record.getRecordDataValue().size();
         recordValueIndex++) {
       if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
+        Object value = record.getRecordDataValue().get(recordValueIndex);
+        if (value == null) {
+          // Sparse matrix write (NULL_RATIO): a null cell stays null; casting it to String below
+          // would NPE.
+          continue;
+        }
         dataValue.set(
-            recordValueIndex,
-            binaryCache.computeIfAbsent(
-                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
+            recordValueIndex, binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf));
       }
     }
     return dataValue;

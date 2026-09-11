@@ -807,7 +807,9 @@ public class ConfigDescriptor {
   private boolean checkNullRatio() {
     boolean result = true;
     double nullRatio = config.getNULL_RATIO();
-    if (nullRatio < 0 || nullRatio > 1) {
+    // !(nullRatio >= 0 && nullRatio <= 1) rather than (nullRatio < 0 || nullRatio > 1) so that NaN
+    // is rejected too: every comparison with NaN is false, so the latter would let it through.
+    if (!(nullRatio >= 0 && nullRatio <= 1)) {
       LOGGER.error(
           "Invalid parameter NULL_RATIO: {}, whose value range should be [0, 1]", nullRatio);
       result = false;
@@ -816,8 +818,7 @@ public class ConfigDescriptor {
     if (workMode == BenchmarkMode.VERIFICATION_WRITE
         || workMode == BenchmarkMode.VERIFICATION_QUERY) {
       LOGGER.error(
-          "NULL_RATIO is not supported in {} mode. Please use testWithDefaultPath or generateDataMode.",
-          workMode);
+          "NULL_RATIO is not supported in {} mode. Please use testWithDefaultPath.", workMode);
       result = false;
     }
     if (!checkNullRatioDbSwitch(config.getDbConfig().getDB_SWITCH(), "DB_SWITCH")) {

@@ -402,13 +402,6 @@ public class IoTDBSessionBase extends IoTDB {
     Object[] values = tablet.values;
 
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
-    // Sparse matrix write (NULL_RATIO): create the per-column BitMaps and mark null cells. The
-    // session client (SessionUtils.getValueBufferOfDataType) checks bitMaps[col].isMarked(row) and
-    // encodes a null marker for marked cells without ever reading the raw array slot, so a marked
-    // cell can simply skip the typed assignment below.
-    if (config.getNULL_RATIO() > 0) {
-      tablet.initBitMaps();
-    }
     for (int recordIndex = 0; recordIndex < batch.getRecords().size(); recordIndex++) {
       tablet.rowSize++;
       Record record = batch.getRecords().get(recordIndex);
@@ -420,12 +413,19 @@ public class IoTDBSessionBase extends IoTDB {
           recordValueIndex++) {
         Object value = record.getRecordDataValue().get(recordValueIndex);
         if (value == null) {
-          // Sparse matrix write (NULL_RATIO): mark the cell null in the per-column BitMap. The
-          // session 1.3 client (SessionUtils.getValueBufferOfDataType) checks
-          // bitMaps[col].isMarked(row) and encodes a null marker for marked cells. Most branches
-          // skip the raw array slot when marked, but the BINARY and DATE branches read the slot
-          // unconditionally, so they need a non-null placeholder (the value is never decoded as a
-          // real point because the marked bit wins on the server side).
+          // Sparse matrix write: mark the cell null in the per-column BitMap. The session client
+          // (SessionUtils.getValueBufferOfDataType) checks bitMaps[col].isMarked(row) and encodes a
+          // null marker for marked cells. The typed branches all guard the array read with that
+          // check, but the BINARY and DATE branches read the slot unconditionally, so those two
+          // need a non-null placeholder. The value is never decoded as a real point because the
+          // marked bit wins on the server side.
+          //
+          // A null here is not necessarily NULL_RATIO's doing: real data reaching a verification
+          // mode, or a caller inserting a Record directly, can also carry one. So initialize the
+          // BitMaps whenever a null is met, not only when these tests configured NULL_RATIO > 0.
+          if (tablet.bitMaps == null) {
+            tablet.initBitMaps();
+          }
           switch (sensors.get(sensorIndex).getSensorType()) {
             case TEXT:
             case STRING:
@@ -533,10 +533,14 @@ public class IoTDBSessionBase extends IoTDB {
         recordValueIndex < record.getRecordDataValue().size();
         recordValueIndex++) {
       if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
+        Object value = record.getRecordDataValue().get(recordValueIndex);
+        if (value == null) {
+          // Sparse matrix write (NULL_RATIO): a null cell stays null; casting it to String below
+          // would NPE.
+          continue;
+        }
         dataValue.set(
-            recordValueIndex,
-            binaryCache.computeIfAbsent(
-                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
+            recordValueIndex, binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf));
       }
     }
     return dataValue;
