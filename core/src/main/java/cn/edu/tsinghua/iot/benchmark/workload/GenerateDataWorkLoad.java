@@ -34,7 +34,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class GenerateDataWorkLoad extends DataWorkLoad {
 
@@ -111,7 +110,7 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       timestamp += config.getPOINT_STEP();
     } else {
       // data is not in regular frequency, then use random
-      timestamp += config.getPOINT_STEP() * ThreadLocalRandom.current().nextDouble();
+      timestamp += config.getPOINT_STEP() * deterministicFraction(stepOffset);
     }
     long currentTimestamp = Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
     if (config.isIS_RECENT_QUERY()) {
@@ -131,9 +130,18 @@ public abstract class GenerateDataWorkLoad extends DataWorkLoad {
       timestamp += config.getPOINT_STEP();
     } else {
       // data is not in regular frequency, then use random
-      timestamp += config.getPOINT_STEP() * ThreadLocalRandom.current().nextDouble();
+      timestamp += config.getPOINT_STEP() * deterministicFraction(stepOffset);
     }
     return Constants.START_TIMESTAMP * timeStampConst + offset + timestamp;
+  }
+
+  /** Deterministic pseudo-random fraction used for irregular timestamps. */
+  private static double deterministicFraction(long stepOffset) {
+    long z = stepOffset + config.getDATA_SEED() + 0x9E3779B97F4A7C15L;
+    z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+    z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+    z ^= z >>> 31;
+    return (z >>> 11) * 0x1.0p-53;
   }
 
   /** Init workload values */

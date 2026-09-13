@@ -54,10 +54,10 @@ public abstract class BaseMode {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BaseMode.class);
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
-  private static final ScheduledExecutorService scheduler =
+  private final ScheduledExecutorService scheduler =
       Executors.newScheduledThreadPool(
           2, new NamedThreadFactory(ThreadName.SHOW_RESULT_PERIODICALLY.getName()));
-  private static final ScheduledExecutorService printService =
+  private final ScheduledExecutorService printService =
       Executors.newSingleThreadScheduledExecutor(
           new NamedThreadFactory(ThreadName.SHOW_WORK_PROCESS.getName()));
 
@@ -87,6 +87,7 @@ public abstract class BaseMode {
 
   /** Start benchmark */
   public void run() {
+    Measurement.resetGlobalState();
     if (!preCheck()) {
       return;
     }

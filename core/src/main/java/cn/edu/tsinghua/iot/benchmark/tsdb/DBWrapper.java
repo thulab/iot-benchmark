@@ -103,8 +103,10 @@ public class DBWrapper implements IDatabase {
     try {
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.insertOneBatchWithCheck(batch);
-        status = measureOneBatch(status, operation, batch, start);
+        Status candidate = database.insertOneBatchWithCheck(batch);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
+        measureOneBatch(candidate, operation, batch, start);
       }
     } catch (DBConnectException ex) {
       throw ex;
@@ -121,6 +123,24 @@ public class DBWrapper implements IDatabase {
       LOGGER.error("Failed to insert one batch because unexpected exception: ", e);
     }
     return status;
+  }
+
+  private Status normalizeStatus(Status candidate) {
+    if (candidate == null) {
+      return new Status(
+          false,
+          new TsdbException("Database adapter returned null status"),
+          "Database adapter returned null status");
+    }
+    return candidate;
+  }
+
+  /** Keep the first failure visible when a wrapper targets multiple databases. */
+  private Status mergeReturnStatus(Status aggregate, Status candidate) {
+    if (aggregate == null || (aggregate.isOk() && !candidate.isOk())) {
+      return candidate;
+    }
+    return aggregate;
   }
 
   /** Measure one batch */
@@ -168,11 +188,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.preciseQuery(preciseQuery);
+        Status candidate = database.preciseQuery(preciseQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(preciseQuery, operation, statuses);
     } catch (Exception e) {
@@ -193,11 +215,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.rangeQuery(rangeQuery);
+        Status candidate = database.rangeQuery(rangeQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(rangeQuery, operation, statuses);
     } catch (Exception e) {
@@ -218,11 +242,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.valueRangeQuery(valueRangeQuery);
+        Status candidate = database.valueRangeQuery(valueRangeQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(valueRangeQuery, operation, statuses);
     } catch (Exception e) {
@@ -243,11 +269,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.aggRangeQuery(aggRangeQuery);
+        Status candidate = database.aggRangeQuery(aggRangeQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(aggRangeQuery, operation, statuses);
     } catch (Exception e) {
@@ -268,11 +296,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.aggValueQuery(aggValueQuery);
+        Status candidate = database.aggValueQuery(aggValueQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(aggValueQuery, operation, statuses);
     } catch (Exception e) {
@@ -293,11 +323,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.aggRangeValueQuery(aggRangeValueQuery);
+        Status candidate = database.aggRangeValueQuery(aggRangeValueQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(aggRangeValueQuery, operation, statuses);
     } catch (Exception e) {
@@ -318,11 +350,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.groupByQuery(groupByQuery);
+        Status candidate = database.groupByQuery(groupByQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(groupByQuery, operation, statuses);
     } catch (Exception e) {
@@ -343,11 +377,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.groupByQueryOrderByDesc(groupByQuery);
+        Status candidate = database.groupByQueryOrderByDesc(groupByQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(groupByQuery, operation, statuses);
     } catch (Exception e) {
@@ -368,11 +404,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.latestPointQuery(latestPointQuery);
+        Status candidate = database.latestPointQuery(latestPointQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(latestPointQuery, operation, statuses);
     } catch (Exception e) {
@@ -394,11 +432,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.rangeQueryOrderByDesc(rangeQuery);
+        Status candidate = database.rangeQueryOrderByDesc(rangeQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(rangeQuery, operation, statuses);
     } catch (Exception e) {
@@ -420,11 +460,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.valueRangeQueryOrderByDesc(valueRangeQuery);
+        Status candidate = database.valueRangeQueryOrderByDesc(valueRangeQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(valueRangeQuery, operation, statuses);
     } catch (Exception e) {
@@ -448,11 +490,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.setOpQuery(setOpQuery);
+        Status candidate = database.setOpQuery(setOpQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(setOpQuery, operation, statuses);
     } catch (Exception e) {
@@ -471,11 +515,13 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.verificationQuery(verificationQuery);
+        Status candidate = database.verificationQuery(verificationQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        handleQueryOperation(status, operation, device);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        handleQueryOperation(candidate, operation, device);
+        statuses.add(candidate);
       }
       doComparisonByRecord(verificationQuery, operation, statuses);
     } catch (Exception e) {
@@ -493,12 +539,16 @@ public class DBWrapper implements IDatabase {
       List<Status> statuses = new ArrayList<>();
       for (IDatabase database : databases) {
         long start = System.nanoTime();
-        status = database.deviceQuery(deviceQuery);
+        Status candidate = database.deviceQuery(deviceQuery);
+        candidate = normalizeStatus(candidate);
+        status = mergeReturnStatus(status, candidate);
         long end = System.nanoTime();
-        status.setTimeCost(end - start);
-        statuses.add(status);
+        candidate.setTimeCost(end - start);
+        statuses.add(candidate);
       }
-      doPointComparison(statuses, deviceQuery);
+      if (doPointComparison(statuses, deviceQuery) == -1 && config.isUSE_MEASUREMENT()) {
+        measurement.addFailOperationNum(operation);
+      }
       for (Status sta : statuses) {
         handleQueryOperation(sta, operation, device);
       }
@@ -623,7 +673,7 @@ public class DBWrapper implements IDatabase {
       LOGGER.error(
           "Point comparison requires at least two databases but got {}; skipping comparison.",
           statuses.size());
-      return -1;
+      return Integer.MIN_VALUE;
     }
     long start = System.nanoTime();
     Status status1 = statuses.get(0);
@@ -740,7 +790,11 @@ public class DBWrapper implements IDatabase {
       }
       if (isError) {
         doErrorLog(query.getClass().getSimpleName(), status1, status2);
+        if (config.isUSE_MEASUREMENT()) {
+          measurement.addFailOperationNum(operation);
+        }
       }
+      return !isError;
     }
     return true;
   }

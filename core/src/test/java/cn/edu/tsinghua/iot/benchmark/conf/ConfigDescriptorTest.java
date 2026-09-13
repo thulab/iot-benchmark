@@ -39,6 +39,7 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
   private int originalSchemaClientNumber;
   private int originalDataClientNumber;
   private int originalIoTDBThriftMaxFrameSize;
+  private String originalOperationProportion;
 
   @Before
   public void before() {
@@ -48,6 +49,7 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     originalSchemaClientNumber = config.getSCHEMA_CLIENT_NUMBER();
     originalDataClientNumber = config.getDATA_CLIENT_NUMBER();
     originalIoTDBThriftMaxFrameSize = config.getIOTDB_THRIFT_MAX_FRAME_SIZE();
+    originalOperationProportion = config.getOPERATION_PROPORTION();
   }
 
   @After
@@ -59,6 +61,7 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     config.setSCHEMA_CLIENT_NUMBER(originalSchemaClientNumber);
     config.setDATA_CLIENT_NUMBER(originalDataClientNumber);
     config.setIOTDB_THRIFT_MAX_FRAME_SIZE(originalIoTDBThriftMaxFrameSize);
+    config.setOPERATION_PROPORTION(originalOperationProportion);
   }
 
   /**
@@ -100,5 +103,17 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     assertFalse(
         "IoTDB Thrift max frame size must be positive",
         ConfigDescriptor.getInstance().checkConfig());
+  }
+
+  @Test(timeout = 1000)
+  public void testOperationProportionRejectsTooManyEntries() {
+    config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0:0:0:0:0:1");
+    assertFalse(ConfigDescriptor.getInstance().checkConfig());
+  }
+
+  @Test
+  public void testOperationProportionRejectsNegativeEntry() {
+    config.setOPERATION_PROPORTION("1:-1");
+    assertFalse(ConfigDescriptor.getInstance().checkConfig());
   }
 }

@@ -2266,14 +2266,22 @@ public class Config {
   }
 
   public boolean hasWrite() {
-    return Double.parseDouble(this.OPERATION_PROPORTION.split(":")[0]) > 1e-7;
+    try {
+      return Double.parseDouble(this.OPERATION_PROPORTION.split(":", -1)[0]) > 1e-7;
+    } catch (NumberFormatException e) {
+      return false;
+    }
   }
 
   public boolean hasQuery() {
     Double total = 0.0;
-    String[] proportion = this.OPERATION_PROPORTION.split(":");
+    String[] proportion = this.OPERATION_PROPORTION.split(":", -1);
     for (int i = 1; i < proportion.length; i++) {
-      total += Double.parseDouble(proportion[i]);
+      try {
+        total += Double.parseDouble(proportion[i]);
+      } catch (NumberFormatException e) {
+        return false;
+      }
     }
     return total > 1e-7;
   }

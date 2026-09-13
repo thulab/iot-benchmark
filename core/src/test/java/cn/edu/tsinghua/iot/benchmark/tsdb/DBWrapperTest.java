@@ -161,6 +161,17 @@ public class DBWrapperTest extends BenchmarkTestBase {
     assertEquals(1L, measurement.getOkOperationNum(Operation.DEVICE_QUERY));
   }
 
+  @Test
+  public void firstDatabaseFailureMustNotBeHiddenByLaterSuccess() {
+    DBWrapper wrapper =
+        DBWrapper.forTest(Arrays.<IDatabase>asList(new FailingRangeDB(), new FakeDB()));
+    Status status =
+        wrapper.rangeQuery(
+            new cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery(
+                new ArrayList<>(), 0L, 1L));
+    assertEquals(false, status.isOk());
+  }
+
   /** Returns a preset (possibly null) device summary, ignoring the query. */
   private static class FixedSummaryDB extends FakeDB {
     private final DeviceSummary summary;
@@ -185,6 +196,13 @@ public class DBWrapperTest extends BenchmarkTestBase {
       row.add(1);
       records.add(row);
       return new Status(true, 1, "fake-sql", records);
+    }
+  }
+
+  private static class FailingRangeDB extends FakeDB {
+    @Override
+    public Status rangeQuery(cn.edu.tsinghua.iot.benchmark.workload.query.impl.RangeQuery query) {
+      return new Status(false, new Exception("expected failure"), "expected failure");
     }
   }
 }

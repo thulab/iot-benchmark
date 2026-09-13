@@ -63,7 +63,7 @@ jobs:
       max-parallel: 20
       matrix:
         java_version: [ 17 ]
-        release_db: [ iotdb-1.3,iotdb-2.0,influxdb,influxdb-2.0,timescaledb,timescaledb-cluster ]
+        release_db: [ iotdb-1.3,iotdb-2.0,influxdb,influxdb-2.0,timescaledb,timescaledb-cluster,all-in-one ]
     steps:
       # set java
       - name: Set java ${{ matrix.java_version }}

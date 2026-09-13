@@ -74,6 +74,19 @@ public class Measurement {
     }
   }
 
+  /** Reset process-wide latency state before starting a new benchmark run. */
+  public static synchronized void resetGlobalState() {
+    for (Operation operation : Operation.values()) {
+      operationLatencyDigest.put(
+          operation, new TDigest(COMPRESSION, new Random(config.getDATA_SEED())));
+    }
+    for (Metric metric : Metric.values()) {
+      for (Operation operation : Operation.values()) {
+        metric.getTypeValueMap().put(operation, 0D);
+      }
+    }
+  }
+
   public Measurement() {
     okOperationNumMap = new EnumMap<>(Operation.class);
     failOperationNumMap = new EnumMap<>(Operation.class);
@@ -107,25 +120,27 @@ public class Measurement {
    * @param m measurement to be merged
    */
   public void mergeMeasurement(Measurement m) {
-    for (Operation operation : Operation.values()) {
-      okOperationNumMap.put(
-          operation, okOperationNumMap.get(operation) + m.getOkOperationNum(operation));
-      failOperationNumMap.put(
-          operation, failOperationNumMap.get(operation) + m.getFailOperationNum(operation));
-      okPointNumMap.put(operation, okPointNumMap.get(operation) + m.getOkPointNum(operation));
-      failPointNumMap.put(operation, failPointNumMap.get(operation) + m.getFailPointNum(operation));
+    synchronized (m) {
+      for (Operation operation : Operation.values()) {
+        okOperationNumMap.put(
+            operation, okOperationNumMap.get(operation) + m.getOkOperationNum(operation));
+        failOperationNumMap.put(
+            operation, failOperationNumMap.get(operation) + m.getFailOperationNum(operation));
+        okPointNumMap.put(operation, okPointNumMap.get(operation) + m.getOkPointNum(operation));
+        failPointNumMap.put(operation, failPointNumMap.get(operation) + m.getFailPointNum(operation));
 
-      // set operationLatencySumThisClient of this measurement the largest latency sum among all
-      // threads
-      if (operationLatencySumThisClient.get(operation)
-          < m.getOperationLatencySumThisClient().get(operation)) {
-        operationLatencySumThisClient.put(
-            operation, m.getOperationLatencySumThisClient().get(operation));
+        // set operationLatencySumThisClient of this measurement the largest latency sum among all
+        // threads
+        if (operationLatencySumThisClient.get(operation)
+            < m.getOperationLatencySumThisClient().get(operation)) {
+          operationLatencySumThisClient.put(
+              operation, m.getOperationLatencySumThisClient().get(operation));
+        }
+        operationLatencySumAllClient.put(
+            operation,
+            operationLatencySumAllClient.get(operation)
+                + m.getOperationLatencySumThisClient().get(operation));
       }
-      operationLatencySumAllClient.put(
-          operation,
-          operationLatencySumAllClient.get(operation)
-              + m.getOperationLatencySumThisClient().get(operation));
     }
   }
 
@@ -141,14 +156,16 @@ public class Measurement {
             .put(operation, operationLatencySumThisClient.get(operation));
         Function<Double, Double> quantileOrItself =
             (q) -> {
-              // Count the number of non-null centroids
-              if (countNonNullCentroids(operationLatencyDigest.get(operation)) > 1) {
-                return operationLatencyDigest.get(operation).quantile(q);
-              } else {
-                // com.clearspring.analytics.stream.quantile.TDigest.quantile needs
-                // result size greater than 1 to calculate.
-                // If there is only one result, just return this result instead of quantile
-                return operationLatencyDigest.get(operation).centroids().iterator().next().mean();
+              synchronized (operationLatencyDigest.get(operation)) {
+                // Count the number of non-null centroids
+                if (countNonNullCentroids(operationLatencyDigest.get(operation)) > 1) {
+                  return operationLatencyDigest.get(operation).quantile(q);
+                } else {
+                  // com.clearspring.analytics.stream.quantile.TDigest.quantile needs
+                  // result size greater than 1 to calculate.
+                  // If there is only one result, just return this result instead of quantile
+                  return operationLatencyDigest.get(operation).centroids().iterator().next().mean();
+                }
               }
             };
         // log negative latency details
@@ -485,26 +502,27 @@ public class Measurement {
     return failPointNumMap.get(operation);
   }
 
-  public void addOperationLatency(Operation op, double latency) {
-    synchronized (operationLatencyDigest.get(op)) {
-      operationLatencyDigest.get(op).add(latency);
+  public synchronized void addOperationLatency(Operation op, double latency) {
+    TDigest digest = operationLatencyDigest.get(op);
+    synchronized (digest) {
+      digest.add(latency);
     }
     operationLatencySumThisClient.put(op, operationLatencySumThisClient.get(op) + latency);
   }
 
-  public void addOkPointNum(Operation operation, long pointNum) {
+  public synchronized void addOkPointNum(Operation operation, long pointNum) {
     okPointNumMap.put(operation, okPointNumMap.get(operation) + pointNum);
   }
 
-  public void addFailPointNum(Operation operation, long pointNum) {
+  public synchronized void addFailPointNum(Operation operation, long pointNum) {
     failPointNumMap.put(operation, failPointNumMap.get(operation) + pointNum);
   }
 
-  public void addOkOperationNum(Operation operation) {
+  public synchronized void addOkOperationNum(Operation operation) {
     okOperationNumMap.put(operation, okOperationNumMap.get(operation) + 1);
   }
 
-  public void addFailOperationNum(Operation operation) {
+  public synchronized void addFailOperationNum(Operation operation) {
     failOperationNumMap.put(operation, failOperationNumMap.get(operation) + 1);
   }
 

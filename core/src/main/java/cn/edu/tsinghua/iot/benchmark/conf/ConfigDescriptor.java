@@ -59,7 +59,8 @@ public class ConfigDescriptor {
     loadProps();
     // check properties
     if (!checkConfig()) {
-      System.exit(1);
+      throw new IllegalArgumentException(
+          "Invalid benchmark configuration; see previous log messages");
     }
     config.initInnerFunction();
     config.initSensorCodes();
@@ -607,11 +608,6 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE() + "")));
 
-        config.setMYSQL_REAL_INSERT_RATE(
-            Double.parseDouble(
-                properties.getProperty(
-                    "MYSQL_REAL_INSERT_RATE", config.getMYSQL_REAL_INSERT_RATE() + "")));
-
         config.setCSV_OUTPUT(
             Boolean.parseBoolean(properties.getProperty("CSV_OUTPUT", config.isCSV_OUTPUT() + "")));
 
@@ -620,6 +616,9 @@ public class ConfigDescriptor {
                 properties.getProperty(
                     "IS_RECORD_CURRENT_REALLY_TIME",
                     config.isIS_RECORD_CURRENT_REALLY_TIME() + "")));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException(
+            "Invalid numeric value in benchmark configuration " + builder, e);
       } catch (IOException e) {
         LOGGER.error("Failed to load config file", e);
       }
@@ -821,14 +820,33 @@ public class ConfigDescriptor {
   }
 
   private boolean checkOperationProportion() {
-    while (config.getOPERATION_PROPORTION().split(":").length
-        != config.getOPERATION_PROPORTION_LEN()) {
-      config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
+    String[] original = config.getOPERATION_PROPORTION().split(":", -1);
+    if (original.length > config.getOPERATION_PROPORTION_LEN()) {
+      LOGGER.error(
+          "OPERATION_PROPORTION has {} entries; at most {} are supported",
+          original.length,
+          config.getOPERATION_PROPORTION_LEN());
+      return false;
     }
-    String[] op = config.getOPERATION_PROPORTION().split(":");
+    while (original.length < config.getOPERATION_PROPORTION_LEN()) {
+      config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
+      original = config.getOPERATION_PROPORTION().split(":", -1);
+    }
+    String[] op = config.getOPERATION_PROPORTION().split(":", -1);
     int minOps = 0;
     for (String s : op) {
-      if (Double.parseDouble(s) > 1e-7) {
+      double value;
+      try {
+        value = Double.parseDouble(s);
+      } catch (NumberFormatException e) {
+        LOGGER.error("Invalid OPERATION_PROPORTION entry: {}", s);
+        return false;
+      }
+      if (!Double.isFinite(value) || value < 0) {
+        LOGGER.error("OPERATION_PROPORTION entries must be finite and non-negative: {}", s);
+        return false;
+      }
+      if (value > 1e-7) {
         minOps++;
       }
     }
