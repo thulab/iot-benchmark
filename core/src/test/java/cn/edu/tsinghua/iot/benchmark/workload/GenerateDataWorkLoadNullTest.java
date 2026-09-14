@@ -73,6 +73,7 @@ public class GenerateDataWorkLoadNullTest extends BenchmarkTestBase {
   private int origBatchSize;
   private boolean origOutOfOrder;
   private String origOperationProportion;
+  private int origDeviceNumber;
 
   @Before
   public void setUp() {
@@ -82,6 +83,7 @@ public class GenerateDataWorkLoadNullTest extends BenchmarkTestBase {
     origBatchSize = config.getBATCH_SIZE_PER_WRITE();
     origOutOfOrder = config.isIS_OUT_OF_ORDER();
     origOperationProportion = config.getOPERATION_PROPORTION();
+    origDeviceNumber = config.getDEVICE_NUMBER();
 
     // Write must be enabled when GenerateDataWorkLoad builds its static workloadValues,
     // otherwise the buffer stays null and getOneBatch() NPEs.
@@ -99,6 +101,7 @@ public class GenerateDataWorkLoadNullTest extends BenchmarkTestBase {
     config.setBATCH_SIZE_PER_WRITE(origBatchSize);
     config.setIS_OUT_OF_ORDER(origOutOfOrder);
     config.setOPERATION_PROPORTION(origOperationProportion);
+    config.setDEVICE_NUMBER(origDeviceNumber);
   }
 
   /** Two devices whose schemas carry all {@code SENSOR_NUMBER} sensors. */
@@ -281,12 +284,39 @@ public class GenerateDataWorkLoadNullTest extends BenchmarkTestBase {
   }
 
   /**
+   * Aligns {@code DEVICE_NUMBER} with the {@code deviceIds} snapshot held by {@link
+   * SingletonWorkDataWorkLoad}.
+   *
+   * <p>{@code deviceIds} is a {@code static final} list taken - once, when the class is first
+   * loaded - from whatever {@code DEVICE_NUMBER} was current then, while {@code getOneBatch()}
+   * indexes it with the <em>live</em> {@code DEVICE_NUMBER}. The two therefore have to agree. A
+   * preceding test that shrinks the device count ({@code SingletonWorkDataWorkLoadConcurrencyTest}
+   * sets it to 200) leaves a 200-entry snapshot behind, and indexing it modulo the restored 6000
+   * throws {@code IndexOutOfBoundsException}. The real workload never hits this: its classes load
+   * once at startup and the config is fixed from then on, so no production code path is affected.
+   *
+   * <p>The snapshot cannot be rebuilt - it is {@code static final} - so the config is trimmed to
+   * match it instead. Only this test needs a small device count, and the snapshot size (whatever
+   * {@code DEVICE_NUMBER} was when the class first loaded) is still plenty to spread the null
+   * pattern over.
+   */
+  private static void alignDeviceNumberWithSnapshot() throws Exception {
+    Field field = SingletonWorkDataWorkLoad.class.getDeclaredField("deviceIds");
+    field.setAccessible(true);
+    int snapshotSize = ((List<?>) field.get(null)).size();
+    if (config.getDEVICE_NUMBER() != snapshotSize) {
+      config.setDEVICE_NUMBER(snapshotSize);
+    }
+  }
+
+  /**
    * Generates in {@code threads} concurrent clients and records each cell's null-ness by
    * coordinate.
    */
   private Map<String, Boolean> generateConcurrently(int threads, int batchesPerThread)
       throws Exception {
     resetSingleton();
+    alignDeviceNumberWithSnapshot();
     IDataWorkLoad workload = SingletonWorkDataWorkLoad.getInstance();
     Map<String, Boolean> nullByCoordinate = new ConcurrentHashMap<>();
     ExecutorService pool = Executors.newFixedThreadPool(threads);
