@@ -807,8 +807,6 @@ public class ConfigDescriptor {
   private boolean checkNullRatio() {
     boolean result = true;
     double nullRatio = config.getNULL_RATIO();
-    // !(nullRatio >= 0 && nullRatio <= 1) rather than (nullRatio < 0 || nullRatio > 1) so that NaN
-    // is rejected too: every comparison with NaN is false, so the latter would let it through.
     if (!(nullRatio >= 0 && nullRatio <= 1)) {
       LOGGER.error(
           "Invalid parameter NULL_RATIO: {}, whose value range should be [0, 1]", nullRatio);
