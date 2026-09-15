@@ -411,47 +411,72 @@ public class IoTDBSessionBase extends IoTDB {
       for (int recordValueIndex = 0;
           recordValueIndex < record.getRecordDataValue().size();
           recordValueIndex++) {
+        Object value = record.getRecordDataValue().get(recordValueIndex);
+        if (value == null) {
+          // Sparse matrix write: mark the cell null in the per-column BitMap. The session client
+          // (SessionUtils.getValueBufferOfDataType) checks bitMaps[col].isMarked(row) and encodes a
+          // null marker for marked cells. The typed branches all guard the array read with that
+          // check, but the BINARY and DATE branches read the slot unconditionally, so those two
+          // need a non-null placeholder. The value is never decoded as a real point because the
+          // marked bit wins on the server side.
+          //
+          // A null here is not necessarily NULL_RATIO's doing: real data reaching a verification
+          // mode, or a caller inserting a Record directly, can also carry one. So initialize the
+          // BitMaps whenever a null is met, not only when these tests configured NULL_RATIO > 0.
+          if (tablet.bitMaps == null) {
+            tablet.initBitMaps();
+          }
+          switch (sensors.get(sensorIndex).getSensorType()) {
+            case TEXT:
+            case STRING:
+            case BLOB:
+              ((Binary[]) values[recordValueIndex])[recordIndex] = Binary.EMPTY_VALUE;
+              break;
+            case DATE:
+              ((LocalDate[]) values[recordValueIndex])[recordIndex] = LocalDate.ofEpochDay(0);
+              break;
+            default:
+              break;
+          }
+          tablet.bitMaps[sensorIndex].mark(recordIndex);
+          sensorIndex++;
+          continue;
+        }
         switch (sensors.get(sensorIndex).getSensorType()) {
           case BOOLEAN:
             boolean[] sensorsBool = (boolean[]) values[recordValueIndex];
-            sensorsBool[recordIndex] =
-                (boolean) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsBool[recordIndex] = (boolean) value;
             break;
           case INT32:
             int[] sensorsInt = (int[]) values[recordValueIndex];
-            sensorsInt[recordIndex] = (int) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsInt[recordIndex] = (int) value;
             break;
           case INT64:
             long[] sensorsLong = (long[]) values[recordValueIndex];
-            sensorsLong[recordIndex] = (long) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsLong[recordIndex] = (long) value;
             break;
           case FLOAT:
             float[] sensorsFloat = (float[]) values[recordValueIndex];
-            sensorsFloat[recordIndex] = (float) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsFloat[recordIndex] = (float) value;
             break;
           case DOUBLE:
             double[] sensorsDouble = (double[]) values[recordValueIndex];
-            sensorsDouble[recordIndex] =
-                (double) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsDouble[recordIndex] = (double) value;
             break;
           case TEXT:
           case STRING:
           case BLOB:
             Binary[] sensorsText = (Binary[]) values[recordValueIndex];
             sensorsText[recordIndex] =
-                binaryCache.computeIfAbsent(
-                    (String) record.getRecordDataValue().get(recordValueIndex),
-                    BytesUtils::valueOf);
+                binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf);
             break;
           case TIMESTAMP:
             long[] sensorsTimestamp = (long[]) values[recordValueIndex];
-            sensorsTimestamp[recordIndex] =
-                (long) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsTimestamp[recordIndex] = (long) value;
             break;
           case DATE:
             LocalDate[] sensorsDate = (LocalDate[]) values[recordValueIndex];
-            sensorsDate[recordIndex] =
-                (LocalDate) (record.getRecordDataValue().get(recordValueIndex));
+            sensorsDate[recordIndex] = (LocalDate) value;
             break;
           default:
             LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
@@ -508,10 +533,14 @@ public class IoTDBSessionBase extends IoTDB {
         recordValueIndex < record.getRecordDataValue().size();
         recordValueIndex++) {
       if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
+        Object value = record.getRecordDataValue().get(recordValueIndex);
+        if (value == null) {
+          // Sparse matrix write (NULL_RATIO): a null cell stays null; casting it to String below
+          // would NPE.
+          continue;
+        }
         dataValue.set(
-            recordValueIndex,
-            binaryCache.computeIfAbsent(
-                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
+            recordValueIndex, binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf));
       }
     }
     return dataValue;

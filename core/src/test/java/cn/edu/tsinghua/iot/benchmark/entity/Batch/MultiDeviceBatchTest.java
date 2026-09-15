@@ -20,6 +20,8 @@
 package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 
 import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
+import cn.edu.tsinghua.iot.benchmark.conf.Config;
+import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
@@ -39,6 +41,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class MultiDeviceBatchTest extends BenchmarkTestBase {
+
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private DeviceSchema buildSchema(String device, List<Sensor> sensors) {
     return new DeviceSchema(device, sensors, new HashMap<>());
@@ -158,5 +162,77 @@ public class MultiDeviceBatchTest extends BenchmarkTestBase {
     batch.addSchemaAndContent(buildSchema("d3", twoFieldsOneTag()), buildRecords(4, 3));
     // 2 (FIELD) * 3 (recordLists size) * 4 (records.get(0).size()) = 24
     assertEquals(24L, batch.pointNum());
+  }
+
+  /** Sparse matrix write: nothing is written when every cell of every device is null. */
+  @Test
+  public void testNonNullPointNumFullyNull() {
+    MultiDeviceBatch batch = new MultiDeviceBatch(2);
+    batch.addSchemaAndContent(buildSchema("d1", twoFieldsOneTag()), buildNullRecords(4, 3));
+    batch.addSchemaAndContent(buildSchema("d2", twoFieldsOneTag()), buildNullRecords(4, 3));
+    assertEquals(16L, batch.pointNum());
+    assertEquals(0L, batch.nonNullPointNum());
+  }
+
+  @Test
+  public void testNonNullPointNumPartiallyNull() {
+    MultiDeviceBatch batch = new MultiDeviceBatch(1);
+    // 2 records, 2 FIELD columns each: 4 reserved points, with one null FIELD cell per record.
+    List<Record> records = new LinkedList<>();
+    records.add(new Record(0, new ArrayList<>(Arrays.asList("v0", null, "t"))));
+    records.add(new Record(1, new ArrayList<>(Arrays.asList(null, "v1", "t"))));
+    batch.addSchemaAndContent(buildSchema("d1", twoFieldsOneTag()), records);
+    assertEquals(4L, batch.pointNum());
+    assertEquals(2L, batch.nonNullPointNum());
+  }
+
+  /** Nothing is null, so the written count matches the reserved one. */
+  @Test
+  public void testNonNullPointNumEqualsPointNumWhenNothingIsNull() {
+    MultiDeviceBatch batch = new MultiDeviceBatch(2);
+    batch.addSchemaAndContent(buildSchema("d1", twoFieldsOneTag()), buildRecords(4, 3));
+    batch.addSchemaAndContent(buildSchema("d2", twoFieldsOneTag()), buildRecords(4, 3));
+    assertEquals("2 FIELD columns x 2 devices x 4 records", 16L, batch.pointNum());
+    assertEquals(16L, batch.nonNullPointNum());
+  }
+
+  /**
+   * The table model appends its ID columns (device id and tags) to every record inside {@code
+   * insertOneBatch}, and the wrapper measures only afterwards. Those appended values are not
+   * points, so the count must stop at the last sensor - otherwise it would report more points than
+   * {@code pointNum()}, which is the exact inflation this method exists to prevent. Verified
+   * against the live table-model adapter, where the raw value count was 16 while only 8 points were
+   * written.
+   */
+  @Test
+  public void testNonNullPointNumIgnoresAppendedIdColumns() {
+    MultiDeviceBatch batch = new MultiDeviceBatch(1);
+    List<Record> records = new LinkedList<>();
+    for (int i = 0; i < 4; i++) {
+      // 3 schema columns (s1 FIELD, s2 FIELD, s3 TAG), then the appended device_id and tag values
+      records.add(new Record(i, new ArrayList<>(Arrays.asList("v0", null, "t", "d1", "beijing"))));
+    }
+    batch.addSchemaAndContent(buildSchema("d1", twoFieldsOneTag()), records);
+
+    assertEquals("reserved: 2 FIELD columns x 4 records", 8L, batch.pointNum());
+    assertEquals(
+        "one null per record, and the appended ID values are not points",
+        4L,
+        batch.nonNullPointNum());
+    assertTrue(
+        "the written count must never exceed the reserved count",
+        batch.nonNullPointNum() <= batch.pointNum());
+  }
+
+  private List<Record> buildNullRecords(int count, int valuesPerRecord) {
+    List<Record> records = new LinkedList<>();
+    for (int i = 0; i < count; i++) {
+      List<Object> values = new ArrayList<>();
+      for (int j = 0; j < valuesPerRecord; j++) {
+        values.add(null);
+      }
+      records.add(new Record(i, values));
+    }
+    return records;
   }
 }

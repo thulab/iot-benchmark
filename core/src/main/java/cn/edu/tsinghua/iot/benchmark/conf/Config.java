@@ -219,6 +219,14 @@ public class Config {
   private double TS_ALIGNMENT_RATIO = 1.0;
 
   /**
+   * The ratio of null values per row and per column (sparse matrix write). Each cell is null with
+   * probability NULL_RATIO independently. 0.0 = disabled (dense); 0.9 = 90% of cells are null.
+   * Supported for IoTDB-1.3 (tree model) and IoTDB-2.0 (tree and table model) switches with the
+   * SESSION_BY_TABLET / JDBC insert modes.
+   */
+  private double NULL_RATIO = 0.0;
+
+  /**
    * whether the device is bind to client if true: number of dataClients <= devices if false: number
    * of dataClients can larger than devices
    */
@@ -1058,6 +1066,14 @@ public class Config {
 
   public void setTS_ALIGNMENT_RATIO(double TS_ALIGNMENT_RATIO) {
     this.TS_ALIGNMENT_RATIO = TS_ALIGNMENT_RATIO;
+  }
+
+  public double getNULL_RATIO() {
+    return NULL_RATIO;
+  }
+
+  public void setNULL_RATIO(double NULL_RATIO) {
+    this.NULL_RATIO = NULL_RATIO;
   }
 
   public boolean isIS_CLIENT_BIND() {
@@ -2043,6 +2059,8 @@ public class Config {
         + IS_SENSOR_TS_ALIGNMENT
         + "\nTS_ALIGNMENT_RATIO="
         + TS_ALIGNMENT_RATIO
+        + "\nNULL_RATIO="
+        + NULL_RATIO
         + "\nDATA_SEED="
         + DATA_SEED
         + "\nSG_STRATEGY='"
@@ -2123,6 +2141,7 @@ public class Config {
     if (!this.IS_SENSOR_TS_ALIGNMENT) {
       configProperties.addProperty("Data Mode", "TS_ALIGNMENT_RATIO", this.TS_ALIGNMENT_RATIO);
     }
+    configProperties.addProperty("Data Mode", "NULL_RATIO", this.NULL_RATIO);
     configProperties.addProperty("Data Mode", "IS_OUT_OF_ORDER", this.IS_OUT_OF_ORDER);
     configProperties.addProperty("Data Mode", "OUT_OF_ORDER_RATIO", this.OUT_OF_ORDER_RATIO);
     configProperties.addProperty("Data Amount", "OPERATION_PROPORTION", this.OPERATION_PROPORTION);

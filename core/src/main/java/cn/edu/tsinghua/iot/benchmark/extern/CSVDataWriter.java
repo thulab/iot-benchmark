@@ -69,8 +69,14 @@ public class CSVDataWriter extends DataWriter {
         for (Record record : batch.getRecords()) {
           StringBuffer line = new StringBuffer(String.valueOf(record.getTimestamp()));
           for (int i = 0; i < sensors.size(); i++) {
-            Object value = null;
-            value = record.getRecordDataValue().get(i);
+            Object value = record.getRecordDataValue().get(i);
+            // Sparse matrix write (NULL_RATIO): a null cell is written as an empty field, which is
+            // how CSVDataReader recognizes it again. String.valueOf would emit the literal "null",
+            // which the reader would parse as a value (and fail to, for numeric columns).
+            if (value == null) {
+              line.append(",");
+              continue;
+            }
             if (value instanceof String) {
               value = "\"" + value + "\"";
             }

@@ -93,6 +93,35 @@ public class MultiDeviceBatch implements IBatch {
     return pointNum;
   }
 
+  /**
+   * See {@link IBatch#nonNullPointNum()}; this counts across every device of the batch.
+   *
+   * <p>{@code pointNum()} uses the first schema for every device, so this does too. The table model
+   * appends its ID columns (device id and tags) to each record before the wrapper measures, so the
+   * count is paired with the schema and stops at the last sensor - positions past it are IDs, not
+   * points.
+   */
+  @Override
+  public long nonNullPointNum() {
+    if (recordLists.isEmpty()) {
+      return 0L;
+    }
+    List<Sensor> sensors = deviceSchemas.get(0).getSensors();
+    long pointNum = 0;
+    for (List<Record> records : recordLists) {
+      for (Record record : records) {
+        List<Object> values = record.getRecordDataValue();
+        int limit = Math.min(values.size(), sensors.size());
+        for (int i = 0; i < limit; i++) {
+          if (sensors.get(i).getColumnCategory() == ColumnCategory.FIELD && values.get(i) != null) {
+            pointNum++;
+          }
+        }
+      }
+    }
+    return pointNum;
+  }
+
   @Override
   public void reset() {
     index = 0;

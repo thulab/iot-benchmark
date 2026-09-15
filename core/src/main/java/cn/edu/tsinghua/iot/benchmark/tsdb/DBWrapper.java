@@ -110,11 +110,11 @@ public class DBWrapper implements IDatabase {
       throw ex;
     } catch (Exception e) {
       measurement.addFailOperationNum(operation);
-      measurement.addFailPointNum(operation, batch.pointNum());
+      measurement.addFailPointNum(operation, batch.nonNullPointNum());
       recorder.saveOperationResultAsync(
           operation.getName(),
           0,
-          batch.pointNum(),
+          batch.nonNullPointNum(),
           0,
           e.toString(),
           batch.getDeviceSchema().getDevice());
@@ -127,12 +127,16 @@ public class DBWrapper implements IDatabase {
   private Status measureOneBatch(Status status, Operation operation, IBatch batch, long start) {
     long end = System.nanoTime();
     status.setTimeCost(end - start);
+    // Sparse writes (NULL_RATIO > 0) omit null cells from the request, so only the non-null ones
+    // may be reported as written points; otherwise the throughput would be inflated by 1/(1 -
+    // NULL_RATIO).
+    long pointNum = batch.nonNullPointNum();
     if (status.isOk()) {
-      measureOkOperation(status, operation, batch.pointNum(), batch.getDeviceSchema().getDevice());
+      measureOkOperation(status, operation, pointNum, batch.getDeviceSchema().getDevice());
       if (!config.isIS_QUIET_MODE()) {
         double timeInMillis = status.getTimeCost() / NANO_TO_MILLIS;
         String formatTimeInMillis = String.format("%.2f", timeInMillis);
-        double throughput = batch.pointNum() * 1000 / timeInMillis;
+        double throughput = pointNum * 1000 / timeInMillis;
         LOGGER.info(
             "{} insert one batch latency (device: {}, sg: {}) ,{}, ms, throughput ,{}, points/s",
             Thread.currentThread().getName(),
@@ -143,11 +147,11 @@ public class DBWrapper implements IDatabase {
       }
     } else {
       measurement.addFailOperationNum(operation);
-      measurement.addFailPointNum(operation, batch.pointNum());
+      measurement.addFailPointNum(operation, pointNum);
       recorder.saveOperationResultAsync(
           operation.getName(),
           0,
-          batch.pointNum(),
+          pointNum,
           0,
           status.getException().toString(),
           batch.getDeviceSchema().getDevice());

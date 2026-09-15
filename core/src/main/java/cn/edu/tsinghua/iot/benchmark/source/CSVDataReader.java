@@ -88,6 +88,14 @@ public class CSVDataReader extends DataReader {
         long timestamp = Long.parseLong(values[0]);
         List<Object> recordValues = new ArrayList<>();
         for (int i = 1; i < values.length; i++) {
+          // Sparse matrix write (NULL_RATIO): CSVDataWriter emits an empty field for a null cell.
+          // Parse it as null for every type instead of feeding "" to the typed parser, which would
+          // throw for numbers/dates and silently turn a null boolean into false and a null string
+          // into the text "".
+          if (values[i].isEmpty()) {
+            recordValues.add(null);
+            continue;
+          }
           switch (sensors.get(i - 1).getSensorType()) {
             case BOOLEAN:
               recordValues.add(Boolean.parseBoolean(values[i]));

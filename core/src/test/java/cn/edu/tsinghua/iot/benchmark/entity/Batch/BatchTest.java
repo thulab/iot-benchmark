@@ -20,6 +20,8 @@
 package cn.edu.tsinghua.iot.benchmark.entity.Batch;
 
 import cn.edu.tsinghua.iot.benchmark.BenchmarkTestBase;
+import cn.edu.tsinghua.iot.benchmark.conf.Config;
+import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.entity.Record;
 import cn.edu.tsinghua.iot.benchmark.entity.Sensor;
 import cn.edu.tsinghua.iot.benchmark.entity.enums.ColumnCategory;
@@ -40,6 +42,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class BatchTest extends BenchmarkTestBase {
+
+  private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   private DeviceSchema buildSchema(String device, List<Sensor> sensors) {
     return new DeviceSchema(device, sensors, new HashMap<>());
@@ -114,6 +118,114 @@ public class BatchTest extends BenchmarkTestBase {
                 new Sensor("s2", SensorType.INT64, ColumnCategory.TAG)));
     Batch batch = new Batch(schema, new LinkedList<>());
     assertEquals(0L, batch.pointNum());
+  }
+
+  /**
+   * Sparse matrix write: pointNum() counts the reserved cells, nonNullPointNum() the ones actually
+   * written. {@code NULL_RATIO=1} means every cell is null, so nothing is written even though the
+   * batch still reserves full capacity.
+   */
+  @Test
+  public void testNonNullPointNumFullyNullBatch() {
+    DeviceSchema schema =
+        buildSchema(
+            "d1",
+            Arrays.asList(
+                new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+                new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+    Batch batch = new Batch(schema, buildNullRecords(10, 2));
+    assertEquals("the reserved cell count is unchanged", 20L, batch.pointNum());
+    assertEquals("a fully null batch writes no point", 0L, batch.nonNullPointNum());
+  }
+
+  @Test
+  public void testNonNullPointNumPartiallyNullBatch() {
+    DeviceSchema schema =
+        buildSchema(
+            "d1",
+            Arrays.asList(
+                new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+                new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+    // 3 records x 2 columns, with one null in each record: 3 of 6 cells are written.
+    List<Record> records = new LinkedList<>();
+    records.add(new Record(0, new ArrayList<>(Arrays.asList(null, "v1"))));
+    records.add(new Record(1, new ArrayList<>(Arrays.asList("v0", null))));
+    records.add(new Record(2, new ArrayList<>(Arrays.asList(null, "v1"))));
+    Batch batch = new Batch(schema, records);
+    assertEquals(6L, batch.pointNum());
+    assertEquals(3L, batch.nonNullPointNum());
+  }
+
+  /** Tag and attribute columns are never written as points, null or not. */
+  @Test
+  public void testNonNullPointNumCountsOnlyNonNullCells() {
+    DeviceSchema schema =
+        buildSchema(
+            "d1",
+            Arrays.asList(
+                new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+                new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+    Batch batch = new Batch(schema, buildNullRecords(4, 2));
+    assertEquals(8L, batch.pointNum());
+    assertEquals(0L, batch.nonNullPointNum());
+  }
+
+  /** With sparse writes disabled nothing can be null, so the two counts must agree. */
+  @Test
+  public void testNonNullPointNumEqualsPointNumWhenDense() {
+    DeviceSchema schema =
+        buildSchema(
+            "d1",
+            Arrays.asList(
+                new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+                new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+    Batch batch = new Batch(schema, buildRecords(3, 2));
+    assertEquals(batch.pointNum(), batch.nonNullPointNum());
+    assertEquals(6L, batch.nonNullPointNum());
+  }
+
+  /**
+   * The count comes from the data, not from {@code NULL_RATIO}. A null can arrive without the
+   * configuration asking for one - a caller building Records directly, or real data feeding a
+   * verification mode - and gating the count on the config would report those null cells as written
+   * points. Found by calling the real write path against a live database with nulls but {@code
+   * NULL_RATIO=0}.
+   */
+  @Test
+  public void testNonNullPointNumCountsNullsEvenWhenNullRatioIsZero() {
+    DeviceSchema schema =
+        buildSchema(
+            "d1",
+            Arrays.asList(
+                new Sensor("s1", SensorType.DOUBLE, ColumnCategory.FIELD),
+                new Sensor("s2", SensorType.INT64, ColumnCategory.FIELD)));
+    double original = config.getNULL_RATIO();
+    try {
+      config.setNULL_RATIO(0.0);
+      List<Record> records = new LinkedList<>();
+      records.add(new Record(0, new ArrayList<>(Arrays.asList(null, 1L))));
+      records.add(new Record(1, new ArrayList<>(Arrays.asList(2.5D, null))));
+      Batch batch = new Batch(schema, records);
+      assertEquals("the reserved cell count is unaffected", 4L, batch.pointNum());
+      assertEquals(
+          "NULL_RATIO=0 must not make the count blind to nulls that are really there",
+          2L,
+          batch.nonNullPointNum());
+    } finally {
+      config.setNULL_RATIO(original);
+    }
+  }
+
+  private List<Record> buildNullRecords(int count, int valuesPerRecord) {
+    List<Record> records = new LinkedList<>();
+    for (int i = 0; i < count; i++) {
+      List<Object> values = new ArrayList<>();
+      for (int j = 0; j < valuesPerRecord; j++) {
+        values.add(null);
+      }
+      records.add(new Record(i, values));
+    }
+    return records;
   }
 
   @Test

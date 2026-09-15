@@ -104,7 +104,7 @@ public class SessionStrategy extends DMLStrategy {
   }
 
   private Status insertOneBatchByTablet(IBatch batch) {
-    Tablet tablet = genTablet(batch);
+    Tablet tablet = genTablet(iotdb, batch);
     task =
         service.submit(
             () -> {
@@ -117,7 +117,7 @@ public class SessionStrategy extends DMLStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
-  private Tablet genTablet(IBatch batch) {
+  static Tablet genTablet(IoTDB iotdb, IBatch batch) {
     List<IMeasurementSchema> schemaList = new ArrayList<>();
     List<ColumnCategory> columnTypes = new ArrayList<>();
     List<Sensor> sensors = batch.getDeviceSchema().getSensors();
@@ -158,37 +158,33 @@ public class SessionStrategy extends DMLStrategy {
         for (int recordValueIndex = 0;
             recordValueIndex < record.getRecordDataValue().size();
             recordValueIndex++) {
+          Object value = record.getRecordDataValue().get(recordValueIndex);
+          // Sparse matrix write (NULL_RATIO): a cell left untouched in the Tablet is naturally
+          // null, so a null value needs no addValue call at all. addTimestamp already ran
+          // initBitMapsWithApiUsage, which markAll()s every column, and each typed addValue
+          // unmarks only its own cell - so skipping the call leaves this cell marked, i.e. null.
+          // The typed overloads below would NPE on a null, and the measurement-name overload
+          // would reach the same place indirectly.
+          if (value == null) {
+            sensorIndex++;
+            continue;
+          }
           switch (sensors.get(sensorIndex).getSensorType()) {
             case BOOLEAN:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (boolean) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (boolean) value);
               break;
             case INT32:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (int) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (int) value);
               break;
             case INT64:
             case TIMESTAMP:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (long) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (long) value);
               break;
             case FLOAT:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (float) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (float) value);
               break;
             case DOUBLE:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (double) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (double) value);
               break;
             case TEXT:
             case STRING:
@@ -196,25 +192,13 @@ public class SessionStrategy extends DMLStrategy {
               tablet.addValue(
                   recordIndex,
                   recordValueIndex,
-                  binaryCache
-                      .computeIfAbsent(
-                          (String) record.getRecordDataValue().get(recordValueIndex),
-                          BytesUtils::valueOf)
-                      .getValues());
+                  binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf).getValues());
               break;
             case OBJECT:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  true,
-                  0,
-                  (byte[]) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, true, 0, (byte[]) value);
               break;
             case DATE:
-              tablet.addValue(
-                  recordIndex,
-                  recordValueIndex,
-                  (LocalDate) record.getRecordDataValue().get(recordValueIndex));
+              tablet.addValue(recordIndex, recordValueIndex, (LocalDate) value);
               break;
             default:
               LOGGER.error("Unsupported Type: {}", sensors.get(sensorIndex).getSensorType());
@@ -297,17 +281,28 @@ public class SessionStrategy extends DMLStrategy {
     return waitWriteTaskToFinishAndGetStatus();
   }
 
-  private List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
+  /**
+   * Rewrites BLOB columns from String to Binary, leaving every other column (and every null)
+   * untouched.
+   *
+   * <p>Static because it depends only on its arguments and the static {@code binaryCache}; that
+   * lets the null-handling be unit tested without opening a session.
+   */
+  static List<Object> convertTypeForBLOB(Record record, List<TSDataType> dataTypes) {
     // String change to Binary
     List<Object> dataValue = record.getRecordDataValue();
     for (int recordValueIndex = 0;
         recordValueIndex < record.getRecordDataValue().size();
         recordValueIndex++) {
       if (Objects.requireNonNull(dataTypes.get(recordValueIndex)) == TSDataType.BLOB) {
+        Object value = record.getRecordDataValue().get(recordValueIndex);
+        if (value == null) {
+          // Sparse matrix write (NULL_RATIO): a null cell stays null; casting it to String below
+          // would NPE.
+          continue;
+        }
         dataValue.set(
-            recordValueIndex,
-            binaryCache.computeIfAbsent(
-                (String) record.getRecordDataValue().get(recordValueIndex), BytesUtils::valueOf));
+            recordValueIndex, binaryCache.computeIfAbsent((String) value, BytesUtils::valueOf));
       }
     }
     return dataValue;
