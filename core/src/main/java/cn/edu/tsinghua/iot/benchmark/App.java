@@ -23,6 +23,7 @@ import cn.edu.tsinghua.iot.benchmark.conf.Config;
 import cn.edu.tsinghua.iot.benchmark.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iot.benchmark.measurement.persistence.csv.CSVShutdownHook;
 import cn.edu.tsinghua.iot.benchmark.mode.BaseMode;
+import cn.edu.tsinghua.iot.benchmark.mode.FixedQueryMode;
 import cn.edu.tsinghua.iot.benchmark.mode.GenerateDataMode;
 import cn.edu.tsinghua.iot.benchmark.mode.TestWithDefaultPathMode;
 import cn.edu.tsinghua.iot.benchmark.mode.VerificationQueryMode;
@@ -63,6 +64,9 @@ public class App {
         break;
       case VERIFICATION_QUERY:
         baseMode = new VerificationQueryMode();
+        break;
+      case FIXED_QUERY:
+        baseMode = new FixedQueryMode();
         break;
       default:
         throw new SQLException("Unsupported mode:" + config.getBENCHMARK_WORK_MODE());
