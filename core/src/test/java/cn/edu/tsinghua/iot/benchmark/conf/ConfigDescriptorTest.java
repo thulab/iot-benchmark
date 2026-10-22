@@ -50,6 +50,7 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
   private boolean originalDoubleWrite;
   private DBSwitch originalDbSwitch;
   private DBSwitch originalAnotherDbSwitch;
+  private String originalOperationProportion;
 
   @Before
   public void before() {
@@ -63,6 +64,7 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     originalDoubleWrite = config.isIS_DOUBLE_WRITE();
     originalDbSwitch = config.getDbConfig().getDB_SWITCH();
     originalAnotherDbSwitch = config.getANOTHER_DBConfig().getDB_SWITCH();
+    originalOperationProportion = config.getOPERATION_PROPORTION();
   }
 
   @After
@@ -78,6 +80,7 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     config.setIS_DOUBLE_WRITE(originalDoubleWrite);
     config.getDbConfig().setDB_SWITCH(originalDbSwitch);
     config.getANOTHER_DBConfig().setDB_SWITCH(originalAnotherDbSwitch);
+    config.setOPERATION_PROPORTION(originalOperationProportion);
   }
 
   /**
@@ -118,6 +121,36 @@ public class ConfigDescriptorTest extends BenchmarkTestBase {
     config.setIOTDB_THRIFT_MAX_FRAME_SIZE(0);
     assertFalse(
         "IoTDB Thrift max frame size must be positive",
+        ConfigDescriptor.getInstance().checkConfig());
+  }
+
+  /**
+   * OPERATION_PROPORTION is matched against the operations this version supports: fewer values are
+   * padded with 0, more values must be rejected. A config with more values than supported
+   * operations used to make the padding loop spin forever (the appended values never brought the
+   * length back to the expected one), so the benchmark hung at startup with high CPU and no error
+   * message.
+   */
+  @Test
+  public void testOperationProportionLongerThanSupportedOperationsIsRejected() {
+    config.setBENCHMARK_WORK_MODE(BenchmarkMode.TEST_WITH_DEFAULT_PATH);
+    config.setIS_CLIENT_BIND(true);
+    config.setSCHEMA_CLIENT_NUMBER(1);
+    config.setDATA_CLIENT_NUMBER(1);
+    config.setDEVICE_NUMBER(200);
+
+    // baseline: fewer values than supported operations are padded with 0
+    config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0:0:0:0");
+    assertTrue(
+        "a shorter OPERATION_PROPORTION must be accepted and padded",
+        ConfigDescriptor.getInstance().checkConfig());
+    assertEquals(
+        config.getOPERATION_PROPORTION_LEN(), config.getOPERATION_PROPORTION().split(":").length);
+
+    // one value more than supported operations: rejected, not an endless loop
+    config.setOPERATION_PROPORTION("1:0:0:0:0:0:0:0:0:0:0:0:0:0");
+    assertFalse(
+        "an OPERATION_PROPORTION with more values than supported operations must be rejected",
         ConfigDescriptor.getInstance().checkConfig());
   }
 

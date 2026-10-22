@@ -894,11 +894,22 @@ public class ConfigDescriptor {
   }
 
   private boolean checkOperationProportion() {
-    while (config.getOPERATION_PROPORTION().split(":").length
-        != config.getOPERATION_PROPORTION_LEN()) {
-      config.setOPERATION_PROPORTION(config.getOPERATION_PROPORTION() + ":0");
-    }
+    int proportionLen = config.getOPERATION_PROPORTION_LEN();
     String[] op = config.getOPERATION_PROPORTION().split(":");
+    if (op.length > proportionLen) {
+      LOGGER.error(
+          "OPERATION_PROPORTION has {} values, but only {} operations are supported",
+          op.length,
+          proportionLen);
+      return false;
+    }
+    // fewer values than supported operations: pad with 0 to keep the historical behavior
+    StringBuilder proportion = new StringBuilder(config.getOPERATION_PROPORTION());
+    for (int i = op.length; i < proportionLen; i++) {
+      proportion.append(":0");
+    }
+    config.setOPERATION_PROPORTION(proportion.toString());
+    op = config.getOPERATION_PROPORTION().split(":");
     int minOps = 0;
     for (String s : op) {
       if (Double.parseDouble(s) > 1e-7) {
